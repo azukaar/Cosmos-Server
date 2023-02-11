@@ -1,0 +1,32 @@
+{
+    "author": "Yann Stepienik",
+    "cli": {
+        "aliases": {
+            "start": "build/bin",
+            "certificate": "sh generate-certificate.sh"
+        }
+    },
+    "dependencies": {
+        "default": {
+            "go://github.com/go-playground/validator/v10": "master",
+            "go://github.com/gorilla/mux": "master",
+            "go://github.com/imdario/mergo": "master",
+            "go://github.com/joho/godotenv": "master",
+            "go://github.com/lib/pq": "master",
+            "go://github.com/pquerna/ffjson": "master",
+            "go://go.mongodb.org/mongo-driver": "master",
+            "go://gopkg.in/ffmt.v1": "v1.5.6",
+            "npm://@esbuild/linux-x64": "0.16.17",
+            "npm://@vitejs/plugin-react": "3.1.0",
+            "npm://react": "18.2.0",
+            "npm://react-dom": "18.2.0",
+            "npm://typescript": "4.9.5",
+            "npm://vite": "4.1.1"
+        },
+        "defaultProvider": "go"
+    },
+    "description": "MyData file server",
+    "license": "ISC",
+    "name": "myFileServer",
+    "wrapInstallFolder": "src"
+}

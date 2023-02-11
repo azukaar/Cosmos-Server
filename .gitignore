@@ -1,0 +1,10 @@
+go_modules
+gupm_modules
+node_modules
+build
+dev.gs
+localcert.csr
+localcert.crt
+localcert.key
+.vite
+dev.json
