@@ -9,3 +9,4 @@ localcert.key
 .vite
 dev.json
 .bin
+client/dist
