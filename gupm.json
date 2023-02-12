@@ -2,13 +2,15 @@
     "author": "Yann Stepienik",
     "cli": {
         "aliases": {
-            "start": "build/bin",
-            "certificate": "sh generate-certificate.sh"
+            "certificate": "sh generate-certificate.sh",
+            "start": "build/bin"
         }
     },
     "dependencies": {
         "default": {
             "go://github.com/go-playground/validator/v10": "master",
+            "go://github.com/golang-jwt/jwt": "master",
+            "go://github.com/golang/crypto/": "master",
             "go://github.com/gorilla/mux": "master",
             "go://github.com/imdario/mergo": "master",
             "go://github.com/joho/godotenv": "master",

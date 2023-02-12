@@ -36,3 +36,19 @@ func FileExists(path string) bool {
 	log.Println(err)
 	return false
 }
+
+func GetHash() string {
+	return "hash"
+}
+
+func GetRootAppId() string {
+	return "GUCO"
+}
+
+func GetPrivateAuthKey() string {
+	return "private"
+}
+
+func GenerateRandomString(len int) string {
+	return "random"
+}

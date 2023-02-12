@@ -21,9 +21,9 @@ var defaultConfig = GucoConfiguration{
 }
 
 func GetConfigs() GucoConfiguration {
-	c := GetCollection("GUCO", "Configurations")
+	c := GetCollection(GetRootAppId(), "Configurations")
 	config := GucoConfiguration{}
-	err := c.FindOne(context.TODO(), bson.M{"_id": "GUCO"}).Decode(&config)
+	err := c.FindOne(context.TODO(), bson.M{"_id": GetRootAppId()}).Decode(&config)
 	if err == mongo.ErrNoDocuments {
     log.Println("Record does not exist")
 	} else if err != nil {
@@ -40,10 +40,10 @@ func SetConfig(config GucoConfiguration) {
 	
 	mergo.Merge(&config, currentConfig)
 
-	c := GetCollection("GUCO", "Configurations")
+	c := GetCollection(GetRootAppId(), "Configurations")
 
 	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{"_id", "GUCO"}}
+	filter := bson.D{{"_id", GetRootAppId()}}
 	update := bson.D{{"$set", config}}
 
 	_, err := c.UpdateOne(context.Background(), filter, update, opts)

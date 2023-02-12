@@ -25,5 +25,7 @@ type FileStats struct {
 type User struct {
 	Nickname      string     `validate:"required"`
 	Password       string    `validate:"required"`
+	RegisterKey       string
+	RegisterKeyExp       time.Time
 	Role       Role    `validate:"required"`
 }

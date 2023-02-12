@@ -3,9 +3,11 @@ package user
 import (
 	"net/http"
 	"log"
-	// "io"
-	// "os"
+	"math/rand"
 	"encoding/json"
+	"go.mongodb.org/mongo-driver/mongo"
+	"time"
+	"golang.org/x/crypto/bcrypt"
 
 	"../utils" 
 )
@@ -13,31 +15,61 @@ import (
 func UserRegister(w http.ResponseWriter, req *http.Request) {
 	utils.SetHeaders(w)
 
-	if(req.Method == "GET") {
-		// sedn form
-	}
 	if(req.Method == "POST") {
-		// check origin
+		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
 
-		// check password strength
+		nickname := req.FormValue("nickname")
+	  registerKey := req.FormValue("registerKey")
+	  password := req.FormValue("password")
 
-		user := &utils.User{
-			Nickname: req.FormValue("nickname"),
-			Password: req.FormValue("password"),
-			Role: (utils.Role)(req.FormValue("role")),
+		err := bcrypt.CompareHashAndPassword([]byte(utils.GetHash()), []byte(password))
+
+		if err != nil {
+			log.Println("UserRegister: Encryption error")
+			http.Error(w, "User Register Error", http.StatusUnauthorized)
 		}
 
-		err := utils.Validate.Struct(user)
+		c := utils.GetCollection(utils.GetRootAppId(), "users")
 
-		if(err != nil) {
-			log.Fatal(err)
+		user := utils.User{}
+
+		err = c.FindOne(nil, map[string]interface{}{
+			"Nickname": nickname,
+			"RegisterKey": registerKey,
+			"Password": "",
+		}).Decode(&user)
+
+		if err == mongo.ErrNoDocuments {
+			log.Println("UserRegister: User not found")
+			http.Error(w, "User Register Error", http.StatusNotFound)
+		} else if !user.RegisterKeyExp.Before(time.Now()) {
+			log.Println("UserRegister: Link expired")
+			http.Error(w, "User Register Error", http.StatusNotFound)
+		} else if err != nil {
+			log.Println("UserRegister: Error while finding user")
+			http.Error(w, "User Register Error", http.StatusInternalServerError)
+		} else {
+			_, err := c.UpdateOne(nil, map[string]interface{}{
+				"Nickname": nickname,
+				"RegisterKey": registerKey,
+				"Password": "",
+			}, map[string]interface{}{
+				"Password": password,
+				"RegisterKey": "",
+				"RegisterKeyExp": time.Time{},
+			})
+
+			if err != nil {
+				log.Println("UserRegister: Error while updating user")
+				http.Error(w, "User Register Error", http.StatusInternalServerError)
+			}
 		}
-
-		req.ParseForm()
+		
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"Status": "OK",
+		})
+	} else {
+		log.Println("UserRegister: Method not allowed" + req.Method)
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-
-	// return json object	
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"Status": "OK",
-	})
 }
