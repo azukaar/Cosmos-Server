@@ -5,3 +5,4 @@ env("GOPATH", run("go", ["env", "GOROOT"]) + ":" + pwd() + "/go_modules" + ":" +
 env("MONGODB", readJsonFile("dev.json").MONGODB)
 env("HTTP_PORT", 8080)
 env("HTTPS_PORT", 8443)
+env("CONFIG_FILE", "./config_dev.json")

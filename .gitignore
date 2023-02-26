@@ -10,3 +10,4 @@ localcert.key
 dev.json
 .bin
 client/dist
+config_dev.json
