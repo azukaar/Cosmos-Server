@@ -19,6 +19,8 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 
 And a **lot more planned features** are coming!
 
+![schema](./schema.png)
+
 **If you're a self-hosted application developer**, integrate your application with Cosmos and enjoy **secure authentication**, **robust HTTP layer protection**, **HTTPS support**, **user management**, **encryption**, **logging**, **backup**, and more - all with **minimal effort**. And if your users prefer **not to install** Cosmos, your application will **still work seamlessly**.
 
 # Why use it?
