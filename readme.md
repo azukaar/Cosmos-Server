@@ -42,8 +42,6 @@ you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry)
 
 You can thing tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
 
-```
-
 # How to contribute
 
 ## Setup

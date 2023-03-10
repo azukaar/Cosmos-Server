@@ -1,37 +1,56 @@
 version: 2
 jobs:
-  build:
-    docker:
-      - image: golang:1.20.2-stretch
+  build: # name of your job
+    machine: # executor type
+      image: ubuntu-2004:202010-01 # # recommended linux image - includes Ubuntu 20.04, docker 19.03.13, docker-compose 1.27.4
 
     steps:
       - checkout
 
-      - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+      - run:
+          name: install dependencies
+          command: sudo apt-get install bash curl
+
+      - run:
+          name: download Go
+          command: wget https://golang.org/dl/go1.20.2.linux-amd64.tar.gz
+      
+      - run:
+          name: install Go
+          command: sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.2.linux-amd64.tar.gz
+      
+      - run:
+          name: set Go path
+          command: echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
 
       - run:
           name: Install GuPM
-          command: curl -fsSL  https://azukaar.github.io/GuPM/install.sh | bash
+          command: curl -fsSL https://azukaar.github.io/GuPM/install.sh | bash
+
+      - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
       - run:
           name: Install provider
-          command: g plugin install https://azukaar.github.io/GuPM-official/repo:provider-go
+          command: ~/.gupm/gupm/g plugin install https://azukaar.github.io/GuPM-official/repo:provider-go
 
       - run:
+          name: Install dependencies
+          command: ~/.gupm/gupm/g make
+      - run:
           name: Build Linux (ARM)
-          command: g ci/publish linux arm64
+          command: ~/.gupm/gupm/g ci/build linux arm64
         
       - run:
           name: Build docker (ARM)
-          command: g docker arm64
+          command: ~/.gupm/gupm/g docker arm64
           
       - run:
           name: Build Linux
-          command: g ci/publish linux amd64
+          command: ~/.gupm/gupm/g ci/build linux amd64
         
       - run:
           name: Build docker
-          command: g docker
+          command: ~/.gupm/gupm/g docker
 
 workflows:
   version: 2
