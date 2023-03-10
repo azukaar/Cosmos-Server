@@ -1,14 +1,17 @@
 package main
 
 import (
-	"log"
+	"./utils"
+	"time"
+	"math/rand"
 )
 
 func main() {
-	  log.Println("Starting...")
+	  utils.Log("Starting...")
 
-		config := GetConfig()
+		rand.Seed(time.Now().UnixNano())
 
-		defer StopServer()
-		StartServer(config.HTTPConfig)
+		LoadConfig()
+
+		StartServer()
 }

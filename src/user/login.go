@@ -2,76 +2,77 @@ package user
 
 import (
 	"net/http"
-	"log"
 	"math/rand"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/golang-jwt/jwt"
+	"time"
 
 	"../utils" 
 )
 
-func UserLogin(w http.ResponseWriter, req *http.Request) {
-	utils.SetHeaders(w)
+type LoginRequestJSON struct {
+	Nickname string `validate:"required,min=3,max=32,alphanum"`
+	Password string `validate:"required,min=8,max=128,containsany=!@#$%^&*()_+,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
+}
 
+func UserLogin(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
 
-		nickname := req.FormValue("nickname")
-	  password := req.FormValue("password")
-
-		err := bcrypt.CompareHashAndPassword([]byte(utils.GetHash()), []byte(password))
-
-		if err != nil {
-			log.Println("UserLogin: Encryption error")
-			http.Error(w, "User Logging Error", http.StatusUnauthorized)
+		var request LoginRequestJSON
+		err1 := json.NewDecoder(req.Body).Decode(&request)
+		if err1 != nil {
+			utils.Error("UserLogin: Invalid User Request", err1)
+			utils.HTTPError(w, "User Login Error", http.StatusInternalServerError, "UL001")
+			return
 		}
 
 		c := utils.GetCollection(utils.GetRootAppId(), "users")
 
-		err = c.FindOne(nil, map[string]interface{}{
+		nickname := utils.Sanitize(request.Nickname)
+		password := request.Password
+
+		user := utils.User{}
+
+		utils.Debug("UserLogin: Logging user " + nickname)
+
+		err3 := c.FindOne(nil, map[string]interface{}{
 			"Nickname": nickname,
-			"Password": password,
-		}).Decode(&utils.User{})
+		}).Decode(&user)
 
-		if err == mongo.ErrNoDocuments {
-			log.Println("UserLogin: User not found")
-			http.Error(w, "User Logging Error", http.StatusNotFound)
-		} else if err != nil {
-			log.Println("UserLogin: Error while finding user")
-			http.Error(w, "User Logging Error", http.StatusInternalServerError)
+		if err3 == mongo.ErrNoDocuments {
+			bcrypt.CompareHashAndPassword([]byte("$2a$14$4nzsVwEnR3.jEbMTME7kqeCo4gMgR/Tuk7ivNExvXjr73nKvLgHka"), []byte("dummyPassword"))
+			utils.Error("UserLogin: User not found", err3)
+			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
+			return
+		} else if err3 != nil {
+			bcrypt.CompareHashAndPassword([]byte("$2a$14$4nzsVwEnR3.jEbMTME7kqeCo4gMgR/Tuk7ivNExvXjr73nKvLgHka"), []byte("dummyPassword"))
+			utils.Error("UserLogin: Error while finding user", err3)
+			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
+			return
+		} else if user.Password == "" {
+			utils.Error("UserLogin: User not registered", nil)
+			utils.HTTPError(w, "User not registered", http.StatusUnauthorized, "UL002")
+			return
 		} else {
-			token := jwt.New(jwt.SigningMethodEdDSA)
-			claims := token.Claims.(jwt.MapClaims)
-			claims["exp"] = time.Now().Add(30 * 24 * time.Hour)
-			claims["authorized"] = true
-			claims["nickname"] = nickname
-
-			tokenString, err := token.SignedString(utils.GetPrivateAuthKey())
-
-			if err != nil {
-				log.Println("UserLogin: Error while signing token")
-				http.Error(w, "User Logging Error", http.StatusInternalServerError)
+			err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	
+			if err2 != nil {
+				utils.Error("UserLogin: Encryption error", err2)
+				utils.HTTPError(w, "User Logging Error", http.StatusUnauthorized, "UL001")
+				return
 			}
 
-			expiration := time.Now().Add(30 * 24 * time.Hour)
+			SendUserToken(w, user)
 
-    	cookie := http.Cookie{
-				Name: "jwttoken",
-				Value: tokenString,
-				Expires: expiration,
-			}
-
-			http.SetCookie(w, &cookie)
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"status": "OK",
+			})
 		}
-		
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"Status": "OK",
-		})
 	} else {
-		log.Println("UserLogin: Method not allowed" + req.Method)
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.Error("UserLogin: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
 	}
 }

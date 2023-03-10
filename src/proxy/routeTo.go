@@ -4,13 +4,11 @@ import (
 	"net/http"
 	"net/http/httputil"    
 	"net/url"
-	"log"
+	"../utils"
 	// "io/ioutil"
 	// "io"
 	// "os"
 	// "golang.org/x/crypto/bcrypt"
-
-	// "../utils" 
 )
 
 // NewProxy takes target host and creates a reverse proxy
@@ -24,8 +22,8 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 
 	// upgrade the request to websocket
 	proxy.ModifyResponse = func(resp *http.Response) error {
-		log.Println("[INFO] Response from backend: ", resp.Status)
-		log.Println("[INFO] URL was ", resp.Request.URL)
+		utils.Debug("Response from backend: " + resp.Status)
+		utils.Debug("URL was " + resp.Request.URL.String())
 		return nil
 	}
 

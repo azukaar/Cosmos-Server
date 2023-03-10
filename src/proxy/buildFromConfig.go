@@ -3,18 +3,10 @@ package proxy
 import (
 	"github.com/gorilla/mux"
 	"net/http"
+	"../utils"
 )
 
-type RouteConfig struct {
-	Routing Route
-	Target  string
-}
-
-type Config struct {
-	Routes []RouteConfig
-}
-
-func BuildFromConfig(config Config) *mux.Router {
+func BuildFromConfig(config utils.ProxyConfig) *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/_health", func(w http.ResponseWriter, r *http.Request) {

@@ -2,7 +2,6 @@ package user
 
 import (
 	"net/http"
-	"log"
 	// "io"
 	// "os"
 	"encoding/json"
@@ -13,52 +12,85 @@ import (
 	"../utils" 
 )
 
+type CreateRequestJSON struct {
+	Nickname string `validate:"required,min=3,max=32,alphanum"`
+}
+
 func UserCreate(w http.ResponseWriter, req *http.Request) {
-	utils.SetHeaders(w)
+	if AdminOnly(w, req) != nil {
+		return
+	} 
 
 	if(req.Method == "POST") {
-		nickname := req.FormValue("nickname")
+		var request CreateRequestJSON
+		err1 := json.NewDecoder(req.Body).Decode(&request)
+		if err1 != nil {
+			utils.Error("UserCreation: Invalid User Request", err1)
+			utils.HTTPError(w, "User Creation Error", 
+				http.StatusInternalServerError, "UC001")
+			return 
+		}
+
+		errV := utils.Validate.Struct(request)
+		if errV != nil {
+			utils.Error("UserCreation: Invalid User Request", errV)
+			utils.HTTPError(w, "User Creation Error: " + errV.Error(),
+				http.StatusInternalServerError, "UC003")
+			return 
+		}
+		
+		nickname := utils.Sanitize(request.Nickname)
 
 		c := utils.GetCollection(utils.GetRootAppId(), "users")
 
 		user := utils.User{}
 
-		err := c.FindOne(nil, map[string]interface{}{
+		utils.Debug("UserCreation: Creating user " + nickname)
+
+		err2 := c.FindOne(nil, map[string]interface{}{
 			"Nickname": nickname,
 		}).Decode(&user)
 
-		if err != mongo.ErrNoDocuments {
-			log.Println("UserCreation: User already exists")
-			http.Error(w, "User Creation Error", http.StatusNotFound)
-		} else if err != nil {
-			log.Println("UserCreation: Error while finding user")
-			http.Error(w, "User Creation Error", http.StatusInternalServerError)
-		} else {
-
+		if err2 == mongo.ErrNoDocuments {
 			RegisterKey := utils.GenerateRandomString(24)
 			RegisterKeyExp := time.Now().Add(time.Hour * 24 * 7)
 
-			_, err := c.InsertOne(nil, map[string]interface{}{
+			_, err3 := c.InsertOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"Password": "",
 				"RegisterKey": RegisterKey,
 				"RegisterKeyExp": RegisterKeyExp,
 				"Role": utils.USER,
+				"PasswordCycle": 0,
+				"CreatedAt": time.Now(),
 			})
 
-			if err != nil {
-				log.Println("UserCreation: Error while creating user")
-				http.Error(w, "User Creation Error", http.StatusInternalServerError)
+			if err3 != nil {
+				utils.Error("UserCreation: Error while creating user", err3)
+				utils.HTTPError(w, "User Creation Error", 
+					http.StatusInternalServerError, "UC001")
+				return 
 			} 
 			
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"Status": "OK",
-				"RegisterKey": RegisterKey,
-				"RegisterKeyExp": RegisterKeyExp,
+				"status": "OK",
+				"data": map[string]interface{}{
+					"registerKey": RegisterKey,
+					"registerKeyExp": RegisterKeyExp,
+				},
 			})
+		} else if err2 == nil {
+			utils.Error("UserCreation: User already exists", nil)
+			utils.HTTPError(w, "User already exists", http.StatusConflict, "UC002")
+		  return 
+		} else {
+			utils.Error("UserCreation: Error while finding user", err2)
+			utils.HTTPError(w, "User Creation Error", http.StatusInternalServerError, "UC001")
+			return 
 		}
 	} else {
-		log.Println("UserCreation: Method not allowed" + req.Method)
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.Error("UserCreation: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
 	}
 }

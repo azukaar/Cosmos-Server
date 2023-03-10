@@ -11,3 +11,6 @@ dev.json
 .bin
 client/dist
 config_dev.json
+tests
+todo.txt
+config_dev.backup.json

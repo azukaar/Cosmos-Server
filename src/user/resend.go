@@ -2,7 +2,6 @@ package user
 
 import (
 	"net/http"
-	"log"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
@@ -10,50 +9,78 @@ import (
 	"../utils" 
 )
 
+type InviteRequestJSON struct {
+	Nickname string `validate:"required,min=3,max=32,alphanum"`
+}
+
 func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
-	utils.SetHeaders(w)
-
 	if(req.Method == "POST") {
-		id := req.FormValue("id")
+		var request InviteRequestJSON
+		err1 := json.NewDecoder(req.Body).Decode(&request)
+		if err1 != nil {
+			utils.Error("UserInvite: Invalid User Request", err1)
+			utils.HTTPError(w, "User Send Invite Error", http.StatusInternalServerError, "US001")
+			return
+		}
 
+		nickname := utils.Sanitize(request.Nickname)
+
+		if AdminOrItselfOnly(w, req, nickname) != nil {
+			return
+		}
+
+		utils.Debug("Re-Sending an invite to " + nickname)
+		
 		c := utils.GetCollection(utils.GetRootAppId(), "users")
 
 		user := utils.User{}
 
+		// TODO: If not logged in as Admin, check email too
+
 		err := c.FindOne(nil, map[string]interface{}{
-			"_id": id,
+			"Nickname": nickname,
 		}).Decode(&user)
 
 		if err == mongo.ErrNoDocuments {
-			log.Println("UserResend: User not found")
-			http.Error(w, "User Resend Invite Error", http.StatusNotFound)
+			utils.Error("UserInvite: User not found", err)
+			utils.HTTPError(w, "User Send Invite Error", http.StatusNotFound, "US001")
+			return
 		} else if err != nil {
-			log.Println("UserResend: Error while finding user")
-			http.Error(w, "User Resend Invite Error", http.StatusInternalServerError)
+			utils.Error("UserInvite: Error while finding user", err)
+			utils.HTTPError(w, "User Send Invite Error", http.StatusInternalServerError, "US001")
+			return
 		} else {
 			RegisterKeyExp := time.Now().Add(time.Hour * 24 * 7)
+			RegisterKey := utils.GenerateRandomString(24)
 
 			_, err := c.UpdateOne(nil, map[string]interface{}{
-				"_id": id,
+				"nickname": nickname,
 			}, map[string]interface{}{
 				"$set": map[string]interface{}{
 					"RegisterKeyExp": RegisterKeyExp,
+					"RegisterKey": RegisterKey,
 				},
 			})
 
 			if err != nil {
-				log.Println("UserResend: Error while updating user")
-				http.Error(w, "User Resend Invite Error", http.StatusInternalServerError)
+				utils.Error("UserInvite: Error while updating user", err)
+				utils.HTTPError(w, "User Send Invite Error", http.StatusInternalServerError, "US001")
+				return
 			}
 
+			// TODO: Only send registerKey if logged in already
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"Status": "OK",
-				"RegisterKey": user.RegisterKey,
-				"RegisterKeyExp": RegisterKeyExp,
+				"status": "OK",
+				"data": map[string]interface{}{
+					"registerKey": user.RegisterKey,
+					"registerKeyExp": RegisterKeyExp,
+				},
 			})
 		}
 	} else {
-		log.Println("UserResend: Method not allowed" + req.Method)
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.Error("UserInvite: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
 	}
 }

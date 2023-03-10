@@ -3,11 +3,15 @@
     "cli": {
         "aliases": {
             "certificate": "sh generate-certificate.sh",
+            "client": "g vite dev",
             "start": "build/bin"
         }
     },
     "dependencies": {
         "default": {
+            "go://github.com/cespare/xxhash/v2": "master",
+            "go://github.com/go-chi/chi": "master",
+            "go://github.com/go-chi/httprate": "master",
             "go://github.com/go-playground/validator/v10": "master",
             "go://github.com/golang-jwt/jwt": "master",
             "go://github.com/golang/crypto/": "master",
@@ -17,20 +21,12 @@
             "go://github.com/lib/pq": "master",
             "go://github.com/pquerna/ffjson": "master",
             "go://go.mongodb.org/mongo-driver": "master",
-            "go://gopkg.in/ffmt.v1": "v1.5.6",
-            "npm://@esbuild/linux-x64": "0.16.17",
-            "npm://@vitejs/plugin-react": "3.1.0",
-            "npm://express": "4.18.2",
-            "npm://express-ws": "5.0.2",
-            "npm://react": "18.2.0",
-            "npm://react-dom": "18.2.0",
-            "npm://typescript": "4.9.5",
-            "npm://vite": "4.1.1"
+            "go://gopkg.in/ffmt.v1": "v1.5.6"
         },
         "defaultProvider": "go"
     },
-    "description": "MyData file server",
-    "license": "ISC",
-    "name": "myFileServer",
+    "description": "Cosmos Server",
+    "name": "cosmos-server",
+    "version": "0.0.1",
     "wrapInstallFolder": "src"
 }

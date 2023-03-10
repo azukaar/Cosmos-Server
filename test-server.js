@@ -2,7 +2,6 @@
 const express = require('express')
 const app = express()
 const port = 3000
-var expressWs = require('express-ws')(app);
 
 // console log every request sent
 app.use((req, res, next) => {
@@ -30,9 +29,9 @@ app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })
 
-app.ws('/ws', function(ws, req) {
-  ws.on('message', function(msg) {
-    console.log(msg);
-    ws.send(msg);
-  });
-});
+// app.ws('/ws', function(ws, req) {
+//   ws.on('message', function(msg) {
+//     console.log(msg);
+//     ws.send(msg);
+//   });
+// });

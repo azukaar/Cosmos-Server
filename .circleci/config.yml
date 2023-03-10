@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: golang:1.20.2-stretch
+
+    steps:
+      - checkout
+
+      - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+
+      - run:
+          name: Install GuPM
+          command: curl -fsSL  https://azukaar.github.io/GuPM/install.sh | bash
+
+      - run:
+          name: Install provider
+          command: g plugin install https://azukaar.github.io/GuPM-official/repo:provider-go
+
+      - run:
+          name: Build Linux (ARM)
+          command: g ci/publish linux arm64
+        
+      - run:
+          name: Build docker (ARM)
+          command: g docker arm64
+          
+      - run:
+          name: Build Linux
+          command: g ci/publish linux amd64
+        
+      - run:
+          name: Build docker
+          command: g docker
+
+workflows:
+  version: 2
+  build-all:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master

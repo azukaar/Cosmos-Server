@@ -4,23 +4,12 @@ import (
 	"net/http"
 	"net/http/httputil"  
 	"github.com/gorilla/mux"
-	// "log"
-	// "io/ioutil"
-	// "io"
-	// "os"
-	// "golang.org/x/crypto/bcrypt"
-
-	// "../utils" 
+	"time"
+	"../utils" 
+	"github.com/go-chi/httprate"
 )
 
-type Route struct {
-	UseHost bool
-  Host string
-	UsePathPrefix bool
-	PathPrefix string
-}
-
-func RouterGen(route Route, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
+func RouterGen(route utils.Route, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
 	var realDestination http.Handler
 	realDestination = destination
 
@@ -35,7 +24,40 @@ func RouterGen(route Route, router *mux.Router, destination *httputil.ReversePro
 		realDestination = http.StripPrefix(route.PathPrefix, destination)
 	}
 
-	origin.Handler(realDestination)
+	timeout := route.Timeout
+	
+	if(timeout == 0) {
+		timeout = 10000
+	}
+
+	throttlePerMinute := route.ThrottlePerMinute
+
+	if(throttlePerMinute == 0) {
+		throttlePerMinute = 60
+	}
+
+	originCORS := route.CORSOrigin
+
+	if originCORS == "" {
+		if route.UseHost {
+			originCORS = route.Host
+		} else {
+			originCORS = utils.GetMainConfig().HTTPConfig.Hostname
+		}
+	}
+
+	origin.Handler(
+		utils.CORSHeader(originCORS)(
+		utils.MiddlewareTimeout(timeout * time.Millisecond)(
+		httprate.Limit(throttlePerMinute, 1*time.Minute, 
+			httprate.WithKeyFuncs(httprate.KeyByIP),
+			httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+				utils.Error("Too many requests. Throttling", nil)
+				utils.HTTPError(w, "Too many requests", 
+					http.StatusTooManyRequests, "HTTP003")
+				return 
+			}),
+		)(realDestination))))
 
 	return origin
 }
