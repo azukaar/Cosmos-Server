@@ -1,4 +1,7 @@
 ![banner](./banner.png)
+
+[![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA)
+
 # Cosmos Server
 
 ```
