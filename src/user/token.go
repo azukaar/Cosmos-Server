@@ -165,7 +165,8 @@ func loggedInOnly(w http.ResponseWriter, req *http.Request) error {
 
 	if !isUserLoggedIn || userNickname == "" {
 		utils.Error("LoggedInOnly: User is not logged in", nil)
-		http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User not logged in")
 	}
 	
@@ -180,13 +181,14 @@ func AdminOnly(w http.ResponseWriter, req *http.Request) error {
 
 	if !isUserLoggedIn || userNickname == "" {
 		utils.Error("AdminOnly: User is not logged in", nil)
-		http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User not logged in")
 	}
 
 	if isUserLoggedIn && !isUserAdmin {
 		utils.Error("AdminOnly: User is not admin", nil)
-		utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "HTTP002")
+		utils.HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
 		return errors.New("User not Admin")
 	}
 
@@ -201,13 +203,13 @@ func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string
 
 	if !isUserLoggedIn || userNickname == "" {
 		utils.Error("AdminOrItselfOnly: User is not logged in", nil)
-		http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User not logged in")
 	}
 
 	if nickname != userNickname  && !isUserAdmin {
 		utils.Error("AdminOrItselfOnly: User is not admin", nil)
-		utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "HTTP002")
+		utils.HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
 		return errors.New("User not Admin")
 	}
 

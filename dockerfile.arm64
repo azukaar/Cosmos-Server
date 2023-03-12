@@ -5,6 +5,7 @@ FROM amd64/debian
 WORKDIR /app
 
 COPY build/cosmos .
+COPY static .
 
 VOLUME /config
 

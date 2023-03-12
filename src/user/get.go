@@ -10,6 +10,10 @@ import (
 func UserGet(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := utils.Sanitize(vars["nickname"])
+
+	if nickname == "" && req.Header.Get("x-cosmos-user") != "" {
+		nickname = req.Header.Get("x-cosmos-user")
+	}
 	
 	if AdminOrItselfOnly(w, req, nickname) != nil {
 		return

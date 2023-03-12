@@ -6,8 +6,7 @@ import (
 	"../utils"
 )
 
-func BuildFromConfig(config utils.ProxyConfig) *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 
 	router.HandleFunc("/_health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

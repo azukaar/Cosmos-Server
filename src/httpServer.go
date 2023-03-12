@@ -11,9 +11,11 @@ import (
 		"regexp"
 		"time"
     "encoding/json"
+		"os"
 		"github.com/go-chi/chi/middleware"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
+		spa "github.com/roberthodgen/spa-server"
 )
 
 var serverPortHTTP = ""
@@ -150,24 +152,25 @@ func StartServer() {
 		utils.Log("Saved new Auth ED25519 certificate")
 	}
 
-	router := proxy.BuildFromConfig(config.ProxyConfig)
+	router := mux.NewRouter().StrictSlash(true)
 
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
 	router.Use(tokenMiddleware)
 	router.Use(utils.SetSecurityHeaders)
+	
+	srapi := router.PathPrefix("/cosmos").Subrouter()
 
-	srapi := router.PathPrefix("/api").Subrouter()
+	srapi.HandleFunc("/api/login", user.UserLogin)
+	srapi.HandleFunc("/api/logout", user.UserLogout)
+	srapi.HandleFunc("/api/register", user.UserRegister)
+	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
+	srapi.HandleFunc("/api/me", user.Me)
 
-	srapi.HandleFunc("/login", user.UserLogin)
-	srapi.HandleFunc("/logout", user.UserLogout)
-	srapi.HandleFunc("/register", user.UserRegister)
-	srapi.HandleFunc("/invite", user.UserResendInviteLink)
+	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
+	srapi.HandleFunc("/api/users", user.UsersRoute)
 
-	srapi.HandleFunc("/users/{nickname}", user.UsersIdRoute)
-	srapi.HandleFunc("/users", user.UsersRoute)
-
-	srapi.Use(utils.AcceptHeader("application/json"))
+	// srapi.Use(utils.AcceptHeader("*/*"))
 	srapi.Use(utils.CORSHeader(utils.GetMainConfig().HTTPConfig.Hostname))
 	srapi.Use(utils.MiddlewareTimeout(5 * time.Second))
 	srapi.Use(httprate.Limit(20, 1*time.Minute, 
@@ -179,6 +182,16 @@ func StartServer() {
 			return 
 		}),
 	))
+	
+	pwd,_ := os.Getwd()
+	utils.Log("Starting in " + pwd)
+	if _, err := os.Stat(pwd + "/static"); os.IsNotExist(err) {
+		utils.Fatal("Static folder not found at " + pwd + "/static", err)
+	}
+	fs  := spa.SpaHandler(pwd + "/static", "index.html")
+	router.PathPrefix("/").Handler(fs)
+
+	router = proxy.BuildFromConfig(router, config.ProxyConfig)
 
 	if tlsCert != "" && tlsKey != "" {
 		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")

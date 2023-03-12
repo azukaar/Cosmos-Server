@@ -51,6 +51,7 @@ type User struct {
 
 type Config struct {
 	LoggingLevel LoggingLevel `validate:"oneof=DEBUG INFO WARNING ERROR"`
+	MongoDB string
 	HTTPConfig HTTPConfig
 }
 
@@ -85,4 +86,6 @@ type Route struct {
 	ThrottlePerMinute int
 	SPAMode bool
 	CORSOrigin string
+	StripPathPrefix bool
+	Static bool
 }

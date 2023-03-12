@@ -114,6 +114,9 @@ func LoadBaseMainConfig(config Config){
 	if os.Getenv("LOG_LEVEL") != "" {
 		MainConfig.LoggingLevel = (LoggingLevel)(os.Getenv("LOG_LEVEL"))
 	}
+	if os.Getenv("MONGODB") != "" {
+		MainConfig.MongoDB = os.Getenv("MONGODB")
+	}
 }
 
 func GetMainConfig() Config {

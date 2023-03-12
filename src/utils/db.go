@@ -14,7 +14,7 @@ var client *mongo.Client
 func DB() {
 	Log("Connecting to the database...")
 
-	uri := os.Getenv("MONGODB") + "/?retryWrites=true&w=majority"
+	uri := MainConfig.MongoDB + "/?retryWrites=true&w=majority"
 	
 	var err error
 

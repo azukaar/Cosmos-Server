@@ -21,9 +21,11 @@ func RouterGen(route utils.Route, router *mux.Router, destination *httputil.Reve
 
 	if(route.UsePathPrefix) {
 		origin = origin.PathPrefix(route.PathPrefix)
+	}
+	
+	if(route.UsePathPrefix && route.StripPathPrefix) {
 		realDestination = http.StripPrefix(route.PathPrefix, destination)
 	}
-
 	timeout := route.Timeout
 	
 	if(timeout == 0) {

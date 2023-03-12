@@ -37,14 +37,22 @@ func Warn(message string) {
 
 func Error(message string, err error) {
 	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
+	errStr := ""
+	if err != nil {
+		errStr = err.Error()
+	}
 	if ll <= ERROR {
-		log.Println(Red + "[ERROR] " + message + " : " + err.Error() + Reset)
+		log.Println(Red + "[ERROR] " + message + " : " + errStr + Reset)
 	}
 }
 
 func Fatal(message string, err error) {
 	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
+	errStr := ""
+	if err != nil {
+		errStr = err.Error()
+	}
 	if ll <= ERROR {
-		log.Fatal(Red + "[FATAL] " + message + " : " + err.Error() + Reset)
+		log.Fatal(Red + "[FATAL] " + message + " : " + errStr + Reset)
 	}
 }

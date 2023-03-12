@@ -8,8 +8,10 @@ localcert.crt
 localcert.key
 .vite
 dev.json
+static
 .bin
 client/dist
+client/.vite
 config_dev.json
 tests
 todo.txt
