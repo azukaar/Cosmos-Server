@@ -2,7 +2,7 @@
 import { useTheme } from '@mui/material/styles';
 import { Box } from '@mui/material';
 
-import logo from '../../../../../logo.png';
+import logo from '../../../../../Logo.png';
 
 // ==============================|| AUTH BLUR BACK SVG ||============================== //
 

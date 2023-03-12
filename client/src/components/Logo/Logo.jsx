@@ -2,7 +2,7 @@
 import { useTheme } from '@mui/material/styles';
 import { fontWeight } from '@mui/system';
 
-import logo from '../../../../logo.png';
+import logo from '../../../../Logo.png';
 
 // ==============================|| LOGO SVG ||============================== //
 
