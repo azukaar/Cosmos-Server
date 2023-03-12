@@ -23,6 +23,7 @@ jobs:
           name: set Go path
           command: echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
 
+
       - run:
           name: Swap node versions
           command: |
@@ -36,7 +37,12 @@ jobs:
 
             echo 'export NVM_DIR="$HOME/.nvm"' >> $BASH_ENV
             echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+  
       
+      - run:
+          name: Check Node Version
+          command: node -v
+
       - run:
           name: Install GuPM
           command: curl -fsSL https://azukaar.github.io/GuPM/install.sh | bash
