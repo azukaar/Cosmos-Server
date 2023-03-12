@@ -42,8 +42,12 @@ jobs:
       - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
       - run:
-          name: Install provider
+          name: Install Go provider
           command: ~/.gupm/gupm/g plugin install https://azukaar.github.io/GuPM-official/repo:provider-go
+
+      - run:
+          name: Install NPM provider
+          command: ~/.gupm/gupm/g plugin install https://azukaar.github.io/GuPM-official/repo:provider-npm
 
       - run:
           name: Install dependencies
