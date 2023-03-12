@@ -23,25 +23,20 @@ jobs:
           name: set Go path
           command: echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
 
-      - run:
-          name: install Node 1/3
-          command: curl -sL https://deb.nodesource.com/setup_16.x -o nodesource_setup.sh
-      
-      - run:
-          name: install Node 2/3
-          command: sudo bash ./nodesource_setup.sh
-      
-      - run:
-          name: install Node 3/3
-          command: sudo apt-get install -y nodejs
-      
-      - run:
-          name: Check Node Version
-          command: node -v
+      - run: |
+            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+            echo ' [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+     
+      - run: |
+          node -v
 
-      - run:
-          name: Check Node Version
-          command: which node
+      - run: |
+          nvm install v16
+          node -v
+          nvm alias default v16
+
+      - run: |
+          node -v
 
       - run:
           name: Install GuPM
