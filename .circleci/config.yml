@@ -58,7 +58,7 @@ jobs:
           
       - run:
           name: Build UI
-          command: ~/.gupm/gupm/g vite build
+          command: node .bin/vite build
 
       - run:
           name: Build Linux (ARM)
