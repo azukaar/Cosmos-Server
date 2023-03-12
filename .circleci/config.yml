@@ -24,6 +24,10 @@ jobs:
           command: echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
 
       - run:
+          name: uninstall Node
+          command: sudo apt-get remove -y nodejs
+
+      - run:
           name: install Node 1/3
           command: curl -sL https://deb.nodesource.com/setup_16.x -o nodesource_setup.sh
       
@@ -34,6 +38,10 @@ jobs:
       - run:
           name: install Node 3/3
           command: sudo apt-get install -y nodejs
+      
+      - run:
+          name: Check Node Version
+          command: node -v
 
       - run:
           name: Install GuPM
