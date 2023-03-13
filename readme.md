@@ -34,7 +34,7 @@ It is becoming an important **threat to you**. Managing servers, applications an
 
 Because every new self-hosted applications **re-invent the wheel** and implement **crucial parts** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to be **hacked without too much trouble**. On top of that, you as a user need to make sure you properly control the access to those applciation and keep them updated.
 
-**Even a major application such as Plex** has been **hacked** in the past, and the data of its users has been exposed. In fact, the recent LastPass happened because a LastPass employee had a Plex server that **wasn't updated to the last version** and was missing an important **security patch**!
+**Even a major application such as Plex** has been **hacked** in the past, and the data of its users has been exposed. In fact, the recent LastPass leak happened because a LastPass employee had a Plex server that **wasn't updated to the last version** and was missing an important **security patch**!
 
 That is the issue Cosmos Server is trying to solve: by providing a secure and robust gateway to all your self-hosted applications, **you can be sure that your data is safe** and that you can access it without having to worry about the security of your applications.
 
