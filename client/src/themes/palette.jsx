@@ -32,27 +32,47 @@ const Palette = (mode) => {
 
     const paletteColor = ThemeOption(colors);
 
-    return createTheme({
+    return createTheme(mode === 'dark' ? {
         palette: {
             mode,
             common: {
-                black: '#000',
-                white: '#fff'
+                black: '#fff',
+                white: '#000'
             },
             ...paletteColor,
             text: {
-                primary: paletteColor.grey[700],
-                secondary: paletteColor.grey[500],
-                disabled: paletteColor.grey[400]
+                primary: paletteColor.grey[0],
+                secondary: paletteColor.grey[200],
+                disabled: paletteColor.grey[300]
             },
             action: {
                 disabled: paletteColor.grey[300]
             },
-            divider: paletteColor.grey[200],
+            divider: paletteColor.grey[600],
             background: {
-                paper: paletteColor.grey[0],
-                default: paletteColor.grey.A50
+                paper: paletteColor.grey[700],
+                default: paletteColor.grey[800]
             }
+        }
+    } : {
+        mode,
+        common: {
+            black: '#000',
+            white: '#fff'
+        },
+        ...paletteColor,
+        text: {
+            primary: paletteColor.grey[700],
+            secondary: paletteColor.grey[500],
+            disabled: paletteColor.grey[400]
+        },
+        action: {
+            disabled: paletteColor.grey[300]
+        },
+        divider: paletteColor.grey[200],
+        background: {
+            paper: paletteColor.grey[0],
+            default: paletteColor.grey.A50
         }
     });
 };

@@ -62,8 +62,8 @@ const Notification = () => {
         setOpen(false);
     };
 
-    const iconBackColorOpen = 'grey.300';
-    const iconBackColor = 'grey.100';
+    const iconBackColor = theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100';
+    const iconBackColorOpen = theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200';
 
     return (
         <Box sx={{ flexShrink: 0, ml: 0.75 }}>

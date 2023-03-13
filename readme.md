@@ -5,14 +5,16 @@
 # Cosmos Server
 
 ```
-Disclaimer: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
+**Disclaimer**: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
 ```
 
-Looking for a **secure** and **robust** way to run your **self-hosted applications**? With **Cosmos**, you can take control of your data and privacy without sacrificing security and stability.
+Looking for the right way to run your **self-hosted applications**? With **Cosmos**, you can take control of your data and privacy without sacrificing security and stability. **Safe** and **secure** platform by design, and most importantly, **easy to setup** without ambiguity. It is a combination of a **reverse proxy**, an **authentication provider** and an **application manager**.
+
+![screenshot1](./screenshot1.png)
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure it all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
- * **Authentication** Connect to all your application with the same account, including strong security and multi-factor authentication
+ * **Authentication** Connect to all your application with the same account, including strong security and **multi-factor authentication**
  * **Automatic HTTPS** certificates provision
  * **Anti-bot** protections such as Captcha and IP rate limiting
  * **Anti-DDOS** protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting

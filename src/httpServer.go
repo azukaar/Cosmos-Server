@@ -172,8 +172,8 @@ func StartServer() {
 
 	// srapi.Use(utils.AcceptHeader("*/*"))
 	srapi.Use(utils.CORSHeader(utils.GetMainConfig().HTTPConfig.Hostname))
-	srapi.Use(utils.MiddlewareTimeout(5 * time.Second))
-	srapi.Use(httprate.Limit(20, 1*time.Minute, 
+	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
+	srapi.Use(httprate.Limit(60, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
     httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			utils.Error("Too many requests. Throttling", nil)

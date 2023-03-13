@@ -28,7 +28,7 @@ const MainCard = forwardRef(
             divider = true,
             elevation,
             secondary,
-            shadow,
+            // shadow,
             sx = {},
             title,
             codeHighlight,
@@ -37,7 +37,7 @@ const MainCard = forwardRef(
         ref
     ) => {
         const theme = useTheme();
-        boxShadow = theme.palette.mode === 'dark' ? boxShadow || true : boxShadow;
+        boxShadow = false; // theme.palette.mode === 'dark' ? boxShadow || true : boxShadow;
 
         return (
             <Card

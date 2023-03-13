@@ -33,6 +33,7 @@
             "npm://@esbuild/linux-x64": "0.16.17",
             "npm://@mui/lab": "^5.0.0-alpha.100",
             "npm://@mui/material": "^5.10.6",
+            "npm://@mui/x-data-grid": "6.0.1",
             "npm://@reduxjs/toolkit": "^1.8.5",
             "npm://@testing-library/jest-dom": "^5.16.5",
             "npm://@testing-library/react": "^13.4.0",
@@ -85,6 +86,6 @@
     },
     "description": "Cosmos Server",
     "name": "cosmos-server",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "wrapInstallFolder": "src"
 }
