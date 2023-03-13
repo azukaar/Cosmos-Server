@@ -14,6 +14,7 @@ import (
 
 type CreateRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
+	Email string `validate:"email"`
 }
 
 func UserCreate(w http.ResponseWriter, req *http.Request) {
@@ -40,6 +41,7 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 		}
 		
 		nickname := utils.Sanitize(request.Nickname)
+		email := utils.Sanitize(request.Email)
 
 		c := utils.GetCollection(utils.GetRootAppId(), "users")
 
@@ -57,6 +59,7 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 
 			_, err3 := c.InsertOne(nil, map[string]interface{}{
 				"Nickname": nickname,
+				"Email": email,
 				"Password": "",
 				"RegisterKey": RegisterKey,
 				"RegisterKeyExp": RegisterKeyExp,

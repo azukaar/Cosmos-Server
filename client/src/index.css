@@ -1,0 +1,43 @@
+
+@keyframes shiny-btn1 {
+  0% { -webkit-transform: scale(0) rotate(45deg); opacity: 0; }
+  80% { -webkit-transform: scale(0) rotate(45deg); opacity: 0.5; }
+  81% { -webkit-transform: scale(4) rotate(45deg); opacity: 1; }
+  100% { -webkit-transform: scale(50) rotate(45deg); opacity: 0; }
+}
+
+@keyframes shake {
+  0% { -webkit-transform: translateX(0); }
+  10% { -webkit-transform: translateX(-10px); }
+  20% { -webkit-transform: translateX(10px); }
+  30% { -webkit-transform: translateX(-10px); }
+  40% { -webkit-transform: translateX(10px); }
+  50% { -webkit-transform: translateX(-10px); }
+  60% { -webkit-transform: translateX(10px); }
+  70% { -webkit-transform: translateX(-10px); }
+  80% { -webkit-transform: translateX(10px); }
+  90% { -webkit-transform: translateX(-10px); }
+  100% { -webkit-transform: translateX(0); }
+}
+
+
+.shinyButton {
+  overflow: hidden;
+}
+
+.shinyButton:before {
+  position: absolute;
+  content: '';
+  display: inline-block;
+  top: -180px;
+  left: 0;
+  width: 30px;
+  height: 100%;
+  background-color: #fff;
+  animation: shiny-btn1 3s ease-in-out infinite;
+}
+
+.shake {
+  animation: shake 1s;
+  animation-iteration-count: 1;
+}

@@ -5,7 +5,9 @@ export default function InputLabel(theme) {
         MuiInputLabel: {
             styleOverrides: {
                 root: {
-                    color: theme.palette.grey[600]
+                    color: theme.palette.mode === 'dark' ?
+                        theme.palette.grey[500] :
+                        theme.palette.grey[600]
                 },
                 outlined: {
                     lineHeight: '0.8em',

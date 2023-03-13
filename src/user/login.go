@@ -69,6 +69,18 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 			})
+
+			_, errE := c.UpdateOne(nil, map[string]interface{}{
+				"Nickname": nickname,
+			}, map[string]interface{}{
+				"$set": map[string]interface{}{
+					"LastLogin": time.Now(),
+				},
+			})
+
+			if errE != nil {
+				utils.Error("UserLogin: Error while updating user last login", errE)
+			}
 		}
 	} else {
 		utils.Error("UserLogin: Method not allowed" + req.Method, nil)

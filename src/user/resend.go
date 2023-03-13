@@ -51,10 +51,13 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 			return
 		} else {
 			RegisterKeyExp := time.Now().Add(time.Hour * 24 * 7)
-			RegisterKey := utils.GenerateRandomString(24)
+			RegisterKey := utils.GenerateRandomString(48)
+
+			utils.Debug(RegisterKey)
+			utils.Debug(RegisterKeyExp.String())
 
 			_, err := c.UpdateOne(nil, map[string]interface{}{
-				"nickname": nickname,
+				"Nickname": nickname,
 			}, map[string]interface{}{
 				"$set": map[string]interface{}{
 					"RegisterKeyExp": RegisterKeyExp,
@@ -73,7 +76,7 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{
-					"registerKey": user.RegisterKey,
+					"registerKey": RegisterKey,
 					"registerKeyExp": RegisterKeyExp,
 				},
 			})

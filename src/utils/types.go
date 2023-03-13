@@ -47,6 +47,11 @@ type User struct {
 	Role       Role    `validate:"required" json:"role"`
 	PasswordCycle			 int    `json:"-"`
 	Link 		 string    `json:"link"`
+	Email string `validate:"email" json:"email"`
+	RegisteredAt time.Time   `json:"registeredAt"`
+	LastPasswordChangedAt time.Time   `json:"lastPasswordChangedAt"`
+	CreatedAt time.Time   `json:"createdAt"`
+	LastLogin time.Time   `json:"lastLogin"`
 }
 
 type Config struct {

@@ -72,6 +72,10 @@ func UserRegister(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "User Register Error", http.StatusInternalServerError, "UR001")
 			return
 		} else {
+			RegisteredAt := user.RegisteredAt
+			if RegisteredAt.IsZero() {
+				RegisteredAt = time.Now()
+			}
 			_, err4 := c.UpdateOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"RegisterKey": registerKey,
@@ -81,7 +85,8 @@ func UserRegister(w http.ResponseWriter, req *http.Request) {
 					"Password": hashedPassword,
 					"RegisterKey": "",
 					"RegisterKeyExp": time.Time{},
-					"RegisteredAt": time.Now(),
+					"RegisteredAt": RegisteredAt,
+					"LastPasswordChangedAt": time.Now(),
 					"PassowrdCycle": user.PasswordCycle + 1,
 				},
 			})
