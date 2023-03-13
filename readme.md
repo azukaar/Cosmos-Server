@@ -5,7 +5,7 @@
 # Cosmos Server
 
 ```
-**Disclaimer**: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
+Disclaimer: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
 ```
 
 Cosmos is a server platform for running self-hosted applications securely and with built-in privacy features. It combines a reverse proxy, an authentication provider, and an application manager to provide easy setup and robust security.  It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personnal servers by providing a secure gateway to access data without compromising on security.
