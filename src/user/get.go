@@ -15,7 +15,7 @@ func UserGet(w http.ResponseWriter, req *http.Request) {
 		nickname = req.Header.Get("x-cosmos-user")
 	}
 	
-	if AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 		return
 	} 
 

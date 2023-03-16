@@ -13,11 +13,9 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 		w.Write([]byte("OK"))
 	})
 
-	router.PathPrefix("/_static").Handler(http.StripPrefix("/_static", http.FileServer(http.Dir("static"))))
-	
 	for i := len(config.Routes)-1; i >= 0; i-- {
 		routeConfig := config.Routes[i]
-		RouterGen(routeConfig.Routing, router, RouteTo(routeConfig.Target))
+		RouterGen(routeConfig, router, RouteTo(routeConfig.Target))
 	}
 	
 	return router

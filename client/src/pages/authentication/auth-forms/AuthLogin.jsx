@@ -51,7 +51,7 @@ const AuthLogin = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const notLogged = urlSearchParams.get('notlogged') == 1;
     const invalid = urlSearchParams.get('invalid') == 1;
-    const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/';
+    const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/ui';
 
     useEffect(() => {
         API.auth.me().then((data) => {
@@ -170,7 +170,7 @@ const AuthLogin = () => {
 
                             <Grid item xs={12} sx={{ mt: -1 }}>
                                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                                    <FormControlLabel
+                                    {/* <FormControlLabel
                                         control={
                                             <Checkbox
                                                 checked={checked}
@@ -184,7 +184,7 @@ const AuthLogin = () => {
                                     />
                                     <Link variant="h6" component={RouterLink} to="" color="text.primary">
                                         Forgot Password?
-                                    </Link>
+                                    </Link> */}
                                 </Stack>
                             </Grid>
                             {errors.submit && (

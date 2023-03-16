@@ -1,5 +1,5 @@
 // material-ui
-import { Box, IconButton, Link, useMediaQuery } from '@mui/material';
+import { Box, Chip, IconButton, Link, useMediaQuery } from '@mui/material';
 import { GithubOutlined } from '@ant-design/icons';
 
 // project import
@@ -18,9 +18,12 @@ const HeaderContent = () => {
             {!matchesXs && <Search />}
             {matchesXs && <Box sx={{ width: '100%', ml: 1 }} />}
 
-            <Notification />
-            {!matchesXs && <Profile />}
-            {matchesXs && <MobileSection />}
+            <Link href="/ui/logout" underline="none">
+                <Chip label="Logout" />
+            </Link>
+            {/* <Notification /> */}
+            {/* {!matchesXs && <Profile />}
+            {matchesXs && <MobileSection />} */}
         </>
     );
 };

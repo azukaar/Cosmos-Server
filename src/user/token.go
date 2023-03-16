@@ -7,7 +7,6 @@ import (
 	"errors"
 	"strings"
 	"time"
-	"strconv"
 )
 
 func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, error) {
@@ -106,7 +105,7 @@ func logOutUser(w http.ResponseWriter) {
 }
 
 func redirectToReLogin(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/login?invalid=1&redirect=" + req.URL.Path, http.StatusFound)
+	http.Redirect(w, req, "/ui/login?invalid=1&redirect=" + req.URL.Path, http.StatusFound)
 }
 
 func SendUserToken(w http.ResponseWriter, user utils.User) {
@@ -156,62 +155,4 @@ func SendUserToken(w http.ResponseWriter, user utils.User) {
 
 	http.SetCookie(w, &cookie)
 	// http.SetCookie(w, &cookie2)
-}
-
-func loggedInOnly(w http.ResponseWriter, req *http.Request) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-
-	if !isUserLoggedIn || userNickname == "" {
-		utils.Error("LoggedInOnly: User is not logged in", nil)
-		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
-		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-	
-	return nil
-}
-
-func AdminOnly(w http.ResponseWriter, req *http.Request) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-	isUserAdmin := role > 1
-
-	if !isUserLoggedIn || userNickname == "" {
-		utils.Error("AdminOnly: User is not logged in", nil)
-		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
-		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-
-	if isUserLoggedIn && !isUserAdmin {
-		utils.Error("AdminOnly: User is not admin", nil)
-		utils.HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
-		return errors.New("User not Admin")
-	}
-
-	return nil
-}
-
-func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-	isUserAdmin := role > 1
-
-	if !isUserLoggedIn || userNickname == "" {
-		utils.Error("AdminOrItselfOnly: User is not logged in", nil)
-		utils.HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-
-	if nickname != userNickname  && !isUserAdmin {
-		utils.Error("AdminOrItselfOnly: User is not admin", nil)
-		utils.HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
-		return errors.New("User not Admin")
-	}
-
-	return nil
 }

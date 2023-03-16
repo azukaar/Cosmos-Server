@@ -18,10 +18,7 @@ import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
-
 import * as API from '../../../api';
-
-// project import
 import MainCard from '../../../components/MainCard';
 import isLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
@@ -53,13 +50,13 @@ const UserManagement = () => {
         refresh();
     }, [])
 
-    function sendlink(nickname) {
+    function sendlink(nickname, formType) {
         API.users.invite({  
             nickname
         })
         .then((values) => {
-            let sendLink = window.location.origin + '/register?nickname='+nickname+'&key=' + values.data.registerKey;
-            setToAction({...values.data, nickname, sendLink});
+            let sendLink = window.location.origin + '/ui/register?t='+formType+'&nickname='+nickname+'&key=' + values.data.registerKey;
+            setToAction({...values.data, nickname, sendLink, formType});
             setOpenInviteForm(true);
         });
     }
@@ -216,12 +213,12 @@ const UserManagement = () => {
                                         {isRegistered ?
                                             (<Button variant="contained" color="primary" onClick={
                                                 () => {
-                                                    sendlink(row.nickname);
+                                                    sendlink(row.nickname, 1);
                                                 }
                                             }>Send password reset</Button>) :
                                             (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                                 () => {
-                                                    sendlink(row.nickname);
+                                                    sendlink(row.nickname, 2);
                                                 }
                                             } color="primary">Re-Send Invite</Button>)
                                         }

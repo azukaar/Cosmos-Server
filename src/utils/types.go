@@ -7,6 +7,7 @@ import (
 )
 
 type Role int
+type ProxyMode string
 type LoggingLevel string
 
 const (
@@ -27,6 +28,12 @@ var LoggingLevelLabels = map[LoggingLevel]int{
 	"INFO": INFO,
 	"WARNING": WARNING,
 	"ERROR": ERROR,
+}
+
+var ProxyModeList = map[string]string{
+	"PROXY": "PROXY",
+	"SPA": "SPA",
+	"STATIC": "STATIC",
 }
 
 type FileStats struct {
@@ -78,19 +85,16 @@ type ProxyConfig struct {
 }
 
 type ProxyRouteConfig struct {
-	Routing Route  `validate:"required"`
-	Target  string `validate:"required"`
-}
-
-type Route struct {
+	Name string
+	Description string
 	UseHost bool
   Host string
 	UsePathPrefix bool
 	PathPrefix string
 	Timeout time.Duration
 	ThrottlePerMinute int
-	SPAMode bool
 	CORSOrigin string
 	StripPathPrefix bool
-	Static bool
+	Target  string `validate:"required"`
+	Mode ProxyMode
 }

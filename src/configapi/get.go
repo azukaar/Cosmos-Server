@@ -1,14 +1,13 @@
-package user
+package configapi
 
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"../utils" 
 )
 
 func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
-	if AdminOnly(w, req) != nil {
+	if utils.AdminOnly(w, req) != nil {
 		return
 	} 
 
@@ -16,8 +15,8 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 		config := utils.GetBaseMainConfig()
 
 		// delete AuthPrivateKey and TLSKey
-		config.AuthPrivateKey = ""
-		config.TLSKey = ""
+		config.HTTPConfig.AuthPrivateKey = ""
+		config.HTTPConfig.TLSKey = ""
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

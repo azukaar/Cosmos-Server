@@ -58,7 +58,7 @@ jobs:
           
       - run:
           name: Build UI
-          command: node .bin/vite build
+          command: node .bin/vite build --base=/ui/
 
       - run:
           name: Build Linux (ARM)

@@ -15,12 +15,15 @@ import {
     InputLabel,
     OutlinedInput,
     Stack,
-    Typography
+    Typography,
+    Alert
 } from '@mui/material';
 
 // third party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
+
+import * as API from '../../../api';
 
 // project import
 import FirebaseSocial from './FirebaseSocial';
@@ -32,7 +35,7 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
-const AuthRegister = () => {
+const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
     const [level, setLevel] = useState();
     const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => {
@@ -56,7 +59,7 @@ const AuthRegister = () => {
         <>
             <Formik
                 initialValues={{
-                    firstname: '',
+                    nickname: nickname,
                     lastname: '',
                     email: '',
                     company: '',
@@ -64,112 +67,61 @@ const AuthRegister = () => {
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
-                    firstname: Yup.string().max(255).required('First Name is required'),
-                    lastname: Yup.string().max(255).required('Last Name is required'),
-                    email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
-                    password: Yup.string().max(255).required('Password is required')
+                    nickname: Yup.string().max(255).required('Nickname is required'),
+                    password: Yup.string()
+                        .max(255)
+                        .required('Password is required')
+                        .matches(
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/,
+                            'Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and one special case Character'
+                        ),
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                    try {
-                        setStatus({ success: false });
+                    return API.users.register({
+                        nickname: nickname,
+                        registerKey: regkey,
+                        password: values.password,
+                    }).then((res) => {
+                        setStatus({ success: true });
                         setSubmitting(false);
-                    } catch (err) {
-                        console.error(err);
+                        window.location.href = '/ui/login';
+                    }).catch((err) => {
                         setStatus({ success: false });
                         setErrors({ submit: err.message });
                         setSubmitting(false);
-                    }
+                    });
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
                     <form noValidate onSubmit={handleSubmit}>
                         <Grid container spacing={3}>
-                            <Grid item xs={12} md={6}>
+                            {isInviteLink ? <Grid item xs={12}>
+                                <Alert severity="info">
+                                    <strong>Invite Link</strong> - You have been invited to join this Cosmos instance. This Nickname has been provided to us by your administrator. Keep note of it, you will need it to login. 
+                                </Alert>
+                            </Grid> : ''}
+                            {isInviteLink ? <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="firstname-signup">First Name*</InputLabel>
+                                    <InputLabel htmlFor="nickname-signup">Nickname</InputLabel>
                                     <OutlinedInput
-                                        id="firstname-login"
-                                        type="firstname"
-                                        value={values.firstname}
-                                        name="firstname"
+                                        id="nickname-login"
+                                        type="nickname"
+                                        value={nickname}
+                                        name="nickname"
                                         onBlur={handleBlur}
                                         onChange={handleChange}
-                                        placeholder="John"
+                                        placeholder=""
+                                        disabled={true}
                                         fullWidth
-                                        error={Boolean(touched.firstname && errors.firstname)}
+                                        error={Boolean(touched.nickname && errors.nickname)}
                                     />
-                                    {touched.firstname && errors.firstname && (
-                                        <FormHelperText error id="helper-text-firstname-signup">
-                                            {errors.firstname}
+                                    {touched.nickname && errors.nickname && (
+                                        <FormHelperText error id="helper-text-nickname-signup">
+                                            {errors.nickname}
                                         </FormHelperText>
                                     )}
                                 </Stack>
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                                <Stack spacing={1}>
-                                    <InputLabel htmlFor="lastname-signup">Last Name*</InputLabel>
-                                    <OutlinedInput
-                                        fullWidth
-                                        error={Boolean(touched.lastname && errors.lastname)}
-                                        id="lastname-signup"
-                                        type="lastname"
-                                        value={values.lastname}
-                                        name="lastname"
-                                        onBlur={handleBlur}
-                                        onChange={handleChange}
-                                        placeholder="Doe"
-                                        inputProps={{}}
-                                    />
-                                    {touched.lastname && errors.lastname && (
-                                        <FormHelperText error id="helper-text-lastname-signup">
-                                            {errors.lastname}
-                                        </FormHelperText>
-                                    )}
-                                </Stack>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Stack spacing={1}>
-                                    <InputLabel htmlFor="company-signup">Company</InputLabel>
-                                    <OutlinedInput
-                                        fullWidth
-                                        error={Boolean(touched.company && errors.company)}
-                                        id="company-signup"
-                                        value={values.company}
-                                        name="company"
-                                        onBlur={handleBlur}
-                                        onChange={handleChange}
-                                        placeholder="Demo Inc."
-                                        inputProps={{}}
-                                    />
-                                    {touched.company && errors.company && (
-                                        <FormHelperText error id="helper-text-company-signup">
-                                            {errors.company}
-                                        </FormHelperText>
-                                    )}
-                                </Stack>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Stack spacing={1}>
-                                    <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
-                                    <OutlinedInput
-                                        fullWidth
-                                        error={Boolean(touched.email && errors.email)}
-                                        id="email-login"
-                                        type="email"
-                                        value={values.email}
-                                        name="email"
-                                        onBlur={handleBlur}
-                                        onChange={handleChange}
-                                        placeholder="demo@company.com"
-                                        inputProps={{}}
-                                    />
-                                    {touched.email && errors.email && (
-                                        <FormHelperText error id="helper-text-email-signup">
-                                            {errors.email}
-                                        </FormHelperText>
-                                    )}
-                                </Stack>
-                            </Grid>
+                            </Grid> : ''}
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
                                     <InputLabel htmlFor="password-signup">Password</InputLabel>
@@ -198,7 +150,7 @@ const AuthRegister = () => {
                                                 </IconButton>
                                             </InputAdornment>
                                         }
-                                        placeholder="******"
+                                        placeholder="********"
                                         inputProps={{}}
                                     />
                                     {touched.password && errors.password && (
@@ -220,18 +172,6 @@ const AuthRegister = () => {
                                     </Grid>
                                 </FormControl>
                             </Grid>
-                            <Grid item xs={12}>
-                                <Typography variant="body2">
-                                    By Signing up, you agree to our &nbsp;
-                                    <Link variant="subtitle2" component={RouterLink} to="#">
-                                        Terms of Service
-                                    </Link>
-                                    &nbsp; and &nbsp;
-                                    <Link variant="subtitle2" component={RouterLink} to="#">
-                                        Privacy Policy
-                                    </Link>
-                                </Typography>
-                            </Grid>
                             {errors.submit && (
                                 <Grid item xs={12}>
                                     <FormHelperText error>{errors.submit}</FormHelperText>
@@ -248,17 +188,11 @@ const AuthRegister = () => {
                                         variant="contained"
                                         color="primary"
                                     >
-                                        Create Account
+                                        {
+                                            isRegister ? 'Register' : 'Reset Password'
+                                        }
                                     </Button>
                                 </AnimateButton>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <Divider>
-                                    <Typography variant="caption">Sign up with</Typography>
-                                </Divider>
-                            </Grid>
-                            <Grid item xs={12}>
-                                <FirebaseSocial />
                             </Grid>
                         </Grid>
                     </form>

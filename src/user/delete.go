@@ -12,7 +12,7 @@ func UserDelete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := vars["nickname"]
 
-	if AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 		return
 	} 
 

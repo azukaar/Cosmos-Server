@@ -41,3 +41,7 @@
   animation: shake 1s;
   animation-iteration-count: 1;
 }
+
+.code {
+  background-color: rgba(0.2,0.2,0.2,0.2);
+}

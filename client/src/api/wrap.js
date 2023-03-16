@@ -7,7 +7,7 @@ export default function wrap(apicall) {
       return rep;
     } 
     snackit(rep.message);
-    throw new Error(rep);
+    throw new Error(rep.message);
   });
 }
 

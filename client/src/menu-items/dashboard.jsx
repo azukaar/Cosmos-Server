@@ -17,7 +17,7 @@ const dashboard = {
             id: 'home',
             title: 'Home',
             type: 'item',
-            url: '/',
+            url: '/ui',
             icon: icons.HomeOutlined,
             breadcrumbs: false
         }

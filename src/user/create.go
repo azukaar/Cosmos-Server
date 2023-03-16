@@ -18,7 +18,7 @@ type CreateRequestJSON struct {
 }
 
 func UserCreate(w http.ResponseWriter, req *http.Request) {
-	if AdminOnly(w, req) != nil {
+	if utils.AdminOnly(w, req) != nil {
 		return
 	} 
 

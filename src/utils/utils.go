@@ -7,6 +7,7 @@ import (
   "strconv"
 	"strings"
 	"math/rand"
+	"errors"
 )
 
 var BaseMainConfig Config
@@ -175,7 +176,7 @@ func SaveConfigTofile(config Config) {
 	configFile := GetConfigFileName()
 	CreateDefaultConfigFileIfNecessary()
 
-	file, err := os.OpenFile(configFile, os.O_WRONLY, os.ModePerm)
+	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
 	if err != nil {
 		Fatal("Opening Config File", err)
 	}
@@ -194,4 +195,63 @@ func SaveConfigTofile(config Config) {
 func RestartServer() {
 	Log("Restarting server...")
 	os.Exit(0)
+}
+
+
+func loggedInOnly(w http.ResponseWriter, req *http.Request) error {
+	userNickname := req.Header.Get("x-cosmos-user")
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	isUserLoggedIn := role > 0
+
+	if !isUserLoggedIn || userNickname == "" {
+		Error("LoggedInOnly: User is not logged in", nil)
+		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
+		return errors.New("User not logged in")
+	}
+	
+	return nil
+}
+
+func AdminOnly(w http.ResponseWriter, req *http.Request) error {
+	userNickname := req.Header.Get("x-cosmos-user")
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	isUserLoggedIn := role > 0
+	isUserAdmin := role > 1
+
+	if !isUserLoggedIn || userNickname == "" {
+		Error("AdminOnly: User is not logged in", nil)
+		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
+		return errors.New("User not logged in")
+	}
+
+	if isUserLoggedIn && !isUserAdmin {
+		Error("AdminOnly: User is not admin", nil)
+		HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
+		return errors.New("User not Admin")
+	}
+
+	return nil
+}
+
+func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string) error {
+	userNickname := req.Header.Get("x-cosmos-user")
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	isUserLoggedIn := role > 0
+	isUserAdmin := role > 1
+
+	if !isUserLoggedIn || userNickname == "" {
+		Error("AdminOrItselfOnly: User is not logged in", nil)
+		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
+		return errors.New("User not logged in")
+	}
+
+	if nickname != userNickname  && !isUserAdmin {
+		Error("AdminOrItselfOnly: User is not admin", nil)
+		HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
+		return errors.New("User not Admin")
+	}
+
+	return nil
 }

@@ -4,6 +4,8 @@ import { lazy } from 'react';
 import Loadable from '../components/Loadable';
 import MainLayout from '../layout/MainLayout';
 import UserManagement from '../pages/config/users/usermanagement';
+import ConfigManagement from '../pages/config/users/configman';
+import ProxyManagement from '../pages/config/users/proxyman';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -24,15 +26,15 @@ const MainRoutes = {
     element: <MainLayout />,
     children: [
         {
-            path: '/',
+            path: '/ui/',
             element: <DashboardDefault />
         },
         {
-            path: 'color',
+            path: '/ui/color',
             element: <Color />
         },
         {
-            path: 'dashboard',
+            path: '/ui/dashboard',
             children: [
                 {
                     path: 'default',
@@ -41,19 +43,27 @@ const MainRoutes = {
             ]
         },
         {
-            path: 'config/users',
+            path: '/ui/config/users',
             element: <UserManagement />
         },
         {
-            path: 'shadow',
+            path: '/ui/config/general',
+            element: <ConfigManagement />
+        },
+        {
+            path: '/ui/config/proxy',
+            element: <ProxyManagement />
+        },
+        {
+            path: '/ui/shadow',
             element: <Shadow />
         },
         {
-            path: 'typography',
+            path: '/ui/typography',
             element: <Typography />
         },
         {
-            path: 'icons/ant',
+            path: '/ui/icons/ant',
             element: <AntIcons />
         }
     ]

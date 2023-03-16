@@ -25,7 +25,7 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 
 		nickname := utils.Sanitize(request.Nickname)
 
-		if AdminOrItselfOnly(w, req, nickname) != nil {
+		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 			return
 		}
 

@@ -15,7 +15,7 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := vars["nickname"]
 
-	if AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 		return
 	} 
 
@@ -43,7 +43,7 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 		toSet := map[string]interface{}{}
 		if request.Email != "" {
 			
-			if AdminOnly(w, req) != nil {
+			if utils.AdminOnly(w, req) != nil {
 				return
 			} 
 

@@ -1,13 +1,13 @@
+import wrap from './wrap';
 
 function login(values) {
-  return fetch('/cosmos/api/login', {
+  return wrap(fetch('/cosmos/api/login', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify(values)
-  })
-  .then((res) => res.json())
+  }))
 }
 
 function me() {
@@ -20,7 +20,17 @@ function me() {
   .then((res) => res.json())
 }
 
+function logout() {
+  return wrap(fetch('/cosmos/api/logout/', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+  }))
+}
+
 export {
   login,
+  logout,
   me
 };

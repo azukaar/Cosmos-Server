@@ -1,14 +1,13 @@
-package user
+package configapi
 
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"../utils" 
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
-	if AdminOnly(w, req) != nil {
+	if utils.AdminOnly(w, req) != nil {
 		return
 	} 
 
@@ -32,20 +31,20 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 
 		// restore AuthPrivateKey and TLSKey
 		config := utils.GetBaseMainConfig()
-		request.AuthPrivateKey = config.AuthPrivateKey
-		request.TLSKey = config.TLSKey
+		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
+		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
 
-		err := utils.SaveConfigTofile(request)
+		utils.SaveConfigTofile(request)
 
-		if err != nil {
-			utils.Error("SettingsUpdate: Error saving config to file", err)
-			utils.HTTPError(w, "Error saving config to file",
-				http.StatusInternalServerError, "CS001")
-			return
-		}
+		// if err != nil {
+		// 	utils.Error("SettingsUpdate: Error saving config to file", err)
+		// 	utils.HTTPError(w, "Error saving config to file",
+		// 		http.StatusInternalServerError, "CS001")
+		// 	return
+		// }
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status": "OK"
+			"status": "OK",
 		})
 	} else {
 		utils.Error("SettingsUpdate: Method not allowed" + req.Method, nil)

@@ -19,21 +19,21 @@ const pages = {
             id: 'proxy',
             title: 'Proxy Routes',
             type: 'item',
-            url: '/config/proxy',
+            url: '/ui/config/proxy',
             icon: icons.NodeExpandOutlined,
         },
         {
             id: 'users',
             title: 'Manage Users',
             type: 'item',
-            url: '/config/users',
+            url: '/ui/config/users',
             icon: icons.ProfileOutlined,
         },
         {
             id: 'config',
             title: 'Configuration',
             type: 'item',
-            url: '/config/general',
+            url: '/ui/config/general',
             icon: icons.SettingOutlined,
         }
     ]

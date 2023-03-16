@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/httprate"
 )
 
-func RouterGen(route utils.Route, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
+func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
 	var realDestination http.Handler
 	realDestination = destination
 

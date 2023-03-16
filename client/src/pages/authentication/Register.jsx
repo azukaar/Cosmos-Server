@@ -4,27 +4,38 @@ import { Link } from 'react-router-dom';
 import { Grid, Stack, Typography } from '@mui/material';
 
 // project import
-import FirebaseRegister from './auth-forms/AuthRegister';
+import AuthRegister from './auth-forms/AuthRegister';
 import AuthWrapper from './AuthWrapper';
 
 // ================================|| REGISTER ||================================ //
 
-const Register = () => (
-    <AuthWrapper>
+const Register = () => {
+    const urlSearchParams = new URLSearchParams(window.location.search);
+    const formType = urlSearchParams.get('t');
+    const isInviteLink = formType === '2';
+    const isRegister = formType === '1';
+    const nickname = urlSearchParams.get('nickname');
+    const regkey = urlSearchParams.get('key');
+
+    return <AuthWrapper>
         <Grid container spacing={3}>
             <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-                    <Typography variant="h3">Sign up</Typography>
-                    <Typography component={Link} to="/login" variant="body1" sx={{ textDecoration: 'none' }} color="primary">
-                        Already have an account?
-                    </Typography>
+                    <Typography variant="h3">{
+                        isInviteLink ? 'Invitation' : 'Password Reset'
+                    }</Typography>
                 </Stack>
             </Grid>
             <Grid item xs={12}>
-                <FirebaseRegister />
+                <AuthRegister 
+                    nickname={nickname}
+                    isRegister={isRegister}
+                    isInviteLink={isInviteLink}
+                    regkey={regkey}
+                />
             </Grid>
         </Grid>
-    </AuthWrapper>
-);
+    </AuthWrapper>;
+}
 
 export default Register;

@@ -12,7 +12,7 @@ import (
 var maxLimit = 100
 
 func UserList(w http.ResponseWriter, req *http.Request) {
-	if AdminOnly(w, req) != nil {
+	if utils.AdminOnly(w, req) != nil {
 		return
 	} 
 

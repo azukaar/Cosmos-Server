@@ -8,6 +8,7 @@ export default defineConfig({
   build: {
     outDir: '../static',
   },
+  // base: '/ui',
   server: {
     proxy: {
       '/cosmos/api': {

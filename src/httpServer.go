@@ -4,6 +4,7 @@ import (
     "net/http"
 		"./utils"
 		"./user"
+		"./configapi"
 		"./proxy"
 		"github.com/gorilla/mux"
 		"strings"
@@ -158,6 +159,10 @@ func StartServer() {
 	router.Use(middleware.Logger)
 	router.Use(tokenMiddleware)
 	router.Use(utils.SetSecurityHeaders)
+
+	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
+}))
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
@@ -166,6 +171,8 @@ func StartServer() {
 	srapi.HandleFunc("/api/register", user.UserRegister)
 	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
 	srapi.HandleFunc("/api/me", user.Me)
+	srapi.HandleFunc("/api/config", configapi.ConfigRoute)
+	srapi.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
@@ -188,8 +195,9 @@ func StartServer() {
 	if _, err := os.Stat(pwd + "/static"); os.IsNotExist(err) {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)
 	}
+
 	fs  := spa.SpaHandler(pwd + "/static", "index.html")
-	router.PathPrefix("/").Handler(fs)
+	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
 
 	router = proxy.BuildFromConfig(router, config.ProxyConfig)
 
