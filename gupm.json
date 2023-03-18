@@ -4,6 +4,7 @@
         "aliases": {
             "certificate": "sh generate-certificate.sh",
             "client": "g vite dev",
+            "dockerdev": "g ci/build; g vite build --base=/ui/; docker build --tag cosmos-dev .",
             "start": "build/bin"
         }
     },
@@ -86,6 +87,6 @@
     },
     "description": "Cosmos Server",
     "name": "cosmos-server",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "wrapInstallFolder": "src"
 }

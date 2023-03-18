@@ -6,8 +6,43 @@ import (
 	"github.com/gorilla/mux"
 	"time"
 	"../utils" 
+	"../user"
+	"strconv"
 	"github.com/go-chi/httprate"
+	"regexp"
 )
+
+func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Header.Set("x-cosmos-user", "")
+			r.Header.Set("x-cosmos-role", "")
+	
+			u, err := user.RefreshUserToken(w, r)
+	
+			if err != nil {
+				return
+			}
+			
+			r.Header.Set("x-cosmos-user", u.Nickname)
+			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
+			
+			ogcookies := r.Header.Get("Cookie")
+			cookieRemoveRegex := regexp.MustCompile(`jwttoken=[^;]*;`)
+			cookies := cookieRemoveRegex.ReplaceAllString(ogcookies, "")
+			r.Header.Set("Cookie", cookies)
+
+			// Replace the token with a application speicfic one
+			r.Header.Set("x-cosmos-token", "1234567890")
+
+			if(enabled) {
+				utils.LoggedInOnlyWithRedirect(w, r);
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
 
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
 	var realDestination http.Handler
@@ -49,6 +84,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *ht
 	}
 
 	origin.Handler(
+		tokenMiddleware(route.AuthEnabled)(
 		utils.CORSHeader(originCORS)(
 		utils.MiddlewareTimeout(timeout * time.Millisecond)(
 		httprate.Limit(throttlePerMinute, 1*time.Minute, 
@@ -59,7 +95,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *ht
 					http.StatusTooManyRequests, "HTTP003")
 				return 
 			}),
-		)(realDestination))))
+		)(realDestination)))))
 
 	return origin
 }

@@ -29,13 +29,13 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 
 
-export const CosmosInputText = ({ name, placeholder, label, formik }) => {
+export const CosmosInputText = ({ name, type, placeholder, label, formik }) => {
   return <Grid item xs={12}>
     <Stack spacing={1}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
       <OutlinedInput
         id={name}
-        type="text"
+        type={type ? type : 'text'}
         value={formik.values[name]}
         name={name}
         onBlur={formik.handleBlur}

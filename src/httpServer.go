@@ -9,7 +9,6 @@ import (
 		"github.com/gorilla/mux"
 		"strings"
 		"strconv"
-		"regexp"
 		"time"
     "encoding/json"
 		"os"
@@ -75,6 +74,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 			WriteTimeout: 0,
 			IdleTimeout: 30 * time.Second,
 			Handler: router,
+			DisableGeneralOptionsHandler: true,
 		}
 
 		// start https server
@@ -98,19 +98,6 @@ func tokenMiddleware(next http.Handler) http.Handler {
 
 		r.Header.Set("x-cosmos-user", u.Nickname)
 		r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
-
-		// TODO: If external application, remove the cookie from the request
-		// to prevent leaking, and generate new JWT token
-		if false {
-			cookies := r.Header.Get("Cookie")
-			// This prob dowsnt work
-			cookieRemoveRegex := regexp.MustCompile(`jwttoken=[^;]*;`)
-			cookies = cookieRemoveRegex.ReplaceAllString(cookies, "")
-			r.Header.Set("Cookie", cookies)
-
-			// Replace the token with a application speicfic one
-			r.Header.Set("x-cosmos-token", "1234567890")
-		}
 
 		next.ServeHTTP(w, r)
 	})
@@ -157,12 +144,11 @@ func StartServer() {
 
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
-	router.Use(tokenMiddleware)
 	router.Use(utils.SetSecurityHeaders)
 
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
-}))
+	}))
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
@@ -178,6 +164,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 
 	// srapi.Use(utils.AcceptHeader("*/*"))
+	srapi.Use(tokenMiddleware)
 	srapi.Use(utils.CORSHeader(utils.GetMainConfig().HTTPConfig.Hostname))
 	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
 	srapi.Use(httprate.Limit(60, 1*time.Minute, 

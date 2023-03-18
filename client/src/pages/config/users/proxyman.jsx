@@ -115,11 +115,11 @@ const ProxyManagement = () => {
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
       {routes && routes.map((route,key) => (<>
         <RouteManagement routeConfig={route} setRouteConfig={(newRoute) => {
-          routes[key] = newRoute;
-        }}
-        up={() => up(key)}
-        down={() => down(key)}
-        deleteRoute={() => deleteRoute(key)}
+            routes[key] = newRoute;
+          }}
+          up={() => up(key)}
+          down={() => down(key)}
+          deleteRoute={() => deleteRoute(key)}
         />
         <br /><br />
       </>))}

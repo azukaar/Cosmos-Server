@@ -39,7 +39,8 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		// w.Header().Set("Referrer-Policy", "no-referrer")
+		w.Header().Set("X-Served-By-Cosmos", "1")
+		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		next.ServeHTTP(w, r)
 	})
@@ -48,6 +49,7 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 func CORSHeader(origin string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")

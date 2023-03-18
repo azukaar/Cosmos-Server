@@ -95,6 +95,10 @@ func logOutUser(w http.ResponseWriter) {
 		Name: "jwttoken",
 		Value: "",
 		Expires: time.Now().Add(-time.Hour * 24 * 365),
+		Path: "/",
+		Secure: true,
+		HttpOnly: true,
+		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
 
 	http.SetCookie(w, &cookie)
@@ -141,17 +145,11 @@ func SendUserToken(w http.ResponseWriter, user utils.User) {
 		Name: "jwttoken",
 		Value: tokenString,
 		Expires: expiration,
+		Path: "/",
+		Secure: true,
 		HttpOnly: true,
-		// TODO: high level cookie for SSO
-		// Should re-generate app specific cookies on subdomains
-		// Domain: "yoursite.com",
+		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
-	// cookie2 := http.Cookie{
-	// 	Name: "dummy",
-	// 	Value: "asdasdadsasd",
-	// 	Expires: expiration,
-	// 	HttpOnly: true,
-	// }
 
 	http.SetCookie(w, &cookie)
 	// http.SetCookie(w, &cookie2)

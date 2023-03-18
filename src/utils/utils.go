@@ -197,8 +197,20 @@ func RestartServer() {
 	os.Exit(0)
 }
 
+func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
+	userNickname := req.Header.Get("x-cosmos-user")
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	isUserLoggedIn := role > 0
 
-func loggedInOnly(w http.ResponseWriter, req *http.Request) error {
+	if !isUserLoggedIn || userNickname == "" {
+		Error("LoggedInOnlyWithRedirect: User is not logged in", nil)
+		http.Redirect(w, req, "/ui/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+	}
+	
+	return nil
+}
+
+func LoggedInOnly(w http.ResponseWriter, req *http.Request) error {
 	userNickname := req.Header.Get("x-cosmos-user")
 	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
 	isUserLoggedIn := role > 0

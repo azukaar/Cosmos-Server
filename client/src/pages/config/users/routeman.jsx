@@ -44,6 +44,7 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
           Mode: routeConfig.Mode,
           Target: routeConfig.Target,
           UseHost: routeConfig.UseHost,
+          AuthEnabled: routeConfig.AuthEnabled,
           Host: routeConfig.Host,
           UsePathPrefix: routeConfig.UsePathPrefix,
           PathPrefix: routeConfig.PathPrefix,
@@ -145,11 +146,18 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                     />}
 
                     <CosmosFormDivider title={'Security'}/>
+                    
+                    <CosmosCheckbox
+                      name="AuthEnabled"
+                      label="Authentication Required"
+                      formik={formik}
+                    />
 
                     <CosmosInputText
                       name="Timeout"
                       label="Timeout in milliseconds (0 for no timeout, at least 30000 or less recommended)"
                       placeholder="Timeout"
+                      type="number"
                       formik={formik}
                     />
 
@@ -157,6 +165,7 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                       name="ThrottlePerMinute"
                       label="Maximum number of requests Per Minute (0 for no limit, at least 100 or less recommended)"
                       placeholder="Throttle Per Minute"
+                      type="number"
                       formik={formik}
                     />
 

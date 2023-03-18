@@ -95,6 +95,7 @@ type ProxyRouteConfig struct {
 	ThrottlePerMinute int
 	CORSOrigin string
 	StripPathPrefix bool
+	AuthEnabled bool
 	Target  string `validate:"required"`
 	Mode ProxyMode
 }
