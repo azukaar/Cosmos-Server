@@ -75,7 +75,7 @@ func HTTPError(w http.ResponseWriter, message string, code int, userCode string)
 }
 
 func SetBaseMainConfig(config Config){
-	BaseMainConfig = config
+	LoadBaseMainConfig(config)
 	SaveConfigTofile(config)
 }
 
@@ -85,38 +85,38 @@ func LoadBaseMainConfig(config Config){
 
 	// use ENV to overwrite configs
 
-	if os.Getenv("HTTP_PORT") != "" {
-		MainConfig.HTTPConfig.HTTPPort = os.Getenv("HTTP_PORT")
+	if os.Getenv("COSMOS_HTTP_PORT") != "" {
+		MainConfig.HTTPConfig.HTTPPort = os.Getenv("COSMOS_HTTP_PORT")
 	}
-	if os.Getenv("HTTPS_PORT") != "" {
-		MainConfig.HTTPConfig.HTTPSPort = os.Getenv("HTTPS_PORT")
+	if os.Getenv("COSMOS_HTTPS_PORT") != "" {
+		MainConfig.HTTPConfig.HTTPSPort = os.Getenv("COSMOS_HTTPS_PORT")
 	}
-	if os.Getenv("HOSTNAME") != "" {
-		MainConfig.HTTPConfig.Hostname = os.Getenv("HOSTNAME")
+	if os.Getenv("COSMOS_HOSTNAME") != "" {
+		MainConfig.HTTPConfig.Hostname = os.Getenv("COSMOS_HOSTNAME")
 	}
-	if os.Getenv("GENERATE_MISSING_TLS_CERT") != "" {
-		MainConfig.HTTPConfig.GenerateMissingTLSCert = os.Getenv("GENERATE_MISSING_TLS_CERT") == "true"
+	if os.Getenv("COSMOS_GENERATE_MISSING_TLS_CERT") != "" {
+		MainConfig.HTTPConfig.GenerateMissingTLSCert = os.Getenv("COSMOS_GENERATE_MISSING_TLS_CERT") == "true"
 	}
-	if os.Getenv("GENERATE_MISSING_AUTH_CERT") != "" {
-		MainConfig.HTTPConfig.GenerateMissingAuthCert = os.Getenv("GENERATE_MISSING_AUTH_CERT") == "true"
+	if os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") != "" {
+		MainConfig.HTTPConfig.GenerateMissingAuthCert = os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") == "true"
 	}
-	if os.Getenv("TLS_CERT") != "" {
-		MainConfig.HTTPConfig.TLSCert = os.Getenv("TLS_CERT")
+	if os.Getenv("COSMOS_TLS_CERT") != "" {
+		MainConfig.HTTPConfig.TLSCert = os.Getenv("COSMOS_TLS_CERT")
 	}
-	if os.Getenv("TLS_KEY") != "" {
-		MainConfig.HTTPConfig.TLSKey = os.Getenv("TLS_KEY")
+	if os.Getenv("COSMOS_TLS_KEY") != "" {
+		MainConfig.HTTPConfig.TLSKey = os.Getenv("COSMOS_TLS_KEY")
 	}
-	if os.Getenv("AUTH_PRIV_KEY") != "" {
-		MainConfig.HTTPConfig.AuthPrivateKey = os.Getenv("AUTH_PRIVATE_KEY")
+	if os.Getenv("COSMOS_AUTH_PRIV_KEY") != "" {
+		MainConfig.HTTPConfig.AuthPrivateKey = os.Getenv("COSMOS_AUTH_PRIVATE_KEY")
 	}
-	if os.Getenv("AUTH_PUBLIC_KEY") != "" {
-		MainConfig.HTTPConfig.AuthPublicKey = os.Getenv("AUTH_PUBLIC_KEY")
+	if os.Getenv("COSMOS_AUTH_PUBLIC_KEY") != "" {
+		MainConfig.HTTPConfig.AuthPublicKey = os.Getenv("COSMOS_AUTH_PUBLIC_KEY")
 	}
-	if os.Getenv("LOG_LEVEL") != "" {
-		MainConfig.LoggingLevel = (LoggingLevel)(os.Getenv("LOG_LEVEL"))
+	if os.Getenv("COSMOS_LOG_LEVEL") != "" {
+		MainConfig.LoggingLevel = (LoggingLevel)(os.Getenv("COSMOS_LOG_LEVEL"))
 	}
-	if os.Getenv("MONGODB") != "" {
-		MainConfig.MongoDB = os.Getenv("MONGODB")
+	if os.Getenv("COSMOS_MONGODB") != "" {
+		MainConfig.MongoDB = os.Getenv("COSMOS_MONGODB")
 	}
 }
 

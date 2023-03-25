@@ -4,7 +4,7 @@ import (
 	"os"
 	"regexp"
 	"encoding/json"
-	"./utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func LoadConfig() utils.Config {

@@ -32,7 +32,11 @@ If you have your own self-hosted data, such as a Plex server, or may be your own
 
 It is becoming an important **threat to you**. Managing servers, applications and data is **very complex**, and the problem is that **you cannot do it on your own**: how do you know that the photo  application's server where you store your family photos has a secure code?
 
-Because every new self-hosted applications **re-invent the wheel** and implement **crucial parts** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to be **hacked without too much trouble**. On top of that, you as a user need to make sure you properly control the access to those applciation and keep them updated.
+It is even more important since most tools used to self-host **not specifically designed to be secure for your scenario**. Entreprise tools such as Traefik, NGinx, etc... Are designed for different use-cases that assume that the code you are running behind them is **not malicious**. But who knows what server apps you might be running? On top of that, a lot of reverse-proxies and security tools lock important security features behind 3 to 4 figures business subscriptions that are not realistic for selfhosting. Here's a simple example of how Cosmos can help you:
+
+![diag_SN](./diag_SN.png)
+
+Another big issue is, because every new self-hosted applications **re-invent the wheel** and implement **crucial systems** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to being **hacked without too much trouble**.
 
 **Even a major application such as Plex** has been **hacked** in the past, and the data of its users has been exposed. In fact, the recent LastPass leak happened because a LastPass employee had a Plex server that **wasn't updated to the last version** and was missing an important **security patch**!
 

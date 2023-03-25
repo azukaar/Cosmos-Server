@@ -1,0 +1,100 @@
+{
+  "name": "cosmos-server",
+  "version": "0.0.7",
+  "description": "",
+  "main": "test-server.js",
+  "bugs": {
+    "url": "https://github.com/azukaar/cosmos-server/issues"
+  },
+  "homepage": "https://github.com/azukaar/cosmos-server#readme",
+  "dependencies": {
+    "@ant-design/colors": "^6.0.0",
+    "@ant-design/icons": "^4.7.0",
+    "@emotion/cache": "^11.10.3",
+    "@emotion/react": "^11.10.4",
+    "@emotion/styled": "^11.10.4",
+    "@mui/lab": "^5.0.0-alpha.100",
+    "@mui/material": "^5.10.6",
+    "@reduxjs/toolkit": "^1.8.5",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@vitejs/plugin-react": "^3.1.0",
+    "apexcharts": "^3.35.5",
+    "formik": "^2.2.9",
+    "framer-motion": "^7.3.6",
+    "history": "^5.3.0",
+    "lodash": "^4.17.21",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-apexcharts": "^1.4.0",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-device-detect": "^2.2.2",
+    "react-dom": "^18.2.0",
+    "react-draggable": "^4.4.5",
+    "react-element-to-jsx-string": "^15.0.0",
+    "react-number-format": "^4.9.4",
+    "react-perfect-scrollbar": "^1.5.8",
+    "react-redux": "^8.0.4",
+    "react-router": "^6.4.1",
+    "react-router-dom": "^6.4.1",
+    "react-syntax-highlighter": "^15.5.0",
+    "react-window": "^1.8.7",
+    "redux": "^4.2.0",
+    "simplebar": "^5.3.8",
+    "simplebar-react": "^2.4.1",
+    "typescript": "4.8.3",
+    "vite": "^4.2.0",
+    "web-vitals": "^3.0.2",
+    "yup": "^0.32.11"
+  },
+  "scripts": {
+    "client": "vite",
+    "client-build": "vite build --base=/ui/",
+    "start": "env CONFIG_FILE=./config_dev.json EZ=UTC build/cosmos",
+    "build": " sh build.sh",
+    "dev": "npm run build && npm run start",
+    "dockerdevbuild": "sh build.sh && npm run client-build && docker build --tag cosmos-dev .",
+    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run -d -p 80:80 -p 443:443 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_HOSTNAME=localhost -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG --name cosmos-dev cosmos-dev",
+    "dockerdev": "npm run dockerdevbuild && npm run dockerdevrun"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "@babel/preset-react"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/core": "^7.19.1",
+    "@babel/eslint-parser": "^7.19.1",
+    "eslint": "^8.23.1",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-react-app": "7.0.1",
+    "eslint-import-resolver-typescript": "3.5.1",
+    "eslint-plugin-flowtype": "^8.0.3",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "6.6.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.31.8",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "prettier": "2.7.1"
+  }
+}

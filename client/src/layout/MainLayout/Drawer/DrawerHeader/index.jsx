@@ -7,7 +7,7 @@ import { Stack, Chip } from '@mui/material';
 // project import
 import DrawerHeaderStyled from './DrawerHeaderStyled';
 import Logo from '../../../../components/Logo';
-import {version} from '../../../../../../gupm.json';
+import {version} from '../../../../../../package.json';
 
 // ==============================|| DRAWER HEADER ||============================== //
 

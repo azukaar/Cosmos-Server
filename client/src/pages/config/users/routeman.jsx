@@ -31,6 +31,7 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from './formShortcuts';
 import { DownOutlined, UpOutlined, CheckOutlined, DeleteOutlined  } from '@ant-design/icons';
+import { CosmosContainerPicker } from './containerPicker';
 
 const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
@@ -91,25 +92,34 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
 
                 <CosmosCollapse title="Settings">
                   <Grid container spacing={2}>
-                    <CosmosFormDivider title={'Target'}/>
+                    <CosmosFormDivider title={'Target Type'}/>
 
                     <CosmosSelect
                       name="Mode"
                       label="Mode"
                       formik={formik}
                       options={[
+                        ["SERVAPP", "ServApp - Docker Container"],
                         ["PROXY", "Proxy"],
                         ["STATIC", "Static Folder"],
                         ["SPA", "Single Page Application"],
                       ]}
                     />
 
-                    <CosmosInputText
+                    <CosmosFormDivider title={'Target Settings'}/>
+
+                    {
+                      formik.values.Mode === "SERVAPP" ? 
+                      <CosmosContainerPicker
+                        formik={formik}
+                      />
+                      :  <CosmosInputText
                       name="Target"
                       label={formik.values.Mode == "PROXY" ? "Target URL" : "Target Folder Path"}
                       placeholder={formik.values.Mode == "PROXY" ? "localhost:8080" : "/path/to/my/app"}
                       formik={formik}
                     />
+                    }
                     
                     <CosmosFormDivider title={'Source'}/>
 

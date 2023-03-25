@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"time"
 
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type LoginRequestJSON struct {

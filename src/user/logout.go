@@ -3,7 +3,7 @@ package user
 import (
 	"net/http"
 	"encoding/json"
-	"../utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func UserLogout(w http.ResponseWriter, req *http.Request) {

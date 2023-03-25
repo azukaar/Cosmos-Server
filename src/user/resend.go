@@ -6,7 +6,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
 
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type InviteRequestJSON struct {

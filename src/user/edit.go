@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type EditRequestJSON struct {

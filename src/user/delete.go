@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 func UserDelete(w http.ResponseWriter, req *http.Request) {

@@ -1,17 +1,13 @@
-package user
+package docker
 
 import (
 	"net/http"
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
-func UsersIdRoute(w http.ResponseWriter, req *http.Request) {
-	if(req.Method == "DELETE") {
-		UserDelete(w, req)
-	} else if (req.Method == "GET") {
-		UserGet(w, req)
-	} else if (req.Method == "PATCH") {
-		UserEdit(w, req)
+func ContainersIdRoute(w http.ResponseWriter, req *http.Request) {
+	if (req.Method == "GET") {
+		// ContainerGet(w, req)
 	} else {
 		utils.Error("UserRoute: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -19,11 +15,11 @@ func UsersIdRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func UsersRoute(w http.ResponseWriter, req *http.Request) {
+func ContainersRoute(w http.ResponseWriter, req *http.Request) {
   if (req.Method == "POST") {
-		UserCreate(w, req)
+		// CreateContainer(w, req)
 	} else if (req.Method == "GET") {
-		UserList(w, req)
+		ListContainersRoute(w, req)
 	} else {
 		utils.Error("UserRoute: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

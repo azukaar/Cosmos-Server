@@ -1,20 +1,14 @@
 import * as React from 'react';
 import {
-  Alert,
-  Button,
   Checkbox,
   Divider,
   FormControlLabel,
   Grid,
-  IconButton,
-  InputAdornment,
   InputLabel,
-  Link,
   OutlinedInput,
   Stack,
   Typography,
   FormHelperText,
-  Collapse,
   TextField,
   MenuItem,
   AccordionSummary,
@@ -23,10 +17,8 @@ import {
   Chip,
 
 } from '@mui/material';
-import { Formik, Field } from 'formik';
+import { Field } from 'formik';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
-import AnimateButton from '../../../components/@extended/AnimateButton';
-import RestartModal from './restart';
 
 
 export const CosmosInputText = ({ name, type, placeholder, label, formik }) => {

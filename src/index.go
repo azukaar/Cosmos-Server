@@ -1,8 +1,9 @@
 package main
 
 import (
-	"./utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 	"time"
+	"github.com/azukaar/cosmos-server/src/docker"
 	"math/rand"
 )
 
@@ -12,6 +13,12 @@ func main() {
 		rand.Seed(time.Now().UnixNano())
 
 		LoadConfig()
+		
+		docker.Test()
 
+		docker.DockerListenEvents()
+
+		// docker.BootstrapAllContainersFromTags()
+		
 		StartServer()
 }

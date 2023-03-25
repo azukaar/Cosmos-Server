@@ -2,7 +2,13 @@ let snackit;
 
 export default function wrap(apicall) {
   return apicall.then(async (response) => {
-    const rep = await response.json();
+    let rep;
+    try {
+      rep = await response.json();
+    } catch {
+      snackit('Server error');
+      throw new Error('Server error');
+    }
     if (response.status == 200) {
       return rep;
     } 

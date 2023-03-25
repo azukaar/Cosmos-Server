@@ -2,10 +2,11 @@ package main
 
 import (
     "net/http"
-		"./utils"
-		"./user"
-		"./configapi"
-		"./proxy"
+		"github.com/azukaar/cosmos-server/src/utils"
+		"github.com/azukaar/cosmos-server/src/user"
+		"github.com/azukaar/cosmos-server/src/configapi"
+		"github.com/azukaar/cosmos-server/src/proxy"
+		"github.com/azukaar/cosmos-server/src/docker"
 		"github.com/gorilla/mux"
 		"strings"
 		"strconv"
@@ -16,6 +17,7 @@ import (
 		"github.com/go-chi/httprate"
 		"crypto/tls"
 		spa "github.com/roberthodgen/spa-server"
+		// "github.com/foomo/simplecert"
 )
 
 var serverPortHTTP = ""
@@ -32,6 +34,16 @@ func startHTTPServer(router *mux.Router) {
 }
 
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
+	// cfg := simplecert.Default
+	// cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
+	// cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
+	// cfg.SSLEmail = "you@emailprovider.com"
+	// cfg.DNSProvider = "cloudflare"
+	// certReloader, err := simplecert.Init(cfg, nil)
+	// if err != nil {
+	// 		utils.Fatal("simplecert init failed: ", err)
+	// }	
+		
 		// redirect http to https
 		go (func () {
 			err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -66,9 +78,15 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 			// Other options
 		}
 		
+		// check if Docker overwrite Hostname
+		serverHostname := utils.GetMainConfig().HTTPConfig.Hostname
+		if os.Getenv("HOSTNAME") != "" {
+			serverHostname = os.Getenv("HOSTNAME")
+		}
+		
 		server := http.Server{
 			TLSConfig: tlsConfig,
-			Addr: utils.GetMainConfig().HTTPConfig.Hostname + ":" + serverPortHTTPS,
+			Addr: serverHostname + ":" + serverPortHTTPS,
 			ReadTimeout: 0,
 			ReadHeaderTimeout: 10 * time.Second,
 			WriteTimeout: 0,
@@ -162,6 +180,9 @@ func StartServer() {
 
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
+	
+	srapi.HandleFunc("/api/servapps/{container}/secure", docker.SecureContainerRoute)
+	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
 	// srapi.Use(utils.AcceptHeader("*/*"))
 	srapi.Use(tokenMiddleware)

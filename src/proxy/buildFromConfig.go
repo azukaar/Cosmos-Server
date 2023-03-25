@@ -3,7 +3,7 @@ package proxy
 import (
 	"github.com/gorilla/mux"
 	"net/http"
-	"../utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {

@@ -1,13 +1,6 @@
-go_modules
-gupm_modules
 node_modules
 build
-dev.gs
-localcert.csr
-localcert.crt
-localcert.key
 .vite
-dev.json
 static
 .bin
 client/dist
@@ -15,4 +8,3 @@ client/.vite
 config_dev.json
 tests
 todo.txt
-config_dev.backup.json

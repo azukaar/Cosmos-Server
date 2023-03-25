@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"    
 	"net/url"
-	"../utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 	// "io/ioutil"
 	// "io"
 	// "os"

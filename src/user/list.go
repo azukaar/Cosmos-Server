@@ -3,13 +3,13 @@ package user
 import (
 	"net/http"
 	"encoding/json"
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"strconv"
 	"math"
 )
 
-var maxLimit = 100
+var maxLimit = 1000
 
 func UserList(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {

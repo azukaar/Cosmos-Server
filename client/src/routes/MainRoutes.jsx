@@ -6,6 +6,7 @@ import MainLayout from '../layout/MainLayout';
 import UserManagement from '../pages/config/users/usermanagement';
 import ConfigManagement from '../pages/config/users/configman';
 import ProxyManagement from '../pages/config/users/proxyman';
+import ServeApps from '../pages/servapps/servapps';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -30,17 +31,8 @@ const MainRoutes = {
             element: <DashboardDefault />
         },
         {
-            path: '/ui/color',
-            element: <Color />
-        },
-        {
-            path: '/ui/dashboard',
-            children: [
-                {
-                    path: 'default',
-                    element: <DashboardDefault />
-                }
-            ]
+            path: '/ui/servapps',
+            element: <ServeApps />
         },
         {
             path: '/ui/config/users',
@@ -53,18 +45,6 @@ const MainRoutes = {
         {
             path: '/ui/config/proxy',
             element: <ProxyManagement />
-        },
-        {
-            path: '/ui/shadow',
-            element: <Shadow />
-        },
-        {
-            path: '/ui/typography',
-            element: <Typography />
-        },
-        {
-            path: '/ui/icons/ant',
-            element: <AntIcons />
         }
     ]
 };

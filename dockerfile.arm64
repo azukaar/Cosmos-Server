@@ -2,13 +2,15 @@
 
 FROM amd64/debian
 
-WORKDIR /app
-
-COPY build/cosmos .
-COPY static .
+EXPOSE 443 80
 
 VOLUME /config
 
-EXPOSE 443 80
+RUN apt-get update && apt-get install -y ca-certificates openssl
+
+WORKDIR /app
+
+COPY build/cosmos .
+COPY static ./static
 
 CMD ["./cosmos"]

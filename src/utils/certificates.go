@@ -15,6 +15,8 @@ import (
 func GenerateRSAWebCertificates() (string, string) {
 	// generate self signed certificate
 
+	Log("Generating RSA Web Certificates for " + GetMainConfig().HTTPConfig.Hostname)
+
 	// generate private key
 	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {

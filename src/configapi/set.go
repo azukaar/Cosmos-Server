@@ -3,7 +3,7 @@ package configapi
 import (
 	"net/http"
 	"encoding/json"
-	"../utils" 
+	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
