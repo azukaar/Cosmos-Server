@@ -1,5 +1,5 @@
 // assets
-import { GithubOutlined, QuestionOutlined } from '@ant-design/icons';
+import { GithubOutlined, QuestionOutlined, BugOutlined } from '@ant-design/icons';
 import DiscordOutlined from '../assets/images/icons/discord.svg'
 import DiscordOutlinedWhite from '../assets/images/icons/discord_white.svg'
 import { useTheme } from '@mui/material/styles';
@@ -43,6 +43,15 @@ const support = {
             type: 'item',
             url: 'https://github.com/azukaar/Cosmos-Server/wiki',
             icon: QuestionOutlined,
+            external: true,
+            target: true
+        },
+        {
+            id: 'bug',
+            title: 'Found a Bug?',
+            type: 'item',
+            url: 'https://github.com/azukaar/Cosmos-Server/issues/new/choose',
+            icon: BugOutlined,
             external: true,
             target: true
         }

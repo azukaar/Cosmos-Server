@@ -11,6 +11,7 @@ import (
 func DockerListenEvents() error {
 	errD := connect()
 	if errD != nil {
+		utils.Error("Docker did not connect. Not listening", errD)
 		return errD
 	}
 	
@@ -20,7 +21,10 @@ func DockerListenEvents() error {
 		for {
 			select {
 				case err := <-errs:
-					utils.Error("Docker Events", err)
+					if err == nil {
+						return
+					}
+					utils.Error("Docker Event Error", err)
 				case msg := <-msgs:
 					utils.Debug("Docker Event: " + msg.Type + " " + msg.Action + " " + msg.Actor.ID)
 					if msg.Type == "container" && msg.Action == "start" {

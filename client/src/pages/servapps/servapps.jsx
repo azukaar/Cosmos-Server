@@ -1,5 +1,5 @@
 // material-ui
-import { Typography } from '@mui/material';
+import { Alert, Typography } from '@mui/material';
 import { useState } from 'react';
 
 // project import
@@ -11,9 +11,8 @@ const ServeApps = () => {
   const {serveApps, setServeApps} = useState([]);
 
   return <div>
-    Nothing Yet :)
+    <Alert severity="info">Implementation currently in progress! If you want to voice your opinion on where Cosmos is going, please join us on Discord!</Alert>
   </div>
-
 }
 
 export default ServeApps;

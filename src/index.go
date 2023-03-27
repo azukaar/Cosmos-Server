@@ -18,7 +18,7 @@ func main() {
 
 		docker.DockerListenEvents()
 
-		// docker.BootstrapAllContainersFromTags()
+		docker.BootstrapAllContainersFromTags()
 		
 		StartServer()
 }

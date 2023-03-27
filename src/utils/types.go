@@ -34,6 +34,15 @@ var ProxyModeList = map[string]string{
 	"PROXY": "PROXY",
 	"SPA": "SPA",
 	"STATIC": "STATIC",
+	"SERVAPP": "SERVAPP",
+	"REDIRECT": "REDIRECT",
+}
+
+var HTTPSCertModeList = map[string]string{
+	"DISABLED": "DISABLED",
+	"PROVIDED": "PROVIDED",
+	"SELFSIGNED": "SELFSIGNED",
+	"LETSENCRYPT": "LETSENCRYPT",
 }
 
 type FileStats struct {
@@ -72,12 +81,13 @@ type HTTPConfig struct {
 	TLSKey string
 	AuthPrivateKey string
 	AuthPublicKey string
-	GenerateMissingTLSCert bool
 	GenerateMissingAuthCert bool
+	HTTPSCertificateMode string
 	HTTPPort string
 	HTTPSPort string
 	ProxyConfig ProxyConfig
 	Hostname string
+	SSLEmail string
 } 
 
 type ProxyConfig struct {

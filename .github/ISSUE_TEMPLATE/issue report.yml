@@ -1,0 +1,60 @@
+name: Issue Report
+description: File an issue report
+title: "[BUG]: "
+labels: [bug, review]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: "A clear and concise description of what the bug is."
+      placeholder: "When I do X, I see Y."
+    validations:
+      required: true
+  - type: textarea
+    id: what-should-happen
+    attributes:
+      label: What should have happened?
+      description: "A clear and concise description of what you expected to happen."
+      placeholder: "When I do X, I should see Z."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce the bug?
+      description: "A clear and concise description of how to reproduce the bug."
+      placeholder: "Steps to reproduce the behavior:"
+      value: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: "Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks."
+      render: shell
+  - type: textarea
+    id: other-details
+    attributes:
+      label: Other details
+      description: "Anything else you'd like to add?"
+  - type: textarea
+    id: system-details
+    attributes:
+      label: System details
+      description: "Please fill out the following details about your system depending on how relevant (always include Cosmos Version!)."
+      value: |
+        - OS: [e.g. iOS]
+        - Browser [e.g. chrome, safari]
+        - Version [e.g. 22]
+    validations:
+      required: true

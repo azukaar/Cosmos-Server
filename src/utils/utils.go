@@ -17,7 +17,7 @@ var IsHTTPS = false
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	HTTPConfig: HTTPConfig{
-		GenerateMissingTLSCert: true,
+		HTTPSCertificateMode: "DISABLED",
 		GenerateMissingAuthCert: true,
 		HTTPPort: "80",
 		HTTPSPort: "443",
@@ -95,7 +95,7 @@ func LoadBaseMainConfig(config Config){
 		MainConfig.HTTPConfig.Hostname = os.Getenv("COSMOS_HOSTNAME")
 	}
 	if os.Getenv("COSMOS_GENERATE_MISSING_TLS_CERT") != "" {
-		MainConfig.HTTPConfig.GenerateMissingTLSCert = os.Getenv("COSMOS_GENERATE_MISSING_TLS_CERT") == "true"
+		MainConfig.HTTPConfig.HTTPSCertificateMode = os.Getenv("COSMOS_HTTPSCertificateMode")
 	}
 	if os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") != "" {
 		MainConfig.HTTPConfig.GenerateMissingAuthCert = os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") == "true"
@@ -266,4 +266,17 @@ func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string
 	}
 
 	return nil
+}
+
+func GetAllHostnames() []string {
+	hostnames := []string{
+		GetMainConfig().HTTPConfig.Hostname,
+	}
+	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	for _, proxy := range proxies {
+		if proxy.UseHost {
+			hostnames = append(hostnames, proxy.Host)
+		}
+	}
+	return hostnames
 }

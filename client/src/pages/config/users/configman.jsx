@@ -28,6 +28,7 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { CosmosInputText, CosmosSelect } from './formShortcuts';
 
 
 const ConfigManagement = () => {
@@ -61,6 +62,8 @@ const ConfigManagement = () => {
           GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
           HTTPPort: config.HTTPConfig.HTTPPort,
           HTTPSPort: config.HTTPConfig.HTTPSPort,
+          SSLEmail: config.HTTPConfig.SSLEmail,
+          HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
         }}
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
@@ -76,10 +79,11 @@ const ConfigManagement = () => {
               HTTPConfig: {
                 ...config.HTTPConfig,
                 Hostname: values.Hostname,
-                GenerateMissingTLSCert: values.GenerateMissingTLSCert,
                 GenerateMissingAuthCert: values.GenerateMissingAuthCert,
                 HTTPPort: values.HTTPPort,
                 HTTPSPort: values.HTTPSPort,
+                SSLEmail: values.SSLEmail,
+                HTTPSCertificateMode: values.HTTPSCertificateMode,
               }
             }
             
@@ -106,8 +110,8 @@ const ConfigManagement = () => {
           }
         }}
       >
-        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-          <form noValidate onSubmit={handleSubmit}>
+        {(formik) => (
+          <form noValidate onSubmit={formik.handleSubmit}>
             <MainCard title="General">
               <Grid container spacing={3}>
                 <Grid item xs={12}>
@@ -119,17 +123,17 @@ const ConfigManagement = () => {
                     <OutlinedInput
                       id="MongoDB-login"
                       type="password"
-                      value={values.MongoDB}
+                      value={formik.values.MongoDB}
                       name="MongoDB"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
                       placeholder="MongoDB"
                       fullWidth
-                      error={Boolean(touched.MongoDB && errors.MongoDB)}
+                      error={Boolean(formik.touched.MongoDB && formik.errors.MongoDB)}
                     />
-                    {touched.MongoDB && errors.MongoDB && (
+                    {formik.touched.MongoDB && formik.errors.MongoDB && (
                       <FormHelperText error id="standard-weight-helper-text-MongoDB-login">
-                        {errors.MongoDB}
+                        {formik.errors.MongoDB}
                       </FormHelperText>
                     )}
                   </Stack>
@@ -144,14 +148,14 @@ const ConfigManagement = () => {
                       name="LoggingLevel"
                       id="LoggingLevel"
                       select
-                      value={values.LoggingLevel}
-                      onChange={handleChange}
+                      value={formik.values.LoggingLevel}
+                      onChange={formik.handleChange}
                       error={
-                        touched.LoggingLevel &&
-                        Boolean(errors.LoggingLevel)
+                        formik.touched.LoggingLevel &&
+                        Boolean(formik.errors.LoggingLevel)
                       }
                       helperText={
-                        touched.LoggingLevel && errors.LoggingLevel
+                        formik.touched.LoggingLevel && formik.errors.LoggingLevel
                       }
                     >
                       <MenuItem key={"DEBUG"} value={"DEBUG"}>
@@ -182,17 +186,17 @@ const ConfigManagement = () => {
                     <OutlinedInput
                       id="Hostname-login"
                       type="text"
-                      value={values.Hostname}
+                      value={formik.values.Hostname}
                       name="Hostname"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
                       placeholder="Hostname"
                       fullWidth
-                      error={Boolean(touched.Hostname && errors.Hostname)}
+                      error={Boolean(formik.touched.Hostname && formik.errors.Hostname)}
                     />
-                    {touched.Hostname && errors.Hostname && (
+                    {formik.touched.Hostname && formik.errors.Hostname && (
                       <FormHelperText error id="standard-weight-helper-text-Hostname-login">
-                        {errors.Hostname}
+                        {formik.errors.Hostname}
                       </FormHelperText>
                     )}
                   </Stack>
@@ -204,17 +208,17 @@ const ConfigManagement = () => {
                     <OutlinedInput
                       id="HTTPPort-login"
                       type="text"
-                      value={values.HTTPPort}
+                      value={formik.values.HTTPPort}
                       name="HTTPPort"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
                       placeholder="HTTPPort"
                       fullWidth
-                      error={Boolean(touched.HTTPPort && errors.HTTPPort)}
+                      error={Boolean(formik.touched.HTTPPort && formik.errors.HTTPPort)}
                     />
-                    {touched.HTTPPort && errors.HTTPPort && (
+                    {formik.touched.HTTPPort && formik.errors.HTTPPort && (
                       <FormHelperText error id="standard-weight-helper-text-HTTPPort-login">
-                        {errors.HTTPPort}
+                        {formik.errors.HTTPPort}
                       </FormHelperText>
                     )}
                   </Stack>
@@ -226,17 +230,17 @@ const ConfigManagement = () => {
                     <OutlinedInput
                       id="HTTPSPort-login"
                       type="text"
-                      value={values.HTTPSPort}
+                      value={formik.values.HTTPSPort}
                       name="HTTPSPort"
-                      onBlur={handleBlur}
-                      onChange={handleChange}
+                      onBlur={formik.handleBlur}
+                      onChange={formik.handleChange}
                       placeholder="HTTPSPort"
                       fullWidth
-                      error={Boolean(touched.HTTPSPort && errors.HTTPSPort)}
+                      error={Boolean(formik.touched.HTTPSPort && formik.errors.HTTPSPort)}
                     />
-                    {touched.HTTPSPort && errors.HTTPSPort && (
+                    {formik.touched.HTTPSPort && formik.errors.HTTPSPort && (
                       <FormHelperText error id="standard-weight-helper-text-HTTPSPort-login">
-                        {errors.HTTPSPort}
+                        {formik.errors.HTTPSPort}
                       </FormHelperText>
                     )}
                   </Stack>
@@ -249,17 +253,28 @@ const ConfigManagement = () => {
                 <Grid item xs={12}>
                   <Alert severity="info">For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.</Alert>
                 </Grid>
-                <Grid item xs={12}>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                    <Field
-                      type="checkbox"
-                      name="GenerateMissingTLSCert"
-                      as={FormControlLabel}
-                      control={<Checkbox size="large" />}
-                      label="Generate missing HTTPS Certificates automatically (Default: true)"
+
+                <CosmosSelect
+                  name="HTTPSCertificateMode"
+                  label="HTTPS Certificates"
+                  formik={formik}
+                  options={[
+                    ["LETSENCRYPT", "Automatically generate certificates using Let's Encrypt (Recommended)"],
+                    ["SELFSIGNED", "Locally self-sign certificates (unsecure)"],
+                    ["PROVIDED", "I have my own certificates"],
+                    ["DISABLED", "Do not use HTTPS (very unsecure)"],
+                  ]}
+                />
+
+                {
+                  formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                    <CosmosInputText
+                      name="SSLEmail"
+                      label="Email address for Let's Encrypt"
+                      formik={formik}
                     />
-                  </Stack>
-                </Grid>
+                  )
+                }
 
                 <Grid item xs={12}>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
@@ -297,16 +312,16 @@ const ConfigManagement = () => {
             <br /><br />
 
             <MainCard>
-              {errors.submit && (
+              {formik.errors.submit && (
                 <Grid item xs={12}>
-                  <FormHelperText error>{errors.submit}</FormHelperText>
+                  <FormHelperText error>{formik.errors.submit}</FormHelperText>
                 </Grid>
               )}
               <Grid item xs={12}>
                 <AnimateButton>
                   <Button
                     disableElevation
-                    disabled={isSubmitting}
+                    disabled={formik.isSubmitting}
                     fullWidth
                     size="large"
                     type="submit"

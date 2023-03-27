@@ -14,11 +14,12 @@ Cosmos is a server platform for running self-hosted applications securely and wi
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure it all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
- * **Authentication** Connect to all your application with the same account, including strong security and **multi-factor authentication**
- * **Automatic HTTPS** certificates provision
- * **Anti-bot** protections such as Captcha and IP rate limiting
- * **Anti-DDOS** protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
- * **Proper user management** to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
+ * **Authentication** 👦👩 Connect to all your application with the same account, including strong security and **multi-factor authentication**
+ * **Automatic HTTPS** 🔑📜 certificates provision
+ * **Anti-Bot** 🤖❌ protections such as Captcha and IP rate limiting
+ * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
+ * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
+ * **Container Management** 🧱🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
 
 And a **lot more planned features** are coming!
 
@@ -34,6 +35,10 @@ It is becoming an important **threat to you**. Managing servers, applications an
 
 It is even more important since most tools used to self-host **not specifically designed to be secure for your scenario**. Entreprise tools such as Traefik, NGinx, etc... Are designed for different use-cases that assume that the code you are running behind them is **not malicious**. But who knows what server apps you might be running? On top of that, a lot of reverse-proxies and security tools lock important security features behind 3 to 4 figures business subscriptions that are not realistic for selfhosting. Here's a simple example of how Cosmos can help you:
 
+![diag_SN](./diag_SN2.png)
+
+Another example:
+
 ![diag_SN](./diag_SN.png)
 
 Another big issue is, because every new self-hosted applications **re-invent the wheel** and implement **crucial systems** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to being **hacked without too much trouble**.
@@ -47,35 +52,10 @@ That is the issue Cosmos Server is trying to solve: by providing a secure and ro
 Installation is simple using Docker:
 
 ```
-docker run -d -p 80:80 -p 443:443 -v /path/to/cosmos/config:/config azukaar/cosmos-server:latest
+docker run -d -p 80:80 -p 443:443 --name cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cosmos/config:/config azukaar/cosmos-server:latest
 ```
 
 you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry)
 
 You can thing tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
 
-# How to contribute
-
-## Setup
-
-You need [GuPM](https://github.com/azukaar/GuPM) with the [provider-go](https://github.com/azukaar/GuPM-official#provider-go) plugin to run this project.
-
-```
-g make
-```
-
-## Run locally
-
-First create a file called dev.json with:
-
-```json
-{
-  "MONGODB": "your mongodb connection string"
-}
-```
-
-```
-g build
-g start # this will run server
-g client # this will run the client
-```

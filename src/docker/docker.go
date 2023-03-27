@@ -47,7 +47,13 @@ func connect() error {
 		DockerClient = client
 		DockerContext = ctx
 
-		CreateCosmosNetwork()
+		ping, err := DockerClient.Ping(DockerContext)
+		if ping.APIVersion != "" && err == nil {
+			utils.Log("Docker Connected")
+		} else {
+			utils.Error("Docker Connection - Cannot ping Daemon. Is it running?", nil)
+			return errors.New("Docker Connection - Cannot ping Daemon. Is it running?")
+		}
 		
 		// if running in Docker, connect to main network
 		// if os.Getenv("HOSTNAME") != "" {

@@ -8,16 +8,17 @@ import (
 		"github.com/azukaar/cosmos-server/src/proxy"
 		"github.com/azukaar/cosmos-server/src/docker"
 		"github.com/gorilla/mux"
-		"strings"
 		"strconv"
 		"time"
     "encoding/json"
 		"os"
+		"strings"
 		"github.com/go-chi/chi/middleware"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
 		spa "github.com/roberthodgen/spa-server"
-		// "github.com/foomo/simplecert"
+		"github.com/foomo/simplecert"
+		"github.com/foomo/tlsconfig"
 )
 
 var serverPortHTTP = ""
@@ -34,73 +35,87 @@ func startHTTPServer(router *mux.Router) {
 }
 
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
-	// cfg := simplecert.Default
-	// cfg.Domains = []string{"yourdomain.com", "www.yourdomain.com"}
-	// cfg.CacheDir = "/etc/letsencrypt/live/yourdomain.com"
-	// cfg.SSLEmail = "you@emailprovider.com"
-	// cfg.DNSProvider = "cloudflare"
-	// certReloader, err := simplecert.Init(cfg, nil)
-	// if err != nil {
-	// 		utils.Fatal("simplecert init failed: ", err)
-	// }	
+	config  := utils.GetMainConfig()
+
+	// check if Docker overwrite Hostname
+	serverHostname := "0.0.0.0" //utils.GetMainConfig().HTTPConfig.Hostname
+	// if os.Getenv("HOSTNAME") != "" {
+	// 	serverHostname = os.Getenv("HOSTNAME")
+	// }
+
+	cfg := simplecert.Default
+
+	cfg.Domains = utils.GetAllHostnames()
+	cfg.CacheDir = "/config/certificates"
+	cfg.SSLEmail = config.HTTPConfig.SSLEmail
+	cfg.HTTPAddress = serverHostname+":"+serverPortHTTP
+	cfg.TLSAddress = serverHostname+":"+serverPortHTTPS
+
+	var certReloader *simplecert.CertReloader 
+	var errSimCert error
+	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+		certReloader, errSimCert = simplecert.Init(cfg, nil)
+		if errSimCert != nil {
+				utils.Fatal("simplecert init failed: ", errSimCert)
+		}
+	}
 		
-		// redirect http to https
-		go (func () {
-			err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// change port in host
-				if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
-					if serverPortHTTPS != "443" {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
-						} else {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
-					}
+	// redirect http to https
+	go (func () {
+		// err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(simplecert.Redirect))
+		err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// change port in host
+			if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
+				if serverPortHTTPS != "443" {
+					r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
+					} else {
+					r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
 				}
-				
-				http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
-			}))
-			if err != nil {
-				utils.Fatal("Listening to HTTP (Red)", err)
 			}
-		})()
+			
+			http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
+		}))
+		
+		if err != nil {
+			utils.Fatal("Listening to HTTP (Redirecting to HTTPS)", err)
+		}
+	})()
 
-		utils.Log("Listening to HTTP on :" + serverPortHTTP)
-		utils.Log("Listening to HTTPS on :" + serverPortHTTPS)
+	utils.Log("Listening to HTTP on :" + serverPortHTTP)
+	utils.Log("Listening to HTTPS on :" + serverPortHTTPS)
 
-		utils.IsHTTPS = true
+	utils.IsHTTPS = true
 
+	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+
+	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+		tlsConf.GetCertificate = certReloader.GetCertificateFunc()
+	} else {
 		cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
 		if errCert != nil {
 			utils.Fatal("Getting Certificate pair", errCert)
 		}
 
-		tlsConfig := &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			// Other options
-		}
-		
-		// check if Docker overwrite Hostname
-		serverHostname := utils.GetMainConfig().HTTPConfig.Hostname
-		if os.Getenv("HOSTNAME") != "" {
-			serverHostname = os.Getenv("HOSTNAME")
-		}
-		
-		server := http.Server{
-			TLSConfig: tlsConfig,
-			Addr: serverHostname + ":" + serverPortHTTPS,
-			ReadTimeout: 0,
-			ReadHeaderTimeout: 10 * time.Second,
-			WriteTimeout: 0,
-			IdleTimeout: 30 * time.Second,
-			Handler: router,
-			DisableGeneralOptionsHandler: true,
-		}
+		tlsConf.Certificates = []tls.Certificate{cert}
+	}
+	
+	server := http.Server{
+		TLSConfig: tlsConf,
+		Addr: serverHostname + ":" + serverPortHTTPS,
+		ReadTimeout: 0,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout: 0,
+		IdleTimeout: 30 * time.Second,
+		Handler: router,
+		DisableGeneralOptionsHandler: true,
+	}
 
-		// start https server
-		err := server.ListenAndServeTLS("", "")
+	// start https server
+	errServ := server.ListenAndServeTLS("", "")
 
-		if err != nil {
-			utils.Fatal("Listening to HTTPS", err)
-		}
+	if errServ != nil {
+		utils.Fatal("Listening to HTTPS", errServ)
+	}
 }
 
 func tokenMiddleware(next http.Handler) http.Handler {
@@ -127,13 +142,13 @@ func StartServer() {
 	serverPortHTTP = config.HTTPPort
 	serverPortHTTPS = config.HTTPSPort
 
-	var tlsCert = config.TLSCert
-	var tlsKey= config.TLSKey
-
 	configJson, _ := json.MarshalIndent(config, "", "  ")
 	utils.Debug("Configuration" + (string)(configJson))
 
-	if((tlsCert == "" || tlsKey == "") && config.GenerateMissingTLSCert) {
+	var tlsCert = config.TLSCert
+	var tlsKey= config.TLSKey
+
+	if((tlsCert == "" || tlsKey == "") && config.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
 		utils.Log("Generating new TLS certificate")
 		pub, priv := utils.GenerateRSAWebCertificates()
 		
@@ -184,7 +199,6 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps/{container}/secure", docker.SecureContainerRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
-	// srapi.Use(utils.AcceptHeader("*/*"))
 	srapi.Use(tokenMiddleware)
 	srapi.Use(utils.CORSHeader(utils.GetMainConfig().HTTPConfig.Hostname))
 	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
@@ -209,11 +223,12 @@ func StartServer() {
 
 	router = proxy.BuildFromConfig(router, config.ProxyConfig)
 
-	if tlsCert != "" && tlsKey != "" {
+	if ((config.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || config.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
+			 tlsCert != "" && tlsKey != "") || (config.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
 		startHTTPSServer(router, tlsCert, tlsKey)
 	} else {
-		utils.Log("TLS certificate does not exist, starting HTTP server only")
+		utils.Log("TLS certificates do not exists or are disabled, starting HTTP server only")
 		startHTTPServer(router)
 	}
 }

@@ -7,6 +7,7 @@ import UserManagement from '../pages/config/users/usermanagement';
 import ConfigManagement from '../pages/config/users/configman';
 import ProxyManagement from '../pages/config/users/proxyman';
 import ServeApps from '../pages/servapps/servapps';
+import { Navigate } from 'react-router';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -26,6 +27,11 @@ const MainRoutes = {
     path: '/',
     element: <MainLayout />,
     children: [
+        {
+            path: '/',
+            // redirect to /ui
+            element: <Navigate to="/ui" />
+        },
         {
             path: '/ui/',
             element: <DashboardDefault />
