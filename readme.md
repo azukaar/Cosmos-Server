@@ -15,7 +15,7 @@ Cosmos is a server platform for running self-hosted applications securely and wi
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure it all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
  * **Authentication** 👦👩 Connect to all your application with the same account, including strong security and **multi-factor authentication**
- * **Automatic HTTPS** 🔑📜 certificates provision
+ * **Automatic HTTPS** 🔑📜 certificates provision with Certbot / Let's Encrypt
  * **Anti-Bot** 🤖❌ protections such as Captcha and IP rate limiting
  * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
  * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
