@@ -20,7 +20,9 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
  * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
  * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
  * **Container Management** 🧱🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
-
+ * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
+ * **Visible Source** 📖📝 for full transparency and trust
+ 
 And a **lot more planned features** are coming!
 
 ![schema](./schema.png)
