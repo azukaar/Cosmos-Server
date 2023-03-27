@@ -2,3 +2,16 @@ name: Feature Request
 description: Request a new feature
 title: "[FEAT]: "
 labels: [feature, review]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to request a new feature! before doing so, make sure that the feature you're requesting isn't already requested. You can do so by searching the issues first.
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature Description
+      description: A clear and concise description of the feature you're requesting.
+      placeholder: "As a user, I want to be able to do X so that I can Y."
+    validations:
+      required: true
