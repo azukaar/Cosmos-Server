@@ -12,6 +12,7 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 
  * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security** and **multi-factor authentication**
  * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
+ * **Reverse Proxy** 🔄🔗 Reverse Proxy included, with a UI to easily manage your applications and their settings
  * **Automatic HTTPS** 🔑📜 certificates provisioning with Certbot / Let's Encrypt
  * **Anti-Bot** 🤖❌ protections such as Captcha and IP rate limiting
  * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
