@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"os"
+	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -11,26 +12,35 @@ import (
 
 var client *mongo.Client
 
-func DB() {
-	Log("Connecting to the database...")
+func DB() error {
+	if(GetBaseMainConfig().DisableUserManagement)	{
+		return errors.New("User Management is disabled")
+	}
 
 	uri := MainConfig.MongoDB + "/?retryWrites=true&w=majority"
-	
+
+	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
+		return nil
+	}
+
+	Log("(Re) Connecting to the database...")
+
 	var err error
 
 	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
 	if err != nil {
-		Fatal("DB", err)
+		return err
 	}
 	defer func() {
 	}()
 
 	// Ping the primary
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
-		Fatal("DB", err)
+		return err
 	}
 
 	Log("Successfully connected to the database.")
+	return nil
 }
 
 func Disconnect() {
@@ -39,9 +49,12 @@ func Disconnect() {
 	}
 }
 
-func GetCollection(applicationId string, collection string) *mongo.Collection {
+func GetCollection(applicationId string, collection string) (*mongo.Collection, error) {
 	if client == nil {
-		DB()
+		errCo := DB()
+		if errCo != nil {
+			return nil, errCo
+		}
 	}
 	
 	name := os.Getenv("MONGODB_NAME"); if name == "" {
@@ -52,7 +65,7 @@ func GetCollection(applicationId string, collection string) *mongo.Collection {
 	
 	c := client.Database(name).Collection(applicationId + "_" + collection)
 	
-	return c
+	return c, nil
 }
 
 // func query(q string) (*sql.Rows, error) {

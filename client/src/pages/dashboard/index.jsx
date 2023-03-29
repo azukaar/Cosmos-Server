@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // material-ui
 import {
@@ -35,6 +35,9 @@ import avatar2 from '../../assets/images/users/avatar-2.png';
 import avatar3 from '../../assets/images/users/avatar-3.png';
 import avatar4 from '../../assets/images/users/avatar-4.png';
 import isLoggedIn from '../../isLoggedIn';
+
+import * as API from '../../api';
+import AnimateButton from '../../components/@extended/AnimateButton';
 
 // avatar style
 const avatarSX = {
@@ -77,10 +80,59 @@ const DashboardDefault = () => {
 
     isLoggedIn();
 
+    const [coStatus, setCoStatus] = useState(null);
+    const [isCreatingDB, setIsCreatingDB] = useState(false);
+
+    const refreshStatus = () => {
+        API.getStatus().then((res) => {
+            setCoStatus(res.data);
+        });
+    }
+
+    useEffect(() => {
+        refreshStatus();
+    }, []);
+
+    const setupDB = () => {
+        setIsCreatingDB(true);
+        API.docker.newDB().then((res) => {
+            refreshStatus();
+        });
+    }
+
     return (
         <>
         <div>
-            <Alert severity="info">Dashboard implementation currently in progress! If you want to voice your opinion on where Cosmos is going, please join us on Discord!</Alert>
+            <Stack spacing={1}>
+                {coStatus && !coStatus.database && (
+                    <Alert severity="error">
+                        No Database is setup for Cosmos! User Management and Authentication will not work.<br />
+                        You can either setup the database, or disable user management in the configuration panel.<br />
+                    </Alert>
+                )}
+
+                {coStatus && coStatus.letsencrypt && (
+                    <Alert severity="error">
+                        You have enabled Let's Encrypt for automatic HTTPS Certificate. You need to provide the configuration with an email address to use for Let's Encrypt in the configs.
+                    </Alert>
+                )}
+
+                {coStatus && coStatus.domain && (
+                    <Alert severity="error">
+                        You are using localhost or 0.0.0.0 as a hostname in the configuration. It is recommended that you use a domain name instead.
+                    </Alert>
+                )}
+
+                {coStatus && !coStatus.docker && (
+                    <Alert severity="error">
+                        Docker is not connected! Please check your docker connection.<br/>
+                        Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
+                        if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
+                    </Alert>
+                )}
+
+                <Alert severity="info">Dashboard implementation currently in progress! If you want to voice your opinion on where Cosmos is going, please join us on Discord!</Alert>
+            </Stack>
         </div>
         <div style={{filter: 'blur(10px)', marginTop: '30px', pointerEvents: 'none'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75}>

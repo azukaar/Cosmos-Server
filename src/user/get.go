@@ -17,11 +17,16 @@ func UserGet(w http.ResponseWriter, req *http.Request) {
 	
 	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 		return
-	} 
+	}
 
 	if(req.Method == "GET") {
 
-		c := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return
+		}
 
 		utils.Debug("UserGet: Get user " + nickname)
 

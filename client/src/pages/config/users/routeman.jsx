@@ -42,7 +42,7 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
         initialValues={{
           Name: routeConfig.Name,
           Description: routeConfig.Description,
-          Mode: routeConfig.Mode,
+          Mode: routeConfig.Mode || "SERVAPP",
           Target: routeConfig.Target,
           UseHost: routeConfig.UseHost,
           AuthEnabled: routeConfig.AuthEnabled,

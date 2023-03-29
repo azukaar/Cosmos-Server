@@ -31,7 +31,12 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 
 		utils.Debug("Re-Sending an invite to " + nickname)
 		
-		c := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return
+		}
 
 		user := utils.User{}
 

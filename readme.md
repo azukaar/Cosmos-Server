@@ -17,7 +17,7 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
  * **Anti-Bot** 🤖❌ protections such as Captcha and IP rate limiting
  * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
  * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
- * **Container Management** 🧱🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
+ * **Container Management** 🐋🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
  * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
  * **Visible Source** 📖📝 for full transparency and trust
  
@@ -67,6 +67,8 @@ Installation is simple using Docker:
 ```
 docker run -d -p 80:80 -p 443:443 --name cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cosmos/config:/config azukaar/cosmos-server:latest
 ```
+
+make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
 
 you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry)
 

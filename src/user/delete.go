@@ -18,7 +18,12 @@ func UserDelete(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "DELETE") {
 
-		c := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return
+		}
 
 		utils.Debug("UserDeletion: Deleting user " + nickname)
 

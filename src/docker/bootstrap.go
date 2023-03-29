@@ -6,7 +6,7 @@ import (
 )
 
 func BootstrapAllContainersFromTags() []error {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		return []error{errD}
 	}
@@ -32,7 +32,7 @@ func BootstrapAllContainersFromTags() []error {
 
 
 func BootstrapContainerFromTags(containerID string) error {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		return errD
 	}

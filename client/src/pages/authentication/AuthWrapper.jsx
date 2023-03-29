@@ -10,11 +10,16 @@ import AuthFooter from '../../components/cards/AuthFooter';
 
 // assets
 import AuthBackground from '../../assets/images/auth/AuthBackground';
+import { useTheme } from '@mui/material/styles';
 
 // ==============================|| AUTHENTICATION - WRAPPER ||============================== //
 
-const AuthWrapper = ({ children }) => (
-    <Box sx={{ minHeight: '100vh' }}>
+const AuthWrapper = ({ children }) => {
+    const theme = useTheme();
+    const darkMode = theme.palette.mode === 'dark';
+
+    return <Box sx={{ minHeight: '100vh', 
+        background:  darkMode ? 'none' : '#f0efef' }}>
         <AuthBackground />
         <Grid
             container
@@ -34,7 +39,12 @@ const AuthWrapper = ({ children }) => (
                     container
                     justifyContent="center"
                     alignItems="center"
-                    sx={{ minHeight: { xs: 'calc(100vh - 134px)', md: 'calc(100vh - 112px)' } }}
+                    sx={{ 
+                        minHeight: { 
+                            xs: 'calc(100vh - 134px)',
+                            md: 'calc(100vh - 112px)'
+                        } 
+                    }}
                 >
                     <Grid item>
                         <AuthCard>{children}</AuthCard>
@@ -46,7 +56,7 @@ const AuthWrapper = ({ children }) => (
             </Grid>
         </Grid>
     </Box>
-);
+};
 
 AuthWrapper.propTypes = {
     children: PropTypes.node

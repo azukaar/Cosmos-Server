@@ -57,6 +57,8 @@ const AuthLogin = () => {
         API.auth.me().then((data) => {
             if(data.status == 'OK') {
                 window.location.href = redirectTo;
+            } else if(data.status == 'NEW_INSTALL') {
+                window.location.href = '/ui/newInstall';
             }
         });
     });       

@@ -74,6 +74,8 @@ type Config struct {
 	LoggingLevel LoggingLevel `validate:"oneof=DEBUG INFO WARNING ERROR"`
 	MongoDB string
 	HTTPConfig HTTPConfig
+	DisableUserManagement bool
+	NewInstall bool
 }
 
 type HTTPConfig struct {

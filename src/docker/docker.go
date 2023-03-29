@@ -2,15 +2,14 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"errors"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
-	natting "github.com/docker/go-connections/nat"
+	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
-	network "github.com/docker/docker/api/types/network"
+	// network "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types"
 )
 
@@ -35,11 +34,14 @@ func getIdFromName(name string) (string, error) {
 	return "", errors.New("Container not found")
 }
 
-func connect() error {
+var DockerIsConnected = false
+
+func Connect() error {
 	if DockerClient == nil {
 		ctx := context.Background()
 		client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
+			DockerIsConnected = false
 			return err
 		}
 		defer client.Close()
@@ -49,8 +51,10 @@ func connect() error {
 
 		ping, err := DockerClient.Ping(DockerContext)
 		if ping.APIVersion != "" && err == nil {
+			DockerIsConnected = true
 			utils.Log("Docker Connected")
 		} else {
+			DockerIsConnected = false
 			utils.Error("Docker Connection - Cannot ping Daemon. Is it running?", nil)
 			return errors.New("Docker Connection - Cannot ping Daemon. Is it running?")
 		}
@@ -64,91 +68,8 @@ func connect() error {
 	return nil
 }
 
-func runContainer(imagename string, containername string, port string, inputEnv []string) error {
-	errD := connect()
-	if errD != nil {
-		utils.Error("Docker Connect", errD)
-		return errD
-	}
-
-	// Define a PORT opening
-	newport, err := natting.NewPort("tcp", port)
-	if err != nil {
-		fmt.Println("Unable to create docker port")
-		return err
-	}
-
-	// Configured hostConfig: 
-	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
-	hostConfig := &container.HostConfig{
-		PortBindings: natting.PortMap{
-			newport: []natting.PortBinding{
-				{
-					HostIP:   "0.0.0.0",
-					HostPort: port,
-				},
-			},
-		},
-		RestartPolicy: container.RestartPolicy{
-			Name: "always",
-		},
-		LogConfig: container.LogConfig{
-			Type:   "json-file",
-			Config: map[string]string{},
-		},
-	}
-
-	// Define Network config (why isn't PORT in here...?:
-	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
-	networkConfig := &network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{},
-	}
-	gatewayConfig := &network.EndpointSettings{
-		Gateway: "gatewayname",
-	}
-	networkConfig.EndpointsConfig["bridge"] = gatewayConfig
-
-	// Define ports to be exposed (has to be same as hostconfig.portbindings.newport)
-	exposedPorts := map[natting.Port]struct{}{
-		newport: struct{}{},
-	}
-
-	// Configuration 
-	// https://godoc.org/github.com/docker/docker/api/types/container#Config
-	config := &container.Config{
-		Image:        imagename,
-		Env: 		  inputEnv,
-		ExposedPorts: exposedPorts,
-		Hostname:     fmt.Sprintf("%s-hostnameexample", imagename),
-	}
-
-	//archi := runtime.GOARCH
-
-	// Creating the actual container. This is "nil,nil,nil" in every example.
-	cont, err := DockerClient.ContainerCreate(
-		context.Background(),
-		config,
-		hostConfig,
-		networkConfig,
-		nil,
-		containername,
-	)
-
-	if err != nil {
-		utils.Error("Docker Container Create", err)
-		return err
-	}
-
-	// Run the actual container 
-	DockerClient.ContainerStart(context.Background(), cont.ID, types.ContainerStartOptions{})
-	utils.Log("Container created " + cont.ID)
-
-
-	return nil
-}
-
 func EditContainer(containerID string, newConfig types.ContainerJSON) (string, error) {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		return "", errD
 	}
@@ -212,7 +133,7 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 }
 
 func ListContainers() ([]types.Container, error) {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		return nil, errD
 	}

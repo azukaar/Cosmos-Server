@@ -5,6 +5,7 @@ import { lazy } from 'react';
 import Loadable from '../components/Loadable';
 import MinimalLayout from '../layout/MinimalLayout';
 import Logout from '../pages/authentication/Logoff';
+import NewInstall from '../pages/newInstall/newInstall';
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('../pages/authentication/Login')));
@@ -27,7 +28,12 @@ const LoginRoutes = {
         {
             path: '/ui/logout',
             element: <Logout />
-        }
+        },
+        {
+            path: '/ui/newInstall',
+            // redirect to /ui
+            element: <NewInstall />
+        },
     ]
 };
 

@@ -8,7 +8,17 @@ function list() {
     },
   }))
 }
-
+    
+const newDB = () => {
+  return wrap(fetch('/cosmos/api/newDB', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+    
 export {
   list,
+  newDB,
 };

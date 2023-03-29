@@ -37,6 +37,7 @@ func startHTTPServer(router *mux.Router) {
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	config  := utils.GetMainConfig()
 
+
 	// check if Docker overwrite Hostname
 	serverHostname := "0.0.0.0" //utils.GetMainConfig().HTTPConfig.Hostname
 	// if os.Getenv("HOSTNAME") != "" {
@@ -50,13 +51,16 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	cfg.SSLEmail = config.HTTPConfig.SSLEmail
 	cfg.HTTPAddress = serverHostname+":"+serverPortHTTP
 	cfg.TLSAddress = serverHostname+":"+serverPortHTTPS
+	cfg.FailedToRenewCertificate = func(err error) {
+		utils.Error("Failed to renew certificate", err)
+	}
 
 	var certReloader *simplecert.CertReloader 
 	var errSimCert error
 	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		certReloader, errSimCert = simplecert.Init(cfg, nil)
 		if errSimCert != nil {
-				utils.Fatal("simplecert init failed: ", errSimCert)
+				utils.Fatal("simplecert init failed", errSimCert)
 		}
 	}
 		
@@ -185,6 +189,8 @@ func StartServer() {
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
+	srapi.HandleFunc("/api/status", StatusRoute)
+	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/login", user.UserLogin)
 	srapi.HandleFunc("/api/logout", user.UserLogout)
 	srapi.HandleFunc("/api/register", user.UserRegister)

@@ -36,7 +36,12 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		
-		c := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return
+		}
 
 		utils.Debug("UserEdit: Edit user " + nickname)
 

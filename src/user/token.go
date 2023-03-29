@@ -7,9 +7,30 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"encoding/json"
 )
 
 func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, error) {
+	// if(utils.DB != nil) {	
+	// 	return utils.User{
+	// 		Nickname: "noname",
+	// 		Role: utils.ADMIN,
+	// 	}, nil
+	// }
+
+	// if new install
+	if utils.GetMainConfig().NewInstall {
+		// check route
+		if req.URL.Path != "/cosmos/api/status" && req.URL.Path != "/cosmos/api/newInstall" {
+			json.NewEncoder(w).Encode(map[string]interface{}{
+				"status": "NEW_INSTALL",
+			})
+			return utils.User{}, errors.New("New install")
+		} else {
+			return utils.User{}, nil
+		}
+	}
+
 	cookie, err := req.Cookie("jwttoken")
 
 	if err != nil {
@@ -63,7 +84,12 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 
 	userInBase := utils.User{}
 
-	c := utils.GetCollection(utils.GetRootAppId(), "users")
+	c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return utils.User{}, errCo
+		}
 	
 	errDB := c.FindOne(nil, map[string]interface{}{
 		"Nickname": nickname,
@@ -101,9 +127,11 @@ func logOutUser(w http.ResponseWriter) {
 		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
 
-	http.SetCookie(w, &cookie)
+	if(utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0") {
+		cookie.Domain = ""
+	}
 
-	// TODO: Remove all other cookies from apps
+	http.SetCookie(w, &cookie)
 
 	// TODO: logout every other device if asked by increasing passwordcycle
 }
@@ -149,6 +177,10 @@ func SendUserToken(w http.ResponseWriter, user utils.User) {
 		Secure: true,
 		HttpOnly: true,
 		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
+	}
+
+	if(utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0") {
+		cookie.Domain = ""
 	}
 
 	http.SetCookie(w, &cookie)

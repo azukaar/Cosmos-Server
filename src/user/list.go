@@ -24,7 +24,12 @@ func UserList(w http.ResponseWriter, req *http.Request) {
 	}
 	
 	if(req.Method == "GET") {
-		c := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return
+		}
 
 		utils.Debug("UserList: List user ")
 

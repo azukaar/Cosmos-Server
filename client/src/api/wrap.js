@@ -13,7 +13,9 @@ export default function wrap(apicall) {
       return rep;
     } 
     snackit(rep.message);
-    throw new Error(rep.message);
+    const e = new Error(rep.message);
+    e.status = response.status;
+    throw e;
   });
 }
 

@@ -6,6 +6,7 @@ static
 client/dist
 client/.vite
 config_dev.json
+config_dev.old.json
 tests
 todo.txt
 LICENCE

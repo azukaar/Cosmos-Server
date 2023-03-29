@@ -58,7 +58,7 @@ func CreateCosmosNetwork() (string, error) {
 }
 
 func ConnectToSecureNetwork(containerConfig types.ContainerJSON) (bool, error) {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		utils.Error("Docker Connect", errD)
 		return false, errD

@@ -15,13 +15,19 @@ import {
   AccordionDetails,
   Accordion,
   Chip,
+  Box,
+  FormControl,
+  IconButton,
+  InputAdornment,
 
 } from '@mui/material';
 import { Field } from 'formik';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
+import { strengthColor, strengthIndicator } from '../../../utils/password-strength';
 
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-export const CosmosInputText = ({ name, type, placeholder, label, formik }) => {
+export const CosmosInputText = ({ name, type, placeholder, onChange, label, formik }) => {
   return <Grid item xs={12}>
     <Stack spacing={1}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
@@ -31,7 +37,12 @@ export const CosmosInputText = ({ name, type, placeholder, label, formik }) => {
         value={formik.values[name]}
         name={name}
         onBlur={formik.handleBlur}
-        onChange={formik.handleChange}
+        onChange={(...e) => {
+          if (onChange) {
+            onChange(...e);
+          }
+          formik.handleChange(...e);
+        }}
         placeholder={placeholder}
         fullWidth
         error={Boolean(formik.touched[name] && formik.errors[name])}
@@ -41,6 +52,78 @@ export const CosmosInputText = ({ name, type, placeholder, label, formik }) => {
           {formik.errors[name]}
         </FormHelperText>
       )}
+    </Stack>
+  </Grid>
+}
+
+export const CosmosInputPassword = ({ name, type, placeholder, onChange, label, formik }) => {
+  const [level, setLevel] = React.useState();
+  const [showPassword, setShowPassword] = React.useState(false);
+  const handleClickShowPassword = () => {
+      setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+      event.preventDefault();
+  };
+
+  const changePassword = (value) => {
+      const temp = strengthIndicator(value);
+      setLevel(strengthColor(temp));
+  }; 
+  
+  React.useEffect(() => {
+      changePassword('');
+  }, []);
+
+  return <Grid item xs={12}>
+    <Stack spacing={1}>
+      <InputLabel htmlFor={name}>{label}</InputLabel>
+      <OutlinedInput
+        id={name}
+        type={showPassword ? 'text' : 'password'}
+        value={formik.values[name]}
+        name={name}
+        onBlur={formik.handleBlur}
+        onChange={(e) => {
+          changePassword(e.target.value);
+          formik.handleChange(e);
+        }}
+        placeholder="********"
+        endAdornment={
+            <InputAdornment position="end">
+                <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    onMouseDown={handleMouseDownPassword}
+                    edge="end"
+                    size="large"
+                >
+                    {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                </IconButton>
+            </InputAdornment>
+        }
+        fullWidth
+        error={Boolean(formik.touched[name] && formik.errors[name])}
+      />
+      {formik.touched[name] && formik.errors[name] && (
+        <FormHelperText error id="standard-weight-helper-text-name-login">
+          {formik.errors[name]}
+        </FormHelperText>
+      )}
+
+      <FormControl fullWidth sx={{ mt: 2 }}>
+          <Grid container spacing={2} alignItems="center">
+              <Grid item>
+                  <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
+              </Grid>
+              <Grid item>
+                  <Typography variant="subtitle1" fontSize="0.75rem">
+                      {level?.label}
+                  </Typography>
+              </Grid>
+          </Grid>
+      </FormControl>
     </Stack>
   </Grid>
 }

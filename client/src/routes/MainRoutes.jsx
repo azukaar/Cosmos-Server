@@ -51,7 +51,7 @@ const MainRoutes = {
         {
             path: '/ui/config/proxy',
             element: <ProxyManagement />
-        }
+        },
     ]
 };
 

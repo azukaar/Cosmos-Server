@@ -9,7 +9,7 @@ import (
 )
 
 func DockerListenEvents() error {
-	errD := connect()
+	errD := Connect()
 	if errD != nil {
 		utils.Error("Docker did not connect. Not listening", errD)
 		return errD

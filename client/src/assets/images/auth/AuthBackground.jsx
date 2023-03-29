@@ -9,7 +9,7 @@ import logo from '../icons/cosmos.png';
 const AuthBackground = () => {
     const theme = useTheme();
     return (
-        <Box sx={{ position: 'fixed', float: 'left', height: 'calc(100vh - 50px)', overflow: 'hidden', filter: 'blur(25px)', zIndex: 0, top: 100, left: -500 }}>
+        <Box sx={{ position: 'fixed', float: 'left', height: 'calc(100vh - 50px)', overflow: 'hidden', filter: 'blur(25px)', zIndex: 0, top: 150, left: -500 }}>
             <img src={logo} style={{ display:'inline'}} alt="Cosmos" width="1100" />
         </Box>
     );

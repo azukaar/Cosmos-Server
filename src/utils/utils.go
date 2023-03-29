@@ -16,6 +16,7 @@ var IsHTTPS = false
 
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
+	NewInstall: true,
 	HTTPConfig: HTTPConfig{
 		HTTPSCertificateMode: "DISABLED",
 		GenerateMissingAuthCert: true,
@@ -278,5 +279,14 @@ func GetAllHostnames() []string {
 			hostnames = append(hostnames, proxy.Host)
 		}
 	}
-	return hostnames
+	// remove doubles
+	seen := make(map[string]bool)
+	uniqueHostnames := []string{}
+	for _, hostname := range hostnames {
+		if _, ok := seen[hostname]; !ok {
+			seen[hostname] = true
+			uniqueHostnames = append(uniqueHostnames, hostname)
+		}
+	}
+	return uniqueHostnames
 }
