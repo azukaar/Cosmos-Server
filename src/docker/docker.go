@@ -138,7 +138,9 @@ func ListContainers() ([]types.Container, error) {
 		return nil, errD
 	}
 
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
+	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{
+		All: true,
+	})
 	if err != nil {
 		return nil, err
 	}

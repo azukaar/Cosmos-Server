@@ -15,7 +15,7 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 
 	for i := len(config.Routes)-1; i >= 0; i-- {
 		routeConfig := config.Routes[i]
-		RouterGen(routeConfig, router, RouteTo(routeConfig.Target))
+		RouterGen(routeConfig, router, RouteTo(routeConfig))
 	}
 	
 	return router

@@ -4,3 +4,4 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 cp -r static build/
+cp package.json build/

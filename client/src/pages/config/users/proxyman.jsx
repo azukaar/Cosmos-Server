@@ -95,6 +95,7 @@ const ProxyManagement = () => {
         routes.push({
           Name: 'New Route',
           Description: 'New Route',
+          Mode: "SERVAPP",
           UseHost: false,
           Host: '',
           UsePathPrefix: false,
@@ -103,8 +104,7 @@ const ProxyManagement = () => {
           ThrottlePerMinute: 100,
           CORSOrigin: '',
           StripPathPrefix: false,
-          Static: false,
-          SPAMode: false,
+          AuthEnabled: false,
         });
         updateRoutes(routes);
     }}>Create</Button>
@@ -114,7 +114,8 @@ const ProxyManagement = () => {
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
       {routes && routes.map((route,key) => (<>
-        <RouteManagement routeConfig={route} setRouteConfig={(newRoute) => {
+        <RouteManagement routeConfig={route}
+          setRouteConfig={(newRoute) => {
             routes[key] = newRoute;
           }}
           up={() => up(key)}

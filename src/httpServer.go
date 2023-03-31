@@ -202,7 +202,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 	
-	srapi.HandleFunc("/api/servapps/{container}/secure", docker.SecureContainerRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
 	srapi.Use(tokenMiddleware)

@@ -15,7 +15,8 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	vars := mux.Vars(req)
-	containerName := utils.Sanitize(vars["container"])
+	containerName := utils.Sanitize(vars["containerId"])
+	status := utils.Sanitize(vars["status"])
 	
 	if(req.Method == "GET") {
 		container, err := DockerClient.ContainerInspect(DockerContext, containerName)
@@ -26,10 +27,10 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		AddLabels(container, map[string]string{
-			"cosmos-force-network-secured": "true",
+			"cosmos-force-network-secured": status,
 		});
 
-		utils.Log("API: Add Force network secured: " + containerName)
+		utils.Log("API: Set Force network secured "+status+" : " + containerName)
 
 		_, errEdit := EditContainer(container.ID, container)
 		if errEdit != nil {

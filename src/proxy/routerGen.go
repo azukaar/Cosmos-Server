@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"net/http"
-	"net/http/httputil"  
 	"github.com/gorilla/mux"
 	"time"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -44,10 +43,7 @@ func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
 	}
 }
 
-func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *httputil.ReverseProxy) *mux.Route {
-	var realDestination http.Handler
-	realDestination = destination
-
+func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
 	origin := router.Methods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD")
 
 	if(route.UseHost) {
@@ -55,11 +51,17 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *ht
 	}
 
 	if(route.UsePathPrefix) {
+		if(route.PathPrefix != "" && route.PathPrefix[0] != '/') {
+			utils.Error("PathPrefix must start with a /", nil)
+		}
 		origin = origin.PathPrefix(route.PathPrefix)
 	}
 	
 	if(route.UsePathPrefix && route.StripPathPrefix) {
-		realDestination = http.StripPrefix(route.PathPrefix, destination)
+		if(route.PathPrefix != "" && route.PathPrefix[0] != '/') {
+			utils.Error("PathPrefix must start with a /", nil)
+		}
+		destination = http.StripPrefix(route.PathPrefix, destination)
 	}
 	timeout := route.Timeout
 	
@@ -83,6 +85,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *ht
 		}
 	}
 
+	if(route.UsePathPrefix && !route.StripPathPrefix && (route.Mode == "STATIC" || route.Mode == "SPA")) {
+		utils.Warn("PathPrefix is used, but StripPathPrefix is false. The route mode is " + (string)(route.Mode) + ". This will likely cause issues with the route. Ignore this warning if you know what you are doing.")
+	}
+
 	origin.Handler(
 		tokenMiddleware(route.AuthEnabled)(
 		utils.CORSHeader(originCORS)(
@@ -95,7 +101,9 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination *ht
 					http.StatusTooManyRequests, "HTTP003")
 				return 
 			}),
-		)(realDestination)))))
+		)(destination)))))
+
+	utils.Log("Added route: ["+ (string)(route.Mode)  + "] " + route.Host + route.PathPrefix + " to " + route.Target + "")
 
 	return origin
 }

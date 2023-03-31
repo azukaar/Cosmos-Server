@@ -33,6 +33,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		config := utils.GetBaseMainConfig()
 		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
 		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
+		request.NewInstall = config.NewInstall
 
 		utils.SaveConfigTofile(request)
 

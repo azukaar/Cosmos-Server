@@ -33,7 +33,7 @@ import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, Cos
 import { DownOutlined, UpOutlined, CheckOutlined, DeleteOutlined  } from '@ant-design/icons';
 import { CosmosContainerPicker } from './containerPicker';
 
-const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute }) => {
+const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockTarget=false, setRouteConfig, up, down, deleteRoute }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   return <div style={{ maxWidth: '1000px', margin: '' }}>
@@ -67,6 +67,7 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <MainCard title={
+              noControls ? 'New Route' :
               <div>{routeConfig.Name} &nbsp;
                 <Chip label={<UpOutlined />} onClick={() => up()}/> &nbsp;
                 <Chip label={<DownOutlined />} onClick={() => down()}/> &nbsp;
@@ -93,11 +94,15 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                 <CosmosCollapse title="Settings">
                   <Grid container spacing={2}>
                     <CosmosFormDivider title={'Target Type'}/>
+                    <Grid item xs={12}>
+                    <Alert color='info'>What are you trying to access with this route?</Alert>
+                    </Grid>
 
                     <CosmosSelect
                       name="Mode"
                       label="Mode"
                       formik={formik}
+                      disabled={lockTarget}
                       options={[
                         ["SERVAPP", "ServApp - Docker Container"],
                         ["PROXY", "Proxy"],
@@ -109,20 +114,24 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                     <CosmosFormDivider title={'Target Settings'}/>
 
                     {
-                      formik.values.Mode === "SERVAPP" ? 
+                      (formik.values.Mode === "SERVAPP")? 
                       <CosmosContainerPicker
                         formik={formik}
+                        lockTarget={lockTarget} 
+                        TargetContainer={TargetContainer}
                       />
                       :  <CosmosInputText
-                      name="Target"
-                      label={formik.values.Mode == "PROXY" ? "Target URL" : "Target Folder Path"}
-                      placeholder={formik.values.Mode == "PROXY" ? "localhost:8080" : "/path/to/my/app"}
-                      formik={formik}
-                    />
+                        name="Target"
+                        label={formik.values.Mode == "PROXY" ? "Target URL" : "Target Folder Path"}
+                        placeholder={formik.values.Mode == "PROXY" ? "localhost:8080" : "/path/to/my/app"}
+                        formik={formik}
+                      />
                     }
                     
                     <CosmosFormDivider title={'Source'}/>
-
+                    <Grid item xs={12}>
+                    <Alert color='info'>What URL do you want to access your target from?</Alert>
+                    </Grid>
                     <CosmosCheckbox
                       name="UseHost"
                       label="Use Host"
@@ -134,6 +143,7 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                       label="Host"
                       placeholder="Host"
                       formik={formik}
+                      style={{paddingLeft: '20px'}}
                     />}
 
                     <CosmosCheckbox
@@ -147,16 +157,22 @@ const RouteManagement = ({ routeConfig, setRouteConfig, up, down, deleteRoute })
                       label="Path Prefix"
                       placeholder="Path Prefix"
                       formik={formik}
+                      style={{paddingLeft: '20px'}}
                     />}
 
                     {formik.values.UsePathPrefix && <CosmosCheckbox
                       name="StripPathPrefix"
                       label="Strip Path Prefix"
                       formik={formik}
+                      style={{paddingLeft: '20px'}}
                     />}
 
                     <CosmosFormDivider title={'Security'}/>
                     
+                    <Grid item xs={12}>
+                    <Alert color='info'>Additional security settings. MFA and Captcha are not yet implemented.</Alert>
+                    </Grid>
+
                     <CosmosCheckbox
                       name="AuthEnabled"
                       label="Authentication Required"

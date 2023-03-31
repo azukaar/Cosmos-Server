@@ -31,7 +31,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import * as API  from '../../../api';
 
-export function CosmosContainerPicker({formik}) {
+export function CosmosContainerPicker({formik, lockTarget, TargetContainer}) {
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
@@ -43,11 +43,13 @@ export function CosmosContainerPicker({formik}) {
   const name = "Target"
   const label = "Container Name"
   let targetResult = {
-    container: "container",
+    container: 'null',
     port: "",
     protocol: "http",
   }
+
   let preview = formik.values[name];
+
   if(preview && preview.includes("://") && preview.includes(":")) {
     let p1_ = preview.split("://")[1]
     targetResult = {
@@ -84,6 +86,12 @@ export function CosmosContainerPicker({formik}) {
   }
 
   React.useEffect(() => {
+    if(lockTarget) {
+      onContainerChange(TargetContainer)
+    }
+  }, [])
+
+  React.useEffect(() => {
     let active = true;
 
     if (!loading) {
@@ -93,6 +101,7 @@ export function CosmosContainerPicker({formik}) {
     (async () => {
       const res = await API.docker.list()
       setContainers(res.data);
+      
 
       let names = res.data.map((container) => container.Names[0])
 
@@ -118,27 +127,27 @@ export function CosmosContainerPicker({formik}) {
     <Autocomplete
       id={name + "-autocomplete"}
       open={open}
+      disabled={lockTarget}
       onOpen={() => {
-        setOpen(true);
+        !lockTarget && setOpen(true);
       }}
       onClose={() => {
-        setOpen(false);
+        !lockTarget && setOpen(false);
       }}
       onChange={(event, newValue) => {
-        onContainerChange(newValue)
+        !lockTarget && onContainerChange(newValue)
       }}
       isOptionEqualToValue={(option, value) => {
-        console.log(option.Names[0], value.Names[0])
-        return option.Names[0] === value.Names[0]
+        return !lockTarget && (option.Names[0] === value.Names[0])
       }}
       getOptionLabel={(option) => {
-        return option.Names[0]
+        return !lockTarget ? option.Names[0] : TargetContainer.Names[0]
       }}
       options={containers}
       loading={loading}
       freeSolo={true}
       placeholder={"Please select a container"}
-      defaultValue={targetResult.containerObject}
+      defaultValue={lockTarget ? TargetContainer : targetResult.containerObject}
       renderInput={(params) => (
         <TextField
           {...params}

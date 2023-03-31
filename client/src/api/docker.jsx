@@ -8,6 +8,15 @@ function list() {
     },
   }))
 }
+
+function secure(id, res) {
+  return wrap(fetch('/cosmos/api/servapps/' + id + '/secure/'+res, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
     
 const newDB = () => {
   return wrap(fetch('/cosmos/api/newDB', {
@@ -21,4 +30,5 @@ const newDB = () => {
 export {
   list,
   newDB,
+  secure
 };

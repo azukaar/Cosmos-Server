@@ -19,7 +19,7 @@ const AuthWrapper = ({ children }) => {
     const darkMode = theme.palette.mode === 'dark';
 
     return <Box sx={{ minHeight: '100vh', 
-        background:  darkMode ? 'none' : '#f0efef' }}>
+        background:  darkMode ? 'none' : '#fafafb' }}>
         <AuthBackground />
         <Grid
             container

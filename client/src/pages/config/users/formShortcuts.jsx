@@ -27,9 +27,9 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-export const CosmosInputText = ({ name, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputText = ({ name, style, type, placeholder, onChange, label, formik }) => {
   return <Grid item xs={12}>
-    <Stack spacing={1}>
+    <Stack spacing={1} style={style}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
       <OutlinedInput
         id={name}
@@ -128,7 +128,7 @@ export const CosmosInputPassword = ({ name, type, placeholder, onChange, label, 
   </Grid>
 }
 
-export const CosmosSelect = ({ name, label, formik, options }) => {
+export const CosmosSelect = ({ name, label, formik, disabled, options }) => {
   return <Grid item xs={12}>
     <Stack spacing={1}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
@@ -137,6 +137,7 @@ export const CosmosSelect = ({ name, label, formik, options }) => {
         variant="outlined"
         name={name}
         id={name}
+        disabled={disabled}
         select
         value={formik.values[name]}
         onChange={formik.handleChange}
@@ -158,7 +159,7 @@ export const CosmosSelect = ({ name, label, formik, options }) => {
   </Grid>;
 }
 
-export const CosmosCheckbox = ({ name, label, formik }) => {
+export const CosmosCheckbox = ({ name, label, formik, style }) => {
   return <Grid item xs={12}>
     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
       <Field
@@ -167,6 +168,7 @@ export const CosmosCheckbox = ({ name, label, formik }) => {
         as={FormControlLabel}
         control={<Checkbox size="large" />}
         label={label}
+        style={style}
       />
     </Stack>
   </Grid>
@@ -182,7 +184,8 @@ export const CosmosCollapse = ({ children, title }) => {
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography>{title}</Typography>
+            <Typography variant="h6">
+              {title}</Typography>
           </AccordionSummary>
           <AccordionDetails>
             {children}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"    
 	"net/url"
+	spa "github.com/roberthodgen/spa-server"
 	"github.com/azukaar/cosmos-server/src/utils"
 	// "io/ioutil"
 	// "io"
@@ -20,7 +21,6 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 
 	proxy := httputil.NewSingleHostReverseProxy(url)
 
-	// upgrade the request to websocket
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
@@ -30,20 +30,31 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 	return proxy, nil
 }
 
-// ProxyRequestHandler handles the http request using proxy
-func ProxyRequestHandler(proxy *httputil.ReverseProxy) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-			proxy.ServeHTTP(w, r)
-	}
-}
 
-func RouteTo(destination string) *httputil.ReverseProxy /*func(http.ResponseWriter, *http.Request)*/ {
+func RouteTo(route utils.ProxyRouteConfig) http.Handler /*func(http.ResponseWriter, *http.Request)*/ {
 	// initialize a reverse proxy and pass the actual backend server url here
-	proxy, err := NewProxy(destination)
-	if err != nil {
-			panic(err)
-	}
 
-	// create a handler function which uses the reverse proxy
-	return proxy //ProxyRequestHandler(proxy)
+	destination := route.Target
+	routeType := route.Mode
+
+	if(routeType == "SERVAPP" || routeType == "PROXY") {
+		proxy, err := NewProxy(destination)
+		if err != nil {
+				utils.Error("Create Route", err)
+		}
+
+		// create a handler function which uses the reverse proxy
+		return proxy
+	}  else if (routeType == "STATIC") {
+		return http.FileServer(http.Dir(destination))
+	}  else if (routeType == "SPA") {
+		return spa.SpaHandler(destination, "index.html")	
+	} else if(routeType == "REDIRECT") {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, destination, 302)
+		})
+	} else {
+		utils.Error("Invalid route type", nil)
+		return nil
+	}
 }

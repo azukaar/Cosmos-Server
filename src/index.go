@@ -14,6 +14,8 @@ func main() {
 
 		LoadConfig()
 		
+		go CRON()
+
 		docker.Test()
 
 		docker.DockerListenEvents()
