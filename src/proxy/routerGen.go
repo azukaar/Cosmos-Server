@@ -72,7 +72,15 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	throttlePerMinute := route.ThrottlePerMinute
 
 	if(throttlePerMinute == 0) {
-		throttlePerMinute = 60
+		throttlePerMinute = 300
+	}
+	
+	throtthleTime := 1*time.Minute
+
+	// lets do something better later
+	if(throttlePerMinute == -1) {
+		throttlePerMinute = 99999999
+		throtthleTime = 1*time.Second
 	}
 
 	originCORS := route.CORSOrigin
@@ -93,7 +101,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		tokenMiddleware(route.AuthEnabled)(
 		utils.CORSHeader(originCORS)(
 		utils.MiddlewareTimeout(timeout * time.Millisecond)(
-		httprate.Limit(throttlePerMinute, 1*time.Minute, 
+		httprate.Limit(throttlePerMinute, throtthleTime, 
 			httprate.WithKeyFuncs(httprate.KeyByIP),
 			httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 				utils.Error("Too many requests. Throttling", nil)
