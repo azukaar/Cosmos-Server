@@ -127,7 +127,7 @@ const ServeApps = () => {
                             UsePathPrefix: false,
                             PathPrefix: '',
                             Timeout: 30000,
-                            ThrottlePerMinute: 100,
+                            ThrottlePerMinute: 0,
                             CORSOrigin: '',
                             StripPathPrefix: false,
                             AuthEnabled: false,

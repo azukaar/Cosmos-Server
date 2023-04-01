@@ -71,14 +71,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 
 	throttlePerMinute := route.ThrottlePerMinute
 
-	if(throttlePerMinute == 0) {
-		throttlePerMinute = 300
-	}
-	
 	throtthleTime := 1*time.Minute
 
-	// lets do something better later
-	if(throttlePerMinute == -1) {
+	// lets do something better later to disable throttle
+	if(throttlePerMinute == 0) {
 		throttlePerMinute = 99999999
 		throtthleTime = 1*time.Second
 	}
