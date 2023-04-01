@@ -73,10 +73,14 @@ Installation is simple using Docker:
 docker run -d -p 80:80 -p 443:443 --name cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cosmos/config:/config azukaar/cosmos-server:latest
 ```
 
+Once installed, simply go to `http://your-ip` and follow the instructions of the setup wizard.
+
 make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
+
+You also need to keep the docker socket mounted, as Cosmos needs to be able to manage your containers.
 
 you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry)
 
-You can thing tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
+You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
 
 if you are having issues with the installation, please contact us on [Discord](https://discord.gg/PwMWwsrwHA)!
