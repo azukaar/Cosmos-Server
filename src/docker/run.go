@@ -7,12 +7,19 @@ import (
 	// "github.com/docker/docker/client"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/mount"
 )
 
+type VolumeMount struct {
+	Destination string
+	Volume   *types.Volume
+}
+
 func NewDB() (string, error) {
+	id := utils.GenerateRandomString(3)
 	mongoUser := "cosmos-" + utils.GenerateRandomString(5) 
 	mongoPass := utils.GenerateRandomString(24)
-	monHost := "cosmos-mongo-" + utils.GenerateRandomString(3)
+	monHost := "cosmos-mongo-" + id
 	
 	err := RunContainer(
 		"mongo:latest",
@@ -20,6 +27,20 @@ func NewDB() (string, error) {
 		[]string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
 			"MONGO_INITDB_ROOT_PASSWORD=" + mongoPass,
+		},
+		[]VolumeMount{
+			{
+				Destination: "/data/db",
+				Volume: &types.Volume{
+					Name: "cosmos-mongo-data-" + id,
+				},
+			},
+			{
+				Destination: "/data/configdb",
+				Volume: &types.Volume{
+					Name: "cosmos-mongo-config-" + id,
+				},
+			},
 		},
 	)
 
@@ -30,7 +51,7 @@ func NewDB() (string, error) {
 	return "mongodb://"+mongoUser+":"+mongoPass+"@"+monHost+":27017", nil
 }
 
-func RunContainer(imagename string, containername string, inputEnv []string) error {
+func RunContainer(imagename string, containername string, inputEnv []string, volumes []VolumeMount) error {
 	errD := Connect()
 	if errD != nil {
 		utils.Error("Docker Connect", errD)
@@ -44,6 +65,16 @@ func RunContainer(imagename string, containername string, inputEnv []string) err
 	}
 	io.Copy(os.Stdout, pull)
 
+	var mounts []mount.Mount
+
+	for _, volume := range volumes {
+		mount := mount.Mount{
+			Type:   mount.TypeVolume,
+			Source: volume.Volume.Name,
+			Target: volume.Destination,
+		}
+		mounts = append(mounts, mount)
+	}
 
 	// Define a PORT opening
 	// newport, err := natting.NewPort("tcp", port)
@@ -63,6 +94,7 @@ func RunContainer(imagename string, containername string, inputEnv []string) err
 		// 		},
 		// 	},
 		// },
+		Mounts : mounts,
 		RestartPolicy: container.RestartPolicy{
 			Name: "always",
 		},

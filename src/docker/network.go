@@ -45,6 +45,7 @@ func CreateCosmosNetwork() (string, error) {
 	}
 
 	//if running in Docker, connect to main network
+	utils.Debug("HOSTNAME: " + os.Getenv("HOSTNAME"))
 	if os.Getenv("HOSTNAME") != "" {
 		err := DockerClient.NetworkConnect(DockerContext, newNeworkName, os.Getenv("HOSTNAME"), &network.EndpointSettings{})
 	
@@ -146,6 +147,14 @@ func IsConnectedToASecureCosmosNetwork(containerConfig types.ContainerJSON) (boo
 
 	for name, _ := range containerConfig.NetworkSettings.Networks {
 		if name == GetLabel(containerConfig, "cosmos-network-name") {
+			if os.Getenv("HOSTNAME") != "" {
+				// TODO: Check if connected to network first
+				DockerClient.NetworkConnect(DockerContext, name, os.Getenv("HOSTNAME"), &network.EndpointSettings{})
+				// if err != nil {
+				// 	utils.Error("Docker Network Connect EXISTING ", err)
+				// 	return false, err
+				// }
+			}
 			return true, nil
 		}
 	}

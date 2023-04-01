@@ -139,6 +139,7 @@ const UserManagement = () => {
                     }).then(() => {
                         setOpenCreateForm(false);
                         refresh();
+                        sendlink(document.getElementById('c-nickname').value, 'create');
                     });
                 }}>Create</Button>
             </DialogActions>

@@ -14,7 +14,7 @@ import (
 
 type CreateRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
-	Email string `validate:"email"`
+	Email string `validate:"omitempty,email"`
 }
 
 func UserCreate(w http.ResponseWriter, req *http.Request) {

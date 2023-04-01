@@ -28,10 +28,10 @@ type NewInstallJSON struct {
 	TLSKey string `json:"tlsKey"`
 	Nickname string `json:"nickname"`
 	Password string `json:"password"`
-	Email string `json:"email"`
+	Email string `json:"omitempty,email"`
 	Hostname string `json:"hostname"`
 	Step string `json:"step"`
-	SSLEmail string `json:"sslEmail",validate:"if=HTTPSCertificateMode==LetsEncrypt,email"`
+	SSLEmail string `json:"sslEmail",validate:"omitempty,email"`
 }
 
 type AdminJSON struct {

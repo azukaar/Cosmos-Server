@@ -59,12 +59,12 @@ const ServeApps = () => {
   }
 
   const getContainersRoutes = (containerName) => {
-    return config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
+    return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
       return route.Mode == "SERVAPP" && (
         route.Target.startsWith(containerName) ||
         route.Target.split('://')[1].startsWith(containerName)
       )
-    })
+    })) || [];
   }
 
   useEffect(() => {

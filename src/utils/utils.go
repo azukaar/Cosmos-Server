@@ -22,7 +22,7 @@ var DefaultConfig = Config{
 		GenerateMissingAuthCert: true,
 		HTTPPort: "80",
 		HTTPSPort: "443",
-		Hostname: "0.0.0.0",
+		Hostname: "localhost",
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},

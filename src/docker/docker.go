@@ -202,7 +202,5 @@ func Test() error {
 
 	// fmt.Println(jellyfin.NetworkSettings)
 
-	
-
 	return nil
 }
