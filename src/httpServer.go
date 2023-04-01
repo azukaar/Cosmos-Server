@@ -182,17 +182,6 @@ func StartServer() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
-
-	router.Methods("GET",
-		"POST",
-		"PUT",
-		"DELETE",
-		"PATCH",
-		"OPTIONS",
-		"HEAD",
-		).Host(config.Hostname).Subrouter().HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
-	}))
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
@@ -235,6 +224,10 @@ func StartServer() {
 	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
 
 	router = proxy.BuildFromConfig(router, config.ProxyConfig)
+	
+	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
+	}))
 
 	if ((config.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || config.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
 			 tlsCert != "" && tlsKey != "") || (config.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
