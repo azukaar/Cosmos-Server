@@ -95,8 +95,8 @@ func LoadBaseMainConfig(config Config){
 	if os.Getenv("COSMOS_HOSTNAME") != "" {
 		MainConfig.HTTPConfig.Hostname = os.Getenv("COSMOS_HOSTNAME")
 	}
-	if os.Getenv("COSMOS_GENERATE_MISSING_TLS_CERT") != "" {
-		MainConfig.HTTPConfig.HTTPSCertificateMode = os.Getenv("COSMOS_HTTPSCertificateMode")
+	if os.Getenv("COSMOS_HTTPS_MODE") != "" {
+		MainConfig.HTTPConfig.HTTPSCertificateMode = os.Getenv("COSMOS_HTTPS_MODE")
 	}
 	if os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") != "" {
 		MainConfig.HTTPConfig.GenerateMissingAuthCert = os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") == "true"

@@ -41,7 +41,7 @@ func checkVersion() {
 
 	myVersion := version.Version
 	
-	response, err := http.Get("https://comos-technologies.com/versions/" + myVersion)
+	response, err := http.Get("https://cosmos-cloud.io/versions/" + myVersion)
 	if err != nil {
 		utils.Error("checkVersion", err)
 		return
