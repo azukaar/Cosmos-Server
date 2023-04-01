@@ -27,7 +27,7 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-export const CosmosInputText = ({ name, style, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputText = ({ name, style, multiline, type, placeholder, onChange, label, formik }) => {
   return <Grid item xs={12}>
     <Stack spacing={1} style={style}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
@@ -36,6 +36,7 @@ export const CosmosInputText = ({ name, style, type, placeholder, onChange, labe
         type={type ? type : 'text'}
         value={formik.values[name]}
         name={name}
+        multiline={multiline}
         onBlur={formik.handleBlur}
         onChange={(...e) => {
           if (onChange) {
