@@ -183,7 +183,14 @@ func StartServer() {
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
 
-	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.Methods("GET",
+		"POST",
+		"PUT",
+		"DELETE",
+		"PATCH",
+		"OPTIONS",
+		"HEAD",
+		).Host(config.Hostname).Subrouter().HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
 	}))
 	

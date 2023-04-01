@@ -263,14 +263,14 @@ const NewInstall = () => {
                                     multiline
                                     name="TLSKey"
                                     label="Private Certificate"
-                                    placeholder="-----BEGIN CERTIFICATE-----\nMIIEowIBwIBAA...."
+                                    placeholder="-----BEGIN RSA PRIVATE KEY-----\nQCdYIUkYi...."
                                     formik={formik}
-                                />
+                                    />
                                 <CosmosInputText
                                     multiline
                                     name="TLSCert"
                                     label="Public Certificate"
-                                    placeholder="-----BEGIN RSA PRIVATE KEY-----\nQCdYIUkYi...."
+                                    placeholder="-----BEGIN CERTIFICATE-----\nMIIEowIBwIBAA...."
                                     formik={formik}
                                 />
                             </>
