@@ -63,21 +63,6 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 		destination = http.StripPrefix(route.PathPrefix, destination)
 	}
-	timeout := route.Timeout
-	
-	if(timeout == 0) {
-		timeout = 10000
-	}
-
-	throttlePerMinute := route.ThrottlePerMinute
-
-	throtthleTime := 1*time.Minute
-
-	// lets do something better later to disable throttle
-	if(throttlePerMinute == 0) {
-		throttlePerMinute = 99999999
-		throtthleTime = 1*time.Second
-	}
 
 	originCORS := route.CORSOrigin
 
@@ -92,12 +77,18 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	if(route.UsePathPrefix && !route.StripPathPrefix && (route.Mode == "STATIC" || route.Mode == "SPA")) {
 		utils.Warn("PathPrefix is used, but StripPathPrefix is false. The route mode is " + (string)(route.Mode) + ". This will likely cause issues with the route. Ignore this warning if you know what you are doing.")
 	}
+	
+	timeout := route.Timeout
+	
+	if(timeout > 0) {
+		destination = utils.MiddlewareTimeout(timeout * time.Millisecond)(destination)
+	}
 
-	origin.Handler(
-		tokenMiddleware(route.AuthEnabled)(
-		utils.CORSHeader(originCORS)(
-		utils.MiddlewareTimeout(timeout * time.Millisecond)(
-		httprate.Limit(throttlePerMinute, throtthleTime, 
+	throttlePerMinute := route.ThrottlePerMinute
+
+	if(throttlePerMinute > 0) {
+		throtthleTime := time.Minute
+		destination = httprate.Limit(throttlePerMinute, throtthleTime, 
 			httprate.WithKeyFuncs(httprate.KeyByIP),
 			httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 				utils.Error("Too many requests. Throttling", nil)
@@ -105,7 +96,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 					http.StatusTooManyRequests, "HTTP003")
 				return 
 			}),
-		)(destination)))))
+		)(destination)
+	}
+
+	origin.Handler(tokenMiddleware(route.AuthEnabled)(utils.CORSHeader(originCORS)((destination))))
 
 	utils.Log("Added route: ["+ (string)(route.Mode)  + "] " + route.Host + route.PathPrefix + " to " + route.Target + "")
 

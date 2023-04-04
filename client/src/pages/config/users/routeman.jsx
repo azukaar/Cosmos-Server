@@ -33,9 +33,35 @@ import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, Cos
 import { DownOutlined, UpOutlined, CheckOutlined, DeleteOutlined  } from '@ant-design/icons';
 import { CosmosContainerPicker } from './containerPicker';
 
+export const ValidateRoute = Yup.object().shape({
+  Name: Yup.string().required('Name is required'),
+  Mode: Yup.string().required('Mode is required'),
+  Target: Yup.string().required('Target is required').when('Mode', {
+    is: 'SERVAPP',
+    then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
+  }),
+
+  Host: Yup.string().when('UseHost', {
+    is: true,
+    then: Yup.string().required('Host is required')
+      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP')
+  }),
+
+  PathPrefix: Yup.string().when('UsePathPrefix', {
+    is: true,
+    then: Yup.string().required('Path Prefix is required').matches(/^\//, 'Path Prefix must start with / (e.g. /api). Do not include a domain/subdomain in it, use the Host for this.')
+  }),
+  
+  UseHost: Yup.boolean().when('UsePathPrefix', 
+  {
+    is: false,
+    then: Yup.boolean().oneOf([true], 'Source must at least be either Host or Path Prefix')
+  }),
+})
+
 const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockTarget=false, setRouteConfig, up, down, deleteRoute }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
-
+  
   return <div style={{ maxWidth: '1000px', margin: '' }}>
     {routeConfig && <>
       <Formik
@@ -54,14 +80,13 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
           ThrottlePerMinute: routeConfig.ThrottlePerMinute,
           CORSOrigin: routeConfig.CORSOrigin,
         }}
-        validationSchema={Yup.object().shape({
-
-        })}
-        validate={(values) => {
-          setRouteConfig(values);
-        }}
+        validateOnChange={false}
+        validationSchema={ValidateRoute}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           return false;  
+        }}
+        validate={(values) => {
+            //setRouteConfig(values);
         }}
       >
         {(formik) => (
@@ -76,6 +101,11 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
               </div>
             }>
               <Grid container spacing={2}>
+                {formik.errors.submit && (
+                  <Grid item xs={12}>
+                    <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                  </Grid>
+                )}
 
                 <CosmosInputText
                   name="Name"
@@ -108,6 +138,7 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
                         ["PROXY", "Proxy"],
                         ["STATIC", "Static Folder"],
                         ["SPA", "Single Page Application"],
+                        ["REDIRECT", "Redirection"]
                       ]}
                     />
 

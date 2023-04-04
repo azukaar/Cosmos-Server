@@ -22,6 +22,8 @@ func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handl
 				}
 			}()
 
+			w.Header().Set("X-Timeout-Duration", timeout.String())
+
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		}

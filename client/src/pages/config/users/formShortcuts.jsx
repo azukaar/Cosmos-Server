@@ -38,12 +38,7 @@ export const CosmosInputText = ({ name, style, multiline, type, placeholder, onC
         name={name}
         multiline={multiline}
         onBlur={formik.handleBlur}
-        onChange={(...e) => {
-          if (onChange) {
-            onChange(...e);
-          }
-          formik.handleChange(...e);
-        }}
+        onChange={formik.handleChange}
         placeholder={placeholder}
         fullWidth
         error={Boolean(formik.touched[name] && formik.errors[name])}
@@ -172,6 +167,11 @@ export const CosmosCheckbox = ({ name, label, formik, style }) => {
         style={style}
       />
     </Stack>
+    {formik.touched[name] && formik.errors[name] && (
+      <FormHelperText error id="standard-weight-helper-text-name-login">
+        {formik.errors[name]}
+      </FormHelperText>
+    )}
   </Grid>
 }
 

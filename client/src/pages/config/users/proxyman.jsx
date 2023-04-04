@@ -28,7 +28,8 @@ import {
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
-import RouteManagement from './routeman';
+import RouteManagement, {ValidateRoute} from './routeman';
+import { map } from 'lodash';
 
 
 const ProxyManagement = () => {
@@ -36,6 +37,7 @@ const ProxyManagement = () => {
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [error, setError] = React.useState(null);
+  const [submitErrors, setSubmitErrors] = React.useState([]);
 
   function updateRoutes(routes) {
     let con = {
@@ -51,6 +53,14 @@ const ProxyManagement = () => {
     setConfig(con);
     return con;
   }
+
+  function cleanRoutes(config) {
+    config.HTTPConfig.ProxyConfig.Routes = config.HTTPConfig.ProxyConfig.Routes.map((r) => {
+      delete r._hasErrors;
+      return r;
+    });
+    return config;
+  }    
 
   function refresh() {
     API.config.get().then((res) => {
@@ -85,6 +95,13 @@ const ProxyManagement = () => {
     refresh();
   }, []);
 
+  const testRoute = (route) => {
+    try {
+      ValidateRoute.validateSync(route);
+    } catch (e) {
+      return e.errors;
+    }
+  }
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
   return <div style={{ maxWidth: '1000px', margin: '' }}>
@@ -92,7 +109,7 @@ const ProxyManagement = () => {
         refresh();
     }}>Refresh</Button>&nbsp;&nbsp;
     <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
-        routes.push({
+        routes.unshift({
           Name: 'New Route',
           Description: 'New Route',
           Mode: "SERVAPP",
@@ -114,7 +131,7 @@ const ProxyManagement = () => {
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
       {routes && routes.map((route,key) => (<>
-        <RouteManagement routeConfig={route}
+        <RouteManagement key={key} routeConfig={route}
           setRouteConfig={(newRoute) => {
             routes[key] = newRoute;
           }}
@@ -133,13 +150,30 @@ const ProxyManagement = () => {
             </Grid>
           )}
           <Grid item xs={12}>
+            <Stack spacing={1}>
+            {submitErrors.map((err) => {
+              return <Alert severity="error">{err}</Alert>
+            })}
             <AnimateButton>
               <Button
                 disableElevation
-                disabled={false}
                 fullWidth
                 onClick={() => {
-                  API.config.set(updateRoutes(routes)).then(() => {
+                  if(routes.some((route, key) => {
+                    let errors = testRoute(route);
+                    if (errors && errors.length > 0) {
+                      errors = errors.map((err) => {
+                        return `${route.Name}: ${err}`;
+                      });
+                      setSubmitErrors(errors);
+                      return true;
+                    }
+                  })) {
+                    return;
+                  } else {
+                    setSubmitErrors([]);
+                  }
+                  API.config.set(cleanRoutes(updateRoutes(routes))).then(() => {
                     setOpenModal(true);
                   }).catch((err) => {
                     console.log(err);
@@ -154,6 +188,7 @@ const ProxyManagement = () => {
                 Save
               </Button>
             </AnimateButton>
+            </Stack>
           </Grid>
         </MainCard>
       }
