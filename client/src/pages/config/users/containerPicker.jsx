@@ -94,6 +94,10 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer}) {
 
   React.useEffect(() => {
     if(lockTarget) {
+      targetResult.container = TargetContainer.Names[0]
+      targetResult.containerObject = TargetContainer
+      targetResult.port = ''
+      targetResult.protocol = 'http'
       onContainerChange(TargetContainer)
     }
   }, [])

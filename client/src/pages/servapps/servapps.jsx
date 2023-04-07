@@ -128,7 +128,7 @@ const ServeApps = () => {
                     <div>
                         <RouteManagement TargetContainer={openModal} 
                           routeConfig={{
-                            Target: "http://"+openModal.Names[0] + ":8080",
+                            Target: "http://"+openModal.Names[0].replace('/', '') + ":",
                             Mode: "SERVAPP",
                             Name: openModal.Names[0].replace('/', ''),
                             Description: "Expose " + openModal.Names[0].replace('/', '') + " to the internet",
