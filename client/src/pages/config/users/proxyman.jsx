@@ -143,6 +143,7 @@ const ProxyManagement = () => {
       {routes && routes.map((route,key) => (<>
         <RouteManagement key={key} routeConfig={route}
           setRouteConfig={(newRoute) => {
+            console.log(newRoute)
             routes[key] = newRoute;
             setNeedSave(true);
           }}

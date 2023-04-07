@@ -31,7 +31,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import * as API  from '../../../api';
 
-export function CosmosContainerPicker({formik, lockTarget, TargetContainer}) {
+export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTargetChange}) {
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
@@ -133,6 +133,13 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer}) {
       setOptions([]);
     }
   }, [open]);
+
+  const newTarget = formik.values[name];
+  React.useEffect(() => {
+    if(onTargetChange) {
+      onTargetChange(newTarget)
+    }
+  }, [newTarget])
 
   return ( <Grid item xs={12}>
     <Stack spacing={1}>

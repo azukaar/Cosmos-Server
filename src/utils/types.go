@@ -97,7 +97,7 @@ type ProxyConfig struct {
 }
 
 type ProxyRouteConfig struct {
-	Name string
+	Name string `validate:"required"`
 	Description string
 	UseHost bool
   Host string

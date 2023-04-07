@@ -148,8 +148,11 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
                       (formik.values.Mode === "SERVAPP")? 
                       <CosmosContainerPicker
                         formik={formik}
-                        lockTarget={lockTarget} 
+                        lockTarget={lockTarget}
                         TargetContainer={TargetContainer}
+                        onTargetChange={() => {
+                          setRouteConfig(formik.values);
+                        }}
                       />
                       :  <CosmosInputText
                         name="Target"
