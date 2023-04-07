@@ -71,25 +71,25 @@ type User struct {
 }
 
 type Config struct {
-	LoggingLevel LoggingLevel `validate:"oneof=DEBUG INFO WARNING ERROR"`
+	LoggingLevel LoggingLevel `required,validate:"oneof=DEBUG INFO WARNING ERROR"`
 	MongoDB string
-	HTTPConfig HTTPConfig
 	DisableUserManagement bool
-	NewInstall bool
+	NewInstall bool `validate:"boolean"`
+	HTTPConfig HTTPConfig `validate:"required,dive,required"`
 }
 
 type HTTPConfig struct {
-	TLSCert string
+	TLSCert string `validate:"omitempty,contains=\n`
 	TLSKey string
 	AuthPrivateKey string
 	AuthPublicKey string
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
-	HTTPPort string
-	HTTPSPort string
+	HTTPPort string `validate:"required,containsany=0123456789,min=1,max=6"`
+	HTTPSPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	ProxyConfig ProxyConfig
-	Hostname string
-	SSLEmail string
+	Hostname string `validate:"required,excludesall=0x2C/ "`
+	SSLEmail string `validate:"omitempty,email"`
 } 
 
 type ProxyConfig struct {

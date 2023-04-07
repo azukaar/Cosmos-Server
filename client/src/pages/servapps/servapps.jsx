@@ -10,7 +10,7 @@ import { styled } from '@mui/material/styles';
 import * as API from '../../api';
 import isLoggedIn from '../../isLoggedIn';
 import RestartModal from '../config/users/restart';
-import RouteManagement from '../config/users/routeman';
+import RouteManagement, { ValidateRoute } from '../config/users/routeman';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -29,6 +29,7 @@ const ServeApps = () => {
   const [config, setConfig] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [newRoute, setNewRoute] = useState(null);
+  const [submitErrors, setSubmitErrors] = useState([]);
   const [openRestartModal, setOpenRestartModal] = useState(false);
 
   const hasCosmosNetwork = (containerName) => {
@@ -39,6 +40,15 @@ const ServeApps = () => {
       if(network.startsWith('cosmos-network'))
         return true;
     })
+  }
+
+  const testRoute = (route) => {
+    console.log(newRoute)
+    try {
+      ValidateRoute.validateSync(route);
+    } catch (e) {
+      return e.errors;
+    }
   }
 
   const refreshServeApps = () => {
@@ -146,9 +156,25 @@ const ServeApps = () => {
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
+                {submitErrors && submitErrors.length > 0 && <Stack spacing={2} direction={"column"}>
+                  <Alert severity="error">{submitErrors.map((err) => {
+                      return <div>{err}</div>
+                    })}</Alert>
+                </Stack>}
                 <Button onClick={() => setOpenModal(false)}>Cancel</Button>
                 <Button onClick={() => {
-                  updateRoutes()
+                  let errors = testRoute(newRoute);
+                  if (errors && errors.length > 0) {
+                    errors = errors.map((err) => {
+                      return `${err}`;
+                    });
+                    setSubmitErrors(errors);
+                    return true;
+                  } else {
+                    setSubmitErrors([]);
+                    updateRoutes();
+                  }
+                  
                 }}>Connect</Button>
             </DialogActions>
         </>}

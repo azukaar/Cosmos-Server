@@ -31,6 +31,14 @@ import RestartModal from './restart';
 import RouteManagement, {ValidateRoute} from './routeman';
 import { map } from 'lodash';
 
+const stickyButton = {
+  position: 'fixed',
+  bottom: '20px',
+  left: '20px',
+  right: '20px',
+  boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.50)',
+}
+
 
 const ProxyManagement = () => {
   isLoggedIn();
@@ -38,7 +46,8 @@ const ProxyManagement = () => {
   const [openModal, setOpenModal] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [submitErrors, setSubmitErrors] = React.useState([]);
-
+  const [needSave, setNeedSave] = React.useState(false);
+  
   function updateRoutes(routes) {
     let con = {
       ...config,
@@ -51,6 +60,7 @@ const ProxyManagement = () => {
       },
     };
     setConfig(con);
+    setNeedSave(true);
     return con;
   }
 
@@ -134,6 +144,7 @@ const ProxyManagement = () => {
         <RouteManagement key={key} routeConfig={route}
           setRouteConfig={(newRoute) => {
             routes[key] = newRoute;
+            setNeedSave(true);
           }}
           up={() => up(key)}
           down={() => down(key)}
@@ -142,20 +153,21 @@ const ProxyManagement = () => {
         <br /><br />
       </>))}
 
-      {routes && 
+      {routes && needSave && 
+        <div style={stickyButton}>
         <MainCard>
           {error && (
             <Grid item xs={12}>
               <FormHelperText error>{error}</FormHelperText>
             </Grid>
           )}
-          <Grid item xs={12}>
             <Stack spacing={1}>
             {submitErrors.map((err) => {
               return <Alert severity="error">{err}</Alert>
             })}
             <AnimateButton>
               <Button
+                className='shinyButton'
                 disableElevation
                 fullWidth
                 onClick={() => {
@@ -174,6 +186,7 @@ const ProxyManagement = () => {
                     setSubmitErrors([]);
                   }
                   API.config.set(cleanRoutes(updateRoutes(routes))).then(() => {
+                    setNeedSave(false);
                     setOpenModal(true);
                   }).catch((err) => {
                     console.log(err);
@@ -189,8 +202,8 @@ const ProxyManagement = () => {
               </Button>
             </AnimateButton>
             </Stack>
-          </Grid>
         </MainCard>
+        </div>
       }
       {!routes && <>
         <Typography variant="h6" gutterBottom component="div">

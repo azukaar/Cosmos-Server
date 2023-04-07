@@ -40,6 +40,13 @@ func LoadConfig() utils.Config {
 		utils.Fatal("Reading Config File: " + errString, err)
 	}
 
+	// check if config is valid
+	utils.Log("Validating config file...")
+	err = utils.Validate.Struct(config)
+	if err != nil {
+		utils.Fatal("Reading Config File: " + err.Error(), err)
+	}
+
 	utils.LoadBaseMainConfig(config)
 
 	return config

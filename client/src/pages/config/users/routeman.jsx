@@ -86,7 +86,7 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
           return false;  
         }}
         validate={(values) => {
-            //setRouteConfig(values);
+            setRouteConfig(values);
         }}
       >
         {(formik) => (
