@@ -287,7 +287,10 @@ const ServeApps = () => {
                       color="primary"
                       style={{paddingRight: '4px'}}
                       onClick={() => {
-                        window.open(route.Host + route.PathPrefix, '_blank');
+                        if(route.UseHost)
+                          window.open(window.location.origin.split("://")[0] + "://" + route.Host + route.PathPrefix, '_blank');
+                        else
+                          window.open(window.location.origin + route.PathPrefix, '_blank');
                       }}
                       onDelete={() => {
                         window.open('/ui/config/proxy#'+route.Name, '_blank');
