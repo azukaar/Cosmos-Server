@@ -1,5 +1,5 @@
 // material-ui
-import { AppstoreAddOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { AppstoreAddOutlined, ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Stack } from '@mui/system';
@@ -19,6 +19,8 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: 'center',
   color: theme.palette.text.secondary,
 }));
+
+const noOver = {overflowX: 'auto', width: "100%"}
 
 const ServeApps = () => {
   isLoggedIn();
@@ -208,7 +210,7 @@ const ServeApps = () => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4}>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
-              <Stack direction="row" spacing={2} alignItems="center">
+              <Stack style={{position: 'relative', overflowX: 'hidden'}} direction="row" spacing={2} alignItems="center">
                 <Typography variant="body2" color="text.secondary">
                   {
                     ({
@@ -235,7 +237,7 @@ const ServeApps = () => {
                 <Typography  variant="h6" color="text.secondary">
                   Ports
                 </Typography> 
-                <Stack margin={1} direction="row" spacing={1}>
+                <Stack style={noOver} margin={1} direction="row" spacing={1}>
                   {app.Ports.map((port) => {
                     return <Tooltip title={port.PublicPort ? 'Warning, this port is publicly accessible' : ''}>
                       <Chip style={{ fontSize: '80%' }} label={":" + port.PrivatePort} color={port.PublicPort ? 'warning' : 'default'} />
@@ -247,7 +249,7 @@ const ServeApps = () => {
                 <Typography  variant="h6" color="text.secondary">
                   Networks
                 </Typography> 
-                <Stack margin={1} direction="row" spacing={1}>
+                <Stack style={noOver} margin={1} direction="row" spacing={1}>
                   {app.NetworkSettings.Networks && Object.keys(app.NetworkSettings.Networks).map((network) => {
                     return <Chip style={{ fontSize: '80%' }} label={network} color={network === 'bridge' ? 'warning' : 'default'} />
                   })}
@@ -280,7 +282,19 @@ const ServeApps = () => {
                 </Typography>
                 <Stack spacing={2} direction="row">
                   {getContainersRoutes(app.Names[0].replace('/', '')).map((route) => {
-                    return <Chip label={route.Host + route.PathPrefix} color="info" />
+                    return <><Chip 
+                      label={route.Host + route.PathPrefix} 
+                      color="primary"
+                      style={{paddingRight: '4px'}}
+                      onClick={() => {
+                        window.open(route.Host + route.PathPrefix, '_blank');
+                      }}
+                      onDelete={() => {
+                        window.open('/ui/config/proxy#'+route.Name, '_blank');
+                      }}
+                      deleteIcon={<SettingOutlined />}
+                    />
+                    </>
                   })}
                   {getContainersRoutes(app.Names[0].replace('/', '')).length == 0 &&
                     <Chip label="No Proxy Setup" />}

@@ -61,7 +61,15 @@ export const ValidateRoute = Yup.object().shape({
 
 const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockTarget=false, setRouteConfig, up, down, deleteRoute }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
-  
+  const myRef = React.useRef(null)
+  const currRef = myRef.current;
+
+  React.useEffect(() => {
+    if(currRef && window.location.hash === '#' + routeConfig.Name) {
+      currRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [currRef])
+
   return <div style={{ maxWidth: '1000px', margin: '' }}>
     {routeConfig && <>
       <Formik
@@ -90,8 +98,8 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
         }}
       >
         {(formik) => (
-          <form noValidate onSubmit={formik.handleSubmit}>
-            <MainCard title={
+          <form ref={myRef} noValidate onSubmit={formik.handleSubmit}>
+            <MainCard name={routeConfig.Name} title={
               noControls ? 'New Route' :
               <div>{routeConfig.Name} &nbsp;
                 <Chip label={<UpOutlined />} onClick={() => up()}/> &nbsp;

@@ -34,8 +34,10 @@ import { map } from 'lodash';
 const stickyButton = {
   position: 'fixed',
   bottom: '20px',
-  left: '20px',
-  right: '20px',
+  width: '100%',
+  maxWidth: '1000px',
+  // left: '20px',
+  // right: '20px',
   boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.50)',
 }
 
@@ -141,7 +143,7 @@ const ProxyManagement = () => {
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
       {routes && routes.map((route,key) => (<>
-        <RouteManagement key={key} routeConfig={route}
+        <RouteManagement key={route.Name} routeConfig={route}
           setRouteConfig={(newRoute) => {
             routes[key] = newRoute;
             setNeedSave(true);
@@ -153,7 +155,11 @@ const ProxyManagement = () => {
         <br /><br />
       </>))}
 
-      {routes && needSave && 
+      {routes && needSave && <>
+        <div>
+        <br /><br /><br /><br />
+        </div>
+        <Stack style={{position: 'relative'}} fullWidth spacing={1}>
         <div style={stickyButton}>
         <MainCard>
           {error && (
@@ -204,6 +210,8 @@ const ProxyManagement = () => {
             </Stack>
         </MainCard>
         </div>
+        </Stack>
+        </>
       }
       {!routes && <>
         <Typography variant="h6" gutterBottom component="div">

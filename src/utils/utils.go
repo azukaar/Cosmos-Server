@@ -275,7 +275,7 @@ func GetAllHostnames() []string {
 	}
 	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
 	for _, proxy := range proxies {
-		if proxy.UseHost {
+		if (proxy.UseHost && proxy.Host != "" && strings.Contains(proxy.Host, ".") && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ")){
 			hostnames = append(hostnames, proxy.Host)
 		}
 	}
@@ -288,5 +288,6 @@ func GetAllHostnames() []string {
 			uniqueHostnames = append(uniqueHostnames, hostname)
 		}
 	}
+	Debug("Hostnames are " + strings.Join(uniqueHostnames, ", "))
 	return uniqueHostnames
 }
