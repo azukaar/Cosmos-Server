@@ -1,6 +1,7 @@
 const tokens = require('./tokens.json')
 const sponsors = require('@jamesives/github-sponsors-readme-action')
-const fs = require('fs').promises
+const fs = require('fs')
+const packageJson = require('./package.json')
 
 let configuration = {
   token: tokens.github,
@@ -23,7 +24,7 @@ const sponsorsGenerate = async () => {
   }
 
   // open the readme
-  const readme = await fs.readFile(configuration.file, 'utf8')
+  const readme = fs.readFileSync(configuration.file, 'utf8')
 
   // replace the sponsors marker with the new list
   const newReadme = readme.replace(
@@ -37,7 +38,7 @@ const sponsorsGenerate = async () => {
   )
 
   // write the new readme
-  await fs.writeFile(configuration.file, newReadme)
+  fs.writeFileSync(configuration.file, newReadme)
   
   // add to current commit by runnning shell command
   const { exec } = require('child_process')
@@ -51,4 +52,40 @@ const sponsorsGenerate = async () => {
 
   console.log(`Sponsors updated!`)
 }
-sponsorsGenerate()
+
+function changelog() {
+  // get the changes from last commit message
+  const { execSync } = require('child_process')
+  const commitMessage = execSync('git log -1 --pretty=%B').toString()
+  if(!commitMessage.toLocaleLowerCase().startsWith('[release]')) {
+    console.log('Not a release commit, skipping changelog update')
+    return
+  }
+  const version = packageJson.version
+ 
+  // open changelog.md
+  const changelog = fs.readFileSync('./changelog.md', 'utf8')
+  
+  // add the new changes to the top of the changelog
+  const newChangelog = `## Version ${version} \n ${commitMessage}\n\n${changelog}`
+  
+  // write the new changelog
+  fs.writeFileSync('./changelog.md', newChangelog)
+  
+  // add to current commit by runnning shell command
+  const { exec } = require('child_process')
+  const e = exec('git add changelog.md')
+  e.stdout.on('data', (data) => {
+    console.log(data)
+  })
+  e.stderr.on('data', (data) => {
+    console.error(data)
+  })
+}
+
+let isOnMaster = false;
+
+if(isOnMaster) {
+  sponsorsGenerate()
+}
+changelog();
