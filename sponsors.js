@@ -83,9 +83,5 @@ function changelog() {
   })
 }
 
-let isOnMaster = false;
-
-if(isOnMaster) {
-  sponsorsGenerate()
-}
+sponsorsGenerate()
 changelog();
