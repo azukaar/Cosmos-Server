@@ -13,6 +13,7 @@
     "@emotion/cache": "^11.10.3",
     "@emotion/react": "^11.10.4",
     "@emotion/styled": "^11.10.4",
+    "@jamesives/github-sponsors-readme-action": "^1.2.2",
     "@mui/lab": "^5.0.0-alpha.100",
     "@mui/material": "^5.10.6",
     "@reduxjs/toolkit": "^1.8.5",

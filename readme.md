@@ -6,10 +6,7 @@
 
 ---
 
-<!-- sponsors -->
-<h3 align="center">Thanks to the sponsors:</h3></br>
-<p align="center"><a href="https://github.com/zarevskaya"><img src="https://avatars.githubusercontent.com/zarevskaya" style="border-radius:48px" width="48" height="48" alt="zarev" title="zarev" /></a>
-</p><!-- /sponsors -->
+<!-- sponsors --><!-- /sponsors -->
 
 ---
 
