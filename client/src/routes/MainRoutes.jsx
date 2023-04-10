@@ -41,15 +41,15 @@ const MainRoutes = {
             element: <ServeApps />
         },
         {
-            path: '/ui/config/users',
+            path: '/ui/config-users',
             element: <UserManagement />
         },
         {
-            path: '/ui/config/general',
+            path: '/ui/config-general',
             element: <ConfigManagement />
         },
         {
-            path: '/ui/config/proxy',
+            path: '/ui/config-url',
             element: <ProxyManagement />
         },
     ]

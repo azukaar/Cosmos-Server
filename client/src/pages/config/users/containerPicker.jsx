@@ -29,6 +29,8 @@ import RestartModal from './restart';
 import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import defaultport from '../../servapps/defaultport.json';
+
 import * as API  from '../../../api';
 
 export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTargetChange}) {
@@ -53,7 +55,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
   if(preview) {
     let protocols = preview.split("://")
     let p1_ = protocols.length > 1 ? protocols[1] : protocols[0]
-    console.log("p1_", p1_)
+
     targetResult = {
       container: '/' + p1_.split(":")[0],
       port: p1_.split(":")[1],
@@ -75,6 +77,37 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
       }
     })
     setPortsOptions(portsTemp)
+
+    targetResult.port = '80'
+
+    if(portsTemp.length > 0) {
+      // pick best default port
+      // set default to first port
+      targetResult.port = portsTemp[0]
+      // first, check if a manual override exists
+      let override = Object.keys(defaultport.overrides).find((key) => {
+        let keyMatch = new RegExp(key, "i");
+        return newContainer.Image.match(keyMatch) && portsTemp.includes(defaultport.overrides[key])
+      });
+
+      if(override) {
+        targetResult.port = defaultport.overrides[override]
+      } else {
+        // if not, check the default list of common ports
+        let priorityList = defaultport.priority;
+        priorityList.find((_portReg) => {
+          return portsTemp.find((portb) => {
+            let portReg = new RegExp(_portReg, "i");
+            if(portb.toString().match(portReg)) {
+              targetResult.port = portb
+              return true;
+            }
+          })
+        })
+      }
+    }
+
+    formik.setFieldValue(name, getTarget());
 
     if(newContainer.NetworkSettings.Networks["bridge"]) {
       setIsOnBridge(true);
@@ -186,26 +219,27 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
 
     {(portsOptions.length > 0) ? (<>
     <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
-    <TextField
+    <Autocomplete
       className="px-2 my-2"
       variant="outlined"
       name={name + "-port"}
       id={name + "-port"}
       value={targetResult.port}
-      select
+      options={portsOptions.map((option) => (option))}
       placeholder='Select a port'
-      onChange={(event) => {
-        targetResult.port = event.target.value
+      freeSolo
+      filterOptions={(x) => x} // disable filtering
+      getOptionLabel={(option) => '' + option}
+      isOptionEqualToValue={(option, value) => {
+        return ('' + option) === value
+      }}
+      onChange={(event, newValue) => {
+        targetResult.port = newValue
         formik.setFieldValue(name, getTarget())
       }}
-    >
-      {portsOptions.map((option) => (
-        <MenuItem key={option} value={option}>
-          {option}
-        </MenuItem>
-      ))}
-    </TextField>
-      {targetResult.port == '' && <FormHelperText error id="standard-weight-helper-text-name-login">
+      renderInput={(params) => <TextField {...params} />}
+    />
+      {targetResult.port == '' && targetResult.port == 0 && <FormHelperText error id="standard-weight-helper-text-name-login">
         Please select a port
       </FormHelperText>}
     </>) : ''}

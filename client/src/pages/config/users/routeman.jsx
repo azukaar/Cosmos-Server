@@ -100,7 +100,7 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
         {(formik) => (
           <form ref={myRef} noValidate onSubmit={formik.handleSubmit}>
             <MainCard name={routeConfig.Name} title={
-              noControls ? 'New Route' :
+              noControls ? 'New URL' :
               <div>{routeConfig.Name} &nbsp;
                 <Chip label={<UpOutlined />} onClick={() => up()}/> &nbsp;
                 <Chip label={<DownOutlined />} onClick={() => down()}/> &nbsp;

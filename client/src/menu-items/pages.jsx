@@ -16,24 +16,24 @@ const pages = {
     type: 'group',
     children: [
         {
-            id: 'proxy',
-            title: 'Proxy Routes',
+            id: 'url',
+            title: 'URLs',
             type: 'item',
-            url: '/ui/config/proxy',
+            url: '/ui/config-url',
             icon: icons.NodeExpandOutlined,
         },
         {
             id: 'users',
             title: 'Manage Users',
             type: 'item',
-            url: '/ui/config/users',
+            url: '/ui/config-users',
             icon: icons.ProfileOutlined,
         },
         {
             id: 'config',
             title: 'Configuration',
             type: 'item',
-            url: '/ui/config/general',
+            url: '/ui/config-general',
             icon: icons.SettingOutlined,
         }
     ]

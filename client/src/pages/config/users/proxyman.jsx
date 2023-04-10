@@ -122,8 +122,8 @@ const ProxyManagement = () => {
     }}>Refresh</Button>&nbsp;&nbsp;
     <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         routes.unshift({
-          Name: 'New Route',
-          Description: 'New Route',
+          Name: 'New URL',
+          Description: 'New URL',
           Mode: "SERVAPP",
           UseHost: false,
           Host: '',

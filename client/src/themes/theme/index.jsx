@@ -1,6 +1,9 @@
 // ==============================|| PRESET THEME - THEME SELECTOR ||============================== //
 
+import { purple, pink, deepPurple } from '@mui/material/colors';
+
 const Theme = (colors) => {
+    console.log(colors)
     const { blue, red, gold, cyan, green, grey } = colors;
     const greyColors = {
         0: grey[0],
@@ -25,33 +28,10 @@ const Theme = (colors) => {
 
     return {
         primary: {
-            lighter:  '#C8A2C8',
-            100: '#B785B7',
-            200: '#B785B7',
-            light: '#A668A6',
-            400: '#A668A6',
-            main:  '#8D538D',
-            dark: '#704270',
-            700: '#533153',
-            darker:'#362036',
-            900: '#1A0E1A',
-            contrastText
+            main: purple[400],
         },
         secondary: {
-            lighter: greyColors[100],
-            100: greyColors[100],
-            200: greyColors[200],
-            light: greyColors[300],
-            400: greyColors[400],
-            main: greyColors[500],
-            600: greyColors[600],
-            dark: greyColors[700],
-            800: greyColors[800],
-            darker: greyColors[900],
-            A100: greyColors[0],
-            A200: greyColors.A400,
-            A300: greyColors.A700,
-            contrastText: greyColors[0]
+            main: deepPurple[100]
         },
         error: {
             lighter: red[0],

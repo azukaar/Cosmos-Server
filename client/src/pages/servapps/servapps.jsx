@@ -1,5 +1,5 @@
 // material-ui
-import { AppstoreAddOutlined, ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
+import { AppstoreAddOutlined, PlusCircleOutlined, ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
 import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Stack } from '@mui/system';
@@ -116,13 +116,13 @@ const ServeApps = () => {
   return <div>
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
     <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-        <DialogTitle>Connect ServApp</DialogTitle>
+        <DialogTitle>Expose ServApp</DialogTitle>
             {openModal && <>
             <DialogContent>
                 <DialogContentText>
                   <Stack spacing={2}>
                     <div>
-                      Welcome to the Connect Wizard. This interface will help you expose your ServApp securely to the internet.
+                      Welcome to the URL Wizard. This interface will help you expose your ServApp securely to the internet by creating a new URL.
                     </div>
                     <div>
                         {openModal && !hasCosmosNetwork(openModal.Names[0]) && <Alert severity="warning">This ServApp does not appear to be connected to a Cosmos Network, so the hostname might not be accessible. The easiest way to fix this is to check the box "Force Secure Network" or manually create a sub-network in Docker.</Alert>}
@@ -134,8 +134,8 @@ const ServeApps = () => {
                             Mode: "SERVAPP",
                             Name: openModal.Names[0].replace('/', ''),
                             Description: "Expose " + openModal.Names[0].replace('/', '') + " to the internet",
-                            UseHost: false,
-                            Host: '',
+                            UseHost: true,
+                            Host: openModal.Names[0].replace('/', '') + '.' + window.location.origin.split('://')[1],
                             UsePathPrefix: false,
                             PathPrefix: '',
                             Timeout: 30000,
@@ -177,7 +177,7 @@ const ServeApps = () => {
                     updateRoutes();
                   }
                   
-                }}>Connect</Button>
+                }}>Confirm</Button>
             </DialogActions>
         </>}
     </Dialog>
@@ -278,13 +278,13 @@ const ServeApps = () => {
                 </Stack></Stack>}
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
-                  Proxies
+                  URLs
                 </Typography>
                 <Stack spacing={2} direction="row">
                   {getContainersRoutes(app.Names[0].replace('/', '')).map((route) => {
                     return <><Chip 
                       label={route.Host + route.PathPrefix} 
-                      color="primary"
+                      color="secondary"
                       style={{paddingRight: '4px'}}
                       onClick={() => {
                         if(route.UseHost)
@@ -293,21 +293,33 @@ const ServeApps = () => {
                           window.open(window.location.origin + route.PathPrefix, '_blank');
                       }}
                       onDelete={() => {
-                        window.open('/ui/config/proxy#'+route.Name, '_blank');
+                        window.open('/ui/config-url#'+route.Name, '_blank');
                       }}
                       deleteIcon={<SettingOutlined />}
                     />
                     </>
                   })}
-                  {getContainersRoutes(app.Names[0].replace('/', '')).length == 0 &&
-                    <Chip label="No Proxy Setup" />}
+                  {/* {getContainersRoutes(app.Names[0].replace('/', '')).length == 0 && */}
+                    <Chip 
+                      label="New"
+                      color="primary"
+                      style={{paddingRight: '4px'}}
+                      deleteIcon={<PlusCircleOutlined />}
+                      onClick={() => {
+                        setOpenModal(app);
+                      }}
+                      onDelete={() => {
+                        setOpenModal(app);
+                      }}
+                    />
+                    {/* } */}
                 </Stack>
               </Stack>
-              <Stack>
+              {/* <Stack>
                 <Button variant="contained" color="primary" onClick={() => {
                   setOpenModal(app);
                 }}>Connect</Button>
-              </Stack>
+              </Stack> */}
             </Stack>
           </Item></Grid2>
         })
