@@ -24,6 +24,7 @@ func LoadConfig() utils.Config {
 	decoder := json.NewDecoder(file)
 	config := utils.Config{}
 	err = decoder.Decode(&config)
+
 	// check file is not empty
 	if err != nil {
 		// check error is not empty 
@@ -48,6 +49,9 @@ func LoadConfig() utils.Config {
 	}
 
 	utils.LoadBaseMainConfig(config)
+	
+	configJson, _ := json.MarshalIndent(config, "", "  ")
+	utils.Debug("Loaded Configuration " + (string)(configJson))
 
 	return config
 }

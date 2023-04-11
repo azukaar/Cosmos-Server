@@ -3,13 +3,12 @@ package docker
 import (
 	"context"
 	"errors"
-
+	"time"
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
-	// network "github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types"
 )
 
@@ -37,6 +36,18 @@ func getIdFromName(name string) (string, error) {
 var DockerIsConnected = false
 
 func Connect() error {
+	if DockerClient != nil {
+		// check if connection is still alive
+		ping, err := DockerClient.Ping(DockerContext)
+		if ping.APIVersion != "" && err == nil {
+			DockerIsConnected = true
+			return nil
+		} else {
+			DockerIsConnected = false
+			DockerClient = nil
+			utils.Error("Docker Connection died, will try to connect again", err)
+		}
+	}
 	if DockerClient == nil {
 		ctx := context.Background()
 		client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -69,11 +80,17 @@ func Connect() error {
 }
 
 func EditContainer(containerID string, newConfig types.ContainerJSON) (string, error) {
+	DockerNetworkLock <- true
+	defer func() { 
+		<-DockerNetworkLock 
+		utils.Debug("Unlocking EDIT Container")
+	}()
+
 	errD := Connect()
 	if errD != nil {
 		return "", errD
 	}
-	utils.Log("Container updating " + containerID)
+	utils.Log("EditContainer - Container updating " + containerID)
 
 	// get container informations
 	// https://godoc.org/github.com/docker/docker/api/types#ContainerJSON
@@ -98,7 +115,19 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 		return "", removeError
 	}
 
-	utils.Log("Container stopped " + containerID)
+	// wait for container to be destroyed
+	//
+	for {
+		_, err := DockerClient.ContainerInspect(DockerContext, containerID)
+		if err != nil {
+			break
+		} else {
+			utils.Log("EditContainer - Waiting for container to be destroyed")
+			time.Sleep(1 * time.Second)
+		}
+	}
+
+	utils.Log("EditContainer - Container stopped " + containerID)
 
 	// recreate container with new informations
 	createResponse, createError := DockerClient.ContainerCreate(
@@ -110,24 +139,33 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 		newName,
 	)
 
+	// re-connect to networks
+	for networkName, _ := range oldContainer.NetworkSettings.Networks {
+		errNet := ConnectToNetworkSync(networkName, createResponse.ID)
+		if errNet != nil {
+			utils.Error("EditContainer - Failed to connect to network " + networkName, errNet)
+		} else {
+			utils.Debug("EditContainer - New Container connected to network " + networkName)
+		}
+	}
+
 	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, types.ContainerStartOptions{})
 
 	if runError != nil {
 		return "", runError
 	}
 
-	utils.Log("Container recreated " + createResponse.ID)
+	utils.Log("EditContainer - Container recreated " + createResponse.ID)
 
 	if createError != nil {
 		// attempt to restore container
 		_, restoreError := DockerClient.ContainerCreate(DockerContext, oldContainer.Config, nil, nil, nil, oldContainer.Name)
 		if restoreError != nil {
-			utils.Error("Failed to restore Docker Container after update failure", restoreError)
+			utils.Error("EditContainer - Failed to restore Docker Container after update failure", restoreError)
 		}
 
 		return "", createError
 	}
-	
 
 	return createResponse.ID, nil
 }
@@ -169,6 +207,14 @@ func ListContainers() ([]types.Container, error) {
 func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) error {
 	for key, value := range labels {
 		containerConfig.Config.Labels[key] = value
+	}
+
+	return nil
+}
+
+func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
+	for _, label := range labels {
+		delete(containerConfig.Config.Labels, label)
 	}
 
 	return nil

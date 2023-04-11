@@ -18,7 +18,6 @@ export default function ThemeCustomization({ children }) {
         window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ?
              'dark' : 'light');
 
-             console.log(theme)
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const themeTypography = Typography(`'Public Sans', sans-serif`);

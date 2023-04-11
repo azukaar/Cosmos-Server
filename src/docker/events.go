@@ -25,10 +25,24 @@ func DockerListenEvents() error {
 						return
 					}
 					utils.Error("Docker Event Error", err)
+					// Check connection
+					errD := Connect()
+					if errD != nil {
+						utils.Fatal("Docker connection died, couldn't recover... Restarting", errD)
+					}
+					msgs, errs = DockerClient.Events(context.Background(), types.EventsOptions{})
+
 				case msg := <-msgs:
 					utils.Debug("Docker Event: " + msg.Type + " " + msg.Action + " " + msg.Actor.ID)
 					if msg.Type == "container" && msg.Action == "start" {
 						onDockerCreated(msg.Actor.ID)
+					}
+					// on container destroy and network disconnect
+					if msg.Type == "container" && msg.Action == "destroy" {
+						onDockerDestroyed(msg.Actor.ID)
+					}
+					if msg.Type == "network" && msg.Action == "disconnect" {
+						onNetworkDisconnect(msg.Actor.ID)
 					}
 			}
 		}
@@ -40,4 +54,14 @@ func DockerListenEvents() error {
 func onDockerCreated(containerID string) {
 	utils.Debug("onDockerCreated: " + containerID)
 	BootstrapContainerFromTags(containerID)
+}
+
+func onDockerDestroyed(containerID string) {
+	utils.Debug("onDockerDestroyed: " + containerID)
+	NetworkCleanUp()
+}
+
+func onNetworkDisconnect(networkID string) {
+	utils.Debug("onNetworkDisconnect: " + networkID)
+	NetworkCleanUp()
 }

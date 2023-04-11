@@ -56,18 +56,21 @@ const sponsorsGenerate = async () => {
 function changelog() {
   // get the changes from last commit message
   const { execSync } = require('child_process')
-  const commitMessage = execSync('git log -1 --pretty=%B').toString()
-  if(!commitMessage.toLocaleLowerCase().startsWith('[release]')) {
+  let commitMessage = execSync('git log -1 --pretty=%B').toString()
+
+  if(!commitMessage.startsWith('[release]')) {
     console.log('Not a release commit, skipping changelog update')
     return
   }
   const version = packageJson.version
+
+  commitMessage = commitMessage.replace('[release]', 'Version')
  
   // open changelog.md
   const changelog = fs.readFileSync('./changelog.md', 'utf8')
   
   // add the new changes to the top of the changelog
-  const newChangelog = `## Version ${version} \n ${commitMessage}\n\n${changelog}`
+  const newChangelog = `## ${commitMessage}\n\n${changelog}`
   
   // write the new changelog
   fs.writeFileSync('./changelog.md', newChangelog)
@@ -84,4 +87,4 @@ function changelog() {
 }
 
 sponsorsGenerate()
-changelog();
+// changelog();

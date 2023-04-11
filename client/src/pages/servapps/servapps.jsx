@@ -45,7 +45,6 @@ const ServeApps = () => {
   }
 
   const testRoute = (route) => {
-    console.log(newRoute)
     try {
       ValidateRoute.validateSync(route);
     } catch (e) {
@@ -206,7 +205,7 @@ const ServeApps = () => {
       </Stack>
 
       <Grid2 container  spacing={2}>
-        {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].includes(search)).map((app) => {
+        {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4}>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>

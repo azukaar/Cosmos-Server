@@ -3,6 +3,7 @@ package docker
 import (	
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/docker/docker/api/types"
+	"os"
 )
 
 func BootstrapAllContainersFromTags() []error {
@@ -30,18 +31,27 @@ func BootstrapAllContainersFromTags() []error {
 	return errors
 }
 
-
 func BootstrapContainerFromTags(containerID string) error {
 	errD := Connect()
 	if errD != nil {
 		return errD
 	}
 
+	selfContainer := types.ContainerJSON{}
+	if os.Getenv("HOSTNAME") != "" {
+		var errS error 
+		selfContainer, errS = DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+		if errS != nil {
+			utils.Error("DockerContainerBootstrapSelfInspect", errS)
+			return errS
+		}
+	}
+
 	utils.Log("Bootstrap Container From Tags: " + containerID)
 
 	container, err := DockerClient.ContainerInspect(DockerContext, containerID)
 	if err != nil {
-		utils.Error("Docker Container Bootstrap Inspect", err)
+		utils.Error("DockerContainerBootstrapInspect", err)
 		return err
 	}
 
@@ -51,12 +61,10 @@ func BootstrapContainerFromTags(containerID string) error {
 		utils.Log(container.Name+": Checking Force network secured")
 
 		// check if connected to bridge and to a cosmos network
-		isCon, errC := IsConnectedToNetwork(container, "bridge")
-		isCosmosCon, _ := IsConnectedToASecureCosmosNetwork(container)
+		isCon := IsConnectedToNetwork(container, "bridge")
+		isCosmosCon, _ := IsConnectedToASecureCosmosNetwork(selfContainer, container)
 		
-		if errC != nil {
-			return errC
-		} else if isCon || !isCosmosCon {
+		if isCon || !isCosmosCon {
 			utils.Log(container.Name+": Needs isolating on a secured network")
 			needsRestart := false
 			var errCT error
@@ -66,7 +74,7 @@ func BootstrapContainerFromTags(containerID string) error {
 					return errCT
 				}
 				if needsRestart {
-					utils.Log(container.Name+": Will connect to new network after restart")
+					utils.Log(container.Name+": Will restart to apply changes")
 					needsUpdate = true
 				} else {
 					utils.Log(container.Name+": Connected to new network")

@@ -10,7 +10,6 @@ import (
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
-    "encoding/json"
 		"os"
 		"strings"
 		"github.com/go-chi/chi/middleware"
@@ -36,13 +35,7 @@ func startHTTPServer(router *mux.Router) {
 
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	config  := utils.GetMainConfig()
-
-
-	// check if Docker overwrite Hostname
-	serverHostname := "0.0.0.0" //utils.GetMainConfig().HTTPConfig.Hostname
-	// if os.Getenv("HOSTNAME") != "" {
-	// 	serverHostname = os.Getenv("HOSTNAME")
-	// }
+	serverHostname := "0.0.0.0"
 
 	cfg := simplecert.Default
 
@@ -146,9 +139,6 @@ func StartServer() {
 	config := utils.GetMainConfig().HTTPConfig
 	serverPortHTTP = config.HTTPPort
 	serverPortHTTPS = config.HTTPSPort
-
-	configJson, _ := json.MarshalIndent(config, "", "  ")
-	utils.Debug("Configuration" + (string)(configJson))
 
 	var tlsCert = config.TLSCert
 	var tlsKey= config.TLSKey

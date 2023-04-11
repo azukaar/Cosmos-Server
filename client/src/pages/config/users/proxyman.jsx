@@ -62,7 +62,6 @@ const ProxyManagement = () => {
       },
     };
     setConfig(con);
-    setNeedSave(true);
     return con;
   }
 
@@ -86,12 +85,14 @@ const ProxyManagement = () => {
       routes[key] = routes[key-1];
       routes[key-1] = tmp;
       updateRoutes(routes);
+      setNeedSave(true);
     }
   }
 
   function deleteRoute(key) {
     routes.splice(key, 1);
     updateRoutes(routes);
+    setNeedSave(true);
   }
 
   function down(key) {
@@ -100,6 +101,7 @@ const ProxyManagement = () => {
       routes[key] = routes[key+1];
       routes[key+1] = tmp;
       updateRoutes(routes);
+      setNeedSave(true);
     }
   }
 
@@ -136,6 +138,7 @@ const ProxyManagement = () => {
           AuthEnabled: false,
         });
         updateRoutes(routes);
+        setNeedSave(true);
     }}>Create</Button>
     
     <br /><br />

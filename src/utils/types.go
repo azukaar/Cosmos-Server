@@ -76,6 +76,7 @@ type Config struct {
 	DisableUserManagement bool
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
+	DockerConfig DockerConfig
 }
 
 type HTTPConfig struct {
@@ -91,6 +92,10 @@ type HTTPConfig struct {
 	Hostname string `validate:"required,excludesall=0x2C/ "`
 	SSLEmail string `validate:"omitempty,email"`
 } 
+
+type DockerConfig struct {
+	SkipPruneNetwork bool
+}
 
 type ProxyConfig struct {
 	Routes []ProxyRouteConfig

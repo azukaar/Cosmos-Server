@@ -40,7 +40,6 @@ const UserManagement = () => {
         setIsLoading(true);
         API.users.list()
         .then(data => {
-            console.log(data);
             setRows(data.data);
             setIsLoading(false);
         })

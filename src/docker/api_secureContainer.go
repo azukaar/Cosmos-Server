@@ -21,7 +21,7 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
 		container, err := DockerClient.ContainerInspect(DockerContext, containerName)
 		if err != nil {
-			utils.Error("ContainerSecure", err)
+			utils.Error("ContainerSecureInscpect", err)
 			utils.HTTPError(w, "Internal server error: " + err.Error(), http.StatusInternalServerError, "DS002")
 			return
 		}
@@ -34,7 +34,7 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 		_, errEdit := EditContainer(container.ID, container)
 		if errEdit != nil {
-			utils.Error("ContainerSecure", errEdit)
+			utils.Error("ContainerSecureEdit", errEdit)
 			utils.HTTPError(w, "Internal server error: " + err.Error(), http.StatusInternalServerError, "DS003")
 			return
 		}

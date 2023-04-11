@@ -3,7 +3,6 @@
 import { purple, pink, deepPurple } from '@mui/material/colors';
 
 const Theme = (colors) => {
-    console.log(colors)
     const { blue, red, gold, cyan, green, grey } = colors;
     const greyColors = {
         0: grey[0],

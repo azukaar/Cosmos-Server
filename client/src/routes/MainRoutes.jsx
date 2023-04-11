@@ -33,7 +33,7 @@ const MainRoutes = {
             element: <Navigate to="/ui" />
         },
         {
-            path: '/ui/',
+            path: '/ui',
             element: <DashboardDefault />
         },
         {
