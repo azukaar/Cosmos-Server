@@ -2,14 +2,10 @@ package proxy
 
 import (
 	"net/http"
-	"net/http/httputil"    
+	"net/http/httputil" 
 	"net/url"
 	spa "github.com/roberthodgen/spa-server"
 	"github.com/azukaar/cosmos-server/src/utils"
-	// "io/ioutil"
-	// "io"
-	// "os"
-	// "golang.org/x/crypto/bcrypt"
 )
 
 // NewProxy takes target host and creates a reverse proxy
@@ -24,6 +20,7 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
+
 		return nil
 	}
 
@@ -31,7 +28,7 @@ func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
 }
 
 
-func RouteTo(route utils.ProxyRouteConfig) http.Handler /*func(http.ResponseWriter, *http.Request)*/ {
+func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	// initialize a reverse proxy and pass the actual backend server url here
 
 	destination := route.Target

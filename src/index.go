@@ -1,26 +1,28 @@
 package main
 
 import (
-	"github.com/azukaar/cosmos-server/src/utils"
-	"time"
-	"github.com/azukaar/cosmos-server/src/docker"
 	"math/rand"
+	"time"
+
+	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func main() {
-	  utils.Log("Starting...")
+	utils.Log("Starting...")
+	// utils.Log("Smart Shield estimates the capacity at " + strconv.Itoa((int)(proxy.MaxUsers)) + " concurrent users")
 
-		rand.Seed(time.Now().UnixNano())
+	rand.Seed(time.Now().UnixNano())
 
-		LoadConfig()
-		
-		go CRON()
+	LoadConfig()
 
-		docker.Test()
+	go CRON()
 
-		docker.DockerListenEvents()
+	docker.Test()
 
-		docker.BootstrapAllContainersFromTags()
-		
-		StartServer()
+	docker.DockerListenEvents()
+
+	docker.BootstrapAllContainersFromTags()
+
+	StartServer()
 }

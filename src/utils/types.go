@@ -93,6 +93,19 @@ type HTTPConfig struct {
 	SSLEmail string `validate:"omitempty,email"`
 } 
 
+const (
+	STRICT = 1
+	NORMAL = 2
+	LENIENT = 3
+)
+type SmartShieldPolicy struct {
+	Enabled bool
+	PolicyStrictness int
+	PerUserTimeBudget float64
+	PerUserRequestLimit int
+	PerUserByteLimit int64
+}
+
 type DockerConfig struct {
 	SkipPruneNetwork bool
 }
@@ -114,5 +127,6 @@ type ProxyRouteConfig struct {
 	StripPathPrefix bool
 	AuthEnabled bool
 	Target  string `validate:"required"`
+	SmartShield SmartShieldPolicy
 	Mode ProxyMode
 }

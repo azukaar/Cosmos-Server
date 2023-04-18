@@ -118,6 +118,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 
 func tokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		//Header.Del
 		r.Header.Set("x-cosmos-user", "")
 		r.Header.Set("x-cosmos-role", "")
 
@@ -170,7 +171,9 @@ func StartServer() {
 
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Use(middleware.Recoverer)
+	// need rewrite bc it catches too many things and prevent
+	// client to be notified of the error
+	// router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
 	

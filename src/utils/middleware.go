@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"time"
+	"github.com/mxk/go-flowrate/flowrate"
 )
 
 // https://github.com/go-chi/chi/blob/master/middleware/timeout.go
@@ -28,6 +29,28 @@ func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handl
 			next.ServeHTTP(w, r)
 		}
 		return http.HandlerFunc(fn)
+	}
+}
+
+type responseWriter struct {
+	http.ResponseWriter
+	*flowrate.Writer
+}
+
+func (w *responseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
+}
+
+func BandwithLimiterMiddleware(max int64) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if(max > 0) {
+				fw := flowrate.NewWriter(w, max)
+				w = &responseWriter{w, fw}
+			}
+			
+			next.ServeHTTP(w, r)
+		})
 	}
 }
 

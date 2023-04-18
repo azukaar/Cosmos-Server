@@ -1,13 +1,15 @@
 package utils
 
 import (
-	"os"
-	"net/http"
 	"encoding/json"
-  "strconv"
-	"strings"
-	"math/rand"
 	"errors"
+	"math/rand"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 var BaseMainConfig Config
@@ -16,13 +18,13 @@ var IsHTTPS = false
 
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
-	NewInstall: true,
+	NewInstall:   true,
 	HTTPConfig: HTTPConfig{
-		HTTPSCertificateMode: "DISABLED",
+		HTTPSCertificateMode:    "DISABLED",
 		GenerateMissingAuthCert: true,
-		HTTPPort: "80",
-		HTTPSPort: "443",
-		Hostname: "localhost",
+		HTTPPort:                "80",
+		HTTPSPort:               "443",
+		Hostname:                "localhost",
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},
@@ -30,7 +32,7 @@ var DefaultConfig = Config{
 }
 
 func FileExists(path string) bool {
-	_, err := os.Stat(path) 
+	_, err := os.Stat(path)
 	if err == nil {
 		return true
 	}
@@ -51,36 +53,37 @@ func GetPublicAuthKey() string {
 }
 
 var AlphaNumRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
 func GenerateRandomString(n int) string {
 	b := make([]rune, n)
 	for i := range b {
-			b[i] = AlphaNumRunes[rand.Intn(len(AlphaNumRunes))]
+		b[i] = AlphaNumRunes[rand.Intn(len(AlphaNumRunes))]
 	}
 	return string(b)
 }
 
 type HTTPErrorResult struct {
-	Status string `json:"status"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
-	Code string `json:"code"`
+	Code    string `json:"code"`
 }
 
 func HTTPError(w http.ResponseWriter, message string, code int, userCode string) {
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(HTTPErrorResult{
-		Status: "error",
+		Status:  "error",
 		Message: message,
-		Code: userCode,
+		Code:    userCode,
 	})
-	Error("HTTP Request returned Error " + strconv.Itoa(code) + " : " + message, nil)
+	Error("HTTP Request returned Error "+strconv.Itoa(code)+" : "+message, nil)
 }
 
-func SetBaseMainConfig(config Config){
+func SetBaseMainConfig(config Config) {
 	LoadBaseMainConfig(config)
 	SaveConfigTofile(config)
 }
 
-func LoadBaseMainConfig(config Config){
+func LoadBaseMainConfig(config Config) {
 	BaseMainConfig = config
 	MainConfig = config
 
@@ -135,11 +138,10 @@ func Sanitize(s string) string {
 
 func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
-	
+
 	if configFile == "" {
 		configFile = "/config/cosmos.config.json"
 	}
-
 
 	return configFile
 }
@@ -190,7 +192,7 @@ func SaveConfigTofile(config Config) {
 		Fatal("Writing Config File", err)
 	}
 
-	Log("Config file saved.");
+	Log("Config file saved.")
 }
 
 func RestartServer() {
@@ -205,9 +207,9 @@ func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
 
 	if !isUserLoggedIn || userNickname == "" {
 		Error("LoggedInOnlyWithRedirect: User is not logged in", nil)
-		http.Redirect(w, req, "/ui/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
+		http.Redirect(w, req, "/ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
 	}
-	
+
 	return nil
 }
 
@@ -222,7 +224,7 @@ func LoggedInOnly(w http.ResponseWriter, req *http.Request) error {
 		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User not logged in")
 	}
-	
+
 	return nil
 }
 
@@ -260,7 +262,7 @@ func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string
 		return errors.New("User not logged in")
 	}
 
-	if nickname != userNickname  && !isUserAdmin {
+	if nickname != userNickname && !isUserAdmin {
 		Error("AdminOrItselfOnly: User is not admin", nil)
 		HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
 		return errors.New("User not Admin")
@@ -275,7 +277,7 @@ func GetAllHostnames() []string {
 	}
 	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
 	for _, proxy := range proxies {
-		if (proxy.UseHost && proxy.Host != "" && strings.Contains(proxy.Host, ".") && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ")){
+		if proxy.UseHost && proxy.Host != "" && strings.Contains(proxy.Host, ".") && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
 			hostnames = append(hostnames, proxy.Host)
 		}
 	}
@@ -290,4 +292,14 @@ func GetAllHostnames() []string {
 	}
 	Debug("Hostnames are " + strings.Join(uniqueHostnames, ", "))
 	return uniqueHostnames
+}
+
+func GetAvailableRAM() uint64 {
+	vmStat, err := mem.VirtualMemory()
+	if err != nil {
+		panic(err)
+	}
+
+	// Use total available memory as an approximation
+	return vmStat.Available
 }
