@@ -221,7 +221,7 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 	return nil
 }
 
-func NetworkCleanUp(networkId) {
+func NetworkCleanUp(networkId string) {
 	if(networkId == "bridge" || networkId == "host" || networkId == "none") {
 		return
 	}
