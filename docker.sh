@@ -8,7 +8,6 @@ fi
 # if branch is unstable in git for circle ci
 if [ -n "$CIRCLE_BRANCH" ]; then
   if [ "$CIRCLE_BRANCH" != "master" ]; then
-    VERSION="$VERSION-$CIRCLE_BRANCH"
     LATEST="$LATEST-$CIRCLE_BRANCH"
   fi
 fi
