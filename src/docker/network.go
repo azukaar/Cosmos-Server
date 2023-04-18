@@ -222,6 +222,7 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 }
 
 func NetworkCleanUp() {
+	return
 	DockerNetworkLock <- true
 	defer func() { <-DockerNetworkLock }()
 
