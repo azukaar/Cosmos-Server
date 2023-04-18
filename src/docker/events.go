@@ -56,12 +56,7 @@ func onDockerCreated(containerID string) {
 	BootstrapContainerFromTags(containerID)
 }
 
-func onDockerDestroyed(containerID string) {
-	utils.Debug("onDockerDestroyed: " + containerID)
-	NetworkCleanUp()
-}
-
 func onNetworkDisconnect(networkID string) {
 	utils.Debug("onNetworkDisconnect: " + networkID)
-	NetworkCleanUp()
+	NetworkCleanUp(networkID)
 }

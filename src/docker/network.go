@@ -221,8 +221,11 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 	return nil
 }
 
-func NetworkCleanUp() {
-	return
+func NetworkCleanUp(networkId) {
+	if(networkId == "bridge" || networkId == "host" || networkId == "none") {
+		return
+	}
+
 	DockerNetworkLock <- true
 	defer func() { <-DockerNetworkLock }()
 
