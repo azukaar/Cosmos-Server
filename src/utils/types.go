@@ -125,6 +125,7 @@ type ProxyRouteConfig struct {
 	ThrottlePerMinute int
 	CORSOrigin string
 	StripPathPrefix bool
+	MaxBandwith int64
 	AuthEnabled bool
 	Target  string `validate:"required"`
 	SmartShield SmartShieldPolicy

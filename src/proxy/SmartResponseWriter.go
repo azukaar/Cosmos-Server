@@ -63,7 +63,7 @@ func (w *SmartResponseWriterWrapper) Write(p []byte) (int, error) {
 		return 0, errors.New("Pending request cancelled due to SmartShield")
 	}
 	thro := shield.computeThrottle(w.policy, userConsumed)
-	utils.Debug(fmt.Sprintf("Throttle: %d", thro))
+
 	w.ThrottleNext = 0
 	if thro > 0 {
 		time.Sleep(time.Duration(thro) * time.Millisecond)

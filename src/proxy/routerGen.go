@@ -50,21 +50,21 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	if route.UseHost {
 		origin = origin.Host(route.Host)
 	}
-
+	
 	if route.UsePathPrefix {
 		if route.PathPrefix != "" && route.PathPrefix[0] != '/' {
 			utils.Error("PathPrefix must start with a /", nil)
 		}
 		origin = origin.PathPrefix(route.PathPrefix)
 	}
-
+	
 	if route.UsePathPrefix && route.StripPathPrefix {
 		if route.PathPrefix != "" && route.PathPrefix[0] != '/' {
 			utils.Error("PathPrefix must start with a /", nil)
 		}
 		destination = http.StripPrefix(route.PathPrefix, destination)
 	}
-
+	
 	destination = SmartShieldMiddleware(route.SmartShield)(destination)
 
 	originCORS := route.CORSOrigin
@@ -100,6 +100,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 				return
 			}),
 		)(destination)
+	}
+
+	if route.MaxBandwith > 0 {
+		destination = utils.BandwithLimiterMiddleware(route.MaxBandwith)(destination)
 	}
 
 	origin.Handler(tokenMiddleware(route.AuthEnabled)(utils.CORSHeader(originCORS)((destination))))
