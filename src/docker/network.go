@@ -4,6 +4,7 @@ import (
 	"os"
 	"time"
 	"errors"
+	"sync"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
@@ -221,11 +222,29 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 	return nil
 }
 
-func NetworkCleanUp(networkId string) {
-	if(networkId == "bridge" || networkId == "host" || networkId == "none") {
-		return
-	}
+func _debounceNetworkCleanUp() func(string) {
+	var mu sync.Mutex
+	var timer *time.Timer
 
+	return func(networkId string) {
+		if(networkId == "bridge" || networkId == "host" || networkId == "none") {
+			return
+		}
+
+		mu.Lock()
+		defer mu.Unlock()
+
+		if timer != nil {
+			timer.Stop()
+		}
+
+		timer = time.AfterFunc(30*time.Minute, NetworkCleanUp)
+	}
+}
+
+var DebouncedNetworkCleanUp = _debounceNetworkCleanUp()
+
+func NetworkCleanUp() {
 	DockerNetworkLock <- true
 	defer func() { <-DockerNetworkLock }()
 

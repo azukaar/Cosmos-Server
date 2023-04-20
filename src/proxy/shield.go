@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"fmt"
 	"net"
+	"math"
+	"strconv"
 )
 
 /*
@@ -168,6 +170,16 @@ func (shield *smartShieldState) computeThrottle(policy utils.SmartShieldPolicy, 
 	return throttle
 }
 
+func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userConsumed userUsedBudget) int64 {
+	timeExhaustedPercentage := 100 - (userConsumed.Time / policy.PerUserTimeBudget) * 100
+	requestsExhaustedPercentage := 100 - (float64(userConsumed.Requests) / float64(policy.PerUserRequestLimit)) * 100
+	bytesExhaustedPercentage := 100 - (float64(userConsumed.Bytes) / float64(policy.PerUserByteLimit)) * 100
+
+	// utils.Debug(fmt.Sprintf("Time: %f, Requests: %d, Bytes: %d", timeExhaustedPercentage, requestsExhaustedPercentage, bytesExhaustedPercentage))
+	
+	return int64(math.Max(0, math.Min(math.Min(timeExhaustedPercentage, requestsExhaustedPercentage), bytesExhaustedPercentage)))
+}
+
 func GetClientID(r *http.Request) string {
 	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 	return ip
@@ -215,6 +227,12 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 					shield: shield,
 					policy: policy,
 				}
+
+				// add rate limite headers
+				In20Minutes := strconv.FormatInt(time.Now().Add(20 * time.Minute).Unix(), 10)
+				w.Header().Set("X-RateLimit-Remaining", strconv.FormatInt(calculateLowestExhaustedPercentage(policy, userConsumed), 10))
+				w.Header().Set("X-RateLimit-Limit", strconv.FormatInt(int64(policy.PerUserRequestLimit), 10))
+				w.Header().Set("X-RateLimit-Reset", In20Minutes)
 
 				utils.Debug("SmartShield: Adding request")
 				shield.Lock()

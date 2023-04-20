@@ -62,5 +62,5 @@ func onDockerDestroyed(containerID string) {
 
 func onNetworkDisconnect(networkID string) {
 	utils.Debug("onNetworkDisconnect: " + networkID)
-	NetworkCleanUp(networkID)
+	DebouncedNetworkCleanUp(networkID)
 }
