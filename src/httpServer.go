@@ -180,6 +180,8 @@ func StartServer() {
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
 	srapi.HandleFunc("/api/status", StatusRoute)
+	srapi.HandleFunc("/api/favicon", GetFavicon)
+	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/login", user.UserLogin)
 	srapi.HandleFunc("/api/logout", user.UserLogout)

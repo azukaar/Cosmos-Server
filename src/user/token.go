@@ -137,11 +137,11 @@ func logOutUser(w http.ResponseWriter) {
 }
 
 func redirectToReLogin(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/ui/login?invalid=1&redirect=" + req.URL.Path, http.StatusFound)
+	http.Redirect(w, req, "/ui/login?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
 func SendUserToken(w http.ResponseWriter, user utils.User) {
-	expiration := time.Now().Add(2 * 24 * time.Hour)
+	expiration := time.Now().Add(3 * 24 * time.Hour)
 
 	token := jwt.New(jwt.SigningMethodEdDSA)
 	claims := token.Claims.(jwt.MapClaims)

@@ -21,6 +21,8 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
+ * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications
+ * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server (even with NGinx, Traefik, Portainer, etc...), the already existing applications you have, and the new ones you want to install
  * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security** and **multi-factor authentication**
  * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
  * **Reverse Proxy** 🔄🔗 Reverse Proxy included, with a UI to easily manage your applications and their settings

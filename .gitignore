@@ -11,4 +11,9 @@ tests
 todo.txt
 LICENCE
 tokens.json
+<<<<<<< Updated upstream
 .vscode
+cosmos_gray.png
+=======
+cosmos_gray.png
+>>>>>>> Stashed changes

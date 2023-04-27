@@ -2,7 +2,7 @@
 
 import { purple, pink, deepPurple } from '@mui/material/colors';
 
-const Theme = (colors) => {
+const Theme = (colors, darkMode) => {
     const { blue, red, gold, cyan, green, grey } = colors;
     const greyColors = {
         0: grey[0],
@@ -30,7 +30,7 @@ const Theme = (colors) => {
             main: purple[400],
         },
         secondary: {
-            main: deepPurple[100]
+            main: darkMode ? deepPurple[800] : deepPurple[100]
         },
         error: {
             lighter: red[0],

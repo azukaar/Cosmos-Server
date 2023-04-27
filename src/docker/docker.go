@@ -139,8 +139,15 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 		newName,
 	)
 
+	// is force secure
+	isForceSecure := newConfig.Config.Labels["cosmos-force-network-secured"] == "true"
+	
 	// re-connect to networks
 	for networkName, _ := range oldContainer.NetworkSettings.Networks {
+		if(isForceSecure && networkName == "bridge") {
+			utils.Log("EditContainer - Skipping network " + networkName + " (cosmos-force-network-secured is true)")
+			continue
+		}
 		errNet := ConnectToNetworkSync(networkName, createResponse.ID)
 		if errNet != nil {
 			utils.Error("EditContainer - Failed to connect to network " + networkName, errNet)

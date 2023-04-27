@@ -1,5 +1,5 @@
 import * as React from 'react';
-import isLoggedIn from '../../../isLoggedIn';
+import IsLoggedIn from '../../../IsLoggedIn';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
@@ -32,7 +32,6 @@ import { CosmosInputText, CosmosSelect } from './formShortcuts';
 
 
 const ConfigManagement = () => {
-  isLoggedIn();
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
 
@@ -47,6 +46,7 @@ const ConfigManagement = () => {
   }, []);
 
   return <div style={{maxWidth: '1000px', margin: ''}}>
+    <IsLoggedIn />
     <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
         refresh();
     }}>Refresh</Button><br /><br />

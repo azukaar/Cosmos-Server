@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/rand"
+	"regexp"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,6 +16,8 @@ import (
 var BaseMainConfig Config
 var MainConfig Config
 var IsHTTPS = false
+
+var NeedsRestart = false
 
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
@@ -83,7 +86,44 @@ func SetBaseMainConfig(config Config) {
 	SaveConfigTofile(config)
 }
 
-func LoadBaseMainConfig(config Config) {
+func ReadConfigFromFile() Config {
+	configFile := GetConfigFileName()
+	Log("Using config file: " + configFile)
+	if CreateDefaultConfigFileIfNecessary() {
+		LoadBaseMainConfig(DefaultConfig)
+		return DefaultConfig
+	}
+
+	file, err := os.Open(configFile)
+	if err != nil {
+		Fatal("Opening Config File: ", err)
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	config := Config{}
+	err = decoder.Decode(&config)
+
+	// check file is not empty
+	if err != nil {
+		// check error is not empty 
+		if err.Error() == "EOF" {
+			Fatal("Reading Config File: File is empty.", err)
+		}
+
+		// get error string 
+		errString := err.Error()
+
+		// replace string in error
+		m1 := regexp.MustCompile(`json: cannot unmarshal ([A-Za-z\.]+) into Go struct field ([A-Za-z\.]+) of type ([A-Za-z\.]+)`)
+		errString = m1.ReplaceAllString(errString, "Invalid JSON in config file.\n > Field $2 is wrong.\n > Type is $1 Should be $3")
+		Fatal("Reading Config File: " + errString, err)
+	}
+
+	return config
+}
+
+func LoadBaseMainConfig(config Config){
 	BaseMainConfig = config
 	MainConfig = config
 

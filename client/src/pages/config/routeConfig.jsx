@@ -1,113 +1,49 @@
 import * as React from 'react';
-import IsLoggedIn from '../../../IsLoggedIn';
-import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import { Formik, Field } from 'formik';
+import { Formik } from 'formik';
 import * as Yup from 'yup';
 import {
   Alert,
-  Button,
-  Checkbox,
-  Divider,
-  FormControlLabel,
   Grid,
-  IconButton,
-  InputAdornment,
-  InputLabel,
-  Link,
-  OutlinedInput,
-  Stack,
-  Typography,
   FormHelperText,
-  Collapse,
-  TextField,
-  MenuItem,
-  Card,
   Chip,
 
 } from '@mui/material';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import AnimateButton from '../../../components/@extended/AnimateButton';
-import RestartModal from './restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from './formShortcuts';
 import { DownOutlined, UpOutlined, CheckOutlined, DeleteOutlined  } from '@ant-design/icons';
 import { CosmosContainerPicker } from './containerPicker';
+import { ValidateRoute } from './users/routeman';
 
-export const ValidateRoute = Yup.object().shape({
-  Name: Yup.string().required('Name is required'),
-  Mode: Yup.string().required('Mode is required'),
-  Target: Yup.string().required('Target is required').when('Mode', {
-    is: 'SERVAPP',
-    then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
-  }),
-
-  Host: Yup.string().when('UseHost', {
-    is: true,
-    then: Yup.string().required('Host is required')
-      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP')
-  }),
-
-  PathPrefix: Yup.string().when('UsePathPrefix', {
-    is: true,
-    then: Yup.string().required('Path Prefix is required').matches(/^\//, 'Path Prefix must start with / (e.g. /api). Do not include a domain/subdomain in it, use the Host for this.')
-  }),
-  
-  UseHost: Yup.boolean().when('UsePathPrefix', 
-  {
-    is: false,
-    then: Yup.boolean().oneOf([true], 'Source must at least be either Host or Path Prefix')
-  }),
-})
-
-const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockTarget=false, setRouteConfig, up, down, deleteRoute }) => {
-  const [confirmDelete, setConfirmDelete] = React.useState(false);
-  const myRef = React.useRef(null)
-  const currRef = myRef.current;
-
-  React.useEffect(() => {
-    if(currRef && window.location.hash === '#' + routeConfig.Name) {
-      currRef.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [currRef])
-
-  return <div style={{ maxWidth: '1000px', margin: '' }}>
-    {routeConfig && <>
+const RouteConfig = ({route, key, lockTarget, TargetContainer, setRouteConfig}) => {
+  return (<div style={{ maxWidth: '1000px', margin: '' }}>
+    {route && <>
       <Formik
         initialValues={{
-          Name: routeConfig.Name,
-          Description: routeConfig.Description,
-          Mode: routeConfig.Mode || "SERVAPP",
-          Target: routeConfig.Target,
-          UseHost: routeConfig.UseHost,
-          AuthEnabled: routeConfig.AuthEnabled,
-          Host: routeConfig.Host,
-          UsePathPrefix: routeConfig.UsePathPrefix,
-          PathPrefix: routeConfig.PathPrefix,
-          StripPathPrefix: routeConfig.StripPathPrefix,
-          Timeout: routeConfig.Timeout,
-          ThrottlePerMinute: routeConfig.ThrottlePerMinute,
-          CORSOrigin: routeConfig.CORSOrigin,
+          Name: route.Name,
+          Description: route.Description,
+          Mode: route.Mode || "SERVAPP",
+          Target: route.Target,
+          UseHost: route.UseHost,
+          AuthEnabled: route.AuthEnabled,
+          Host: route.Host,
+          UsePathPrefix: route.UsePathPrefix,
+          PathPrefix: route.PathPrefix,
+          StripPathPrefix: route.StripPathPrefix,
+          Timeout: route.Timeout,
+          ThrottlePerMinute: route.ThrottlePerMinute,
+          CORSOrigin: route.CORSOrigin,
         }}
-        validateOnChange={false}
         validationSchema={ValidateRoute}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           return false;  
         }}
-        validate={(values) => {
-            setRouteConfig(values);
-        }}
+        // validate={(values) => {
+        //     setRouteConfig(values);
+        // }}
       >
         {(formik) => (
-          <form ref={myRef} noValidate onSubmit={formik.handleSubmit}>
-            <MainCard name={routeConfig.Name} title={
-              noControls ? 'New URL' :
-              <div>{routeConfig.Name} &nbsp;
-                <Chip label={<UpOutlined />} onClick={() => up()}/> &nbsp;
-                <Chip label={<DownOutlined />} onClick={() => down()}/> &nbsp;
-                {!confirmDelete && (<Chip label={<DeleteOutlined />} onClick={() => setConfirmDelete(true)}/>)}
-                {confirmDelete && (<Chip label={<CheckOutlined />} onClick={() => deleteRoute()}/>)} &nbsp;
-              </div>
-            }>
+          <form noValidate onSubmit={formik.handleSubmit}>
+            <MainCard name={route.Name} title={route.Name}>
               <Grid container spacing={2}>
                 {formik.errors.submit && (
                   <Grid item xs={12}>
@@ -250,8 +186,9 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls=false, lockT
           </form>
         )}
       </Formik>
-    </>}
-  </div>;
+      </>
+    }
+  </div>)
 }
 
-export default RouteManagement;
+export default RouteConfig;

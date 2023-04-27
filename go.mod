@@ -17,8 +17,10 @@ require (
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/OpenDNS/vegadns2client v0.0.0-20180418235048-a3fa4a771d87 // indirect
+	github.com/PuerkitoBio/goquery v1.6.0 // indirect
 	github.com/akamai/AkamaiOPEN-edgegrid-golang v1.0.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.61.869 // indirect
+	github.com/andybalholm/cascadia v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.36.29 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cenkalti/backoff/v4 v4.1.0 // indirect
@@ -38,6 +40,7 @@ require (
 	github.com/foomo/simplecert v1.8.4 // indirect
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.2+incompatible // indirect
+	github.com/friendsofgo/errors v0.9.2 // indirect
 	github.com/go-acme/lego/v4 v4.1.3 // indirect
 	github.com/go-chi/chi v4.0.2+incompatible // indirect
 	github.com/go-chi/httprate v0.7.1 // indirect
@@ -115,6 +118,7 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/yusufpapurcu/wmi v1.2.2 // indirect
+	go.deanishe.net/favicon v0.1.0 // indirect
 	go.mongodb.org/mongo-driver v1.11.3 // indirect
 	go.opencensus.io v0.22.5 // indirect
 	go.uber.org/ratelimit v0.1.0 // indirect
@@ -127,6 +131,7 @@ require (
 	golang.org/x/text v0.8.0 // indirect
 	golang.org/x/time v0.0.0-20201208040808-7e3f01d25324 // indirect
 	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.36.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210119180700-e258113e47cc // indirect

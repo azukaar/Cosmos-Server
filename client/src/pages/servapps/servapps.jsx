@@ -8,9 +8,11 @@ import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 
 import * as API from '../../api';
-import isLoggedIn from '../../isLoggedIn';
+import IsLoggedIn from '../../IsLoggedIn';
 import RestartModal from '../config/users/restart';
 import RouteManagement, { ValidateRoute } from '../config/users/routeman';
+import { sanitizeRoute } from '../../utils/routes';
+import HostChip from '../../components/hostChip';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -20,11 +22,14 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-const noOver = {overflowX: 'auto', width: "100%"}
+const noOver = {
+  overflowX: 'auto',
+  width: "100%",
+  maxWidth: "800px",
+  height: "50px"
+}
 
 const ServeApps = () => {
-  isLoggedIn();
-
   const [serveApps, setServeApps] = useState([]);
   const [isUpdating, setIsUpdating] = useState({});
   const [search, setSearch] = useState("");
@@ -71,10 +76,12 @@ const ServeApps = () => {
 
   const getContainersRoutes = (containerName) => {
     return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
-      return route.Mode == "SERVAPP" && (
-        route.Target.startsWith(containerName) ||
-        route.Target.split('://')[1].startsWith(containerName)
-      )
+      let reg = new RegExp(`^(([a-z]+):\/\/)?${containerName}(:?[0-9]+)?$`, 'i');
+      return route.Mode == "SERVAPP" && reg.test(route.Target)
+      // (
+      //   route.Target.startsWith(containerName) ||
+      //   route.Target.split('://')[1].startsWith(containerName)
+      // )
     })) || [];
   }
 
@@ -112,7 +119,12 @@ const ServeApps = () => {
     },
   };
 
+  const getHostnameFromName = (name) => {
+    return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
+  }
+
   return <div>
+    <IsLoggedIn />
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
     <Dialog open={openModal} onClose={() => setOpenModal(false)}>
         <DialogTitle>Expose ServApp</DialogTitle>
@@ -134,7 +146,7 @@ const ServeApps = () => {
                             Name: openModal.Names[0].replace('/', ''),
                             Description: "Expose " + openModal.Names[0].replace('/', '') + " to the internet",
                             UseHost: true,
-                            Host: openModal.Names[0].replace('/', '') + '.' + window.location.origin.split('://')[1],
+                            Host: getHostnameFromName(openModal.Names[0]),
                             UsePathPrefix: false,
                             PathPrefix: '',
                             Timeout: 30000,
@@ -144,7 +156,7 @@ const ServeApps = () => {
                             AuthEnabled: false,
                           }} 
                           setRouteConfig={(_newRoute) => {
-                            setNewRoute(_newRoute);
+                            setNewRoute(sanitizeRoute(_newRoute));
                           }}
                           up={() => {}}
                           down={() => {}}
@@ -237,9 +249,9 @@ const ServeApps = () => {
                   Ports
                 </Typography> 
                 <Stack style={noOver} margin={1} direction="row" spacing={1}>
-                  {app.Ports.map((port) => {
+                  {app.Ports.filter(p => p.IP != '::').map((port) => {
                     return <Tooltip title={port.PublicPort ? 'Warning, this port is publicly accessible' : ''}>
-                      <Chip style={{ fontSize: '80%' }} label={":" + port.PrivatePort} color={port.PublicPort ? 'warning' : 'default'} />
+                      <Chip style={{ fontSize: '80%' }} label={port.PrivatePort + (port.PublicPort ? (":" + port.PublicPort) : '')} color={port.PublicPort ? 'warning' : 'default'} />
                     </Tooltip>
                   })}
                 </Stack>
@@ -281,22 +293,7 @@ const ServeApps = () => {
                 </Typography>
                 <Stack spacing={2} direction="row">
                   {getContainersRoutes(app.Names[0].replace('/', '')).map((route) => {
-                    return <><Chip 
-                      label={route.Host + route.PathPrefix} 
-                      color="secondary"
-                      style={{paddingRight: '4px'}}
-                      onClick={() => {
-                        if(route.UseHost)
-                          window.open(window.location.origin.split("://")[0] + "://" + route.Host + route.PathPrefix, '_blank');
-                        else
-                          window.open(window.location.origin + route.PathPrefix, '_blank');
-                      }}
-                      onDelete={() => {
-                        window.open('/ui/config-url#'+route.Name, '_blank');
-                      }}
-                      deleteIcon={<SettingOutlined />}
-                    />
-                    </>
+                    return <HostChip route={route} settings/>
                   })}
                   {/* {getContainersRoutes(app.Names[0].replace('/', '')).length == 0 && */}
                     <Chip 

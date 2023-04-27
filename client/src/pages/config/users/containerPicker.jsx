@@ -39,7 +39,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
   const [isOnBridge, setIsOnBridge] = React.useState(false);
   const [options, setOptions] = React.useState(null);
-  const [portsOptions, setPortsOptions] = React.useState([]);
+  const [portsOptions, setPortsOptions] = React.useState(null);
   const loading = options === null;
 
   const name = "Target"
@@ -78,35 +78,37 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
     })
     setPortsOptions(portsTemp)
 
-    targetResult.port = '80'
-
-    if(portsTemp.length > 0) {
-      // pick best default port
-      // set default to first port
-      targetResult.port = portsTemp[0]
-      // first, check if a manual override exists
-      let override = Object.keys(defaultport.overrides).find((key) => {
-        let keyMatch = new RegExp(key, "i");
-        return newContainer.Image.match(keyMatch) && portsTemp.includes(defaultport.overrides[key])
-      });
-
-      if(override) {
-        targetResult.port = defaultport.overrides[override]
-      } else {
-        // if not, check the default list of common ports
-        let priorityList = defaultport.priority;
-        priorityList.find((_portReg) => {
-          return portsTemp.find((portb) => {
-            let portReg = new RegExp(_portReg, "i");
-            if(portb.toString().match(portReg)) {
-              targetResult.port = portb
-              return true;
-            }
+    if(targetResult.port == '') {
+        targetResult.port = '80'
+        
+        if(portsTemp.length > 0) {
+          // pick best default port
+          // set default to first port
+        targetResult.port = portsTemp[0]
+        // first, check if a manual override exists
+        let override = Object.keys(defaultport.overrides).find((key) => {
+          let keyMatch = new RegExp(key, "i");
+          return newContainer.Image.match(keyMatch) && portsTemp.includes(defaultport.overrides[key])
+        });
+        
+        if(override) {
+          targetResult.port = defaultport.overrides[override]
+        } else {
+          // if not, check the default list of common ports
+          let priorityList = defaultport.priority;
+          priorityList.find((_portReg) => {
+            return portsTemp.find((portb) => {
+              let portReg = new RegExp(_portReg, "i");
+              if(portb.toString().match(portReg)) {
+                targetResult.port = portb
+                return true;
+              }
+            })
           })
-        })
+        }
       }
     }
-
+    
     formik.setFieldValue(name, getTarget());
 
     if(newContainer.NetworkSettings.Networks["bridge"]) {
@@ -151,6 +153,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
       if (active) {
         setOptions([...names]);
       }
+      
       if (targetResult.container !== 'null') {
         postContainerChange(res.data.find((container) => container.Names[0] === targetResult.container))
       }
@@ -217,7 +220,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
       )}
     />}
 
-    {(portsOptions.length > 0) ? (<>
+    {(portsOptions) ? (<>
     <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
     <Autocomplete
       className="px-2 my-2"
@@ -245,7 +248,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
     </>) : ''}
     
     
-    {(portsOptions.length > 0) ? (<>
+    {(portsOptions) ? (<>
           <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
           <TextField
             type="text"

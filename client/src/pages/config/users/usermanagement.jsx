@@ -20,7 +20,7 @@ import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import isLoggedIn from '../../../isLoggedIn';
+import IsLoggedIn from '../../../IsLoggedIn';
 import { useEffect, useState } from 'react';
 
 const UserManagement = () => {
@@ -33,8 +33,6 @@ const UserManagement = () => {
     const roles = ['Guest', 'User', 'Admin']
 
     const [rows, setRows] = useState([]);
-
-    isLoggedIn();
 
     function refresh() {
         setIsLoading(true);
@@ -62,6 +60,7 @@ const UserManagement = () => {
 
     return <>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
+            <IsLoggedIn />
             <DialogTitle>Invite User</DialogTitle>
             <DialogContent>
                 <DialogContentText>

@@ -12,7 +12,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 	} 
 
 	if(req.Method == "GET") {
-		config := utils.GetBaseMainConfig()
+		config := utils.ReadConfigFromFile()
 
 		// delete AuthPrivateKey and TLSKey
 		config.HTTPConfig.AuthPrivateKey = ""

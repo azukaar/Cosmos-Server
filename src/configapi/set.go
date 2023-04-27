@@ -30,12 +30,13 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// restore AuthPrivateKey and TLSKey
-		config := utils.GetBaseMainConfig()
+		config := utils.ReadConfigFromFile()
 		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
 		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
 		request.NewInstall = config.NewInstall
 
 		utils.SaveConfigTofile(request)
+		utils.NeedsRestart = true
 
 		// if err != nil {
 		// 	utils.Error("SettingsUpdate: Error saving config to file", err)

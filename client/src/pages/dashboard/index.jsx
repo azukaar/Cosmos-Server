@@ -34,7 +34,7 @@ import avatar1 from '../../assets/images/users/avatar-1.png';
 import avatar2 from '../../assets/images/users/avatar-2.png';
 import avatar3 from '../../assets/images/users/avatar-3.png';
 import avatar4 from '../../assets/images/users/avatar-4.png';
-import isLoggedIn from '../../isLoggedIn';
+import IsLoggedIn from '../../IsLoggedIn';
 
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
@@ -78,8 +78,6 @@ const DashboardDefault = () => {
     const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('week');
 
-    isLoggedIn();
-
     const [coStatus, setCoStatus] = useState(null);
     const [isCreatingDB, setIsCreatingDB] = useState(false);
 
@@ -102,6 +100,7 @@ const DashboardDefault = () => {
 
     return (
         <>
+        <IsLoggedIn />
         <div>
             <Stack spacing={1}>
                 {coStatus && !coStatus.database && (
@@ -114,6 +113,12 @@ const DashboardDefault = () => {
                 {coStatus && coStatus.letsencrypt && (
                     <Alert severity="error">
                         You have enabled Let's Encrypt for automatic HTTPS Certificate. You need to provide the configuration with an email address to use for Let's Encrypt in the configs.
+                    </Alert>
+                )}
+
+                {coStatus && coStatus.needsRestart && (
+                    <Alert severity="warning">
+                        You have made changes to the configuration that require a restart to take effect. Please restart Cosmos to apply the changes.
                     </Alert>
                 )}
 

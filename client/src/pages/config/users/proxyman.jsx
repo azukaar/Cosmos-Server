@@ -1,9 +1,10 @@
 import * as React from 'react';
-import isLoggedIn from '../../../isLoggedIn';
+import IsLoggedIn from '../../../IsLoggedIn';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
+import { useTheme } from '@mui/material/styles';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import {
   Alert,
@@ -23,6 +24,7 @@ import {
   Collapse,
   TextField,
   MenuItem,
+  Chip,
 
 } from '@mui/material';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
@@ -30,20 +32,29 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import RouteManagement, {ValidateRoute} from './routeman';
 import { map } from 'lodash';
+import { getFaviconURL, sanitizeRoute } from '../../../utils/routes';
+import PrettyTableView from '../../../components/tableView/prettyTableView';
+import HostChip from '../../../components/hostChip';
+import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
 
 const stickyButton = {
   position: 'fixed',
   bottom: '20px',
-  width: '100%',
-  maxWidth: '1000px',
-  // left: '20px',
-  // right: '20px',
+  width: '300px',
   boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.50)',
+  right: '20px',
 }
 
+function shorten(test) {
+  if (test.length > 75) {
+    return test.substring(0, 75) + '...';
+  }
+  return test;
+}
 
 const ProxyManagement = () => {
-  isLoggedIn();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -118,7 +129,8 @@ const ProxyManagement = () => {
   }
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
-  return <div style={{ maxWidth: '1000px', margin: '' }}>
+  return <div style={{   }}>
+    <IsLoggedIn />
     <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
         refresh();
     }}>Refresh</Button>&nbsp;&nbsp;
@@ -145,10 +157,49 @@ const ProxyManagement = () => {
     
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
-      {routes && routes.map((route,key) => (<>
+      
+      {routes && <PrettyTableView 
+        data={routes}
+        getKey={(r) => r.Name + r.Target + r.Mode}
+        columns={[
+          { 
+            title: '', 
+            field: (r) => <img src={getFaviconURL(r)} width="64px" />,
+            style: {
+              textAlign: 'center',
+            },
+          },
+          { title: 'URL',
+            search: (r) => r.Name + ' ' + r.Description,
+            field: (r) => <>
+              <div style={{display:'inline-block', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
+              <div style={{display:'inline-block', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+            </>
+          },
+          // { title: 'Description', field: (r) => shorten(r.Description), style:{fontSize: '90%', opacity: '90%'} },
+          { title: 'Origin', search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          // { title: 'Mode', field: (r) => <RouteMode route={r} /> },
+          { title: 'Target', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: 'Security', field: (r) => <RouteSecurity route={r} />,
+          style: {minWidth: '70px'} },
+          { title: '', field: (r, k) =>  <RouteActions
+              route={r}
+              routeKey={k}
+              up={() => up(k)}
+              down={() => down(k)}
+              deleteRoute={() => deleteRoute(k)}
+            />,
+            style: {
+              textAlign: 'right',
+            }
+          },
+        ]}
+      />}
+      
+      {/* {routes && routes.map((route,key) => (<>
         <RouteManagement key={route.Name} routeConfig={route}
           setRouteConfig={(newRoute) => {
-            routes[key] = newRoute;
+            routes[key] = sanitizeRoute(newRoute);
             setNeedSave(true);
           }}
           up={() => up(key)}
@@ -156,7 +207,7 @@ const ProxyManagement = () => {
           deleteRoute={() => deleteRoute(key)}
         />
         <br /><br />
-      </>))}
+      </>))} */}
 
       {routes && needSave && <>
         <div>
@@ -207,7 +258,7 @@ const ProxyManagement = () => {
                 variant="contained"
                 color="primary"
               >
-                Save
+                Save Changes
               </Button>
             </AnimateButton>
             </Stack>
