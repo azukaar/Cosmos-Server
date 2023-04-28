@@ -12,7 +12,6 @@ WORKDIR /app
 
 COPY build/cosmos .
 COPY build/cosmos_gray.png .
-COPY cosmos_gray.png .
 COPY build/meta.json .
 COPY static ./static
 
