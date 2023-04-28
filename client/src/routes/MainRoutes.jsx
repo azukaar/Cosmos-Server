@@ -8,7 +8,7 @@ import ConfigManagement from '../pages/config/users/configman';
 import ProxyManagement from '../pages/config/users/proxyman';
 import ServeApps from '../pages/servapps/servapps';
 import { Navigate } from 'react-router';
-import RouteConfigPage from '../pages/config/RouteConfig';
+import RouteConfigPage from '../pages/config/routeConfigPage';
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
