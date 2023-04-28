@@ -170,7 +170,7 @@ const ProxyManagement = () => {
       {routes && <PrettyTableView 
         data={routes}
         getKey={(r) => r.Name + r.Target + r.Mode}
-        onRowClick={(r) => {navigate('/ui/config-url/' + r.Name)}}
+        linkTo={(r) => '/ui/config-url/' + r.Name}
         columns={[
           { 
             title: '', 
@@ -184,14 +184,13 @@ const ProxyManagement = () => {
             style: {
               textDecoration: 'inherit',
             },
+            underline: true,
             field: (r) => <>
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
-          // { title: 'Description', field: (r) => shorten(r.Description), style:{fontSize: '90%', opacity: '90%'} },
           { title: 'Origin', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
-          // { title: 'Mode', field: (r) => <RouteMode route={r} /> },
           { title: 'Target', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: 'Security', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },

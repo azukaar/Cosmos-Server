@@ -65,22 +65,23 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
                     '&:hover': {
                       backgroundColor: 'rgba(0, 0, 0, 0.06)',
                       borderColor: 'gray',
-                      textDecoration: 'underline',
+                      '&:hover .emphasis': {
+                        textDecoration: 'underline'
+                      }
                     },
                   }}
                 >
                   {columns.map((column) => (
                 
-                    <TableCell sx={column.style}>
-                      {!column.clickable ? <Link
-                        to={linkTo && linkTo(row, key)}
-                        style={{
-                          color: 'inherit',
-                          textDecoration: 'inherit',
-                        }}
-                      >
-                        {column.field(row, key)}
-                      </Link> : column.field(row, key)}
+                    <TableCell 
+                    component={(linkTo && !column.clickable) ? Link : 'td'}
+                    to={linkTo(row, key)}
+                    className={column.underline ? 'emphasis' : ''}
+                    sx={{
+                      textDecoration: 'none',
+                      ...column.style,
+                    }}>
+                      {column.field(row, key)}
                     </TableCell>
                   ))}
                 </TableRow>
