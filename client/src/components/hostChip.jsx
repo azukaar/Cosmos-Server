@@ -24,7 +24,10 @@ const HostChip = ({route, settings}) => {
   return <Chip
     label={((isOnline == null) ? "⚪" : (isOnline ? "🟢 " : "🔴 ")) + url}
     color="secondary"
-    style={{paddingRight: '4px'}}
+    style={{
+      paddingRight: '4px',
+      textDecoration: isOnline ? 'none' : 'underline wavy red',
+    }}
     onClick={() => {
       if(route.UseHost)
         window.open(window.location.origin.split("://")[0] + "://" + route.Host + route.PathPrefix, '_blank');

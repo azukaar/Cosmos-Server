@@ -1,6 +1,6 @@
 // material-ui
 import * as React from 'react';
-import { Button, Typography } from '@mui/material';
+import { Alert, Button, Stack, Typography } from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -23,28 +23,50 @@ import MainCard from '../../../components/MainCard';
 import IsLoggedIn from '../../../IsLoggedIn';
 import { useEffect, useState } from 'react';
 
+function checkIsOnline() {
+    API.isOnline().then((res) => {
+        window.location.reload();
+    }).catch((err) => {
+        setTimeout(() => {
+            checkIsOnline();
+        }, 1000);
+    });
+}
+
 const RestartModal = ({openModal, setOpenModal}) => {
+    const [isRestarting, setIsRestarting] = useState(false);
+    const [warn, setWarn] = useState(false);
+
     return <>
         <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-            <DialogTitle>Restart Server</DialogTitle>
+            <DialogTitle>{!isRestarting ? 'Restart Server?' : 'Restarting Server...'}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    A restart is required to apply changes. Do you want to restart?
+                    {warn && <div>
+                        <Alert severity="warning" icon={<WarningOutlined />}>
+                        The server is taking longer than expected to restart.<br />Consider troubleshouting the logs.
+                        </Alert>
+                    </div>}
+                    {isRestarting ? 
+                    <div style={{textAlign: 'center', padding: '20px'}}>
+                        <CircularProgress />
+                    </div>
+                    : 'A restart is required to apply changes. Do you want to restart?'}
                 </DialogContentText>
             </DialogContent>
-            <DialogActions>
+            {!isRestarting && <DialogActions>
                 <Button onClick={() => setOpenModal(false)}>Later</Button>
                 <Button onClick={() => {
+                    setIsRestarting(true);
                     API.config.restart()
-                    .then(() => {
-                        refresh();
-                        setOpenModal(false);
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 2000)
-                    })
+                    setTimeout(() => {
+                        checkIsOnline();
+                    }, 1500)
+                    setTimeout(() => {
+                        setWarn(true);
+                    }, 8000)
                 }}>Restart</Button>
-            </DialogActions>
+            </DialogActions>}
         </Dialog>
     </>;
 };

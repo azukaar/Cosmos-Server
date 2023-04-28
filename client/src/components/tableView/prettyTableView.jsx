@@ -9,8 +9,9 @@ import Paper from '@mui/material/Paper';
 import { Input, InputAdornment, Stack, TextField } from '@mui/material';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
+import { Link } from 'react-router-dom';
 
-const PrettyTableView = ({ getKey, data, columns, onRowClick }) => {
+const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
   const [search, setSearch] = React.useState('');
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -59,18 +60,28 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick }) => {
                   key={getKey(row)}
                   sx={{
                     cursor: 'pointer',
-                    borderLeft: 'transparent solid 5px',
+                    borderLeft: 'transparent solid 2px',
                     '&:last-child td, &:last-child th': { border: 0 },
                     '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.06)',
                       borderColor: 'gray',
+                      textDecoration: 'underline',
                     },
                   }}
                 >
                   {columns.map((column) => (
-                    <TableCell
-                      style={column.style}
-                    >{column.field(row, key)}</TableCell>
+                
+                    <TableCell sx={column.style}>
+                      {!column.clickable ? <Link
+                        to={linkTo && linkTo(row, key)}
+                        style={{
+                          color: 'inherit',
+                          textDecoration: 'inherit',
+                        }}
+                      >
+                        {column.field(row, key)}
+                      </Link> : column.field(row, key)}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))}

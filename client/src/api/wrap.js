@@ -22,3 +22,7 @@ export default function wrap(apicall) {
 export function setSnackit(snack) {
   snackit = snack;
 }
+
+export {
+  snackit
+};

@@ -198,7 +198,11 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
 	srapi.Use(tokenMiddleware)
-	srapi.Use(utils.CORSHeader(utils.GetMainConfig().HTTPConfig.Hostname))
+	srapi.Use(proxy.SmartShieldMiddleware(
+		utils.SmartShieldPolicy{
+			Enabled: true,
+		},
+	))
 	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
 	srapi.Use(httprate.Limit(60, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),

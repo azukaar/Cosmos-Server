@@ -118,13 +118,13 @@ export const RouteActions = ({route, routeKey, up, down, deleteRoute}) => {
   return <>
     <Stack direction={'row'} spacing={2} alignItems={'center'} justifyContent={'right'}>
       {!confirmDelete && (<Chip label={<DeleteOutlined />} onClick={() => setConfirmDelete(true)}/>)}
-      {confirmDelete && (<Chip label={<CheckOutlined />} color="error" onClick={() => deleteRoute()}/>)}
+      {confirmDelete && (<Chip label={<CheckOutlined />} color="error" onClick={(event) => deleteRoute(event)}/>)}
       
         <Tooltip title='Routes with the lowest priority are matched first'>
       <Stack direction={'column'} spacing={0}>
-        <Card sx={{...miniChip, borderBottom: 'none'}} onClick={() => up()}><UpOutlined /></Card>
+        <Card sx={{...miniChip, borderBottom: 'none'}} onClick={(event) => up(event)}><UpOutlined /></Card>
         <Card sx={{...miniChip, cursor: 'auto'}}>{routeKey}</Card>
-        <Card sx={{...miniChip, borderTop: 'none'}} onClick={() => down()}><DownOutlined /></Card>
+        <Card sx={{...miniChip, borderTop: 'none'}} onClick={(event) => down(event)}><DownOutlined /></Card>
       </Stack>
         </Tooltip>
     </Stack>

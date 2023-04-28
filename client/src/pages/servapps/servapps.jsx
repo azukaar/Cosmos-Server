@@ -10,8 +10,8 @@ import { styled } from '@mui/material/styles';
 import * as API from '../../api';
 import IsLoggedIn from '../../IsLoggedIn';
 import RestartModal from '../config/users/restart';
-import RouteManagement, { ValidateRoute } from '../config/users/routeman';
-import { sanitizeRoute } from '../../utils/routes';
+import RouteManagement, { ValidateRoute } from '../config/routes/routeman';
+import { getFaviconURL, sanitizeRoute } from '../../utils/routes';
 import HostChip from '../../components/hostChip';
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -121,6 +121,17 @@ const ServeApps = () => {
 
   const getHostnameFromName = (name) => {
     return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
+  }
+
+  const getFirstRouteFavIcon = (app) => {
+    let routes = getContainersRoutes(app.Names[0].replace('/', ''));
+    console.log(routes)
+    if(routes.length > 0) {
+      let url = getFaviconURL(routes[0]);
+      return url;
+    } else {
+      return getFaviconURL('');
+    }
   }
 
   return <div>
@@ -235,13 +246,16 @@ const ServeApps = () => {
                     })[app.State]
                   }
                 </Typography>
-                <Stack direction="column" spacing={0} alignItems="flex-start">
-                  <Typography  variant="h5" color="text.secondary">
-                    {app.Names[0].replace('/', '')}&nbsp;
-                  </Typography>
-                  <Typography style={{ fontSize: '80%' }} color="text.secondary">
-                    {app.Image}
-                  </Typography>
+                <Stack direction="row" spacing={2} alignItems="center">
+                  <img src={getFirstRouteFavIcon(app)} width="40px" />
+                  <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px'}}>
+                    <Typography  variant="h5" color="text.secondary">
+                      {app.Names[0].replace('/', '')}&nbsp;
+                    </Typography>
+                    <Typography style={{ fontSize: '80%' }} color="text.secondary">
+                      {app.Image}
+                    </Typography>
+                  </Stack>
                 </Stack>
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">

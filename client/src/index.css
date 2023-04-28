@@ -25,6 +25,16 @@
   overflow: hidden;
 }
 
+.stickyButton {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
+  left: 0;
+  right: 0;
+  box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.50);
+  z-index: 10;
+}
+
 .shinyButton:before {
   position: absolute;
   content: '';

@@ -35,6 +35,7 @@ require (
 	github.com/docker/docker v23.0.1+incompatible // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/evanphx/json-patch v0.5.2 // indirect
 	github.com/exoscale/egoscale v0.40.0 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/foomo/simplecert v1.8.4 // indirect

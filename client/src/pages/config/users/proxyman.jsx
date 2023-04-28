@@ -25,17 +25,19 @@ import {
   TextField,
   MenuItem,
   Chip,
+  CircularProgress,
 
 } from '@mui/material';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
-import RouteManagement, {ValidateRoute} from './routeman';
+import RouteManagement, {ValidateRoute} from '../routes/routeman';
 import { map } from 'lodash';
 import { getFaviconURL, sanitizeRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
 import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
+import { useNavigate } from 'react-router';
 
 const stickyButton = {
   position: 'fixed',
@@ -60,6 +62,7 @@ const ProxyManagement = () => {
   const [error, setError] = React.useState(null);
   const [submitErrors, setSubmitErrors] = React.useState([]);
   const [needSave, setNeedSave] = React.useState(false);
+  const navigate = useNavigate();
   
   function updateRoutes(routes) {
     let con = {
@@ -90,7 +93,8 @@ const ProxyManagement = () => {
     });
   }
 
-  function up(key) {
+  function up(event, key) {
+    event.stopPropagation();
     if (key > 0) {
       let tmp = routes[key];
       routes[key] = routes[key-1];
@@ -98,15 +102,19 @@ const ProxyManagement = () => {
       updateRoutes(routes);
       setNeedSave(true);
     }
+    return false;
   }
 
-  function deleteRoute(key) {
+  function deleteRoute(event, key) {
+    event.stopPropagation();
     routes.splice(key, 1);
     updateRoutes(routes);
     setNeedSave(true);
+    return false;
   }
 
-  function down(key) {
+  function down(event, key) {
+    event.stopPropagation();
     if (key < routes.length - 1) {
       let tmp = routes[key];
       routes[key] = routes[key+1];
@@ -114,6 +122,7 @@ const ProxyManagement = () => {
       updateRoutes(routes);
       setNeedSave(true);
     }
+    return false;
   }
 
   React.useEffect(() => {
@@ -161,6 +170,7 @@ const ProxyManagement = () => {
       {routes && <PrettyTableView 
         data={routes}
         getKey={(r) => r.Name + r.Target + r.Mode}
+        onRowClick={(r) => {navigate('/ui/config-url/' + r.Name)}}
         columns={[
           { 
             title: '', 
@@ -171,9 +181,12 @@ const ProxyManagement = () => {
           },
           { title: 'URL',
             search: (r) => r.Name + ' ' + r.Description,
+            style: {
+              textDecoration: 'inherit',
+            },
             field: (r) => <>
-              <div style={{display:'inline-block', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
-              <div style={{display:'inline-block', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
+              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
           // { title: 'Description', field: (r) => shorten(r.Description), style:{fontSize: '90%', opacity: '90%'} },
@@ -182,12 +195,12 @@ const ProxyManagement = () => {
           { title: 'Target', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: 'Security', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
-          { title: '', field: (r, k) =>  <RouteActions
+          { title: '', clickable:true, field: (r, k) =>  <RouteActions
               route={r}
               routeKey={k}
-              up={() => up(k)}
-              down={() => down(k)}
-              deleteRoute={() => deleteRoute(k)}
+              up={(event) => up(event, k)}
+              down={(event) => down(event, k)}
+              deleteRoute={(event) => deleteRoute(event, k)}
             />,
             style: {
               textAlign: 'right',
@@ -195,6 +208,11 @@ const ProxyManagement = () => {
           },
         ]}
       />}
+      {
+        !routes && <div style={{textAlign: 'center'}}>
+          <CircularProgress />
+        </div>
+      }
       
       {/* {routes && routes.map((route,key) => (<>
         <RouteManagement key={route.Name} routeConfig={route}

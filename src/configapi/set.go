@@ -38,13 +38,6 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		utils.SaveConfigTofile(request)
 		utils.NeedsRestart = true
 
-		// if err != nil {
-		// 	utils.Error("SettingsUpdate: Error saving config to file", err)
-		// 	utils.HTTPError(w, "Error saving config to file",
-		// 		http.StatusInternalServerError, "CS001")
-		// 	return
-		// }
-
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})

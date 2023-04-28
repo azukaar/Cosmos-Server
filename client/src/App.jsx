@@ -13,9 +13,11 @@ import { setSnackit } from './api/wrap';
 const App = () => {
     const [open, setOpen] = React.useState(false);
     const [message, setMessage] = React.useState('');
-    setSnackit((message) => {
+    const [severity, setSeverity] = React.useState('error');
+    setSnackit((message, severity='error') => {
         setMessage(message);
         setOpen(true);
+        setSeverity(severity);
     })
     return (
         <ThemeCustomization>
@@ -25,7 +27,7 @@ const App = () => {
                 onClose={() => {setOpen(false)}}
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >  
-                <Alert className={open ? 'shake' : ''} severity="error" sx={{ width: '100%' }}>
+                <Alert className={(open && severity == "error") ? 'shake' : ''} severity={severity} sx={{ width: '100%' }}>
                     {message}
                 </Alert>
             </Snackbar>
