@@ -2,7 +2,7 @@ import * as React from 'react';
 import MainCard from '../../../components/MainCard';
 import RestartModal from '../users/restart';
 import { Chip, Stack, useMediaQuery } from '@mui/material';
-import HostChip from '../../../components/HostChip';
+import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
 
