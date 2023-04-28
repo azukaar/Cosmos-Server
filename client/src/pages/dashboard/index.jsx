@@ -34,7 +34,7 @@ import avatar1 from '../../assets/images/users/avatar-1.png';
 import avatar2 from '../../assets/images/users/avatar-2.png';
 import avatar3 from '../../assets/images/users/avatar-3.png';
 import avatar4 from '../../assets/images/users/avatar-4.png';
-import IsLoggedIn from '../../IsLoggedIn';
+import IsLoggedIn from '../../isLoggedIn';
 
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';

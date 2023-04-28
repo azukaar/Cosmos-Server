@@ -8,7 +8,7 @@ import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 
 import * as API from '../../api';
-import IsLoggedIn from '../../IsLoggedIn';
+import IsLoggedIn from '../../isLoggedIn';
 import RestartModal from '../config/users/restart';
 import RouteManagement, { ValidateRoute } from '../config/routes/routeman';
 import { getFaviconURL, sanitizeRoute } from '../../utils/routes';
