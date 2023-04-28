@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y ca-certificates openssl
 WORKDIR /app
 
 COPY build/cosmos .
+COPY build/cosmos_gray.png .
+COPY build/meta.json .
 COPY static ./static
 
 CMD ["./cosmos"]

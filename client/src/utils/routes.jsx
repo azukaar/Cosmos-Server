@@ -29,8 +29,8 @@ export const getFaviconURL = (route) => {
   const addRemote = (url) => {
     return '/cosmos/api/favicon?q=' + encodeURIComponent(url)
   }
-  if(route.Mode == "SERVAP") {
-    return addRemote(addProtocol(route.Target))
+  if(route.Mode == "SERVAPP") {
+    return addRemote(route.Target)
   } else if (route.Mode == "STATIC") {
     return Folder;
   } else {

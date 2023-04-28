@@ -190,7 +190,7 @@ const ProxyManagement = () => {
             </>
           },
           // { title: 'Description', field: (r) => shorten(r.Description), style:{fontSize: '90%', opacity: '90%'} },
-          { title: 'Origin', search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          { title: 'Origin', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
           // { title: 'Mode', field: (r) => <RouteMode route={r} /> },
           { title: 'Target', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: 'Security', field: (r) => <RouteSecurity route={r} />,
