@@ -64,7 +64,7 @@ const RestartModal = ({openModal, setOpenModal}) => {
                     }, 1500)
                     setTimeout(() => {
                         setWarn(true);
-                    }, 8000)
+                    }, 20000)
                 }}>Restart</Button>
             </DialogActions>}
         </Dialog>

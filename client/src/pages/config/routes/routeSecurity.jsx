@@ -23,20 +23,24 @@ const RouteSecurity = ({ routeConfig }) => {
       <Formik
         initialValues={{
           AuthEnabled: routeConfig.AuthEnabled,
-          Host: routeConfig.Host,
-          UsePathPrefix: routeConfig.UsePathPrefix,
-          PathPrefix: routeConfig.PathPrefix,
-          StripPathPrefix: routeConfig.StripPathPrefix,
           Timeout: routeConfig.Timeout,
           ThrottlePerMinute: routeConfig.ThrottlePerMinute,
           CORSOrigin: routeConfig.CORSOrigin,
           MaxBandwith: routeConfig.MaxBandwith,
+          _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           const fullValues = {
             ...routeConfig,
             ...values,
           }
+
+          if(!fullValues.SmartShield) {
+            fullValues.SmartShield = {};
+          }
+          fullValues.SmartShield.Enabled = values._SmartShield_Enabled;
+          delete fullValues._SmartShield_Enabled;
+
           API.config.replaceRoute(routeConfig.Name, fullValues).then((res) => {
             if (res.status == "OK") {
               setStatus({ success: true });
@@ -63,6 +67,12 @@ const RouteSecurity = ({ routeConfig }) => {
                     <CosmosCheckbox
                       name="AuthEnabled"
                       label="Authentication Required"
+                      formik={formik}
+                    />
+
+                    <CosmosCheckbox
+                      name="_SmartShield_Enabled"
+                      label="Smart Shield Protection"
                       formik={formik}
                     />
 

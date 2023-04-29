@@ -14,32 +14,7 @@ import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
-
-export const ValidateRoute = Yup.object().shape({
-  Name: Yup.string().required('Name is required'),
-  Mode: Yup.string().required('Mode is required'),
-  Target: Yup.string().required('Target is required').when('Mode', {
-    is: 'SERVAPP',
-    then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
-  }),
-
-  Host: Yup.string().when('UseHost', {
-    is: true,
-    then: Yup.string().required('Host is required')
-      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP')
-  }),
-
-  PathPrefix: Yup.string().when('UsePathPrefix', {
-    is: true,
-    then: Yup.string().required('Path Prefix is required').matches(/^\//, 'Path Prefix must start with / (e.g. /api). Do not include a domain/subdomain in it, use the Host for this.')
-  }),
-
-  UseHost: Yup.boolean().when('UsePathPrefix',
-    {
-      is: false,
-      then: Yup.boolean().oneOf([true], 'Source must at least be either Host or Path Prefix')
-    }),
-})
+import { ValidateRouteSchema, sanitizeRoute } from '../../../utils/routes';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -47,12 +22,21 @@ const Hide = ({ children, h }) => {
   </div> : <>{children}</>
 }
 
-const RouteManagement = ({ routeConfig, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false }) => {
-  const [openModal, setOpenModal] = React.useState(false);
+const debounce = (func, wait) => {
+  let timeout;
+  return function (...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), wait);
+  };
+};
 
+const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
+  const [openModal, setOpenModal] = React.useState(false);
+ 
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
-
+    
     {routeConfig && <>
       <Formik
         initialValues={{
@@ -62,17 +46,32 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls = false, loc
           Target: routeConfig.Target,
           UseHost: routeConfig.UseHost,
           Host: routeConfig.Host,
+          UsePathPrefix: routeConfig.UsePathPrefix,
+          PathPrefix: routeConfig.PathPrefix,
+          StripPathPrefix: routeConfig.StripPathPrefix,
+          AuthEnabled: routeConfig.AuthEnabled,
+          _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
         }}
-        validationSchema={ValidateRoute}
+        validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           if(!submitButton) {
             return false;
           } else {
-            const fullValues = {
+            let fullValues = {
               ...routeConfig,
               ...values,
             }
-            API.config.replaceRoute(routeConfig.Name, fullValues).then((res) => {
+
+            fullValues = sanitizeRoute(fullValues);
+
+            let op;
+            if(newRoute) {
+              op = API.config.newRoute(routeConfig.Name, fullValues)
+            } else {
+              op = API.config.replaceRoute(routeConfig.Name, fullValues)
+            }
+            
+            op.then((res) => {
               if (res.status == "OK") {
                 setStatus({ success: true });
                 snackit('Route updated successfully', 'success')
@@ -87,7 +86,17 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls = false, loc
           }
         }}
         validate={(values) => {
-          setRouteConfig && setRouteConfig(values);
+          let fullValues = {
+            ...routeConfig,
+            ...values,
+          }
+
+          // check name is unique
+          if (newRoute && routeNames.includes(fullValues.Name)) {
+            return { Name: 'Name must be unique' }
+          }
+
+          setRouteConfig && debounce(() => setRouteConfig(fullValues), 500)();
         }}
       >
         {(formik) => (
@@ -198,6 +207,20 @@ const RouteManagement = ({ routeConfig, TargetContainer, noControls = false, loc
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
+                  
+                  <CosmosFormDivider title={'Basic Security'} />
+                  
+                  <CosmosCheckbox
+                    name="AuthEnabled"
+                    label="Authentication Required"
+                    formik={formik}
+                  />
+                  
+                  <CosmosCheckbox
+                    name="_SmartShield_Enabled"
+                    label="Smart Shield Protection"
+                    formik={formik}
+                  />
                 </Grid>
               </MainCard>
               {submitButton && <MainCard ><Button

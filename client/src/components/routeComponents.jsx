@@ -1,4 +1,4 @@
-import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
+import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, SafetyOutlined, UpOutlined } from "@ant-design/icons";
 import { Card, Chip, Stack, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTheme } from '@mui/material/styles';
@@ -61,6 +61,15 @@ export const RouteMode = ({route}) => {
 
 export const RouteSecurity = ({route}) => {
   return <div style={{fontWeight: 'bold', fontSize: '110%'}}>
+    <Tooltip title={route.SmartShield && route.SmartShield.Enabled ? "Smart Shield is enabled" : "Smart Shield is disabled"}>
+      <div style={{display: 'inline-block'}}>
+        {route.SmartShield && route.SmartShield.Enabled ? 
+          <SafetyOutlined style={{color: 'green'}} /> :
+          <SafetyOutlined style={{color: 'red'}} />
+        }
+      </div>
+    </Tooltip>
+    &nbsp;
     <Tooltip title={route.AuthEnabled ? "Authentication is enabled" : "Authentication is disabled"}>
       <div style={{display: 'inline-block'}}>
         {route.AuthEnabled ? 

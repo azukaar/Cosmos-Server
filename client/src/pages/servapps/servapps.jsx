@@ -10,8 +10,8 @@ import { styled } from '@mui/material/styles';
 import * as API from '../../api';
 import IsLoggedIn from '../../isLoggedIn';
 import RestartModal from '../config/users/restart';
-import RouteManagement, { ValidateRoute } from '../config/routes/routeman';
-import { getFaviconURL, sanitizeRoute } from '../../utils/routes';
+import RouteManagement from '../config/routes/routeman';
+import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../utils/routes';
 import HostChip from '../../components/hostChip';
 
 const Item = styled(Paper)(({ theme }) => ({
@@ -47,14 +47,6 @@ const ServeApps = () => {
       if(network.startsWith('cosmos-network'))
         return true;
     })
-  }
-
-  const testRoute = (route) => {
-    try {
-      ValidateRoute.validateSync(route);
-    } catch (e) {
-      return e.errors;
-    }
   }
 
   const refreshServeApps = () => {
@@ -97,8 +89,8 @@ const ServeApps = () => {
         ProxyConfig: {
           ...config.HTTPConfig.ProxyConfig,
           Routes: [
-            ...config.HTTPConfig.ProxyConfig.Routes,
             newRoute,
+            ...config.HTTPConfig.ProxyConfig.Routes,
           ]
         },
       },
@@ -109,6 +101,7 @@ const ServeApps = () => {
       setOpenRestartModal(true);
     });
   }
+
   const gridAnim = {
     transition: 'all 0.2s ease',
     opacity: 1,
@@ -125,7 +118,6 @@ const ServeApps = () => {
 
   const getFirstRouteFavIcon = (app) => {
     let routes = getContainersRoutes(app.Names[0].replace('/', ''));
-    console.log(routes)
     if(routes.length > 0) {
       let url = getFaviconURL(routes[0]);
       return url;
@@ -160,12 +152,16 @@ const ServeApps = () => {
                             Host: getHostnameFromName(openModal.Names[0]),
                             UsePathPrefix: false,
                             PathPrefix: '',
-                            Timeout: 30000,
-                            ThrottlePerMinute: 0,
                             CORSOrigin: '',
                             StripPathPrefix: false,
                             AuthEnabled: false,
+                            Timeout: 14400000,
+                            ThrottlePerMinute: 10000,
+                            SmartShield: {
+                              Enabled: true,
+                            }
                           }} 
+                          routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
                           setRouteConfig={(_newRoute) => {
                             setNewRoute(sanitizeRoute(_newRoute));
                           }}
@@ -187,7 +183,7 @@ const ServeApps = () => {
                 </Stack>}
                 <Button onClick={() => setOpenModal(false)}>Cancel</Button>
                 <Button onClick={() => {
-                  let errors = testRoute(newRoute);
+                  let errors = ValidateRoute(newRoute, config);
                   if (errors && errors.length > 0) {
                     errors = errors.map((err) => {
                       return `${err}`;
@@ -305,7 +301,7 @@ const ServeApps = () => {
                 <Typography  variant="h6" color="text.secondary">
                   URLs
                 </Typography>
-                <Stack spacing={2} direction="row">
+                <Stack style={noOver} spacing={2} direction="row">
                   {getContainersRoutes(app.Names[0].replace('/', '')).map((route) => {
                     return <HostChip route={route} settings/>
                   })}

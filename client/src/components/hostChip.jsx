@@ -35,7 +35,7 @@ const HostChip = ({route, settings}) => {
         window.open(window.location.origin + route.PathPrefix, '_blank');
     }}
     onDelete={settings ? () => {
-      window.open('/ui/config-url#'+route.Name, '_blank');
+      window.open('/ui/config-url/'+route.Name, '_blank');
     } : null}
     deleteIcon={settings ? <SettingOutlined /> : null}
   />

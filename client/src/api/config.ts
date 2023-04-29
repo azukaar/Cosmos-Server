@@ -3,7 +3,7 @@ interface Route {
   Name: string;
 }
 
-type Operation = 'replace' | 'move_up' | 'move_down' | 'delete';
+type Operation = 'replace' | 'move_up' | 'move_down' | 'delete' | 'add';
 
 function get() {
   return wrap(fetch('/cosmos/api/config', {
@@ -68,6 +68,10 @@ async function moveRouteDown(routeName: string): Promise<void> {
 async function deleteRoute(routeName: string): Promise<void> {
   return rawUpdateRoute(routeName, 'delete');
 }
+async function addRoute(newRoute: Route): Promise<void> {
+  return rawUpdateRoute("", 'add', newRoute);
+}
+
 export {
   get,
   set,
@@ -77,4 +81,5 @@ export {
   moveRouteUp,
   moveRouteDown,
   deleteRoute,
+  addRoute,
 };

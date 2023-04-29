@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import Back from "../../components/back";
-import { CircularProgress, Stack } from "@mui/material";
+import { Alert, CircularProgress, Stack } from "@mui/material";
 import PrettyTabbedView from "../../components/tabbedView/tabbedView";
 import RouteManagement from "./routes/routeman";
 import { useEffect, useState } from "react";
@@ -35,7 +35,11 @@ const RouteConfigPage = () => {
         <div>{routeName}</div>
       </Stack>
 
-      {config && <PrettyTabbedView tabs={[
+      {config && !currentRoute && <div>
+        <Alert severity="error">Route not found</Alert>  
+      </div>}
+
+      {config && currentRoute && <PrettyTabbedView tabs={[
         {
           title: 'Overview',
           children: <RouteOverview routeConfig={currentRoute} />
@@ -46,6 +50,7 @@ const RouteConfigPage = () => {
             title="Setup"
             submitButton
             routeConfig={currentRoute}
+            routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
           />
         },
         {

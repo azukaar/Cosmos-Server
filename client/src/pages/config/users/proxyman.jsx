@@ -31,13 +31,14 @@ import {
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
-import RouteManagement, {ValidateRoute} from '../routes/routeman';
+import RouteManagement from '../routes/routeman';
 import { map } from 'lodash';
-import { getFaviconURL, sanitizeRoute } from '../../../utils/routes';
+import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
 import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
 import { useNavigate } from 'react-router';
+import NewRouteCreate from '../routes/newRoute';
 
 const stickyButton = {
   position: 'fixed',
@@ -62,7 +63,7 @@ const ProxyManagement = () => {
   const [error, setError] = React.useState(null);
   const [submitErrors, setSubmitErrors] = React.useState([]);
   const [needSave, setNeedSave] = React.useState(false);
-  const navigate = useNavigate();
+  const [openNewModal, setOpenNewModal] = React.useState(false);
   
   function updateRoutes(routes) {
     let con = {
@@ -129,43 +130,22 @@ const ProxyManagement = () => {
     refresh();
   }, []);
 
-  const testRoute = (route) => {
-    try {
-      ValidateRoute.validateSync(route);
-    } catch (e) {
-      return e.errors;
-    }
-  }
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
   return <div style={{   }}>
     <IsLoggedIn />
-    <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-        refresh();
-    }}>Refresh</Button>&nbsp;&nbsp;
-    <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
-        routes.unshift({
-          Name: 'New URL',
-          Description: 'New URL',
-          Mode: "SERVAPP",
-          UseHost: false,
-          Host: '',
-          UsePathPrefix: false,
-          PathPrefix: '',
-          Timeout: 30000,
-          ThrottlePerMinute: 0,
-          CORSOrigin: '',
-          StripPathPrefix: false,
-          AuthEnabled: false,
-        });
-        updateRoutes(routes);
-        setNeedSave(true);
-    }}>Create</Button>
-    
-    <br /><br />
-    
+    <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
+      <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+          refresh();
+      }}>Refresh</Button>&nbsp;&nbsp;
+      <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+        setOpenNewModal(true);
+      }}>Create</Button>
+    </Stack>
+
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+      <NewRouteCreate openNewModal={openNewModal} setOpenNewModal={setOpenNewModal} config={config}/>
       
       {routes && <PrettyTableView 
         data={routes}
@@ -190,9 +170,9 @@ const ProxyManagement = () => {
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
-          { title: 'Origin', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
-          { title: 'Target', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
-          { title: 'Security', field: (r) => <RouteSecurity route={r} />,
+          { title: 'Origin', screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          { title: 'Target', screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: 'Security', screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) =>  <RouteActions
               route={r}
@@ -213,19 +193,6 @@ const ProxyManagement = () => {
         </div>
       }
       
-      {/* {routes && routes.map((route,key) => (<>
-        <RouteManagement key={route.Name} routeConfig={route}
-          setRouteConfig={(newRoute) => {
-            routes[key] = sanitizeRoute(newRoute);
-            setNeedSave(true);
-          }}
-          up={() => up(key)}
-          down={() => down(key)}
-          deleteRoute={() => deleteRoute(key)}
-        />
-        <br /><br />
-      </>))} */}
-
       {routes && needSave && <>
         <div>
         <br /><br /><br /><br />
@@ -249,7 +216,7 @@ const ProxyManagement = () => {
                 fullWidth
                 onClick={() => {
                   if(routes.some((route, key) => {
-                    let errors = testRoute(route);
+                    let errors = ValidateRoute(route, config);
                     if (errors && errors.length > 0) {
                       errors = errors.map((err) => {
                         return `${route.Name}: ${err}`;
