@@ -16,7 +16,7 @@ const IsLoggedIn = () => useEffect(() => {
                 window.location.href = '/ui/newmfa';
             }
         }
-    });
+    })
 }, []);
 
 export default IsLoggedIn;

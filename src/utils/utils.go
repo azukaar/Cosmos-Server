@@ -339,3 +339,24 @@ func StringArrayContains(a []string, b string) bool {
 	}
 	return false
 }
+
+func GetServerURL() string {
+	ServerURL := ""
+
+	if IsHTTPS {
+		ServerURL += "https://"
+	} else {
+		ServerURL += "http://"
+	}
+
+	ServerURL += MainConfig.HTTPConfig.Hostname
+
+	if IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443" {
+		ServerURL += ":" + MainConfig.HTTPConfig.HTTPSPort
+	}
+	if !IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80" {
+		ServerURL += ":" + MainConfig.HTTPConfig.HTTPPort
+	}
+
+	return ServerURL + "/"
+}

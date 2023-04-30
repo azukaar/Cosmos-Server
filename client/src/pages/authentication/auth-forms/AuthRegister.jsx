@@ -32,6 +32,7 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { LoadingButton } from '@mui/lab';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
@@ -178,10 +179,9 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                                 </Grid>
                             )}
                             <Grid item xs={12}>
-                                <AnimateButton>
-                                    <Button
+                                    <LoadingButton
                                         disableElevation
-                                        disabled={isSubmitting}
+                                        loading={isSubmitting}
                                         fullWidth
                                         size="large"
                                         type="submit"
@@ -191,8 +191,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                                         {
                                             isRegister ? 'Register' : 'Reset Password'
                                         }
-                                    </Button>
-                                </AnimateButton>
+                                    </LoadingButton>
                             </Grid>
                         </Grid>
                     </form>

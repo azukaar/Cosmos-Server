@@ -79,6 +79,7 @@ type Config struct {
 	DisableUserManagement bool
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
+	EmailConfig EmailConfig `validate:"required,dive,required"`
 	DockerConfig DockerConfig
 	BlockedCountries []string
 	ServerCountry string
@@ -143,4 +144,14 @@ type ProxyRouteConfig struct {
 	Mode ProxyMode
 	BlockCommonBots bool
 	BlockAPIAbuse bool
+}
+
+type EmailConfig struct {
+	Enabled		 bool
+	Host       string
+	Port       string
+	Username   string
+	Password   string
+	From       string
+	UseTLS		 bool
 }

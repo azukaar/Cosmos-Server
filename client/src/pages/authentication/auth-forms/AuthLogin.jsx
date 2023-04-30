@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link, Link as RouterLink } from 'react-router-dom';
 
 // material-ui
 import {
@@ -30,6 +30,7 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
+import { LoadingButton } from '@mui/lab';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -182,10 +183,10 @@ const AuthLogin = () => {
                                             />
                                         }
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
-                                    />
-                                    <Link variant="h6" component={RouterLink} to="" color="text.primary">
+                                    />*/}
+                                    <Link variant="h6" component={RouterLink} to="/ui/forgot-password" color="primary">
                                         Forgot Password?
-                                    </Link> */}
+                                    </Link>
                                 </Stack>
                             </Grid>
                             {errors.submit && (
@@ -194,10 +195,9 @@ const AuthLogin = () => {
                                 </Grid>
                             )}
                             <Grid item xs={12}>
-                                <AnimateButton>
-                                    <Button
+                                    <LoadingButton
                                         disableElevation
-                                        disabled={isSubmitting}
+                                        loading={isSubmitting}
                                         fullWidth
                                         size="large"
                                         type="submit"
@@ -205,8 +205,7 @@ const AuthLogin = () => {
                                         color="primary"
                                     >
                                         Login
-                                    </Button>
-                                </AnimateButton>
+                                    </LoadingButton>
                             </Grid>
                             {/* <Grid item xs={12}>
                                 <Divider>

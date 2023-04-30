@@ -30,6 +30,7 @@ const UserManagement = () => {
     const [openDeleteForm, setOpenDeleteForm] = React.useState(false);
     const [openInviteForm, setOpenInviteForm] = React.useState(false);
     const [toAction, setToAction] = React.useState(null);
+    const [loadingRow, setLoadingRow] = React.useState(null);
 
     const roles = ['Guest', 'User', 'Admin']
 
@@ -39,6 +40,7 @@ const UserManagement = () => {
         setIsLoading(true);
         API.users.list()
         .then(data => {
+            setLoadingRow(null);
             setRows(data.data);
             setIsLoading(false);
         })
@@ -50,30 +52,45 @@ const UserManagement = () => {
 
     function sendlink(nickname, formType) {
         API.users.invite({  
-            nickname
+            nickname,
+            formType: ""+formType,
         })
         .then((values) => {
             let sendLink = window.location.origin + '/ui/register?t='+formType+'&nickname='+nickname+'&key=' + values.data.registerKey;
-            setToAction({...values.data, nickname, sendLink, formType});
+            setToAction({...values.data, nickname, sendLink, formType, formAction: formType === 2 ? 'invite them to the server' : 'let them reset their password'});
             setOpenInviteForm(true);
         });
     }
 
     return <>
+        <IsLoggedIn />
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
-            <IsLoggedIn />
             <DialogTitle>Invite User</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Send this link to {toAction.nickname} to invite them to the system:
+                    <div style={{
+                        paddingBottom: '15px',
+                        maxWidth: '350px',
+                    }}>
+                        {toAction.emailWasSent ? 
+                            <div>
+                                <strong>An email has been sent</strong> with a link to {toAction.formAction}. Alternatively you can also share the link below:
+                            </div> :
+                            <div>
+                                Send this link to {toAction.nickname} to {toAction.formAction}:
+                            </div>
+                        }
+                    </div>
+                    
                     <div>
+                    <div style={{float: 'left', width: '300px', padding: '5px', background:'rgba(0,0,0,0.15)', whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'auto', fontStyle: 'italic'}}>{toAction.sendLink}</div>
                         <IconButton size="large" style={{float: 'left'}} aria-label="copy" onClick={
                             () => {
                                 navigator.clipboard.writeText(toAction.sendLink);
                             }
                         }>
                             <CopyOutlined  />
-                        </IconButton><div style={{float: 'left', width: '300px', padding: '5px', background:'rgba(0,0,0,0.15)', whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'auto', fontStyle: 'italic'}}>{toAction.sendLink}</div>
+                        </IconButton>
                     </div>
                 </DialogContentText>
             </DialogContent>
@@ -215,26 +232,34 @@ const UserManagement = () => {
                         const isRegistered = new Date(r.registeredAt).getTime() > 0;
                         const inviteExpired = new Date(r.registerKeyExp).getTime() < new Date().getTime();
 
+                        if (loadingRow === r.nickname) {
+                            return <div style={{textAlign: 'center'}}><CircularProgress /></div>
+                        }
+
                         return <>{isRegistered ?
                             (<Button variant="contained" color="primary" onClick={
                                 () => {
+                                    setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 1);
                                 }
                             }>Send password reset</Button>) :
                             (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                 () => {
+                                    setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 2);
                                 }
                             } color="primary">Re-Send Invite</Button>)
                         }
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
+                                setLoadingRow(r.nickname);
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
                         }>Delete</Button>
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
+                                setLoadingRow(r.nickname);
                                 API.users.reset2FA(r.nickname).then(() => {
                                     refresh();
                                 });
