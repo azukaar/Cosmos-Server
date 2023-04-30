@@ -185,7 +185,7 @@ const AuthLogin = () => {
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
                                     <Link variant="h6" component={RouterLink} to="/ui/forgot-password" color="primary">
-                                        Forgot Password?
+                                        Forgot Your Password?
                                     </Link>
                                 </Stack>
                             </Grid>

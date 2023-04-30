@@ -240,7 +240,7 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			policy.PolicyStrictness = 2 // NORMAL
 		}
 		if(policy.PerUserSimultaneous == 0) {
-			policy.PerUserSimultaneous = 5
+			policy.PerUserSimultaneous = 8
 		}
 		if(policy.MaxGlobalSimultaneous == 0) {
 			policy.MaxGlobalSimultaneous = 50

@@ -222,7 +222,7 @@ func StartServer() {
 	srapi.Use(proxy.SmartShieldMiddleware(
 		utils.SmartShieldPolicy{
 			Enabled: true,
-			PerUserSimultaneous: 3,
+			PerUserSimultaneous: 8,
 			MaxGlobalSimultaneous: 12,
 			PolicyStrictness: 1,
 			PerUserRequestLimit: 5000,
