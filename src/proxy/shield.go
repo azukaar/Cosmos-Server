@@ -186,7 +186,7 @@ func (shield *smartShieldState) computeThrottle(policy utils.SmartShieldPolicy, 
 	overSim := policy.PerUserSimultaneous - userConsumed.Simultaneous
 	overSimRatio := float64(overSim) / float64(policy.PerUserSimultaneous)
 	if overSim < 0 {
-		newThrottle := int(float64(20) * -overSimRatio)
+		newThrottle := int(float64(50) * -overSimRatio)
 		if newThrottle > throttle {
 			throttle = newThrottle
 		}
@@ -240,10 +240,10 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			policy.PolicyStrictness = 2 // NORMAL
 		}
 		if(policy.PerUserSimultaneous == 0) {
-			policy.PerUserSimultaneous = 10
+			policy.PerUserSimultaneous = 24
 		}
 		if(policy.MaxGlobalSimultaneous == 0) {
-			policy.MaxGlobalSimultaneous = 200
+			policy.MaxGlobalSimultaneous = 250
 		}
 		if(policy.PrivilegedGroups == 0) {
 			policy.PrivilegedGroups = utils.ADMIN
