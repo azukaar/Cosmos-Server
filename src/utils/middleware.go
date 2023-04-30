@@ -69,7 +69,6 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("X-Frame-Options", "DENY")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("X-Served-By-Cosmos", "1")
-		w.Header().Set("Referrer-Policy", "no-referrer")
 
 		next.ServeHTTP(w, r)
 	})

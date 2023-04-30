@@ -11,6 +11,7 @@ import (
 
 type InviteRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
+	FormType string
 }
 
 func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
@@ -25,7 +26,7 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 
 		nickname := utils.Sanitize(request.Nickname)
 
-		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+		if utils.AdminOnly(w, req) != nil {
 			return
 		}
 
@@ -39,8 +40,6 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 		}
 
 		user := utils.User{}
-
-		// TODO: If not logged in as Admin, check email too
 
 		err := c.FindOne(nil, map[string]interface{}{
 			"Nickname": nickname,
@@ -76,13 +75,32 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			// TODO: Only send registerKey if logged in already
+			emailWasSent := false
+
+			if utils.IsEmailEnabled() && user.Email != "" {
+				utils.Debug("Sending an email to " + user.Email)
+				url := utils.GetServerURL() + ("ui/register?t="+request.FormType+"&nickname="+user.Nickname+"&key=" + RegisterKey)
+				
+				var errEm error 
+				
+				if request.FormType == "2" {
+					errEm = SendInviteEmail(user.Nickname, user.Email, url)
+				} else {
+					errEm = SendAdminPasswordEmail(user.Nickname, user.Email, url)
+				}
+
+				if errEm != nil {
+					utils.Error("UserInvite: Error while sending email", errEm)
+				}
+				emailWasSent = true
+			}
 
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{
 					"registerKey": RegisterKey,
 					"registerKeyExp": RegisterKeyExp,
+					"emailWasSent": emailWasSent,
 				},
 			})
 		}

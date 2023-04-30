@@ -100,6 +100,16 @@ function reset2FA(values) {
   }))
 }
 
+function resetPassword(values) {
+  return wrap(fetch('/cosmos/api/password-reset', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
 export {
   list,
   create,
@@ -110,5 +120,6 @@ export {
   deleteUser,
   new2FA,
   check2FA,
-  reset2FA
+  reset2FA,
+  resetPassword,
 };

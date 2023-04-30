@@ -208,6 +208,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
 	srapi.HandleFunc("/api/me", user.Me)
 	srapi.HandleFunc("/api/mfa", user.API2FA)
+	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
 	srapi.HandleFunc("/api/config", configapi.ConfigRoute)
 	srapi.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 

@@ -1,3 +1,15 @@
+## Version 0.3.0
+ - Set Max nb simulatneous connections per user 
+ - Set Global Max nb simulatneous connections
+ - Display nickname on invite page
+ - Reset self-signed certificates when hostnames changes
+ - Block based on geo-locations
+ - Block common bots
+ - DNS challenge for letsencrypt
+ - Implement 2 FA
+ - Implement SMTP to Send Email (password reset / invites)
+ - Show loading on user rows on actions
+
 ## Version 0.2.0
  - URL UI completely redone from scratch
  - Add new "Smart Shield" feature for easier protection without manual adjustments required

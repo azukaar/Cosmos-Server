@@ -52,7 +52,7 @@ export const CosmosInputText = ({ name, style, multiline, type, placeholder, onC
   </Grid>
 }
 
-export const CosmosInputPassword = ({ name, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputPassword = ({ name, noStrength, type, placeholder, onChange, label, formik }) => {
   const [level, setLevel] = React.useState();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
@@ -108,7 +108,7 @@ export const CosmosInputPassword = ({ name, type, placeholder, onChange, label, 
         </FormHelperText>
       )}
 
-      <FormControl fullWidth sx={{ mt: 2 }}>
+      {!noStrength && <FormControl fullWidth sx={{ mt: 2 }}>
           <Grid container spacing={2} alignItems="center">
               <Grid item>
                   <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
@@ -119,7 +119,7 @@ export const CosmosInputPassword = ({ name, type, placeholder, onChange, label, 
                   </Typography>
               </Grid>
           </Grid>
-      </FormControl>
+      </FormControl>}
     </Stack>
   </Grid>
 }

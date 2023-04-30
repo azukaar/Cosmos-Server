@@ -8,6 +8,7 @@ import Logout from '../pages/authentication/Logoff';
 import NewInstall from '../pages/newInstall/newInstall';
 
 import {NewMFA, MFALogin} from '../pages/authentication/newMFA';
+import ForgotPassword from '../pages/authentication/forgotPassword';
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('../pages/authentication/Login')));
@@ -42,6 +43,10 @@ const LoginRoutes = {
         {
             path: '/ui/loginmfa',
             element: <MFALogin />
+        },
+        {
+            path: '/ui/forgot-password',
+            element: <ForgotPassword />
         },
     ]
 };

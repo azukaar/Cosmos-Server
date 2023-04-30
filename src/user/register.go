@@ -84,7 +84,6 @@ func UserRegister(w http.ResponseWriter, req *http.Request) {
 			_, err4 := c.UpdateOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"RegisterKey": registerKey,
-				"Password": "",
 			}, map[string]interface{}{
 				"$set": map[string]interface{}{
 					"Password": hashedPassword,
