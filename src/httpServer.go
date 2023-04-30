@@ -229,7 +229,7 @@ func StartServer() {
 		},
 	))
 	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
-	// srapi.Use(utils.BlockPostWithoutReferer)
+	srapi.Use(utils.BlockPostWithoutReferer)
 	srapi.Use(proxy.BotDetectionMiddleware)
 	srapi.Use(httprate.Limit(60, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
