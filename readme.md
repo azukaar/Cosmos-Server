@@ -23,12 +23,13 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 
  * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications
  * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server (even with NGinx, Traefik, Portainer, etc...), the already existing applications you have, and the new ones you want to install
+ * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details)
  * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security** and **multi-factor authentication**
  * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
  * **Reverse Proxy** 🔄🔗 Reverse Proxy included, with a UI to easily manage your applications and their settings
  * **Automatic HTTPS** 🔑📜 certificates provisioning with Certbot / Let's Encrypt
- * **Anti-Bot** 🤖❌ protections such as Captcha and IP rate limiting
- * **Anti-DDOS** 🔥⛔️ protections such as variable timeouts/throttling, IP rate limiting and IP blacklisting
+ * **Anti-Bot** 🤖❌ Collection of tools to prevent bots from accessing your applications, such as common bot detection, IP based detection, and more
+ * **Anti-DDOS** 🔥⛔️ Additional protections such as variable timeouts/throttling, IP rate limiting and geo-blacklisting
  * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
  * **Container Management** 🐋🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
  * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
@@ -38,8 +39,21 @@ And a **lot more planned features** are coming!
 
 ![schema](./schema.png)
 
+# What is the SmartShield?
 
-# Why use it?
+SmartShield is a modern API protection package designed to secure your API by implementing advanced rate-limiting and user restrictions. This helps efficiently allocate and protect your resources without manual adjustment of limits and policies.
+
+Key Features:
+
+  * **Dynamic Rate Limiting** ✨ SmartShield calculates rate limits based on user behavior, providing a flexible approach to maintain API health without negatively impacting user experience.
+  * **Adaptive Actions** 📈 SmartShield automatically throttles users who exceed their rate limits, preventing them from consuming more resources than they are allowed without abruptly terminating their requests.
+  * **User Bans & Strikes** 🚫 Implement temporary or permanent bans and issue strikes automatically to prevent API abuse from malicious or resource-intensive users.
+  * **Global Request Control** 🌐 Monitor and limit the total number of simultaneous requests on your server, ensuring optimal performance and stability.
+  * **User-based Metrics** 📊 SmartShield tracks user consumption in terms of requests, data usage, and simultaneous connections, allowing for detailed control.
+  * **Privileged Access** 🔑 Assign privileged access to specific user groups, granting them exemption from certain restrictions and ensuring uninterrupted service even durin attacks.
+  * **Customizable Policies** ⚙️ Modify SmartShield's default policies to suit your specific needs, such as request limits, time budgets, and more.
+
+# Why use Cosmos?
 
 If you have your own self-hosted data, such as a Plex server, or may be your own photo server, **you expose your data to being hacked, or your server to being highjacked** (even on your **local network**!).
 
@@ -67,6 +81,10 @@ If you have any further questions, feel free to join our [Discord](https://disco
 Disclaimer: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
 ```
 
+# Let's Encrypt
+
+Cosmos Server can automatically generate and renews HTTPS certificates for your applications using Let's Encrypt. It is compatible with wildcard certificates, using the DNS challenge. In order to do it, you need to add `DNSChallengeProvider` to the `HTTPConfig` in your config (or in the UI). And then add the proper API token via environment variables. To know what providers are supported and what environment variable they need, please refer to [this page](https://go-acme.github.io/lego/dns/#dns-providers).
+
 # As A Developer
 
 **If you're a self-hosted application developer**, integrate your application with Cosmos and enjoy **secure authentication**, **robust HTTP layer protection**, **HTTPS support**, **user management**, **encryption**, **logging**, **backup**, and more - all with **minimal effort**. And if your users prefer **not to install** Cosmos, your application will **still work seamlessly**.
@@ -87,7 +105,9 @@ make sure you expose the right ports (by default 80 / 443). It is best to keep t
 
 You also need to keep the docker socket mounted, as Cosmos needs to be able to manage your containers.
 
-you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry)
+you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry).
+
+Finally, if you are using Cosmos from one of the countries considered "high risk," you can prevent Cosmos from blocking your IP by adding the following environment variable to your Docker run command: `-e COSMOS_SERVER_COUNTRY=IN`. Replace "IN" with your country code. The following countries are blocked by default: China (CN), Russia (RU), Turkey (TR), Brazil (BR), Bangladesh (BD), India (IN), Nepal (NP), Pakistan (PK), Sri Lanka (LK), Vietnam (VN), Indonesia (ID), Iran (IR), Iraq (IQ), Egypt (EG), Afghanistan (AF), and Romania (RO). Please note that this choice is neither political nor personal; it is solely based on past attack statistics. If you are from one of these countries and want to use Cosmos, we sincerely apologize for the inconvenience. If you are having issues with this, please contact us on Discord!
 
 You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
 

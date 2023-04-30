@@ -7,6 +7,8 @@ import MinimalLayout from '../layout/MinimalLayout';
 import Logout from '../pages/authentication/Logoff';
 import NewInstall from '../pages/newInstall/newInstall';
 
+import {NewMFA, MFALogin} from '../pages/authentication/newMFA';
+
 // render - login
 const AuthLogin = Loadable(lazy(() => import('../pages/authentication/Login')));
 const AuthRegister = Loadable(lazy(() => import('../pages/authentication/Register')));
@@ -31,8 +33,15 @@ const LoginRoutes = {
         },
         {
             path: '/ui/newInstall',
-            // redirect to /ui
             element: <NewInstall />
+        },
+        {
+            path: '/ui/newmfa',
+            element: <NewMFA />
+        },
+        {
+            path: '/ui/loginmfa',
+            element: <MFALogin />
         },
     ]
 };

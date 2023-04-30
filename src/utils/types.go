@@ -68,6 +68,9 @@ type User struct {
 	LastPasswordChangedAt time.Time   `json:"lastPasswordChangedAt"`
 	CreatedAt time.Time   `json:"createdAt"`
 	LastLogin time.Time   `json:"lastLogin"`
+	MFAKey string `json:"-"`
+	Was2FAVerified bool `json:"-"`
+	MFAState int `json:"-"` // 0 = done, 1 = needed, 2 = not set
 }
 
 type Config struct {
@@ -77,15 +80,20 @@ type Config struct {
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
 	DockerConfig DockerConfig
+	BlockedCountries []string
+	ServerCountry string
+	RequireMFA bool
 }
 
 type HTTPConfig struct {
 	TLSCert string `validate:"omitempty,contains=\n`
 	TLSKey string
+	TLSKeyHostsCached []string
 	AuthPrivateKey string
 	AuthPublicKey string
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
+	DNSChallengeProvider string
 	HTTPPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	HTTPSPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	ProxyConfig ProxyConfig
@@ -104,6 +112,9 @@ type SmartShieldPolicy struct {
 	PerUserTimeBudget float64
 	PerUserRequestLimit int
 	PerUserByteLimit int64
+	PerUserSimultaneous int
+	MaxGlobalSimultaneous int
+	PrivilegedGroups int
 }
 
 type DockerConfig struct {
@@ -130,4 +141,6 @@ type ProxyRouteConfig struct {
 	Target  string `validate:"required"`
 	SmartShield SmartShieldPolicy
 	Mode ProxyMode
+	BlockCommonBots bool
+	BlockAPIAbuse bool
 }

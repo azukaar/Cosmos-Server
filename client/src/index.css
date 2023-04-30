@@ -55,3 +55,10 @@
 .code {
   background-color: rgba(0.2,0.2,0.2,0.2);
 }
+
+@media (prefers-color-scheme: dark) {
+  .MuiPopper-root > * {
+    color:white;
+    background-color: rgba(0,0,0,0.8);
+  }
+}

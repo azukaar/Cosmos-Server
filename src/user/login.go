@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 	"time"
+	
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
@@ -69,7 +70,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			SendUserToken(w, user)
+			SendUserToken(w, user, false)
 
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",

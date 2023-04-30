@@ -2,7 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"errors"
 	"math/rand"
 	"regexp"
 	"net/http"
@@ -22,6 +21,42 @@ var NeedsRestart = false
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
+	// By default we block all countries that have a high amount of attacks
+	// Note that Cosmos wont block the country of origin of the server even if it is in this list
+	BlockedCountries: []string{
+		// china
+		"CN",
+		// Russia
+		"RU",
+		// turkey
+		"TR",
+		// Brazil
+		"BR",
+		// Bangladesh
+		"BD",
+		// India
+		"IN",
+		// Nepal
+		"NP",
+		// Pakistan
+		"PK",
+		// Sri Lanka
+		"LK",
+		// Vietnam
+		"VN",
+		// Indonesia
+		"ID",
+		// Iran
+		"IR",
+		// Iraq
+		"IQ",
+		// Egypt
+		"EG",
+		// Afghanistan
+		"AF",
+		// Romania
+		"RO",
+	},
 	HTTPConfig: HTTPConfig{
 		HTTPSCertificateMode:    "DISABLED",
 		GenerateMissingAuthCert: true,
@@ -162,6 +197,9 @@ func LoadBaseMainConfig(config Config){
 	if os.Getenv("COSMOS_MONGODB") != "" {
 		MainConfig.MongoDB = os.Getenv("COSMOS_MONGODB")
 	}
+	if os.Getenv("COSMOS_SERVER_COUNTRY") != "" {
+		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
+	}
 }
 
 func GetMainConfig() Config {
@@ -240,77 +278,6 @@ func RestartServer() {
 	os.Exit(0)
 }
 
-func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-
-	if !isUserLoggedIn || userNickname == "" {
-		Error("LoggedInOnlyWithRedirect: User is not logged in", nil)
-		http.Redirect(w, req, "/ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
-	}
-
-	return nil
-}
-
-func LoggedInOnly(w http.ResponseWriter, req *http.Request) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-
-	if !isUserLoggedIn || userNickname == "" {
-		Error("LoggedInOnly: User is not logged in", nil)
-		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
-		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-
-	return nil
-}
-
-func AdminOnly(w http.ResponseWriter, req *http.Request) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-	isUserAdmin := role > 1
-
-	if !isUserLoggedIn || userNickname == "" {
-		Error("AdminOnly: User is not logged in", nil)
-		//http.Redirect(w, req, "/login?notlogged=1&redirect=" + req.URL.Path, http.StatusFound)
-		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-
-	if isUserLoggedIn && !isUserAdmin {
-		Error("AdminOnly: User is not admin", nil)
-		HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
-		return errors.New("User not Admin")
-	}
-
-	return nil
-}
-
-func AdminOrItselfOnly(w http.ResponseWriter, req *http.Request, nickname string) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	isUserLoggedIn := role > 0
-	isUserAdmin := role > 1
-
-	if !isUserLoggedIn || userNickname == "" {
-		Error("AdminOrItselfOnly: User is not logged in", nil)
-		HTTPError(w, "User not logged in", http.StatusUnauthorized, "HTTP004")
-		return errors.New("User not logged in")
-	}
-
-	if nickname != userNickname && !isUserAdmin {
-		Error("AdminOrItselfOnly: User is not admin", nil)
-		HTTPError(w, "User unauthorized", http.StatusUnauthorized, "HTTP005")
-		return errors.New("User not Admin")
-	}
-
-	return nil
-}
-
 func GetAllHostnames() []string {
 	hostnames := []string{
 		GetMainConfig().HTTPConfig.Hostname,
@@ -342,4 +309,33 @@ func GetAvailableRAM() uint64 {
 
 	// Use total available memory as an approximation
 	return vmStat.Available
+}
+
+func StringArrayEquals(a []string, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for _, value := range a {
+		if !StringArrayContains(b, value) {
+			return false
+		}
+	}
+
+	for _, value := range b {
+		if !StringArrayContains(a, value) {
+			return false
+		}
+	}
+
+	return true
+}
+
+func StringArrayContains(a []string, b string) bool {
+	for _, value := range a {
+		if value == b {
+			return true
+		}
+	}
+	return false
 }

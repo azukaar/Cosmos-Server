@@ -138,7 +138,7 @@ const UserManagement = () => {
                     }).then(() => {
                         setOpenCreateForm(false);
                         refresh();
-                        sendlink(document.getElementById('c-nickname').value, 'create');
+                        sendlink(document.getElementById('c-nickname').value, 2);
                     });
                 }}>Create</Button>
             </DialogActions>
@@ -232,7 +232,14 @@ const UserManagement = () => {
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
-                        }>Delete</Button></>
+                        }>Delete</Button>
+                        &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
+                            () => {
+                                API.users.reset2FA(r.nickname).then(() => {
+                                    refresh();
+                                });
+                            }
+                        }>Reset 2FA</Button></>
                     }
                 },
             ]}

@@ -10,16 +10,18 @@ import (
 	"encoding/json"
 )
 
-func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, error) {
-	// if(utils.DB != nil) {	
-	// 	return utils.User{
-	// 		Nickname: "noname",
-	// 		Role: utils.ADMIN,
-	// 	}, nil
-	// }
+func quickLoggout(w http.ResponseWriter, req *http.Request, err error) (utils.User, error) {
+	utils.Error("UserToken: Token likely falsified", err)
+	logOutUser(w)
+	redirectToReLogin(w, req)
+	return utils.User{}, errors.New("Token likely falsified")
+}
 
+func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, error) {
+	config := utils.GetMainConfig()
+	
 	// if new install
-	if utils.GetMainConfig().NewInstall {
+	if config.NewInstall {
 		// check route
 		if req.URL.Path != "/cosmos/api/status" && req.URL.Path != "/cosmos/api/newInstall" {
 			json.NewEncoder(w).Encode(map[string]interface{}{
@@ -56,10 +58,9 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 	errT := jwt.SigningMethodEdDSA.Verify(strings.Join(parts[0:2], "."), parts[2], ed25519Key)
 
 	if errT != nil {
-		utils.Error("UserToken: Token likely falsified", errT)
-		logOutUser(w)
-		redirectToReLogin(w, req)
-		return utils.User{}, errors.New("Token likely falsified")
+		if _, e := quickLoggout(w, req, errT); e != nil {
+			return utils.User{}, errT
+		}
 	}
 
 	type claimsType struct {
@@ -79,8 +80,32 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		return utils.User{}, errors.New("Token not valid")
 	}
 
-	nickname := claims["nickname"].(string)
-	passwordCycle := int(claims["passwordCycle"].(float64))
+	var (
+		nickname      string
+		passwordCycle int
+		mfaDone       bool
+		ok            bool
+	)
+
+	if nickname, ok = claims["nickname"].(string); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	if passwordCycleFloat, ok := claims["passwordCycle"].(float64); ok {
+		passwordCycle = int(passwordCycleFloat)
+	} else {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	if mfaDone, ok = claims["mfaDone"].(bool); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
 
 	userInBase := utils.User{}
 
@@ -107,6 +132,23 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		logOutUser(w)
 		redirectToReLogin(w, req)
 		return utils.User{}, errors.New("Password cycle changed, token is too old")
+	}
+
+	requestURL := req.URL.Path
+	isSettingMFA := strings.HasPrefix(requestURL, "/ui/loginmfa") || strings.HasPrefix(requestURL, "/ui/newmfa") || strings.HasPrefix(requestURL, "/api/mfa")
+
+	userInBase.MFAState = 0
+
+	if !isSettingMFA && (userInBase.MFAKey != "" && userInBase.Was2FAVerified && !mfaDone) {
+		utils.Warn("UserToken: MFA required")
+		userInBase.MFAState = 1
+	} else if !isSettingMFA && (config.RequireMFA && !mfaDone) {
+		utils.Warn("UserToken: MFA not set")
+		userInBase.MFAState = 2
+	}
+
+	if time.Now().Unix() - int64(claims["iat"].(float64)) > 3600 {
+		SendUserToken(w, userInBase, mfaDone)
 	}
 
 	return userInBase, nil
@@ -140,7 +182,15 @@ func redirectToReLogin(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/ui/login?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
-func SendUserToken(w http.ResponseWriter, user utils.User) {
+func redirectToLoginMFA(w http.ResponseWriter, req *http.Request) {
+	http.Redirect(w, req, "/ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+}
+
+func redirectToNewMFA(w http.ResponseWriter, req *http.Request) {
+	http.Redirect(w, req, "/ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+}
+
+func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
 	expiration := time.Now().Add(3 * 24 * time.Hour)
 
 	token := jwt.New(jwt.SigningMethodEdDSA)
@@ -151,6 +201,7 @@ func SendUserToken(w http.ResponseWriter, user utils.User) {
 	claims["passwordCycle"] = user.PasswordCycle
 	claims["iat"] = time.Now().Unix()
 	claims["nbf"] = time.Now().Unix()
+	claims["mfaDone"] = mfaDone
 
 	key, err5 := jwt.ParseEdPrivateKeyFromPEM([]byte(utils.GetPrivateAuthKey()))
 	

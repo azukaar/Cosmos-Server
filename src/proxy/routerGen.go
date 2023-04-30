@@ -15,8 +15,9 @@ import (
 func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r.Header.Set("x-cosmos-user", "")
-			r.Header.Set("x-cosmos-role", "")
+			r.Header.Del("x-cosmos-user")
+			r.Header.Del("x-cosmos-role")
+			r.Header.Del("x-cosmos-mfa")
 
 			u, err := user.RefreshUserToken(w, r)
 
@@ -26,6 +27,7 @@ func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
 
 			r.Header.Set("x-cosmos-user", u.Nickname)
 			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
+			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
 
 			ogcookies := r.Header.Get("Cookie")
 			cookieRemoveRegex := regexp.MustCompile(`jwttoken=[^;]*;`)
@@ -106,7 +108,17 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		destination = utils.BandwithLimiterMiddleware(route.MaxBandwith)(destination)
 	}
 
-	origin.Handler(tokenMiddleware(route.AuthEnabled)(utils.CORSHeader(originCORS)((destination))))
+	if route.BlockCommonBots {
+		destination = BotDetectionMiddleware(destination)
+	}
+
+	if route.BlockAPIAbuse {
+		destination = utils.BlockPostWithoutReferer(destination)
+	}
+
+	destination = tokenMiddleware(route.AuthEnabled)(utils.CORSHeader(originCORS)((destination)))
+
+	origin.Handler(destination)
 
 	utils.Log("Added route: [" + (string)(route.Mode) + "] " + route.Host + route.PathPrefix + " to " + route.Target + "")
 

@@ -67,6 +67,39 @@ function deleteUser(nickname) {
   }))
 }
 
+function new2FA(nickname) {
+  return wrap(fetch('/cosmos/api/mfa', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
+function check2FA(values) {
+  return wrap(fetch('/cosmos/api/mfa', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      token: values
+    }),
+  }))
+}
+
+function reset2FA(values) {
+  return wrap(fetch('/cosmos/api/mfa', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      nickname: values
+    }),
+  }))
+}
+
 export {
   list,
   create,
@@ -75,4 +108,7 @@ export {
   edit,
   get,
   deleteUser,
+  new2FA,
+  check2FA,
+  reset2FA
 };

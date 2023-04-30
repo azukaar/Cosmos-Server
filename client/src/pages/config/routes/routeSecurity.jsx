@@ -5,12 +5,13 @@ import { Formik } from 'formik';
 import {
   Alert,
   Button,
+  Divider,
   Grid,
   Stack,
 
 } from '@mui/material';
 import RestartModal from '../users/restart';
-import { CosmosCheckbox, CosmosInputText } from '../users/formShortcuts';
+import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { snackit } from '../../../api/wrap';
 
 const RouteSecurity = ({ routeConfig }) => {
@@ -27,7 +28,16 @@ const RouteSecurity = ({ routeConfig }) => {
           ThrottlePerMinute: routeConfig.ThrottlePerMinute,
           CORSOrigin: routeConfig.CORSOrigin,
           MaxBandwith: routeConfig.MaxBandwith,
+          BlockAPIAbuse: routeConfig.BlockAPIAbuse,
+          BlockCommonBots: routeConfig.BlockCommonBots,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
+          _SmartShield_PolicyStrictness: (routeConfig.SmartShield ? routeConfig.SmartShield.PolicyStrictness : 0),
+          _SmartShield_PerUserTimeBudget: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserTimeBudget : 0),
+          _SmartShield_PerUserRequestLimit: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserRequestLimit : 0),
+          _SmartShield_PerUserByteLimit: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserByteLimit : 0),
+          _SmartShield_PerUserSimultaneous: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserSimultaneous : 0),
+          _SmartShield_MaxGlobalSimultaneous: (routeConfig.SmartShield ? routeConfig.SmartShield.MaxGlobalSimultaneous : 0),
+          _SmartShield_PrivilegedGroups: (routeConfig.SmartShield ? routeConfig.SmartShield.PrivilegedGroups : []),
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           const fullValues = {
@@ -38,8 +48,23 @@ const RouteSecurity = ({ routeConfig }) => {
           if(!fullValues.SmartShield) {
             fullValues.SmartShield = {};
           }
+
           fullValues.SmartShield.Enabled = values._SmartShield_Enabled;
           delete fullValues._SmartShield_Enabled;
+          fullValues.SmartShield.PolicyStrictness = values._SmartShield_PolicyStrictness;
+          delete fullValues._SmartShield_PolicyStrictness;
+          fullValues.SmartShield.PerUserTimeBudget = values._SmartShield_PerUserTimeBudget;
+          delete fullValues._SmartShield_PerUserTimeBudget;
+          fullValues.SmartShield.PerUserRequestLimit = values._SmartShield_PerUserRequestLimit;
+          delete fullValues._SmartShield_PerUserRequestLimit;
+          fullValues.SmartShield.PerUserByteLimit = values._SmartShield_PerUserByteLimit;
+          delete fullValues._SmartShield_PerUserByteLimit;
+          fullValues.SmartShield.PerUserSimultaneous = values._SmartShield_PerUserSimultaneous;
+          delete fullValues._SmartShield_PerUserSimultaneous;
+          fullValues.SmartShield.MaxGlobalSimultaneous = values._SmartShield_MaxGlobalSimultaneous;
+          delete fullValues._SmartShield_MaxGlobalSimultaneous;
+          fullValues.SmartShield.PrivilegedGroups = values._SmartShield_PrivilegedGroups;
+          delete fullValues._SmartShield_PrivilegedGroups;
 
           API.config.replaceRoute(routeConfig.Name, fullValues).then((res) => {
             if (res.status == "OK") {
@@ -64,17 +89,87 @@ const RouteSecurity = ({ routeConfig }) => {
                       <Alert color='info'>Additional security settings. MFA and Captcha are not yet implemented.</Alert>
                     </Grid>
 
+                    <CosmosFormDivider title={'Authentication'} />
+
                     <CosmosCheckbox
                       name="AuthEnabled"
                       label="Authentication Required"
                       formik={formik}
                     />
 
+                    <CosmosFormDivider title={'Smart Shield'} />
+
                     <CosmosCheckbox
                       name="_SmartShield_Enabled"
                       label="Smart Shield Protection"
                       formik={formik}
                     />
+
+                    <CosmosSelect
+                      name="_SmartShield_PolicyStrictness"
+                      label="Policy Strictness"
+                      placeholder="Policy Strictness"
+                      options={[
+                        [0, 'Default'],
+                        [1, 'Strict'],
+                        [2, 'Normal'],
+                        [3, 'Lenient'],
+                      ]}
+                      formik={formik}
+                    />
+
+                    <CosmosInputText
+                      name="_SmartShield_PerUserTimeBudget"
+                      label="Per User Time Budget in milliseconds (0 for default)"
+                      placeholder="Per User Time Budget"
+                      type="number"
+                      formik={formik}
+                    />
+
+                    <CosmosInputText
+                      name="_SmartShield_PerUserRequestLimit"
+                      label="Per User Request Limit (0 for default)"
+                      placeholder="Per User Request Limit"
+                      type="number"
+                      formik={formik}
+                    />
+
+                    <CosmosInputText
+                      name="_SmartShield_PerUserByteLimit"
+                      label="Per User Byte Limit (0 for default)"
+                      placeholder="Per User Byte Limit"
+                      type="number"
+                      formik={formik}
+                    />
+
+                    <CosmosInputText
+                      name="_SmartShield_PerUserSimultaneous"
+                      label="Per User Simultaneous Connections Limit (0 for default)"
+                      placeholder="Per User Simultaneous Connections Limit"
+                      type="number"
+                      formik={formik}
+                    />
+
+                    <CosmosInputText
+                      name="_SmartShield_MaxGlobalSimultaneous"
+                      label="Max Global Simultaneous Connections Limit (0 for default)"
+                      placeholder="Max Global Simultaneous Connections Limit"
+                      type="number"
+                      formik={formik}
+                    />
+
+                    <CosmosSelect
+                      name="_SmartShield_PrivilegedGroups"
+                      label="Privileged Groups (comma separated)"
+                      placeholder="Privileged Groups"
+                      options={[
+                        [0, 'Default'],
+                        [1, 'Users'],
+                        [2, 'Admin'],
+                      ]}
+                      formik={formik}
+                    />
+                    <CosmosFormDivider title={'Limits'} />
 
                     <CosmosInputText
                       name="Timeout"
@@ -104,6 +199,18 @@ const RouteSecurity = ({ routeConfig }) => {
                       name="CORSOrigin"
                       label="Custom CORS Origin (Recommended to leave blank)"
                       placeholder="CORS Origin"
+                      formik={formik}
+                    />
+
+                    <CosmosCheckbox
+                      name="BlockCommonBots"
+                      label="Block Common Bots (Recommended)"
+                      formik={formik}
+                    />
+
+                    <CosmosCheckbox
+                      name="BlockAPIAbuse"
+                      label="Block requests without Referer header"
                       formik={formik}
                     />
                 </Grid>

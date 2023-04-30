@@ -30,3 +30,17 @@ func UsersRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+func API2FA(w http.ResponseWriter, req *http.Request) {
+	if(req.Method == "POST") {
+		Check2FA(w, req)
+	} else if (req.Method == "GET") {
+		New2FA(w, req)
+	} else if (req.Method == "DELETE") {
+		Delete2FA(w, req)
+	} else {
+		utils.Error("API2FARoute: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}

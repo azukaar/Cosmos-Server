@@ -36,6 +36,6 @@ export default function ComponentsOverrides(theme) {
         Tab(theme),
         TableCell(theme),
         Tabs(),
-        Typography()
+        Typography(),
     );
 }

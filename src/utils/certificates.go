@@ -12,7 +12,7 @@ import (
 	"encoding/asn1"
 )
 
-func GenerateRSAWebCertificates() (string, string) {
+func GenerateRSAWebCertificates(domains []string) (string, string) {
 	// generate self signed certificate
 
 	Log("Generating RSA Web Certificates for " + GetMainConfig().HTTPConfig.Hostname)
@@ -57,7 +57,7 @@ func GenerateRSAWebCertificates() (string, string) {
 
 		PermittedDNSDomainsCritical: false,
 
-		PermittedDNSDomains: []string{GetMainConfig().HTTPConfig.Hostname},
+		PermittedDNSDomains: domains,
 
 		// PermittedIPRanges: ,
 

@@ -157,6 +157,7 @@ const ServeApps = () => {
                             AuthEnabled: false,
                             Timeout: 14400000,
                             ThrottlePerMinute: 10000,
+                            BlockCommonBots: true,
                             SmartShield: {
                               Enabled: true,
                             }

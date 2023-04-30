@@ -45,6 +45,12 @@ jobs:
           command: npm install
           
       - run:
+          name: Download GeoLite2-Country database
+          command: |
+            curl -s -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=$MAX_TOKEN&suffix=tar.gz" -o GeoLite2-Country.tar.gz
+            tar -xzf GeoLite2-Country.tar.gz --strip-components 1 --wildcards "*.mmdb"
+
+      - run:
           name: Build UI
           command: npm run client-build
 

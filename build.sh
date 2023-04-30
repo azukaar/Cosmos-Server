@@ -4,6 +4,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 cp -r static build/
+cp -r GeoLite2-Country.mmdb build/
 mkdir build/images
 cp client/src/assets/images/icons/cosmos_gray.png build/cosmos_gray.png
 cp client/src/assets/images/icons/cosmos_gray.png cosmos_gray.png

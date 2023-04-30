@@ -44,6 +44,11 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	cfg.SSLEmail = config.HTTPConfig.SSLEmail
 	cfg.HTTPAddress = serverHostname+":"+serverPortHTTP
 	cfg.TLSAddress = serverHostname+":"+serverPortHTTPS
+	
+	if config.HTTPConfig.DNSChallengeProvider != "" {
+		cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
+	}
+
 	cfg.FailedToRenewCertificate = func(err error) {
 		utils.Error("Failed to renew certificate", err)
 	}
@@ -119,8 +124,9 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 func tokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//Header.Del
-		r.Header.Set("x-cosmos-user", "")
-		r.Header.Set("x-cosmos-role", "")
+		r.Header.Del("x-cosmos-user")
+		r.Header.Del("x-cosmos-role")
+		r.Header.Del("x-cosmos-mfa")
 
 		u, err := user.RefreshUserToken(w, r)
 
@@ -130,6 +136,7 @@ func tokenMiddleware(next http.Handler) http.Handler {
 
 		r.Header.Set("x-cosmos-user", u.Nickname)
 		r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
+		r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
 
 		next.ServeHTTP(w, r)
 	})
@@ -137,19 +144,27 @@ func tokenMiddleware(next http.Handler) http.Handler {
 
 func StartServer() {
 	baseMainConfig := utils.GetBaseMainConfig()
-	config := utils.GetMainConfig().HTTPConfig
-	serverPortHTTP = config.HTTPPort
-	serverPortHTTPS = config.HTTPSPort
+	config := utils.GetMainConfig()
+	HTTPConfig := config.HTTPConfig
+	serverPortHTTP = HTTPConfig.HTTPPort
+	serverPortHTTPS = HTTPConfig.HTTPSPort
 
-	var tlsCert = config.TLSCert
-	var tlsKey= config.TLSKey
+	var tlsCert = HTTPConfig.TLSCert
+	var tlsKey= HTTPConfig.TLSKey
 
-	if((tlsCert == "" || tlsKey == "") && config.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
+	domains := utils.GetAllHostnames()
+	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
+
+	NeedsRefresh := (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains)
+
+	if(NeedsRefresh && HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
 		utils.Log("Generating new TLS certificate")
-		pub, priv := utils.GenerateRSAWebCertificates()
+		pub, priv := utils.GenerateRSAWebCertificates(domains)
 		
 		baseMainConfig.HTTPConfig.TLSCert = pub
 		baseMainConfig.HTTPConfig.TLSKey = priv
+		baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
+
 		utils.SetBaseMainConfig(baseMainConfig)
 
 		utils.Log("Saved new TLS certificate")
@@ -158,7 +173,7 @@ func StartServer() {
 		tlsKey = priv
 	}
 
-	if ((config.AuthPublicKey == "" || config.AuthPrivateKey == "") && config.GenerateMissingAuthCert) {
+	if ((HTTPConfig.AuthPublicKey == "" || HTTPConfig.AuthPrivateKey == "") && HTTPConfig.GenerateMissingAuthCert) {
 		utils.Log("Generating new Auth ED25519 certificate")
 		pub, priv := utils.GenerateEd25519Certificates()
 		
@@ -176,6 +191,10 @@ func StartServer() {
 	// router.Use(middleware.Recoverer)
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
+
+	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
+		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries))
+	}
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
@@ -188,6 +207,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/register", user.UserRegister)
 	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
 	srapi.HandleFunc("/api/me", user.Me)
+	srapi.HandleFunc("/api/mfa", user.API2FA)
 	srapi.HandleFunc("/api/config", configapi.ConfigRoute)
 	srapi.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 
@@ -201,9 +221,15 @@ func StartServer() {
 	srapi.Use(proxy.SmartShieldMiddleware(
 		utils.SmartShieldPolicy{
 			Enabled: true,
+			PerUserSimultaneous: 3,
+			MaxGlobalSimultaneous: 12,
+			PolicyStrictness: 1,
+			PerUserRequestLimit: 5000,
 		},
 	))
 	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
+	srapi.Use(utils.BlockPostWithoutReferer)
+	srapi.Use(proxy.BotDetectionMiddleware)
 	srapi.Use(httprate.Limit(60, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
     httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
@@ -223,14 +249,14 @@ func StartServer() {
 	fs  := spa.SpaHandler(pwd + "/static", "index.html")
 	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
 
-	router = proxy.BuildFromConfig(router, config.ProxyConfig)
+	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
 	}))
 
-	if ((config.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || config.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
-			 tlsCert != "" && tlsKey != "") || (config.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+	if ((HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
+			 tlsCert != "" && tlsKey != "") || (HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
 		startHTTPSServer(router, tlsCert, tlsKey)
 	} else {

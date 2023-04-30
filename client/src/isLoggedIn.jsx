@@ -10,6 +10,10 @@ const IsLoggedIn = () => useEffect(() => {
                 window.location.href = '/ui/newInstall';
             } else if (data.status == 'error' && data.code == "HTTP004") {
                 window.location.href = '/ui/login';
+            } else if (data.status == 'error' && data.code == "HTTP006") {
+                window.location.href = '/ui/loginmfa';
+            } else if (data.status == 'error' && data.code == "HTTP007") {
+                window.location.href = '/ui/newmfa';
             }
         }
     });

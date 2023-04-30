@@ -23,6 +23,8 @@ type SmartResponseWriterWrapper struct {
 	shield smartShieldState
 	policy utils.SmartShieldPolicy
 	isOver bool
+	hasBeenInterrupted bool
+	isPrivileged bool
 }
 
 func (w *SmartResponseWriterWrapper) IsOver() bool {
@@ -49,26 +51,47 @@ func (w *SmartResponseWriterWrapper) WriteHeader(status int) {
 	if w.Status >= 400 {
 		w.RequestCost *= 30
 	}
-	w.ResponseWriter.WriteHeader(status)
+	if !w.IsOver() {
+		w.ResponseWriter.WriteHeader(status)
+	}
 }
 
 func (w *SmartResponseWriterWrapper) Write(p []byte) (int, error) {
 	userConsumed := shield.GetUserUsedBudgets(w.ClientID)
-	if !shield.isAllowedToReqest(w.policy, userConsumed) {
-		utils.Log(fmt.Sprintf("SmartShield: %s is banned", w.ClientID))
+	if !w.isPrivileged && !shield.isAllowedToReqest(w.policy, userConsumed) {
+		utils.Log(fmt.Sprintf("SmartShield: %s has been blocked due to abuse", w.ClientID))
 		w.isOver = true
 		w.TimeEnded = time.Now()
+		w.hasBeenInterrupted = true
 		w.ResponseWriter.WriteHeader(http.StatusServiceUnavailable)
 		w.ResponseWriter.(http.Flusher).Flush()
 		return 0, errors.New("Pending request cancelled due to SmartShield")
 	}
-	thro := shield.computeThrottle(w.policy, userConsumed)
+	thro := 0
 
+	if !w.isPrivileged {
+		shield.computeThrottle(w.policy, userConsumed)
+	}
+
+	// initial throttle
+	if w.ThrottleNext > 0 {
+		time.Sleep(time.Duration(w.ThrottleNext) * time.Millisecond)
+	}
 	w.ThrottleNext = 0
+
+	// ongoing throttle
 	if thro > 0 {
 		time.Sleep(time.Duration(thro) * time.Millisecond)
 	}
+	
 	n, err := w.ResponseWriter.Write(p)
+
+	if err != nil {
+		w.isOver = true
+		w.TimeEnded = time.Now()
+		w.hasBeenInterrupted = true
+	}
+
 	w.Bytes += int64(n)
 	return n, err
 }

@@ -325,8 +325,10 @@ const NewInstall = () => {
                         email: '',
                     }}
                     validationSchema={Yup.object().shape({
-                        nickname: Yup.string().required('Nickname is required').min(3).max(32),
-                        password: Yup.string().required('Password is required').min(8).max(128).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/, 'Password must contain at least 1 lowercase, 1 uppercase, 1 number, and 1 special character'),
+                        // nickname cant be admin or root
+                        nickname: Yup.string().required('Nickname is required').min(3).max(32)
+                        .matches(/^(?!admin|root).*$/, 'Nickname cannot be admin or root'),
+                        password: Yup.string().required('Password is required').min(8).max(128).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{9,})/, 'Password must contain 9 characters: at least 1 lowercase, 1 uppercase, 1 number, and 1 special character'),
                         email: Yup.string().email('Must be a valid email').max(255),
                         confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
                     })}

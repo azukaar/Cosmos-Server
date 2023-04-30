@@ -28,7 +28,7 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
-import { CosmosInputText, CosmosSelect } from './formShortcuts';
+import { CosmosCheckbox, CosmosInputText, CosmosSelect } from './formShortcuts';
 
 
 const ConfigManagement = () => {
@@ -56,6 +56,7 @@ const ConfigManagement = () => {
         initialValues={{
           MongoDB: config.MongoDB,
           LoggingLevel: config.LoggingLevel,
+          RequireMFA: config.RequireMFA,
 
           Hostname: config.HTTPConfig.Hostname,
           GenerateMissingTLSCert: config.HTTPConfig.GenerateMissingTLSCert,
@@ -64,6 +65,7 @@ const ConfigManagement = () => {
           HTTPSPort: config.HTTPConfig.HTTPSPort,
           SSLEmail: config.HTTPConfig.SSLEmail,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
+          DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
         }}
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
@@ -76,6 +78,7 @@ const ConfigManagement = () => {
               ...config,
               MongoDB: values.MongoDB,
               LoggingLevel: values.LoggingLevel,
+              RequireMFA: values.RequireMFA,
               HTTPConfig: {
                 ...config.HTTPConfig,
                 Hostname: values.Hostname,
@@ -84,6 +87,7 @@ const ConfigManagement = () => {
                 HTTPSPort: values.HTTPSPort,
                 SSLEmail: values.SSLEmail,
                 HTTPSCertificateMode: values.HTTPSCertificateMode,
+                DNSChallengeProvider: values.DNSChallengeProvider,
               }
             }
             
@@ -117,6 +121,14 @@ const ConfigManagement = () => {
                 <Grid item xs={12}>
                   <Alert severity="info">This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.</Alert>
                 </Grid>
+                
+                <CosmosCheckbox
+                  label="Force Multi-Factor Authentication"
+                  name="RequireMFA"
+                  formik={formik}
+                  helperText="Require MFA for all users"
+                />
+
                 <Grid item xs={12}>
                   <Stack spacing={1}>
                     <InputLabel htmlFor="MongoDB-login">MongoDB connection string. It is advised to use Environment variable to store this securely instead. (Optional)</InputLabel>
@@ -266,11 +278,21 @@ const ConfigManagement = () => {
                   ]}
                 />
 
-                {
+{
                   formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                     <CosmosInputText
                       name="SSLEmail"
                       label="Email address for Let's Encrypt"
+                      formik={formik}
+                    />
+                  )
+                }
+                
+                {
+                  formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                    <CosmosInputText
+                      name="DNSChallengeProvider"
+                      label="DNS provider (if you are using a DNS Challenge)"
                       formik={formik}
                     />
                   )

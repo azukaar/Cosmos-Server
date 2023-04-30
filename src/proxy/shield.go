@@ -38,9 +38,28 @@ type userUsedBudget struct {
 	Time float64
 	Requests int
 	Bytes int64
+	Simultaneous int
 }
 
 var shield smartShieldState
+
+func (shield *smartShieldState) GetServerNbReq() int {
+	shield.Lock()
+	defer shield.Unlock()
+	nbRequests := 0
+
+	for i := len(shield.requests) - 1; i >= 0; i-- {
+		request := shield.requests[i]
+		if(request.IsOld()) {
+			return nbRequests
+		}
+		if(!request.IsOver()) {
+			nbRequests++
+		}
+	}
+
+	return nbRequests
+}
 
 func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudget {
 	shield.Lock()
@@ -51,6 +70,7 @@ func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudg
 		Time: 0,
 		Requests: 0,
 		Bytes: 0,
+		Simultaneous: 0,
 	}
 
 	// Check for recent requests
@@ -64,6 +84,7 @@ func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudg
 				userConsumed.Time += request.TimeEnded.Sub(request.TimeStarted).Seconds()
 			} else {
 				userConsumed.Time += time.Now().Sub(request.TimeStarted).Seconds()
+				userConsumed.Simultaneous++
 			}
 			userConsumed.Requests += request.RequestCost
 			userConsumed.Bytes += request.Bytes
@@ -125,7 +146,8 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 	// Check for new strikes
 	if (userConsumed.Time > (policy.PerUserTimeBudget * float64(policy.PolicyStrictness))) || 
 		 (userConsumed.Requests > (policy.PerUserRequestLimit * policy.PolicyStrictness)) ||
-		 (userConsumed.Bytes > (policy.PerUserByteLimit * int64(policy.PolicyStrictness))) {
+		 (userConsumed.Bytes > (policy.PerUserByteLimit * int64(policy.PolicyStrictness))) ||
+		 (userConsumed.Simultaneous > (policy.PerUserSimultaneous * policy.PolicyStrictness)) {
 		shield.bans = append(shield.bans, &userBan{
 			ClientID: ClientID,
 			banType: STRIKE,
@@ -155,7 +177,16 @@ func (shield *smartShieldState) computeThrottle(policy utils.SmartShieldPolicy, 
 	overByte := policy.PerUserByteLimit - userConsumed.Bytes
 	overByteRatio := float64(overByte) / float64(policy.PerUserByteLimit)
 	if overByte < 0 {
-		newThrottle := int(float64(150) * -overByteRatio)
+		newThrottle := int(float64(40) * -overByteRatio)
+		if newThrottle > throttle {
+			throttle = newThrottle
+		}
+	}
+
+	overSim := policy.PerUserSimultaneous - userConsumed.Simultaneous
+	overSimRatio := float64(overSim) / float64(policy.PerUserSimultaneous)
+	if overSim < 0 {
+		newThrottle := int(float64(20) * -overSimRatio)
 		if newThrottle > throttle {
 			throttle = newThrottle
 		}
@@ -185,6 +216,11 @@ func GetClientID(r *http.Request) string {
 	return ip
 }
 
+func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	return role >= policy.PrivilegedGroups
+}
+
 func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) http.Handler {
 	if policy.Enabled == false {
 		return func(next http.Handler) http.Handler {
@@ -198,25 +234,46 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			policy.PerUserRequestLimit = 6000 // 100 requests per minute
 		}
 		if(policy.PerUserByteLimit == 0) {
-			policy.PerUserByteLimit = 3 * 60 * 1024 * 1024 * 1024 // 180GB
+			policy.PerUserByteLimit = 150 * 1024 * 1024 * 1024 // 150GB
 		}
 		if(policy.PolicyStrictness == 0) {
 			policy.PolicyStrictness = 2 // NORMAL
 		}
+		if(policy.PerUserSimultaneous == 0) {
+			policy.PerUserSimultaneous = 2
+		}
+		if(policy.MaxGlobalSimultaneous == 0) {
+			policy.MaxGlobalSimultaneous = 50
+		}
+		if(policy.PrivilegedGroups == 0) {
+			policy.PrivilegedGroups = utils.ADMIN
+		}
 	}
+
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			utils.Log("SmartShield: Request received")
+			currentGlobalRequests := shield.GetServerNbReq() + 1
+			utils.Debug(fmt.Sprintf("SmartShield: Current global requests: %d", currentGlobalRequests))
+
+			if currentGlobalRequests > policy.MaxGlobalSimultaneous && !isPrivileged(r, policy) {
+				utils.Log("SmartShield: Too many users on the server")
+				http.Error(w, "Too many requests", http.StatusTooManyRequests)
+				return
+			}
+
 			clientID := GetClientID(r)
 			userConsumed := shield.GetUserUsedBudgets(clientID)
 
-			if !shield.isAllowedToReqest(policy, userConsumed) {
-				utils.Log("SmartShield: User is banned")
+			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(policy, userConsumed) {
+				utils.Log("SmartShield: User is blocked due to abuse")
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return
 			} else {
-				utils.Debug("SmartShield: Creating request")
-				throttle := shield.computeThrottle(policy, userConsumed)
+				throttle := 0
+				if(!isPrivileged(r, policy)) {
+					throttle = shield.computeThrottle(policy, userConsumed)
+				}
 				wrapper := &SmartResponseWriterWrapper {
 					ResponseWriter: w,
 					ThrottleNext:   throttle,
@@ -226,6 +283,7 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 					Method: 				r.Method,
 					shield: shield,
 					policy: policy,
+					isPrivileged: isPrivileged(r, policy),
 				}
 
 				// add rate limite headers
@@ -234,19 +292,26 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 				w.Header().Set("X-RateLimit-Limit", strconv.FormatInt(int64(policy.PerUserRequestLimit), 10))
 				w.Header().Set("X-RateLimit-Reset", In20Minutes)
 
-				utils.Debug("SmartShield: Adding request")
 				shield.Lock()
 				shield.requests = append(shield.requests, wrapper)
 				shield.Unlock()
 				
-				utils.Debug("SmartShield: Processing request")
-				next.ServeHTTP(wrapper, r)
+				ctx := r.Context()
+				done := make(chan struct{})
 
-				shield.Lock()
-				wrapper.TimeEnded = time.Now()
-				wrapper.isOver = true
-				shield.Unlock()
-				utils.Debug("SmartShield: Request finished")
+				go (func() {
+					select {
+					case <-ctx.Done():
+					case <-done:
+					}	
+					shield.Lock()
+					wrapper.TimeEnded = time.Now()
+					wrapper.isOver = true
+					shield.Unlock()
+				})()
+
+				next.ServeHTTP(wrapper, r)
+				close(done)
 			}
 		})
 	}

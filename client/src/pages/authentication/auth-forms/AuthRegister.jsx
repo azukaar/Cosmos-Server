@@ -72,8 +72,8 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                         .max(255)
                         .required('Password is required')
                         .matches(
-                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{8,})/,
-                            'Must Contain 8 Characters, One Uppercase, One Lowercase, One Number and one special case Character'
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{9,})/,
+                            'Must Contain 9 Characters, One Uppercase, One Lowercase, One Number and one special case Character'
                         ),
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
