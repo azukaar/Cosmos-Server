@@ -132,6 +132,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 			banType: PERM,
 			time: time.Now(),
 		})
+		Utils.Warn("User " + ClientID + " has been banned permanently: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
 	} else if nbStrikes >= 3 {
 		// temp ban
@@ -140,6 +141,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 			banType: TEMP,
 			time: time.Now(),
 		})
+		Utils.Warn("User " + ClientID + " has been banned temporarily: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
 	}
 
@@ -153,6 +155,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 			banType: STRIKE,
 			time: time.Now(),
 		})
+		Utils.Warn("User " + ClientID + " has received a strike: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
 	}
 
