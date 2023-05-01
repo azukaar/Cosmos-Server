@@ -12,7 +12,7 @@
 </p><!-- /sponsors -->
 
 ---
-
+https://github.com/azukaar/Cosmos-Server/blob/master/Logo.png?raw=true
 [![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA) ![CircleCI](https://img.shields.io/circleci/build/github/azukaar/Cosmos-Server?token=6efd010d0f82f97175f04a6acf2dae2bbcc4063c&style=flat-square)
 
 Cosmos is a self-hosted platform for running server applications securely and with built-in privacy features. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
@@ -20,13 +20,13 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 
 <p align="center" style="margin-top: 50px; margin-bottom: 50px;">
   <a href="https://cosmos-cloud.io/">
-    <img src="icons/ws.png" />
+    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/ws.png" />
   </a>
   <a href="https://cosmos-cloud.io/doc">
-    <img src="icons/doc.png" />
+    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/doc.png" />
   </a>
   <a href="https://cosmos-cloud.io/ui">
-    <img src="icons/demo.png" />
+    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/demo.png" />
   </a>
 </p>
 
