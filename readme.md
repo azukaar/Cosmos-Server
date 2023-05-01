@@ -113,10 +113,10 @@ Authentication is very hard (how do you check the password match? What encryptio
 Installation is simple using Docker:
 
 ```
-docker run -d -p 80:80 -p 443:443 --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/cosmos/config:/config azukaar/cosmos-server:latest
+docker run -d -p 80:80 -p 443:443 --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
 
-Once installed, simply go to `http://your-ip` and follow the instructions of the setup wizard.
+Once installed, simply go to `http://your-server-ip` and follow the instructions of the setup wizard.
 
 make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
 
