@@ -16,6 +16,8 @@ func main() {
 
 	LoadConfig()
 
+	checkVersion()
+
 	go CRON()
 
 	docker.Test()

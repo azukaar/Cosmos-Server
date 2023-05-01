@@ -62,7 +62,6 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
               })
               .map((row, key) => (
                 <TableRow
-                  onClick={() => onRowClick && onRowClick(row, key)}
                   key={getKey(row)}
                   sx={{
                     cursor: 'pointer',
@@ -81,6 +80,7 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
                 
                     (!column.screenMin || screenMin[column.screenMin]) && <TableCell 
                       component={(linkTo && !column.clickable) ? Link : 'td'}
+                      onClick={() => !column.clickable && onRowClick && onRowClick(row, key)}
                       to={linkTo && linkTo(row, key)}
                       className={column.underline ? 'emphasis' : ''}
                       sx={{

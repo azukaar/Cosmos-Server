@@ -33,7 +33,7 @@ const addProtocol = (url) => {
 }
 
 export const getOrigin = (route) => {
-  return (route.UseHost ? route.Host : '') + (route.UsePathPrefix ? route.PathPrefix : '');
+  return (route.UseHost ? route.Host : window.location.origin) + (route.UsePathPrefix ? route.PathPrefix : '');
 }
 
 export const getFullOrigin = (route) => {

@@ -63,7 +63,7 @@ const NewInstall = () => {
             label: 'Docker 🐋 (step 1/4)',
             component: <Stack item xs={12} spacing={2}>
                 <div>
-                    <QuestionCircleOutlined /> Cosmos is using docker to run applications. It is optionnal, but Cosmos will run in reverse-proxy-only mode if it cannot connect to Docker.
+                    <QuestionCircleOutlined /> Cosmos is using docker to run applications. It is optional, but Cosmos will run in reverse-proxy-only mode if it cannot connect to Docker.
                 </div>
                 {(status && status.docker) ? 
                     <Alert severity="success">
@@ -98,7 +98,7 @@ const NewInstall = () => {
             label: 'Database 🗄️ (step 2/4)',
             component:  <Stack item xs={12} spacing={2}>
                 <div>
-                <QuestionCircleOutlined /> Cosmos is using a MongoDB database to store all the data. It is optionnal, but Authentication as well as the UI will not work without a database.
+                <QuestionCircleOutlined /> Cosmos is using a MongoDB database to store all the data. It is optional, but Authentication as well as the UI will not work without a database.
                 </div>
                 {(status && status.database) ? 
                     <Alert severity="success">
@@ -412,7 +412,7 @@ const NewInstall = () => {
                 Well done! You have successfully installed Cosmos. You can now login to your server using the admin account you created.
                 If you have changed the hostname, don't forget to use that URL to access your server after the restart.
                 If you have are running into issues, check the logs for any error messages and edit the file in the /config folder. 
-                If you still don't manage, please join our <a href="https://discord.gg/PwMWwsrwHA">Discord server</a> and we'll be happy to help!
+                If you still don't manage, please join our <a target="_blank" href="https://discord.gg/PwMWwsrwHA">Discord server</a> and we'll be happy to help!
             </div>,
             nextButtonLabel: () => {
                 return 'Apply and Restart';

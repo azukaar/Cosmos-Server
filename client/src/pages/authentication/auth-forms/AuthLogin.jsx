@@ -51,6 +51,7 @@ const AuthLogin = () => {
     // TODO: Extract ?redirect=<URL> to redirect to a specific page after login
     const urlSearchParams = new URLSearchParams(window.location.search);
     const notLogged = urlSearchParams.get('notlogged') == 1;
+    const notLoggedAdmin = urlSearchParams.get('notlogged') == 2;
     const invalid = urlSearchParams.get('invalid') == 1;
     const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/ui';
 
@@ -75,6 +76,11 @@ const AuthLogin = () => {
         <>
             { notLogged &&<Grid container spacing={2} justifyContent="center">
                 <Alert severity="error">You need to be logged in to access this</Alert>
+                <br />
+            </Grid>}
+
+            { notLoggedAdmin &&<Grid container spacing={2} justifyContent="center">
+                <Alert severity="error">You need to be Admin</Alert>
                 <br />
             </Grid>}
 

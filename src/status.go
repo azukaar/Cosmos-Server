@@ -9,7 +9,7 @@ import (
 )
 
 func StatusRoute(w http.ResponseWriter, req *http.Request) {
-	if !utils.GetMainConfig().NewInstall && (utils.AdminOnly(w, req) != nil) {
+	if !utils.GetMainConfig().NewInstall && (utils.LoggedInOnly(w, req) != nil) {
 		return
 	}
 
@@ -44,6 +44,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"domain": utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0",
 				"HTTPSCertificateMode": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode,
 				"needsRestart": utils.NeedsRestart,
+				"newVersionAvailable": utils.NewVersionAvailable,
 			},
 		})
 	} else {

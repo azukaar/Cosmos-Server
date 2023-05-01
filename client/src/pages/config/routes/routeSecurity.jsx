@@ -30,6 +30,7 @@ const RouteSecurity = ({ routeConfig }) => {
           MaxBandwith: routeConfig.MaxBandwith,
           BlockAPIAbuse: routeConfig.BlockAPIAbuse,
           BlockCommonBots: routeConfig.BlockCommonBots,
+          AdminOnly: routeConfig.AdminOnly,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           _SmartShield_PolicyStrictness: (routeConfig.SmartShield ? routeConfig.SmartShield.PolicyStrictness : 0),
           _SmartShield_PerUserTimeBudget: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserTimeBudget : 0),
@@ -94,6 +95,12 @@ const RouteSecurity = ({ routeConfig }) => {
                     <CosmosCheckbox
                       name="AuthEnabled"
                       label="Authentication Required"
+                      formik={formik}
+                    />
+
+                    <CosmosCheckbox
+                      name="AdminOnly"
+                      label="Admin only"
                       formik={formik}
                     />
 

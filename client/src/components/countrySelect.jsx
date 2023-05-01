@@ -451,6 +451,12 @@ export default function CountrySelect({name, label, formik}) {
       onChange={(event, value) => {
         formik.setFieldValue(name, value)
       }}
+      filterOptions={(options, state) => {
+        const inputValue = state.inputValue.toUpperCase();
+        return options.filter((option) => {
+          return countries[option].label.toUpperCase().includes(inputValue)
+        })
+      }}
       error={Boolean(formik.touched[name] && formik.errors[name])}
       getOptionLabel={(option) => <div style={{verticalAlign: 'middle'}}><img
         loading="lazy"

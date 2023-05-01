@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
+func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.Header.Del("x-cosmos-user")
@@ -24,6 +24,7 @@ func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
 			if err != nil {
 				return
 			}
+
 
 			r.Header.Set("x-cosmos-user", u.Nickname)
 			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
@@ -37,7 +38,9 @@ func tokenMiddleware(enabled bool) func(next http.Handler) http.Handler {
 			// Replace the token with a application speicfic one
 			r.Header.Set("x-cosmos-token", "1234567890")
 
-			if enabled {
+			if enabled && adminOnly {
+				utils.AdminOnlyWithRedirect(w, r)
+			} else if enabled {
 				utils.LoggedInOnlyWithRedirect(w, r)
 			}
 
@@ -116,7 +119,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		destination = utils.BlockPostWithoutReferer(destination)
 	}
 
-	destination = tokenMiddleware(route.AuthEnabled)(utils.CORSHeader(originCORS)((destination)))
+	destination = tokenMiddleware(route.AuthEnabled, route.AdminOnly)(utils.CORSHeader(originCORS)((destination)))
 
 	origin.Handler(destination)
 

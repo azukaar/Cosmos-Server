@@ -116,6 +116,12 @@ const DashboardDefault = () => {
                     </Alert>
                 )}
 
+                {coStatus && coStatus.newVersionAvailable && (
+                    <Alert severity="warning">
+                        A new version of Cosmos is available! Please update to the latest version to get the latest features and bug fixes.
+                    </Alert>
+                )}
+
                 {coStatus && coStatus.needsRestart && (
                     <Alert severity="warning">
                         You have made changes to the configuration that require a restart to take effect. Please restart Cosmos to apply the changes.

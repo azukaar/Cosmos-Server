@@ -29,6 +29,7 @@ const UserManagement = () => {
     const [openCreateForm, setOpenCreateForm] = React.useState(false);
     const [openDeleteForm, setOpenDeleteForm] = React.useState(false);
     const [openInviteForm, setOpenInviteForm] = React.useState(false);
+    const [openEditEmail, setOpenEditEmail] = React.useState(false);
     const [toAction, setToAction] = React.useState(null);
     const [loadingRow, setLoadingRow] = React.useState(null);
 
@@ -120,6 +121,35 @@ const UserManagement = () => {
                 }}>Delete</Button>
             </DialogActions>
         </Dialog>
+        
+        <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
+            <DialogTitle>Edit Email</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Use this form to invite edit {openEditEmail}'s Email.
+                </DialogContentText>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    id="c-email-edit"
+                    label="Email Address"
+                    type="email"
+                    fullWidth
+                    variant="standard"
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => setOpenEditEmail(false)}>Cancel</Button>
+                <Button onClick={() => {
+                    API.users.edit(openEditEmail, {
+                        email: document.getElementById('c-email-edit').value,
+                    }).then(() => {
+                        setOpenEditEmail(false);
+                        refresh();
+                    });
+                }}>Edit</Button>
+            </DialogActions>
+        </Dialog>
 
         <Dialog open={openCreateForm} onClose={() => setOpenCreateForm(false)}>
             <DialogTitle>Create User</DialogTitle>
@@ -174,6 +204,9 @@ const UserManagement = () => {
 
         {!isLoading && rows && (<PrettyTableView 
             data={rows}
+            onRowClick = {(r) => {
+                setOpenEditEmail(r.nickname);
+            }}
             getKey={(r) => r.nickname}
             columns={[
                 {

@@ -19,12 +19,14 @@ import (
 var BaseMainConfig Config
 var MainConfig Config
 var IsHTTPS = false
+var NewVersionAvailable = false
 
 var NeedsRestart = false
 
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
+	AutoUpdate:	  true,
 	// By default we block all countries that have a high amount of attacks
 	// Note that Cosmos wont block the country of origin of the server even if it is in this list
 	BlockedCountries: []string{

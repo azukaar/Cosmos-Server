@@ -1,5 +1,5 @@
 // assets
-import { ProfileOutlined, SettingOutlined, NodeExpandOutlined} from '@ant-design/icons';
+import { ProfileOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -16,6 +16,13 @@ const pages = {
     type: 'group',
     children: [
         {
+            id: 'servapps',
+            title: 'ServApps',
+            type: 'item',
+            url: '/ui/servapps',
+            icon: AppstoreOutlined
+        },
+        {
             id: 'url',
             title: 'URLs',
             type: 'item',
@@ -24,7 +31,7 @@ const pages = {
         },
         {
             id: 'users',
-            title: 'Manage Users',
+            title: 'Users',
             type: 'item',
             url: '/ui/config-users',
             icon: icons.ProfileOutlined,

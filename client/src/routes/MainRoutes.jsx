@@ -10,6 +10,7 @@ import ServeApps from '../pages/servapps/servapps';
 import { Navigate } from 'react-router';
 import RouteConfigPage from '../pages/config/routeConfigPage';
 import logo from '../assets/images/icons/cosmos.png';
+import HomePage from '../pages/home';
 
 
 // render - dashboard
@@ -43,6 +44,10 @@ const MainRoutes = {
         },
         {
             path: '/ui',
+            element: <HomePage />
+        },
+        {
+            path: '/ui/dashboard',
             element: <DashboardDefault />
         },
         {

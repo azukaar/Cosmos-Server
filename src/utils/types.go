@@ -84,6 +84,7 @@ type Config struct {
 	BlockedCountries []string
 	ServerCountry string
 	RequireMFA bool
+	AutoUpdate bool
 }
 
 type HTTPConfig struct {
@@ -139,6 +140,7 @@ type ProxyRouteConfig struct {
 	StripPathPrefix bool
 	MaxBandwith int64
 	AuthEnabled bool
+	AdminOnly bool
 	Target  string `validate:"required"`
 	SmartShield SmartShieldPolicy
 	Mode ProxyMode

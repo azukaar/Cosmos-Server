@@ -59,6 +59,7 @@ const ConfigManagement = () => {
           LoggingLevel: config.LoggingLevel,
           RequireMFA: config.RequireMFA,
           GeoBlocking: config.BlockedCountries,
+          AutoUpdate: config.AutoUpdate,
 
           Hostname: config.HTTPConfig.Hostname,
           GenerateMissingTLSCert: config.HTTPConfig.GenerateMissingTLSCert,
@@ -89,6 +90,7 @@ const ConfigManagement = () => {
               MongoDB: values.MongoDB,
               LoggingLevel: values.LoggingLevel,
               RequireMFA: values.RequireMFA,
+              AutoUpdate: values.AutoUpdate,
               BlockedCountries: values.GeoBlocking,
               HTTPConfig: {
                 ...config.HTTPConfig,
@@ -149,6 +151,12 @@ const ConfigManagement = () => {
                     name="RequireMFA"
                     formik={formik}
                     helperText="Require MFA for all users"
+                  />
+                  
+                  <CosmosCheckbox
+                    label="Auto Update Cosmos"
+                    name="AutoUpdate"
+                    formik={formik}
                   />
 
                   <Grid item xs={12}>

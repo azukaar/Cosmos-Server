@@ -1,13 +1,16 @@
 ## Version 0.3.0
- - Set Max nb simulatneous connections per user 
- - Set Global Max nb simulatneous connections
- - Display nickname on invite page
- - Reset self-signed certificates when hostnames changes
- - Block based on geo-locations
- - Block common bots
- - DNS challenge for letsencrypt
  - Implement 2 FA
  - Implement SMTP to Send Email (password reset / invites)
+ - Add homepage
+ - DNS challenge for letsencrypt
+ - Set Max nb simulatneous connections per user 
+ - Admin only routes (See in security tab)
+ - Set Global Max nb simulatneous connections
+ - Block based on geo-locations
+ - Block common bots
+ - Display nickname on invite page
+ - Reset self-signed certificates when hostnames changes
+ - Edit user emails
  - Show loading on user rows on actions
 
 ## Version 0.2.0

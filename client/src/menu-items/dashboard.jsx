@@ -1,5 +1,5 @@
 // assets
-import { HomeOutlined, AppstoreOutlined } from '@ant-design/icons';
+import { HomeOutlined, AppstoreOutlined, DashboardOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -17,16 +17,17 @@ const dashboard = {
             id: 'home',
             title: 'Home',
             type: 'item',
-            url: '/ui',
+            url: '/ui/',
             icon: icons.HomeOutlined,
             breadcrumbs: false
         },
         {
-            id: 'servapps',
-            title: 'ServApps',
+            id: 'dashboard',
+            title: 'Dashboard',
             type: 'item',
-            url: '/ui/servapps',
-            icon: AppstoreOutlined
+            url: '/ui/dashboard',
+            icon: DashboardOutlined,
+            breadcrumbs: false
         },
     ]
 };
