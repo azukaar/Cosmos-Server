@@ -48,7 +48,7 @@ Key Features:
   * **Dynamic Rate Limiting** ✨ SmartShield calculates rate limits based on user behavior, providing a flexible approach to maintain API health without negatively impacting user experience.
   * **Adaptive Actions** 📈 SmartShield automatically throttles users who exceed their rate limits, preventing them from consuming more resources than they are allowed without abruptly terminating their requests.
   * **User Bans & Strikes** 🚫 Implement temporary or permanent bans and issue strikes automatically to prevent API abuse from malicious or resource-intensive users.
-  * **Global Request Control** 🌐 Monitor and limit the total number of simultaneous requests on your server, ensuring optimal performance and stability.
+  * **Global Request Control** 🌐 Monitor and limit with queues the total number of simultaneous requests on your server, ensuring optimal performance and stability.
   * **User-based Metrics** 📊 SmartShield tracks user consumption in terms of requests, data usage, and simultaneous connections, allowing for detailed control.
   * **Privileged Access** 🔑 Assign privileged access to specific user groups, granting them exemption from certain restrictions and ensuring uninterrupted service even durin attacks.
   * **Customizable Policies** ⚙️ Modify SmartShield's default policies to suit your specific needs, such as request limits, time budgets, and more.

@@ -149,7 +149,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 	if (userConsumed.Time > (policy.PerUserTimeBudget * float64(policy.PolicyStrictness))) || 
 		 (userConsumed.Requests > (policy.PerUserRequestLimit * policy.PolicyStrictness)) ||
 		 (userConsumed.Bytes > (policy.PerUserByteLimit * int64(policy.PolicyStrictness))) ||
-		 (userConsumed.Simultaneous > (policy.PerUserSimultaneous * policy.PolicyStrictness)) {
+		 (userConsumed.Simultaneous > (policy.PerUserSimultaneous * policy.PolicyStrictness * 15)) {
 		shield.bans = append(shield.bans, &userBan{
 			ClientID: ClientID,
 			banType: STRIKE,
@@ -259,10 +259,26 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			currentGlobalRequests := shield.GetServerNbReq() + 1
 			utils.Debug(fmt.Sprintf("SmartShield: Current global requests: %d", currentGlobalRequests))
 
-			if currentGlobalRequests > policy.MaxGlobalSimultaneous && !isPrivileged(r, policy) {
-				utils.Log("SmartShield: Too many users on the server")
-				http.Error(w, "Too many requests", http.StatusTooManyRequests)
-				return
+			if !isPrivileged(r, policy) {
+				tooManyReq := currentGlobalRequests > policy.MaxGlobalSimultaneous
+				wayTooManyReq := currentGlobalRequests > policy.MaxGlobalSimultaneous * 10
+				retries := 50
+				if wayTooManyReq {
+					utils.Log("SmartShield: WAYYYY Too many users on the server. Aborting right away.")
+					http.Error(w, "Too many requests", http.StatusTooManyRequests)
+					return
+				}
+				for tooManyReq {
+					time.Sleep(5000 * time.Millisecond)
+					currentGlobalRequests := shield.GetServerNbReq() + 1
+					tooManyReq = currentGlobalRequests > policy.MaxGlobalSimultaneous
+					retries--
+					if retries <= 0 {
+						utils.Log("SmartShield: Too many users on the server")
+						http.Error(w, "Too many requests", http.StatusTooManyRequests)
+						return
+					}
+				}
 			}
 
 			clientID := GetClientID(r)
