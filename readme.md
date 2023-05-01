@@ -22,13 +22,13 @@ Cosmos is a self-hosted platform for running server applications securely and wi
   <br/>
   <br/>
   <a target="_blank" href="https://cosmos-cloud.io/">
-    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/ws.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/ws.png" />
   </a>
   <a target="_blank" href="https://cosmos-cloud.io/doc">
-    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/doc.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/doc.png" />
   </a>
   <a target="_blank" href="https://cosmos-cloud.io/ui">
-    <img src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/demo.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/demo.png" />
   </a>
   <br/>
   <br/>
