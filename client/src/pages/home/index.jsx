@@ -144,6 +144,19 @@ const HomePage = () => {
                 </Box>
             </Grid2>
         })}
+
+        {config && config.HTTPConfig.ProxyConfig.Routes.length === 0 && (
+            <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
+                <Box style={{padding: 10, color: 'white', background: 'rgba(0,0,0,0.35)', borderRadius: 5}}>
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <div style={{width: '100%'}}>
+                            <h3 style={blockStyle}>No Apps</h3>
+                            <p style={blockStyle}>You have no apps configured. Please add some apps in the configuration panel.</p>
+                        </div>
+                    </Stack>
+                </Box>
+            </Grid2>
+        )}
     </Grid2>
   </Stack>
 }
