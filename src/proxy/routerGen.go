@@ -39,9 +39,13 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 			r.Header.Set("x-cosmos-token", "1234567890")
 
 			if enabled && adminOnly {
-				utils.AdminOnlyWithRedirect(w, r)
+				if errT := utils.AdminOnlyWithRedirect(w, r); errT != nil {
+					return
+				}
 			} else if enabled {
-				utils.LoggedInOnlyWithRedirect(w, r)
+				if errT := utils.LoggedInOnlyWithRedirect(w, r); errT != nil {
+					return
+				}
 			}
 
 			next.ServeHTTP(w, r)
