@@ -90,7 +90,7 @@ const ConfigManagement = () => {
               MongoDB: values.MongoDB,
               LoggingLevel: values.LoggingLevel,
               RequireMFA: values.RequireMFA,
-              AutoUpdate: values.AutoUpdate,
+              // AutoUpdate: values.AutoUpdate,
               BlockedCountries: values.GeoBlocking,
               HTTPConfig: {
                 ...config.HTTPConfig,
@@ -153,11 +153,11 @@ const ConfigManagement = () => {
                     helperText="Require MFA for all users"
                   />
                   
-                  <CosmosCheckbox
+                  {/* <CosmosCheckbox
                     label="Auto Update Cosmos"
                     name="AutoUpdate"
                     formik={formik}
-                  />
+                  /> */}
 
                   <Grid item xs={12}>
                     <Stack spacing={1}>
