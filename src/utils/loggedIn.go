@@ -16,6 +16,7 @@ func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
 	if !isUserLoggedIn || userNickname == "" {
 		Error("LoggedInOnlyWithRedirect: User is not logged in", nil)
 		http.Redirect(w, req, "/ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
+		return errors.New("User not logged in")
 	}
 
 	if(mfa == 1) {
