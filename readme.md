@@ -126,6 +126,6 @@ you can use `latest-arm64` for arm architecture (ex: NAS or Raspberry).
 
 Finally, if you are using Cosmos from one of the countries considered "high risk," you can prevent Cosmos from blocking your IP by adding the following environment variable to your Docker run command: `-e COSMOS_SERVER_COUNTRY=IN`. Replace "IN" with your country code. The following countries are blocked by default: China (CN), Russia (RU), Turkey (TR), Brazil (BR), Bangladesh (BD), India (IN), Nepal (NP), Pakistan (PK), Sri Lanka (LK), Vietnam (VN), Indonesia (ID), Iran (IR), Iraq (IQ), Egypt (EG), Afghanistan (AF), and Romania (RO). Please note that this choice is neither political nor personal; it is solely based on past attack statistics. If you are from one of these countries and want to use Cosmos, we sincerely apologize for the inconvenience. If you are having issues with this, please contact us on Discord!
 
-You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://github.com/azukaar/Cosmos-Server/wiki/Configuration).
+You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://cosmos-cloud.io/doc/6%20Other%20Setups/#env-var).
 
 if you are having issues with the installation, please contact us on [Discord](https://discord.gg/PwMWwsrwHA)!
