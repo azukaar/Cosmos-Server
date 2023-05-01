@@ -128,7 +128,7 @@ const HomePage = () => {
     
     <Grid2 container spacing={2} style={{zIndex: 2}}>
         {config && config.HTTPConfig.ProxyConfig.Routes.map((route) => {
-            return <Grid2 item xs={12} sm={6} md={4} lg={3} xl={2} key={route.Name}>
+            return <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={2} key={route.Name}>
                 <Box className='app' style={{padding: 10, color: 'white', background: 'rgba(0,0,0,0.35)', borderRadius: 5}}>
                     <Link to={getFullOrigin(route)} target="_blank" style={{textDecoration: 'none', color: 'white'}}>
                         <Stack direction="row" spacing={2} alignItems="center">
