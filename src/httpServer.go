@@ -185,6 +185,7 @@ func StartServer() {
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/logo", SendLogo)
 
 	// need rewrite bc it catches too many things and prevent
 	// client to be notified of the error
@@ -199,6 +200,7 @@ func StartServer() {
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
 	srapi.HandleFunc("/api/status", StatusRoute)
+	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
 	srapi.HandleFunc("/api/favicon", GetFavicon)
 	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)

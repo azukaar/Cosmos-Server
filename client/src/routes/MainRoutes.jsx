@@ -9,6 +9,8 @@ import ProxyManagement from '../pages/config/users/proxyman';
 import ServeApps from '../pages/servapps/servapps';
 import { Navigate } from 'react-router';
 import RouteConfigPage from '../pages/config/routeConfigPage';
+import logo from '../assets/images/icons/cosmos.png';
+
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -22,6 +24,7 @@ const Color = Loadable(lazy(() => import('../pages/components-overview/Color')))
 const Shadow = Loadable(lazy(() => import('../pages/components-overview/Shadow')));
 const AntIcons = Loadable(lazy(() => import('../pages/components-overview/AntIcons')));
 
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -32,6 +35,11 @@ const MainRoutes = {
             path: '/',
             // redirect to /ui
             element: <Navigate to="/ui" />
+        },
+        {
+            path: '/ui/logo',
+            // redirect to /ui
+            element: <Navigate to={logo} />
         },
         {
             path: '/ui',

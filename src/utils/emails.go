@@ -93,7 +93,7 @@ func SendEmail(recipients []string, subject string, body string) error {
 	}
 
 	ServerURL := GetServerURL()
-	LogoURL := ServerURL + "/ui/assets/Logo.png"
+	LogoURL := ServerURL + "logo"
 
 	send := func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
 		c, err := smtp.Dial(addr)

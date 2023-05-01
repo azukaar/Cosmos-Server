@@ -36,6 +36,7 @@ import { LoadingButton } from '@mui/lab';
 
 const AuthLogin = () => {
     const [checked, setChecked] = React.useState(false);
+    const [showResetPassword, setShowResetPassword] = React.useState(false);
 
     const [showPassword, setShowPassword] = React.useState(false);
     const handleClickShowPassword = () => {
@@ -61,7 +62,14 @@ const AuthLogin = () => {
                 window.location.href = '/ui/newInstall';
             }
         });
-    });       
+
+
+        API.config.canSendEmail().then((resp) => {
+            if(resp.status == 'OK' && resp.data.canSendEmail) {
+                setShowResetPassword(true);
+            }
+        });
+    }, []);       
 
     return (
         <>
@@ -184,9 +192,12 @@ const AuthLogin = () => {
                                         }
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
-                                    <Link variant="h6" component={RouterLink} to="/ui/forgot-password" color="primary">
+                                    {showResetPassword && <Link variant="h6" component={RouterLink} to="/ui/forgot-password" color="primary">
                                         Forgot Your Password?
-                                    </Link>
+                                    </Link>}
+                                    {!showResetPassword &&  <Typography variant="h6">
+                                        This server does not allow password reset.
+                                    </Typography>}
                                 </Stack>
                             </Grid>
                             {errors.submit && (

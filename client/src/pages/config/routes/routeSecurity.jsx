@@ -173,7 +173,7 @@ const RouteSecurity = ({ routeConfig }) => {
 
                     <CosmosInputText
                       name="Timeout"
-                      label="Timeout in milliseconds (0 for no timeout, at least 30000 or less recommended)"
+                      label="Timeout in milliseconds (0 for no timeout, at least 60000 or less recommended)"
                       placeholder="Timeout"
                       type="number"
                       formik={formik}
@@ -189,7 +189,7 @@ const RouteSecurity = ({ routeConfig }) => {
 
                     <CosmosInputText
                       name="ThrottlePerMinute"
-                      label="Maximum number of requests Per Minute (0 for no limit, at least 100 or less recommended)"
+                      label="Maximum number of requests Per Minute (0 for no limit, at least 2000 or less recommended)"
                       placeholder="Throttle Per Minute"
                       type="number"
                       formik={formik}

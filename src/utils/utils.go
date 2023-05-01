@@ -5,9 +5,13 @@ import (
 	"math/rand"
 	"regexp"
 	"net/http"
+	"encoding/base64"
 	"os"
 	"strconv"
 	"strings"
+	"io/ioutil"
+	"fmt"
+	"path/filepath"
 
 	"github.com/shirou/gopsutil/v3/mem"
 )
@@ -359,4 +363,37 @@ func GetServerURL() string {
 	}
 
 	return ServerURL + "/"
+}
+
+func ImageToBase64(path string) (string, error) {
+	imageFile, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer imageFile.Close()
+
+	imageData, err := ioutil.ReadAll(imageFile)
+	if err != nil {
+		return "", err
+	}
+
+	encodedData := base64.StdEncoding.EncodeToString(imageData)
+
+	fileExt := strings.ToLower(filepath.Ext(path))
+	var mimeType string
+	switch fileExt {
+	case ".jpg", ".jpeg":
+		mimeType = "image/jpeg"
+	case ".png":
+		mimeType = "image/png"
+	case ".gif":
+		mimeType = "image/gif"
+	case ".bmp":
+		mimeType = "image/bmp"
+	default:
+		return "", fmt.Errorf("unsupported file format: %s", fileExt)
+	}
+
+	dataURI := fmt.Sprintf("data:%s;base64,%s", mimeType, encodedData)
+	return dataURI, nil
 }

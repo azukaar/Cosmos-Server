@@ -12,6 +12,7 @@ WORKDIR /app
 
 COPY build/cosmos .
 COPY build/cosmos_gray.png .
+COPY build/Logo.png .
 COPY build/GeoLite2-Country.mmdb .
 COPY build/meta.json .
 COPY static ./static

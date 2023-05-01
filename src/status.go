@@ -52,3 +52,18 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+func CanSendEmail(w http.ResponseWriter, req *http.Request) {
+	if(req.Method == "GET") {
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data": map[string]interface{}{
+				"canSendEmail": utils.GetMainConfig().EmailConfig.Enabled,
+			},
+		})
+	} else {
+		utils.Error("UserList: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}

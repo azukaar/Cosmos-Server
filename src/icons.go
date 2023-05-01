@@ -198,3 +198,18 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+func SendLogo(w http.ResponseWriter, req *http.Request) {
+	pwd,_ := os.Getwd()
+	imgsrc := "Logo.png"
+	Logo, err := ioutil.ReadFile(pwd + "/" + imgsrc)
+	if err != nil {
+		utils.Error("Logo", err)
+		utils.HTTPError(w, "Favicon", http.StatusInternalServerError, "FA003")
+		return
+	}
+	w.Header().Set("Content-Type", "image/png")
+	w.Header().Set("Cache-Control", "max-age=5")
+	w.WriteHeader(http.StatusOK)
+	w.Write(Logo)
+}

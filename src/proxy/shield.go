@@ -266,7 +266,8 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			userConsumed := shield.GetUserUsedBudgets(clientID)
 
 			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(policy, userConsumed) {
-				utils.Log("SmartShield: User is blocked due to abuse")
+				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", userConsumed))
+
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return
 			} else {

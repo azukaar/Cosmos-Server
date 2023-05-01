@@ -33,6 +33,15 @@ function restart() {
   })
 }
 
+function canSendEmail() {
+  return wrap(fetch('/cosmos/api/can-send-email', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<void> {
   const payload = {
     routeName,
@@ -82,4 +91,5 @@ export {
   moveRouteDown,
   deleteRoute,
   addRoute,
+  canSendEmail,
 };
