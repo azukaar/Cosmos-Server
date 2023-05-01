@@ -58,7 +58,9 @@
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "sh build.sh && npm run client-build && docker build --tag cosmos-dev .",
     "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run -d -p 80:80 -p 443:443 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_HOSTNAME=localhost -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
-    "dockerdev": "npm run dockerdevbuild && npm run dockerdevrun"
+    "dockerdev": "npm run dockerdevbuild && npm run dockerdevrun",
+    "demo": "vite build --base=/ui/ --mode demo",
+    "devdemo": "vite --mode demo"
   },
   "eslintConfig": {
     "extends": [

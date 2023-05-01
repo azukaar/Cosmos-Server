@@ -17,6 +17,13 @@
 
 Cosmos is a self-hosted platform for running server applications securely and with built-in privacy features. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
 
+
+<p align="center" style="margin-top: 50px; margin-bottom: 50px;">
+  <a href="https://cosmos-cloud.io/" style="padding: 12px 24px; background-color: #6f42c1; color: #ffffff; border-radius: 4px; text-decoration: none;">Website</a>
+  <a href="https://cosmos-cloud.io/doc" style="padding: 12px 24px; background-color: #000; color: #ffffff; border-radius: 4px; text-decoration: none; margin-left: 16px; margin-right: 16px;">Documentation / Getting Started</a>
+  <a href="https://cosmos-cloud.io/ui" style="padding: 12px 24px; background-color: #000; color: #ffffff; border-radius: 4px; text-decoration: none;">Demo</a>
+</p>
+
 ![screenshot1](./screenshot1.png)
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.

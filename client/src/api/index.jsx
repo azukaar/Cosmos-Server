@@ -1,11 +1,17 @@
-import * as auth from './authentication';
-import * as users from './users';
-import * as config from './config';
-import * as docker from './docker';
+import * as _auth from './authentication';
+import * as _users from './users';
+import * as _config from './config';
+import * as _docker from './docker';
+
+import * as authDemo from './authentication.demo';
+import * as usersDemo from './users.demo';
+import * as configDemo from './config.demo';
+import * as dockerDemo from './docker.demo';
+import * as indexDemo from './index.demo';
 
 import wrap from './wrap';
 
-const getStatus = () => {
+let getStatus = () => {
   return wrap(fetch('/cosmos/api/status', {
     method: 'GET',
     headers: {
@@ -14,7 +20,7 @@ const getStatus = () => {
   }))
 }
 
-const isOnline = () => {
+let isOnline = () => {
   return fetch('/cosmos/api/status', {
     method: 'GET',
     headers: {
@@ -36,7 +42,7 @@ const isOnline = () => {
   });
 }
 
-const newInstall = (req) => {
+let newInstall = (req) => {
   return wrap(fetch('/cosmos/api/newInstall', {
     method: 'POST',
     headers: {
@@ -44,6 +50,23 @@ const newInstall = (req) => {
     },
     body: JSON.stringify(req)
   }))
+}
+
+const isDemo = import.meta.env.MODE === 'demo';
+
+let auth = _auth;
+let users = _users;
+let config = _config;
+let docker = _docker;
+
+if(isDemo) {
+  auth = authDemo;
+  users = usersDemo;
+  config = configDemo;
+  docker = dockerDemo;
+  getStatus = indexDemo.getStatus;
+  newInstall = indexDemo.newInstall;
+  isOnline = indexDemo.isOnline;
 }
 
 export {

@@ -1,0 +1,53 @@
+{
+	"data": [
+		{
+			"nickname": "Cosmos",
+			"registerKey": "",
+			"registerKeyExp": "0001-01-01T00:00:00Z",
+			"role": 2,
+			"link": "/api/user/Cosmos",
+			"email": "",
+			"registeredAt": "2023-04-01T16:40:34.169Z",
+			"lastPasswordChangedAt": "0001-01-01T00:00:00Z",
+			"createdAt": "2023-04-01T16:40:34.169Z",
+			"lastLogin": "2023-04-30T22:17:26.463Z"
+		},
+		{
+			"nickname": "Gertrude",
+			"registerKey": "",
+			"registerKeyExp": "0001-01-01T00:00:00Z",
+			"role": 1,
+			"link": "/api/user/Gertrude",
+			"email": "",
+			"registeredAt": "2023-04-29T12:20:09.268Z",
+			"lastPasswordChangedAt": "2023-04-29T12:20:09.268Z",
+			"createdAt": "2023-04-29T11:46:36.521Z",
+			"lastLogin": "2023-04-30T16:37:38.815Z"
+		},
+		{
+			"nickname": "John",
+			"registerKey": "",
+			"registerKeyExp": "0001-01-01T00:00:00Z",
+			"role": 1,
+			"link": "/api/user/John",
+			"email": "",
+			"registeredAt": "2023-04-29T13:31:59.04Z",
+			"lastPasswordChangedAt": "2023-04-29T13:31:59.04Z",
+			"createdAt": "2023-04-29T13:10:23.515Z",
+			"lastLogin": "2023-04-29T13:33:31.982Z"
+		},
+		{
+			"nickname": "Wilfred",
+			"registerKey": "4S4ALTTl5Z9ROiY1tqFgT46xPiNk9FU9FI83WsOT15NXKhz6",
+			"registerKeyExp": "2023-05-08T15:14:21.856Z",
+			"role": 1,
+			"link": "/api/user/Wilfred",
+			"email": "wilfred@gmail.com",
+			"registeredAt": "0001-01-01T00:00:00Z",
+			"lastPasswordChangedAt": "0001-01-01T00:00:00Z",
+			"createdAt": "2023-05-01T15:14:21.812Z",
+			"lastLogin": "0001-01-01T00:00:00Z"
+		}
+	],
+	"status": "OK"
+}

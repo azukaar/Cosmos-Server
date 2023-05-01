@@ -1,4 +1,7 @@
 import Folder from '../assets/images/icons/folder(1).svg';
+import demoicons from './icons.demo.json';
+import logogray from '../assets/images/icons/cosmos_gray.png';
+
 import * as Yup from 'yup';
 
 export const sanitizeRoute = (_route) => {
@@ -40,7 +43,15 @@ export const getFullOrigin = (route) => {
   return addProtocol(getOrigin(route));
 }
 
+const isDemo = import.meta.env.MODE === 'demo';
+
 export const getFaviconURL = (route) => {
+  if(isDemo) {
+    if (route.Mode == "STATIC")
+      return Folder;
+    return demoicons[route.Name] || logogray;
+  }
+
   const addRemote = (url) => {
     return '/cosmos/api/favicon?q=' + encodeURIComponent(url)
   }
