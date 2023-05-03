@@ -1,10 +1,6 @@
 VERSION=$(npm pkg get version | tr -d \")
 LATEST="latest"
 
-if [ -n "$ARCHI" ]; then
-  VERSION="$ARCHI-$VERSION"
-fi
-
 # if branch is unstable in git for circle ci
 if [ -n "$CIRCLE_BRANCH" ]; then
   if [ "$CIRCLE_BRANCH" != "master" ]; then
