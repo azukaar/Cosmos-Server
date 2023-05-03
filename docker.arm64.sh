@@ -12,7 +12,7 @@ fi
 
 echo "Pushing azukaar/cosmos-server:$VERSION and azukaar/cosmos-server:$LATEST"
 
-sh build arm64.sh
+sh build.arm64.sh
 
 docker build \
   -t azukaar/cosmos-server:$VERSION-arm64 \
