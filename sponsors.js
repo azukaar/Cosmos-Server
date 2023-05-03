@@ -17,7 +17,7 @@ const sponsorsGenerate = async () => {
 
   let sentence = ``;
 
-  if (count === 1) {
+  if (count >= 1) {
     sentence = `<h3 align="center">Thanks to the sponsors:</h3>`
   } else if (count > 10) {
     sentence = `<h3 align="center">Thanks to the ${count} sponsors:</h3>`
