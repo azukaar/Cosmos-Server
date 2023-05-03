@@ -21,7 +21,7 @@ docker build \
   -t azukaar/cosmos-server:$LATEST \
   .
 
-sh build arm64.sh
+sh build.sh arm64
 
 docker build \
   -t azukaar/cosmos-server:$VERSION-arm64 \
