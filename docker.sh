@@ -1,3 +1,5 @@
+#!/bin/bash
+
 VERSION=$(npm pkg get version | tr -d \")
 LATEST="latest"
 

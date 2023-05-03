@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM arm64v8/debian
+FROM --platform=linux/amd64 arm64v8/debian
 
 EXPOSE 443 80
 

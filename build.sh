@@ -1,3 +1,5 @@
+#!/bin/bash
+
 rm -rf build
 go build -o build/cosmos src/*.go
 if [ $? -ne 0 ]; then
