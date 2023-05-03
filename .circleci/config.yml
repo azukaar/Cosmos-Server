@@ -115,7 +115,7 @@ jobs:
 
       - run:
           name: Build and publish dockerfiles
-          command: sh docker arm.sh
+          command: sh docker.arm64.sh
 
 workflows:
   version: 2
