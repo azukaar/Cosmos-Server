@@ -72,11 +72,11 @@ jobs:
 
       - run:
           name: download Go
-          command: wget https://golang.org/dl/go1.20.2.linux-amd64.tar.gz
+          command: wget https://golang.org/dl/go1.20.2.linux-arm64.tar.gz
       
       - run:
           name: install Go
-          command: sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.2.linux-amd64.tar.gz
+          command: sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.20.2.linux-arm64.tar.gz
       
       - run:
           name: set Go path
