@@ -214,6 +214,26 @@ const NewInstall = () => {
                 initialValues={{
                     HTTPSCertificateMode: "LETSENCRYPT"
                 }}
+                validationSchema={Yup.object().shape({
+                        SSLEmail: Yup.string().when('HTTPSCertificateMode', {
+                            is: "LETSENCRYPT",
+                            then: Yup.string().email().required(),
+                            otherwise: Yup.string().email(),
+                        }),
+                        TLSKey: Yup.string().when('HTTPSCertificateMode', {
+                            is: "PROVIDED",
+                            then: Yup.string().required(),
+                        }),
+                        TLSCert: Yup.string().when('HTTPSCertificateMode', {
+                            is: "PROVIDED",
+                            then: Yup.string().required(),
+                        }),
+                        Hostname: Yup.string().when('HTTPSCertificateMode', {
+                            is: "LETSENCRYPT",
+                            then: Yup.string().required().matches(/^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/, 'Let\'s Encrypt only accepts domain names'),
+                            otherwise: Yup.string().required()
+                        }),
+                })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     try {
                         setSubmitting(true);
@@ -229,7 +249,7 @@ const NewInstall = () => {
                             setStatus({ success: true });
                     } catch (error) {
                         setStatus({ success: false });
-                        setErrors({ submit: error.message });
+                        setErrors({ submit: "Please check you have filled all the inputs properly" });
                         setSubmitting(false);
                     }
                 }}>

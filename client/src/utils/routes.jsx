@@ -75,7 +75,7 @@ export const ValidateRouteSchema = Yup.object().shape({
   Host: Yup.string().when('UseHost', {
     is: true,
     then: Yup.string().required('Host is required')
-      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP')
+      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP (IPs won\'t work with Let\'s Encrypt!)')
   }),
 
   PathPrefix: Yup.string().when('UsePathPrefix', {

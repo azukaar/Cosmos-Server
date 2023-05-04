@@ -60,6 +60,8 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 		if errSimCert != nil {
 			  // Temporary before we have a better way to handle this
 				utils.Error("simplecert init failed, HTTPS wont renew", errSimCert)
+				startHTTPServer(router)
+				return
 		}
 	}
 		

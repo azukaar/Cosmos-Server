@@ -52,7 +52,7 @@ export const CosmosInputText = ({ name, style, multiline, type, placeholder, onC
   </Grid>
 }
 
-export const CosmosInputPassword = ({ name, noStrength, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoComplete, onChange, label, formik }) => {
   const [level, setLevel] = React.useState();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
@@ -80,6 +80,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, onCha
         type={showPassword ? 'text' : 'password'}
         value={formik.values[name]}
         name={name}
+        autoComplete={autoComplete}
         onBlur={formik.handleBlur}
         onChange={(e) => {
           changePassword(e.target.value);

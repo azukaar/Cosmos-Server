@@ -165,6 +165,7 @@ const ConfigManagement = () => {
                       <OutlinedInput
                         id="MongoDB-login"
                         type="password"
+                        autoComplete='new-password'
                         value={formik.values.MongoDB}
                         name="MongoDB"
                         onBlur={formik.handleBlur}
@@ -324,6 +325,7 @@ const ConfigManagement = () => {
                     <CosmosInputPassword
                       label="SMTP Password"
                       name="Email_Password"
+                      autoComplete='new-password'
                       formik={formik}
                       helperText="SMTP Password"
                       noStrength
