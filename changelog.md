@@ -1,3 +1,6 @@
+## Version 0.4.0
+ - Protect server against direct IP access
+
 ## Version 0.3.0
  - Implement 2 FA
  - Implement SMTP to Send Email (password reset / invites)

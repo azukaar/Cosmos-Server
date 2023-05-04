@@ -150,6 +150,7 @@ func StartServer() {
 	HTTPConfig := config.HTTPConfig
 	serverPortHTTP = HTTPConfig.HTTPPort
 	serverPortHTTPS = HTTPConfig.HTTPSPort
+	serverHostname := HTTPConfig.Hostname
 
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
@@ -222,6 +223,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
+	srapi.Use(utils.EnsureHostname(serverHostname))
 	srapi.Use(tokenMiddleware)
 	srapi.Use(proxy.SmartShieldMiddleware(
 		utils.SmartShieldPolicy{
@@ -250,7 +252,7 @@ func StartServer() {
 	}
 
 	fs  := spa.SpaHandler(pwd + "/static", "index.html")
-	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
+	router.PathPrefix("/ui").Handler(utils.EnsureHostname(serverHostname)(http.StripPrefix("/ui", fs)))
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	

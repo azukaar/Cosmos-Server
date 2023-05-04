@@ -230,6 +230,27 @@ func GetConfigFileName() string {
 	return configFile
 }
 
+func EnsureHostname(hostname string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			Debug("Request requested resource from : " + r.Host)
+			port := ""
+			if (IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443") {
+				port = ":" + MainConfig.HTTPConfig.HTTPSPort
+			} else if (!IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80") {
+				port = ":" + MainConfig.HTTPConfig.HTTPPort
+			}
+			if r.Host != hostname + port {
+				Error("Invalid Hostname " + r.Host + "for request. Expecting " + hostname, nil)
+				w.WriteHeader(http.StatusBadRequest)
+				fmt.Fprint(w, "Bad Request.")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func CreateDefaultConfigFileIfNecessary() bool {
 	configFile := GetConfigFileName()
 
