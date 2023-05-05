@@ -150,7 +150,7 @@ func StartServer() {
 	HTTPConfig := config.HTTPConfig
 	serverPortHTTP = HTTPConfig.HTTPPort
 	serverPortHTTPS = HTTPConfig.HTTPSPort
-	serverHostname := HTTPConfig.Hostname
+	// serverHostname := HTTPConfig.Hostname
 
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
