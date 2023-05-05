@@ -220,10 +220,14 @@ func StartServer() {
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 	
+	srapi.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
-	srapi.Use(utils.EnsureHostname(serverHostname))
+	// if(!config.HTTPConfig.AcceptAllInsecureHostname) {
+	// 	srapi.Use(utils.EnsureHostname(serverHostname))
+	// }
+
 	srapi.Use(tokenMiddleware)
 	srapi.Use(proxy.SmartShieldMiddleware(
 		utils.SmartShieldPolicy{
@@ -251,8 +255,14 @@ func StartServer() {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)
 	}
 
+
 	fs  := spa.SpaHandler(pwd + "/static", "index.html")
-	router.PathPrefix("/ui").Handler(utils.EnsureHostname(serverHostname)(http.StripPrefix("/ui", fs)))
+	
+	// if(!config.HTTPConfig.AcceptAllInsecureHostname) {
+	// 	fs = utils.EnsureHostname(serverHostname)(fs)
+	// }
+
+	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	

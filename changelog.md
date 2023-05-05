@@ -1,5 +1,7 @@
 ## Version 0.4.0
  - Protect server against direct IP access
+ - Stop / Start / Restart / Remove / Kill containers
+ - 
 
 ## Version 0.3.0
  - Implement 2 FA

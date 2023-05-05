@@ -10,13 +10,10 @@ import (
 
 func main() {
 	utils.Log("Starting...")
-	// utils.Log("Smart Shield estimates the capacity at " + strconv.Itoa((int)(proxy.MaxUsers)) + " concurrent users")
 
 	rand.Seed(time.Now().UnixNano())
 
 	LoadConfig()
-
-	checkVersion()
 
 	go CRON()
 

@@ -190,24 +190,6 @@ func ListContainers() ([]types.Container, error) {
 		return nil, err
 	}
 
-	// for _, container := range containers {
-	// 	fmt.Println("ID - ", container.ID)
-	// 	fmt.Println("ID - ", container.Names)
-	// 	fmt.Println("ID - ", container.Image)
-	// 	fmt.Println("ID - ", container.Command)
-	// 	fmt.Println("ID - ", container.State)
-	// 	fmt.Println("Ports - ", container.Ports)
-	// 	fmt.Println("HostConfig - ", container.HostConfig)
-	// 	fmt.Println("ID - ", container.Labels)
-	// 	fmt.Println("NetworkSettings - ", container.NetworkSettings)
-	// 	if(container.NetworkSettings.Networks["cosmos-network"] != nil) {
-	// 		fmt.Println("IP COSMOS - ", container.NetworkSettings.Networks["cosmos-network"].IPAddress);
-	// 	}
-	// 	if(container.NetworkSettings.Networks["bridge"] != nil) {
-	// 		fmt.Println("IP bridge - ", container.NetworkSettings.Networks["bridge"].IPAddress);
-	// 	}
-	// }
-
 	return containers, nil
 }
 

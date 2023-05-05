@@ -22,8 +22,17 @@ const newDB = () => {
   });
 }
     
+const manageContainer = () => {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+    })
+  });
+}
+    
 export {
   list,
   newDB,
-  secure
+  secure,
+  manageContainer
 };

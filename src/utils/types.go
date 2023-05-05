@@ -101,6 +101,7 @@ type HTTPConfig struct {
 	ProxyConfig ProxyConfig
 	Hostname string `validate:"required,excludesall=0x2C/ "`
 	SSLEmail string `validate:"omitempty,email"`
+	AcceptAllInsecureHostname bool
 } 
 
 const (

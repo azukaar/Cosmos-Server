@@ -1,6 +1,6 @@
 // material-ui
-import { AppstoreAddOutlined, PlusCircleOutlined, ReloadOutlined, SearchOutlined, SettingOutlined } from '@ant-design/icons';
-import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
+import { AppstoreAddOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, PlusCircleOutlined, ReloadOutlined, RollbackOutlined, SearchOutlined, SettingOutlined, StopOutlined, UpCircleOutlined, UpSquareFilled } from '@ant-design/icons';
+import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Stack } from '@mui/system';
 import { useEffect, useState } from 'react';
@@ -126,6 +126,88 @@ const ServeApps = () => {
     }
   }
 
+  const getActions = (app) => {
+    const doTo = (action) => {
+      setIsUpdatingId(app.Id, true);
+      API.docker.manageContainer(app.Id, action).then((res) => {
+        refreshServeApps();
+      });
+    };
+
+    let actions = [
+      {
+        t: 'Update Available',
+        if: ['update_available'],
+        e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size='large'>
+          <UpCircleOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Start',
+        if: ['exited'],
+        e: <IconButton onClick={() => {doTo('start')}} size='large'>
+          <PlaySquareOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Unpause',
+        if: ['paused'],
+        e: <IconButton onClick={() => {doTo('unpause')}} size='large'>
+          <PlaySquareOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Pause',
+        if: ['running'],
+        e: <IconButton onClick={() => {doTo('pause')}} size='large'>
+          <PauseCircleOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Stop',
+        if: ['created', 'paused', 'restarting', 'running'],
+        e: <IconButton onClick={() => {doTo('stop')}} size='large' variant="outlined">
+          <StopOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Restart',
+        if: ['exited', 'running', 'paused', 'created', 'restarting'],
+        e: <IconButton onClick={() => doTo('restart')} size='large'>
+          <ReloadOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Re-create',
+        if: ['exited', 'running', 'paused', 'created', 'restarting'],
+        e: <IconButton onClick={() => doTo('recreate')} color="error" size='large'>
+          <RollbackOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Delete',
+        if: ['exited'],
+        e: <IconButton onClick={() => {doTo('remove')}} color="error" size='large'>
+          <DeleteOutlined />
+        </IconButton>
+      },
+      {
+        t: 'Kill',
+        if: ['running', 'paused', 'created', 'restarting'],
+        e: <IconButton onClick={() => doTo('kill')} color="error" size='large'>
+          <CloseSquareOutlined />
+        </IconButton>
+      }
+    ];
+
+    return actions.filter((action) => {
+      let updateAvailable = false;
+      return action.if.includes(app.State) ?? (updateAvailable && action.if.includes('update_available'));
+    }).map((action) => {
+      return <Tooltip title={action.t}>{action.e}</Tooltip>
+    });
+  }
+
   return <div>
     <IsLoggedIn />
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
@@ -229,30 +311,39 @@ const ServeApps = () => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4}>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
-              <Stack style={{position: 'relative', overflowX: 'hidden'}} direction="row" spacing={2} alignItems="center">
-                <Typography variant="body2" color="text.secondary">
-                  {
-                    ({
-                      "created": <Chip label="Created" color="warning" />,
-                      "restarting": <Chip label="Restarting" color="warning" />,
-                      "running": <Chip label="Running" color="success" />,
-                      "removing": <Chip label="Removing" color="error" />,
-                      "paused": <Chip label="Paused" color="info" />,
-                      "exited": <Chip label="Exited" color="error" />,
-                      "dead": <Chip label="Dead" color="error" />,
-                    })[app.State]
-                  }
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <img src={getFirstRouteFavIcon(app)} width="40px" />
-                  <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px'}}>
-                    <Typography  variant="h5" color="text.secondary">
-                      {app.Names[0].replace('/', '')}&nbsp;
-                    </Typography>
-                    <Typography style={{ fontSize: '80%' }} color="text.secondary">
-                      {app.Image}
-                    </Typography>
+              <Stack direction="column" spacing={0} alignItems="flex-start">
+                <Stack style={{position: 'relative', overflowX: 'hidden'}} direction="row" spacing={2} alignItems="center">
+                  <Typography variant="body2" color="text.secondary">
+                    {
+                      ({
+                        "created": <Chip label="Created" color="warning" />,
+                        "restarting": <Chip label="Restarting" color="warning" />,
+                        "running": <Chip label="Running" color="success" />,
+                        "removing": <Chip label="Removing" color="error" />,
+                        "paused": <Chip label="Paused" color="info" />,
+                        "exited": <Chip label="Exited" color="error" />,
+                        "dead": <Chip label="Dead" color="error" />,
+                      })[app.State]
+                    }
+                  </Typography>
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <img src={getFirstRouteFavIcon(app)} width="40px" />
+                    <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px'}}>
+                      <Typography  variant="h5" color="text.secondary">
+                        {app.Names[0].replace('/', '')}&nbsp;
+                      </Typography>
+                      <Typography style={{ fontSize: '80%' }} color="text.secondary">
+                        {app.Image}
+                      </Typography>
+                    </Stack>
                   </Stack>
+                </Stack>
+                <Stack direction="row" spacing={2}>
+                  {/* <Button variant="contained" size="small" onClick={() => {}}>
+                    Update
+                  </Button> */}
+
+                  {getActions(app)}
                 </Stack>
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">

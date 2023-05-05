@@ -26,9 +26,19 @@ const newDB = () => {
     }
   }))
 }
+
+const manageContainer = (id, action) => {
+  return wrap(fetch('/cosmos/api/servapps/' + id + '/manage/' + action, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
     
 export {
   list,
   newDB,
-  secure
+  secure,
+  manageContainer
 };
