@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"net"
+	"fmt"
 
 	"github.com/mxk/go-flowrate/flowrate"
 	"github.com/oschwald/geoip2-golang"
@@ -188,13 +189,18 @@ func EnsureHostname(next http.Handler) http.Handler {
 
 		hostnames := GetAllHostnames()
 
+		isOk := false
 		for _, hostname := range hostnames {
-			if r.Host != hostname + port {
-				Error("Invalid Hostname " + r.Host + "for request. Expecting " + hostname, nil)
-				w.WriteHeader(http.StatusBadRequest)
-				http.Error(w, "Bad Request: Invalid hostname.", http.StatusBadRequest)
-				return
+			if r.Host == hostname + port {
+				isOk = true
 			}
+		}
+
+		if !isOk {
+			Error("Invalid Hostname " + r.Host + " for request. Expecting one of " + fmt.Sprintf("%v", hostnames), nil)
+			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, "Bad Request: Invalid hostname.", http.StatusBadRequest)
+			return
 		}
 
 		next.ServeHTTP(w, r)
