@@ -166,3 +166,37 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func EnsureHostname(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Debug("Request requested resource from : " + r.Host)
+
+		og := GetMainConfig().HTTPConfig.Hostname
+		ni := GetMainConfig().NewInstall
+
+		if ni || og == "0.0.0.0" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		port := ""
+		if (IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443") {
+			port = ":" + MainConfig.HTTPConfig.HTTPSPort
+		} else if (!IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80") {
+			port = ":" + MainConfig.HTTPConfig.HTTPPort
+		}
+
+		hostnames := GetAllHostnames()
+
+		for _, hostname := range hostnames {
+			if r.Host != hostname + port {
+				Error("Invalid Hostname " + r.Host + "for request. Expecting " + hostname, nil)
+				w.WriteHeader(http.StatusBadRequest)
+				http.Error(w, "Bad Request: Invalid hostname.", http.StatusBadRequest)
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

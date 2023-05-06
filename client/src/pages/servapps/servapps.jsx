@@ -11,8 +11,11 @@ import * as API from '../../api';
 import IsLoggedIn from '../../isLoggedIn';
 import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
-import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../utils/routes';
+import { ValidateRoute, getFaviconURL, sanitizeRoute, getContainersRoutes } from '../../utils/routes';
 import HostChip from '../../components/hostChip';
+import { Link } from 'react-router-dom';
+import ExposeModal from './exposeModal';
+import GetActions from './actionBar';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -39,16 +42,6 @@ const ServeApps = () => {
   const [submitErrors, setSubmitErrors] = useState([]);
   const [openRestartModal, setOpenRestartModal] = useState(false);
 
-  const hasCosmosNetwork = (containerName) => {
-    const container = serveApps.find((app) => {
-      return app.Names[0].replace('/', '') === containerName.replace('/', '');
-    });
-    return container && container.NetworkSettings.Networks && Object.keys(container.NetworkSettings.Networks).some((network) => {
-      if(network.startsWith('cosmos-network'))
-        return true;
-    })
-  }
-
   const refreshServeApps = () => {
     API.docker.list().then((res) => {
       setServeApps(res.data);
@@ -66,22 +59,11 @@ const ServeApps = () => {
     });
   }
 
-  const getContainersRoutes = (containerName) => {
-    return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
-      let reg = new RegExp(`^(([a-z]+):\/\/)?${containerName}(:?[0-9]+)?$`, 'i');
-      return route.Mode == "SERVAPP" && reg.test(route.Target)
-      // (
-      //   route.Target.startsWith(containerName) ||
-      //   route.Target.split('://')[1].startsWith(containerName)
-      // )
-    })) || [];
-  }
-
   useEffect(() => {
     refreshServeApps();
   }, []);
   
-  function updateRoutes() {
+  function updateRoutes(newRoute) {
     let con = {
       ...config,
       HTTPConfig: {
@@ -112,12 +94,15 @@ const ServeApps = () => {
     },
   };
 
-  const getHostnameFromName = (name) => {
-    return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
+  const selectable = {
+    cursor: 'pointer',
+    "&:hover": {
+      textDecoration: 'underline',
+    }
   }
 
   const getFirstRouteFavIcon = (app) => {
-    let routes = getContainersRoutes(app.Names[0].replace('/', ''));
+    let routes = getContainersRoutes(config, app.Names[0].replace('/', ''));
     if(routes.length > 0) {
       let url = getFaviconURL(routes[0]);
       return url;
@@ -126,162 +111,21 @@ const ServeApps = () => {
     }
   }
 
-  const getActions = (app) => {
-    const doTo = (action) => {
-      setIsUpdatingId(app.Id, true);
-      API.docker.manageContainer(app.Id, action).then((res) => {
-        refreshServeApps();
-      });
-    };
-
-    let actions = [
-      {
-        t: 'Update Available',
-        if: ['update_available'],
-        e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size='large'>
-          <UpCircleOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Start',
-        if: ['exited'],
-        e: <IconButton onClick={() => {doTo('start')}} size='large'>
-          <PlaySquareOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Unpause',
-        if: ['paused'],
-        e: <IconButton onClick={() => {doTo('unpause')}} size='large'>
-          <PlaySquareOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Pause',
-        if: ['running'],
-        e: <IconButton onClick={() => {doTo('pause')}} size='large'>
-          <PauseCircleOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Stop',
-        if: ['created', 'paused', 'restarting', 'running'],
-        e: <IconButton onClick={() => {doTo('stop')}} size='large' variant="outlined">
-          <StopOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Restart',
-        if: ['exited', 'running', 'paused', 'created', 'restarting'],
-        e: <IconButton onClick={() => doTo('restart')} size='large'>
-          <ReloadOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Re-create',
-        if: ['exited', 'running', 'paused', 'created', 'restarting'],
-        e: <IconButton onClick={() => doTo('recreate')} color="error" size='large'>
-          <RollbackOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Delete',
-        if: ['exited'],
-        e: <IconButton onClick={() => {doTo('remove')}} color="error" size='large'>
-          <DeleteOutlined />
-        </IconButton>
-      },
-      {
-        t: 'Kill',
-        if: ['running', 'paused', 'created', 'restarting'],
-        e: <IconButton onClick={() => doTo('kill')} color="error" size='large'>
-          <CloseSquareOutlined />
-        </IconButton>
-      }
-    ];
-
-    return actions.filter((action) => {
-      let updateAvailable = false;
-      return action.if.includes(app.State) ?? (updateAvailable && action.if.includes('update_available'));
-    }).map((action) => {
-      return <Tooltip title={action.t}>{action.e}</Tooltip>
-    });
-  }
-
   return <div>
-    <IsLoggedIn />
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
-    <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-        <DialogTitle>Expose ServApp</DialogTitle>
-            {openModal && <>
-            <DialogContent>
-                <DialogContentText>
-                  <Stack spacing={2}>
-                    <div>
-                      Welcome to the URL Wizard. This interface will help you expose your ServApp securely to the internet by creating a new URL.
-                    </div>
-                    <div>
-                        {openModal && !hasCosmosNetwork(openModal.Names[0]) && <Alert severity="warning">This ServApp does not appear to be connected to a Cosmos Network, so the hostname might not be accessible. The easiest way to fix this is to check the box "Force Secure Network" or manually create a sub-network in Docker.</Alert>}
-                    </div>
-                    <div>
-                        <RouteManagement TargetContainer={openModal} 
-                          routeConfig={{
-                            Target: "http://"+openModal.Names[0].replace('/', '') + ":",
-                            Mode: "SERVAPP",
-                            Name: openModal.Names[0].replace('/', ''),
-                            Description: "Expose " + openModal.Names[0].replace('/', '') + " to the internet",
-                            UseHost: true,
-                            Host: getHostnameFromName(openModal.Names[0]),
-                            UsePathPrefix: false,
-                            PathPrefix: '',
-                            CORSOrigin: '',
-                            StripPathPrefix: false,
-                            AuthEnabled: false,
-                            Timeout: 14400000,
-                            ThrottlePerMinute: 10000,
-                            BlockCommonBots: true,
-                            SmartShield: {
-                              Enabled: true,
-                            }
-                          }} 
-                          routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
-                          setRouteConfig={(_newRoute) => {
-                            setNewRoute(sanitizeRoute(_newRoute));
-                          }}
-                          up={() => {}}
-                          down={() => {}}
-                          deleteRoute={() => {}}
-                          noControls
-                          lockTarget
-                        />
-                    </div>
-                  </Stack>
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                {submitErrors && submitErrors.length > 0 && <Stack spacing={2} direction={"column"}>
-                  <Alert severity="error">{submitErrors.map((err) => {
-                      return <div>{err}</div>
-                    })}</Alert>
-                </Stack>}
-                <Button onClick={() => setOpenModal(false)}>Cancel</Button>
-                <Button onClick={() => {
-                  let errors = ValidateRoute(newRoute, config);
-                  if (errors && errors.length > 0) {
-                    errors = errors.map((err) => {
-                      return `${err}`;
-                    });
-                    setSubmitErrors(errors);
-                    return true;
-                  } else {
-                    setSubmitErrors([]);
-                    updateRoutes();
-                  }
-                  
-                }}>Confirm</Button>
-            </DialogActions>
-        </>}
-    </Dialog>
+    <ExposeModal
+      openModal={openModal} 
+      setOpenModal={setOpenModal}
+      container={serveApps.find((app) => {
+        return app.Names[0].replace('/', '') === openModal && openModal.Names[0].replace('/', '');
+      })}
+      config={config}
+      updateRoutes={
+        (_newRoute) => {
+          updateRoutes(_newRoute);
+        }
+      }
+    />
 
     <Stack spacing={2}>
       <Stack direction="row" spacing={2}>
@@ -306,7 +150,7 @@ const ServeApps = () => {
         </Tooltip>
       </Stack>
 
-      <Grid2 container  spacing={2}>
+      <Grid2 container spacing={2}>
         {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4}>
             <Item>
@@ -342,8 +186,7 @@ const ServeApps = () => {
                   {/* <Button variant="contained" size="small" onClick={() => {}}>
                     Update
                   </Button> */}
-
-                  {getActions(app)}
+                  <GetActions Id={app.Id} state={app.State} setIsUpdatingId={setIsUpdatingId} refreshServeApps={refreshServeApps} />
                 </Stack>
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
@@ -369,35 +212,39 @@ const ServeApps = () => {
                 </Stack>
               </Stack>
               {isUpdating[app.Id] ? <div>
-                <CircularProgress color="inherit" />
-              </div> :
-              <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
-                <Typography  variant="h6" color="text.secondary">
-                  Settings
-                </Typography> 
-                <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
-                  <Checkbox
-                    checked={app.Labels['cosmos-force-network-secured'] === 'true'}
-                    onChange={(e) => {
-                      setIsUpdatingId(app.Id, true);
-                      API.docker.secure(app.Id, e.target.checked).then(() => {
-                        setTimeout(() => {
-                          setIsUpdatingId(app.Id, false);
-                          refreshServeApps();
-                        }, 3000);
-                      })
-                    }}
-                  /> Force Secure Network
-                </Stack></Stack>}
+                  <CircularProgress color="inherit" />
+                </div>
+              :
+                <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
+                  <Typography  variant="h6" color="text.secondary">
+                    Settings {app.State !== 'running' ? '(Start container to edit)' : ''}
+                  </Typography> 
+                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+                    <Checkbox
+                      checked={app.Labels['cosmos-force-network-secured'] === 'true'}
+                      disabled={app.State !== 'running'}
+                      onChange={(e) => {
+                        setIsUpdatingId(app.Id, true);
+                        API.docker.secure(app.Id, e.target.checked).then(() => {
+                          setTimeout(() => {
+                            setIsUpdatingId(app.Id, false);
+                            refreshServeApps();
+                          }, 3000);
+                        })
+                      }}
+                    /> Force Secure Network
+                  </Stack>
+                </Stack>
+              }
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
                   URLs
                 </Typography>
                 <Stack style={noOver} spacing={2} direction="row">
-                  {getContainersRoutes(app.Names[0].replace('/', '')).map((route) => {
+                  {getContainersRoutes(config, app.Names[0].replace('/', '')).map((route) => {
                     return <HostChip route={route} settings/>
                   })}
-                  {/* {getContainersRoutes(app.Names[0].replace('/', '')).length == 0 && */}
+                  {/* {getContainersRoutes(config, app.Names[0].replace('/', '')).length == 0 && */}
                     <Chip 
                       label="New"
                       color="primary"
@@ -413,6 +260,11 @@ const ServeApps = () => {
                     {/* } */}
                 </Stack>
               </Stack>
+              <div>
+                <Link to={`/ui/servapps/containers/${app.Names[0].replace('/', '')}`}>
+                  <Button variant="outlined" color="primary" fullWidth>Details</Button>
+                </Link>
+              </div>
               {/* <Stack>
                 <Button variant="contained" color="primary" onClick={() => {
                   setOpenModal(app);

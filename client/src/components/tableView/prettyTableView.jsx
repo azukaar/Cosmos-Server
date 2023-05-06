@@ -20,6 +20,8 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
     sm: useMediaQuery((theme) => theme.breakpoints.up('sm')),
     md: useMediaQuery((theme) => theme.breakpoints.up('md')),
     lg: useMediaQuery((theme) => theme.breakpoints.up('lg')),
+    xl: useMediaQuery((theme) => theme.breakpoints.up('xl')),
+    xxl: useMediaQuery((theme) => theme.breakpoints.up('xxl')),
   }
 
   return (

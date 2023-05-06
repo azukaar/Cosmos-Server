@@ -35,7 +35,7 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 		_, errEdit := EditContainer(container.ID, container)
 		if errEdit != nil {
 			utils.Error("ContainerSecureEdit", errEdit)
-			utils.HTTPError(w, "Internal server error: " + err.Error(), http.StatusInternalServerError, "DS003")
+			utils.HTTPError(w, "Internal server error: " + errEdit.Error(), http.StatusInternalServerError, "DS003")
 			return
 		}
 

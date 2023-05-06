@@ -52,6 +52,10 @@ export const getFaviconURL = (route) => {
     return demoicons[route.Name] || logogray;
   }
 
+  if(!route) {
+    return logogray;
+  }
+
   const addRemote = (url) => {
     return '/cosmos/api/favicon?q=' + encodeURIComponent(url)
   }
@@ -102,4 +106,11 @@ export const ValidateRoute = (routeConfig, config) => {
     return ['Route Name already exists. Name must be unique.'];
   }
   return [];
+}
+
+export const getContainersRoutes = (config, containerName) => {
+  return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
+    let reg = new RegExp(`^(([a-z]+):\/\/)?${containerName}(:?[0-9]+)?$`, 'i');
+    return route.Mode == "SERVAPP" && reg.test(route.Target)
+  })) || [];
 }

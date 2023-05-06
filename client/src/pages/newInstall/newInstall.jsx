@@ -23,6 +23,9 @@ const NewInstall = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [status, setStatus] = useState(null);
     const [counter, setCounter] = useState(0);
+    let [hostname, setHostname] = useState('');
+    const [databaseEnable, setDatabaseEnable] = useState(true);
+
     const refreshStatus = async () => {
         try {
             const res = await API.getStatus()
@@ -34,7 +37,7 @@ const NewInstall = () => {
         if (typeof status !== 'undefined') {
             setTimeout(() => {
                 setCounter(counter + 1);
-            }, 2000);
+            }, 2500);
         }
     }
 
@@ -43,7 +46,7 @@ const NewInstall = () => {
     }, [counter]);
     
     useEffect(() => {
-        if(activeStep == 4 && status && !status.database) {
+        if(activeStep == 4 && status && !databaseEnable) {
             setActiveStep(5);
         }
     }, [activeStep, status]);
@@ -122,8 +125,12 @@ const NewInstall = () => {
                                     MongoDBMode: values.DBMode,
                                     MongoDB: values.MongoDB,
                                 });
-                                if(res.status == "OK")
+                                if(res.status == "OK") {
+                                    if(values.DBMode === "DisableUserManagement") {
+                                        setDatabaseEnable(false);
+                                    }
                                     setStatus({ success: true });
+                                }
                             } catch (error) {
                                 setStatus({ success: false });
                                 setErrors({ submit: error.message });
@@ -205,9 +212,14 @@ const NewInstall = () => {
                 If you enable HTTPS, it will be effective after the next restart.
             </div>
             <div>
-                {status && <div>
-                    HTTPS Certificate Mode is currently: <b>{status.HTTPSCertificateMode}</b>
-                </div>}
+                {status && <>
+                    <div>
+                        HTTPS Certificate Mode is currently: <b>{status.HTTPSCertificateMode}</b>
+                    </div>
+                    <div>
+                        Hostname is currently: <b>{status.hostname}</b>
+                    </div>
+                </>}
             </div>
             <div>
             <Formik
@@ -245,8 +257,10 @@ const NewInstall = () => {
                             TLSCert: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSCert : '',
                             Hostname: values.Hostname,
                         });
-                        if(res.status == "OK")
+                        if(res.status == "OK") {
                             setStatus({ success: true });
+                            setHostname((values.HTTPSCertificateMode == "DISABLED" ? "http://" : "https://") + values.Hostname);
+                        }
                     } catch (error) {
                         setStatus({ success: false });
                         setErrors({ submit: "Please check you have filled all the inputs properly" });
@@ -264,11 +278,15 @@ const NewInstall = () => {
                                 ["LETSENCRYPT", "Use Let's Encrypt automatic HTTPS (recommended)"],
                                 ["PROVIDED", "Supply my own HTTPS certificate"],
                                 ["SELFSIGNED", "Generate a self-signed certificate"],
-                                ["DISABLE", "Use HTTP only (not recommended)"],
+                                ["DISABLED", "Use HTTP only (not recommended)"],
                             ]}
                         />
                         {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                             <>
+                            <Alert severity="warning">
+                                If you are using Cloudflare, make sure the DNS record is <strong>NOT</strong> set to <b>Proxied</b> (you should not see the orange cloud but a grey one).
+                                Otherwise Cloudflare will not allow Let's Encrypt to verify your domain.
+                            </Alert>
                             <CosmosInputText
                                 name="SSLEmail"
                                 label="Let's Encrypt Email"
@@ -457,7 +475,12 @@ const NewInstall = () => {
                     <Button 
                         variant="contained"
                         startIcon={<LeftOutlined />}
-                        onClick={() => setActiveStep(activeStep - 1)} 
+                        onClick={() => {
+                            if(activeStep == 5 && !databaseEnable) {
+                                setActiveStep(activeStep - 2)
+                            }
+                            setActiveStep(activeStep - 1)
+                        }} 
                         disabled={activeStep <= 0}
                     >Back</Button>
 
@@ -471,7 +494,7 @@ const NewInstall = () => {
                                     step: "5",
                                 })
                                 setTimeout(() => {
-                                    window.location.href = "/ui/login";
+                                    window.location.href = hostname + "/ui/login";
                                 }, 500);
                             } else 
                                 setActiveStep(activeStep + 1)

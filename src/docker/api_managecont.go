@@ -9,7 +9,6 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
 	"github.com/gorilla/mux"
-	// "github.com/docker/docker/client"
 	contstuff "github.com/docker/docker/api/types/container"
 	doctype "github.com/docker/docker/api/types"
 )

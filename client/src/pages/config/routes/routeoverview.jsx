@@ -7,6 +7,13 @@ import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
+import IsLoggedIn from '../../../isLoggedIn';
+
+const info = {
+  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  padding: '10px',
+  borderRadius: '5px',
+}
 
 const RouteOverview = ({ routeConfig }) => {
   const [openModal, setOpenModal] = React.useState(false);
@@ -35,7 +42,7 @@ const RouteOverview = ({ routeConfig }) => {
           </div>
           <Stack spacing={2} >
             <strong>Description</strong>
-            <div>{routeConfig.Description}</div>
+            <div style={info}>{routeConfig.Description}</div>
             <strong>URL</strong>
             <div><HostChip route={routeConfig} /></div>
             <strong>Target</strong>

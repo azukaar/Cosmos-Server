@@ -62,3 +62,7 @@
     background-color: rgba(0,0,0,0.8);
   }
 }
+
+.darken {
+  filter: brightness(0.5);
+}

@@ -6,11 +6,12 @@ import MainLayout from '../layout/MainLayout';
 import UserManagement from '../pages/config/users/usermanagement';
 import ConfigManagement from '../pages/config/users/configman';
 import ProxyManagement from '../pages/config/users/proxyman';
-import ServeApps from '../pages/servapps/servapps';
+import ServeAppsIndex from '../pages/servapps/';
 import { Navigate } from 'react-router';
 import RouteConfigPage from '../pages/config/routeConfigPage';
 import logo from '../assets/images/icons/cosmos.png';
 import HomePage from '../pages/home';
+import ContainerIndex from '../pages/servapps/containers';
 
 
 // render - dashboard
@@ -52,7 +53,7 @@ const MainRoutes = {
         },
         {
             path: '/ui/servapps',
-            element: <ServeApps />
+            element: <ServeAppsIndex />
         },
         {
             path: '/ui/config-users',
@@ -69,6 +70,10 @@ const MainRoutes = {
         {
             path: '/ui/config-url/:routeName',
             element: <RouteConfigPage />,
+        },
+        {
+            path: '/ui/servapps/containers/:containerName',
+            element: <ContainerIndex />,
         },
     ]
 };

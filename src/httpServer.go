@@ -24,7 +24,7 @@ var serverPortHTTP = ""
 var serverPortHTTPS = ""
 
 func startHTTPServer(router *mux.Router) {
-	utils.Log("Listening to HTTP on :" + serverPortHTTP)
+	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
 
 	err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, router)
 
@@ -35,15 +35,14 @@ func startHTTPServer(router *mux.Router) {
 
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	config  := utils.GetMainConfig()
-	serverHostname := "0.0.0.0"
 
 	cfg := simplecert.Default
 
 	cfg.Domains = utils.GetAllHostnames()
 	cfg.CacheDir = "/config/certificates"
 	cfg.SSLEmail = config.HTTPConfig.SSLEmail
-	cfg.HTTPAddress = serverHostname+":"+serverPortHTTP
-	cfg.TLSAddress = serverHostname+":"+serverPortHTTPS
+	cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
+	cfg.TLSAddress = "0.0.0.0:"+serverPortHTTPS
 	
 	if config.HTTPConfig.DNSChallengeProvider != "" {
 		cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
@@ -59,7 +58,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 		certReloader, errSimCert = simplecert.Init(cfg, nil)
 		if errSimCert != nil {
 			  // Temporary before we have a better way to handle this
-				utils.Error("simplecert init failed, HTTPS wont renew", errSimCert)
+				utils.Error("Failed to Init Let's Encrypt. HTTPS wont renew", errSimCert)
 				startHTTPServer(router)
 				return
 		}
@@ -106,7 +105,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	
 	server := http.Server{
 		TLSConfig: tlsConf,
-		Addr: serverHostname + ":" + serverPortHTTPS,
+		Addr: "0.0.0.0:" + serverPortHTTPS,
 		ReadTimeout: 0,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout: 0,
@@ -150,7 +149,6 @@ func StartServer() {
 	HTTPConfig := config.HTTPConfig
 	serverPortHTTP = HTTPConfig.HTTPPort
 	serverPortHTTPS = HTTPConfig.HTTPSPort
-	// serverHostname := HTTPConfig.Hostname
 
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
@@ -219,14 +217,22 @@ func StartServer() {
 
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
+
+	srapi.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
+	srapi.HandleFunc("/api/volumes", docker.ListVolumeRoute)
+
+	srapi.HandleFunc("/api/network/{networkID}", docker.DeleteNetworkRoute)
+	srapi.HandleFunc("/api/networks", docker.ListNetworksRoute)
 	
 	srapi.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
-	// if(!config.HTTPConfig.AcceptAllInsecureHostname) {
-	// 	srapi.Use(utils.EnsureHostname(serverHostname))
-	// }
+	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
+		srapi.Use(utils.EnsureHostname)
+	}
 
 	srapi.Use(tokenMiddleware)
 	srapi.Use(proxy.SmartShieldMiddleware(
@@ -236,10 +242,10 @@ func StartServer() {
 			PerUserRequestLimit: 5000,
 		},
 	))
-	srapi.Use(utils.MiddlewareTimeout(20 * time.Second))
+	srapi.Use(utils.MiddlewareTimeout(30 * time.Second))
 	srapi.Use(utils.BlockPostWithoutReferer)
 	srapi.Use(proxy.BotDetectionMiddleware)
-	srapi.Use(httprate.Limit(60, 1*time.Minute, 
+	srapi.Use(httprate.Limit(120, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
     httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			utils.Error("Too many requests. Throttling", nil)
@@ -258,9 +264,9 @@ func StartServer() {
 
 	fs  := spa.SpaHandler(pwd + "/static", "index.html")
 	
-	// if(!config.HTTPConfig.AcceptAllInsecureHostname) {
-	// 	fs = utils.EnsureHostname(serverHostname)(fs)
-	// }
+	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
+		fs = utils.EnsureHostname(fs)
+	}
 
 	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
 

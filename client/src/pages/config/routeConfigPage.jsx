@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
+import IsLoggedIn from "../../isLoggedIn";
 
 const RouteConfigPage = () => {
   const { routeName } = useParams();
@@ -28,6 +29,7 @@ const RouteConfigPage = () => {
   }, []);
 
   return <div>
+    <IsLoggedIn />
     <h2>
       <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">

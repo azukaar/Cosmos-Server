@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getOrigin, getFullOrigin } from "../utils/routes";
 import { useTheme } from '@mui/material/styles';
 
-const HostChip = ({route, settings}) => {
+const HostChip = ({route, settings, style}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [isOnline, setIsOnline] = useState(null);
@@ -27,6 +27,7 @@ const HostChip = ({route, settings}) => {
     style={{
       paddingRight: '4px',
       textDecoration: isOnline ? 'none' : 'underline wavy red',
+      ...style
     }}
     onClick={() => {
       if(route.UseHost)

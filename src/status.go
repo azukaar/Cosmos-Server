@@ -45,6 +45,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"HTTPSCertificateMode": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode,
 				"needsRestart": utils.NeedsRestart,
 				"newVersionAvailable": utils.NewVersionAvailable,
+				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,
 			},
 		})
 	} else {

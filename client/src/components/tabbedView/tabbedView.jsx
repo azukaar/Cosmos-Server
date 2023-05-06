@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Tab, Tabs, Typography, MenuItem, Select, useMediaQuery } from '@mui/material';
+import { Box, Tab, Tabs, Typography, MenuItem, Select, useMediaQuery, CircularProgress } from '@mui/material';
 import { styled } from '@mui/system';
 
 const StyledTabs = styled(Tabs)`
@@ -36,7 +36,7 @@ const a11yProps = (index) => {
   };
 };
 
-const PrettyTabbedView = ({ tabs }) => {
+const PrettyTabbedView = ({ tabs, isLoading }) => {
   const [value, setValue] = useState(0);
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
 
@@ -67,15 +67,32 @@ const PrettyTabbedView = ({ tabs }) => {
           aria-label="Vertical tabs"
         >
           {tabs.map((tab, index) => (
-            <Tab key={index} label={tab.title} {...a11yProps(index)} />
+            <Tab 
+              style={{fontWeight: !tab.children ? '1000' : '', }}
+              disabled={!tab.children} key={index}
+              label={tab.title} {...a11yProps(index)}
+            />
           ))}
         </StyledTabs>
       )}
-      {tabs.map((tab, index) => (
+      {!isLoading && tabs.map((tab, index) => (
         <TabPanel key={index} value={value} index={index}>
           {tab.children}
         </TabPanel>
       ))}
+      {isLoading && (
+        <Box
+          display="flex"
+          alignItems="center" 
+          justifyContent="center" 
+          width="100%"  
+          height="100%" 
+          color="text.primary"  
+          p={2}
+        >
+          <CircularProgress />
+        </Box>
+      )}
     </Box>
   );
 };
