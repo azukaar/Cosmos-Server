@@ -52,18 +52,22 @@ func CreateCosmosNetwork() (string, error) {
 		return "", err
 	}
 
-	//if running in Docker, connect to main network
-	// utils.Debug("HOSTNAME: " + os.Getenv("HOSTNAME"))
-	// if os.Getenv("HOSTNAME") != "" {
-	// 	err := DockerClient.NetworkConnect(DockerContext, newNeworkName, os.Getenv("HOSTNAME"), &network.EndpointSettings{})
-	
-	// 	if err != nil {
-	// 		utils.Error("Docker Network Connect", err)
-	// 		return "", err
-	// 	}
-	// }
-
 	return newNeworkName, nil
+}
+
+func AttachNetworkToCosmos(newNeworkName string ) error {
+	utils.Log("Connecting Cosmos to network " + newNeworkName)
+	utils.Debug("HOSTNAME: " + os.Getenv("HOSTNAME"))
+	if os.Getenv("HOSTNAME") != "" {
+		err := DockerClient.NetworkConnect(DockerContext, newNeworkName, os.Getenv("HOSTNAME"), &network.EndpointSettings{})
+	
+		if err != nil {
+			utils.Error("Docker Network Connect", err)
+			return err
+		}
+		return nil
+	}
+	return nil
 }
 
 func ConnectToSecureNetwork(containerConfig types.ContainerJSON) (bool, error) {

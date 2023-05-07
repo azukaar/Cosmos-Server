@@ -14,6 +14,7 @@ import RouteManagement from '../config/routes/routeman';
 import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../utils/routes';
 import HostChip from '../../components/hostChip';
 import PrettyTableView from '../../components/tableView/prettyTableView';
+import NewVolumeButton from './createVolumes';
 
 const VolumeManagementList = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +57,9 @@ const VolumeManagementList = () => {
                     data={rows}
                     onRowClick={() => {}}
                     getKey={(r) => r.Name}
+                    buttons={[
+                        <NewVolumeButton refresh={refresh} />,
+                    ]}
                     columns={[
                         {
                             title: 'Volume Name',

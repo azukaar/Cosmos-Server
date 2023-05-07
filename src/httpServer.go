@@ -219,15 +219,18 @@ func StartServer() {
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 
 	srapi.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
-	srapi.HandleFunc("/api/volumes", docker.ListVolumeRoute)
+	srapi.HandleFunc("/api/volumes", docker.VolumesRoute)
 
 	srapi.HandleFunc("/api/network/{networkID}", docker.DeleteNetworkRoute)
-	srapi.HandleFunc("/api/networks", docker.ListNetworksRoute)
+	srapi.HandleFunc("/api/networks", docker.NetworkRoutes)
 	
 	srapi.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/network/{networkId}", docker.NetworkContainerRoutes)
+	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {

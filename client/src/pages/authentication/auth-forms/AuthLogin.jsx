@@ -99,30 +99,22 @@ const AuthLogin = () => {
                     password: Yup.string().max(255).required('Password is required')
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                    try {
-                        API.auth.login(values).then((data) => {
-                            if(data.status == 'error') {
-                                setStatus({ success: false });
-                                if(data.code == 'UL001') {
-                                    setErrors({ submit: 'Wrong nickname or password. Try again or try resetting your password' });
-                                } else if (data.code == 'UL002') {
-                                    setErrors({ submit: 'You have not yet registered your account. You should have an invite link in your emails. If you need a new one, contact your administrator.' });
-                                } else if(data.status == 'error') {
-                                    setErrors({ submit: 'Unexpected error. Try again later.' });
-                                }
-                                setSubmitting(false);
-                                return;
-                            } else {
-                                setStatus({ success: true });
-                                setSubmitting(false);
-                                window.location.href = redirectTo;
-                            }
-                        })
-                    } catch (err) {
-                        setStatus({ success: false });
-                        setErrors({ submit: err.message });
+                    setSubmitting(true);
+                    return API.auth.login(values).then((data) => {
+                        setStatus({ success: true });
                         setSubmitting(false);
-                    }
+                        window.location.href = redirectTo;
+                    }).catch((err) => {
+                        setStatus({ success: false });
+                        if(err.code == 'UL001') {
+                            setErrors({ submit: 'Wrong nickname or password. Try again or try resetting your password' });
+                        } else if (err.code == 'UL002') {
+                            setErrors({ submit: 'You have not yet registered your account. You should have an invite link in your emails. If you need a new one, contact your administrator.' });
+                        } else {
+                            setErrors({ submit: 'Unexpected error. Try again later.' });
+                        }
+                        setSubmitting(false);
+                    });
                 }}
             >
                 {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (

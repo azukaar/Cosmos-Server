@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"time"
+	"fmt"
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
@@ -79,55 +80,73 @@ func Connect() error {
 	return nil
 }
 
-func EditContainer(containerID string, newConfig types.ContainerJSON) (string, error) {
-	DockerNetworkLock <- true
-	defer func() { 
-		<-DockerNetworkLock 
-		utils.Debug("Unlocking EDIT Container")
-	}()
+func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string, error) {
+	
+	utils.Debug("VOLUMES:" + fmt.Sprintf("%v", newConfig.HostConfig.Mounts))
+	
+	if(oldContainerID != "") {
+		// no need to re-lock if we are reverting
+		DockerNetworkLock <- true
+		defer func() { 
+			<-DockerNetworkLock 
+			utils.Debug("Unlocking EDIT Container")
+		}()
 
-	errD := Connect()
-	if errD != nil {
-		return "", errD
-	}
-	utils.Log("EditContainer - Container updating " + containerID)
-
-	// get container informations
-	// https://godoc.org/github.com/docker/docker/api/types#ContainerJSON
-	oldContainer, err := DockerClient.ContainerInspect(DockerContext, containerID)
-
-	if err != nil {
-		return "", err
-	}
-
-	// if no name, use the same one, that will force Docker to create a hostname if not set
-	newName := oldContainer.Name
-	newConfig.Config.Hostname = newName
-
-	// stop and remove container
-	stopError := DockerClient.ContainerStop(DockerContext, containerID, container.StopOptions{})
-	if stopError != nil {
-		return "", stopError
-	}
-
-	removeError := DockerClient.ContainerRemove(DockerContext, containerID, types.ContainerRemoveOptions{})
-	if removeError != nil {
-		return "", removeError
-	}
-
-	// wait for container to be destroyed
-	//
-	for {
-		_, err := DockerClient.ContainerInspect(DockerContext, containerID)
-		if err != nil {
-			break
-		} else {
-			utils.Log("EditContainer - Waiting for container to be destroyed")
-			time.Sleep(1 * time.Second)
+		errD := Connect()
+		if errD != nil {
+			return "", errD
 		}
 	}
+	
+	newName := newConfig.Name
+	oldContainer := newConfig
 
-	utils.Log("EditContainer - Container stopped " + containerID)
+	if(oldContainerID != "") {
+		utils.Log("EditContainer - Container updating. Retriveing currently running " + oldContainerID)
+
+		var err error
+
+		// get container informations
+		// https://godoc.org/github.com/docker/docker/api/types#ContainerJSON
+		oldContainer, err = DockerClient.ContainerInspect(DockerContext, oldContainerID)
+
+		utils.Debug("OLD VOLUMES:" + fmt.Sprintf("%v", oldContainer.HostConfig.Mounts))
+
+		if err != nil {
+			return "", err
+		}
+
+		// if no name, use the same one, that will force Docker to create a hostname if not set
+		newName = oldContainer.Name
+		newConfig.Config.Hostname = newName
+
+		// stop and remove container
+		stopError := DockerClient.ContainerStop(DockerContext, oldContainerID, container.StopOptions{})
+		if stopError != nil {
+			return "", stopError
+		}
+
+		removeError := DockerClient.ContainerRemove(DockerContext, oldContainerID, types.ContainerRemoveOptions{})
+		if removeError != nil {
+			return "", removeError
+		}
+
+		// wait for container to be destroyed
+		//
+		for {
+			_, err := DockerClient.ContainerInspect(DockerContext, oldContainerID)
+			if err != nil {
+				break
+			} else {
+				utils.Log("EditContainer - Waiting for container to be destroyed")
+				time.Sleep(1 * time.Second)
+			}
+		}
+
+		utils.Log("EditContainer - Container stopped " + oldContainerID)
+	} else {
+		utils.Log("EditContainer - Revert started")
+	}
 
 	// recreate container with new informations
 	createResponse, createError := DockerClient.ContainerCreate(
@@ -139,6 +158,8 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 		newName,
 	)
 
+	utils.Log("EditContainer - Container recreated. Re-connecting networks " + createResponse.ID)
+
 	// is force secure
 	isForceSecure := newConfig.Config.Labels["cosmos-force-network-secured"] == "true"
 	
@@ -148,6 +169,7 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 			utils.Log("EditContainer - Skipping network " + networkName + " (cosmos-force-network-secured is true)")
 			continue
 		}
+		utils.Log("EditContainer - Connecting to network " + networkName)
 		errNet := ConnectToNetworkSync(networkName, createResponse.ID)
 		if errNet != nil {
 			utils.Error("EditContainer - Failed to connect to network " + networkName, errNet)
@@ -155,24 +177,56 @@ func EditContainer(containerID string, newConfig types.ContainerJSON) (string, e
 			utils.Debug("EditContainer - New Container connected to network " + networkName)
 		}
 	}
+	
+	utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
 
 	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, types.ContainerStartOptions{})
 
-	if runError != nil {
-		return "", runError
-	}
-
-	utils.Log("EditContainer - Container recreated " + createResponse.ID)
-
-	if createError != nil {
-		// attempt to restore container
-		_, restoreError := DockerClient.ContainerCreate(DockerContext, oldContainer.Config, nil, nil, nil, oldContainer.Name)
-		if restoreError != nil {
-			utils.Error("EditContainer - Failed to restore Docker Container after update failure", restoreError)
+	if createError != nil || runError != nil {
+		if(oldContainerID == "") {
+			if(createError == nil) {
+				utils.Error("EditContainer - Failed to revert. Container is re-created but in broken state.", runError)
+				return "", runError
+			} else {
+				utils.Error("EditContainer - Failed to revert. Giving up.", createError)
+				return "", createError
+			}
 		}
 
-		return "", createError
+		utils.Log("EditContainer - Failed to edit, attempting to revert changes")
+
+		if(createError == nil) {
+			utils.Log("EditContainer - Killing new broken container")
+			DockerClient.ContainerKill(DockerContext, createResponse.ID, "")
+		}
+
+		utils.Log("EditContainer - Reverting...")
+		// attempt to restore container
+		restored, restoreError := EditContainer("", oldContainer)
+
+		if restoreError != nil {
+			utils.Error("EditContainer - Failed to restore container", restoreError)
+
+			if createError != nil {
+				utils.Error("EditContainer - re-create container ", createError)
+				return "", createError
+			} else {
+				utils.Error("EditContainer - re-start container ", runError)
+				return "", runError
+			}
+		} else {
+			utils.Log("EditContainer - Container restored " + oldContainerID)
+			errorWas := ""
+			if createError != nil {
+				errorWas = createError.Error()
+			} else {
+				errorWas = runError.Error()
+			}
+			return restored, errors.New("Failed to edit container, but restored to previous state. Error was: " + errorWas)
+		}
 	}
+
+	utils.Log("EditContainer - Container started. All done! " + createResponse.ID)
 
 	return createResponse.ID, nil
 }

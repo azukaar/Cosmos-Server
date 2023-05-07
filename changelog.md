@@ -2,6 +2,7 @@
  - Protect server against direct IP access
  - Improvements to installer to make it more robust
  - Fix bug where you can't complete the setup if you don't have a database
+ - When re-creating a container to edit it, restore the previous container if the edit is not succesful
  - Stop / Start / Restart / Remove / Kill containers
 
 ## Version 0.3.0

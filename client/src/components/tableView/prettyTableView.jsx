@@ -11,7 +11,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 
-const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
+const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo, buttons, fullWidth }) => {
   const [search, setSearch] = React.useState('');
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -25,23 +25,25 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo }) => {
   }
 
   return (
-    <Stack direction="column" spacing={2}>
-      <Input placeholder="Search"
-        value={search}
-        style={{
-          width: '250px',
-        }}
-        startAdornment={
-          <InputAdornment position="start">
-            <SearchOutlined />
-          </InputAdornment>
-        }
-        onChange={(e) => {
-          setSearch(e.target.value);
-        }}
-      />
-
-      <TableContainer style={{background: isDark ? '#252b32' : '', borderTop: '3px solid ' + theme.palette.primary.main}} component={Paper}>
+    <Stack direction="column" spacing={2} style={{width: fullWidth ? '100%': ''}}>
+      <Stack direction="row" spacing={2}>
+        <Input placeholder="Search"
+          value={search}
+          style={{
+            width: '250px',
+          }}
+          startAdornment={
+            <InputAdornment position="start">
+              <SearchOutlined />
+            </InputAdornment>
+          }
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+        />
+        {buttons}
+      </Stack>
+      <TableContainer style={{width: fullWidth ? '100%': '', background: isDark ? '#252b32' : '', borderTop: '3px solid ' + theme.palette.primary.main}} component={Paper}>
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>

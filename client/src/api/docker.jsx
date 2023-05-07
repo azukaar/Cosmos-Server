@@ -91,15 +91,72 @@ const newDB = () => {
   }))
 }
 
-const manageContainer = (id, action) => {
-  return wrap(fetch('/cosmos/api/servapps/' + id + '/manage/' + action, {
+const manageContainer = (containerId, action) => {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/manage/' + action, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     }
   }))
 }
-    
+
+function updateContainer(containerId, values) {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/update', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
+function listContainerNetworks(containerId) {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/networks', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+
+function createNetwork(values) {
+  return wrap(fetch('/cosmos/api/networks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
+function attachNetwork(containerId, networkId) {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/network/' + networkId, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+
+function detachNetwork(containerId, networkId) {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/network/' + networkId, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+
+function createVolume(values) {
+  return wrap(fetch('/cosmos/api/volumes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
 export {
   list,
   get,
@@ -110,5 +167,11 @@ export {
   volumeDelete,
   networkList,
   networkDelete,
-  getContainerLogs
+  getContainerLogs,
+  updateContainer,
+  listContainerNetworks,
+  createNetwork,
+  attachNetwork,
+  detachNetwork,
+  createVolume,
 };

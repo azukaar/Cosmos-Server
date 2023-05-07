@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 	"net"
+	"strings"
 	"fmt"
 
 	"github.com/mxk/go-flowrate/flowrate"
@@ -180,18 +181,13 @@ func EnsureHostname(next http.Handler) http.Handler {
 			return
 		}
 
-		port := ""
-		if (IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443") {
-			port = ":" + MainConfig.HTTPConfig.HTTPSPort
-		} else if (!IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80") {
-			port = ":" + MainConfig.HTTPConfig.HTTPPort
-		}
-
 		hostnames := GetAllHostnames()
+
+		reqHostNoPort := strings.Split(r.Host, ":")[0]
 
 		isOk := false
 		for _, hostname := range hostnames {
-			if r.Host == hostname + port {
+			if reqHostNoPort == hostname {
 				isOk = true
 			}
 		}

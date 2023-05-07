@@ -15,6 +15,7 @@ export default function wrap(apicall) {
     snackit(rep.message);
     const e = new Error(rep.message);
     e.status = response.status;
+    e.code = rep.code;
     throw e;
   });
 }

@@ -5,6 +5,45 @@ import { useEffect, useState } from 'react';
 
 import * as API from '../../api';
 import PrettyTableView from '../../components/tableView/prettyTableView';
+import NewNetworkButton from './createNetwork';
+
+export const NetworksColumns = (theme, isDark) => [
+  {
+    title: 'Network Name',
+    field: (r) => <Stack direction='column'>
+      <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
+      <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Driver} driver</div>
+    </Stack>,
+    search: (r) => r.Name,
+  },
+  {
+    title: 'Properties',
+    screenMin: 'md',
+    field: (r) => (
+      <Stack direction="row" spacing={1}>
+        <Chip label={r.Scope} color="primary" />
+        {r.Internal && <Chip label="Internal" color="secondary" />}
+        {r.Attachable && <Chip label="Attachable" color="success" />}
+        {r.Ingress && <Chip label="Ingress" color="warning" />}
+      </Stack>
+    ),
+  },
+  {
+    title: 'IPAM gateway / mask',
+    screenMin: 'lg',
+    field: (r) => r.IPAM.Config.map((config, index) => (
+      <Stack key={index}>
+        <div>{config.Gateway}</div>
+        <div>{config.Subnet}</div>
+      </Stack>
+    )),
+  },
+  {
+    title: 'Created At',
+    screenMin: 'lg',
+    field: (r) => new Date(r.Created).toLocaleString(),
+  },
+];
 
 const NetworkManagementList = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,43 +84,13 @@ const NetworkManagementList = () => {
       {!isLoading && rows && (
         <PrettyTableView
           data={rows}
+          buttons={[
+            <NewNetworkButton refresh={refresh} />,
+          ]}
           onRowClick={() => { }}
           getKey={(r) => r.Id}
           columns={[
-            {
-              title: 'Network Name',
-              field: (r) => <Stack direction='column'>
-                <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
-                <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Driver} driver</div>
-              </Stack>,
-              search: (r) => r.Name,
-            },
-            {
-              title: 'Properties',
-              screenMin: 'md',
-              field: (r) => (
-                <Stack direction="row" spacing={1}>
-                  <Chip label={r.Scope} color="primary" />
-                  {r.Internal && <Chip label="Internal" color="secondary" />}
-                  {r.Attachable && <Chip label="Attachable" color="success" />}
-                  {r.Ingress && <Chip label="Ingress" color="warning" />}
-                </Stack>
-              ),
-            },
-            {
-              title: 'IPAM gateway / mask',
-              screenMin: 'lg',
-              field: (r) => r.IPAM.Config.map((config, index) => (
-                <div key={index}>
-                  {config.Gateway} / {config.Subnet}
-                </div>
-              )),
-            },
-            {
-              title: 'Created At',
-              screenMin: 'lg',
-              field: (r) => new Date(r.Created).toLocaleString(),
-            },
+            ...NetworksColumns(theme, isDark),
             {
               title: '',
               clickable: true,

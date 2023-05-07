@@ -3,6 +3,7 @@ package main
 import (
 	"math/rand"
 	"time"
+	"context"
 
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -22,6 +23,13 @@ func main() {
 	docker.DockerListenEvents()
 
 	docker.BootstrapAllContainersFromTags()
+
+	version, err := docker.DockerClient.ServerVersion(context.Background())
+	if err != nil {
+			panic(err)
+	}
+
+	utils.Log("Docker API version: " + version.APIVersion)
 
 	StartServer()
 }

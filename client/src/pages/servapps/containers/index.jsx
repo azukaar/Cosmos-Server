@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MainCard from '../../../components/MainCard';
 import RestartModal from '../../config/users/restart';
-import { Chip, Divider, Stack, useMediaQuery } from '@mui/material';
+import { Alert, Chip, Divider, Stack, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
@@ -13,6 +13,9 @@ import Back from '../../../components/back';
 import { useParams } from 'react-router';
 import ContainerOverview from './overview';
 import Logs from './logs';
+import DockerContainerSetup from './setup';
+import NetworkContainerSetup from './network';
+import VolumeContainerSetup from './volumes';
 
 const ContainerIndex = () => {
   const { containerName } = useParams();
@@ -53,30 +56,27 @@ const ContainerIndex = () => {
         },
         {
           title: 'Terminal',
-          children: <Logs containerInfo={container} config={config}/>
+          children: <div>
+            <Alert severity="info">This feature is not yet implemented. It is planned for next version: 0.5.0</Alert>
+          </div>
         },
         {
           title: 'Links',
-          children: <div>Links</div>
+          children: <div>
+            <Alert severity="info">This feature is not yet implemented. It is planned for next version: 0.5.0</Alert>
+          </div>
         },
-        // {
-        //   title: 'Advanced'
-        // },
         {
-          title: 'Setup',
-          children: <div>Image, Restart Policy, Environment Variables, Labels, etc...</div>
+          title: 'Docker',
+          children: <DockerContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
           title: 'Network',
-          children: <div>Urls, Networks, Ports, etc...</div>
+          children: <NetworkContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
           title: 'Volumes',
-          children: <div>Volumes</div>
-        },
-        {
-          title: 'Resources',
-          children: <div>Runtime Resources, Capabilities...</div>
+          children: <VolumeContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
       ]} />
     </Stack>
