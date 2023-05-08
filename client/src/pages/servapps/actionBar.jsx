@@ -17,6 +17,8 @@ const GetActions = ({
     setIsUpdatingId(Id, true);
     API.docker.manageContainer(Id, action).then((res) => {
       refreshServeApps();
+    }).catch((err) => {
+      refreshServeApps();
     });
   };
 

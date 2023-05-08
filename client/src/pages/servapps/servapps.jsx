@@ -190,7 +190,7 @@ const ServeApps = () => {
                   {/* <Button variant="contained" size="small" onClick={() => {}}>
                     Update
                   </Button> */}
-                  <GetActions Id={app.Id} state={app.State} setIsUpdatingId={setIsUpdatingId} refreshServeApps={refreshServeApps} />
+                  <GetActions Id={app.Names[0].replace('/', '')} state={app.State} setIsUpdatingId={setIsUpdatingId} refreshServeApps={refreshServeApps} />
                 </Stack>
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">

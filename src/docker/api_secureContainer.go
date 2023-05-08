@@ -20,8 +20,8 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	status := utils.Sanitize(vars["status"])
 	
 	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
-		utils.Error("SecureContainerRoute - Cannot force secure self", nil)
-		utils.HTTPError(w, "Cannot force secure self", http.StatusBadRequest, "DS003")
+		utils.Error("SecureContainerRoute - Container cannot update itself", nil)
+		utils.HTTPError(w, "Container cannot update itself", http.StatusBadRequest, "DS003")
 		return
 	}
 	

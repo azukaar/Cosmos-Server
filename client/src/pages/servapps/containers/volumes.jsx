@@ -59,11 +59,11 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
           const errors = {};
           // check unique
           const volumes = values.volumes.map((volume) => {
-            return `${volume.Destination}`;
+            return `${volume.Target}`;
           });
           const unique = [...new Set(volumes)];
           if (unique.length !== volumes.length) {
-            errors.submit = 'Mounts must have unique destinations';
+            errors.submit = 'Mounts must have unique targets';
           }
           return errors;
         }}

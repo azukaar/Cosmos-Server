@@ -89,7 +89,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
           <Stack spacing={2}  style={{ width: '100%' }} >
             <Stack spacing={2} direction={'row'} >
               <GetActions 
-                Id={containerInfo.Id}
+                Id={containerInfo.Name}
                 state={State.Status}
                 refreshServeApps={() => {
                   refreshAll()
