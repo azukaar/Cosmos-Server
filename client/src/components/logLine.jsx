@@ -55,6 +55,10 @@ const LogLine = ({ message, docker, isMobile }) => {
 
   if(docker) {
     let parts = html.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/)
+    if(!parts) {
+      console.error('Could not parse log line', html)
+      return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    }
     let restString = html.replace(parts[0], '')
     
     return <Stack direction={isMobile ? 'column' : 'row'} spacing={1}>

@@ -104,6 +104,11 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
             <Stack spacing={2}>
               <MainCard title={'Ports'}>
                 <Stack spacing={4}>
+                  {containerInfo.State.Status !== 'running' && (
+                  <Alert severity="warning" style={{ marginBottom: '0px' }}>
+                      This container is not running. Editing any settings will cause the container to start again.
+                    </Alert>
+                  )}
                   <div>
                     {formik.values.ports.map((port, idx) => (
                       <Grid container key={idx}>

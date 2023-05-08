@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme, Alert } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
    from '../../config/users/formShortcuts';
@@ -82,6 +82,11 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
               <MainCard title={'Docker Container Setup'}>
+              {containerInfo.State.Status !== 'running' && (
+              <Alert severity="warning" style={{ marginBottom: '15px' }}>
+                  This container is not running. Editing any settings will cause the container to start again.
+                </Alert>
+              )}
                 <Grid container spacing={4}>
                     <CosmosInputText
                       name="image"

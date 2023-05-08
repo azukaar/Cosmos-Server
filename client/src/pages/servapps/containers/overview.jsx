@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, Chip, CircularProgress, Stack, Typography, useMediaQuery } from '@mui/material';
+import { Alert, Checkbox, Chip, CircularProgress, Stack, Typography, useMediaQuery } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { ContainerOutlined, DesktopOutlined, InfoCircleOutlined, NodeExpandOutlined, PlayCircleOutlined, PlusCircleOutlined, SafetyCertificateOutlined, SettingOutlined } from '@ant-design/icons';
 import { getFaviconURL, getContainersRoutes } from '../../../utils/routes';
@@ -48,6 +48,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
   return (
     <div style={{ maxWidth: '1000px', width: '100%' }}>
       <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
+
       <ExposeModal
         openModal={openModal} 
         setOpenModal={setOpenModal}
@@ -99,6 +100,11 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
                 }}
               />
             </Stack>
+            {containerInfo.State.Status !== 'running' && (
+            <Alert severity="warning" style={{ marginBottom: '10px' }}>
+                This container is not running. Editing any settings will cause the container to start again.
+              </Alert>
+            )}
             <strong><ContainerOutlined /> Image</strong>
             <div style={info}>{Image}</div>
             <strong><DesktopOutlined /> Name</strong>
@@ -113,7 +119,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
             <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
                 checked={Config.Labels['cosmos-force-network-secured'] === 'true'}
-                disabled={State.Status !== 'running' || isUpdating}
+                disabled={isUpdating}
                 onChange={(e) => {
                   setIsUpdating(true);
                   API.docker.secure(Name, e.target.checked).then(() => {

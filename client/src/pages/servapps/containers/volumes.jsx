@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Checkbox } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Checkbox, Alert } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
   from '../../config/users/formShortcuts';
@@ -89,6 +89,11 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <MainCard title={'Volume Mounts'}>
+            {containerInfo.State.Status !== 'running' && (
+            <Alert severity="warning" style={{ marginBottom: '15px' }}>
+                This container is not running. Editing any settings will cause the container to start again.
+              </Alert>
+            )}
               <Grid container spacing={4}>
                 <Grid item xs={12}>
                       {volumes && <PrettyTableView
