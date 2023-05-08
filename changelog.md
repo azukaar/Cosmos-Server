@@ -4,13 +4,13 @@
  - Fix bug where you can't complete the setup if you don't have a database
  - When re-creating a container to edit it, restore the previous container if the edit is not succesful
  - Stop / Start / Restart / Remove / Kill containers
- - List / Delete / Create Volumes - done
- - List / Delete / Create  Networks - done
- - Container Logs Viewer - done
- - Edit Container Details and Docker Settings - done
- - Set Labels / Env variable to containers - done
- - (De)Attach networks to containers - done
- - (De)Attach volumes  to containers - done
+ - List / Delete / Create Volumes
+ - List / Delete / Create  Networks
+ - Container Logs Viewer
+ - Edit Container Details and Docker Settings
+ - Set Labels / Env variables on containers
+ - (De)Attach networks to containers
+ - (De)Attach volumes  to containers
 
 ## Version 0.3.0
  - Implement 2 FA
