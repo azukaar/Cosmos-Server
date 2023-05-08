@@ -28,7 +28,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 
 	vars := mux.Vars(req)
-	containerName := utils.Sanitize(vars["containerId"])
+	containerName := utils.SanitizeSafe(vars["containerId"])
 	// stop, start, restart, kill, remove, pause, unpause, recreate
 	action := utils.Sanitize(vars["action"])
 	
