@@ -15,6 +15,7 @@ import * as Yup from 'yup';
 
 import * as API from '../../api';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
+import ResponsiveButton from '../../components/responseiveButton';
 
 const NewNetworkButton = ({ fullWidth, refresh }) => {
   const [isOpened, setIsOpened] = useState(false);
@@ -112,13 +113,13 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
         </DialogActions>}
       </FormikProvider>
     </Dialog>
-    <Button
+    <ResponsiveButton
       fullWidth={fullWidth}
       onClick={() => setIsOpened(true)}
       startIcon={<PlusCircleOutlined />}
     >
       New Network
-    </Button>
+    </ResponsiveButton>
   </>;
 };
 

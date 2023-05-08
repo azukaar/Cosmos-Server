@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Alert } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Alert, useMediaQuery } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
   from '../../config/users/formShortcuts';
@@ -15,6 +15,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
   const [networks, setNetworks] = React.useState([]);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const padding = isMobile ? '15px 4px' : '20px 10px';
 
   React.useEffect(() => {
     API.docker.networkList().then((res) => {
@@ -101,11 +103,11 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
               <MainCard title={'Ports'}>
-                <Grid container spacing={4}>
-                  <Grid item xs={12}>
+                <Stack spacing={4}>
+                  <div>
                     {formik.values.ports.map((port, idx) => (
                       <Grid container spacing={2} key={idx}>
-                        <Grid item xs={4} style={{ padding: '20px 10px' }}>
+                        <Grid item xs={4} style={{ padding }}>
                           <TextField
                             label="Container Port"
                             fullWidth
@@ -117,7 +119,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={4} style={{ padding: '20px 10px' }}>
+                        <Grid item xs={4} style={{ padding }}>
                           <TextField
                             fullWidth
                             label="Host port"
@@ -129,7 +131,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={3} style={{ padding: '20px 10px' }}>
+                        <Grid item xs={3} style={{ padding }}>
                           <TextField
                             className="px-2 my-2"
                             variant="outlined"
@@ -147,7 +149,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                             <MenuItem value="udp">UDP</MenuItem>
                           </TextField>
                         </Grid>
-                        <Grid item xs={1} style={{ padding: '20px 10px' }}>
+                        <Grid item xs={1} style={{ padding }}>
                           <IconButton
                             fullWidth
                             variant="outlined"
@@ -180,8 +182,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                     >
                       <PlusCircleOutlined />
                     </IconButton>
-                  </Grid>
-                  <Grid item xs={12}>
+                  </div>
+                  <div>
                     <Stack direction="column" spacing={2}>
                       {formik.errors.submit && (
                         <Grid item xs={12}>
@@ -201,8 +203,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                         Update Ports
                       </LoadingButton>
                     </Stack>
-                  </Grid>
-                </Grid>
+                  </div>
+                </Stack>
               </MainCard>
               <MainCard title={'Networks'}>
                 <Stack spacing={2}>

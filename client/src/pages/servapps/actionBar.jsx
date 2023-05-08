@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconButton, Tooltip } from '@mui/material';
+import { IconButton, Tooltip, useMediaQuery } from '@mui/material';
 import { CheckCircleOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
 import * as API from '../../api';
 
@@ -10,6 +10,8 @@ const GetActions = ({
   setIsUpdatingId
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
+  console.log(isMiniMobile)
 
   const doTo = (action) => {
     setIsUpdatingId(Id, true);
@@ -22,56 +24,56 @@ const GetActions = ({
     {
       t: 'Update Available',
       if: ['update_available'],
-      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size='large'>
+      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
     },
     {
       t: 'Start',
       if: ['exited', 'created'],
-      e: <IconButton onClick={() => {doTo('start')}} size='large'>
+      e: <IconButton onClick={() => {doTo('start')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
       </IconButton>
     },
     {
       t: 'Unpause',
       if: ['paused'],
-      e: <IconButton onClick={() => {doTo('unpause')}} size='large'>
+      e: <IconButton onClick={() => {doTo('unpause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
       </IconButton>
     },
     {
       t: 'Pause',
       if: ['running'],
-      e: <IconButton onClick={() => {doTo('pause')}} size='large'>
+      e: <IconButton onClick={() => {doTo('pause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PauseCircleOutlined />
       </IconButton>
     },
     {
       t: 'Stop',
       if: ['paused', 'restarting', 'running'],
-      e: <IconButton onClick={() => {doTo('stop')}} size='large' variant="outlined">
+      e: <IconButton onClick={() => {doTo('stop')}} size={isMiniMobile ? 'medium' : 'large'} variant="outlined">
         <StopOutlined />
       </IconButton>
     },
     {
       t: 'Restart',
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
-      e: <IconButton onClick={() => doTo('restart')} size='large'>
+      e: <IconButton onClick={() => doTo('restart')} size={isMiniMobile ? 'medium' : 'large'}>
         <ReloadOutlined />
       </IconButton>
     },
     {
       t: 'Re-create',
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
-      e: <IconButton onClick={() => doTo('recreate')} color="error" size='large'>
+      e: <IconButton onClick={() => doTo('recreate')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <RollbackOutlined />
       </IconButton>
     },
     {
       t: 'Kill',
       if: ['running', 'paused', 'created', 'restarting'],
-      e: <IconButton onClick={() => doTo('kill')} color="error" size='large'>
+      e: <IconButton onClick={() => doTo('kill')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <CloseSquareOutlined />
       </IconButton>
     },

@@ -8,6 +8,7 @@ const StyledTabs = styled(Tabs)`
 
 const TabPanel = (props) => {
   const { children, value, index, ...other } = props;
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   return (
     <div
@@ -21,7 +22,7 @@ const TabPanel = (props) => {
       {...other}
     >
       {value === index && (
-        <Box p={3}>
+        <Box p={isMobile ? 1 : 3}>
           <Typography>{children}</Typography>
         </Box>
       )}
@@ -38,7 +39,7 @@ const a11yProps = (index) => {
 
 const PrettyTabbedView = ({ tabs, isLoading }) => {
   const [value, setValue] = useState(0);
-  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -51,7 +52,7 @@ const PrettyTabbedView = ({ tabs, isLoading }) => {
   return (
     <Box display="flex" height="100%" flexDirection={isMobile ? 'column' : 'row'}>
       {isMobile ? (
-        <Select value={value} onChange={handleSelectChange} sx={{ minWidth: 120 }}>
+        <Select value={value} onChange={handleSelectChange} sx={{ minWidth: 120, marginBottom: '15px' }}>
           {tabs.map((tab, index) => (
             <MenuItem key={index} value={index}>
               {tab.title}

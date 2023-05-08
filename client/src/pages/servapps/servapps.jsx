@@ -16,6 +16,7 @@ import HostChip from '../../components/hostChip';
 import { Link } from 'react-router-dom';
 import ExposeModal from './exposeModal';
 import GetActions from './actionBar';
+import ResponsiveButton from '../../components/responseiveButton';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -127,7 +128,7 @@ const ServeApps = () => {
       }
     />
 
-    <Stack spacing={2}>
+    <Stack spacing={{xs: 1, sm: 1, md: 2 }}>
       <Stack direction="row" spacing={2}>
         <Input placeholder="Search"
           value={search}
@@ -140,23 +141,26 @@ const ServeApps = () => {
             setSearch(e.target.value);
           }}
         />
-        <Button variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
+        <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServeApps();
-        }}>Refresh</Button>
+        }}>Refresh</ResponsiveButton>
         <Tooltip title="This is not implemented yet.">
           <span style={{ cursor: 'not-allowed' }}>
-            <Button variant="contained" startIcon={<AppstoreAddOutlined />} disabled>Start ServApp</Button>
+            <ResponsiveButton
+              variant="contained" 
+              startIcon={<AppstoreAddOutlined />}
+              disabled >Start ServApp</ResponsiveButton>
           </span>
         </Tooltip>
       </Stack>
 
-      <Grid2 container spacing={2}>
+      <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
         {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4} key={app.Id} item>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
               <Stack direction="column" spacing={0} alignItems="flex-start">
-                <Stack style={{position: 'relative', overflowX: 'hidden'}} direction="row" spacing={2} alignItems="center">
+                <Stack style={{position: 'relative', overflowX: 'hidden', width: '100%'}} direction="row" spacing={2} alignItems="center">
                   <Typography variant="body2" color="text.secondary">
                     {
                       ({
@@ -172,11 +176,11 @@ const ServeApps = () => {
                   </Typography>
                   <Stack direction="row" spacing={2} alignItems="center">
                     <img src={getFirstRouteFavIcon(app)} width="40px" />
-                    <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px'}}>
+                    <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'no-wrap'}}>
                       <Typography  variant="h5" color="text.secondary">
                         {app.Names[0].replace('/', '')}&nbsp;
                       </Typography>
-                      <Typography style={{ fontSize: '80%' }} color="text.secondary">
+                      <Typography color="text.secondary" style={{fontSize: '80%', whiteSpace: 'nowrap', overflow: 'hidden', maxWidth: '100%', textOverflow: 'ellipsis'}}>
                         {app.Image}
                       </Typography>
                     </Stack>

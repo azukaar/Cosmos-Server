@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
    from '../../config/users/formShortcuts';
@@ -15,6 +15,9 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
     ['on-failure', 'Restart On Failure'],
     ['unless-stopped', 'Restart Unless Stopped'],
   ];
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const padding = isMobile ? '15px 4px' : '20px 10px';
 
   return (
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
@@ -97,7 +100,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                   <Grid item xs={12}>
                     {formik.values.envVars.map((envVar, idx) => (
                       <Grid container spacing={2} key={idx}>
-                        <Grid item xs={5} style={{padding: '20px 10px'}}>
+                        <Grid item xs={5} style={{padding}}>
                           <TextField
                             label="Key"
                             fullWidth
@@ -109,7 +112,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={6} style={{padding: '20px 10px'}}>
+                        <Grid item xs={6} style={{padding}}>
                           <TextField
                             fullWidth
                             label="Value"
@@ -121,7 +124,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={1} style={{padding: '20px 10px'}}>
+                        <Grid item xs={1} style={{padding}}>
                           <IconButton
                             fullWidth
                             variant="outlined"
@@ -155,7 +158,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                   <Grid item xs={12}>
                     {formik.values.labels.map((label, idx) => (
                       <Grid container spacing={2} key={idx}>
-                        <Grid item xs={5} style={{padding: '20px 10px'}}>
+                        <Grid item xs={5} style={{padding}}>
                           <TextField
                             fullWidth
                             label="Key"
@@ -167,7 +170,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={6} style={{padding: '20px 10px'}}>
+                        <Grid item xs={6} style={{padding}}>
                           <TextField
                             label="Value"
                             fullWidth
@@ -179,7 +182,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                             }}
                           />
                         </Grid>
-                        <Grid item xs={1} style={{padding: '20px 10px'}}>
+                        <Grid item xs={1} style={{padding}}>
                           <IconButton
                             fullWidth
                             variant="outlined"

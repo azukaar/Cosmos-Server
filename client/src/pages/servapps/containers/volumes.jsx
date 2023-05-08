@@ -4,12 +4,13 @@ import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, C
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
   from '../../config/users/formShortcuts';
-import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, PlayCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
+import ResponsiveButton from '../../../components/responseiveButton';
 
 const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
   const restartPolicies = [
@@ -96,7 +97,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                         getKey={(r) => r.Id}
                         fullWidth
                         buttons={[
-                          <Button variant="outlined" color="primary" onClick={() => {
+                          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="outlined" color="primary" onClick={() => {
                             formik.setFieldValue('volumes', [...formik.values.volumes, {
                               Type: 'volume',
                               Name: '',
@@ -107,7 +108,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                             }]);
                           }}>
                             New Mount Point
-                          </Button>
+                          </ResponsiveButton>
                         ]}
                         columns={[
                           {
