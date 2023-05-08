@@ -1,0 +1,240 @@
+{
+	"data": {
+		"Id": "9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a",
+		"Created": "2023-05-07T16:14:53.9905374Z",
+		"Path": "/init",
+		"Args": [],
+		"State": {
+			"Status": "running",
+			"Running": true,
+			"Paused": false,
+			"Restarting": false,
+			"OOMKilled": false,
+			"Dead": false,
+			"Pid": 6587,
+			"ExitCode": 0,
+			"Error": "",
+			"StartedAt": "2023-05-08T15:17:06.69445Z",
+			"FinishedAt": "2023-05-07T17:40:51.0172716Z"
+		},
+		"Image": "sha256:ef697cc05e50849d738bd9e83a269db982997be7b7d8f851c84640e1c9a8c1c4",
+		"ResolvConfPath": "/var/lib/docker/containers/9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a/resolv.conf",
+		"HostnamePath": "/var/lib/docker/containers/9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a/hostname",
+		"HostsPath": "/var/lib/docker/containers/9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a/hosts",
+		"LogPath": "/var/lib/docker/containers/9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a/9219b6ce3b47d27cd53ad015fd33d2e77dd0b247b2ee5760bc21f4031194305a-json.log",
+		"Name": "/jellyfin",
+		"RestartCount": 0,
+		"Driver": "overlay2",
+		"Platform": "linux",
+		"MountLabel": "",
+		"ProcessLabel": "",
+		"AppArmorProfile": "",
+		"ExecIDs": null,
+		"HostConfig": {
+			"Binds": null,
+			"ContainerIDFile": "",
+			"LogConfig": {
+				"Type": "json-file",
+				"Config": {}
+			},
+			"NetworkMode": "default",
+			"PortBindings": {},
+			"RestartPolicy": {
+				"Name": "no",
+				"MaximumRetryCount": 0
+			},
+			"AutoRemove": false,
+			"VolumeDriver": "",
+			"VolumesFrom": null,
+			"ConsoleSize": [
+				0,
+				0
+			],
+			"CapAdd": null,
+			"CapDrop": null,
+			"CgroupnsMode": "private",
+			"Dns": [],
+			"DnsOptions": [],
+			"DnsSearch": [],
+			"ExtraHosts": null,
+			"GroupAdd": null,
+			"IpcMode": "private",
+			"Cgroup": "",
+			"Links": null,
+			"OomScoreAdj": 0,
+			"PidMode": "",
+			"Privileged": false,
+			"PublishAllPorts": false,
+			"ReadonlyRootfs": false,
+			"SecurityOpt": null,
+			"UTSMode": "",
+			"UsernsMode": "",
+			"ShmSize": 67108864,
+			"Runtime": "runc",
+			"Isolation": "",
+			"CpuShares": 0,
+			"Memory": 0,
+			"NanoCpus": 0,
+			"CgroupParent": "",
+			"BlkioWeight": 0,
+			"BlkioWeightDevice": [],
+			"BlkioDeviceReadBps": null,
+			"BlkioDeviceWriteBps": null,
+			"BlkioDeviceReadIOps": null,
+			"BlkioDeviceWriteIOps": null,
+			"CpuPeriod": 0,
+			"CpuQuota": 0,
+			"CpuRealtimePeriod": 0,
+			"CpuRealtimeRuntime": 0,
+			"CpusetCpus": "",
+			"CpusetMems": "",
+			"Devices": [],
+			"DeviceCgroupRules": null,
+			"DeviceRequests": null,
+			"MemoryReservation": 0,
+			"MemorySwap": 0,
+			"MemorySwappiness": null,
+			"OomKillDisable": null,
+			"PidsLimit": null,
+			"Ulimits": null,
+			"CpuCount": 0,
+			"CpuPercent": 0,
+			"IOMaximumIOps": 0,
+			"IOMaximumBandwidth": 0,
+			"MaskedPaths": [
+				"/proc/asound",
+				"/proc/acpi",
+				"/proc/kcore",
+				"/proc/keys",
+				"/proc/latency_stats",
+				"/proc/timer_list",
+				"/proc/timer_stats",
+				"/proc/sched_debug",
+				"/proc/scsi",
+				"/sys/firmware"
+			],
+			"ReadonlyPaths": [
+				"/proc/bus",
+				"/proc/fs",
+				"/proc/irq",
+				"/proc/sys",
+				"/proc/sysrq-trigger"
+			]
+		},
+		"GraphDriver": {
+			"Data": {
+				"LowerDir": "/var/lib/docker/overlay2/51d2becddce22ab73b3ce9bf4acecc98ba3e32e131d0ba7a038598988e58f5e1-init/diff:/var/lib/docker/overlay2/62b6f245e00f4a30491f842e6baf28c8a5162a47a37b1ecb52f8cf3946cd87fc/diff:/var/lib/docker/overlay2/cc6b084bfce23f3e2d19f4b0724265185127583488fbdf9d319bba41af794f46/diff:/var/lib/docker/overlay2/0ce4d4e04f10459993b1887a2f7410571e0e155736baa9f14be6d7bcacfc66cf/diff:/var/lib/docker/overlay2/5af33d768817f5c4c5f120d2b203f3e4fcb70ec9ececdccd36ab4bc678de6c00/diff:/var/lib/docker/overlay2/5e30ac5dd70a3275bd17a906bc95372995ac449346f7bc0e534307e4b0847ee6/diff:/var/lib/docker/overlay2/67570d82c710f15a56f1272c435ae7123056a372cd8ba37430ca9cd74d71ff79/diff:/var/lib/docker/overlay2/ca55695aef06ad37a18d3d773826dec5e00fac8185a69e59705e81af7eaa5b09/diff",
+				"MergedDir": "/var/lib/docker/overlay2/51d2becddce22ab73b3ce9bf4acecc98ba3e32e131d0ba7a038598988e58f5e1/merged",
+				"UpperDir": "/var/lib/docker/overlay2/51d2becddce22ab73b3ce9bf4acecc98ba3e32e131d0ba7a038598988e58f5e1/diff",
+				"WorkDir": "/var/lib/docker/overlay2/51d2becddce22ab73b3ce9bf4acecc98ba3e32e131d0ba7a038598988e58f5e1/work"
+			},
+			"Name": "overlay2"
+		},
+		"Mounts": [
+			{
+				"Type": "volume",
+				"Name": "MyVolume",
+				"Source": "/var/lib/docker/volumes/MyVolume/_data",
+				"Destination": "/config",
+				"Driver": "local",
+				"Mode": "",
+				"RW": true,
+				"Propagation": ""
+			}
+		],
+		"Config": {
+			"Hostname": "/jellyfin",
+			"Domainname": "",
+			"User": "",
+			"AttachStdin": false,
+			"AttachStdout": false,
+			"AttachStderr": false,
+			"ExposedPorts": {
+				"8096/tcp": {},
+				"8920/tcp": {}
+			},
+			"Tty": false,
+			"OpenStdin": false,
+			"StdinOnce": false,
+			"Env": [
+				"PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+				"HOME=/root",
+				"LANGUAGE=en_US.UTF-8",
+				"LANG=en_US.UTF-8",
+				"TERM=xterm",
+				"S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0",
+				"S6_VERBOSITY=1",
+				"S6_STAGE2_HOOK=/docker-mods",
+				"LSIO_FIRST_PARTY=true",
+				"NVIDIA_DRIVER_CAPABILITIES=compute,video,utility"
+			],
+			"Cmd": null,
+			"Image": "lscr.io/linuxserver/jellyfin:latest",
+			"Volumes": {
+				"/config": {}
+			},
+			"WorkingDir": "/",
+			"Entrypoint": [
+				"/init"
+			],
+			"OnBuild": null,
+			"Labels": {
+				"build_version": "Linuxserver.io version:- 10.8.9-1-ls203 Build-date:- 2023-03-09T03:55:22+01:00",
+				"hello": "world",
+				"maintainer": "thelamer 2",
+				"org.opencontainers.image.authors": "linuxserver.io",
+				"org.opencontainers.image.created": "2023-03-09T03:55:22+01:00",
+				"org.opencontainers.image.description": "[Jellyfin](https://jellyfin.github.io/) is a Free Software Media System that puts you in control of managing and streaming your media. It is an alternative to the proprietary Emby and Plex, to provide media from a dedicated server to end-user devices via multiple apps. Jellyfin is descended from Emby's 3.5.2 release and ported to the .NET Core framework to enable full cross-platform support. There are no strings attached, no premium licenses or features, and no hidden agendas: just a team who want to build something better and work together to achieve it.",
+				"org.opencontainers.image.documentation": "https://docs.linuxserver.io/images/docker-jellyfin",
+				"org.opencontainers.image.licenses": "GPL-3.0-only",
+				"org.opencontainers.image.ref.name": "ba55178b00972a2fbc8e7eec83e47039bfc07cae",
+				"org.opencontainers.image.revision": "ba55178b00972a2fbc8e7eec83e47039bfc07cae",
+				"org.opencontainers.image.source": "https://github.com/linuxserver/docker-jellyfin",
+				"org.opencontainers.image.title": "Jellyfin",
+				"org.opencontainers.image.url": "https://github.com/linuxserver/docker-jellyfin/packages",
+				"org.opencontainers.image.vendor": "linuxserver.io",
+				"org.opencontainers.image.version": "10.8.9-1-ls203"
+			}
+		},
+		"NetworkSettings": {
+			"Bridge": "",
+			"SandboxID": "89ef2aa8a50584797af8ef19750429337f78b8a072eb71ea3cc8a332011199d9",
+			"HairpinMode": false,
+			"LinkLocalIPv6Address": "",
+			"LinkLocalIPv6PrefixLen": 0,
+			"Ports": {
+				"8096/tcp": null,
+				"8920/tcp": null
+			},
+			"SandboxKey": "/var/run/docker/netns/89ef2aa8a505",
+			"SecondaryIPAddresses": null,
+			"SecondaryIPv6Addresses": null,
+			"EndpointID": "7a376127fcbc669a14fef2e56fbfd761130456a144f548030f2293dcb5d150c8",
+			"Gateway": "172.17.0.1",
+			"GlobalIPv6Address": "",
+			"GlobalIPv6PrefixLen": 0,
+			"IPAddress": "172.17.0.4",
+			"IPPrefixLen": 16,
+			"IPv6Gateway": "",
+			"MacAddress": "02:42:ac:11:00:04",
+			"Networks": {
+				"bridge": {
+					"IPAMConfig": null,
+					"Links": null,
+					"Aliases": null,
+					"NetworkID": "d1d39f3e484527f0a22f72275309a6853ea5e84b64c726d75ab3735e5b316eeb",
+					"EndpointID": "7a376127fcbc669a14fef2e56fbfd761130456a144f548030f2293dcb5d150c8",
+					"Gateway": "172.17.0.1",
+					"IPAddress": "172.17.0.4",
+					"IPPrefixLen": 16,
+					"IPv6Gateway": "",
+					"GlobalIPv6Address": "",
+					"GlobalIPv6PrefixLen": 0,
+					"MacAddress": "02:42:ac:11:00:04",
+					"DriverOpts": null
+				}
+			}
+		}
+	},
+	"status": "OK"
+}

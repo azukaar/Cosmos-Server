@@ -1,0 +1,170 @@
+{
+	"data": [
+		{
+			"Name": "test2",
+			"Id": "6675d361c126d013dbc4cba07c140821879718af3d52f15a07aa94dabbffe124",
+			"Created": "2023-05-08T11:18:08.4273302Z",
+			"Scope": "local",
+			"Driver": "bridge",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": [
+					{
+						"Subnet": "172.18.0.0/16",
+						"Gateway": "172.18.0.1"
+					}
+				]
+			},
+			"Internal": false,
+			"Attachable": false,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {},
+			"Labels": {}
+		},
+		{
+			"Name": "bridge",
+			"Id": "d1d39f3e484527f0a22f72275309a6853ea5e84b64c726d75ab3735e5b316eeb",
+			"Created": "2023-05-08T11:06:04.195972Z",
+			"Scope": "local",
+			"Driver": "bridge",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": [
+					{
+						"Subnet": "172.17.0.0/16",
+						"Gateway": "172.17.0.1"
+					}
+				]
+			},
+			"Internal": false,
+			"Attachable": false,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {
+				"com.docker.network.bridge.default_bridge": "true",
+				"com.docker.network.bridge.enable_icc": "true",
+				"com.docker.network.bridge.enable_ip_masquerade": "true",
+				"com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+				"com.docker.network.bridge.name": "docker0",
+				"com.docker.network.driver.mtu": "1500"
+			},
+			"Labels": {}
+		},
+		{
+			"Name": "Also Test",
+			"Id": "3128c9c7e83a03b297249a6c8df437d6a9656a405efd0c3f937aee7e7b1d993d",
+			"Created": "2023-05-07T17:28:12.2844952Z",
+			"Scope": "local",
+			"Driver": "bridge",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": [
+					{
+						"Subnet": "172.26.0.0/16",
+						"Gateway": "172.26.0.1"
+					}
+				]
+			},
+			"Internal": false,
+			"Attachable": false,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {},
+			"Labels": {}
+		},
+		{
+			"Name": "host",
+			"Id": "40f43ad5c13390b477d496a57cd3f2eacef3b92262de2429e369e5655d1fe13a",
+			"Created": "2020-03-15T16:34:57.75505446Z",
+			"Scope": "local",
+			"Driver": "host",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": []
+			},
+			"Internal": false,
+			"Attachable": false,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {},
+			"Labels": {}
+		},
+		{
+			"Name": "none",
+			"Id": "d2fd80f8cd33c60a81487eec8b7e663acf539479411c8d38d234b7943403270f",
+			"Created": "2020-03-15T16:34:57.74630246Z",
+			"Scope": "local",
+			"Driver": "null",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": []
+			},
+			"Internal": false,
+			"Attachable": false,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {},
+			"Labels": {}
+		},
+		{
+			"Name": "cosmos-network-Y5UKzxkrk",
+			"Id": "37357fc736ac7510162d036033c4bc3b50955accc484a473bc78b21c9fe860e5",
+			"Created": "2023-05-08T13:28:43.0766901Z",
+			"Scope": "local",
+			"Driver": "bridge",
+			"EnableIPv6": false,
+			"IPAM": {
+				"Driver": "default",
+				"Options": null,
+				"Config": [
+					{
+						"Subnet": "172.20.0.0/16",
+						"Gateway": "172.20.0.1"
+					}
+				]
+			},
+			"Internal": false,
+			"Attachable": true,
+			"Ingress": false,
+			"ConfigFrom": {
+				"Network": ""
+			},
+			"ConfigOnly": false,
+			"Containers": {},
+			"Options": {},
+			"Labels": {}
+		}
+	],
+	"status": "OK"
+}

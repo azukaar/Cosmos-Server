@@ -1,0 +1,2505 @@
+{
+	"data": [
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.410342800Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.410344800Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.410346800Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.410348800Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410350700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410352700Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410354800Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.410356700Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.410358600Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.410360400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.410362400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410364400Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 187,
+			"output": "2023-05-07T17:39:00.410367100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 176,
+			"output": "2023-05-07T17:39:00.410369400Z    at Rssdp.Infrastructure.SsdpDeviceLocator.BroadcastDiscoverMessage(String serviceType, TimeSpan mxValue, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 171,
+			"output": "2023-05-07T17:39:00.410371500Z    at Rssdp.Infrastructure.SsdpDeviceLocator.SearchAsync(String searchTarget, TimeSpan searchWaitTime, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:39:00.410373300Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410375200Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:39:00.410383900Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.410386800Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.410392200Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.410394300Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410396100Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410398100Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.410400000Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.410401900Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.410403800Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.410405700Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.410407500Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410409400Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.410411500Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410413400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:39:00.410449700Z [17:39:00] [ERR] [39] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:39:00.410460500Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.410463100Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.410465000Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.410467000Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.410469000Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.410471000Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410473000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410475000Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410477000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.410479000Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.410484400Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.410486400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.410488400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410490400Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 187,
+			"output": "2023-05-07T17:39:00.410492600Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 176,
+			"output": "2023-05-07T17:39:00.410494600Z    at Rssdp.Infrastructure.SsdpDeviceLocator.BroadcastDiscoverMessage(String serviceType, TimeSpan mxValue, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 171,
+			"output": "2023-05-07T17:39:00.410496600Z    at Rssdp.Infrastructure.SsdpDeviceLocator.SearchAsync(String searchTarget, TimeSpan searchWaitTime, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:39:00.410498400Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.410500200Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:39:00.410502100Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.410503900Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.410505800Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.410507600Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410509400Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410511200Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.410520100Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.410522100Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.410524000Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.410525800Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.410527600Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.410529400Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.410531400Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.410563800Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:39:00.511957800Z [17:39:00] [ERR] [37] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.22.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:39:00.511983800Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.512484400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.512496000Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.512521200Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.512525700Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.512638800Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.512670900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.512676300Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.512708900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.512713700Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.512715700Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.512736100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.512755700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.512759700Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.512783200Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:39:00.512787600Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.512789700Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.512811600Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.512815500Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.512817400Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.512847500Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.512867600Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.512870200Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.512893200Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.512897400Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.512899600Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.512901400Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.512930800Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.512935500Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.512955500Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:39:00.513862800Z [17:39:00] [ERR] [37] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:39:00.513880100Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.513922000Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.513927300Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.513946900Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.513950800Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.513968400Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.514000000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.514004700Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.514024900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.514028900Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.514031000Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.514048100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.514074800Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.514090800Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.514112000Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:39:00.514116000Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.514118000Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.514140600Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.514144900Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.514146900Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.514164000Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.514167800Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.514169800Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.514198400Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.514202700Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.514204700Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.514206500Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.514225900Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.514229900Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.514246900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:39:00.615624200Z [17:39:00] [ERR] [39] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.22.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:39:00.615663100Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.615666700Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.615668900Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.615670900Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.615672800Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.615674800Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615689500Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.615691900Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615694100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615696000Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.615697900Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.615699700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.615701700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.615703700Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.615706600Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:39:00.615708600Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.615710500Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615712400Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615714200Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.615716000Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615717800Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615719700Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.615727800Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.615730500Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.615732400Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.615734300Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.615736100Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615738000Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.615740100Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615741900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:39:00.615817900Z [17:39:00] [ERR] [39] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:39:00.615823500Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.615825500Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:39:00.615827400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:39:00.615829400Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:39:00.615882700Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:39:00.615885300Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615887400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:39:00.615889400Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615891400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615893400Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:39:00.615895300Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:39:00.615897100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:39:00.615899600Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:39:00.615901600Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:39:00.615904100Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:39:00.615906100Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.615908000Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615909800Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:39:00.615911600Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:39:00.615913400Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615919500Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615921700Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:39:00.615923600Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:39:00.615925400Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:39:00.615927200Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.615929000Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:39:00.615930800Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:39:00.615932700Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:39:00.615934700Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:39:00.615936500Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.411483600Z [17:40:00] [ERR] [33] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.22.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.411534500Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.411543300Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.411545900Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.411548200Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.411550100Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.411552100Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.411554100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.411556100Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.411558600Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.411560500Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.411562400Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.411564200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.411576200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.411578700Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 187,
+			"output": "2023-05-07T17:40:00.411581900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 176,
+			"output": "2023-05-07T17:40:00.411583900Z    at Rssdp.Infrastructure.SsdpDeviceLocator.BroadcastDiscoverMessage(String serviceType, TimeSpan mxValue, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 171,
+			"output": "2023-05-07T17:40:00.411585700Z    at Rssdp.Infrastructure.SsdpDeviceLocator.SearchAsync(String searchTarget, TimeSpan searchWaitTime, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:40:00.411587900Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.411589700Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:40:00.411591600Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.411593500Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.411595400Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.411604700Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.411607400Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.411609300Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.411611200Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.411613100Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.411614900Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.411616700Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.411618500Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.411620400Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.411622500Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.411624300Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.413143900Z [17:40:00] [ERR] [33] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.413156300Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.413158800Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.413167800Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.413170200Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.413172200Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.413174100Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.413176100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.413178200Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.413180200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.413182200Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.413193300Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.413196000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.413198100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.413200100Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 187,
+			"output": "2023-05-07T17:40:00.413202800Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 176,
+			"output": "2023-05-07T17:40:00.413204800Z    at Rssdp.Infrastructure.SsdpDeviceLocator.BroadcastDiscoverMessage(String serviceType, TimeSpan mxValue, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 171,
+			"output": "2023-05-07T17:40:00.413206700Z    at Rssdp.Infrastructure.SsdpDeviceLocator.SearchAsync(String searchTarget, TimeSpan searchWaitTime, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:40:00.413208600Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.413210400Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 115,
+			"output": "2023-05-07T17:40:00.413212300Z    at Rssdp.Infrastructure.SsdpDeviceLocator.OnBroadcastTimerCallback(Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.413214100Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.413216000Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.413217800Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.413222800Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.413225200Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.413227100Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.413229000Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.413230800Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.413232600Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.413234500Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.413236300Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.413238400Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.413240200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.517121700Z [17:40:00] [ERR] [34] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.22.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.517142300Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.517145000Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.517147200Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.517149200Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.517151300Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.517153300Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517155300Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.517157300Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517159400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517161300Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.517169900Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.517172700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.517183900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.517186300Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.517188900Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:40:00.517190800Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.517192700Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517194500Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517196300Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.517198100Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517199900Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517201700Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.517203600Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.517205800Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.517207700Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.517209600Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.517211400Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517213200Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.517215300Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517217100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.517896800Z [17:40:00] [ERR] [34] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.517906900Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.517909400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.517911400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.517913500Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.517915500Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.517922900Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517925200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.517927200Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517929200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517931100Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.517933000Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.517934900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.517936900Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.517938900Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.517941300Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:40:00.517943300Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.517945200Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517947000Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.517948900Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.517950700Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517952500Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517965400Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.517968400Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.517970400Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.517972200Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.517974000Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.517975800Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.517977700Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.517983100Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.517985100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.620561800Z [17:40:00] [ERR] [34] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.22.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.620583600Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.620586400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.620588500Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.620590500Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.620592500Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.620594500Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.620596400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.620598600Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.620600800Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.620602800Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.620604600Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.620606400Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.620621000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.620624000Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.620626800Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:40:00.620628800Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.620630700Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.620632600Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.620644800Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.620647100Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.620649000Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.620650900Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.620652700Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.620654600Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.620656400Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.620658200Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.620660000Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.620661800Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.620663900Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.620665700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 153,
+			"output": "2023-05-07T17:40:00.621131200Z [17:40:00] [ERR] [34] Emby.Dlna.Main.DlnaEntryPoint: Error sending socket message from 172.21.0.2 to 239.255.255.250:1900"
+		},
+		{
+			"streamType": 1,
+			"size": 96,
+			"output": "2023-05-07T17:40:00.621140000Z System.Net.Sockets.SocketException (101): Network is unreachable"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.621142400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.CreateException(SocketError error, Boolean forAsyncThrow)"
+		},
+		{
+			"streamType": 1,
+			"size": 157,
+			"output": "2023-05-07T17:40:00.621144400Z    at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.SendToAsync(Socket socket, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 181,
+			"output": "2023-05-07T17:40:00.621146300Z    at System.Net.Sockets.Socket.SendToAsync(ReadOnlyMemory`1 buffer, SocketFlags socketFlags, EndPoint remoteEP, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 198,
+			"output": "2023-05-07T17:40:00.621148200Z    at System.Net.Sockets.Socket.BeginSendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP, AsyncCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 191,
+			"output": "2023-05-07T17:40:00.621150200Z    at Emby.Server.Implementations.Net.UdpSocket.SendToAsync(Byte[] buffer, Int32 offset, Int32 bytes, IPEndPoint endPoint, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.621152100Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:00.621154000Z    at System.Runtime.CompilerServices.AsyncMethodBuilderCore.Start[TStateMachine](TStateMachine& stateMachine)"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.621156000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.621157900Z    at System.Linq.Enumerable.WhereSelectListIterator`2.MoveNext()"
+		},
+		{
+			"streamType": 1,
+			"size": 94,
+			"output": "2023-05-07T17:40:00.621159700Z    at System.Threading.Tasks.Task.WhenAll(IEnumerable`1 tasks)"
+		},
+		{
+			"streamType": 1,
+			"size": 225,
+			"output": "2023-05-07T17:40:00.621167000Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMessageIfSocketNotDisposed(Byte[] messageData, IPEndPoint destination, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 204,
+			"output": "2023-05-07T17:40:00.621169700Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendMulticastMessage(String message, Int32 sendCount, IPAddress fromLocalIpAddress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 158,
+			"output": "2023-05-07T17:40:00.621171700Z    at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)"
+		},
+		{
+			"streamType": 1,
+			"size": 151,
+			"output": "2023-05-07T17:40:00.621174200Z    at System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1.AsyncStateMachineBox`1.MoveNext(Thread threadPoolThread)"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-07T17:40:00.621176100Z    at System.Threading.Tasks.AwaitTaskContinuation.RunOrScheduleAction(IAsyncStateMachineBox box, Boolean allowInlining)"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.621178000Z    at System.Threading.Tasks.Task.RunContinuations(Object continuationObject)"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.621179900Z    at System.Threading.Tasks.Task.DelayPromise.CompleteTimedOut()"
+		},
+		{
+			"streamType": 1,
+			"size": 97,
+			"output": "2023-05-07T17:40:00.621181700Z    at System.Threading.TimerQueueTimer.Fire(Boolean isThreadPool)"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-07T17:40:00.621183500Z    at System.Threading.TimerQueue.FireNextTimers()"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.621185300Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.621187200Z    at System.Threading.UnmanagedThreadPoolWorkItem.ExecuteUnmanagedThreadPoolWorkItem(IntPtr callback, IntPtr state)"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:00.621189100Z    at System.Threading.UnmanagedThreadPoolWorkItem.System.Threading.IThreadPoolWorkItem.Execute()"
+		},
+		{
+			"streamType": 1,
+			"size": 85,
+			"output": "2023-05-07T17:40:00.621202200Z    at System.Threading.ThreadPoolWorkQueue.Dispatch()"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-07T17:40:00.621204800Z    at System.Threading.PortableThreadPool.WorkerThread.WorkerThreadStart()"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.621206700Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:00.621208500Z    at System.Threading.Tasks.TaskToApm.End[TResult](IAsyncResult asyncResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-07T17:40:00.621210300Z    at Emby.Server.Implementations.Net.UdpSocket.<>c__DisplayClass21_0.<SendToAsync>b__0(IAsyncResult callbackResult)"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-07T17:40:00.621212400Z --- End of stack trace from previous location ---"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-07T17:40:00.621214200Z    at Rssdp.Infrastructure.SsdpCommunicationsServer.SendFromSocket(ISocket socket, Byte[] messageData, IPEndPoint destination, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 99,
+			"output": "2023-05-07T17:40:46.940235700Z [17:40:46] [INF] [2] Main: Received a SIGTERM signal, shutting down"
+		},
+		{
+			"streamType": 1,
+			"size": 137,
+			"output": "2023-05-07T17:40:46.940450000Z [17:40:46] [INF] [2] Main: Running query planner optimizations in the database... This might take a while"
+		},
+		{
+			"streamType": 1,
+			"size": 119,
+			"output": "2023-05-07T17:40:46.950201500Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing CoreAppHost"
+		},
+		{
+			"streamType": 1,
+			"size": 114,
+			"output": "2023-05-07T17:40:46.950946100Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing EmbyTV"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-07T17:40:46.951840800Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing DeviceAccessEntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-07T17:40:46.952056500Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing UserDataChangeNotifier"
+		},
+		{
+			"streamType": 1,
+			"size": 118,
+			"output": "2023-05-07T17:40:46.952461500Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing EntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-07T17:40:46.952648900Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing ExternalPortForwarding"
+		},
+		{
+			"streamType": 1,
+			"size": 139,
+			"output": "2023-05-07T17:40:46.953269500Z [17:40:46] [INF] [2] Emby.Server.Implementations.EntryPoints.ExternalPortForwarding: Stopping NAT discovery"
+		},
+		{
+			"streamType": 1,
+			"size": 125,
+			"output": "2023-05-07T17:40:46.955257900Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing RecordingNotifier"
+		},
+		{
+			"streamType": 1,
+			"size": 123,
+			"output": "2023-05-07T17:40:46.956216500Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing SchedulesDirect"
+		},
+		{
+			"streamType": 1,
+			"size": 127,
+			"output": "2023-05-07T17:40:46.956479800Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing UdpServerEntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 118,
+			"output": "2023-05-07T17:40:46.957587100Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing EntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 129,
+			"output": "2023-05-07T17:40:46.957858500Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing LibraryMonitorStartup"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-07T17:40:46.958038600Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing NotificationEntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 132,
+			"output": "2023-05-07T17:40:46.958673100Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing MusicBrainzAlbumProvider"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-07T17:40:46.958953700Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing LibraryChangedNotifier"
+		},
+		{
+			"streamType": 1,
+			"size": 122,
+			"output": "2023-05-07T17:40:46.959996400Z [17:40:46] [INF] [2] Emby.Server.Implementations.ApplicationHost: Disposing DlnaEntryPoint"
+		},
+		{
+			"streamType": 1,
+			"size": 107,
+			"output": "2023-05-07T17:40:46.960430600Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: Disposing PlayToManager"
+		},
+		{
+			"streamType": 1,
+			"size": 109,
+			"output": "2023-05-07T17:40:46.961061200Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: Disposing DeviceDiscovery"
+		},
+		{
+			"streamType": 1,
+			"size": 118,
+			"output": "2023-05-07T17:40:46.961623200Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: Disposing SsdpCommunicationsServer"
+		},
+		{
+			"streamType": 1,
+			"size": 141,
+			"output": "2023-05-07T17:40:46.961958800Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing _BroadcastListenSocket"
+		},
+		{
+			"streamType": 1,
+			"size": 132,
+			"output": "2023-05-07T17:40:46.963412200Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer Disposing 5 sendSockets"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-07T17:40:46.963643100Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing sendSocket from 0.0.0.0"
+		},
+		{
+			"streamType": 1,
+			"size": 145,
+			"output": "2023-05-07T17:40:46.964255000Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing sendSocket from 172.17.0.2"
+		},
+		{
+			"streamType": 1,
+			"size": 145,
+			"output": "2023-05-07T17:40:46.965066900Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing sendSocket from 172.22.0.2"
+		},
+		{
+			"streamType": 1,
+			"size": 145,
+			"output": "2023-05-07T17:40:46.965600500Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing sendSocket from 172.21.0.2"
+		},
+		{
+			"streamType": 1,
+			"size": 144,
+			"output": "2023-05-07T17:40:46.966116800Z [17:40:46] [INF] [2] Emby.Dlna.Main.DlnaEntryPoint: SsdpCommunicationsServer disposing sendSocket from 127.0.0.1"
+		},
+		{
+			"streamType": 1,
+			"size": 52,
+			"output": "2023-05-08T15:17:06.782771500Z [migrations] started"
+		},
+		{
+			"streamType": 1,
+			"size": 64,
+			"output": "2023-05-08T15:17:06.783751800Z [migrations] no migrations found"
+		},
+		{
+			"streamType": 1,
+			"size": 51,
+			"output": "2023-05-08T15:17:06.805244700Z usermod: no changes"
+		},
+		{
+			"streamType": 1,
+			"size": 149,
+			"output": "2023-05-08T15:17:06.806005300Z ───────────────────────────────────────"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.806018900Z "
+		},
+		{
+			"streamType": 1,
+			"size": 108,
+			"output": "2023-05-08T15:17:06.806021800Z       ██╗     ███████╗██╗ ██████╗ "
+		},
+		{
+			"streamType": 1,
+			"size": 112,
+			"output": "2023-05-08T15:17:06.806023900Z       ██║     ██╔════╝██║██╔═══██╗"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-08T15:17:06.806025900Z       ██║     ███████╗██║██║   ██║"
+		},
+		{
+			"streamType": 1,
+			"size": 106,
+			"output": "2023-05-08T15:17:06.806027900Z       ██║     ╚════██║██║██║   ██║"
+		},
+		{
+			"streamType": 1,
+			"size": 122,
+			"output": "2023-05-08T15:17:06.806029800Z       ███████╗███████║██║╚██████╔╝"
+		},
+		{
+			"streamType": 1,
+			"size": 118,
+			"output": "2023-05-08T15:17:06.806031800Z       ╚══════╝╚══════╝╚═╝ ╚═════╝ "
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.806033800Z "
+		},
+		{
+			"streamType": 1,
+			"size": 67,
+			"output": "2023-05-08T15:17:06.806035600Z    Brought to you by linuxserver.io"
+		},
+		{
+			"streamType": 1,
+			"size": 149,
+			"output": "2023-05-08T15:17:06.806037400Z ───────────────────────────────────────"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.806186100Z "
+		},
+		{
+			"streamType": 1,
+			"size": 64,
+			"output": "2023-05-08T15:17:06.806242700Z To support the app dev(s) visit:"
+		},
+		{
+			"streamType": 1,
+			"size": 77,
+			"output": "2023-05-08T15:17:06.806706200Z Jellyfin: https://opencollective.com/jellyfin"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.806863700Z "
+		},
+		{
+			"streamType": 1,
+			"size": 63,
+			"output": "2023-05-08T15:17:06.806871700Z To support LSIO projects visit:"
+		},
+		{
+			"streamType": 1,
+			"size": 66,
+			"output": "2023-05-08T15:17:06.806874300Z https://www.linuxserver.io/donate/"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.806876400Z "
+		},
+		{
+			"streamType": 1,
+			"size": 149,
+			"output": "2023-05-08T15:17:06.806878300Z ───────────────────────────────────────"
+		},
+		{
+			"streamType": 1,
+			"size": 39,
+			"output": "2023-05-08T15:17:06.806880600Z GID/UID"
+		},
+		{
+			"streamType": 1,
+			"size": 149,
+			"output": "2023-05-08T15:17:06.806882500Z ───────────────────────────────────────"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.809265200Z "
+		},
+		{
+			"streamType": 1,
+			"size": 48,
+			"output": "2023-05-08T15:17:06.809284800Z User UID:    911"
+		},
+		{
+			"streamType": 1,
+			"size": 48,
+			"output": "2023-05-08T15:17:06.809287700Z User GID:    911"
+		},
+		{
+			"streamType": 1,
+			"size": 149,
+			"output": "2023-05-08T15:17:06.809289800Z ───────────────────────────────────────"
+		},
+		{
+			"streamType": 1,
+			"size": 32,
+			"output": "2023-05-08T15:17:06.809292400Z "
+		},
+		{
+			"streamType": 1,
+			"size": 80,
+			"output": "2023-05-08T15:17:06.853554700Z [custom-init] No custom files found, skipping..."
+		},
+		{
+			"streamType": 1,
+			"size": 83,
+			"output": "2023-05-08T15:17:07.114293000Z [15:17:07] [INF] [1] Main: Jellyfin version: 10.8.9"
+		},
+		{
+			"streamType": 1,
+			"size": 274,
+			"output": "2023-05-08T15:17:07.120234000Z [15:17:07] [INF] [1] Main: Environment Variables: [\"[JELLYFIN_CACHE_DIR, /config/cache]\", \"[JELLYFIN_WEB_DIR, /usr/share/jellyfin/web]\", \"[JELLYFIN_LOG_DIR, /config/log]\", \"[JELLYFIN_CONFIG_DIR, /config]\", \"[JELLYFIN_DATA_DIR, /config/data]\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 152,
+			"output": "2023-05-08T15:17:07.120371700Z [15:17:07] [INF] [1] Main: Arguments: [\"/usr/lib/jellyfin/bin/jellyfin.dll\", \"--ffmpeg=/usr/lib/jellyfin-ffmpeg/ffmpeg\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 82,
+			"output": "2023-05-08T15:17:07.120965300Z [15:17:07] [INF] [1] Main: Operating system: Linux"
+		},
+		{
+			"streamType": 1,
+			"size": 76,
+			"output": "2023-05-08T15:17:07.121466200Z [15:17:07] [INF] [1] Main: Architecture: X64"
+		},
+		{
+			"streamType": 1,
+			"size": 79,
+			"output": "2023-05-08T15:17:07.121537900Z [15:17:07] [INF] [1] Main: 64-Bit Process: True"
+		},
+		{
+			"streamType": 1,
+			"size": 81,
+			"output": "2023-05-08T15:17:07.121592500Z [15:17:07] [INF] [1] Main: User Interactive: True"
+		},
+		{
+			"streamType": 1,
+			"size": 77,
+			"output": "2023-05-08T15:17:07.121641800Z [15:17:07] [INF] [1] Main: Processor count: 2"
+		},
+		{
+			"streamType": 1,
+			"size": 90,
+			"output": "2023-05-08T15:17:07.121692300Z [15:17:07] [INF] [1] Main: Program data path: /config/data"
+		},
+		{
+			"streamType": 1,
+			"size": 102,
+			"output": "2023-05-08T15:17:07.121786100Z [15:17:07] [INF] [1] Main: Web resources path: /usr/share/jellyfin/web"
+		},
+		{
+			"streamType": 1,
+			"size": 104,
+			"output": "2023-05-08T15:17:07.121889300Z [15:17:07] [INF] [1] Main: Application directory: /usr/lib/jellyfin/bin/"
+		},
+		{
+			"streamType": 1,
+			"size": 144,
+			"output": "2023-05-08T15:17:07.197489700Z [15:17:07] [INF] [1] Jellyfin.Server.Migrations.MigrationRunner: Applying migration 'CreateNetworkConfiguration'"
+		},
+		{
+			"streamType": 1,
+			"size": 156,
+			"output": "2023-05-08T15:17:07.219206300Z [15:17:07] [INF] [1] Jellyfin.Server.Migrations.MigrationRunner: Migration 'CreateNetworkConfiguration' applied successfully"
+		},
+		{
+			"streamType": 1,
+			"size": 148,
+			"output": "2023-05-08T15:17:07.240676700Z [15:17:07] [INF] [1] Emby.Server.Implementations.AppBase.BaseConfigurationManager: Setting cache path: /config/cache"
+		},
+		{
+			"streamType": 1,
+			"size": 116,
+			"output": "2023-05-08T15:17:07.253510900Z [15:17:07] [INF] [1] Emby.Server.Implementations.ApplicationHost: Loading assemblies"
+		},
+		{
+			"streamType": 1,
+			"size": 162,
+			"output": "2023-05-08T15:17:07.321875500Z [15:17:07] [INF] [1] Jellyfin.Networking.Manager.NetworkManager: Defined LAN addresses : [10.0.0.0/8,172.16.0.0/12,192.168.0.0/16]"
+		},
+		{
+			"streamType": 1,
+			"size": 124,
+			"output": "2023-05-08T15:17:07.321930100Z [15:17:07] [INF] [1] Jellyfin.Networking.Manager.NetworkManager: Defined LAN exclusions : []"
+		},
+		{
+			"streamType": 1,
+			"size": 159,
+			"output": "2023-05-08T15:17:07.322451700Z [15:17:07] [INF] [1] Jellyfin.Networking.Manager.NetworkManager: Using LAN addresses: [10.0.0.0/8,172.16.0.0/12,192.168.0.0/16]"
+		},
+		{
+			"streamType": 1,
+			"size": 121,
+			"output": "2023-05-08T15:17:07.327173100Z [15:17:07] [INF] [1] Jellyfin.Networking.Manager.NetworkManager: Using bind addresses: []"
+		},
+		{
+			"streamType": 1,
+			"size": 122,
+			"output": "2023-05-08T15:17:07.327210000Z [15:17:07] [INF] [1] Jellyfin.Networking.Manager.NetworkManager: Using bind exclusions: []"
+		},
+		{
+			"streamType": 1,
+			"size": 132,
+			"output": "2023-05-08T15:17:08.537169900Z [15:17:08] [INF] [1] Emby.Server.Implementations.Plugins.PluginManager: Loaded plugin: TMDb 10.8.9.0"
+		},
+		{
+			"streamType": 1,
+			"size": 141,
+			"output": "2023-05-08T15:17:08.538076300Z [15:17:08] [INF] [1] Emby.Server.Implementations.Plugins.PluginManager: Loaded plugin: Studio Images 10.8.9.0"
+		},
+		{
+			"streamType": 1,
+			"size": 132,
+			"output": "2023-05-08T15:17:08.538565300Z [15:17:08] [INF] [1] Emby.Server.Implementations.Plugins.PluginManager: Loaded plugin: OMDb 10.8.9.0"
+		},
+		{
+			"streamType": 1,
+			"size": 139,
+			"output": "2023-05-08T15:17:08.538841700Z [15:17:08] [INF] [1] Emby.Server.Implementations.Plugins.PluginManager: Loaded plugin: MusicBrainz 10.8.9.0"
+		},
+		{
+			"streamType": 1,
+			"size": 135,
+			"output": "2023-05-08T15:17:08.539190700Z [15:17:08] [INF] [1] Emby.Server.Implementations.Plugins.PluginManager: Loaded plugin: AudioDB 10.8.9.0"
+		},
+		{
+			"streamType": 1,
+			"size": 95,
+			"output": "2023-05-08T15:17:08.589691700Z [15:17:08] [INF] [1] Main: Kestrel listening on Any IP4 Address"
+		},
+		{
+			"streamType": 1,
+			"size": 195,
+			"output": "2023-05-08T15:17:08.628456300Z [15:17:08] [WRN] [1] Microsoft.AspNetCore.DataProtection.Repositories.EphemeralXmlRepository: Using an in-memory repository. Keys will not be persisted to storage."
+		},
+		{
+			"streamType": 1,
+			"size": 261,
+			"output": "2023-05-08T15:17:08.628795100Z [15:17:08] [WRN] [1] Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager: Neither user profile nor HKLM registry available. Using an ephemeral key repository. Protected data will be unavailable when application exits."
+		},
+		{
+			"streamType": 1,
+			"size": 238,
+			"output": "2023-05-08T15:17:08.817572800Z [15:17:08] [WRN] [1] Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager: No XML encryptor configured. Key {bae9b6e6-f57a-4479-81ed-90cf97cb22c6} may be persisted to storage in unencrypted form."
+		},
+		{
+			"streamType": 1,
+			"size": 119,
+			"output": "2023-05-08T15:17:08.832595900Z [15:17:08] [INF] [1] Emby.Server.Implementations.ApplicationHost: Running startup tasks"
+		},
+		{
+			"streamType": 1,
+			"size": 232,
+			"output": "2023-05-08T15:17:08.867063900Z [15:17:08] [INF] [1] Emby.Server.Implementations.ScheduledTasks.TaskManager: Daily trigger for Extract Chapter Images set to fire at 2023-05-09 02:00:00.000 +00:00, which is 10:42:51.1333378 from now."
+		},
+		{
+			"streamType": 1,
+			"size": 50,
+			"output": "2023-05-08T15:17:08.884530700Z [ls.io-init] done."
+		},
+		{
+			"streamType": 1,
+			"size": 128,
+			"output": "2023-05-08T15:17:08.907694900Z [15:17:08] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Found ffmpeg version 5.1.2"
+		},
+		{
+			"streamType": 1,
+			"size": 449,
+			"output": "2023-05-08T15:17:08.929309700Z [15:17:08] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Available decoders: [\"libdav1d\", \"av1\", \"av1_cuvid\", \"av1_qsv\", \"h264\", \"h264_qsv\", \"h264_cuvid\", \"hevc\", \"hevc_qsv\", \"hevc_cuvid\", \"mpeg2video\", \"mpeg2_qsv\", \"mpeg2_cuvid\", \"mpeg4\", \"mpeg4_cuvid\", \"msmpeg4\", \"vc1_qsv\", \"vc1_cuvid\", \"vp8\", \"libvpx\", \"vp8_cuvid\", \"vp8_qsv\", \"vp9\", \"libvpx-vp9\", \"vp9_cuvid\", \"vp9_qsv\", \"aac\", \"ac3\", \"flac\", \"mp3\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 389,
+			"output": "2023-05-08T15:17:08.941060900Z [15:17:08] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Available encoders: [\"libx264\", \"h264_amf\", \"h264_nvenc\", \"h264_qsv\", \"h264_v4l2m2m\", \"h264_vaapi\", \"libx265\", \"hevc_amf\", \"hevc_nvenc\", \"hevc_qsv\", \"hevc_vaapi\", \"mpeg4\", \"msmpeg4\", \"libvpx\", \"libvpx-vp9\", \"aac\", \"libfdk_aac\", \"ac3\", \"flac\", \"libmp3lame\", \"libopus\", \"libvorbis\", \"srt\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 435,
+			"output": "2023-05-08T15:17:08.956304300Z [15:17:08] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Available filters: [\"deinterlace_qsv\", \"deinterlace_vaapi\", \"hwupload_cuda\", \"hwupload_vaapi\", \"overlay_opencl\", \"overlay_qsv\", \"overlay_vaapi\", \"overlay_cuda\", \"procamp_vaapi\", \"scale_cuda\", \"scale_opencl\", \"scale_qsv\", \"scale_vaapi\", \"tonemap_cuda\", \"tonemap_opencl\", \"tonemap_vaapi\", \"vpp_qsv\", \"yadif_cuda\", \"zscale\", \"alphasrc\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 178,
+			"output": "2023-05-08T15:17:09.018304100Z [15:17:09] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: Available hwaccel types: [\"cuda\", \"vaapi\", \"qsv\", \"drm\", \"opencl\", \"vulkan\"]"
+		},
+		{
+			"streamType": 1,
+			"size": 141,
+			"output": "2023-05-08T15:17:09.090844400Z [15:17:09] [INF] [1] MediaBrowser.MediaEncoding.Encoder.MediaEncoder: FFmpeg: /usr/lib/jellyfin-ffmpeg/ffmpeg"
+		},
+		{
+			"streamType": 1,
+			"size": 140,
+			"output": "2023-05-08T15:17:09.091912000Z [15:17:09] [INF] [1] Emby.Server.Implementations.ApplicationHost: ServerId: 3a9420eaf8134eb4b5b824625b935a2e"
+		},
+		{
+			"streamType": 1,
+			"size": 154,
+			"output": "2023-05-08T15:17:09.159808600Z [15:17:09] [INF] [1] Emby.Server.Implementations.ApplicationHost: Executed all pre-startup entry points in 0:00:00.0626844"
+		},
+		{
+			"streamType": 1,
+			"size": 119,
+			"output": "2023-05-08T15:17:09.159833900Z [15:17:09] [INF] [1] Emby.Server.Implementations.ApplicationHost: Core startup complete"
+		},
+		{
+			"streamType": 1,
+			"size": 155,
+			"output": "2023-05-08T15:17:09.240349100Z [15:17:09] [INF] [1] Emby.Server.Implementations.ApplicationHost: Executed all post-startup entry points in 0:00:00.0804206"
+		},
+		{
+			"streamType": 1,
+			"size": 91,
+			"output": "2023-05-08T15:17:09.240403300Z [15:17:09] [INF] [1] Main: Startup complete 0:00:02.2395644"
+		},
+		{
+			"streamType": 1,
+			"size": 155,
+			"output": "2023-05-08T15:17:11.871906100Z [15:17:11] [INF] [10] Emby.Server.Implementations.ScheduledTasks.TaskManager: StartupTrigger fired for task: Update Plugins"
+		},
+		{
+			"streamType": 1,
+			"size": 139,
+			"output": "2023-05-08T15:17:11.872343200Z [15:17:11] [INF] [10] Emby.Server.Implementations.ScheduledTasks.TaskManager: Queuing task PluginUpdateTask"
+		},
+		{
+			"streamType": 1,
+			"size": 134,
+			"output": "2023-05-08T15:17:11.874059200Z [15:17:11] [INF] [12] Emby.Server.Implementations.ScheduledTasks.TaskManager: Executing Update Plugins"
+		},
+		{
+			"streamType": 1,
+			"size": 165,
+			"output": "2023-05-08T15:17:12.495706100Z [15:17:12] [INF] [8] Emby.Server.Implementations.ScheduledTasks.TaskManager: Update Plugins Completed after 0 minute(s) and 0 seconds"
+		},
+		{
+			"streamType": 1,
+			"size": 127,
+			"output": "2023-05-08T15:17:12.501633300Z [15:17:12] [INF] [8] Emby.Server.Implementations.ScheduledTasks.TaskManager: ExecuteQueuedTasks"
+		},
+		{
+			"streamType": 1,
+			"size": 159,
+			"output": "2023-05-08T15:18:08.870886500Z [15:18:08] [INF] [8] Emby.Server.Implementations.ScheduledTasks.TaskManager: IntervalTrigger fired for task: Scan Media Library"
+		},
+		{
+			"streamType": 1,
+			"size": 145,
+			"output": "2023-05-08T15:18:08.871253200Z [15:18:08] [INF] [8] Emby.Server.Implementations.ScheduledTasks.TaskManager: Queuing task RefreshMediaLibraryTask"
+		},
+		{
+			"streamType": 1,
+			"size": 138,
+			"output": "2023-05-08T15:18:08.871373000Z [15:18:08] [INF] [16] Emby.Server.Implementations.ScheduledTasks.TaskManager: Executing Scan Media Library"
+		},
+		{
+			"streamType": 1,
+			"size": 130,
+			"output": "2023-05-08T15:18:08.874314600Z [15:18:08] [INF] [16] Emby.Server.Implementations.Library.LibraryManager: Validating media library"
+		},
+		{
+			"streamType": 1,
+			"size": 133,
+			"output": "2023-05-08T15:18:09.041039600Z [15:18:09] [ERR] [3] Emby.Server.Implementations.Library.LibraryManager: Error running post-scan task"
+		},
+		{
+			"streamType": 1,
+			"size": 118,
+			"output": "2023-05-08T15:18:09.041080300Z System.ArgumentException: Not enough valid pictures provided to create a splashscreen!"
+		},
+		{
+			"streamType": 1,
+			"size": 147,
+			"output": "2023-05-08T15:18:09.041117900Z    at Jellyfin.Drawing.Skia.SplashscreenBuilder.GenerateCollage(IReadOnlyList`1 posters, IReadOnlyList`1 backdrops)"
+		},
+		{
+			"streamType": 1,
+			"size": 165,
+			"output": "2023-05-08T15:18:09.041123100Z    at Jellyfin.Drawing.Skia.SplashscreenBuilder.GenerateSplash(IReadOnlyList`1 posters, IReadOnlyList`1 backdrops, String outputPath)"
+		},
+		{
+			"streamType": 1,
+			"size": 142,
+			"output": "2023-05-08T15:18:09.041150100Z    at Jellyfin.Drawing.Skia.SkiaEncoder.CreateSplashscreen(IReadOnlyList`1 posters, IReadOnlyList`1 backdrops)"
+		},
+		{
+			"streamType": 1,
+			"size": 161,
+			"output": "2023-05-08T15:18:09.041154700Z    at Emby.Server.Implementations.Library.SplashscreenPostScanTask.Run(IProgress`1 progress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 164,
+			"output": "2023-05-08T15:18:09.041188500Z    at Emby.Server.Implementations.Library.LibraryManager.RunPostScanTasks(IProgress`1 progress, CancellationToken cancellationToken)"
+		},
+		{
+			"streamType": 1,
+			"size": 169,
+			"output": "2023-05-08T15:18:09.060761500Z [15:18:09] [INF] [3] Emby.Server.Implementations.ScheduledTasks.TaskManager: Scan Media Library Completed after 0 minute(s) and 0 seconds"
+		},
+		{
+			"streamType": 1,
+			"size": 127,
+			"output": "2023-05-08T15:18:09.061182900Z [15:18:09] [INF] [3] Emby.Server.Implementations.ScheduledTasks.TaskManager: ExecuteQueuedTasks"
+		}
+	],
+	"status": "OK"
+}
