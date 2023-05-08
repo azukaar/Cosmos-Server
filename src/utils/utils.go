@@ -220,6 +220,10 @@ func Sanitize(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
+func SanitizeSafe(s string) string {
+	return strings.TrimSpace(s)
+}
+
 func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
 

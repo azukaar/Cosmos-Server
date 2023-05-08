@@ -16,7 +16,7 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	vars := mux.Vars(req)
-	containerName := utils.Sanitize(vars["containerId"])
+	containerName := utils.SanitizeSafe(vars["containerId"])
 	status := utils.Sanitize(vars["status"])
 	
 	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
