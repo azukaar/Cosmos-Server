@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -154,6 +155,12 @@ func DetachNetwork(w http.ResponseWriter, req *http.Request) {
 		if errD != nil {
 			utils.Error("DetachNetwork", errD)
 			utils.HTTPError(w, "Internal server error: "+errD.Error(), http.StatusInternalServerError, "DN001")
+			return
+		}
+
+		if os.Getenv("HOSTNAME") != "" && networkID == "bridge" && containerID == os.Getenv("HOSTNAME") {
+			utils.Error("DetachNetwork - Cannot disconnect self from bridge", nil)
+			utils.HTTPError(w, "Cannot disconnect self from bridge", http.StatusBadRequest, "DS003")
 			return
 		}
 

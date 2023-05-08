@@ -25,10 +25,18 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+
+
 	vars := mux.Vars(req)
 	containerName := utils.Sanitize(vars["containerId"])
 	// stop, start, restart, kill, remove, pause, unpause, recreate
 	action := utils.Sanitize(vars["action"])
+	
+	if os.Getenv("HOSTNAME") != "" && (action == "recreate" || action == "update") && containerName == os.Getenv("HOSTNAME") {
+		utils.Error("ManageContainer - cannot recreate/update self", nil)
+		utils.HTTPError(w, "Cannot recreate/update self", http.StatusBadRequest, "DS003")
+		return
+	}
 
 	utils.Log("ManageContainer " + containerName)
 

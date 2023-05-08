@@ -25,11 +25,9 @@ func main() {
 	docker.BootstrapAllContainersFromTags()
 
 	version, err := docker.DockerClient.ServerVersion(context.Background())
-	if err != nil {
-			panic(err)
+	if err == nil {
+		utils.Log("Docker API version: " + version.APIVersion)
 	}
-
-	utils.Log("Docker API version: " + version.APIVersion)
-
+	
 	StartServer()
 }

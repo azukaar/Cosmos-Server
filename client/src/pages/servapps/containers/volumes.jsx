@@ -24,16 +24,16 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
   const isDark = theme.palette.mode === 'dark';
 
   React.useEffect(() => {
-    API.docker.networkList().then((res) => {
-      setVolumes(res.data);
+    API.docker.volumeList().then((res) => {
+      setVolumes(res.data.Volumes);
     });
   }, []);
 
   const refreshAll = () => {
     setVolumes(null);
     refresh().then(() => {
-      API.docker.networkList().then((res) => {
-        setVolumes(res.data);
+      API.docker.volumeList().then((res) => {
+        setVolumes(res.data.Volumes);
       });
     });
   };
@@ -75,11 +75,13 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
             .then((res) => {
               setStatus({ success: true });
               setSubmitting(false);
+              refresh && refresh();
             }
             ).catch((err) => {
               setStatus({ success: false });
               setErrors({ submit: err.message });
               setSubmitting(false);
+              refresh && refresh();
             });
         }}
       >
@@ -193,7 +195,6 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                           {
                             title: '',
                             field: (r) => {
-                              console.log(r);
                               return (<Button
                                 variant="outlined"
                                 color="primary"
@@ -208,7 +209,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                           }
                         ]}
                       />}
-                      {!volumes && (<div style={{ height: '550px' }}>
+                      {!volumes && (<div style={{ height: '100px' }}>
                         <center>
                           <br />
                           <CircularProgress />

@@ -99,6 +99,9 @@ const VolumeManagementList = () => {
                                             API.docker.volumeDelete(r.Name).then(() => {
                                                 refresh();
                                                 setIsLoading(false);
+                                            }).catch(() => {
+                                                setIsLoading(false);
+                                                refresh();
                                             });
                                           } else {
                                             setTryDelete(r.Name);

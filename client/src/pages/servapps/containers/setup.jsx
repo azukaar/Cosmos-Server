@@ -8,7 +8,7 @@ import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 
-const DockerContainerSetup = ({config, containerInfo}) => {
+const DockerContainerSetup = ({config, containerInfo, refresh}) => {
   const restartPolicies = [
     ['no', 'No Restart'],
     ['always', 'Always Restart'],
@@ -66,6 +66,7 @@ const DockerContainerSetup = ({config, containerInfo}) => {
             .then((res) => {
               setStatus({ success: true });
               setSubmitting(false);
+              refresh && refresh();
             }
           ).catch((err) => {
             setStatus({ success: false });

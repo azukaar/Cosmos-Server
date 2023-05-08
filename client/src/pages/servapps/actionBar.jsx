@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconButton, Tooltip } from '@mui/material';
-import { CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
 import * as API from '../../api';
 
 const GetActions = ({
@@ -9,6 +9,8 @@ const GetActions = ({
   refreshServeApps,
   setIsUpdatingId
 }) => {
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+
   const doTo = (action) => {
     setIsUpdatingId(Id, true);
     API.docker.manageContainer(Id, action).then((res) => {
@@ -76,8 +78,12 @@ const GetActions = ({
     {
       t: 'Delete',
       if: ['exited', 'created'],
-      e: <IconButton onClick={() => {doTo('remove')}} color="error" size='large'>
-        <DeleteOutlined />
+      e: <IconButton onClick={() => {
+        if(confirmDelete) doTo('remove')
+        else setConfirmDelete(true);
+      }} color="error" size='large'>
+        {confirmDelete ?  <CheckCircleOutlined />
+        : <DeleteOutlined />}
       </IconButton>
     }
   ];

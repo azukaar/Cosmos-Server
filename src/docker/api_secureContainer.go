@@ -3,6 +3,7 @@ package docker
 import (
 	"net/http"
 	"encoding/json"
+	"os"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
@@ -17,6 +18,12 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	containerName := utils.Sanitize(vars["containerId"])
 	status := utils.Sanitize(vars["status"])
+	
+	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
+		utils.Error("SecureContainerRoute - Cannot force secure self", nil)
+		utils.HTTPError(w, "Cannot force secure self", http.StatusBadRequest, "DS003")
+		return
+	}
 	
 	if(req.Method == "GET") {
 		container, err := DockerClient.ContainerInspect(DockerContext, containerName)

@@ -3,6 +3,7 @@ package docker
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	containerType "github.com/docker/docker/api/types/container"
@@ -37,6 +38,12 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 		vars := mux.Vars(req)
 		containerName := utils.Sanitize(vars["containerId"])
+		
+		if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
+			utils.Error("SecureContainerRoute - Cannot update self", nil)
+			utils.HTTPError(w, "Cannot update self", http.StatusBadRequest, "DS003")
+			return
+		}
 
 		container, err := DockerClient.ContainerInspect(DockerContext, containerName)
 		if err != nil {

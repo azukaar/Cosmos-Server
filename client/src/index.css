@@ -66,3 +66,7 @@
 .darken {
   filter: brightness(0.5);
 }
+
+.MuiAlert-icon {
+  align-items: center;
+}

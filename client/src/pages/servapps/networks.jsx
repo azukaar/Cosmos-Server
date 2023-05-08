@@ -106,6 +106,9 @@ const NetworkManagementList = () => {
                         API.docker.networkDelete(r.Id).then(() => {
                           refresh();
                           setIsLoading(false);
+                        }).catch(() => {
+                          setIsLoading(false);
+                          refresh();
                         });
                       } else {
                         setTryDelete(r.Id);

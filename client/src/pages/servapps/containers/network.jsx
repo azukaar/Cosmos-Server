@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Alert } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
   from '../../config/users/formShortcuts';
@@ -12,13 +12,6 @@ import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
 
 const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
-  const restartPolicies = [
-    ['no', 'No Restart'],
-    ['always', 'Always Restart'],
-    ['on-failure', 'Restart On Failure'],
-    ['unless-stopped', 'Restart Unless Stopped'],
-  ];
-
   const [networks, setNetworks] = React.useState([]);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -40,13 +33,13 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
 
   const connect = (network) => {
     setNetworks(null);
-    return API.docker.attachNetwork(containerInfo.Id, network).then(() => {
+    return API.docker.attachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
       refreshAll();
     });
   }
 
   const disconnect = (network) => {
-    return API.docker.detachNetwork(containerInfo.Id, network).then(() => {
+    return API.docker.detachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
       refreshAll();
     });
   }
@@ -94,18 +87,20 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
             .then((res) => {
               setStatus({ success: true });
               setSubmitting(false);
+              refresh && refresh();
             }
             ).catch((err) => {
               setStatus({ success: false });
               setErrors({ submit: err.message });
               setSubmitting(false);
+              refresh && refresh();
             });
         }}
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
-              <MainCard title={'Exposed Ports'}>
+              <MainCard title={'Ports'}>
                 <Grid container spacing={4}>
                   <Grid item xs={12}>
                     {formik.values.ports.map((port, idx) => (
@@ -209,7 +204,30 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                   </Grid>
                 </Grid>
               </MainCard>
-              <MainCard title={'Connected Networks'}>
+              <MainCard title={'Networks'}>
+                <Stack spacing={2}>
+                {networks && <Stack spacing={2}>
+                  {Object.keys(containerInfo.NetworkSettings.Networks).map((networkName) => {
+                    const network = networks.find((n) => n.Name === networkName);
+                    if (!network) {
+                      return <Alert severity="error">
+                        You are connected to a network that has been removed: <strong>{networkName}</strong>. 
+                        Either re-create it or
+                        <Button
+                          style={{ marginLeft: '10px' }}
+                          variant="outlined"
+                          color="primary"
+                          onClick={() => {
+                            disconnect(networkName);
+                          }}
+                        >
+                          Disconnect It
+                        </Button>
+                      </Alert>
+                    }
+                  })}
+                </Stack>}
+
                 {networks && <PrettyTableView
                   data={networks}
                   buttons={[
@@ -252,6 +270,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                   </center>
                 </div>
                 )}
+                </Stack>
               </MainCard>
             </Stack>
           </form>
