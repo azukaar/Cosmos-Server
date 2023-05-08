@@ -16,7 +16,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const padding = isMobile ? '15px 4px' : '20px 10px';
+  const padding = isMobile ? '6px 4px' : '12px 10px';
 
   React.useEffect(() => {
     API.docker.networkList().then((res) => {
@@ -106,7 +106,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                 <Stack spacing={4}>
                   <div>
                     {formik.values.ports.map((port, idx) => (
-                      <Grid container spacing={2} key={idx}>
+                      <Grid container key={idx}>
                         <Grid item xs={4} style={{ padding }}>
                           <TextField
                             label="Container Port"

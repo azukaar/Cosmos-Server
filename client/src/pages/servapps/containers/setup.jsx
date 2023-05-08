@@ -17,7 +17,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
   ];
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const padding = isMobile ? '15px 4px' : '20px 10px';
+  const padding = isMobile ? '6px 4px' : '12px 10px';
 
   return (
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
@@ -99,7 +99,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                   <CosmosFormDivider title={'Environment Variables'} />
                   <Grid item xs={12}>
                     {formik.values.envVars.map((envVar, idx) => (
-                      <Grid container spacing={2} key={idx}>
+                      <Grid container key={idx}>
                         <Grid item xs={5} style={{padding}}>
                           <TextField
                             label="Key"
@@ -157,7 +157,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                   <CosmosFormDivider title={'Labels'} />
                   <Grid item xs={12}>
                     {formik.values.labels.map((label, idx) => (
-                      <Grid container spacing={2} key={idx}>
+                      <Grid container key={idx}>
                         <Grid item xs={5} style={{padding}}>
                           <TextField
                             fullWidth
