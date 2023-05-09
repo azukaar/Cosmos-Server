@@ -1,3 +1,7 @@
+## Version 0.4.1
+ - Fix small UI issues
+ - Fix HTTP login
+
 ## Version 0.4.0
  - Protect server against direct IP access
  - Improvements to installer to make it more robust
@@ -11,6 +15,13 @@
  - Set Labels / Env variables on containers
  - (De)Attach networks to containers
  - (De)Attach volumes  to containers
+
+## Version 0.3.1 -> 0.3.5
+ - Fix UI issue with long name in home
+ - Fix ARM docker image
+ - Add more validation for Let's Encrypt
+ - Prevent browser from auto-filling password in config page
+ - Revert to HTTP when Let's Encrypt fails to initialize 
 
 ## Version 0.3.0
  - Implement 2 FA

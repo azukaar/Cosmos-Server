@@ -158,13 +158,14 @@ func GetUserR(req *http.Request) (string, string) {
 	return req.Header.Get("x-cosmos-user"), req.Header.Get("x-cosmos-role")
 }
 
+
 func logOutUser(w http.ResponseWriter) {
 	cookie := http.Cookie{
 		Name: "jwttoken",
 		Value: "",
 		Expires: time.Now().Add(-time.Hour * 24 * 365),
 		Path: "/",
-		Secure: true,
+		Secure: utils.IsHTTPS,
 		HttpOnly: true,
 		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
@@ -219,13 +220,12 @@ func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
 		return
 	}
 
-
 	cookie := http.Cookie{
 		Name: "jwttoken",
 		Value: tokenString,
 		Expires: expiration,
 		Path: "/",
-		Secure: true,
+		Secure: utils.IsHTTPS,
 		HttpOnly: true,
 		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
@@ -235,5 +235,4 @@ func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
 	}
 
 	http.SetCookie(w, &cookie)
-	// http.SetCookie(w, &cookie2)
 }

@@ -80,7 +80,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 				newConfig.MongoDB = request.MongoDB
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)
-			} else if (request.MongoDBMode == "Create"){
+			} else if (request.MongoDBMode == "Create") {
 				utils.Log("NewInstall: Create DB")
 				newConfig.DisableUserManagement = false
 				strco, err := docker.NewDB()

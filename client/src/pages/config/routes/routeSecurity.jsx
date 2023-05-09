@@ -167,12 +167,12 @@ const RouteSecurity = ({ routeConfig }) => {
 
                     <CosmosSelect
                       name="_SmartShield_PrivilegedGroups"
-                      label="Privileged Groups (comma separated)"
-                      placeholder="Privileged Groups"
+                      label="Privileged Groups "
+                      placeholder="Privileged Group"
                       options={[
                         [0, 'Default'],
-                        [1, 'Users'],
-                        [2, 'Admin'],
+                        [1, 'Users & Admins'],
+                        [2, 'Admin Only'],
                       ]}
                       formik={formik}
                     />

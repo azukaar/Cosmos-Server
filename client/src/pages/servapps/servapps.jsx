@@ -118,7 +118,7 @@ const ServeApps = () => {
       openModal={openModal} 
       setOpenModal={setOpenModal}
       container={serveApps.find((app) => {
-        return app.Names[0].replace('/', '') === openModal && openModal.Names[0].replace('/', '');
+        return app.Names[0].replace('/', '') === (openModal && openModal.Names[0].replace('/', ''));
       })}
       config={config}
       updateRoutes={

@@ -16,10 +16,7 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
   let containerName = openModal && (openModal.Names[0]);
 
   const hasCosmosNetwork = () => {
-    return container && container.NetworkSettings.Networks && Object.keys(container.NetworkSettings.Networks).some((network) => {
-      if(network.startsWith('cosmos-network'))
-        return true;
-    })
+    return container && container.Labels["cosmos-force-network-secured"] === "true";
   }
   
   return <Dialog open={openModal} onClose={() => setOpenModal(false)}>
@@ -32,7 +29,12 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                   Welcome to the URL Wizard. This interface will help you expose your ServApp securely to the internet by creating a new URL.
                 </div>
                 <div>
-                    {openModal && !hasCosmosNetwork(containerName) && <Alert severity="warning">This ServApp does not appear to be connected to a Cosmos Network, so the hostname might not be accessible. The easiest way to fix this is to check the box "Force Secure Network" or manually create a sub-network in Docker.</Alert>}
+                    {openModal && !hasCosmosNetwork(containerName) && 
+                      <Alert severity="warning">
+                        This ServApp does not use the "Force Secure" option, 
+                        so the hostname might not be accessible.
+                        The easiest way to fix this is to check the box "Force Secure Network" or manually create a hostname and sub-network in Docker.
+                      </Alert>}
                 </div>
                 <div>
                     <RouteManagement TargetContainer={openModal} 
