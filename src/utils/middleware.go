@@ -171,7 +171,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 
 func EnsureHostname(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Debug("Request requested resource from : " + r.Host)
+		Debug("Ensuring origin for requested resource from : " + r.Host)
 
 		og := GetMainConfig().HTTPConfig.Hostname
 		ni := GetMainConfig().NewInstall
@@ -187,7 +187,8 @@ func EnsureHostname(next http.Handler) http.Handler {
 
 		isOk := false
 		for _, hostname := range hostnames {
-			if reqHostNoPort == hostname {
+			hostnameNoPort := strings.Split(hostname, ":")[0]
+			if reqHostNoPort == hostnameNoPort {
 				isOk = true
 			}
 		}

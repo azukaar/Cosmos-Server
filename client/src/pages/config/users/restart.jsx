@@ -44,7 +44,7 @@ const RestartModal = ({openModal, setOpenModal}) => {
                 <DialogContentText>
                     {warn && <div>
                         <Alert severity="warning" icon={<WarningOutlined />}>
-                        The server is taking longer than expected to restart.<br />Consider troubleshouting the logs.
+                        The server is taking longer than expected to restart.<br />Consider troubleshouting the logs. If you use a self-signed certificate, you might have to refresh and re-accept it.
                         </Alert>
                     </div>}
                     {isRestarting ? 
