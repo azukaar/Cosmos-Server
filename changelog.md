@@ -1,3 +1,9 @@
+## Version 0.4.3
+ - Fix for exposing routes from the details page
+
+## Version 0.4.2
+ -  Fix when using custom port and logging in (Isssue #10)
+
 ## Version 0.4.1
  - Fix small UI issues
  - Fix HTTP login
