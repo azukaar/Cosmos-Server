@@ -52,7 +52,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
       <ExposeModal
         openModal={openModal} 
         setOpenModal={setOpenModal}
-        container={containerInfo}
+        container={Config}
         config={config}
         updateRoutes={
           (_newRoute) => {
