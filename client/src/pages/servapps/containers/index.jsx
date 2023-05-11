@@ -16,6 +16,7 @@ import Logs from './logs';
 import DockerContainerSetup from './setup';
 import NetworkContainerSetup from './network';
 import VolumeContainerSetup from './volumes';
+import DockerTerminal from './terminal';
 
 const ContainerIndex = () => {
   const { containerName } = useParams();
@@ -56,9 +57,7 @@ const ContainerIndex = () => {
         },
         {
           title: 'Terminal',
-          children: <div>
-            <Alert severity="info">This feature is not yet implemented. It is planned for next version: 0.5.0</Alert>
-          </div>
+          children: <DockerTerminal refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
           title: 'Links',

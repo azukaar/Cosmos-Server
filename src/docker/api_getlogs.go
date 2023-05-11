@@ -21,10 +21,10 @@ type LogOutput struct {
 	Output     string `json:"output"`
 }
 
-// parseDockerLogHeader parses the first 8 bytes of a Docker log message
+// ParseDockerLogHeader parses the first 8 bytes of a Docker log message
 // and returns the stream type, size, and the rest of the message as output.
 // It also checks if the message contains a log header and extracts the log message from it.
-func parseDockerLogHeader(data []byte) (LogOutput) {
+func ParseDockerLogHeader(data []byte) (LogOutput) {
 	var logOutput LogOutput
 	logOutput.StreamType = 1 // assume stdout if header not present
 	logOutput.Size = uint32(len(data))
@@ -65,11 +65,11 @@ func FilterLogs(logReader io.Reader, searchQuery string, limit int) []LogOutput 
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		if len(searchQuery) > 0 && !strings.Contains(strings.ToUpper(line), strings.ToUpper(searchQuery)) {
+		if len(searchQuery) > 3 && !strings.Contains(strings.ToUpper(line), strings.ToUpper(searchQuery)) {
 			continue
 		}
 
-		logLines = append(logLines, parseDockerLogHeader(([]byte)(line)))
+		logLines = append(logLines, ParseDockerLogHeader(([]byte)(line)))
 	}
 
 	from := utils.Max(len(logLines)-limit, 0)

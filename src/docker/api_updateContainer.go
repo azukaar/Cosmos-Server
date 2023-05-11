@@ -19,6 +19,8 @@ type ContainerForm struct {
 	Labels         map[string]string `json:"labels"`
 	PortBindings   nat.PortMap       `json:"portBindings"`
 	Volumes        []mount.Mount     `json:"Volumes"`
+	// we make this a int so that we can ignore 0
+	Interactive    int               `json:"interactive"`
 }
 
 func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
@@ -83,6 +85,10 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 		if(form.Volumes != nil) {
 			container.HostConfig.Mounts = form.Volumes
 			container.HostConfig.Binds = []string{}
+		}
+		if(form.Interactive != 0) {
+			container.Config.Tty = form.Interactive == 2
+			container.Config.OpenStdin = form.Interactive == 2
 		}
 
 		_, err = EditContainer(container.ID, container)

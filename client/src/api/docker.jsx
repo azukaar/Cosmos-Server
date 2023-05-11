@@ -157,6 +157,22 @@ function createVolume(values) {
   }))
 }
 
+function attachTerminal(containerId) {
+  let protocol = 'ws://';
+  if (window.location.protocol === 'https:') {
+    protocol = 'wss://';
+  }
+  return new WebSocket(protocol + window.location.host + '/cosmos/api/servapps/' + containerId + '/terminal/attach');
+}
+
+function createTerminal(containerId) {
+  let protocol = 'ws://';
+  if (window.location.protocol === 'https:') {
+    protocol = 'wss://';
+  }
+  return new WebSocket(protocol + window.location.host + '/cosmos/api/servapps/' + containerId + '/terminal/new');
+}
+
 export {
   list,
   get,
@@ -174,4 +190,6 @@ export {
   attachNetwork,
   detachNetwork,
   createVolume,
+  attachTerminal,
+  createTerminal,
 };

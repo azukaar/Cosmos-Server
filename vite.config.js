@@ -14,6 +14,7 @@ export default defineConfig({
       '/cosmos/api': {
         target: 'https://localhost:8443',
         secure: false,
+        ws: true,
       }
     }
   }

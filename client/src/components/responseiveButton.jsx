@@ -1,7 +1,7 @@
 import { Button, useMediaQuery, IconButton } from "@mui/material";
 
 
-const ResponsiveButton = ({ children, startIcon, size, style, ...props }) => {
+const ResponsiveButton = ({ children, startIcon, endIcon, size, style, ...props }) => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   let newStyle = style || {};
   if (isMobile) {
@@ -10,8 +10,18 @@ const ResponsiveButton = ({ children, startIcon, size, style, ...props }) => {
   }
 
   return (
-    <Button className="responsive-button" size={isMobile ? 'large' : size} startIcon={isMobile ? null : startIcon} {...props} style={newStyle}>
-      {isMobile ? startIcon : children}
+    <Button 
+      className="responsive-button"
+      size={isMobile ? 'large' : size}
+      startIcon={isMobile ? null : startIcon}
+      endIcon={isMobile ? null : endIcon}
+      {...props} style={newStyle}>
+      {(isMobile) ? startIcon : (
+        startIcon ? children : null
+      )}
+      {(isMobile) ? endIcon : (
+        endIcon ? children : null
+      )}
     </Button>
   );
 }

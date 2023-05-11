@@ -32,6 +32,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
           labels: Object.keys(containerInfo.Config.Labels).map((key) => {
             return { key, value: containerInfo.Config.Labels[key] };
           }),
+          interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
         }}
         validate={(values) => {
           const errors = {};
@@ -65,6 +66,8 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
             envVars: envVars,
             labels: labels,
           };
+          realvalues.interactive = realvalues.interactive ? 2 : 1;
+
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)
             .then((res) => {
               setStatus({ success: true });
@@ -101,6 +104,12 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                       options={restartPolicies}
                       formik={formik}
                       />
+                    <CosmosCheckbox
+                      name="interactive"
+                      label="Interactive Mode"
+                      formik={formik}
+                    />
+
                   <CosmosFormDivider title={'Environment Variables'} />
                   <Grid item xs={12}>
                     {formik.values.envVars.map((envVar, idx) => (
