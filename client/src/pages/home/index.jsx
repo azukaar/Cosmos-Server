@@ -3,7 +3,7 @@ import Back from "../../components/back";
 import { Alert, Box, CircularProgress, Grid, Stack, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import * as API  from "../../api";
-import wallpaper from '../../assets/images/wallpaper.png';
+import wallpaper from '../../assets/images/wallpaper.jpg';
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";

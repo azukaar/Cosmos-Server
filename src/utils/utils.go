@@ -11,10 +11,13 @@ import (
 	"strings"
 	"io/ioutil"
 	"fmt"
+	"sync"
 	"path/filepath"
 
 	"github.com/shirou/gopsutil/v3/mem"
 )
+
+var ConfigLock sync.Mutex
 
 var BaseMainConfig Config
 var MainConfig Config

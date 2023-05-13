@@ -10,13 +10,17 @@ import { LoadingButton } from '@mui/lab';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
+import LinkContainersButton from '../linkContainersButton';
 
-const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
+const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange, OnConnect, OnDisconnect }) => {
   const [networks, setNetworks] = React.useState([]);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const padding = isMobile ? '6px 4px' : '12px 10px';
+
+  const isForceSecure = containerInfo.Config.Labels.hasOwnProperty('cosmos-force-network-secured') &&
+  containerInfo.Config.Labels['cosmos-force-network-secured'] === 'true';
 
   React.useEffect(() => {
     API.docker.networkList().then((res) => {
@@ -25,25 +29,38 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
   }, []);
 
   const refreshAll = () => {
-    setNetworks(null);
-    refresh().then(() => {
+    if(refresh)
+      refresh().then(() => {
+        API.docker.networkList().then((res) => {
+          setNetworks(res.data);
+        });
+      });
+    else 
       API.docker.networkList().then((res) => {
         setNetworks(res.data);
       });
-    });
   };
 
   const connect = (network) => {
-    setNetworks(null);
-    return API.docker.attachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
+    if(!OnConnect) {
+      return API.docker.attachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
+        refreshAll();
+      });
+    } else {
+      OnConnect(network);
       refreshAll();
-    });
+    }
   }
 
   const disconnect = (network) => {
-    return API.docker.detachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
+    if(!OnDisconnect) {
+      return API.docker.detachNetwork(containerInfo.Name.replace('/', ''), network).then(() => {
+        refreshAll();
+      });
+    } else {
+      OnDisconnect(network);
       refreshAll();
-    });
+    }
   }
 
   return (<Stack spacing={2}>
@@ -54,7 +71,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
             return {
               port: port.split('/')[0],
               protocol: port.split('/')[1],
-              hostPort: containerInfo.NetworkSettings.Ports[port] ?
+              hostPort: containerInfo.NetworkSettings.Ports[port] && containerInfo.NetworkSettings.Ports[port][0] ?
                 containerInfo.NetworkSettings.Ports[port][0].HostPort : '',
             };
           })
@@ -69,9 +86,11 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
           if (unique.length !== ports.length) {
             errors.submit = 'Ports must be unique';
           }
+          OnChange && OnChange(values);
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          if(newContainer) return false;
           setSubmitting(true);
           const realvalues = {
             portBindings: {},
@@ -104,9 +123,14 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
             <Stack spacing={2}>
               <MainCard title={'Ports'}>
                 <Stack spacing={4}>
-                  {containerInfo.State.Status !== 'running' && (
+                  {containerInfo.State && containerInfo.State.Status !== 'running' && (
                   <Alert severity="warning" style={{ marginBottom: '0px' }}>
                       This container is not running. Editing any settings will cause the container to start again.
+                    </Alert>
+                  )}
+                  {isForceSecure && (
+                    <Alert severity="warning" style={{ marginBottom: '0px' }}>
+                      This container is forced to be secured. You cannot expose any ports to the internet directly, please create a URL in Cosmos instead. You also cannot connect it to the Bridge network.          
                     </Alert>
                   )}
                   <div>
@@ -195,7 +219,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                           <FormHelperText error>{formik.errors.submit}</FormHelperText>
                         </Grid>
                       )}
-                      <LoadingButton
+                      {!newContainer && <LoadingButton
                         fullWidth
                         disableElevation
                         disabled={formik.errors.submit}
@@ -206,7 +230,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
                         color="primary"
                       >
                         Update Ports
-                      </LoadingButton>
+                      </LoadingButton>}
                     </Stack>
                   </div>
                 </Stack>
@@ -237,8 +261,15 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh }) => {
 
                 {networks && <PrettyTableView
                   data={networks}
+                  sort={(a, b) => a.Name > b.Name}
                   buttons={[
                     <NewNetworkButton refresh={refreshAll} />,
+                    <LinkContainersButton 
+                      refresh={refreshAll} 
+                      originContainer={containerInfo.Name.replace('/', '')}
+                      newContainer={newContainer}
+                      OnConnect={OnConnect}
+                    />,
                   ]}
                   onRowClick={() => { }}
                   getKey={(r) => r.Id}

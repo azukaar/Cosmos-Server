@@ -17,6 +17,7 @@ import { Link } from 'react-router-dom';
 import ExposeModal from './exposeModal';
 import GetActions from './actionBar';
 import ResponsiveButton from '../../components/responseiveButton';
+import DockerComposeImport from './containers/docker-compose';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -144,14 +145,13 @@ const ServeApps = () => {
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServeApps();
         }}>Refresh</ResponsiveButton>
-        <Tooltip title="This is not implemented yet.">
-          <span style={{ cursor: 'not-allowed' }}>
-            <ResponsiveButton
-              variant="contained" 
-              startIcon={<AppstoreAddOutlined />}
-              disabled >Start ServApp</ResponsiveButton>
-          </span>
-        </Tooltip>
+        <Link to="/ui/servapps/new-service">
+          <ResponsiveButton
+            variant="contained" 
+            startIcon={<AppstoreAddOutlined />}
+            >Start ServApp</ResponsiveButton>
+        </Link>
+        <DockerComposeImport />
       </Stack>
 
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>

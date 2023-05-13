@@ -3,7 +3,6 @@ package configapi
 import (
 	"encoding/json"
 	"net/http"
-	"sync"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -14,15 +13,13 @@ type UpdateRouteRequest struct {
 	NewRoute  *utils.ProxyRouteConfig `json:"newRoute,omitempty"`
 }
 
-var configLock sync.Mutex
-
 func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
 	}
 
-	configLock.Lock()
-	defer configLock.Unlock()
+	utils.ConfigLock.Lock()
+	defer utils.ConfigLock.Unlock()
 
 	var updateReq UpdateRouteRequest
 	err := json.NewDecoder(req.Body).Decode(&updateReq)

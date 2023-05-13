@@ -25,6 +25,7 @@ type userBan struct {
 	ClientID string
 	banType int
 	time time.Time
+	reason string
 }
 
 type smartShieldState struct {
@@ -94,6 +95,23 @@ func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudg
 	return userConsumed
 }
 
+func (shield *smartShieldState) GetLastBan(policy utils.SmartShieldPolicy, userConsumed userUsedBudget) *userBan {
+	shield.Lock()
+	defer shield.Unlock()
+
+	ClientID := userConsumed.ClientID
+
+	// Check for bans
+	for i := len(shield.bans) - 1; i >= 0; i-- {
+		ban := shield.bans[i]
+		if ban.banType == STRIKE && ban.ClientID == ClientID {
+			return ban
+		}
+	}
+
+	return nil
+}
+
 func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy, userConsumed userUsedBudget) bool {
 	shield.Lock()
 	defer shield.Unlock()
@@ -106,16 +124,15 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 	// Check for bans
 	for i := len(shield.bans) - 1; i >= 0; i-- {
 		ban := shield.bans[i]
-		if ban.banType == PERM {
+		if ban.banType == PERM && ban.ClientID == ClientID {
 			return false
-		} else if ban.banType == TEMP {
+		} else if ban.banType == TEMP && ban.ClientID == ClientID {
 			if(ban.time.Add(4 * 3600 * time.Second).Before(time.Now())) {
 				return false
 			} else if (ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
 				nbTempBans++
 			}
-		} else if ban.banType == STRIKE {
-			return false
+		} else if ban.banType == STRIKE && ban.ClientID == ClientID {
 			if(ban.time.Add(3600 * time.Second).Before(time.Now())) {
 				return false
 			} else if (ban.time.Add(24 * 3600 * time.Second).Before(time.Now())) {
@@ -154,6 +171,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 			ClientID: ClientID,
 			banType: STRIKE,
 			time: time.Now(),
+			reason: fmt.Sprintf("%+v out of %+v", userConsumed, policy),
 		})
 		utils.Warn("User " + ClientID + " has received a strike: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
@@ -285,8 +303,8 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			userConsumed := shield.GetUserUsedBudgets(clientID)
 
 			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(policy, userConsumed) {
-				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", userConsumed))
-
+				lastBan := shield.GetLastBan(policy, userConsumed)
+				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", lastBan))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return
 			} else {

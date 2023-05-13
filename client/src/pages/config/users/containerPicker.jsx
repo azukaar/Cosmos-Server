@@ -33,7 +33,7 @@ import defaultport from '../../servapps/defaultport.json';
 
 import * as API  from '../../../api';
 
-export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTargetChange}) {
+export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange}) {
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
@@ -173,7 +173,7 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
   const newTarget = formik.values[name];
   React.useEffect(() => {
     if(onTargetChange) {
-      onTargetChange(newTarget)
+      onTargetChange(newTarget, targetResult.container.replace("/", ""), targetResult)
     }
   }, [newTarget])
 
@@ -219,62 +219,63 @@ export function CosmosContainerPicker({formik, lockTarget, TargetContainer, onTa
         />
       )}
     />}
+    {!nameOnly && <>
+      {(portsOptions) ? (<>
+      <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
+      <Autocomplete
+        className="px-2 my-2"
+        variant="outlined"
+        name={name + "-port"}
+        id={name + "-port"}
+        value={targetResult.port}
+        options={portsOptions.map((option) => (option))}
+        placeholder='Select a port'
+        freeSolo
+        filterOptions={(x) => x} // disable filtering
+        getOptionLabel={(option) => '' + option}
+        isOptionEqualToValue={(option, value) => {
+          return ('' + option) === value
+        }}
+        onChange={(event, newValue) => {
+          targetResult.port = newValue
+          formik.setFieldValue(name, getTarget())
+        }}
+        renderInput={(params) => <TextField {...params} />}
+      />
+        {targetResult.port == '' && targetResult.port == 0 && <FormHelperText error id="standard-weight-helper-text-name-login">
+          Please select a port
+        </FormHelperText>}
+      </>) : ''}
+      
+      
+      {(portsOptions) ? (<>
+            <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
+            <TextField
+              type="text"
+              name={name + "-protocol"}
+              defaultValue={targetResult.protocol}
+              onChange={(event) => {
+                targetResult.protocol = event.target.value && event.target.value.toLowerCase()
+                formik.setFieldValue(name, getTarget())
+              }}
+            />
+      </>) : ''}
 
-    {(portsOptions) ? (<>
-    <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
-    <Autocomplete
-      className="px-2 my-2"
-      variant="outlined"
-      name={name + "-port"}
-      id={name + "-port"}
-      value={targetResult.port}
-      options={portsOptions.map((option) => (option))}
-      placeholder='Select a port'
-      freeSolo
-      filterOptions={(x) => x} // disable filtering
-      getOptionLabel={(option) => '' + option}
-      isOptionEqualToValue={(option, value) => {
-        return ('' + option) === value
-      }}
-      onChange={(event, newValue) => {
-        targetResult.port = newValue
-        formik.setFieldValue(name, getTarget())
-      }}
-      renderInput={(params) => <TextField {...params} />}
-    />
-      {targetResult.port == '' && targetResult.port == 0 && <FormHelperText error id="standard-weight-helper-text-name-login">
-        Please select a port
-      </FormHelperText>}
-    </>) : ''}
-    
-    
-    {(portsOptions) ? (<>
-          <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
-          <TextField
-            type="text"
-            name={name + "-protocol"}
-            defaultValue={targetResult.protocol}
-            onChange={(event) => {
-              targetResult.protocol = event.target.value && event.target.value.toLowerCase()
-              formik.setFieldValue(name, getTarget())
-            }}
-          />
-    </>) : ''}
-
-    <InputLabel htmlFor={name}>Result Target Preview</InputLabel>
-    <TextField
-      name={name}
-      placeholder={"This will be generated automatically"}
-      id={name}
-      value={formik.values[name]}
-      disabled={true}
-    />
-    
-    {formik.errors[name] && (
-      <FormHelperText error id="standard-weight-helper-text-name-login">
-        {formik.errors[name]}
-      </FormHelperText>
-    )}
+      <InputLabel htmlFor={name}>Result Target Preview</InputLabel>
+      <TextField
+        name={name}
+        placeholder={"This will be generated automatically"}
+        id={name}
+        value={formik.values[name]}
+        disabled={true}
+      />
+      </>} 
+      
+      {formik.errors[name] && (
+        <FormHelperText error id="standard-weight-helper-text-name-login">
+          {formik.errors[name]}
+        </FormHelperText>
+      )}
   </Stack>
   </Grid>
   );

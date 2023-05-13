@@ -12,7 +12,7 @@ import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
 import ResponsiveButton from '../../../components/responseiveButton';
 
-const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
+const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange }) => {
   const restartPolicies = [
     ['no', 'No Restart'],
     ['always', 'Always Restart'],
@@ -32,11 +32,16 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
 
   const refreshAll = () => {
     setVolumes(null);
-    refresh().then(() => {
+    if(refresh)
+      refresh().then(() => {
+        API.docker.volumeList().then((res) => {
+          setVolumes(res.data.Volumes);
+        });
+      });
+    else 
       API.docker.volumeList().then((res) => {
         setVolumes(res.data.Volumes);
       });
-    });
   };
 
   return (<Stack spacing={2}>
@@ -65,9 +70,11 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
           if (unique.length !== volumes.length) {
             errors.submit = 'Mounts must have unique targets';
           }
+          OnChange && OnChange(values);
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          if(newContainer) return;
           setSubmitting(true);
           const realvalues = {
             Volumes: values.volumes
@@ -89,7 +96,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <MainCard title={'Volume Mounts'}>
-            {containerInfo.State.Status !== 'running' && (
+            {containerInfo.State && containerInfo.State.Status !== 'running' && (
             <Alert severity="warning" style={{ marginBottom: '15px' }}>
                 This container is not running. Editing any settings will cause the container to start again.
               </Alert>
@@ -230,7 +237,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                         <FormHelperText error>{formik.errors.submit}</FormHelperText>
                       </Grid>
                     )}
-                    <LoadingButton
+                    {!newContainer && <LoadingButton
                       fullWidth
                       disableElevation
                       disabled={formik.errors.submit}
@@ -241,7 +248,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh }) => {
                       color="primary"
                     >
                       Update Volumes
-                    </LoadingButton>
+                    </LoadingButton>}
                   </Stack>
                 </Grid>
               </Grid>

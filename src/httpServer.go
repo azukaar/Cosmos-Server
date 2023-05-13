@@ -218,6 +218,8 @@ func StartServer() {
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 
+	srapi.HandleFunc("/api/images/{imageName}", docker.InspectImageRoute)
+
 	srapi.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
 	srapi.HandleFunc("/api/volumes", docker.VolumesRoute)
 
@@ -234,6 +236,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 	
+	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)

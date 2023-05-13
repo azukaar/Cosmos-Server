@@ -37,21 +37,26 @@ const a11yProps = (index) => {
   };
 };
 
-const PrettyTabbedView = ({ tabs, isLoading }) => {
+const PrettyTabbedView = ({ tabs, isLoading, currentTab, setCurrentTab }) => {
   const [value, setValue] = useState(0);
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
+  
+  if((currentTab != null && typeof currentTab === 'number') && value !== currentTab)
+    setValue(currentTab);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+    setCurrentTab && setCurrentTab(newValue);
   };
 
   const handleSelectChange = (event) => {
     setValue(event.target.value);
+    setCurrentTab && setCurrentTab(event.target.value);
   };
 
   return (
     <Box display="flex" height="100%" flexDirection={isMobile ? 'column' : 'row'}>
-      {isMobile ? (
+      {(isMobile && !currentTab) ? (
         <Select value={value} onChange={handleSelectChange} sx={{ minWidth: 120, marginBottom: '15px' }}>
           {tabs.map((tab, index) => (
             <MenuItem key={index} value={index}>
@@ -70,7 +75,7 @@ const PrettyTabbedView = ({ tabs, isLoading }) => {
           {tabs.map((tab, index) => (
             <Tab 
               style={{fontWeight: !tab.children ? '1000' : '', }}
-              disabled={!tab.children} key={index}
+              disabled={tab.disabled || !tab.children} key={index}
               label={tab.title} {...a11yProps(index)}
             />
           ))}

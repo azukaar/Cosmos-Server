@@ -12,6 +12,8 @@ import RouteConfigPage from '../pages/config/routeConfigPage';
 import logo from '../assets/images/icons/cosmos.png';
 import HomePage from '../pages/home';
 import ContainerIndex from '../pages/servapps/containers';
+import NewDockerService from '../pages/servapps/containers/newService';
+import NewDockerServiceForm from '../pages/servapps/containers/newServiceForm';
 
 
 // render - dashboard
@@ -62,6 +64,10 @@ const MainRoutes = {
         {
             path: '/ui/config-general',
             element: <ConfigManagement />
+        },
+        {
+            path: '/ui/servapps/new-service',
+            element: <NewDockerServiceForm />
         },
         {
             path: '/ui/config-url',

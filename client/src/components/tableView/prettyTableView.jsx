@@ -11,7 +11,7 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 
-const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo, buttons, fullWidth }) => {
+const PrettyTableView = ({ getKey, data, columns, sort, onRowClick, linkTo, buttons, fullWidth }) => {
   const [search, setSearch] = React.useState('');
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -63,6 +63,10 @@ const PrettyTableView = ({ getKey, data, columns, onRowClick, linkTo, buttons, f
                   }
                 })
                 return found;
+              })
+              .sort((a, b) => {
+                if (!sort) return 0;
+                return sort(a, b);
               })
               .map((row, key) => (
                 <TableRow

@@ -1,6 +1,6 @@
 import React from 'react';
-import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme, Alert } from '@mui/material';
+import { Field, Formik } from 'formik';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme, Alert, FormControlLabel, Checkbox } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
    from '../../config/users/formShortcuts';
@@ -8,7 +8,25 @@ import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 
-const DockerContainerSetup = ({config, containerInfo, refresh}) => {
+const containerInfoFrom = (values) => {
+  const labels = {};
+  values.labels.forEach((label) => {
+    labels[label.key] = label.value;
+  });
+  const envVars = values.envVars.map((envVar) => {
+    return `${envVar.key}=${envVar.value}`;
+  });
+  const realvalues = {
+    ...values,
+    envVars: envVars,
+    labels: labels,
+  };
+  realvalues.interactive = realvalues.interactive ? 2 : 1;
+  
+  return realvalues;
+}
+
+const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newContainer, OnForceSecure}) => {
   const restartPolicies = [
     ['no', 'No Restart'],
     ['always', 'Always Restart'],
@@ -23,6 +41,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
       <Formik
         initialValues={{
+          name: containerInfo.Name.replace('/', ''),
           image: containerInfo.Config.Image,
           restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
           envVars: containerInfo.Config.Env.map((envVar) => {
@@ -50,23 +69,16 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
           if (uniqueLabelKeys.length !== labelKeys.length) {
             errors.submit = 'Labels must be unique';
           }
+          OnChange && OnChange(containerInfoFrom(values));
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          if(newContainer) return false;
+          delete values.name;
+
           setSubmitting(true);
-          const labels = {};
-          values.labels.forEach((label) => {
-            labels[label.key] = label.value;
-          });
-          const envVars = values.envVars.map((envVar) => {
-            return `${envVar.key}=${envVar.value}`;
-          });
-          const realvalues = {
-            ...values,
-            envVars: envVars,
-            labels: labels,
-          };
-          realvalues.interactive = realvalues.interactive ? 2 : 1;
+
+          let realvalues = containerInfoFrom(values);
 
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)
             .then((res) => {
@@ -85,12 +97,18 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
               <MainCard title={'Docker Container Setup'}>
-              {containerInfo.State.Status !== 'running' && (
+              {containerInfo.State && containerInfo.State.Status !== 'running' && (
               <Alert severity="warning" style={{ marginBottom: '15px' }}>
                   This container is not running. Editing any settings will cause the container to start again.
                 </Alert>
               )}
                 <Grid container spacing={4}>
+                    {newContainer && <CosmosInputText
+                      name="name"
+                      label="Name"
+                      placeholder="Name"
+                      formik={formik}
+                      />}
                     <CosmosInputText
                       name="image"
                       label="Image"
@@ -109,6 +127,21 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                       label="Interactive Mode"
                       formik={formik}
                     />
+                    {OnForceSecure && <Grid item xs={12}>
+                    <Checkbox
+                        type="checkbox"
+                        as={FormControlLabel}
+                        control={<Checkbox size="large" />}
+                        label={'Force secure container'}
+                        checked={
+                          containerInfo.Config.Labels.hasOwnProperty('cosmos-force-network-secured') &&
+                          containerInfo.Config.Labels['cosmos-force-network-secured'] === 'true'
+                        }
+                        onChange={(e) => {
+                          OnForceSecure(e.target.checked);
+                        }}
+                      />
+                  </Grid>}
 
                   <CosmosFormDivider title={'Environment Variables'} />
                   <Grid item xs={12}>
@@ -228,7 +261,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                   </Grid>
                 </Grid>
               </MainCard>
-              <MainCard>
+              {!newContainer && <MainCard>
                 <Stack direction="column" spacing={2}>
                   {formik.errors.submit && (
                     <Grid item xs={12}>
@@ -248,7 +281,7 @@ const DockerContainerSetup = ({config, containerInfo, refresh}) => {
                     Update
                   </LoadingButton>
                 </Stack>
-              </MainCard>
+              </MainCard>}
             </Stack>
           </form>
         )}

@@ -60,12 +60,6 @@ const ContainerIndex = () => {
           children: <DockerTerminal refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: 'Links',
-          children: <div>
-            <Alert severity="info">This feature is not yet implemented. It is planned for next version: 0.5.0</Alert>
-          </div>
-        },
-        {
           title: 'Docker',
           children: <DockerContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
@@ -74,7 +68,7 @@ const ContainerIndex = () => {
           children: <NetworkContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: 'Volumes',
+          title: 'Storage',
           children: <VolumeContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
       ]} />
