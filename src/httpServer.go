@@ -218,7 +218,9 @@ func StartServer() {
 	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapi.HandleFunc("/api/users", user.UsersRoute)
 
-	srapi.HandleFunc("/api/images/{imageName}", docker.InspectImageRoute)
+	srapi.HandleFunc("/api/images/pull-if-missing", docker.PullImageIfMissing)
+	srapi.HandleFunc("/api/images/pull", docker.PullImage)
+	srapi.HandleFunc("/api/images", docker.InspectImageRoute)
 
 	srapi.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
 	srapi.HandleFunc("/api/volumes", docker.VolumesRoute)
@@ -234,6 +236,7 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/network/{networkId}", docker.NetworkContainerRoutes)
 	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
+	srapi.HandleFunc("/api/servapps/{containerId}/check-update", docker.CanUpdateImageRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 	
 	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
@@ -250,7 +253,7 @@ func StartServer() {
 			PerUserRequestLimit: 5000,
 		},
 	))
-	srapi.Use(utils.MiddlewareTimeout(30 * time.Second))
+	srapi.Use(utils.MiddlewareTimeout(45 * time.Second))
 	srapi.Use(utils.BlockPostWithoutReferer)
 	srapi.Use(proxy.BotDetectionMiddleware)
 	srapi.Use(httprate.Limit(120, 1*time.Minute, 

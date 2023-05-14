@@ -6,7 +6,6 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
-	"github.com/gorilla/mux"
 )
 
 func InspectImageRoute(w http.ResponseWriter, req *http.Request) {
@@ -21,8 +20,7 @@ func InspectImageRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	vars := mux.Vars(req)
-	imageName := utils.SanitizeSafe(vars["imageName"])
+	imageName := utils.SanitizeSafe(req.URL.Query().Get("imageName"))
 	
 	utils.Log("InspectImage " + imageName)
 

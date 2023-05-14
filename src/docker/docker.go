@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 	"fmt"
+	"bufio"
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
@@ -116,6 +117,24 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 			return "", err
 		}
 
+		// check if new image exists, if not, pull it
+		_, _, errImage := DockerClient.ImageInspectWithRaw(DockerContext, newConfig.Config.Image)
+		if errImage != nil {
+			utils.Log("EditContainer - Image not found, pulling " + newConfig.Config.Image)
+			out, errPull := DockerClient.ImagePull(DockerContext, newConfig.Config.Image, types.ImagePullOptions{})
+			if errPull != nil {
+				utils.Error("EditContainer - Image not found.", errPull)
+				return "", errors.New("Image not found. " + errPull.Error())
+			}
+			defer out.Close()
+
+			// wait for image pull to finish
+			scanner := bufio.NewScanner(out)
+			for scanner.Scan() {
+				utils.Log(scanner.Text())
+			}
+		}
+
 		// if no name, use the same one, that will force Docker to create a hostname if not set
 		newName = oldContainer.Name
 		newConfig.Config.Hostname = newName
@@ -147,7 +166,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 	} else {
 		utils.Log("EditContainer - Revert started")
 	}
-
+	
 	// recreate container with new informations
 	createResponse, createError := DockerClient.ContainerCreate(
 		DockerContext,

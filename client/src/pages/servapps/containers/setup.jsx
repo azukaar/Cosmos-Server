@@ -7,6 +7,7 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
 import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
+import LogsInModal from '../../../components/logsInModal';
 
 const containerInfoFrom = (values) => {
   const labels = {};
@@ -33,9 +34,11 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
     ['on-failure', 'Restart On Failure'],
     ['unless-stopped', 'Restart Unless Stopped'],
   ];
+  const [pullRequest, setPullRequest] = React.useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const padding = isMobile ? '6px 4px' : '12px 10px';
+  const [latestImage, setLatestImage] = React.useState(containerInfo.Config.Image);
 
   return (
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
@@ -73,6 +76,11 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+          if(values.image !== latestImage) {
+            setPullRequest(() => ((cb) => API.docker.pullImage(values.image,cb, true)));
+            return;
+          }
+
           if(newContainer) return false;
           delete values.name;
 
@@ -95,6 +103,14 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
+            <LogsInModal
+              request={pullRequest}
+              title="Pulling New Image..."
+              OnSuccess={() => {
+                setPullRequest(null);
+                setLatestImage(formik.values.image);
+              }}
+            />
             <Stack spacing={2}>
               <MainCard title={'Docker Container Setup'}>
               {containerInfo.State && containerInfo.State.Status !== 'running' && (
@@ -268,6 +284,9 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                       <FormHelperText error>{formik.errors.submit}</FormHelperText>
                     </Grid>
                   )}
+                  {formik.values.image !== latestImage && <Alert severity="warning" style={{ marginBottom: '15px' }}>
+                    You have updated the image. Clicking the button below will pull the new image, and then only can you update the container.
+                  </Alert>}
                   <LoadingButton
                     fullWidth
                     disableElevation
@@ -278,7 +297,7 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                     variant="contained"
                     color="primary"
                   >
-                    Update
+                    {formik.values.image !== latestImage ? 'Pull New Image' : 'Update Container'}
                   </LoadingButton>
                 </Stack>
               </MainCard>}

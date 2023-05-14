@@ -220,6 +220,54 @@ function createService(serviceData, onProgress) {
     });
 }
 
+function pullImage(imageName, onProgress, ifMissing) {
+  const requestOptions = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  };
+
+  const imageNameEncoded = encodeURIComponent(imageName);
+
+  return fetch(`/cosmos/api/images/${ifMissing ? 'pull-if-missing' : 'pull'}?imageName=${imageNameEncoded}`, requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      // The response body is a ReadableStream. This code reads the stream and passes chunks to the callback.
+      const reader = response.body.getReader();
+
+      // Read the stream and pass chunks to the callback as they arrive
+      return new ReadableStream({
+        start(controller) {
+          function read() {
+            return reader.read().then(({ done, value }) => {
+              if (done) {
+                controller.close();
+                return;
+              }
+              // Decode the UTF-8 text
+              let text = new TextDecoder().decode(value);
+              // Split by lines in case there are multiple lines in one chunk
+              let lines = text.split('\n');
+              for (let line of lines) {
+                if (line) {
+                  // Call the progress callback
+                  onProgress(line);
+                }
+              }
+              controller.enqueue(value);
+              return read();
+            });
+          }
+          return read();
+        }
+      });
+    });
+}
+
 export {
   list,
   get,
@@ -240,4 +288,5 @@ export {
   attachTerminal,
   createTerminal,
   createService,
+  pullImage,
 };
