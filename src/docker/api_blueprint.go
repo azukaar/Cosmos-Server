@@ -379,22 +379,24 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 							return
 						}
 			
-						// Change the ownership of the directory to the container.User
-						userInfo, err := user.Lookup(container.User)
-						if err != nil {
-							utils.Error("CreateService: Unable to lookup user", err)
-							fmt.Fprintf(w, "[ERROR] Unable to lookup user: "+err.Error())
-							flusher.Flush()
-						} else {
-							uid, _ := strconv.Atoi(userInfo.Uid)
-							gid, _ := strconv.Atoi(userInfo.Gid)
-							err = os.Chown(newmount.Source, uid, gid)
+						if container.User != "" {
+							// Change the ownership of the directory to the container.User
+							userInfo, err := user.Lookup(container.User)
 							if err != nil {
-								utils.Error("CreateService: Unable to change ownership of directory", err)
-								fmt.Fprintf(w, "[ERROR] Unable to change ownership of directory: "+err.Error())
+								utils.Error("CreateService: Unable to lookup user", err)
+								fmt.Fprintf(w, "[ERROR] Unable to lookup user " + container.User + "." +err.Error())
 								flusher.Flush()
-							}
-						}	
+							} else {
+								uid, _ := strconv.Atoi(userInfo.Uid)
+								gid, _ := strconv.Atoi(userInfo.Gid)
+								err = os.Chown(newmount.Source, uid, gid)
+								if err != nil {
+									utils.Error("CreateService: Unable to change ownership of directory", err)
+									fmt.Fprintf(w, "[ERROR] Unable to change ownership of directory: "+err.Error())
+									flusher.Flush()
+								}
+							}	
+						}
 					}
 				}
 			}

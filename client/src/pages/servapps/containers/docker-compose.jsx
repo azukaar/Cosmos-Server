@@ -76,6 +76,7 @@ const DockerComposeImport = () => {
         return;
       }
 
+      setYmlError('');
       let doc;
       let newService = {};
       try {
@@ -109,6 +110,11 @@ const DockerComposeImport = () => {
             doc.services[key].expose = doc.services[key].expose.map((port) => {
               return ''+port;
             })
+          }
+
+          //convert user
+          if(doc.services[key].user) {
+            doc.services[key].user = '' + doc.services[key].user;
           }
         });
       }
