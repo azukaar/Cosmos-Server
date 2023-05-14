@@ -1,3 +1,11 @@
+## Version 0.5.0
+ - Add Terminal to containers
+ - Add Create Container
+ - Add support for importing Docker Compose
+ - Fixed 2 bugs with the smart shield, that made it too strict
+ - Added more infoon the shield when blocking someone
+ - Fixed home background image
+
 ## Version 0.4.3
  - Fix for exposing routes from the details page
 

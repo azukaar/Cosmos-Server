@@ -205,7 +205,7 @@ const NewDockerServiceForm = () => {
         {
           title: 'Storage',
           disabled: maxTab < 2,
-          children: <Stack spacing={2}><VolumeContainerSetup ontainer containerInfo={containerInfo} OnChange={(values) => {
+          children: <Stack spacing={2}><VolumeContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             console.log(values)
             const newValues = {
               ...containerInfo,

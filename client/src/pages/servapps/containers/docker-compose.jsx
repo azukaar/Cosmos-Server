@@ -61,10 +61,6 @@ const preStyle = {
   marginTop: '10px',
   marginLeft: '0',
   marginRight: '0',
-  display: 'block',
-  textAlign: 'left',
-  verticalAlign: 'baseline',
-  opacity: '1',
 }
 
 const DockerComposeImport = () => {
@@ -73,14 +69,22 @@ const DockerComposeImport = () => {
     const [openModal, setOpenModal] = useState(false);
     const [dockerCompose, setDockerCompose] = useState('');
     const [service, setService] = useState({});
+    const [ymlError, setYmlError] = useState('');
 
     useEffect(() => {
       if(dockerCompose === '') {
         return;
       }
 
+      let doc;
       let newService = {};
-      let doc = yaml.load(dockerCompose);
+      try {
+        doc = yaml.load(dockerCompose);
+      } catch (e) {
+        console.log(e);
+        setYmlError(e.message);
+        return;
+      }
 
       // convert to the proper format
       if(doc.services) {
@@ -110,7 +114,6 @@ const DockerComposeImport = () => {
       }
 
       setService(doc);
-      console.log(doc);
     }, [dockerCompose]);
 
     return <>
@@ -134,6 +137,10 @@ const DockerComposeImport = () => {
                         reader.readAsText(file);
                       }}
                     />
+
+                    <div style={{color: 'red'}}>
+                    {ymlError}
+                    </div>
                     
                     <TextField
                       multiline
@@ -141,7 +148,12 @@ const DockerComposeImport = () => {
                       fullWidth
                       value={dockerCompose}
                       onChange={(e) => setDockerCompose(e.target.value)}
-                      style={preStyle}
+                      sx={preStyle}
+                      InputProps={{
+                        sx: {
+                          color: '#EEE',
+                        }
+                      }}
                       rows={20}></TextField>
                   </Stack>}
                   {step === 1 && <Stack spacing={2}>
@@ -154,6 +166,7 @@ const DockerComposeImport = () => {
                   setOpenModal(false);
                   setStep(0);
                   setDockerCompose('');
+                  setYmlError('');
                 }}>Close</Button>
                 <Button onClick={() => {
                   if(step === 0) {

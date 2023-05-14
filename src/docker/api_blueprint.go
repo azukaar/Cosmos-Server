@@ -7,6 +7,9 @@ import (
 	"strings"
 	"time"
 	"bufio"
+	"strconv"
+	"os"
+	"os/user"
 	"errors"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/mount"
@@ -311,6 +314,7 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 			fmt.Fprintf(w, "Image %s pulled\n", container.Image)
 			flusher.Flush()
 		}
+
 		// Create containers
 		for _, container := range serviceRequest.Services {
 			utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
@@ -359,6 +363,39 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 						HostIP:   "",
 						HostPort: portHost,
 					},
+				}
+			}
+
+			// Create missing folders for bind mounts
+			for _, newmount := range container.Volumes {
+				if newmount.Type == mount.TypeBind {
+					if _, err := os.Stat(newmount.Source); os.IsNotExist(err) {
+						err := os.MkdirAll(newmount.Source, 0755)
+						if err != nil {
+							utils.Error("CreateService: Unable to create directory for bind mount", err)
+							fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount: "+err.Error())
+							flusher.Flush()
+							Rollback(rollbackActions, w, flusher)
+							return
+						}
+			
+						// Change the ownership of the directory to the container.User
+						userInfo, err := user.Lookup(container.User)
+						if err != nil {
+							utils.Error("CreateService: Unable to lookup user", err)
+							fmt.Fprintf(w, "[ERROR] Unable to lookup user: "+err.Error())
+							flusher.Flush()
+						} else {
+							uid, _ := strconv.Atoi(userInfo.Uid)
+							gid, _ := strconv.Atoi(userInfo.Gid)
+							err = os.Chown(newmount.Source, uid, gid)
+							if err != nil {
+								utils.Error("CreateService: Unable to change ownership of directory", err)
+								fmt.Fprintf(w, "[ERROR] Unable to change ownership of directory: "+err.Error())
+								flusher.Flush()
+							}
+						}	
+					}
 				}
 			}
 

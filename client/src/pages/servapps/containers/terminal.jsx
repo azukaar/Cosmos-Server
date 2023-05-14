@@ -12,6 +12,8 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const isInteractive = Config.Tty;
   const theme = useTheme();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'))
+  const [history, setHistory] = useState([]);
+  const [historyCursor, setHistoryCursor] = useState(0);
 
   const [message, setMessage] = useState('');
   const [output, setOutput] = useState([
@@ -24,9 +26,30 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const [isConnected, setIsConnected] = useState(false);
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === 'Enter') {
+      // shift + enter for new line
+      if (e.shiftKey) {
+        return;
+      }
       e.preventDefault();
       sendMessage();
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (historyCursor > 0) {
+        setHistoryCursor(historyCursor - 1);
+        setMessage(history[historyCursor - 1]);
+      }
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyCursor < history.length - 1) {
+        setHistoryCursor(historyCursor + 1);
+        setMessage(history[historyCursor + 1]);
+      } else {
+        setHistoryCursor(history.length);
+        setMessage('');
+      }
     }
   };
 
@@ -85,7 +108,9 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const sendMessage = () => {
     if (ws.current) {
       ws.current.send(message);
+      setHistoryCursor(history.length + 1);
       setMessage('');
+      setHistory((prevHistory) => [...prevHistory, message]);
     }
   };
 

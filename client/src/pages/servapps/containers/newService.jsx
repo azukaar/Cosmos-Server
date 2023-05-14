@@ -18,6 +18,7 @@ import NetworkContainerSetup from './network';
 import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import { Link } from 'react-router-dom';
+import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -56,6 +57,7 @@ const NewDockerService = ({service}) => {
   const [log, setLog] = React.useState([]);
   const [isDone, setIsDone] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
+  const preRef = React.useRef(null);
 
   React.useEffect(() => {
     // refreshContainer();
@@ -64,7 +66,8 @@ const NewDockerService = ({service}) => {
   const create = () => {
     setLog([])
     API.docker.createService(service, (newlog) => {
-      setLog((old) => [...old, newlog]);
+      setLog((old) => smartDockerLogConcat(old, newlog));
+      preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
         setIsDone(true);
       }
@@ -100,19 +103,11 @@ const NewDockerService = ({service}) => {
             }}
             >Restart</Button>
         }
-        <Link to={`/ui/servapps`}>
-        <Button
-          variant="outlined"
-          color="primary"
-          fullWidth
-          startIcon={<AppstoreOutlined />}
-        >Back to Servapps</Button>
-        </Link>
       </Stack>}
-      <pre style={preStyle}>
+      <pre style={preStyle} ref={preRef}>
         {!log.length && JSON.stringify(service, false ,2)}
         {log.map((l) => {
-          return <div>{l}</div>
+          return <div>{tryParseProgressLog(l)}</div>
         })}
       </pre>
     </Stack>
