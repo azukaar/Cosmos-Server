@@ -20,7 +20,6 @@ export const smartDockerLogConcat = (log, newLogRaw) => {
     }
     return [...log, newLogRaw];
   } catch (e) {
-    console.log(e);
     return [...log, newLogRaw];
   }
 }
@@ -28,12 +27,12 @@ export const smartDockerLogConcat = (log, newLogRaw) => {
 export const tryParseProgressLog = (log) => {
   try {
     const parsedLog = JSON.parse(log);
-    if (parsedLog.status && parsedLog.progress) {
-      return `${parsedLog.id || ""} ${parsedLog.status} ${parsedLog.progress}`
-    } else if (parsedLog.status && parsedLog.progressDetail && parsedLog.progressDetail.current) {
-      return `${parsedLog.id || ""} ${parsedLog.status} ${parsedLog.progressDetail.current}/${parsedLog.progressDetail.total}`
-    } else if (parsedLog.status) {
-      return `${parsedLog.id || ""} ${parsedLog.status} ${parsedLog.sha256 || ""}`
+    if (parsedLog.status && parsedLog.progress && parsedLog.id) {
+      return `${parsedLog.id} ${parsedLog.status} ${parsedLog.progress}`
+    } else if (parsedLog.status && parsedLog.id && parsedLog.progressDetail && parsedLog.progressDetail.current) {
+      return `${parsedLog.id} ${parsedLog.status} ${parsedLog.progressDetail.current}/${parsedLog.progressDetail.total}`
+    } else if (parsedLog.status && parsedLog.id) {
+      return `${parsedLog.id} ${parsedLog.status} ${parsedLog.sha256 || ""}`
     } 
     return log;
   } catch (e) {

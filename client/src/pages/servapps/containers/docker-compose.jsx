@@ -63,7 +63,7 @@ const preStyle = {
   marginRight: '0',
 }
 
-const DockerComposeImport = () => {
+const DockerComposeImport = ({refresh}) => {
     const [step, setStep] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [openModal, setOpenModal] = useState(false);
@@ -163,7 +163,7 @@ const DockerComposeImport = () => {
                       rows={20}></TextField>
                   </Stack>}
                   {step === 1 && <Stack spacing={2}>
-                    <NewDockerService service={service} />
+                    <NewDockerService service={service} refresh={refresh}/>
                   </Stack>}
                 </DialogContentText>
             </DialogContent>

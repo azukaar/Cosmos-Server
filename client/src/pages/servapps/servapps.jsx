@@ -151,7 +151,7 @@ const ServeApps = () => {
             startIcon={<AppstoreAddOutlined />}
             >Start ServApp</ResponsiveButton>
         </Link>
-        <DockerComposeImport />
+        <DockerComposeImport refresh={refreshServeApps}/>
       </Stack>
 
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>

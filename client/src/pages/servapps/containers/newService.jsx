@@ -50,7 +50,7 @@ const preStyle = {
   opacity: '1',
 }
 
-const NewDockerService = ({service}) => {
+const NewDockerService = ({service, refresh}) => {
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -70,6 +70,7 @@ const NewDockerService = ({service}) => {
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
         setIsDone(true);
+        refresh && refresh();
       }
     });
   }
