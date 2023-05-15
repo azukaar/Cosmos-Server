@@ -39,6 +39,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": config,
+			"updates": utils.UpdateAvailable,
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)

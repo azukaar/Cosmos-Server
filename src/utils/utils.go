@@ -26,6 +26,8 @@ var NewVersionAvailable = false
 
 var NeedsRestart = false
 
+var UpdateAvailable = map[string]bool{}
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,

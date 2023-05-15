@@ -78,6 +78,8 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
     })
     setPortsOptions(portsTemp)
 
+    console.log(targetResult)
+
     if(targetResult.port == '') {
         targetResult.port = '80'
         
@@ -117,6 +119,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   }
 
   const onContainerChange = (newContainer) => {
+    console.log(newContainer)
     if(loading) return;
     targetResult.container = newContainer.Names[0]
     targetResult.containerObject = newContainer
@@ -155,7 +158,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
       }
       
       if (targetResult.container !== 'null') {
-        postContainerChange(res.data.find((container) => container.Names[0] === targetResult.container))
+        postContainerChange(res.data.find((container) => container.Names[0] === targetResult.container) || targetResult.containerObject)
       }
     })();
 
@@ -220,7 +223,6 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
       )}
     />}
     {!nameOnly && <>
-      {(portsOptions) ? (<>
       <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
       <Autocomplete
         className="px-2 my-2"
@@ -228,8 +230,12 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         name={name + "-port"}
         id={name + "-port"}
         value={targetResult.port}
-        options={portsOptions.map((option) => (option))}
+        options={((portsOptions && portsOptions.length) ? portsOptions : [])}
         placeholder='Select a port'
+        onBlur={(event) => {
+          targetResult.port = event.target.value || '';
+          formik.setFieldValue(name, getTarget())
+        }}
         freeSolo
         filterOptions={(x) => x} // disable filtering
         getOptionLabel={(option) => '' + option}
@@ -237,7 +243,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
           return ('' + option) === value
         }}
         onChange={(event, newValue) => {
-          targetResult.port = newValue
+          targetResult.port = newValue || '';
           formik.setFieldValue(name, getTarget())
         }}
         renderInput={(params) => <TextField {...params} />}
@@ -245,21 +251,18 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         {targetResult.port == '' && targetResult.port == 0 && <FormHelperText error id="standard-weight-helper-text-name-login">
           Please select a port
         </FormHelperText>}
-      </>) : ''}
       
-      
-      {(portsOptions) ? (<>
-            <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
-            <TextField
-              type="text"
-              name={name + "-protocol"}
-              defaultValue={targetResult.protocol}
-              onChange={(event) => {
-                targetResult.protocol = event.target.value && event.target.value.toLowerCase()
-                formik.setFieldValue(name, getTarget())
-              }}
-            />
-      </>) : ''}
+
+      <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
+      <TextField
+        type="text"
+        name={name + "-protocol"}
+        defaultValue={targetResult.protocol}
+        onChange={(event) => {
+          targetResult.protocol = event.target.value && event.target.value.toLowerCase()
+          formik.setFieldValue(name, getTarget())
+        }}
+      />
 
       <InputLabel htmlFor={name}>Result Target Preview</InputLabel>
       <TextField

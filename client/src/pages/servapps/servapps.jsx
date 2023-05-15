@@ -39,6 +39,7 @@ const ServeApps = () => {
   const [isUpdating, setIsUpdating] = useState({});
   const [search, setSearch] = useState("");
   const [config, setConfig] = useState(null);
+  const [updatesAvailable, setUpdatesAvailable] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [newRoute, setNewRoute] = useState(null);
   const [submitErrors, setSubmitErrors] = useState([]);
@@ -50,6 +51,7 @@ const ServeApps = () => {
     });
     API.config.get().then((res) => {
       setConfig(res.data);
+      setUpdatesAvailable(res.updates);
     });
     setIsUpdating({});
   };
@@ -190,7 +192,13 @@ const ServeApps = () => {
                   {/* <Button variant="contained" size="small" onClick={() => {}}>
                     Update
                   </Button> */}
-                  <GetActions Id={app.Names[0].replace('/', '')} state={app.State} setIsUpdatingId={setIsUpdatingId} refreshServeApps={refreshServeApps} />
+                  <GetActions 
+                    Id={app.Names[0].replace('/', '')}
+                    state={app.State}
+                    setIsUpdatingId={setIsUpdatingId}
+                    refreshServeApps={refreshServeApps}
+                    updateAvailable={updatesAvailable[app.Names[0]]}
+                  />
                 </Stack>
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">

@@ -6,6 +6,7 @@ import (
 	"time"
 	"fmt"
 	"bufio"
+	"strings"
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
@@ -311,4 +312,47 @@ func Test() error {
 	// fmt.Println(jellyfin.NetworkSettings)
 
 	return nil
+}
+
+
+func CheckUpdatesAvailable() map[string]bool {
+	result := make(map[string]bool)
+
+	// for each containers
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("CheckUpdatesAvailable", err)
+		return result
+	}
+
+	for _, container := range containers {
+		utils.Log("Checking for updates for " + container.Image)
+
+		rc, err := DockerClient.ImagePull(DockerContext, container.Image, types.ImagePullOptions{})
+		if err != nil {
+			utils.Error("CheckUpdatesAvailable", err)
+			continue
+		}
+
+		scanner := bufio.NewScanner(rc)
+		defer  rc.Close()
+
+		for scanner.Scan() {
+			newStr := scanner.Text()
+
+			// Check if a download has started
+			if strings.Contains(newStr, "\"status\":\"Pulling fs layer\"") {
+				utils.Log("Updates available for " + container.Image)
+				result[container.Names[0]] = true
+				rc.Close()
+				break
+			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date\"") {
+				utils.Log("No updates available for " + container.Image)
+				rc.Close()
+				break
+			}
+		}
+	}
+
+	return result
 }

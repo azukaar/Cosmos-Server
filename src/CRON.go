@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/docker"
 	"os"
 	"path/filepath"
 	"encoding/json"
@@ -96,9 +97,17 @@ func checkVersion() {
 	}
 }
 
+func checkUpdatesAvailable() {
+	utils.UpdateAvailable = docker.CheckUpdatesAvailable()
+}
+
 func CRON() {
 	go func() {
 		gocron.Every(1).Day().At("00:00").Do(checkVersion)
+		<-gocron.Start()
+	}()
+	go func() {
+		gocron.Every(6).Hours().Do(checkUpdatesAvailable)
 		<-gocron.Start()
 	}()
 }

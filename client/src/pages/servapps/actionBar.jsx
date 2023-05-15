@@ -7,7 +7,8 @@ const GetActions = ({
   Id,
   state,
   refreshServeApps,
-  setIsUpdatingId
+  setIsUpdatingId,
+  updateAvailable
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
@@ -93,7 +94,6 @@ const GetActions = ({
   ];
 
   return actions.filter((action) => {
-    let updateAvailable = false;
     return action.if.includes(state) ?? (updateAvailable && action.if.includes('update_available'));
   }).map((action) => {
     return <Tooltip title={action.t}>{action.e}</Tooltip>

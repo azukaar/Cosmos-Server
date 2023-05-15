@@ -18,12 +18,20 @@ import NetworkContainerSetup from './network';
 import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import NewDockerService from './newService';
+import RouteManagement from '../../config/routes/routeman';
+
+const getHostnameFromName = (name) => {
+  return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
+}
 
 const NewDockerServiceForm = () => {
   const [currentTab, setCurrentTab] = React.useState(0);
   const [maxTab, setMaxTab] = React.useState(0);
   const [containerInfo, setContainerInfo] = React.useState({
     Name: '',
+    Names: [],
+    Ports: [], // fake for contianerPicker
+    Route: null,
     Config: {
       Env: [],
       Labels: {},
@@ -64,6 +72,7 @@ const NewDockerServiceForm = () => {
           acc[cur] = {};
           return acc;
         }, {}),
+        Routes: [containerInfo.Route]
       }
     },
   }
@@ -90,7 +99,7 @@ const NewDockerServiceForm = () => {
       variant="contained"
       fullWidth
       endIcon={<ArrowRightOutlined />}
-      disabled={currentTab === 3}
+      disabled={currentTab === 4}
       onClick={() => {
         setCurrentTab(currentTab + 1);
         setMaxTab(Math.max(currentTab + 1, maxTab));
@@ -99,6 +108,8 @@ const NewDockerServiceForm = () => {
         Next
     </Button>
     </Stack>
+
+    console.log(containerInfo)
 
   return <div>
     <Stack spacing={1}>
@@ -119,6 +130,7 @@ const NewDockerServiceForm = () => {
             const newValues = {
               ...containerInfo,
               Name: values.name,
+              Names: [values.name],
               Config: {
                 ...containerInfo.Config,
                 Image: values.image,
@@ -148,6 +160,44 @@ const NewDockerServiceForm = () => {
             }
             setContainerInfo(newValues);
           }}/>{nav()}</Stack>
+        },
+        {
+          title: 'URL',
+          disabled: maxTab < 1,
+          children:  <Stack spacing={2}><RouteManagement TargetContainer={containerInfo} 
+            routeConfig={{
+              Target: "http://"+containerInfo.Name.replace('/', '') + ":",
+              Mode: "SERVAPP",
+              Name: containerInfo.Name.replace('/', ''),
+              Description: "Expose " + containerInfo.Name.replace('/', '') + " to the internet",
+              UseHost: true,
+              Host: getHostnameFromName(containerInfo.Name),
+              UsePathPrefix: false,
+              PathPrefix: '',
+              CORSOrigin: '',
+              StripPathPrefix: false,
+              AuthEnabled: false,
+              Timeout: 14400000,
+              ThrottlePerMinute: 10000,
+              BlockCommonBots: true,
+              SmartShield: {
+                Enabled: true,
+              }
+            }} 
+            routeNames={[]}
+            setRouteConfig={(newRoute) => {
+              const newValues = {
+                ...containerInfo,
+                Route: newRoute,
+              }
+              setContainerInfo(newValues);
+            }}
+            up={() => {}}
+            down={() => {}}
+            deleteRoute={() => {}}
+            noControls
+            lockTarget
+          />{nav()}</Stack>
         },
         {
           title: 'Network',
@@ -204,7 +254,7 @@ const NewDockerServiceForm = () => {
         },
         {
           title: 'Storage',
-          disabled: maxTab < 2,
+          disabled: maxTab < 1,
           children: <Stack spacing={2}><VolumeContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             console.log(values)
             const newValues = {
@@ -225,7 +275,7 @@ const NewDockerServiceForm = () => {
         },
         {
           title: 'Review & Start',
-          disabled: maxTab < 3,
+          disabled: maxTab < 1,
           children: <Stack spacing={2}><NewDockerService service={service} />{nav()}</Stack>
         }
       ]} />}
