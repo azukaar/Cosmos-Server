@@ -23,8 +23,6 @@ func main() {
 	docker.DockerListenEvents()
 
 	docker.BootstrapAllContainersFromTags()
-	
-	utils.UpdateAvailable = docker.CheckUpdatesAvailable()
 
 	version, err := docker.DockerClient.ServerVersion(context.Background())
 	if err == nil {
