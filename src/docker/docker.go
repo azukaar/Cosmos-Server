@@ -328,6 +328,12 @@ func CheckUpdatesAvailable() map[string]bool {
 	for _, container := range containers {
 		utils.Log("Checking for updates for " + container.Image)
 
+		// check container is running 
+		if container.State != "running" {
+			utils.Log("Container " + container.Names[0] + " is not running, skipping")
+			continue
+		}
+
 		rc, err := DockerClient.ImagePull(DockerContext, container.Image, types.ImagePullOptions{})
 		if err != nil {
 			utils.Error("CheckUpdatesAvailable", err)

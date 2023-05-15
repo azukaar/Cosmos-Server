@@ -94,7 +94,7 @@ const GetActions = ({
   ];
 
   return actions.filter((action) => {
-    return action.if.includes(state) ?? (updateAvailable && action.if.includes('update_available'));
+    return action.if.includes(state) || (updateAvailable && action.if.includes('update_available'));
   }).map((action) => {
     return <Tooltip title={action.t}>{action.e}</Tooltip>
   });
