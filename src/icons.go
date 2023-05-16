@@ -4,13 +4,13 @@ import (
 	"net/http"
 	"net/url"
 	// "fmt"
+	"strings"
 	"os"
 	"io/ioutil"
+	"regexp"
 	"encoding/json"
-	"strconv"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
-	"go.deanishe.net/favicon"
 )
 
 type CachedImage struct {
@@ -20,6 +20,25 @@ type CachedImage struct {
 }
 
 var cache = make(map[string]CachedImage)
+
+func ExtractFaviconMetaTag(html string) string {
+	// Regular expression pattern to match the favicon metatag
+	pattern := `<link[^>]*rel="icon"[^>]*href="([^"]+)"[^>]*>`
+
+	// Compile the regular expression pattern
+	regex := regexp.MustCompile(pattern)
+
+	// Find the first match in the HTML string
+	match := regex.FindStringSubmatch(html)
+
+	if len(match) > 1 {
+		// Extract the URL from the matched metatag
+		faviconURL := match[1]
+		return faviconURL
+	}
+
+	return "/favicon.ico"
+}
 
 func sendImage(w http.ResponseWriter, image CachedImage) {
 		// Copy the response to the output
@@ -74,69 +93,47 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// follow siteurl and check if any redirect. if yes, use the final url
+		// follow siteurl and check if any redirect. 
 		respNew, err := http.Get(siteurl)
 		if err != nil {
 			utils.Error("FaviconFetch", err)
 			sendFallback(w)
 			return
 		}
-		siteurl = respNew.Request.URL.String()
-		
-		icons, err := favicon.Find(siteurl)
-		utils.Debug("Found Favicon: " + strconv.Itoa(len(icons)))
+
+		urlBody, err := ioutil.ReadAll(respNew.Body)
 		if err != nil {
 			utils.Error("FaviconFetch", err)
 			sendFallback(w)
 			return
 		}
-		
-		if len(icons) == 0 {
-			utils.Error("FaviconFetch", err)
-			sendFallback(w)
-			return
-		}
 
-		iconIndex := len(icons)-1
-		iconChanged := false
+		// get favicon meta tag from the response
+		faviconURL := ExtractFaviconMetaTag((string)(urlBody))
 
-		for i, icon := range icons {
-			utils.Debug("Favicon Width: " + icon.URL + " " + strconv.Itoa(icon.Width))
-			if icon.Width <= 256 {
-				iconIndex = i
-				iconChanged = true
-				break
+		// if faviconURL is relative get hostname of the URL and append icon
+		if !strings.HasPrefix(faviconURL, "http") {
+			u, err := url.Parse(siteurl)
+			if err != nil {
+				utils.Error("FaviconFetch", err)
+				sendFallback(w)
+				return
 			}
+			if !strings.HasPrefix(faviconURL, "/") {
+				faviconURL = "/" + faviconURL
+			}
+			faviconURL = u.Scheme + "://" + u.Host + faviconURL
 		}
-		if !iconChanged {
-			iconIndex = 0
-		}
-		icon := icons[iconIndex]
-
-		utils.Log("Favicon: " + icon.URL)
+		
+		utils.Log("Favicon: " + faviconURL)
 
 		// Fetch the favicon
-		resp, err := http.Get(icon.URL)
+		resp, err := http.Get(faviconURL)
 		if err != nil {
 			utils.Error("FaviconFetch", err)
 			sendFallback(w)
 			return
 		}
-
-		// save the body to a file
-		// out, err := os.Create("favicon.ico")
-		// if err != nil {
-		// 	utils.Error("FaviconFetch", err)
-		// 	utils.HTTPError(w, "Favicon Fetch", http.StatusInternalServerError, "FA001")
-		// 	return
-		// }
-		// defer out.Close()
-		// _, err = io.Copy(out, resp.Body)
-		// if err != nil {
-		// 	utils.Error("FaviconFetch", err)
-		// 	utils.HTTPError(w, "Favicon Fetch", http.StatusInternalServerError, "FA001")
-		// 	return
-		// }
 
 		// Cache the response 
 		body, err := ioutil.ReadAll(resp.Body)

@@ -6,6 +6,8 @@
  - Fixed issues that prevented from login in with different hostnames
  - Added more infoon the shield when blocking someone
  - Fixed home background image
+ - Fixed issue where the UI would have missing icon images
+ - Improved icon fetching for apps by following redirections
 
 ## Version 0.4.3
  - Fix for exposing routes from the details page
