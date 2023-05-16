@@ -81,28 +81,38 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var icons []*favicon.Icon
+		var defaultIcons = []*favicon.Icon{
+			&favicon.Icon{URL: "favicon.png", Width: 0},
+			&favicon.Icon{URL: "/favicon.png", Width: 0},
+			&favicon.Icon{URL: "favicon.ico", Width: 0},
+			&favicon.Icon{URL: "/favicon.ico", Width: 0},
+		}
 
 		// follow siteurl and check if any redirect. 
 		respNew, err := http.Get(siteurl)
 
 		if err != nil {
 			utils.Error("FaviconFetch", err)
-			icons = []*favicon.Icon{
-				&favicon.Icon{URL: "favicon.png", Width: 0},
-				&favicon.Icon{URL: "/favicon.png", Width: 0},
-				&favicon.Icon{URL: "favicon.ico", Width: 0},
-				&favicon.Icon{URL: "/favicon.ico", Width: 0},
-			}
+			icons = append(icons, defaultIcons...)
 		} else {
 			siteurl = respNew.Request.URL.String()
 			icons, err = favicon.Find(siteurl)
 
 			if err != nil || len(icons) == 0 {
-				icons = []*favicon.Icon{
-					&favicon.Icon{URL: "favicon.png", Width: 0},
-					&favicon.Icon{URL: "/favicon.png", Width: 0},
-					&favicon.Icon{URL: "favicon.ico", Width: 0},
-					&favicon.Icon{URL: "/favicon.ico", Width: 0},
+				icons = append(icons, defaultIcons...)
+			} else {
+				// Check if icons list is missing any default values
+				for _, defaultIcon := range defaultIcons {
+						found := false
+						for _, icon := range icons {
+								if icon.URL == defaultIcon.URL {
+										found = true
+										break
+								}
+						}
+						if !found {
+							icons = append(icons, defaultIcon)
+						}
 				}
 			}
 		}
