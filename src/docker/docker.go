@@ -327,6 +327,12 @@ func CheckUpdatesAvailable() map[string]bool {
 
 	for _, container := range containers {
 		utils.Log("Checking for updates for " + container.Image)
+		
+		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
+		if err != nil {
+			utils.Error("CheckUpdatesAvailable", err)
+			continue
+		}
 
 		// check container is running 
 		if container.State != "running" {
@@ -351,27 +357,30 @@ func CheckUpdatesAvailable() map[string]bool {
 			if strings.Contains(newStr, "\"status\":\"Pulling fs layer\"") {
 				utils.Log("Updates available for " + container.Image)
 
-				if !IsLabel(container, "cosmos-auto-update") {
+				if !IsLabel(fullContainer, "cosmos-auto-update") {
 					result[container.Names[0]] = true
 					rc.Close()
 					break
 				} else {
 					needsUpdate = true
 				}
-			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date\"") {
+			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date") {
 				utils.Log("No updates available for " + container.Image)
 				
-				if !IsLabel(container, "cosmos-auto-update") {
+				if !IsLabel(fullContainer, "cosmos-auto-update") {
 					rc.Close()
 					break
 				}
+			} else {
+				utils.Log(newStr)
 			}
 		}
 
 		// no new image to pull, see if local image is matching
 		if !result[container.Names[0]] && !needsUpdate {
 			// check sum of local vs container image
-			localImage, _, err := cli.ImageInspectWithRaw(context.Background(), container.Image)
+			utils.Log("CheckUpdatesAvailable - Checking local image for change for " + container.Image)
+			localImage, _, err := DockerClient.ImageInspectWithRaw(DockerContext, container.Image)
 			if err != nil {
 				utils.Error("CheckUpdatesAvailable - local image - ", err)
 				continue
@@ -379,12 +388,16 @@ func CheckUpdatesAvailable() map[string]bool {
 
 			if localImage.ID != container.ImageID {
 				result[container.Names[0]] = true
+				needsUpdate = true
+				utils.Log("CheckUpdatesAvailable - Local updates available for " + container.Image)
+			} else {
+				utils.Log("CheckUpdatesAvailable - No local updates available for " + container.Image)
 			}
 		}
 
-		if needsUpdate && IsLabel(container, "cosmos-auto-update") {
+		if needsUpdate && IsLabel(fullContainer, "cosmos-auto-update") {
 			utils.Log("Downlaoded new update for " + container.Image + " ready to install")
-			_, err := EditContainer(container.ID, container)
+			_, err := EditContainer(container.ID, fullContainer)
 			if err != nil {
 				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
 			}
