@@ -63,7 +63,6 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	
 	if(req.Method == "GET") { 
 		utils.Log("Fetch favicon for " + siteurl)
 
@@ -75,6 +74,15 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// follow siteurl and check if any redirect. if yes, use the final url
+		respNew, err := http.Get(siteurl)
+		if err != nil {
+			utils.Error("FaviconFetch", err)
+			sendFallback(w)
+			return
+		}
+		siteurl = respNew.Request.URL.String()
+		
 		icons, err := favicon.Find(siteurl)
 		utils.Debug("Found Favicon: " + strconv.Itoa(len(icons)))
 		if err != nil {
