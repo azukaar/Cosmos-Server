@@ -203,3 +203,41 @@ func EnsureHostname(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func IsValidHostname(hostname string) bool {
+	og := GetMainConfig().HTTPConfig.Hostname
+	ni := GetMainConfig().NewInstall
+
+	if ni || og == "0.0.0.0" {
+		return true
+	}
+
+	hostnames := GetAllHostnames()
+
+	reqHostNoPort := strings.Split(hostname, ":")[0]
+
+	reqHostNoPortNoSubdomain := ""
+
+	if parts := strings.Split(reqHostNoPort, "."); len(parts) < 2 {
+		reqHostNoPortNoSubdomain = reqHostNoPort
+	} else {
+		reqHostNoPortNoSubdomain = parts[len(parts)-2] + "." + parts[len(parts)-1]
+	}
+
+	for _, hostname := range hostnames {
+		hostnameNoPort := strings.Split(hostname, ":")[0]
+		hostnameNoPortNoSubdomain := ""
+
+		if parts := strings.Split(hostnameNoPort, "."); len(parts) < 2 {
+			hostnameNoPortNoSubdomain = hostnameNoPort
+		} else {
+			hostnameNoPortNoSubdomain = parts[len(parts)-2] + "." + parts[len(parts)-1]
+		}
+
+		if reqHostNoPortNoSubdomain == hostnameNoPortNoSubdomain {
+			return true
+		}
+	}
+
+	return false
+}

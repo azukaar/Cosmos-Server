@@ -70,7 +70,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			SendUserToken(w, user, false)
+			SendUserToken(w, req, user, false)
 
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",

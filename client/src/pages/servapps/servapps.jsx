@@ -188,16 +188,14 @@ const ServeApps = () => {
                     </Stack>
                   </Stack>
                 </Stack>
-                <Stack direction="row" spacing={2}>
-                  {/* <Button variant="contained" size="small" onClick={() => {}}>
-                    Update
-                  </Button> */}
+                <Stack direction="row" spacing={2} width='100%'>
                   <GetActions 
                     Id={app.Names[0].replace('/', '')}
+                    image={app.Image}
                     state={app.State}
                     setIsUpdatingId={setIsUpdatingId}
                     refreshServeApps={refreshServeApps}
-                    updateAvailable={updatesAvailable[app.Names[0]]}
+                    updateAvailable={updatesAvailable && updatesAvailable[app.Names[0]]}
                   />
                 </Stack>
               </Stack>
@@ -242,9 +240,30 @@ const ServeApps = () => {
                             setIsUpdatingId(app.Id, false);
                             refreshServeApps();
                           }, 3000);
+                        }).catch(() => {
+                          setIsUpdatingId(app.Id, false);
+                          refreshServeApps();
                         })
                       }}
                     /> Force Secure Network
+                  </Stack>
+                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+                    <Checkbox
+                      checked={app.Labels['cosmos-auto-update'] === 'true'}
+                      disabled={app.State !== 'running'}
+                      onChange={(e) => {
+                        setIsUpdatingId(app.Id, true);
+                        API.docker.autoUpdate(app.Id, e.target.checked).then(() => {
+                          setTimeout(() => {
+                            setIsUpdatingId(app.Id, false);
+                            refreshServeApps();
+                          }, 3000);
+                        }).catch(() => {
+                          setIsUpdatingId(app.Id, false);
+                          refreshServeApps();
+                        })
+                      }}
+                    /> Auto Update Container
                   </Stack>
                 </Stack>
               }

@@ -161,7 +161,7 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 
 	errD := Connect()
 	if errD != nil {
-		utils.Error("CreateService", errD)
+		utils.Error("CreateService - connect - ", errD)
 		utils.HTTPError(w, "Internal server error: " + errD.Error(), http.StatusInternalServerError, "DS002")
 		return
 	}
@@ -191,7 +191,7 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 		var serviceRequest DockerServiceCreateRequest
 		err := decoder.Decode(&serviceRequest)
 		if err != nil {
-			utils.Error("CreateService", err)
+			utils.Error("CreateService - decode - ", err)
 			utils.HTTPError(w, "Bad request: "+err.Error(), http.StatusBadRequest, "DS003")
 			return
 		}

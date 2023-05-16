@@ -12,7 +12,7 @@ import (
 
 func quickLoggout(w http.ResponseWriter, req *http.Request, err error) (utils.User, error) {
 	utils.Error("UserToken: Token likely falsified", err)
-	logOutUser(w)
+	logOutUser(w, req)
 	redirectToReLogin(w, req)
 	return utils.User{}, errors.New("Token likely falsified")
 }
@@ -75,7 +75,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 
 	if errP != nil {
 		utils.Error("UserToken: token is not valid", nil)
-		logOutUser(w)
+		logOutUser(w, req)
 		redirectToReLogin(w, req)
 		return utils.User{}, errors.New("Token not valid")
 	}
@@ -85,6 +85,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		passwordCycle int
 		mfaDone       bool
 		ok            bool
+		forDomain     string
 	)
 
 	if nickname, ok = claims["nickname"].(string); !ok {
@@ -107,6 +108,22 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		}
 	}
 
+	if forDomain, ok = claims["forDomain"].(string); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	reqHostname := req.Host
+	reqHostNoPort := strings.Split(reqHostname, ":")[0]
+	
+	if !strings.HasSuffix(reqHostNoPort, forDomain) {
+		utils.Error("UserToken: token is not valid for this domain", nil)
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return utils.User{}, errors.New("JWT Token not valid for this domain")
+	}
+
 	userInBase := utils.User{}
 
 	c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
@@ -122,14 +139,14 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 	
 	if errDB != nil {
 		utils.Error("UserToken: User not found", errDB)
-		logOutUser(w)
+		logOutUser(w, req)
 		redirectToReLogin(w, req)
 		return utils.User{}, errors.New("User not found")
 	}
 
 	if userInBase.PasswordCycle != passwordCycle {
 		utils.Error("UserToken: Password cycle changed, token is too old", nil)
-		logOutUser(w)
+		logOutUser(w, req)
 		redirectToReLogin(w, req)
 		return utils.User{}, errors.New("Password cycle changed, token is too old")
 	}
@@ -148,7 +165,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 	}
 
 	if time.Now().Unix() - int64(claims["iat"].(float64)) > 3600 {
-		SendUserToken(w, userInBase, mfaDone)
+		SendUserToken(w, req, userInBase, mfaDone)
 	}
 
 	return userInBase, nil
@@ -159,7 +176,10 @@ func GetUserR(req *http.Request) (string, string) {
 }
 
 
-func logOutUser(w http.ResponseWriter) {
+func logOutUser(w http.ResponseWriter, req *http.Request) {
+	reqHostname := req.Host
+	reqHostNoPort := strings.Split(reqHostname, ":")[0]
+
 	cookie := http.Cookie{
 		Name: "jwttoken",
 		Value: "",
@@ -167,11 +187,12 @@ func logOutUser(w http.ResponseWriter) {
 		Path: "/",
 		Secure: utils.IsHTTPS,
 		HttpOnly: true,
-		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
 
-	if(utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0") {
+	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
 		cookie.Domain = ""
+	} else {
+		cookie.Domain = "." + reqHostNoPort
 	}
 
 	http.SetCookie(w, &cookie)
@@ -191,7 +212,10 @@ func redirectToNewMFA(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
-func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
+func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mfaDone bool) {
+	reqHostname := req.Host
+	reqHostNoPort := strings.Split(reqHostname, ":")[0]
+
 	expiration := time.Now().Add(3 * 24 * time.Hour)
 
 	token := jwt.New(jwt.SigningMethodEdDSA)
@@ -203,6 +227,7 @@ func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
 	claims["iat"] = time.Now().Unix()
 	claims["nbf"] = time.Now().Unix()
 	claims["mfaDone"] = mfaDone
+	claims["forDomain"] = reqHostNoPort
 
 	key, err5 := jwt.ParseEdPrivateKeyFromPEM([]byte(utils.GetPrivateAuthKey()))
 	
@@ -227,11 +252,20 @@ func SendUserToken(w http.ResponseWriter, user utils.User, mfaDone bool) {
 		Path: "/",
 		Secure: utils.IsHTTPS,
 		HttpOnly: true,
-		Domain: utils.GetMainConfig().HTTPConfig.Hostname,
 	}
 
-	if(utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0") {
+	utils.Log("UserLogin: Setting cookie for " + reqHostNoPort)
+
+	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
 		cookie.Domain = ""
+	} else {
+		if utils.IsValidHostname(reqHostNoPort) {
+			cookie.Domain = "." + reqHostNoPort
+		} else {
+			utils.Error("UserLogin: Invalid hostname", nil)
+			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
+			return
+		}
 	}
 
 	http.SetCookie(w, &cookie)

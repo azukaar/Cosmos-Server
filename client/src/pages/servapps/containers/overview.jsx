@@ -91,6 +91,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
             <Stack spacing={2} direction={'row'} >
               <GetActions 
                 Id={containerInfo.Name}
+                image={Image}
                 state={State.Status}
                 refreshServeApps={() => {
                   refreshAll()
@@ -129,6 +130,20 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
                   })
                 }}
               /> Force Secure Network
+            </Stack>
+            <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+              <Checkbox
+                checked={Config.Labels['cosmos-auto-update'] === 'true'}
+                disabled={isUpdating}
+                onChange={(e) => {
+                  setIsUpdating(true);
+                  API.docker.autoUpdate(Name, e.target.checked).then(() => {
+                    setTimeout(() => {
+                      refreshAll();
+                    }, 3000);
+                  })
+                }}
+              /> Auto Update Container
             </Stack>
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>

@@ -268,6 +268,15 @@ function pullImage(imageName, onProgress, ifMissing) {
     });
 }
 
+function autoUpdate(id, toggle) {
+  return wrap(fetch('/cosmos/api/servapps/' + id + '/auto-update/'+toggle, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+    
 export {
   list,
   get,
@@ -289,4 +298,5 @@ export {
   createTerminal,
   createService,
   pullImage,
+  autoUpdate,
 };

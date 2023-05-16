@@ -10,7 +10,7 @@ func UserLogout(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
 		utils.Debug("UserLogout: Logging out user")
 
-		logOutUser(w);
+		logOutUser(w, req);
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

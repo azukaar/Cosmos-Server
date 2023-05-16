@@ -75,7 +75,7 @@ func Check2FA(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		SendUserToken(w, userInBase, true)
+		SendUserToken(w, req, userInBase, true)
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

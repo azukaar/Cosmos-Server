@@ -230,6 +230,7 @@ func StartServer() {
 	
 	srapi.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/auto-update/{status}", docker.AutoUpdateContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/terminal/{action}", docker.TerminalRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)

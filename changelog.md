@@ -3,6 +3,7 @@
  - Add Create Container
  - Add support for importing Docker Compose
  - Fixed 2 bugs with the smart shield, that made it too strict
+ - Fixed issues that prevented from login in with different hostnames
  - Added more infoon the shield when blocking someone
  - Fixed home background image
 

@@ -1,24 +1,39 @@
 import React from 'react';
-import { IconButton, Tooltip, useMediaQuery } from '@mui/material';
+import { Box, IconButton, LinearProgress, Stack, Tooltip, useMediaQuery } from '@mui/material';
 import { CheckCircleOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
 import * as API from '../../api';
+import LogsInModal from '../../components/logsInModal';
 
 const GetActions = ({
   Id,
   state,
+  image,
   refreshServeApps,
   setIsUpdatingId,
   updateAvailable
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
+  const [pullRequest, setPullRequest] = React.useState(null);
+  const [isUpdating, setIsUpdating] = React.useState(false);
   console.log(isMiniMobile)
 
   const doTo = (action) => {
+    setIsUpdating(true);
+
+    if(action === 'pull') {
+      setPullRequest(() => ((cb) => {
+        API.docker.pullImage(image, cb, true)
+      }));
+      return;
+    }
+
     setIsUpdatingId(Id, true);
-    API.docker.manageContainer(Id, action).then((res) => {
+    return API.docker.manageContainer(Id, action).then((res) => {
+      setIsUpdating(false);
       refreshServeApps();
     }).catch((err) => {
+      setIsUpdating(false);
       refreshServeApps();
     });
   };
@@ -27,7 +42,7 @@ const GetActions = ({
     {
       t: 'Update Available',
       if: ['update_available'],
-      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('pull')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
     },
@@ -93,11 +108,28 @@ const GetActions = ({
     }
   ];
 
-  return actions.filter((action) => {
-    return action.if.includes(state) || (updateAvailable && action.if.includes('update_available'));
-  }).map((action) => {
-    return <Tooltip title={action.t}>{action.e}</Tooltip>
-  });
+  return <>
+    <LogsInModal
+      request={pullRequest}
+      title="Updating ServeApp..."
+      OnSuccess={() => {
+        doTo('update')
+      }}
+    />
+    
+    {!isUpdating && actions.filter((action) => {
+      updateAvailable = true;
+      return action.if.includes(state) || (updateAvailable && action.if.includes('update_available'));
+    }).map((action) => {
+      return <Tooltip title={action.t}>{action.e}</Tooltip>
+    })}
+
+    {isUpdating && <Stack sx={{
+      width: '100%', height: '44px',
+    }}
+    justifyContent={'center'} 
+    ><LinearProgress /></Stack>}
+  </>
 }
 
 export default GetActions;
