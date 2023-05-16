@@ -155,8 +155,13 @@ const ServeApps = () => {
         </Link>
         <DockerComposeImport refresh={refreshServeApps}/>
       </Stack>
-
+      
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
+        {updatesAvailable && updatesAvailable.length && <Grid2 style={gridAnim} xs={12} item>
+          <Item>
+            <Alert severity="info">Update are available for {Object.keys(updatesAvailable).join(', ')}</Alert>
+          </Item>
+        </Grid2>}
         {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4} key={app.Id} item>
             <Item>
