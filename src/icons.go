@@ -149,7 +149,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				if resp.StatusCode != 200 {
 					utils.Error("FaviconFetch - " + iconURL + " - not 200 ", nil)
 					continue
-				} else if !strings.Contains(resp.Header.Get("Content-Type"), "image") {
+				} else if !strings.Contains(resp.Header.Get("Content-Type"), "image") && !strings.Contains(resp.Header.Get("Content-Type"), "octet-stream") {
 					utils.Error("FaviconFetch - " + iconURL + " - not image ", nil)
 					continue
 				} else {
