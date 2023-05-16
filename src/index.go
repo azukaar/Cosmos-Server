@@ -24,10 +24,6 @@ func main() {
 
 	docker.BootstrapAllContainersFromTags()
 
-	// TODO DELET THIS BEFORE RELEASE
-
-	docker.CheckUpdatesAvailable()
-
 	version, err := docker.DockerClient.ServerVersion(context.Background())
 	if err == nil {
 		utils.Log("Docker API version: " + version.APIVersion)
