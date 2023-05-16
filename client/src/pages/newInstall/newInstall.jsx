@@ -331,7 +331,7 @@ const NewInstall = () => {
                                 type="submit"
                                 variant="contained"
                                 color="primary"
-                                disabled={formik.isSubmitting}
+                                disabled={formik.isSubmitting || !formik.isValid}
                                 fullWidth>
                                 {formik.isSubmitting ? 'Loading' : (
                                     formik.values.HTTPSCertificateMode === "DISABLE" ? 'Disable' : 'Update'
@@ -371,23 +371,20 @@ const NewInstall = () => {
                         confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
                     })}
                     onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                        try {
-                            setSubmitting(true);
-                            const res = await API.newInstall({
-                                step: "4",
-                                nickname: values.nickname,
-                                password: values.password,
-                                email: values.email,
-                            });
-                            if(res.status == "OK") {
-                                setStatus({ success: true });
-                                setActiveStep(5);
-                            }
-                        } catch (error) {
+                        setSubmitting(true);
+                        return await API.newInstall({
+                            step: "4",
+                            nickname: values.nickname,
+                            password: values.password,
+                            email: values.email,
+                        }).then((res) => {
+                            setStatus({ success: true });
+                            setActiveStep(5);
+                        }).catch((error) => {
                             setStatus({ success: false });
                             setErrors({ submit: error.message });
                             setSubmitting(false);
-                        }
+                        });
                     }}>
                     {(formik) => (
                         <form noValidate onSubmit={formik.handleSubmit}>
@@ -429,7 +426,7 @@ const NewInstall = () => {
                                     type="submit"
                                     variant="contained"
                                     color="primary"
-                                    disabled={formik.isSubmitting}
+                                    disabled={formik.isSubmitting || !formik.isValid}
                                     fullWidth>
                                     {formik.isSubmitting ? 'Loading' : 'Create'}
                                 </Button>
