@@ -38,7 +38,7 @@ const RouteOverview = ({ routeConfig }) => {
       </div>}>
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
           <div>
-            <img src={getFaviconURL(routeConfig)} width="128px" />
+            <img className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
           </div>
           <Stack spacing={2} >
             <strong>Description</strong>

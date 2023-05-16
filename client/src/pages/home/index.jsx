@@ -147,7 +147,7 @@ const HomePage = () => {
                     <Box className='app' style={{ padding: 10, color: 'white', background: 'rgba(0,0,0,0.35)', borderRadius: 5 }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', color: 'white' }}>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <img src={getFaviconURL(route)} width="64px" />
+                                <img className="loading-image" alt="" src={getFaviconURL(route)} width="64px" height="64px"/>
 
                                 <div style={{ width: '100%' }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>

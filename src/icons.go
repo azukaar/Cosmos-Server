@@ -8,7 +8,6 @@ import (
 	"os"
 	"io/ioutil"
 	"encoding/json"
-	"strconv"
 	"path"
 
 	"go.deanishe.net/favicon"
@@ -81,41 +80,34 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		var icons []*favicon.Icon
+
 		// follow siteurl and check if any redirect. 
 		respNew, err := http.Get(siteurl)
+
 		if err != nil {
 			utils.Error("FaviconFetch", err)
-			sendFallback(w)
-			return
+			icons = []*favicon.Icon{
+				&favicon.Icon{URL: "favicon.png", Width: 0},
+				&favicon.Icon{URL: "/favicon.png", Width: 0},
+				&favicon.Icon{URL: "favicon.ico", Width: 0},
+				&favicon.Icon{URL: "/favicon.ico", Width: 0},
+			}
+		} else {
+			siteurl = respNew.Request.URL.String()
+			icons, err = favicon.Find(siteurl)
+
+			if err != nil || len(icons) == 0 {
+				icons = []*favicon.Icon{
+					&favicon.Icon{URL: "favicon.png", Width: 0},
+					&favicon.Icon{URL: "/favicon.png", Width: 0},
+					&favicon.Icon{URL: "favicon.ico", Width: 0},
+					&favicon.Icon{URL: "/favicon.ico", Width: 0},
+				}
+			}
 		}
-
-		newsiteurl := respNew.Request.URL.String()
-
-		icons, err := favicon.Find(newsiteurl)
-
-		utils.Debug("Found Favicon: " + strconv.Itoa(len(icons)))
-		if err != nil {
-			utils.Error("FaviconFetch", err)
-			sendFallback(w)
-			return
-		}
-		
-		if len(icons) == 0 {
-			utils.Error("FaviconFetch", err)
-			sendFallback(w)
-			return
-		}
-		
-		// if !strings.Contains(icons[iconIndex].URL, "favicon.ico") {
-		// 	icons = append(icons, favicon.Icon{URL: "favicon.ico", Width: 0})
-		// }
-
-		// if !strings.Contains(icons[iconIndex].URL, "/favicon.ico") {
-		// 	icons = append(icons, favicon.Icon{URL: "/favicon.ico", Width: 0})
-		// }
 
 		for _, icon := range icons {
-			utils.Debug("Favicon Width: " + icon.URL + " " + strconv.Itoa(icon.Width))
 			if icon.Width <= 256 {
 
 				iconURL := icon.URL
@@ -145,6 +137,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				}
 				
 				utils.Log("Favicon Trying to fetch " + iconURL)
+
 				// Fetch the favicon
 				resp, err := http.Get(iconURL)
 				if err != nil {
@@ -165,9 +158,8 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 					// Cache the response 
 					body, err := ioutil.ReadAll(resp.Body)
 					if err != nil {
-						utils.Error("FaviconFetch", err)
-						sendFallback(w)
-						return
+						utils.Error("FaviconFetch - cant read ", err)
+						continue
 					}
 					
 					finalImage := CachedImage{
@@ -181,12 +173,11 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 					sendImage(w, cache[siteurl])
 					return
 				}
-
-				utils.Log("Favicon final fallback ")
-				sendFallback(w)
-				return
 			}
 	} 
+	utils.Log("Favicon final fallback")
+	sendFallback(w)
+	return
 	
 	} else {
 		utils.Error("Favicon: Method not allowed" + req.Method, nil)

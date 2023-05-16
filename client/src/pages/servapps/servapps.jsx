@@ -182,7 +182,7 @@ const ServeApps = () => {
                     }
                   </Typography>
                   <Stack direction="row" spacing={2} alignItems="center">
-                    <img src={getFirstRouteFavIcon(app)} width="40px" />
+                    <img className="loading-image" alt="" src={getFirstRouteFavIcon(app)} width="40px" />
                     <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'no-wrap'}}>
                       <Typography  variant="h5" color="text.secondary">
                         {app.Names[0].replace('/', '')}&nbsp;

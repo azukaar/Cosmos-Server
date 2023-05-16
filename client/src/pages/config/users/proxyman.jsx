@@ -154,7 +154,7 @@ const ProxyManagement = () => {
         columns={[
           { 
             title: '', 
-            field: (r) => <img src={getFaviconURL(r)} width="64px" />,
+            field: (r) => <img className="loading-image" alt="" src={getFaviconURL(r)} width="64px" />,
             style: {
               textAlign: 'center',
             },

@@ -66,7 +66,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
           <Stack spacing={2} direction={'column'} justifyContent={'center'} alignItems={'center'}>
           <div style={{ position: 'relative' }}>
-            <img className={isUpdating ? 'darken' : ''} src={getFaviconURL(routes && routes[0])} width="128px" />
+            <img className={"loading-image " + (isUpdating ? 'darken' : '')} alt="" src={getFaviconURL(routes && routes[0])} width="128px" />
             {isUpdating ? (
               <CircularProgress
                 style={{ position: 'absolute', top: 'calc(50% - 22.5px)', left: 'calc(50% - 22.5px)' }}
