@@ -8,6 +8,7 @@ import (
 	"os"
 	"io/ioutil"
 	"regexp"
+	"path"
 	"encoding/json"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -21,22 +22,67 @@ type CachedImage struct {
 
 var cache = make(map[string]CachedImage)
 
-func ExtractFaviconMetaTag(html string) string {
+func ExtractFaviconMetaTag(filename string) string {
+	// Read the contents of the file
+	htmlBytes, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "/favicon.ico"
+	}
+	html := string(htmlBytes)
+
 	// Regular expression pattern to match the favicon metatag
-	pattern := `<link[^>]*rel="icon"[^>]*href="([^"]+)"[^>]*>`
+	pattern := `<link[^>]*rel="icon"[^>]*(?:sizes="([^"]+)")?[^>]*href="([^"]+)"[^>]*>|<meta[^>]*name="msapplication-TileImage"[^>]*content="([^"]+)"[^>]*>`
 
 	// Compile the regular expression pattern
 	regex := regexp.MustCompile(pattern)
 
-	// Find the first match in the HTML string
-	match := regex.FindStringSubmatch(html)
+	// Find all matches in the HTML string
+	matches := regex.FindAllStringSubmatch(html, -1)
 
-	if len(match) > 1 {
-		// Extract the URL from the matched metatag
-		faviconURL := match[1]
+	var faviconURL string
+
+	// Iterate over the matches to find the appropriate favicon
+	for _, match := range matches {
+		sizes := match[1]
+		href := match[2]
+		msAppTileImage := match[3]
+
+		// Check if the meta tag specifies msapplication-TileImage
+		if msAppTileImage != "" {
+			faviconURL = msAppTileImage
+			break
+		}
+
+		// Check if the sizes attribute contains 96x96
+		if strings.Contains(sizes, "96x96") {
+			faviconURL = href
+			break
+		}
+
+		// Check if the sizes attribute contains 64x64
+		if strings.Contains(sizes, "64x64") {
+			faviconURL = href
+			continue
+		}
+
+		// Check if the sizes attribute contains 32x32
+		if strings.Contains(sizes, "32x32") {
+			faviconURL = href
+			continue
+		}
+
+		// If no sizes specified, set faviconURL to the first match without sizes
+		if faviconURL == "" && sizes == "" {
+			faviconURL = href
+		}
+	}
+
+	// If a favicon URL is found, return it
+	if faviconURL != "" {
 		return faviconURL
 	}
 
+	// Return an error if no favicon URL is found
 	return "/favicon.ico"
 }
 
@@ -119,10 +165,23 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				sendFallback(w)
 				return
 			}
-			if !strings.HasPrefix(faviconURL, "/") {
-				faviconURL = "/" + faviconURL
+
+			if strings.HasPrefix(faviconURL, ".") {
+				// Relative URL starting with "."
+				// Resolve the relative URL based on the base URL
+				baseURL := u.Scheme + "://" + u.Host
+				faviconURL = baseURL + faviconURL[1:]
+			} else if strings.HasPrefix(faviconURL, "/") {
+				// Relative URL starting with "/"
+				// Append the relative URL to the base URL
+				faviconURL = u.Scheme + "://" + u.Host + faviconURL
+			} else {
+				// Relative URL without starting dot or slash
+				// Construct the absolute URL based on the current page's URL path
+				baseURL := u.Scheme + "://" + u.Host
+				baseURLPath := path.Dir(u.Path)
+				faviconURL = baseURL + baseURLPath + "/" + faviconURL
 			}
-			faviconURL = u.Scheme + "://" + u.Host + faviconURL
 		}
 		
 		utils.Log("Favicon: " + faviconURL)
