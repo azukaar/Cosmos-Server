@@ -343,19 +343,50 @@ func CheckUpdatesAvailable() map[string]bool {
 		scanner := bufio.NewScanner(rc)
 		defer  rc.Close()
 
+		needsUpdate := false
+
 		for scanner.Scan() {
 			newStr := scanner.Text()
-
 			// Check if a download has started
 			if strings.Contains(newStr, "\"status\":\"Pulling fs layer\"") {
 				utils.Log("Updates available for " + container.Image)
-				result[container.Names[0]] = true
-				rc.Close()
-				break
+
+				if !IsLabel(container, "cosmos-auto-update") {
+					result[container.Names[0]] = true
+					rc.Close()
+					break
+				} else {
+					needsUpdate = true
+				}
 			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date\"") {
 				utils.Log("No updates available for " + container.Image)
-				rc.Close()
-				break
+				
+				if !IsLabel(container, "cosmos-auto-update") {
+					rc.Close()
+					break
+				}
+			}
+		}
+
+		// no new image to pull, see if local image is matching
+		if !result[container.Names[0]] && !needsUpdate {
+			// check sum of local vs container image
+			localImage, _, err := cli.ImageInspectWithRaw(context.Background(), container.Image)
+			if err != nil {
+				utils.Error("CheckUpdatesAvailable - local image - ", err)
+				continue
+			}
+
+			if localImage.ID != container.ImageID {
+				result[container.Names[0]] = true
+			}
+		}
+
+		if needsUpdate && IsLabel(container, "cosmos-auto-update") {
+			utils.Log("Downlaoded new update for " + container.Image + " ready to install")
+			_, err := EditContainer(container.ID, container)
+			if err != nil {
+				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
 			}
 		}
 	}
