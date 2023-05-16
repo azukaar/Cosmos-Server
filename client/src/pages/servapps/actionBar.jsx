@@ -21,9 +21,9 @@ const GetActions = ({
   const doTo = (action) => {
     setIsUpdating(true);
 
-    if(action === 'pull') {
+    if(action === 'update') {
       setPullRequest(() => ((cb) => {
-        API.docker.pullImage(image, cb, true)
+        API.docker.updateContainerImage(Id, cb, true)
       }));
       return;
     }
@@ -42,7 +42,7 @@ const GetActions = ({
     {
       t: 'Update Available',
       if: ['update_available'],
-      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('pull')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
     },
@@ -113,12 +113,11 @@ const GetActions = ({
       request={pullRequest}
       title="Updating ServeApp..."
       OnSuccess={() => {
-        doTo('update')
+        refreshServeApps();
       }}
     />
     
     {!isUpdating && actions.filter((action) => {
-      updateAvailable = true;
       return action.if.includes(state) || (updateAvailable && action.if.includes('update_available'));
     }).map((action) => {
       return <Tooltip title={action.t}>{action.e}</Tooltip>

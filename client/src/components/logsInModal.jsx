@@ -53,7 +53,7 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, initialL
 
         if(preRef.current)
           preRef.current.scrollTop = preRef.current.scrollHeight;
-
+          
         if (newlog.includes('[OPERATION SUCCEEDED]')) {
           setDone(true);
           setOpenModal(false);

@@ -3,8 +3,9 @@ package docker
 import (
 	"net/http"
 	"encoding/json"
-	"io"
 	"os"
+	"bufio"
+	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
@@ -69,14 +70,47 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "recreate":
 			_, err = EditContainer(container.ID, container)
 		case "update":
-			pull, errPull := DockerClient.ImagePull(DockerContext, imagename, doctype.ImagePullOptions{})
+			out, errPull := DockerClient.ImagePull(DockerContext, imagename, doctype.ImagePullOptions{})
 			if errPull != nil {
 				utils.Error("Docker Pull", errPull)
 				utils.HTTPError(w, "Cannot pull new image", http.StatusBadRequest, "DS004")
 				return
 			}
-			io.Copy(os.Stdout, pull)
+			defer out.Close()
+			
+			// Enable streaming of response by setting appropriate headers
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.Header().Set("Transfer-Encoding", "chunked")
+
+			flusher, ok := w.(http.Flusher)
+
+			if !ok {
+				utils.Error("Container Update - Cannot stream response", nil)
+				utils.HTTPError(w, "Cannot stream response", http.StatusInternalServerError, "DS004")
+				return
+			}
+
+			// wait for image pull to finish
+			scanner := bufio.NewScanner(out)
+			for scanner.Scan() {
+				utils.Log(scanner.Text())
+				fmt.Fprintf(w, scanner.Text() + "\n")
+				flusher.Flush()
+			}
+
+			utils.Log("Container Update - Image pulled " + imagename)
+
 			_, err = EditContainer(container.ID, container)
+
+			if err != nil {
+				utils.Error("Container Update - EditContainer", err)
+				utils.HTTPError(w, "[OPERATION FAILED] Cannot recreate container", http.StatusBadRequest, "DS004")
+				return
+			}
+
+			fmt.Fprintf(w, "[OPERATION SUCCEEDED]")
+			flusher.Flush()
+			return
 		default:
 			utils.HTTPError(w, "Invalid action", http.StatusBadRequest, "DS003")
 			return

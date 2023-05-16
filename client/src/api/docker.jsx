@@ -268,6 +268,54 @@ function pullImage(imageName, onProgress, ifMissing) {
     });
 }
 
+function updateContainerImage(containerName, onProgress) {
+  const requestOptions = {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  };
+
+  const containerNameEncoded = encodeURIComponent(containerName);
+
+  return fetch(`/cosmos/api/servapps/${containerNameEncoded}/manage/update`, requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      // The response body is a ReadableStream. This code reads the stream and passes chunks to the callback.
+      const reader = response.body.getReader();
+
+      // Read the stream and pass chunks to the callback as they arrive
+      return new ReadableStream({
+        start(controller) {
+          function read() {
+            return reader.read().then(({ done, value }) => {
+              if (done) {
+                controller.close();
+                return;
+              }
+              // Decode the UTF-8 text
+              let text = new TextDecoder().decode(value);
+              // Split by lines in case there are multiple lines in one chunk
+              let lines = text.split('\n');
+              for (let line of lines) {
+                if (line) {
+                  // Call the progress callback
+                  onProgress(line);
+                }
+              }
+              controller.enqueue(value);
+              return read();
+            });
+          }
+          return read();
+        }
+      });
+    });
+}
+
 function autoUpdate(id, toggle) {
   return wrap(fetch('/cosmos/api/servapps/' + id + '/auto-update/'+toggle, {
     method: 'GET',
@@ -299,4 +347,5 @@ export {
   createService,
   pullImage,
   autoUpdate,
+  updateContainerImage,
 };
