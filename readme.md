@@ -39,8 +39,8 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
- * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications
- * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server (even with NGinx, Traefik, Portainer, etc...), the already existing applications you have, and the new ones you want to install
+ * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications from any device
+ * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server, the already existing applications you have, and the new ones you want to install
  * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details)
  * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security** and **multi-factor authentication**
  * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
@@ -49,7 +49,7 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
  * **Anti-Bot** 🤖❌ Collection of tools to prevent bots from accessing your applications, such as common bot detection, IP based detection, and more
  * **Anti-DDOS** 🔥⛔️ Additional protections such as variable timeouts/throttling, IP rate limiting and geo-blacklisting
  * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
- * **Container Management** 🐋🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security.
+ * **Container Management** 🐋🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
  * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
  * **Visible Source** 📖📝 for full transparency and trust
  
