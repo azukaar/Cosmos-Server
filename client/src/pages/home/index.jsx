@@ -41,7 +41,6 @@ const HomePage = () => {
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        maxWidth: '78%',
         verticalAlign: 'middle',
     }
 
@@ -192,7 +191,7 @@ const HomePage = () => {
                 <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
                     <Box style={{ padding: 10, borderRadius: 5, ...appColor }}>
                         <Stack direction="row" spacing={2} alignItems="center">
-                            <div style={{ width: '100%' }}>
+                            <div style={{ minWidth: 0 }}>
                                 <h3 style={blockStyle}>No Apps</h3>
                                 <p style={blockStyle}>You have no apps configured. Please add some apps in the configuration panel.</p>
                             </div>
