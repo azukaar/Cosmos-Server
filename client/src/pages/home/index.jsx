@@ -47,10 +47,10 @@ const HomePage = () => {
 
     const appColor =  isDark ? {
         color: 'white', 
-        background: 'rgba(0,0,0,0.35)',
+        background: 'rgba(0,0,0,0.3)',
     } : {
         color: 'black',
-        background: 'rgba(255,255,255,0.35)',
+        background: 'rgba(255,255,255,0.3)',
     }
 
     const backColor =  isDark ? '0,0,0' : '255,255,255';
