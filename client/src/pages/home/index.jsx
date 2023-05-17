@@ -47,10 +47,10 @@ const HomePage = () => {
 
     const appColor =  isDark ? {
         color: 'white', 
-        background: 'rgba(0,0,0,0.3)',
+        background: 'rgba(0,0,0,0.35)',
     } : {
         color: 'black',
-        background: 'rgba(255,255,255,0.3)',
+        background: 'rgba(255,255,255,0.35)',
     }
 
     const backColor =  isDark ? '0,0,0' : '255,255,255';
@@ -85,7 +85,7 @@ const HomePage = () => {
         <HomeBackground />
         <style>
             {`header {
-            background: rgba(${backColor},0.3) !important;
+            background: rgba(${backColor},0.35) !important;
             border-bottom-color: rgba(${backColor},0.4) !important;
             color: ${textColor} !important;
             font-weight: bold;
@@ -112,7 +112,7 @@ const HomePage = () => {
         }
 
         .MuiAlert-standard {
-            background: rgba(${backColor},0.3) !important;
+            background: rgba(${backColor},0.35) !important;
             color: ${textColor} !important;
             font-weight: bold;
         }
