@@ -177,7 +177,7 @@ const HomePage = () => {
                             <Stack direction="row" spacing={2} alignItems="center">
                                 <img className="loading-image" alt="" src={getFaviconURL(route)} width="64px" height="64px"/>
 
-                                <div style={{ width: '100%' }}>
+                                <div style={{minWidth: 0 }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                     <p style={blockStyle}>{route.Description}</p>
                                     <p style={blockStyle}>{route.Target}</p>
