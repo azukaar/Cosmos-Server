@@ -226,7 +226,7 @@ const ServeApps = () => {
                   })}
                 </Stack>
               </Stack>
-              {isUpdating[app.Id] ? <div>
+              {isUpdating[app.Names[0].replace('/', '')] ? <div>
                   <CircularProgress color="inherit" />
                 </div>
               :
@@ -239,14 +239,15 @@ const ServeApps = () => {
                       checked={app.Labels['cosmos-force-network-secured'] === 'true'}
                       disabled={app.State !== 'running'}
                       onChange={(e) => {
-                        setIsUpdatingId(app.Id, true);
-                        API.docker.secure(app.Id, e.target.checked).then(() => {
+                        const name = app.Names[0].replace('/', '');
+                        setIsUpdatingId(name, true);
+                        API.docker.secure(name, e.target.checked).then(() => {
                           setTimeout(() => {
-                            setIsUpdatingId(app.Id, false);
+                            setIsUpdatingId(name, false);
                             refreshServeApps();
                           }, 3000);
                         }).catch(() => {
-                          setIsUpdatingId(app.Id, false);
+                          setIsUpdatingId(name, false);
                           refreshServeApps();
                         })
                       }}
@@ -257,14 +258,15 @@ const ServeApps = () => {
                       checked={app.Labels['cosmos-auto-update'] === 'true'}
                       disabled={app.State !== 'running'}
                       onChange={(e) => {
-                        setIsUpdatingId(app.Id, true);
-                        API.docker.autoUpdate(app.Id, e.target.checked).then(() => {
+                        const name = app.Names[0].replace('/', '');
+                        setIsUpdatingId(name, true);
+                        API.docker.autoUpdate(name, e.target.checked).then(() => {
                           setTimeout(() => {
-                            setIsUpdatingId(app.Id, false);
+                            setIsUpdatingId(name, false);
                             refreshServeApps();
                           }, 3000);
                         }).catch(() => {
-                          setIsUpdatingId(app.Id, false);
+                          setIsUpdatingId(name, false);
                           refreshServeApps();
                         })
                       }}

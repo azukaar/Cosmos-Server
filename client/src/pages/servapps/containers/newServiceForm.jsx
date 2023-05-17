@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MainCard from '../../../components/MainCard';
 import RestartModal from '../../config/users/restart';
-import { Alert, Button, Chip, Divider, Stack, useMediaQuery } from '@mui/material';
+import { Alert, Button, Checkbox, Chip, Divider, Stack, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
@@ -56,7 +56,7 @@ const NewDockerServiceForm = () => {
   });
 
   let service = {
-    Services: {
+    services: {
       container_name : {
         container_name: containerInfo.Name,
         image: containerInfo.Config.Image,
@@ -72,7 +72,7 @@ const NewDockerServiceForm = () => {
           acc[cur] = {};
           return acc;
         }, {}),
-        Routes: [containerInfo.Route]
+        routes: containerInfo.CreateRoute ? [containerInfo.Route] : [],
       }
     },
   }
@@ -164,40 +164,53 @@ const NewDockerServiceForm = () => {
         {
           title: 'URL',
           disabled: maxTab < 1,
-          children:  <Stack spacing={2}><RouteManagement TargetContainer={containerInfo} 
-            routeConfig={{
-              Target: "http://"+containerInfo.Name.replace('/', '') + ":",
-              Mode: "SERVAPP",
-              Name: containerInfo.Name.replace('/', ''),
-              Description: "Expose " + containerInfo.Name.replace('/', '') + " to the internet",
-              UseHost: true,
-              Host: getHostnameFromName(containerInfo.Name),
-              UsePathPrefix: false,
-              PathPrefix: '',
-              CORSOrigin: '',
-              StripPathPrefix: false,
-              AuthEnabled: false,
-              Timeout: 14400000,
-              ThrottlePerMinute: 10000,
-              BlockCommonBots: true,
-              SmartShield: {
-                Enabled: true,
-              }
-            }} 
-            routeNames={[]}
-            setRouteConfig={(newRoute) => {
-              const newValues = {
-                ...containerInfo,
-                Route: newRoute,
-              }
-              setContainerInfo(newValues);
-            }}
-            up={() => {}}
-            down={() => {}}
-            deleteRoute={() => {}}
-            noControls
-            lockTarget
-          />{nav()}</Stack>
+          children:  <Stack spacing={2}>
+            <MainCard  style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+              <Checkbox
+                checked={containerInfo.CreateRoute}
+                onChange={(e) => {
+                  const newValues = {
+                    ...containerInfo,
+                    CreateRoute: e.target.checked,
+                  }
+                  setContainerInfo(newValues);
+                }}
+              />Create a URL to access this ServApp
+            </MainCard>
+            {containerInfo.CreateRoute && <RouteManagement TargetContainer={containerInfo} 
+              routeConfig={{
+                Target: "http://"+containerInfo.Name.replace('/', '') + ":",
+                Mode: "SERVAPP",
+                Name: containerInfo.Name.replace('/', ''),
+                Description: "Expose " + containerInfo.Name.replace('/', '') + " to the internet",
+                UseHost: true,
+                Host: getHostnameFromName(containerInfo.Name),
+                UsePathPrefix: false,
+                PathPrefix: '',
+                CORSOrigin: '',
+                StripPathPrefix: false,
+                AuthEnabled: false,
+                Timeout: 14400000,
+                ThrottlePerMinute: 10000,
+                BlockCommonBots: true,
+                SmartShield: {
+                  Enabled: true,
+                }
+              }} 
+              routeNames={[]}
+              setRouteConfig={(newRoute) => {
+                const newValues = {
+                  ...containerInfo,
+                  Route: newRoute,
+                }
+                setContainerInfo(newValues);
+              }}
+              up={() => {}}
+              down={() => {}}
+              deleteRoute={() => {}}
+              noControls
+              lockTarget
+          />}{nav()}</Stack>
         },
         {
           title: 'Network',

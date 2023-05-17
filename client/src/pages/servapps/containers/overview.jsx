@@ -123,7 +123,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
                 disabled={isUpdating}
                 onChange={(e) => {
                   setIsUpdating(true);
-                  API.docker.secure(Name, e.target.checked).then(() => {
+                  API.docker.secure(Name.replace('/', ''), e.target.checked).then(() => {
                     setTimeout(() => {
                       refreshAll();
                     }, 3000);
@@ -137,7 +137,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
                 disabled={isUpdating}
                 onChange={(e) => {
                   setIsUpdating(true);
-                  API.docker.autoUpdate(Name, e.target.checked).then(() => {
+                  API.docker.autoUpdate(Name.replace('/', ''), e.target.checked).then(() => {
                     setTimeout(() => {
                       refreshAll();
                     }, 3000);

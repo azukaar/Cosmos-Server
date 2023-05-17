@@ -1,13 +1,15 @@
 ## Version 0.5.0
  - Add Terminal to containers
- - Add Create Container
+ - Add "Create ServApp"
  - Add support for importing Docker Compose
+ - Improved icon fetching 
+ - Change Home background and style (especially fixing the awckward light theme)
  - Fixed 2 bugs with the smart shield, that made it too strict
  - Fixed issues that prevented from login in with different hostnames
- - Added more infoon the shield when blocking someone
- - Fixed home background image
+ - Added more info on the shield when blocking someone
  - Fixed issue where the UI would have missing icon images
- - Improved icon fetching for apps by following redirections
+ - Fixed Homepage showing stopped containers
+ - Fixed bug where you can't save changes on the URLs Screen
 
 ## Version 0.4.3
  - Fix for exposing routes from the details page

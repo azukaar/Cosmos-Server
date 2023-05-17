@@ -19,6 +19,7 @@ import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import { Link } from 'react-router-dom';
 import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker';
+import { LoadingButton } from '@mui/lab';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -64,7 +65,9 @@ const NewDockerService = ({service, refresh}) => {
   }, []);
 
   const create = () => {
-    setLog([])
+    setLog([
+      'Creating Service...                              ',
+    ])
     API.docker.createService(service, (newlog) => {
       setLog((old) => smartDockerLogConcat(old, newlog));
       preRef.current.scrollTop = preRef.current.scrollHeight;
@@ -75,7 +78,7 @@ const NewDockerService = ({service, refresh}) => {
     });
   }
 
-  const needsRestart = service && service.service && service.service.some((c) => {
+  const needsRestart = service && service.services && Object.values(service.services).some((c) => {
     return c.routes && c.routes.length > 0;
   }); 
 
@@ -83,13 +86,14 @@ const NewDockerService = ({service, refresh}) => {
     <MainCard title="Create Service">
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
     <Stack spacing={1}>
-      {!isDone && <Button 
+      {!isDone && <LoadingButton 
         onClick={create}
         variant="contained"
         color="primary"
         fullWidth
+        loading={log.length && !isDone}
         startIcon={<PlusCircleOutlined />}
-      >Create</Button>}
+      >Create</LoadingButton>}
       {isDone && <Stack spacing={1}>
         <Alert severity="success">Service Created!</Alert>
         {needsRestart && <Alert severity="warning">Cosmos needs to be restarted to apply changes to the URLs</Alert>}

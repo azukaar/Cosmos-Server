@@ -3,7 +3,8 @@ import Back from "../../components/back";
 import { Alert, Box, CircularProgress, Grid, Stack, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
-import wallpaper from '../../assets/images/wallpaper.jpg';
+import wallpaper from '../../assets/images/wallpaper2.jpg';
+import wallpaperLight from '../../assets/images/wallpaper2_light.jpg';
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";
@@ -13,21 +14,18 @@ import IsLoggedIn from "../../isLoggedIn";
 
 const HomeBackground = () => {
     const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
     return (
-        <Box sx={{ position: 'fixed', float: 'left', overflow: 'hidden', zIndex: 0, top: 0, left: 0, right: 0, bottom: 0 }}>
-            <img src={wallpaper} style={{ display: 'inline' }} alt="Cosmos" width="100%" height="100%" />
+        <Box sx={{ position: 'fixed', float: 'left', overflow: 'hidden', zIndex: 0, top: 0, left: 0, right: 0, bottom: 0,
+            // gradient
+            // backgroundImage: isDark ? 
+            //     `linear-gradient(#371d53, #26143a)` : 
+            //     `linear-gradient(#e6d3fb, #c8b0e2)`,
+        }}>
+            <img src={isDark ? wallpaper : wallpaperLight } style={{ display: 'inline' }} alt="Cosmos" width="100%" height="100%" />
         </Box>
     );
 };
-
-const blockStyle = {
-    margin: 0,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    maxWidth: '78%',
-    verticalAlign: 'middle',
-}
 
 const HomePage = () => {
     const { routeName } = useParams();
@@ -35,6 +33,29 @@ const HomePage = () => {
     const [config, setConfig] = useState(null);
     const [coStatus, setCoStatus] = useState(null);
     const [containers, setContainers] = useState(null);
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+
+    const blockStyle = {
+        margin: 0,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        maxWidth: '78%',
+        verticalAlign: 'middle',
+    }
+
+    const appColor =  isDark ? {
+        color: 'white', 
+        background: 'rgba(0,0,0,0.35)',
+    } : {
+        color: 'black',
+        background: 'rgba(255,255,255,0.35)',
+    }
+
+    const backColor =  isDark ? '0,0,0' : '255,255,255';
+    const textColor =  isDark ? 'white' : 'dark';
+
 
     const refreshStatus = () => {
         API.getStatus().then((res) => {
@@ -64,18 +85,19 @@ const HomePage = () => {
         <HomeBackground />
         <style>
             {`header {
-            background: rgba(0.2,0.2,0.2,0.2) !important;
-            border-bottom-color: rgba(0.4,0.4,0.4,0.4) !important;
-            color: white !important;
+            background: rgba(${backColor},0.3) !important;
+            border-bottom-color: rgba(${backColor},0.4) !important;
+            color: ${textColor} !important;
+            font-weight: bold;
         }
 
         header .MuiChip-label  {
-            color: #eee !important;
+            color: ${textColor} !important;
         }
 
-        header .MuiButtonBase-root {
-            color: #eee !important;
-            background: rgba(0.2,0.2,0.2,0.2) !important;
+        header .MuiButtonBase-root, header .MuiChip-colorDefault  {
+            color: ${textColor} !important;
+            background: rgba(${backColor},0.5) !important;
         }
 
         .app {
@@ -85,8 +107,14 @@ const HomePage = () => {
         
         .app:hover {
             cursor: pointer;
-            background: rgba(0.4,0.4,0.4,0.4) !important;
+            background: rgba(${backColor},0.8) !important;
             transform: scale(1.05);
+        }
+
+        .MuiAlert-standard {
+            background: rgba(${backColor},0.3) !important;
+            color: ${textColor} !important;
+            font-weight: bold;
         }
     `}
         </style>
@@ -144,8 +172,8 @@ const HomePage = () => {
                     }
                 }
                 return !skip && <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={2} key={route.Name}>
-                    <Box className='app' style={{ padding: 10, color: 'white', background: 'rgba(0,0,0,0.35)', borderRadius: 5 }}>
-                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', color: 'white' }}>
+                    <Box className='app' style={{ padding: 10,  borderRadius: 5, ...appColor }}>
+                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="row" spacing={2} alignItems="center">
                                 <img className="loading-image" alt="" src={getFaviconURL(route)} width="64px" height="64px"/>
 
@@ -162,7 +190,7 @@ const HomePage = () => {
 
             {config && config.HTTPConfig.ProxyConfig.Routes.length === 0 && (
                 <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    <Box style={{ padding: 10, color: 'white', background: 'rgba(0,0,0,0.35)', borderRadius: 5 }}>
+                    <Box style={{ padding: 10, borderRadius: 5, ...appColor }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                             <div style={{ width: '100%' }}>
                                 <h3 style={blockStyle}>No Apps</h3>

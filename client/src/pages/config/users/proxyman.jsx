@@ -215,20 +215,6 @@ const ProxyManagement = () => {
                 disableElevation
                 fullWidth
                 onClick={() => {
-                  if(routes.some((route, key) => {
-                    let errors = ValidateRoute(route, config);
-                    if (errors && errors.length > 0) {
-                      errors = errors.map((err) => {
-                        return `${route.Name}: ${err}`;
-                      });
-                      setSubmitErrors(errors);
-                      return true;
-                    }
-                  })) {
-                    return;
-                  } else {
-                    setSubmitErrors([]);
-                  }
                   API.config.set(cleanRoutes(updateRoutes(routes))).then(() => {
                     setNeedSave(false);
                     setOpenModal(true);

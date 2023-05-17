@@ -61,10 +61,6 @@ const RouteConfigPage = () => {
             routeConfig={currentRoute}
           />
         },
-        {
-          title: 'Permissions',
-          children: <div>WIP</div>
-        },
       ]}/>}
 
       {!config && <div style={{textAlign: 'center'}}>
