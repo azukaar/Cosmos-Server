@@ -22,7 +22,7 @@ const HomeBackground = () => {
             //     `linear-gradient(#371d53, #26143a)` : 
             //     `linear-gradient(#e6d3fb, #c8b0e2)`,
         }}>
-            <img src={isDark ? wallpaper : wallpaperLight } style={{ display: 'inline' }} alt="Cosmos" width="100%" height="100%" />
+            <img src={isDark ? wallpaper : wallpaperLight } style={{ display: 'inline' }} alt="" draggable="false" width="100%" height="100%" />
         </Box>
     );
 };
