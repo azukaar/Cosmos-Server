@@ -226,6 +226,7 @@ const NewInstall = () => {
                 initialValues={{
                     HTTPSCertificateMode: "LETSENCRYPT",
                     UseWildcardCertificate: false,
+                    DNSChallengeProvider: '',
                 }}
                 validationSchema={Yup.object().shape({
                         SSLEmail: Yup.string().when('HTTPSCertificateMode', {
@@ -258,6 +259,7 @@ const NewInstall = () => {
                             TLSKey: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSKey : '',
                             TLSCert: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSCert : '',
                             Hostname: values.Hostname,
+                            DNSChallengeProvider: values.DNSChallengeProvider,
                         });
                         if(res.status == "OK") {
                             setStatus({ success: true });
@@ -287,12 +289,26 @@ const NewInstall = () => {
                             <>
                             <Alert severity="warning">
                                 If you are using Cloudflare, make sure the DNS record is <strong>NOT</strong> set to <b>Proxied</b> (you should not see the orange cloud but a grey one).
-                                Otherwise Cloudflare will not allow Let's Encrypt to verify your domain.
+                                Otherwise Cloudflare will not allow Let's Encrypt to verify your domain. <br />
+                                Alternatively, you can also use the DNS challenge.
                             </Alert>
                             <CosmosInputText
                                 name="SSLEmail"
                                 label="Let's Encrypt Email"
                                 placeholder={"email@domain.com"}
+                                formik={formik}
+                            />
+                            {formik.values.DNSChallengeProvider && formik.values.DNSChallengeProvider != '' && (
+                                <Alert severity="info">
+                                    You have enabled the DNS challenge. Make sure you have set the environment variables for your DNS provider.
+                                    You can enable it now, but make sure you have set up your API tokens accordingly before attempting to access 
+                                    Cosmos after this installer. See doc here: <a target="_blank" href="https://go-acme.github.io/lego/dns/">https://go-acme.github.io/lego/dns/</a>
+                                </Alert>
+                            )}
+                            <CosmosInputText
+                                label={"DNS Provider (only set if you want to use the DNS challenge)"}
+                                name="DNSChallengeProvider"
+                                placeholder={"provider"}
                                 formik={formik}
                             />
                             </>
@@ -323,9 +339,15 @@ const NewInstall = () => {
                             formik={formik}
                         />
 
+                        {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && formik.values.UseWildcardCertificate && (!formik.values.DNSChallengeProvider || formik.values.DNSChallengeProvider == '') && (
+                            <Alert severity="error">
+                                You have enabled wildcard certificates with Let's Encrypt. This only works if you use the DNS challenge!
+                                Please edit the DNS Provider text input.
+                            </Alert>
+                        )}
                         
                         <CosmosCheckbox
-                            label={"Use Wildcard Certificate for *." + formik.values.Hostname}
+                            label={"Use Wildcard Certificate for *." + (formik.values.Hostname ||  "")}
                             name="UseWildcardCertificate"
                             formik={formik}
                         />

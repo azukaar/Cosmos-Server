@@ -169,7 +169,7 @@ func ReadConfigFromFile() Config {
 	return config
 }
 
-func LoadBaseMainConfig(config Config){
+func LoadBaseMainConfig(config Config) {
 	BaseMainConfig = config
 	MainConfig = config
 
@@ -211,6 +211,10 @@ func LoadBaseMainConfig(config Config){
 	if os.Getenv("COSMOS_SERVER_COUNTRY") != "" {
 		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
 	}
+	
+	// if BaseMainConfig.NewInstall {
+	// 	MainConfig.HTTPConfig.HTTPSCertificateMode = "DISABLED"
+	// }
 }
 
 func GetMainConfig() Config {
