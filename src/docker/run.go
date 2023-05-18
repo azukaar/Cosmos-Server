@@ -8,6 +8,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
+	
+	"runtime"
+	"golang.org/x/sys/cpu"
 )
 
 type VolumeMount struct {
@@ -21,8 +24,16 @@ func NewDB() (string, error) {
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
+	imageName := "mongo:latest"
+
+	// if CPU is missing AVX, use 4.4
+	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
+		utils.Warn("CPU does not support AVX. Using mongo 4.4")
+		imageName = "mongo:4.4"
+	}
+
 	err := RunContainer(
-		"mongo:latest",
+		imageName,
 		monHost,
 		[]string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
