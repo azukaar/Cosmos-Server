@@ -357,8 +357,8 @@ func CheckUpdatesAvailable() map[string]bool {
 			if strings.Contains(newStr, "\"status\":\"Pulling fs layer\"") {
 				utils.Log("Updates available for " + container.Image)
 
+				result[container.Names[0]] = true
 				if !IsLabel(fullContainer, "cosmos-auto-update") {
-					result[container.Names[0]] = true
 					rc.Close()
 					break
 				} else {
@@ -400,6 +400,8 @@ func CheckUpdatesAvailable() map[string]bool {
 			_, err := EditContainer(container.ID, fullContainer)
 			if err != nil {
 				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
+			} else {
+				result[container.Names[0]] = false
 			}
 		}
 	}

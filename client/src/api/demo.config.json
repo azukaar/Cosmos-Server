@@ -346,5 +346,9 @@
 		"RequireMFA": false,
 		"AutoUpdate": false
 	},
+	"updates": {
+		"/Sonarr": true,
+		"/Jellyfin": true
+	},
 	"status": "OK"
 }

@@ -151,6 +151,59 @@ function getContainerLogs(containerId, searchQuery, limit, lastReceivedLogs, err
   });
 }
 
+function attachTerminal(name) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+      })},
+      100
+    );
+  });
+}
+
+function createTerminal(name) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+      })},
+      100
+    );
+  });
+}
+
+function autoUpdate(name) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+      })},
+      1000
+    );
+  });
+}
+
+function pullImage(imageName, onProgress, ifMissing) {
+  onProgress('Updating...')
+    new Promise((resolve, reject) => {
+      setTimeout(() => {
+        onProgress('Download in progress...')
+      },
+        1000
+      );
+    });
+  return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        onProgress('[OPERATION SUCCEEDED]')
+      },
+      2500
+    );
+  });
+}
+const updateContainerImage = pullImage;
+const createService = pullImage;
+
 export {
   list,
   get,
@@ -168,4 +221,10 @@ export {
   attachNetwork,
   detachNetwork,
   createVolume,
+  attachTerminal,
+  createTerminal,
+  createService,
+  pullImage,
+  autoUpdate,
+  updateContainerImage,
 };

@@ -108,6 +108,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			utils.UpdateAvailable["/" + containerName] = false
 			fmt.Fprintf(w, "[OPERATION SUCCEEDED]")
 			flusher.Flush()
 			return
