@@ -181,7 +181,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 			return
 		}
 
-		hostnames := GetAllHostnames()
+		hostnames := GetAllHostnames(false, false)
 
 		reqHostNoPort := strings.Split(r.Host, ":")[0]
 
@@ -212,7 +212,7 @@ func IsValidHostname(hostname string) bool {
 		return true
 	}
 
-	hostnames := GetAllHostnames()
+	hostnames := GetAllHostnames(false, false)
 
 	reqHostNoPort := strings.Split(hostname, ":")[0]
 

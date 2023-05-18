@@ -67,6 +67,7 @@ const ConfigManagement = () => {
           HTTPPort: config.HTTPConfig.HTTPPort,
           HTTPSPort: config.HTTPConfig.HTTPSPort,
           SSLEmail: config.HTTPConfig.SSLEmail,
+          UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
           DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
 
@@ -99,6 +100,7 @@ const ConfigManagement = () => {
                 HTTPPort: values.HTTPPort,
                 HTTPSPort: values.HTTPSPort,
                 SSLEmail: values.SSLEmail,
+                UseWildcardCertificate: values.UseWildcardCertificate,
                 HTTPSCertificateMode: values.HTTPSCertificateMode,
                 DNSChallengeProvider: values.DNSChallengeProvider,
               },
@@ -381,8 +383,13 @@ const ConfigManagement = () => {
                     ]}
                   />
 
-  {
-                    formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                  <CosmosCheckbox
+                    label={"Use Wildcard Certificate for *." + formik.values.Hostname}
+                    name="UseWildcardCertificate"
+                    formik={formik}
+                  />
+
+                  {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                       <CosmosInputText
                         name="SSLEmail"
                         label="Email address for Let's Encrypt"

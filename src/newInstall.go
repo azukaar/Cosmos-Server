@@ -32,6 +32,7 @@ type NewInstallJSON struct {
 	Hostname string `json:"hostname"`
 	Step string `json:"step"`
 	SSLEmail string `json:"sslEmail",validate:"omitempty,email"`
+	UseWildcardCertificate bool `json:"useWildcardCertificate",validate:"omitempty"`
 }
 
 type AdminJSON struct {
@@ -106,6 +107,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			// HTTPS Certificate Mode & Certs & Let's Encrypt
 			newConfig.HTTPConfig.HTTPSCertificateMode = request.HTTPSCertificateMode
 			newConfig.HTTPConfig.SSLEmail = request.SSLEmail
+			newConfig.HTTPConfig.UseWildcardCertificate = request.UseWildcardCertificate
 			newConfig.HTTPConfig.TLSCert = request.TLSCert
 			newConfig.HTTPConfig.TLSKey = request.TLSKey
 

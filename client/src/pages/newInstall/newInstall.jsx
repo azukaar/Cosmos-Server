@@ -14,7 +14,7 @@ import { useEffect, useState } from 'react';
 
 import * as API from '../../api';
 import { Formik } from 'formik';
-import { CosmosInputPassword, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
+import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 // ================================|| LOGIN ||================================ //
@@ -224,7 +224,8 @@ const NewInstall = () => {
             <div>
             <Formik
                 initialValues={{
-                    HTTPSCertificateMode: "LETSENCRYPT"
+                    HTTPSCertificateMode: "LETSENCRYPT",
+                    UseWildcardCertificate: false,
                 }}
                 validationSchema={Yup.object().shape({
                         SSLEmail: Yup.string().when('HTTPSCertificateMode', {
@@ -253,6 +254,7 @@ const NewInstall = () => {
                             step: "3",
                             HTTPSCertificateMode: values.HTTPSCertificateMode,
                             SSLEmail: values.SSLEmail,
+                            UseWildcardCertificate: values.UseWildcardCertificate,
                             TLSKey: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSKey : '',
                             TLSCert: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSCert : '',
                             Hostname: values.Hostname,
@@ -321,11 +323,19 @@ const NewInstall = () => {
                             formik={formik}
                         />
 
+                        
+                        <CosmosCheckbox
+                            label={"Use Wildcard Certificate for *." + formik.values.Hostname}
+                            name="UseWildcardCertificate"
+                            formik={formik}
+                        />
+
                         {formik.errors.submit && (
                           <Grid item xs={12}>
                             <FormHelperText error>{formik.errors.submit}</FormHelperText>
                           </Grid>
                         )}
+
                         <AnimateButton>
                             <Button
                                 type="submit"

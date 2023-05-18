@@ -38,7 +38,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 
 	cfg := simplecert.Default
 
-	cfg.Domains = utils.GetAllHostnames()
+	cfg.Domains = utils.GetAllHostnames(false, false)
 	cfg.CacheDir = "/config/certificates"
 	cfg.SSLEmail = config.HTTPConfig.SSLEmail
 	cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
@@ -153,7 +153,7 @@ func StartServer() {
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
 
-	domains := utils.GetAllHostnames()
+	domains := utils.GetAllHostnames(true, true)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 
 	NeedsRefresh := (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains)
