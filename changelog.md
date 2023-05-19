@@ -1,8 +1,9 @@
-## version 0.5.1 -> 0.5.6
+## version 0.5.1 -> 0.5.7
 - Add Wilcard certificates support
 - Auto switch to Mongo 4 if CPU has no ADX
 - Improve setup for certificates on new install
 - Fix issue docker compose import labels and networks array
+- Fix issue docker compose one-service syntax
 - Fix issue with docker network mode not supporting hostname
 - Fix an issue with the shield and the docker networking
 - Fix issue with network namespace
@@ -10,7 +11,7 @@
 - Silent error on favicon fetching
 - Create Servapp step 1: make name / image required
 - re-do mongoDB creation flow with a cosmos-compose request 
-- Force Mongo to default to v5 as v6 breaks compatibility
+- Fix Mongo 6 compatibility issue
 
 ## Version 0.5.0
  - Add Terminal to containers
