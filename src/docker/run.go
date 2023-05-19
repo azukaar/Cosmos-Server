@@ -27,52 +27,36 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageName := "mongo:5"
+	imageName := "mongo:latest"
 
 	// if CPU is missing AVX, use 4.4
 	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
 		utils.Warn("CPU does not support AVX. Using mongo 4.4")
 		imageName = "mongo:4.4"
 	}
-
-	service := DockerServiceCreateRequest{
-		Services: map[string]ContainerCreateRequestContainer {},
-		Volumes: []ContainerCreateRequestVolume{
-			ContainerCreateRequestVolume{
-				Name: "cosmos-mongo-data-" + id,
-			},
-			ContainerCreateRequestVolume{
-				Name: "cosmos-mongo-config-" + id,
-			},
-		},
-	}
-
-	service.Services[monHost] = ContainerCreateRequestContainer{
-		Name: monHost,
-		Image: imageName,
-		RestartPolicy: "always",
-		Environment: []string{
+	
+	err := RunContainer(
+		"mongo:latest",
+		monHost,
+		[]string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
 			"MONGO_INITDB_ROOT_PASSWORD=" + mongoPass,
 		},
-		Labels: map[string]string{
-			"cosmos-force-network-secured": "true",
-		},
-		Volumes: []mount.Mount{
+		[]VolumeMount{
 			{
-				Type:   mount.TypeVolume,
-				Source: "cosmos-mongo-data-" + id,
-				Target: "/data/db",
+				Destination: "/data/db",
+				Volume: &types.Volume{
+					Name: "cosmos-mongo-data-" + id,
+				},
 			},
 			{
-				Type:   mount.TypeVolume,
-				Source: "cosmos-mongo-config-" + id,
-				Target: "/data/configdb",
+				Destination: "/data/configdb",
+				Volume: &types.Volume{
+					Name: "cosmos-mongo-config-" + id,
+				},
 			},
 		},
-	};
-
-	err := CreateService(w, req, service)
+	)
 
 	if err != nil {
 		return "", err
