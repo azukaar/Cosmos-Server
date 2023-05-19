@@ -1,9 +1,10 @@
-## version 0.5.1 -> 0.5.5
+## version 0.5.1 -> 0.5.6
 - Add Wilcard certificates support
 - Auto switch to Mongo 4 if CPU has no ADX
 - Improve setup for certificates on new install
 - Fix issue docker compose import labels and networks array
 - Fix issue with docker network mode not supporting hostname
+- Fix an issue with the shield and the docker networking
 - Fix issue with network namespace
 - Fixed issue with a Docker bug preventing re-creating a container with a network mode as container (https://github.com/portainer/portainer/issues/2657)
 - Silent error on favicon fetching
