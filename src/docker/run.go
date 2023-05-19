@@ -36,7 +36,7 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	}
 	
 	err := RunContainer(
-		"mongo:latest",
+		imageName,
 		monHost,
 		[]string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
