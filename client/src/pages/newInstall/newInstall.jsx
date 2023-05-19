@@ -18,6 +18,7 @@ import LogsInModal from '../../components/logsInModal';
 import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
+import { pull } from 'lodash';
 // ================================|| LOGIN ||================================ //
 
 const NewInstall = () => {
@@ -27,6 +28,7 @@ const NewInstall = () => {
     let [hostname, setHostname] = useState('');
     const [databaseEnable, setDatabaseEnable] = useState(true);
     const [pullRequest, setPullRequest] = useState(null);
+    const [pullRequestOnSuccess, setPullRequestOnSuccess] = useState(null);
 
     const refreshStatus = async () => {
         try {
@@ -121,6 +123,9 @@ const NewInstall = () => {
                         }}
                         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                             setSubmitting(true);
+                            const submittingPromise = new Promise((resolve, reject) => {
+                                setPullRequestOnSuccess(() => resolve);
+                            });
                             
                             setPullRequest(() => ((cb) => {
                                 API.newInstall({
@@ -129,6 +134,8 @@ const NewInstall = () => {
                                     MongoDB: values.MongoDB,
                                 }, cb)
                             }));
+
+                            return submittingPromise;
                         }}>
                         {(formik) => (
                             <form noValidate onSubmit={formik.handleSubmit}>
@@ -141,6 +148,13 @@ const NewInstall = () => {
                                         }
                                         formik.setStatus({ success: true });
                                         formik.setSubmitting(false);
+                                        pullRequestOnSuccess();
+                                    }}
+                                    OnError={(error) => {
+                                        formik.setStatus({ success: false });
+                                        formik.setErrors({ submit: error.message });
+                                        formik.setSubmitting(false);
+                                        pullRequestOnSuccess();
                                     }}
                                 />
                                 <Stack item xs={12} spacing={2}>

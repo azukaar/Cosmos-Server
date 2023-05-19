@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"fmt"
 	"net"
+	"os"
 	"math"
 	"strconv"
 )
@@ -233,8 +234,16 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 }
 
 func GetClientID(r *http.Request) string {
-	ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-	return ip
+	// when using Docker we need to get the real IP
+	if os.Getenv("HOSTNAME") != "" {
+		ip, _, _ := net.SplitHostPort(r.Header.Get("x-forwarded-for"))
+		utils.Debug("SmartShield: Getting client ID " + ip)
+		return ip
+	} else {
+		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+		utils.Debug("SmartShield: Getting client ID " + ip)
+		return ip
+	}
 }
 
 func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
