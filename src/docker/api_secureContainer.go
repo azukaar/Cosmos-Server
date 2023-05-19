@@ -37,9 +37,12 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 			"cosmos-force-network-secured": status,
 		});
 
+		// change network mode to bridge in case it was set to container
+		container.HostConfig.NetworkMode = "bridge"
+
 		utils.Log("API: Set Force network secured "+status+" : " + containerName)
 
-		_, errEdit := EditContainer(container.ID, container)
+		_, errEdit := EditContainer(container.ID, container, false)
 		if errEdit != nil {
 			utils.Error("ContainerSecureEdit", errEdit)
 			utils.HTTPError(w, "Internal server error: " + errEdit.Error(), http.StatusInternalServerError, "DS003")

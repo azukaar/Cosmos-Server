@@ -67,6 +67,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
       <Formik
         initialValues={{
+          networkMode: containerInfo.HostConfig.NetworkMode,
           ports: Object.keys(containerInfo.NetworkSettings.Ports).map((port) => {
             return {
               port: port.split('/')[0],
@@ -237,6 +238,14 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
               </MainCard>
               <MainCard title={'Networks'}>
                 <Stack spacing={2}>
+
+                <CosmosInputText
+                  label="Network Mode"
+                  name="networkMode"
+                  placeholder={'default'}
+                  formik={formik}
+                />
+
                 {networks && <Stack spacing={2}>
                   {Object.keys(containerInfo.NetworkSettings.Networks).map((networkName) => {
                     const network = networks.find((n) => n.Name === networkName);

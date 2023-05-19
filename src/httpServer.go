@@ -190,7 +190,7 @@ func StartServer() {
 
 	// need rewrite bc it catches too many things and prevent
 	// client to be notified of the error
-	// router.Use(middleware.Recoverer)
+	
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
 

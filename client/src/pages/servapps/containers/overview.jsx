@@ -108,8 +108,8 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
             )}
             <strong><ContainerOutlined /> Image</strong>
             <div style={info}>{Image}</div>
-            <strong><DesktopOutlined /> Name</strong>
-            <div style={info}>{Name}</div>
+            <strong><DesktopOutlined /> ID</strong>
+            <div style={info}>{containerInfo.Id}</div>
             <strong><InfoCircleOutlined /> IP Address</strong>
             <div style={info}>{IPAddress}</div>
             <strong>

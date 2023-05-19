@@ -61,6 +61,9 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
           if (!values.image) {
             errors.image = 'Required';
           }
+          if (!values.name && newContainer) {
+            errors.name = 'Required';
+          }
           // env keys and labels key mustbe unique
           const envKeys = values.envVars.map((envVar) => envVar.key);
           const labelKeys = values.labels.map((label) => label.key);

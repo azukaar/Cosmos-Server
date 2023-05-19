@@ -14,6 +14,7 @@ import { useEffect, useState } from 'react';
 
 import * as API from '../../api';
 import { Formik } from 'formik';
+import LogsInModal from '../../components/logsInModal';
 import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
@@ -25,6 +26,7 @@ const NewInstall = () => {
     const [counter, setCounter] = useState(0);
     let [hostname, setHostname] = useState('');
     const [databaseEnable, setDatabaseEnable] = useState(true);
+    const [pullRequest, setPullRequest] = useState(null);
 
     const refreshStatus = async () => {
         try {
@@ -118,27 +120,29 @@ const NewInstall = () => {
                         validate={(values) => {
                         }}
                         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-                            try {
-                                setSubmitting(true);
-                                const res = await API.newInstall({
+                            setSubmitting(true);
+                            
+                            setPullRequest(() => ((cb) => {
+                                API.newInstall({
                                     step: "2",
                                     MongoDBMode: values.DBMode,
                                     MongoDB: values.MongoDB,
-                                });
-                                if(res.status == "OK") {
-                                    if(values.DBMode === "DisableUserManagement") {
-                                        setDatabaseEnable(false);
-                                    }
-                                    setStatus({ success: true });
-                                }
-                            } catch (error) {
-                                setStatus({ success: false });
-                                setErrors({ submit: error.message });
-                                setSubmitting(false);
-                            }
+                                }, cb)
+                            }));
                         }}>
                         {(formik) => (
                             <form noValidate onSubmit={formik.handleSubmit}>
+                                <LogsInModal
+                                    request={pullRequest}
+                                    title="Installing Database..."
+                                    OnSuccess={() => {
+                                        if(formik.values.DBMode === "DisableUserManagement") {
+                                            setDatabaseEnable(false);
+                                        }
+                                        formik.setStatus({ success: true });
+                                        formik.setSubmitting(false);
+                                    }}
+                                />
                                 <Stack item xs={12} spacing={2}>
                                 <CosmosSelect
                                     name="DBMode"

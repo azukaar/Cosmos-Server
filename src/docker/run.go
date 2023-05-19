@@ -4,6 +4,9 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"io"
 	"os"
+	"net/http"
+
+
 	// "github.com/docker/docker/client"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types"
@@ -18,13 +21,13 @@ type VolumeMount struct {
 	Volume   *types.Volume
 }
 
-func NewDB() (string, error) {
+func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	id := utils.GenerateRandomString(3)
 	mongoUser := "cosmos-" + utils.GenerateRandomString(5) 
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageName := "mongo:latest"
+	imageName := "mongo:5"
 
 	// if CPU is missing AVX, use 4.4
 	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
@@ -32,28 +35,36 @@ func NewDB() (string, error) {
 		imageName = "mongo:4.4"
 	}
 
-	err := RunContainer(
-		imageName,
-		monHost,
-		[]string{
+	service := DockerServiceCreateRequest{
+		Services: map[string]ContainerCreateRequestContainer {},
+	}
+
+	service.Services[monHost] = ContainerCreateRequestContainer{
+		Name: monHost,
+		Image: imageName,
+		RestartPolicy: "always",
+		Environment: []string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
 			"MONGO_INITDB_ROOT_PASSWORD=" + mongoPass,
 		},
-		[]VolumeMount{
+		Labels: map[string]string{
+			"cosmos-force-network-secured": "true",
+		},
+		Volumes: []mount.Mount{
 			{
-				Destination: "/data/db",
-				Volume: &types.Volume{
-					Name: "cosmos-mongo-data-" + id,
-				},
+				Type:   mount.TypeVolume,
+				Source: "cosmos-mongo-data-" + id,
+				Target: "/data/db",
 			},
 			{
-				Destination: "/data/configdb",
-				Volume: &types.Volume{
-					Name: "cosmos-mongo-config-" + id,
-				},
+				Type:   mount.TypeVolume,
+				Source: "cosmos-mongo-config-" + id,
+				Target: "/data/configdb",
 			},
 		},
-	)
+	};
+
+	err := CreateService(w, req, service)
 
 	if err != nil {
 		return "", err
@@ -87,54 +98,13 @@ func RunContainer(imagename string, containername string, inputEnv []string, vol
 		mounts = append(mounts, mount)
 	}
 
-	// Define a PORT opening
-	// newport, err := natting.NewPort("tcp", port)
-	// if err != nil {
-	// 	fmt.Println("Unable to create docker port")
-	// 	return err
-	// }
-
-	// Configured hostConfig: 
-	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
 	hostConfig := &container.HostConfig{
-		// PortBindings: natting.PortMap{
-		// 	newport: []natting.PortBinding{
-		// 		{
-		// 			HostIP:   "0.0.0.0",
-		// 			HostPort: port,
-		// 		},
-		// 	},
-		// },
 		Mounts : mounts,
 		RestartPolicy: container.RestartPolicy{
 			Name: "always",
 		},
-		// LogConfig: container.LogConfig{
-		// 	Type:   "json-file",
-		// 	Config: map[string]string{},
-		// },
 	}
-
-	// Define Network config
-	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
 	
-
-	
-	// networkConfig := &network.NetworkingConfig{
-	// 	EndpointsConfig: map[string]*network.EndpointSettings{},
-	// }
-	// gatewayConfig := &network.EndpointSettings{
-	// 	Gateway: "gatewayname",
-	// }
-	// networkConfig.EndpointsConfig["bridge"] = gatewayConfig
-
-	// Define ports to be exposed (has to be same as hostconfig.portbindings.newport)
-	// exposedPorts := map[natting.Port]struct{}{
-	// 	newport: struct{}{},
-	// }
-
-	// Configuration 
-	// https://godoc.org/github.com/docker/docker/api/types/container#Config
 	config := &container.Config{
 		Image:    imagename,
 		Env: 		  inputEnv,
@@ -145,9 +115,6 @@ func RunContainer(imagename string, containername string, inputEnv []string, vol
 		// ExposedPorts: exposedPorts,
 	}
 
-	//archi := runtime.GOARCH
-
-	// Creating the actual container. This is "nil,nil,nil" in every example.
 	cont, err := DockerClient.ContainerCreate(
 		DockerContext,
 		config,
@@ -162,7 +129,6 @@ func RunContainer(imagename string, containername string, inputEnv []string, vol
 		return err
 	}
 
-	// Run the actual container 
 	DockerClient.ContainerStart(DockerContext, cont.ID, types.ContainerStartOptions{})
 	utils.Log("Container created " + cont.ID)
 

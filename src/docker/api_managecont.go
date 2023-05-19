@@ -68,7 +68,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "unpause":
 			err = DockerClient.ContainerUnpause(DockerContext, container.ID)
 		case "recreate":
-			_, err = EditContainer(container.ID, container)
+			_, err = EditContainer(container.ID, container, false)
 		case "update":
 			out, errPull := DockerClient.ImagePull(DockerContext, imagename, doctype.ImagePullOptions{})
 			if errPull != nil {
@@ -100,7 +100,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 			utils.Log("Container Update - Image pulled " + imagename)
 
-			_, err = EditContainer(container.ID, container)
+			_, err = EditContainer(container.ID, container, false)
 
 			if err != nil {
 				utils.Error("Container Update - EditContainer", err)

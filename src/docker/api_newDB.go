@@ -20,7 +20,7 @@ func NewDBRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if(req.Method == "GET") {
-		costr, err := NewDB()
+		costr, err := NewDB(w, req)
 
 		if err != nil {
 			utils.Error("NewDB: Error while creating new DB", err)

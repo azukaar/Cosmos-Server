@@ -1,5 +1,5 @@
 // material-ui
-import { AppstoreAddOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, PlusCircleOutlined, ReloadOutlined, RollbackOutlined, SearchOutlined, SettingOutlined, StopOutlined, UpCircleOutlined, UpSquareFilled } from '@ant-design/icons';
+import { AlertFilled, AppstoreAddOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, PlusCircleOutlined, ReloadOutlined, RollbackOutlined, SearchOutlined, SettingOutlined, StopOutlined, UpCircleOutlined, UpSquareFilled, WarningFilled } from '@ant-design/icons';
 import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Stack } from '@mui/system';
@@ -18,6 +18,7 @@ import ExposeModal from './exposeModal';
 import GetActions from './actionBar';
 import ResponsiveButton from '../../components/responseiveButton';
 import DockerComposeImport from './containers/docker-compose';
+import { ContainerNetworkWarning } from '../../components/containers';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -185,7 +186,7 @@ const ServeApps = () => {
                     <img className="loading-image" alt="" src={getFirstRouteFavIcon(app)} width="40px" />
                     <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'no-wrap'}}>
                       <Typography  variant="h5" color="text.secondary">
-                        {app.Names[0].replace('/', '')}&nbsp;
+                      {app.Names[0].replace('/', '')}&nbsp; 
                       </Typography>
                       <Typography color="text.secondary" style={{fontSize: '80%', whiteSpace: 'nowrap', overflow: 'hidden', maxWidth: '100%', textOverflow: 'ellipsis'}}>
                         {app.Image}
@@ -251,7 +252,7 @@ const ServeApps = () => {
                           refreshServeApps();
                         })
                       }}
-                    /> Force Secure Network
+                    /> Force Secure Network <ContainerNetworkWarning container={app} />
                   </Stack>
                   <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
                     <Checkbox

@@ -99,7 +99,7 @@ const NewDockerServiceForm = () => {
       variant="contained"
       fullWidth
       endIcon={<ArrowRightOutlined />}
-      disabled={currentTab === 4}
+      disabled={(currentTab === 4) || containerInfo.Name === '' || containerInfo.Config.Image === ''}
       onClick={() => {
         setCurrentTab(currentTab + 1);
         setMaxTab(Math.max(currentTab + 1, maxTab));

@@ -116,6 +116,30 @@ const DockerComposeImport = ({refresh}) => {
           if(doc.services[key].user) {
             doc.services[key].user = '' + doc.services[key].user;
           }
+
+          // convert labels: 
+          if(doc.services[key].labels) {
+            if(Array.isArray(doc.services[key].labels)) {
+              let labels = {};
+              doc.services[key].labels.forEach((label) => {
+                const [key, value] = label.split('=');
+                labels[''+key] = ''+value;
+              });
+              doc.services[key].labels = labels;
+            }
+          }
+          
+
+          // convert network
+          if(doc.services[key].networks) {
+            if(Array.isArray(doc.services[key].networks)) {
+              let networks = {};
+              doc.services[key].networks.forEach((network) => {
+                networks[''+network] = {};
+              });
+              doc.services[key].networks = networks;
+            }
+          }
         });
       }
 

@@ -16,8 +16,7 @@ const GetActions = ({
   const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
   const [pullRequest, setPullRequest] = React.useState(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
-  console.log(isMiniMobile)
-
+  
   const doTo = (action) => {
     setIsUpdating(true);
 

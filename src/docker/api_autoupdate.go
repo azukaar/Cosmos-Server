@@ -39,7 +39,7 @@ func AutoUpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 		utils.Log("API: Set Auto Update "+status+" : " + containerName)
 
-		_, errEdit := EditContainer(container.ID, container)
+		_, errEdit := EditContainer(container.ID, container, false)
 		if errEdit != nil {
 			utils.Error("AutoUpdateContainer Edit", errEdit)
 			utils.HTTPError(w, "Internal server error: " + errEdit.Error(), http.StatusInternalServerError, "DS003")

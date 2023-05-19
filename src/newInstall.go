@@ -85,13 +85,13 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			} else if (request.MongoDBMode == "Create") {
 				utils.Log("NewInstall: Create DB")
 				newConfig.DisableUserManagement = false
-				strco, err := docker.NewDB()
+
+				strco, err := docker.NewDB(w, req)
 				if err != nil {
 					utils.Error("NewInstall: Error creating MongoDB", err)
-					utils.HTTPError(w, "New Install: Error creating MongoDB " + err.Error(),
-						http.StatusInternalServerError, "NI001")
 					return 
-				}
+				}			
+						
 				newConfig.MongoDB = strco
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)

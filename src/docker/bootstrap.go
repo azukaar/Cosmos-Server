@@ -31,6 +31,13 @@ func BootstrapAllContainersFromTags() []error {
 	return errors
 }
 
+func UnsecureContainer(container types.ContainerJSON) (string, error) {
+	RemoveLabels(container, []string{
+		"cosmos-force-network-secured",
+	});
+	return EditContainer(container.ID, container, false)
+}
+
 func BootstrapContainerFromTags(containerID string) error {
 	errD := Connect()
 	if errD != nil {
@@ -71,6 +78,12 @@ func BootstrapContainerFromTags(containerID string) error {
 			if !isCosmosCon {
 				needsRestart, errCT = ConnectToSecureNetwork(container)
 				if errCT != nil {
+					utils.Warn("DockerContainerBootstrapConnectToSecureNetwork -- Cannot connect to network, removing force secure")
+					_, errUn := UnsecureContainer(container)
+					if errUn != nil {
+						utils.Fatal("DockerContainerBootstrapUnsecureContainer -- A broken container state is preventing Cosmos from functionning. Please remove the cosmos-force-secure label from the container "+container.Name+" manually", errUn)
+						return errCT
+					}
 					return errCT
 				}
 				if needsRestart {
@@ -84,7 +97,12 @@ func BootstrapContainerFromTags(containerID string) error {
 				utils.Log(container.Name+": Disconnecting from bridge network")
 				errDisc := DockerClient.NetworkDisconnect(DockerContext, "bridge", containerID, true) 
 				if errDisc != nil {
-					utils.Error("Docker Network Disconnect", errDisc)
+					utils.Warn("DockerContainerBootstrapDisconnectFromBridge -- Cannot disconnect from Bridge, removing force secure")
+					_, errUn := UnsecureContainer(container)
+					if errUn != nil {
+						utils.Fatal("DockerContainerBootstrapUnsecureContainer -- A broken container state is preventing Cosmos from functionning. Please remove the cosmos-force-secure label from the container "+container.Name+" manually", errUn)
+						return errDisc
+					}
 					return errDisc
 				}
 			}
@@ -99,7 +117,7 @@ func BootstrapContainerFromTags(containerID string) error {
 	}
 	
 	if(needsUpdate) {
-		_, errEdit := EditContainer(containerID, container)
+		_, errEdit := EditContainer(containerID, container, false)
 		if errEdit != nil {
 			utils.Error("Docker Boostrap, couldn't update container: ", errEdit)
 			return errEdit

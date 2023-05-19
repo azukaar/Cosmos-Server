@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"time"
-	"fmt"
 	"bufio"
 	"strings"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -82,11 +81,8 @@ func Connect() error {
 	return nil
 }
 
-func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string, error) {
-	
-	utils.Debug("VOLUMES:" + fmt.Sprintf("%v", newConfig.HostConfig.Mounts))
-	
-	if(oldContainerID != "") {
+func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock bool) (string, error) {
+	if(oldContainerID != "" && !noLock) {
 		// no need to re-lock if we are reverting
 		DockerNetworkLock <- true
 		defer func() { 
@@ -98,6 +94,17 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 		if errD != nil {
 			return "", errD
 		}
+	}
+
+	if(newConfig.HostConfig.NetworkMode != "bridge" &&
+		 newConfig.HostConfig.NetworkMode != "default" &&
+		 newConfig.HostConfig.NetworkMode != "host" &&
+		 newConfig.HostConfig.NetworkMode != "none") {
+			if(!HasLabel(newConfig, "cosmos-force-network-mode")) {
+				AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
+			} else {
+				newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
+			}
 	}
 	
 	newName := newConfig.Name
@@ -111,8 +118,6 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 		// get container informations
 		// https://godoc.org/github.com/docker/docker/api/types#ContainerJSON
 		oldContainer, err = DockerClient.ContainerInspect(DockerContext, oldContainerID)
-
-		utils.Debug("OLD VOLUMES:" + fmt.Sprintf("%v", oldContainer.HostConfig.Mounts))
 
 		if err != nil {
 			return "", err
@@ -138,7 +143,6 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 
 		// if no name, use the same one, that will force Docker to create a hostname if not set
 		newName = oldContainer.Name
-		newConfig.Config.Hostname = newName
 
 		// stop and remove container
 		stopError := DockerClient.ContainerStop(DockerContext, oldContainerID, container.StopOptions{})
@@ -168,6 +172,16 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 		utils.Log("EditContainer - Revert started")
 	}
 	
+	// only force hostname if network is bridge or default, otherwise it will fail
+	if newConfig.HostConfig.NetworkMode == "bridge" || newConfig.HostConfig.NetworkMode == "default" {
+		newConfig.Config.Hostname = newName
+	} else {
+		// if not, remove hostname because otherwise it will try to keep the old one
+		newConfig.Config.Hostname = ""
+		// IDK Docker is weird, if you don't erase this it will break
+		newConfig.Config.ExposedPorts = nil
+	}
+	
 	// recreate container with new informations
 	createResponse, createError := DockerClient.ContainerCreate(
 		DockerContext,
@@ -177,7 +191,10 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 		nil,
 		newName,
 	)
-
+	if createError != nil {
+		utils.Error("EditContainer - Failed to create container", createError)
+	}
+	
 	utils.Log("EditContainer - Container recreated. Re-connecting networks " + createResponse.ID)
 
 	// is force secure
@@ -202,6 +219,10 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 
 	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, types.ContainerStartOptions{})
 
+	if runError != nil {
+		utils.Error("EditContainer - Failed to run container", runError)
+	}
+
 	if createError != nil || runError != nil {
 		if(oldContainerID == "") {
 			if(createError == nil) {
@@ -217,12 +238,17 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 
 		if(createError == nil) {
 			utils.Log("EditContainer - Killing new broken container")
+			// attempt kill
+			DockerClient.ContainerKill(DockerContext, oldContainerID, "")
 			DockerClient.ContainerKill(DockerContext, createResponse.ID, "")
+			// attempt remove in case created state
+			DockerClient.ContainerRemove(DockerContext, oldContainerID, types.ContainerRemoveOptions{})
+			DockerClient.ContainerRemove(DockerContext, createResponse.ID, types.ContainerRemoveOptions{})
 		}
 
 		utils.Log("EditContainer - Reverting...")
 		// attempt to restore container
-		restored, restoreError := EditContainer("", oldContainer)
+		restored, restoreError := EditContainer("", oldContainer, false)
 
 		if restoreError != nil {
 			utils.Error("EditContainer - Failed to restore container", restoreError)
@@ -245,10 +271,46 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON) (string
 			return restored, errors.New("Failed to edit container, but restored to previous state. Error was: " + errorWas)
 		}
 	}
+	
+	// Recreating dependant containers
+	utils.Debug("Unlocking EDIT Container")
+
+	if oldContainerID != "" {
+		RecreateDepedencies(oldContainerID)
+	}
 
 	utils.Log("EditContainer - Container started. All done! " + createResponse.ID)
 
 	return createResponse.ID, nil
+}
+
+func RecreateDepedencies(containerID string) {
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("RecreateDepedencies", err)
+		return
+	}
+
+	for _, container := range containers {
+		if container.ID == containerID {
+			continue
+		}
+
+		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
+		if err != nil {
+			utils.Error("RecreateDepedencies", err)
+			continue
+		}
+
+		// check if network mode contains containerID
+		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
+			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
+			_, err := EditContainer(container.ID, fullContainer, true)
+			if err != nil {
+				utils.Error("RecreateDepedencies - Failed to update - ", err)
+			}
+		}
+	}
 }
 
 func ListContainers() ([]types.Container, error) {
@@ -397,7 +459,7 @@ func CheckUpdatesAvailable() map[string]bool {
 
 		if needsUpdate && IsLabel(fullContainer, "cosmos-auto-update") {
 			utils.Log("Downlaoded new update for " + container.Image + " ready to install")
-			_, err := EditContainer(container.ID, fullContainer)
+			_, err := EditContainer(container.ID, fullContainer, false)
 			if err != nil {
 				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
 			} else {

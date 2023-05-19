@@ -123,7 +123,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				iconURL := icon.URL
 				u, err := url.Parse(siteurl)
 				if err != nil {
-					utils.Error("FaviconFetch failed to parse ", err)
+					utils.Debug("FaviconFetch failed to parse " + err.Error())
 					continue
 				}
 				
@@ -146,21 +146,21 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 					}
 				}
 				
-				utils.Log("Favicon Trying to fetch " + iconURL)
+				utils.Debug("Favicon Trying to fetch " + iconURL)
 
 				// Fetch the favicon
 				resp, err := http.Get(iconURL)
 				if err != nil {
-					utils.Error("FaviconFetch", err)
+					utils.Debug("FaviconFetch" + err.Error())
 					continue
 				}
 
 				// check if 200 and if image 
 				if resp.StatusCode != 200 {
-					utils.Error("FaviconFetch - " + iconURL + " - not 200 ", nil)
+					utils.Debug("FaviconFetch - " + iconURL + " - not 200 ")
 					continue
 				} else if !strings.Contains(resp.Header.Get("Content-Type"), "image") && !strings.Contains(resp.Header.Get("Content-Type"), "octet-stream") {
-					utils.Error("FaviconFetch - " + iconURL + " - not image ", nil)
+					utils.Debug("FaviconFetch - " + iconURL + " - not image ")
 					continue
 				} else {
 					utils.Log("Favicon found " + iconURL)
@@ -168,7 +168,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 					// Cache the response 
 					body, err := ioutil.ReadAll(resp.Body)
 					if err != nil {
-						utils.Error("FaviconFetch - cant read ", err)
+						utils.Debug("FaviconFetch - cant read " + err.Error())
 						continue
 					}
 					

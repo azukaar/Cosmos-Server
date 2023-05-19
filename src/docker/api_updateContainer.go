@@ -23,6 +23,7 @@ type ContainerForm struct {
 	Volumes        []mount.Mount     `json:"Volumes"`
 	// we make this a int so that we can ignore 0
 	Interactive    int               `json:"interactive"`
+	NetworkMode 	 string            `json:"networkMode"`
 }
 
 func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
@@ -119,8 +120,11 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.Tty = form.Interactive == 2
 			container.Config.OpenStdin = form.Interactive == 2
 		}
+		if(form.NetworkMode != "") {
+			container.HostConfig.NetworkMode = containerType.NetworkMode(form.NetworkMode)
+		}
 
-		_, err = EditContainer(container.ID, container)
+		_, err = EditContainer(container.ID, container, false)
 		if err != nil {
 			utils.Error("UpdateContainer: EditContainer", err)
 			utils.HTTPError(w, "Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
