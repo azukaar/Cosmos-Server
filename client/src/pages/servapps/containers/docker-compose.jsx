@@ -86,7 +86,15 @@ const DockerComposeImport = ({refresh}) => {
         setYmlError(e.message);
         return;
       }
+      
+      if (typeof doc === 'object' && doc !== null && Object.keys(doc).length > 0 &&
+        !doc.services && !doc.networks && !doc.volumes) {
+        doc = {
+          services: Object.assign({}, doc)
+        }
+      }
 
+      
       // convert to the proper format
       if(doc.services) {
         Object.keys(doc.services).forEach((key) => {
@@ -129,6 +137,16 @@ const DockerComposeImport = ({refresh}) => {
             }
           }
           
+          // convert environment
+          if(doc.services[key].environment) {
+            if(!Array.isArray(doc.services[key].environment)) {
+              let environment = [];
+              Object.keys(doc.services[key].environment).forEach((keyenv) => {
+                environment.push(keyenv + '=' + doc.services[key].environment[keyenv]);
+              });
+              doc.services[key].environment = environment;
+            }
+          }
 
           // convert network
           if(doc.services[key].networks) {
@@ -139,6 +157,11 @@ const DockerComposeImport = ({refresh}) => {
               });
               doc.services[key].networks = networks;
             }
+          }
+
+          // ensure container_name
+          if(!doc.services[key].container_name) {
+            doc.services[key].container_name = key;
           }
         });
       }

@@ -27,7 +27,7 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageName := "mongo:5"
+	imageName := "mongo:latest"
 
 	// if CPU is missing AVX, use 4.4
 	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
@@ -37,6 +37,14 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 
 	service := DockerServiceCreateRequest{
 		Services: map[string]ContainerCreateRequestContainer {},
+		Volumes: []ContainerCreateRequestVolume{
+			ContainerCreateRequestVolume{
+				Name: "cosmos-mongo-data-" + id,
+			},
+			ContainerCreateRequestVolume{
+				Name: "cosmos-mongo-config-" + id,
+			},
+		},
 	}
 
 	service.Services[monHost] = ContainerCreateRequestContainer{
