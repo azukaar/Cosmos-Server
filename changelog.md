@@ -11,7 +11,6 @@
 - Silent error on favicon fetching
 - Create Servapp step 1: make name / image required
 - re-do mongoDB creation flow with a cosmos-compose request 
-- Fix Mongo 6 compatibility issue
 
 ## Version 0.5.0
  - Add Terminal to containers

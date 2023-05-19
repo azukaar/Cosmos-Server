@@ -27,7 +27,7 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageName := "mongo:latest"
+	imageName := "mongo:5"
 
 	// if CPU is missing AVX, use 4.4
 	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
