@@ -1,8 +1,4 @@
-<p align="center">
-<img alt="Logo Banner" width="100px" src="https://github.com/azukaar/Cosmos-Server/blob/master/Logo.png?raw=true"/>
-</p>
-<h1 align="center">Cosmos-Server</h1>
-<h3 align="center" style="margin-bottom:15px">Secure and Easy Self-Hosted Platform.</h3>
+![banner](./banner.jpg)
 
 ---
 
