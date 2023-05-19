@@ -1,3 +1,16 @@
+## version 0.5.1 -> 0.5.5
+- Add Wilcard certificates support
+- Auto switch to Mongo 4 if CPU has no ADX
+- Improve setup for certificates on new install
+- Fix issue docker compose import labels and networks array
+- Fix issue with docker network mode not supporting hostname
+- Fix issue with network namespace
+- Fixed issue with a Docker bug preventing re-creating a container with a network mode as container (https://github.com/portainer/portainer/issues/2657)
+- Silent error on favicon fetching
+- Create Servapp step 1: make name / image required
+- re-do mongoDB creation flow with a cosmos-compose request 
+- Force Mongo to default to v5 as v6 breaks compatibility
+
 ## Version 0.5.0
  - Add Terminal to containers
  - Add "Create ServApp"
