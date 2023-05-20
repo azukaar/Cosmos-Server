@@ -235,7 +235,7 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 
 func GetClientID(r *http.Request) string {
 	// when using Docker we need to get the real IP
-	if os.Getenv("HOSTNAME") != "" {
+	if os.Getenv("HOSTNAME") != "" && r.Header.Get("x-forwarded-for") != "" {
 		ip, _, _ := net.SplitHostPort(r.Header.Get("x-forwarded-for"))
 		utils.Debug("SmartShield: Getting client ID " + ip)
 		return ip

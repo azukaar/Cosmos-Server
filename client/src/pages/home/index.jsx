@@ -179,7 +179,7 @@ const HomePage = () => {
                                 <div style={{minWidth: 0 }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                     <p style={blockStyle}>{route.Description}</p>
-                                    <p style={blockStyle}>{route.Target}</p>
+                                    <p style={{...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45'}}>{route.Target}</p>
                                 </div>
                             </Stack>
                         </Link>
