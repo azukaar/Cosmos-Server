@@ -39,6 +39,7 @@ RUN ./build.sh
 RUN apt-get remove -y wget curl nodejs
 RUN apt-get autoremove -y
 RUN rm -rf node_modules
+RUN rm -rf /usr/local/go
 
 WORKDIR /app/build
 
