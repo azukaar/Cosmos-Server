@@ -46,6 +46,7 @@ const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls 
           Target: routeConfig.Target,
           UseHost: routeConfig.UseHost,
           Host: routeConfig.Host,
+          AcceptInsecureHTTPSTarget: routeConfig.AcceptInsecureHTTPSTarget === true,
           UsePathPrefix: routeConfig.UsePathPrefix,
           PathPrefix: routeConfig.PathPrefix,
           StripPathPrefix: routeConfig.StripPathPrefix,
@@ -166,6 +167,12 @@ const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls 
                         formik={formik}
                       />
                   }
+
+                  {formik.values.Target.startsWith('https://') && <CosmosCheckbox
+                    name="AcceptInsecureHTTPSTarget"
+                    label="Accept Insecure HTTPS Target (not recommended)"
+                    formik={formik}
+                  />}
 
                   <CosmosFormDivider title={'Source'} />
 

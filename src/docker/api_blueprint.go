@@ -22,6 +22,12 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+type ContainerCreateRequestServiceNetwork struct {
+	Aliases []string `json:"aliases,omitempty"`
+	IPV4Address string `json:"ipv4_address,omitempty"`
+	IPV6Address string `json:"ipv6_address,omitempty"`
+}
+
 type ContainerCreateRequestContainer struct {
 	Name 			string            `json:"container_name"`
 	Image       string            `json:"image"`
@@ -29,12 +35,8 @@ type ContainerCreateRequestContainer struct {
 	Labels      map[string]string `json:"labels"`
 	Ports       []string          `json:"ports"`
 	Volumes     []mount.Mount          `json:"volumes"`
-	Networks    map[string]struct {
-		Aliases []string `json:"aliases,omitempty"`
-		IPV4Address string `json:"ipv4_address,omitempty"`
-		IPV6Address string `json:"ipv6_address,omitempty"`
-	} `json:"networks"`
-	Routes 			   []utils.ProxyRouteConfig          `json:"routes"`
+	Networks    map[string]ContainerCreateRequestServiceNetwork `json:"networks"`
+	Routes 			[]utils.ProxyRouteConfig          `json:"routes"`
 
 	RestartPolicy  string            `json:"restart,omitempty"`
 	Devices        []string          `json:"devices"`
@@ -100,7 +102,7 @@ type ContainerCreateRequestNetwork struct {
 
 type DockerServiceCreateRequest struct {
 	Services map[string]ContainerCreateRequestContainer `json:"services"`
-	Volumes []ContainerCreateRequestVolume `json:"volumes"`
+	Volumes map[string]ContainerCreateRequestVolume `json:"volumes"`
 	Networks map[string]ContainerCreateRequestNetwork `json:"networks"`
 }
 
@@ -137,6 +139,9 @@ func Rollback(actions []DockerServiceCreateRollback , w http.ResponseWriter, flu
 				flusher.Flush()
 			}
 		case "network":
+			if os.Getenv("HOSTNAME") != "" {
+				DockerClient.NetworkDisconnect(DockerContext, action.Name, os.Getenv("HOSTNAME"), true)
+			}
 			err := DockerClient.NetworkRemove(DockerContext, action.Name)
 			if err != nil {
 				utils.Error("Rollback: Network", err)
@@ -219,6 +224,48 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 
 	var rollbackActions []DockerServiceCreateRollback
 	var err error
+
+	// check if services have the cosmos-force-network-secured label
+	for serviceName, service := range serviceRequest.Services {
+		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
+		fmt.Fprintf(w, "Checking service %s...\n", serviceName)
+		flusher.Flush()
+
+		if service.Labels["cosmos-force-network-secured"] == "true" {
+			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
+			fmt.Fprintf(w, "Forcing secure %s...\n", serviceName)
+			flusher.Flush()
+	
+			newNetwork, errNC := CreateCosmosNetwork()
+			if errNC != nil {
+				utils.Error("CreateService: Network", err)
+				fmt.Fprintf(w, "[ERROR] Network %s cant be created\n", newNetwork)
+				flusher.Flush()
+				Rollback(rollbackActions, w, flusher)
+				return err
+			}
+
+			service.Labels["cosmos-network-name"] = newNetwork
+
+			AttachNetworkToCosmos(newNetwork)
+
+			if service.Networks == nil {
+				service.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
+			}
+
+			service.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
+
+			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+				Action: "remove",
+				Type:   "network",
+				Name:   newNetwork,
+			})
+			
+			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
+			fmt.Fprintf(w, "Created secure network %s\n", newNetwork)
+			flusher.Flush()
+		}
+	}
 
 	// Create networks
 	for networkToCreateName, networkToCreate := range serviceRequest.Networks {
@@ -391,11 +438,32 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 		// Create missing folders for bind mounts
 		for _, newmount := range container.Volumes {
 			if newmount.Type == mount.TypeBind {
-				if _, err := os.Stat(newmount.Source); os.IsNotExist(err) {
-					err := os.MkdirAll(newmount.Source, 0755)
+				newSource := newmount.Source
+
+				if os.Getenv("HOSTNAME") != "" {
+					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
+						fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: "+err.Error())
+						flusher.Flush()
+						Rollback(rollbackActions, w, flusher)
+						return err
+					}
+					newSource = "/mnt/host" + newSource
+				}
+						
+				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))
+				fmt.Fprintf(w, "Checking directory %s for bind mount\n", newSource)
+				flusher.Flush()
+
+				if _, err := os.Stat(newSource); os.IsNotExist(err) {
+					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
+					fmt.Fprintf(w, "Not found. Creating directory %s for bind mount\n", newSource)
+					flusher.Flush()
+	
+					err := os.MkdirAll(newSource, 0755)
 					if err != nil {
-						utils.Error("CreateService: Unable to create directory for bind mount", err)
-						fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount: "+err.Error())
+						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
+						fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory for bind mount: "+err.Error())
 						flusher.Flush()
 						Rollback(rollbackActions, w, flusher)
 						return err
@@ -411,7 +479,7 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 						} else {
 							uid, _ := strconv.Atoi(userInfo.Uid)
 							gid, _ := strconv.Atoi(userInfo.Gid)
-							err = os.Chown(newmount.Source, uid, gid)
+							err = os.Chown(newSource, uid, gid)
 							if err != nil {
 								utils.Error("CreateService: Unable to change ownership of directory", err)
 								fmt.Fprintf(w, "[ERROR] Unable to change ownership of directory: "+err.Error())

@@ -5,12 +5,17 @@ import (
 	"errors"
 	"time"
 	"bufio"
+	"os"
+	"os/user"
+	"fmt"
 	"strings"
+	"strconv"
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
+	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
 
@@ -111,6 +116,49 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	oldContainer := newConfig
 
 	if(oldContainerID != "") {
+		// create missing folders
+		
+		for _, newmount := range newConfig.HostConfig.Mounts {
+			if newmount.Type == mountType.TypeBind {
+				newSource := newmount.Source
+
+				if os.Getenv("HOSTNAME") != "" {
+					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
+						return "", errors.New("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself")
+					}
+					newSource = "/mnt/host" + newSource
+				}
+						
+				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))
+
+				if _, err := os.Stat(newSource); os.IsNotExist(err) {
+					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
+	
+					err := os.MkdirAll(newSource, 0755)
+					if err != nil {
+						utils.Error("EditContainer: Unable to create directory for bind mount", err)
+						return "", errors.New("Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory")
+					}
+		
+					if newConfig.Config.User != "" {
+						// Change the ownership of the directory to the container.User
+						userInfo, err := user.Lookup(newConfig.Config.User)
+						if err != nil {
+							utils.Error("EditContainer: Unable to lookup user", err)
+						} else {
+							uid, _ := strconv.Atoi(userInfo.Uid)
+							gid, _ := strconv.Atoi(userInfo.Gid)
+							err = os.Chown(newSource, uid, gid)
+							if err != nil {
+								utils.Error("EditContainer: Unable to change ownership of directory", err)
+							}
+						}	
+					}
+				}
+			}
+		}
+
 		utils.Log("EditContainer - Container updating. Retriveing currently running " + oldContainerID)
 
 		var err error

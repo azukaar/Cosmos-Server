@@ -4,18 +4,25 @@ import (
 	"net/http"
 	"net/http/httputil" 
 	"net/url"
+	"crypto/tls"
 	spa "github.com/roberthodgen/spa-server"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 // NewProxy takes target host and creates a reverse proxy
-func NewProxy(targetHost string) (*httputil.ReverseProxy, error) {
+func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool) (*httputil.ReverseProxy, error) {
 	url, err := url.Parse(targetHost)
 	if err != nil {
 			return nil, err
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(url)
+
+	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
+		proxy.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+	}
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
@@ -35,7 +42,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	routeType := route.Mode
 
 	if(routeType == "SERVAPP" || routeType == "PROXY") {
-		proxy, err := NewProxy(destination)
+		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget)
 		if err != nil {
 				utils.Error("Create Route", err)
 		}

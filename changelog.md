@@ -1,4 +1,9 @@
-## version 0.5.1 -> 0.5.7
+## versiom 0.5.11
+- Improve docker-compose import support for alternative syntaxes
+- Improve docker service creation when using force secure label (fixes few containers not liking restarting too fast when created)
+- Add toggle for using insecure HTTPS targets (fixes Unifi controller)
+
+## version 0.5.1 -> 0.5.10
 - Add Wilcard certificates support
 - Auto switch to Mongo 4 if CPU has no ADX
 - Improve setup for certificates on new install

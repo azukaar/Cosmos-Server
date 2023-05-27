@@ -148,6 +148,7 @@ type ProxyRouteConfig struct {
 	Mode ProxyMode
 	BlockCommonBots bool
 	BlockAPIAbuse bool
+	AcceptInsecureHTTPSTarget bool
 }
 
 type EmailConfig struct {
