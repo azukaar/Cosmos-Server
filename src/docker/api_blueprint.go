@@ -115,7 +115,7 @@ type DockerServiceCreateRollback struct {
 	Name string `json:"name"`
 }
 
-func Rollback(actions []DockerServiceCreateRollback , w http.ResponseWriter, flusher http.Flusher) {
+func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 	for i := len(actions) - 1; i >= 0; i-- {
 		action := actions[i]
 		switch action.Type {
@@ -126,8 +126,7 @@ func Rollback(actions []DockerServiceCreateRollback , w http.ResponseWriter, flu
 				utils.Error("Rollback: Container", err)
 			} else {
 				utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
-				fmt.Fprintf(w, "Rolled back container %s\n", action.Name)
-				flusher.Flush()
+				OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
 			}
 		case "volume":
 			err := DockerClient.VolumeRemove(DockerContext, action.Name, true)
@@ -135,8 +134,7 @@ func Rollback(actions []DockerServiceCreateRollback , w http.ResponseWriter, flu
 				utils.Error("Rollback: Volume", err)
 			} else {
 				utils.Log(fmt.Sprintf("Rolled back volume %s", action.Name))
-				fmt.Fprintf(w, "Rolled back volume %s\n", action.Name)
-				flusher.Flush()
+				OnLog(fmt.Sprintf("Rolled back volume %s\n", action.Name))
 			}
 		case "network":
 			if os.Getenv("HOSTNAME") != "" {
@@ -147,16 +145,14 @@ func Rollback(actions []DockerServiceCreateRollback , w http.ResponseWriter, flu
 				utils.Error("Rollback: Network", err)
 			} else {
 				utils.Log(fmt.Sprintf("Rolled back network %s", action.Name))
-				fmt.Fprintf(w, "Rolled back network %s\n", action.Name)
-				flusher.Flush()
+				OnLog(fmt.Sprintf("Rolled back network %s\n", action.Name))
 			}
 		}
 	}
 	
 	// After all operations
 	utils.Error("CreateService", fmt.Errorf("Operation failed. Changes have been rolled back."))
-	fmt.Fprintf(w, "[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
-	flusher.Flush()
+	OnLog("[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
 }
 
 func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
@@ -192,7 +188,12 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		CreateService(w, req, serviceRequest)
+		CreateService(serviceRequest, 
+			func (msg string) {
+				fmt.Fprintf(w, msg)
+				flusher.Flush()
+			},
+		)
 	} else {
 		utils.Error("CreateService: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -201,23 +202,12 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 
-func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest DockerServiceCreateRequest) error {
-	// Enable streaming of response by setting appropriate headers
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Transfer-Encoding", "chunked")
-
-	flusher, ok := w.(http.Flusher)
-	if !ok {
-			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
-			return errors.New("Streaming unsupported!")
-	}
-	
+func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)) error {
 	utils.ConfigLock.Lock()
 	defer utils.ConfigLock.Unlock()
 	
 	utils.Log("Starting creation of new service...")
-	fmt.Fprintf(w, "Starting creation of new service...\n")
-	flusher.Flush()
+	OnLog("Starting creation of new service...\n")
 	
 	config := utils.ReadConfigFromFile()
 	configRoutes := config.HTTPConfig.ProxyConfig.Routes
@@ -228,20 +218,17 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 	// check if services have the cosmos-force-network-secured label
 	for serviceName, service := range serviceRequest.Services {
 		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
-		fmt.Fprintf(w, "Checking service %s...\n", serviceName)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
 		if service.Labels["cosmos-force-network-secured"] == "true" {
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
-			fmt.Fprintf(w, "Forcing secure %s...\n", serviceName)
-			flusher.Flush()
+			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
 			newNetwork, errNC := CreateCosmosNetwork()
 			if errNC != nil {
 				utils.Error("CreateService: Network", err)
-				fmt.Fprintf(w, "[ERROR] Network %s cant be created\n", newNetwork)
-				flusher.Flush()
-				Rollback(rollbackActions, w, flusher)
+				OnLog(fmt.Sprintf("[ERROR] Network %s cant be created\n", newNetwork))
+				Rollback(rollbackActions, OnLog)
 				return err
 			}
 
@@ -262,24 +249,21 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 			})
 			
 			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
-			fmt.Fprintf(w, "Created secure network %s\n", newNetwork)
-			flusher.Flush()
+			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
 		}
 	}
 
 	// Create networks
 	for networkToCreateName, networkToCreate := range serviceRequest.Networks {
 		utils.Log(fmt.Sprintf("Creating network %s...", networkToCreateName))
-		fmt.Fprintf(w, "Creating network %s...\n", networkToCreateName)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Creating network %s...\n", networkToCreateName))
 
 		// check if network already exists
 		_, err = DockerClient.NetworkInspect(DockerContext, networkToCreateName, doctype.NetworkInspectOptions{})
 		if err == nil {
 			utils.Error("CreateService: Network", err)
-			fmt.Fprintf(w, "[ERROR] Network %s already exists\n", networkToCreateName)
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Network %s already exists\n", networkToCreateName))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 
@@ -305,9 +289,8 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Network", err)
-			fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Network creation error: "+err.Error())
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Network creation error: %s\n", err.Error()))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 
@@ -319,15 +302,13 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 	
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Network %s created", networkToCreateName))
-		fmt.Fprintf(w, "Network %s created\n", networkToCreateName)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Network %s created\n", networkToCreateName))
 	}
 
 	// Create volumes
 	for _, volume := range serviceRequest.Volumes {
 		utils.Log(fmt.Sprintf("Creating volume %s...", volume.Name))
-		fmt.Fprintf(w, "Creating volume %s...\n", volume.Name)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Creating volume %s...\n", volume.Name))
 		
 		_, err = DockerClient.VolumeCreate(DockerContext, volumetype.CreateOptions{
 			Driver:     volume.Driver,
@@ -336,9 +317,8 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Volume", err)
-			fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Volume creation error: "+err.Error())
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Volume creation error: %s\n", err.Error()))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 
@@ -350,23 +330,20 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Volume %s created", volume.Name))
-		fmt.Fprintf(w, "Volume %s created\n", volume.Name)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Volume %s created\n", volume.Name))
 	}
 
 	// pull images
 	for _, container := range serviceRequest.Services {
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Pulling image %s", container.Image))
-		fmt.Fprintf(w, "Pulling image %s\n", container.Image)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Pulling image %s\n", container.Image))
 
 		out, err := DockerClient.ImagePull(DockerContext, container.Image, doctype.ImagePullOptions{})
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Image pull", err)
-			fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Image pull error: "+err.Error())
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Image pull error: %s\n", err.Error()))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 		defer out.Close()
@@ -374,21 +351,18 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 		// wait for image pull to finish
 		scanner := bufio.NewScanner(out)
 		for scanner.Scan() {
-			fmt.Fprintf(w, "%s\n", scanner.Text())
-			flusher.Flush()
+			OnLog(fmt.Sprintf("%s\n", scanner.Text()))
 		}
 		
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Image %s pulled", container.Image))
-		fmt.Fprintf(w, "Image %s pulled\n", container.Image)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Image %s pulled\n", container.Image))
 	}
 
 	// Create containers
 	for _, container := range serviceRequest.Services {
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
-		fmt.Fprintf(w, "Creating container %s...\n", container.Name)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Creating container %s...\n", container.Name))
 
 		containerConfig := &conttype.Config{
 			Image:        container.Image,
@@ -443,29 +417,25 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 				if os.Getenv("HOSTNAME") != "" {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
-						fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: "+err.Error())
-						flusher.Flush()
-						Rollback(rollbackActions, w, flusher)
+						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
+						Rollback(rollbackActions, OnLog)
 						return err
 					}
 					newSource = "/mnt/host" + newSource
 				}
 						
 				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))
-				fmt.Fprintf(w, "Checking directory %s for bind mount\n", newSource)
-				flusher.Flush()
+				OnLog(fmt.Sprintf("Checking directory %s for bind mount\n", newSource))
 
 				if _, err := os.Stat(newSource); os.IsNotExist(err) {
 					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
-					fmt.Fprintf(w, "Not found. Creating directory %s for bind mount\n", newSource)
-					flusher.Flush()
+					OnLog(fmt.Sprintf("Not found. Creating directory %s for bind mount\n", newSource))
 	
 					err := os.MkdirAll(newSource, 0755)
 					if err != nil {
 						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
-						fmt.Fprintf(w, "[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory for bind mount: "+err.Error())
-						flusher.Flush()
-						Rollback(rollbackActions, w, flusher)
+						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
+						Rollback(rollbackActions, OnLog)
 						return err
 					}
 		
@@ -474,16 +444,14 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 						userInfo, err := user.Lookup(container.User)
 						if err != nil {
 							utils.Error("CreateService: Unable to lookup user", err)
-							fmt.Fprintf(w, "[ERROR] Unable to lookup user " + container.User + "." +err.Error())
-							flusher.Flush()
+							OnLog(fmt.Sprintf("[ERROR] Unable to lookup user " + container.User + "." +err.Error()))
 						} else {
 							uid, _ := strconv.Atoi(userInfo.Uid)
 							gid, _ := strconv.Atoi(userInfo.Gid)
 							err = os.Chown(newSource, uid, gid)
 							if err != nil {
 								utils.Error("CreateService: Unable to change ownership of directory", err)
-								fmt.Fprintf(w, "[ERROR] Unable to change ownership of directory: "+err.Error())
-								flusher.Flush()
+								OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
 							}
 						}	
 					}
@@ -553,9 +521,8 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 		
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Container", err)
-			fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Container creation error: "+err.Error())
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container creation error: "+err.Error()))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 		
@@ -579,26 +546,23 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 				configRoutes = append([]utils.ProxyRouteConfig{(utils.ProxyRouteConfig)(route)}, configRoutes...)
 			} else {
 				utils.Error("CreateService: Rolling back changes because of -- Route already exist", nil)
-				fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Route already exist")
-				flusher.Flush()
-				Rollback(rollbackActions, w, flusher)
+				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Route already exist"))
+				Rollback(rollbackActions, OnLog)
 				return errors.New("Route already exist")
 			}
 		}
 		
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Container %s created", container.Name))
-		fmt.Fprintf(w, "Container %s created\n", container.Name)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Container %s created", container.Name))
 	}
 
 	// re-order containers dpeneding on depends_on
 	startOrder, err := ReOrderServices(serviceRequest.Services)
 	if err != nil {
 		utils.Error("CreateService: Rolling back changes because of -- Container", err)
-		fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Container creation error: "+err.Error())
-		flusher.Flush()
-		Rollback(rollbackActions, w, flusher)
+		OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container creation error: "+err.Error()))
+		Rollback(rollbackActions, OnLog)
 		return err
 	}
 
@@ -607,16 +571,14 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 		err = DockerClient.ContainerStart(DockerContext, container.Name, doctype.ContainerStartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
-			fmt.Fprintf(w, "[ERROR] Rolling back changes because of -- Container start error: "+err.Error())
-			flusher.Flush()
-			Rollback(rollbackActions, w, flusher)
+			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container start error: "+err.Error()))
+			Rollback(rollbackActions, OnLog)
 			return err
 		}
 
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Container %s started", container.Name))
-		fmt.Fprintf(w, "Container %s started\n", container.Name)
-		flusher.Flush()
+		OnLog(fmt.Sprintf("Container %s started", container.Name))
 	}
 	
 	// Save the route configs 
@@ -626,8 +588,7 @@ func CreateService(w http.ResponseWriter, req *http.Request, serviceRequest Dock
 
 	// After all operations
 	utils.Log("CreateService: Operation succeeded. SERVICE STARTED")
-	fmt.Fprintf(w, "[OPERATION SUCCEEDED]. SERVICE STARTED\n")
-	flusher.Flush()
+	OnLog("[OPERATION SUCCEEDED]. SERVICE STARTED\n")
 
 	return nil
 }

@@ -28,13 +28,18 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	monHost := "cosmos-mongo-" + id
 	
 	imageName := "mongo:latest"
+	
+	//if ARM use amd64/mongo
+	if runtime.GOARCH == "arm64" {
+		utils.Warn("ARM64 detected. Using ARM mongo 4.4")
+		imageName = "amd64/mongo:4.4"
 
 	// if CPU is missing AVX, use 4.4
-	if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
+	} else if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
 		utils.Warn("CPU does not support AVX. Using mongo 4.4")
 		imageName = "mongo:4.4"
 	}
-	
+
 	err := RunContainer(
 		imageName,
 		monHost,

@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"strings"
 	"strconv"
+	"runtime"
 	"github.com/azukaar/cosmos-server/src/utils" 
+	
 
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
@@ -84,6 +86,19 @@ func Connect() error {
 	}
 
 	return nil
+}
+
+func RecreateContainer(containerID string, containerConfig types.ContainerJSON) (string, error) {
+	if os.Getenv("HOSTNAME") != ""  && os.Getenv("HOSTNAME") == containerID[1:] {
+		err := SelfRecreate()
+		if err != nil {
+			return "", err
+		}
+	} else {
+		return EditContainer(containerID, containerConfig, false)
+	}
+
+	return "", nil
 }
 
 func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock bool) (string, error) {
@@ -424,6 +439,19 @@ func Test() error {
 	return nil
 }
 
+func HasAutoUpdateOn(containerConfig types.ContainerJSON) bool {
+	if containerConfig.Config.Labels["cosmos-auto-update"] == "true" {
+		return true
+	}
+
+	config := utils.ReadConfigFromFile()
+
+	if os.Getenv("HOSTNAME") == containerConfig.Name[1:] && config.AutoUpdate {
+		return true
+	}
+
+	return false
+}
 
 func CheckUpdatesAvailable() map[string]bool {
 	result := make(map[string]bool)
@@ -468,7 +496,7 @@ func CheckUpdatesAvailable() map[string]bool {
 				utils.Log("Updates available for " + container.Image)
 
 				result[container.Names[0]] = true
-				if !IsLabel(fullContainer, "cosmos-auto-update") {
+				if !HasAutoUpdateOn(fullContainer) {
 					rc.Close()
 					break
 				} else {
@@ -477,7 +505,7 @@ func CheckUpdatesAvailable() map[string]bool {
 			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date") {
 				utils.Log("No updates available for " + container.Image)
 				
-				if !IsLabel(fullContainer, "cosmos-auto-update") {
+				if !HasAutoUpdateOn(fullContainer) {
 					rc.Close()
 					break
 				}
@@ -505,9 +533,9 @@ func CheckUpdatesAvailable() map[string]bool {
 			}
 		}
 
-		if needsUpdate && IsLabel(fullContainer, "cosmos-auto-update") {
+		if needsUpdate && HasAutoUpdateOn(fullContainer) {
 			utils.Log("Downlaoded new update for " + container.Image + " ready to install")
-			_, err := EditContainer(container.ID, fullContainer, false)
+			_, err := RecreateContainer(container.Names[0], fullContainer)
 			if err != nil {
 				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
 			} else {
@@ -517,4 +545,83 @@ func CheckUpdatesAvailable() map[string]bool {
 	}
 
 	return result
+}
+
+func RemoveSelfUpdater() error {
+	utils.Log("Checking for self updater agent")
+
+	// look for a container with the name cosmos-self-updater-agent
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("RemoveSelfUpdater", err)
+		return err
+	}
+
+	for _, container := range containers {
+		if container.Names[0] == "/cosmos-self-updater-agent" {
+			utils.Log("Found. Removing self updater agent")
+			err := DockerClient.ContainerKill(DockerContext, container.ID, "SIGKILL")
+			if err != nil {
+				utils.Error("RemoveSelfUpdater", err)
+			}
+			err = DockerClient.ContainerRemove(DockerContext, container.ID, types.ContainerRemoveOptions{
+				Force: true,
+			})
+			if err != nil {
+				utils.Error("RemoveSelfUpdater", err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func SelfRecreate() error {
+	if os.Getenv("HOSTNAME") == "" {
+		utils.Error("SelfRecreate - not using Docker", nil)
+		return errors.New("SelfRecreate - not using Docker")
+	}
+
+	// make sure to remove resiude of old self updater
+	RemoveSelfUpdater()
+
+	containerName := os.Getenv("HOSTNAME")
+
+	version := "latest"
+
+	// if arm
+	if runtime.GOARCH == "arm" {
+		version = "latest-arm64"
+	}
+	
+	service := DockerServiceCreateRequest{
+		Services: map[string]ContainerCreateRequestContainer {},
+	}
+
+	service.Services["cosmos-self-updater-agent"] = ContainerCreateRequestContainer{
+		Name: "cosmos-self-updater-agent",
+		Image: "azukaar/docker-self-updater:" + version,
+		RestartPolicy: "no",
+		Environment: []string{
+			"CONTAINER_NAME=" + containerName,
+			"ACTION=recreate",
+			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
+		},
+		Volumes: []mountType.Mount{
+			{
+				Type: mountType.TypeBind,
+				Source: "/var/run/docker.sock",
+				Target: "/var/run/docker.sock",
+			},
+		},
+	};
+
+	err := CreateService(service, func (msg string) {})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

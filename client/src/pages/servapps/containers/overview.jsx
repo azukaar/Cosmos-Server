@@ -15,7 +15,7 @@ const info = {
   borderRadius: '5px',
 }
 
-const ContainerOverview = ({ containerInfo, config, refresh }) => {
+const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, selfName }) => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [openModal, setOpenModal] = React.useState(false);
   const [openRestartModal, setOpenRestartModal] = React.useState(false);
@@ -99,6 +99,7 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
                 setIsUpdatingId={() => {
                   setIsUpdating(true);
                 }}
+                updateAvailable={updatesAvailable && updatesAvailable[Name]}
               />
             </Stack>
             {containerInfo.State.Status !== 'running' && (
@@ -133,7 +134,8 @@ const ContainerOverview = ({ containerInfo, config, refresh }) => {
             </Stack>
             <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
-                checked={Config.Labels['cosmos-auto-update'] === 'true'}
+                checked={Config.Labels['cosmos-auto-update'] === 'true'  ||
+                  (selfName && Name.replace('/', '') == selfName && config.AutoUpdate)}
                 disabled={isUpdating}
                 onChange={(e) => {
                   setIsUpdating(true);

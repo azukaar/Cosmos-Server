@@ -20,8 +20,13 @@ func AutoUpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 	status := utils.Sanitize(vars["status"])
 	
 	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
-		utils.Error("AutoUpdateContainerRoute - Container cannot update itself", nil)
-		utils.HTTPError(w, "Container cannot update itself", http.StatusBadRequest, "DS003")
+		config := utils.ReadConfigFromFile()
+		config.AutoUpdate = status == "true"
+		utils.SaveConfigTofile(config)
+		utils.Log("API: Set Auto Update "+status+" : " + containerName)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+		})
 		return
 	}
 	

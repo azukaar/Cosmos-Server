@@ -15,10 +15,6 @@ export default defineConfig({
         secure: false,
         ws: true,
       }
-    },
-    
-    watch: {
-      usePolling: true
     }
   }
 })

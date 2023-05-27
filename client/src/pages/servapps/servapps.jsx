@@ -45,6 +45,7 @@ const ServeApps = () => {
   const [newRoute, setNewRoute] = useState(null);
   const [submitErrors, setSubmitErrors] = useState([]);
   const [openRestartModal, setOpenRestartModal] = useState(false);
+  const [selfName, setSelfName] = useState("");
 
   const refreshServeApps = () => {
     API.docker.list().then((res) => {
@@ -53,6 +54,7 @@ const ServeApps = () => {
     API.config.get().then((res) => {
       setConfig(res.data);
       setUpdatesAvailable(res.updates);
+      setSelfName(res.hostname);
     });
     setIsUpdating({});
   };
@@ -194,7 +196,7 @@ const ServeApps = () => {
                     </Stack>
                   </Stack>
                 </Stack>
-                <Stack direction="row" spacing={2} width='100%'>
+                <Stack direction="row" spacing={1} width='100%'>
                   <GetActions 
                     Id={app.Names[0].replace('/', '')}
                     image={app.Image}
@@ -256,7 +258,8 @@ const ServeApps = () => {
                   </Stack>
                   <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
                     <Checkbox
-                      checked={app.Labels['cosmos-auto-update'] === 'true'}
+                      checked={app.Labels['cosmos-auto-update'] === 'true' ||
+                        (selfName && app.Names[0].replace('/', '') == selfName && config.AutoUpdate)}
                       disabled={app.State !== 'running'}
                       onChange={(e) => {
                         const name = app.Names[0].replace('/', '');

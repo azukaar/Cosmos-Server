@@ -3,6 +3,7 @@ package configapi
 import (
 	"net/http"
 	"encoding/json"
+	"os"
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
@@ -40,6 +41,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			"status": "OK",
 			"data": config,
 			"updates": utils.UpdateAvailable,
+			"hostname": os.Getenv("HOSTNAME"),
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)

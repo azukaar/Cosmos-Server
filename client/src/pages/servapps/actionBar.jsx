@@ -39,9 +39,16 @@ const GetActions = ({
 
   let actions = [
     {
-      t: 'Update Available',
+      t: 'Update Available, Click to Update',
       if: ['update_available'],
       e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
+        <UpCircleOutlined />
+      </IconButton>
+    },
+    {
+      t: 'No Update Available. Click to Force Pull',
+      if: ['update_not_available'],
+      e: <IconButton onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
     },
@@ -117,7 +124,7 @@ const GetActions = ({
     />
     
     {!isUpdating && actions.filter((action) => {
-      return action.if.includes(state) || (updateAvailable && action.if.includes('update_available'));
+      return action.if.includes(state) || (updateAvailable && action.if.includes('update_available')) || (!updateAvailable && action.if.includes('update_not_available'));
     }).map((action) => {
       return <Tooltip title={action.t}>{action.e}</Tooltip>
     })}

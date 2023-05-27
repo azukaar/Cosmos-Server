@@ -22,6 +22,8 @@ const ContainerIndex = () => {
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
+  const [selfName, setSelfName] = React.useState("");
+  const [updatesAvailable, setUpdatesAvailable] = React.useState(null);
   
   const refreshContainer = () => {
     return Promise.all([API.docker.get(containerName).then((res) => {
@@ -29,6 +31,8 @@ const ContainerIndex = () => {
     }),
     API.config.get().then((res) => {
       setConfig(res.data);
+      setUpdatesAvailable(res.updates);
+      setSelfName(res.hostname);
     })]);
   };
 
@@ -49,7 +53,7 @@ const ContainerIndex = () => {
       tabs={[
         {
           title: 'Overview',
-          children: <ContainerOverview refresh={refreshContainer} containerInfo={container} config={config}/>
+          children: <ContainerOverview updatesAvailable={updatesAvailable} selfName={selfName} refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
           title: 'Logs',

@@ -24,6 +24,8 @@ func main() {
 
 	docker.BootstrapAllContainersFromTags()
 
+	docker.RemoveSelfUpdater()
+
 	version, err := docker.DockerClient.ServerVersion(context.Background())
 	if err == nil {
 		utils.Log("Docker API version: " + version.APIVersion)

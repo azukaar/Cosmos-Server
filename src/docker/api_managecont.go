@@ -31,7 +31,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 	// stop, start, restart, kill, remove, pause, unpause, recreate
 	action := utils.Sanitize(vars["action"])
 	
-	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
+	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") && action != "update" && action != "recreate" {
 		utils.Error("ManageContainer - Container cannot update itself", nil)
 		utils.HTTPError(w, "Container cannot update itself", http.StatusBadRequest, "DS003")
 		return
@@ -68,7 +68,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "unpause":
 			err = DockerClient.ContainerUnpause(DockerContext, container.ID)
 		case "recreate":
-			_, err = EditContainer(container.ID, container, false)
+			_, err = RecreateContainer(container.Name, container)
 		case "update":
 			out, errPull := DockerClient.ImagePull(DockerContext, imagename, doctype.ImagePullOptions{})
 			if errPull != nil {
@@ -100,7 +100,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 
 			utils.Log("Container Update - Image pulled " + imagename)
 
-			_, err = EditContainer(container.ID, container, false)
+			_, err = RecreateContainer(container.Name, container)
 
 			if err != nil {
 				utils.Error("Container Update - EditContainer", err)

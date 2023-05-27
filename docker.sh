@@ -12,8 +12,6 @@ fi
 
 echo "Pushing azukaar/cosmos-server:$VERSION and azukaar/cosmos-server:$LATEST"
 
-sh build.sh
-
 docker build \
   -t azukaar/cosmos-server:$VERSION \
   -t azukaar/cosmos-server:$LATEST \
