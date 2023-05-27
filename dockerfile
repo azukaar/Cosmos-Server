@@ -31,6 +31,7 @@ RUN npm install
 COPY . .
 RUN ls 
 RUN npm run client-build
+RUN chmod +x build.sh
 RUN ./build.sh
 
 WORKDIR /app/build
