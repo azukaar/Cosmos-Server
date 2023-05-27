@@ -20,10 +20,6 @@ jobs:
             tar -xzf GeoLite2-Country.tar.gz --strip-components 1 --wildcards "*.mmdb"
 
       - run:
-          name: Build UI
-          command: npm run client-build
-
-      - run:
           name: Build and publish dockerfiles
           command: sh docker.sh
 
