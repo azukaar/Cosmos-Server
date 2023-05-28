@@ -89,8 +89,6 @@ func Connect() error {
 }
 
 func RecreateContainer(containerID string, containerConfig types.ContainerJSON) (string, error) {
-	utils.Log("RecreateContainer: " + containerID)
-	utils.Log("FROM: " + os.Getenv("HOSTNAME"))
 	if os.Getenv("HOSTNAME") != ""  && os.Getenv("HOSTNAME") == containerID[1:] {
 		err := SelfRecreate()
 		if err != nil {
