@@ -89,6 +89,8 @@ func Connect() error {
 }
 
 func RecreateContainer(containerID string, containerConfig types.ContainerJSON) (string, error) {
+	utils.log("RecreateContainer: " + containerID)
+	utils.log("FROM: " + os.Getenv("HOSTNAME"))
 	if os.Getenv("HOSTNAME") != ""  && os.Getenv("HOSTNAME") == containerID[1:] {
 		err := SelfRecreate()
 		if err != nil {
@@ -578,6 +580,8 @@ func RemoveSelfUpdater() error {
 }
 
 func SelfRecreate() error {
+	utils.Log("SelfRecreate - Starting...")
+
 	if os.Getenv("HOSTNAME") == "" {
 		utils.Error("SelfRecreate - not using Docker", nil)
 		return errors.New("SelfRecreate - not using Docker")
