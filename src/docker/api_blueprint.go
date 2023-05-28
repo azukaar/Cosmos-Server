@@ -418,10 +418,9 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
 						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
-						Rollback(rollbackActions, OnLog)
-						return err
+					} else {
+						newSource = "/mnt/host" + newSource
 					}
-					newSource = "/mnt/host" + newSource
 				}
 						
 				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))

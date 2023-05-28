@@ -142,9 +142,9 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 				if os.Getenv("HOSTNAME") != "" {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
-						return "", errors.New("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself")
+					} else {
+						newSource = "/mnt/host" + newSource
 					}
-					newSource = "/mnt/host" + newSource
 				}
 						
 				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))
