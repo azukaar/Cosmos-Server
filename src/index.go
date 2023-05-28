@@ -26,6 +26,11 @@ func main() {
 
 	docker.RemoveSelfUpdater()
 
+	go func() {
+		time.Sleep(30 * time.Second)
+		docker.CheckUpdatesAvailable()
+	}()
+
 	version, err := docker.DockerClient.ServerVersion(context.Background())
 	if err == nil {
 		utils.Log("Docker API version: " + version.APIVersion)
