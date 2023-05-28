@@ -27,7 +27,7 @@ func main() {
 	docker.RemoveSelfUpdater()
 
 	go func() {
-		time.Sleep(30 * time.Second)
+		time.Sleep(180 * time.Second)
 		docker.CheckUpdatesAvailable()
 	}()
 
