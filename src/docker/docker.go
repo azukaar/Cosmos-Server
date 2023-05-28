@@ -239,7 +239,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	
 	// only force hostname if network is bridge or default, otherwise it will fail
 	if newConfig.HostConfig.NetworkMode == "bridge" || newConfig.HostConfig.NetworkMode == "default" {
-		newConfig.Config.Hostname = newName
+		newConfig.Config.Hostname = newName[1:]
 	} else {
 		// if not, remove hostname because otherwise it will try to keep the old one
 		newConfig.Config.Hostname = ""
