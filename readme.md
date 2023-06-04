@@ -46,7 +46,7 @@ Cosmos is a:
  It has been built to be:
 
  * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications from any device
- * **powerful** 🧠🔥 Being easy does not mean being dumb: while Cosmos is easy to use, it is also powerful and flexible, you can even use it from the terminal if you want to!
+ * **Powerful** 🧠🔥 Being easy does not mean being dumb: while Cosmos is easy to use, it is also powerful and flexible, you can even use it from the terminal if you want to!
  * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server, the already existing applications you have, and the new ones you want to install
  * **Secure** 🔒🔑 Connect to all your applications with the same account, including **strong security**, **multi-factor authentication** and **OpenId**. Cosmos encrypt your data and protect your privacy. Security by design, and not as an afterthought
  * **Anti-Bot** 🤖❌ Collection of tools to prevent bots from accessing your applications, such as common bot detection, IP based detection, and more
