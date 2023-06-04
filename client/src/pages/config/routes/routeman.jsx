@@ -15,6 +15,7 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
 import { ValidateRouteSchema, sanitizeRoute } from '../../../utils/routes';
+import { isDomain } from '../../../utils/indexs';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -31,9 +32,21 @@ const debounce = (func, wait) => {
   };
 };
 
+const checkHost = debounce((host, setHostError) => {
+  if(isDomain(host)) {
+    API.checkHost(host).then((data) => {
+      setHostError(null)
+    }).catch((err) => {
+      setHostError(err.message)
+    });
+  }
+}, 500)
+
 const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
   const [openModal, setOpenModal] = React.useState(false);
+  const [hostError, setHostError] = React.useState(null);
  
+
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
     
@@ -186,13 +199,21 @@ const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls 
                     formik={formik}
                   />
 
-                  {formik.values.UseHost && <CosmosInputText
+                  {formik.values.UseHost && (<><CosmosInputText
                     name="Host"
                     label="Host"
                     placeholder="Host"
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
-                  />}
+                    onChange={(e) => {
+                      checkHost(e.target.value, setHostError)
+                    }}
+                  />
+                  {hostError && <Grid item xs={12}>
+                    <Alert color='error'>{hostError}</Alert>
+                  </Grid>}
+                  </>
+                  )}
 
                   <CosmosCheckbox
                     name="UsePathPrefix"

@@ -101,6 +101,52 @@ let newInstall = (req, onProgress) => {
   }
 }
 
+const checkHost = (host) => {
+  return fetch('/cosmos/api/dns-check?url=' + host, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(async (response) => {
+    let rep;
+    try {
+      rep = await response.json();
+    } catch {
+      throw new Error('Server error');
+    }
+    if (response.status == 200) {
+      return rep;
+    } 
+    const e = new Error(rep.message);
+    e.status = response.status;
+    e.message = rep.message;
+    throw e;
+  });
+}
+
+const getDNS = (host) => {
+  return fetch('/cosmos/api/dns?url=' + host, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(async (response) => {
+    let rep;
+    try {
+      rep = await response.json();
+    } catch {
+      throw new Error('Server error');
+    }
+    if (response.status == 200) {
+      return rep;
+    } 
+    const e = new Error(rep.message);
+    e.status = response.status;
+    e.message = rep.message;
+    throw e;
+  });
+}
+
 const isDemo = import.meta.env.MODE === 'demo';
 
 let auth = _auth;
@@ -125,5 +171,7 @@ export {
   docker,
   getStatus,
   newInstall,
-  isOnline
+  isOnline,
+  checkHost,
+  getDNS
 };

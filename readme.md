@@ -36,9 +36,10 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
  * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications from any device
+ * **powerful** 🧠🔥 Being easy does not mean being dumb: while Cosmos is easy to use, it is also powerful and flexible, you can even use it from the terminal if you want to!
  * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server, the already existing applications you have, and the new ones you want to install
  * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details)
- * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security** and **multi-factor authentication**
+ * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security**, **multi-factor authentication** and **OpenId** 
  * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
  * **Reverse Proxy** 🔄🔗 Reverse Proxy included, with a UI to easily manage your applications and their settings
  * **Automatic HTTPS** 🔑📜 certificates provisioning with Certbot / Let's Encrypt
@@ -52,6 +53,14 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 And a **lot more planned features** are coming!
 
 ![schema](./schema.png)
+
+# What are the differences with other alternatives?
+
+Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc:
+
+* **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
+* **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who kows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
+* **Flexible**: Unlike the alternatives, Cosmos is not exclusively focused around its app-store. Instead, it lets you freely install any application any way you want, and manage them from the UI, from Portainer, or from docker directly. Any of those applications will still be integrated into Cosmos and will also benefit from all the security features, Let's Encrypt, etc...
 
 # What is the SmartShield?
 

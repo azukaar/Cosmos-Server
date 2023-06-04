@@ -1,3 +1,9 @@
+## Version 0.6.0
+- OpenID support!
+- Add hostname check when adding new routes to Cosmos
+- Add hostname check on new Install
+- Fix missing save button for network mode
+
 ## Version 0.5.11
 - Improve docker-compose import support for alternative syntaxes
 - Improve docker service creation when using force secure label (fixes few containers not liking restarting too fast when created)

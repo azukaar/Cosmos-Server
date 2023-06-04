@@ -159,7 +159,7 @@ const HomePage = () => {
         </Stack>
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
-            {config && serveApps && config.HTTPConfig.ProxyConfig.Routes.map((route) => {
+            {config && serveApps && routes.map((route) => {
                 let skip = false;
                 if(route.Mode == "SERVAPP") {
                     const containerName = route.Target.split(':')[1].slice(2);
@@ -187,7 +187,7 @@ const HomePage = () => {
                 </Grid2>
             })}
 
-            {config && config.HTTPConfig.ProxyConfig.Routes.length === 0 && (
+            {config && routes.length === 0 && (
                 <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
                     <Box style={{ padding: 10, borderRadius: 5, ...appColor }}>
                         <Stack direction="row" spacing={2} alignItems="center">

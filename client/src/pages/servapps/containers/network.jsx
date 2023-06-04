@@ -95,6 +95,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
           setSubmitting(true);
           const realvalues = {
             portBindings: {},
+            networkMode: values.networkMode,
           };
           values.ports.forEach((port) => {
             if (port.hostPort) {
@@ -122,7 +123,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
-              <MainCard title={'Ports'}>
+
+              <MainCard title={'Network Settings'}>
                 <Stack spacing={4}>
                   {containerInfo.State && containerInfo.State.Status !== 'running' && (
                   <Alert severity="warning" style={{ marginBottom: '0px' }}>
@@ -134,6 +136,13 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                       This container is forced to be secured. You cannot expose any ports to the internet directly, please create a URL in Cosmos instead. You also cannot connect it to the Bridge network.          
                     </Alert>
                   )}
+                  <CosmosInputText
+                    label="Network Mode"
+                    name="networkMode"
+                    placeholder={'default'}
+                    formik={formik}
+                  />
+                  <CosmosFormDivider title={'Expose Ports'} />
                   <div>
                     {formik.values.ports.map((port, idx) => (
                       <Grid container key={idx}>
@@ -238,13 +247,6 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
               </MainCard>
               <MainCard title={'Networks'}>
                 <Stack spacing={2}>
-
-                <CosmosInputText
-                  label="Network Mode"
-                  name="networkMode"
-                  placeholder={'default'}
-                  formik={formik}
-                />
 
                 {networks && <Stack spacing={2}>
                   {Object.keys(containerInfo.NetworkSettings.Networks).map((networkName) => {

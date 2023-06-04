@@ -7,6 +7,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/configapi"
 		"github.com/azukaar/cosmos-server/src/proxy"
 		"github.com/azukaar/cosmos-server/src/docker"
+		"github.com/azukaar/cosmos-server/src/authorizationserver"
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
@@ -66,8 +67,14 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 		
 	// redirect http to https
 	go (func () {
-		// err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(simplecert.Redirect))
-		err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		httpRouter := mux.NewRouter()
+
+		// add support for internal OpenID requests
+		// if os.Getenv("HOSTNAME") != "" {
+		// 	authorizationserver.RegisterHandlers(httpRouter.Host(os.Getenv("HOSTNAME")).Subrouter())
+		// } 
+		
+		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// change port in host
 			if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
 				if serverPortHTTPS != "443" {
@@ -78,7 +85,10 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 			}
 			
 			http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
-		}))
+		})
+
+		// err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(simplecert.Redirect))
+		err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, httpRouter)
 		
 		if err != nil {
 			utils.Fatal("Listening to HTTP (Redirecting to HTTPS)", err)
@@ -143,6 +153,31 @@ func tokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func SecureAPI(userRouter *mux.Router, public bool) {
+	if(!public) {
+		userRouter.Use(tokenMiddleware)
+	}
+	userRouter.Use(proxy.SmartShieldMiddleware(
+		utils.SmartShieldPolicy{
+			Enabled: true,
+			PolicyStrictness: 1,
+			PerUserRequestLimit: 5000,
+		},
+	))
+	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))
+	userRouter.Use(utils.BlockPostWithoutReferer)
+	userRouter.Use(proxy.BotDetectionMiddleware)
+	userRouter.Use(httprate.Limit(60, 1*time.Minute, 
+		httprate.WithKeyFuncs(httprate.KeyByIP),
+    httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			utils.Error("Too many requests. Throttling", nil)
+			utils.HTTPError(w, "Too many requests", 
+				http.StatusTooManyRequests, "HTTP003")
+			return 
+		}),
+	))
+}
+
 func StartServer() {
 	baseMainConfig := utils.GetBaseMainConfig()
 	config := utils.GetMainConfig()
@@ -200,6 +235,9 @@ func StartServer() {
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
+	srapi.HandleFunc("/api/dns", GetDNSRoute)
+	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
+	
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
 	srapi.HandleFunc("/api/favicon", GetFavicon)
@@ -241,31 +279,14 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
 	
 	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
+	
+
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)
 	}
 
-	srapi.Use(tokenMiddleware)
-	srapi.Use(proxy.SmartShieldMiddleware(
-		utils.SmartShieldPolicy{
-			Enabled: true,
-			PolicyStrictness: 1,
-			PerUserRequestLimit: 5000,
-		},
-	))
-	srapi.Use(utils.MiddlewareTimeout(45 * time.Second))
-	srapi.Use(utils.BlockPostWithoutReferer)
-	srapi.Use(proxy.BotDetectionMiddleware)
-	srapi.Use(httprate.Limit(120, 1*time.Minute, 
-		httprate.WithKeyFuncs(httprate.KeyByIP),
-    httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
-			utils.Error("Too many requests. Throttling", nil)
-			utils.HTTPError(w, "Too many requests", 
-				http.StatusTooManyRequests, "HTTP003")
-			return 
-		}),
-	))
+	SecureAPI(srapi, false)
 	
 	pwd,_ := os.Getwd()
 	utils.Log("Starting in " + pwd)
@@ -287,6 +308,18 @@ func StartServer() {
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
 	}))
+
+
+	userRouter := router.PathPrefix("/oauth2").Subrouter()
+	SecureAPI(userRouter, false)
+
+	serverRouter := router.PathPrefix("/oauth2").Subrouter()
+	SecureAPI(userRouter, true)
+
+	wellKnownRouter := router.PathPrefix("/.well-known").Subrouter()
+	SecureAPI(userRouter, true)
+
+	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
 
 	if ((HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
 			 tlsCert != "" && tlsKey != "") || (HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {

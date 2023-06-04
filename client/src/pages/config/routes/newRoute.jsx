@@ -27,6 +27,8 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
     });
   }
 
+  const routes = config.HTTPConfig.ProxyConfig.Routes || [];
+
   return <>
   <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
   <Dialog open={openNewModal} onClose={() => setOpenNewModal(false)}>
@@ -56,7 +58,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
                           Enabled: true,
                         }
                       }} 
-                      routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
+                      routeNames={routes.map((r) => r.Name)}
                       setRouteConfig={(_newRoute) => {
                         setNewRoute(sanitizeRoute(_newRoute));
                       }}

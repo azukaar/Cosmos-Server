@@ -110,7 +110,7 @@ export const ValidateRoute = (routeConfig, config) => {
 }
 
 export const getContainersRoutes = (config, containerName) => {
-  return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
+  return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
     let reg = new RegExp(`^(([a-z]+):\/\/)?${containerName}(:?[0-9]+)?$`, 'i');
     return route.Mode == "SERVAPP" && reg.test(route.Target)
   })) || [];

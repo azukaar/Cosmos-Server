@@ -9,6 +9,7 @@ import NewInstall from '../pages/newInstall/newInstall';
 
 import {NewMFA, MFALogin} from '../pages/authentication/newMFA';
 import ForgotPassword from '../pages/authentication/forgotPassword';
+import OpenID from '../pages/authentication/openid';
 
 // render - login
 const AuthLogin = Loadable(lazy(() => import('../pages/authentication/Login')));
@@ -39,6 +40,10 @@ const LoginRoutes = {
         {
             path: '/ui/newmfa',
             element: <NewMFA />
+        },
+        {
+            path: '/ui/openid',
+            element: <OpenID />
         },
         {
             path: '/ui/loginmfa',

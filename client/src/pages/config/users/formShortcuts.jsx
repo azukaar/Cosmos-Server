@@ -38,7 +38,10 @@ export const CosmosInputText = ({ name, style, multiline, type, placeholder, onC
         name={name}
         multiline={multiline}
         onBlur={formik.handleBlur}
-        onChange={formik.handleChange}
+        onChange={(...ar) => {
+          onChange && onChange(...ar);
+          return formik.handleChange(...ar);
+        }}
         placeholder={placeholder}
         fullWidth
         error={Boolean(formik.touched[name] && formik.errors[name])}

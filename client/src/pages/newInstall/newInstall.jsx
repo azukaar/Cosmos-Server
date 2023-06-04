@@ -19,7 +19,29 @@ import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } fr
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 import { pull } from 'lodash';
+import { isDomain } from '../../utils/indexs';
 // ================================|| LOGIN ||================================ //
+
+const debounce = (func, wait) => {
+    let timeout;
+    return function (...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+  };
+  
+  const checkHost = debounce((host, setHostError, setHostIp) => {
+    if(isDomain(host)) {
+      API.getDNS(host).then((data) => {
+        setHostError(null)
+        setHostIp(data.data)
+      }).catch((err) => {
+        setHostError(err.message)
+        setHostIp(null)
+      });
+    }
+  }, 500)
 
 const NewInstall = () => {
     const [activeStep, setActiveStep] = useState(0);
@@ -29,6 +51,8 @@ const NewInstall = () => {
     const [databaseEnable, setDatabaseEnable] = useState(true);
     const [pullRequest, setPullRequest] = useState(null);
     const [pullRequestOnSuccess, setPullRequestOnSuccess] = useState(null);
+    const [hostError, setHostError] = useState(null);
+    const [hostIp, setHostIp] = useState(null);
 
     const refreshStatus = async () => {
         try {
@@ -355,7 +379,16 @@ const NewInstall = () => {
                             label="Hostname (Domain required for Let's Encrypt)"
                             placeholder="yourdomain.com, your ip, or localhost"
                             formik={formik}
+                            onChange={(e) => {
+                              checkHost(e.target.value, setHostError, setHostIp);
+                            }}
                         />
+                        {hostError && <Grid item xs={12}>
+                          <Alert color='error'>{hostError}</Alert>
+                        </Grid>}
+                        {hostIp && <Grid item xs={12}>
+                            <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, check that it is your server IP!</Alert>
+                        </Grid>}
 
                         {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && formik.values.UseWildcardCertificate && (!formik.values.DNSChallengeProvider || formik.values.DNSChallengeProvider == '') && (
                             <Alert severity="error">
