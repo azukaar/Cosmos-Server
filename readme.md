@@ -35,18 +35,22 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
+Cosmos is a: 
+
+ * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
+ * **Authentication Server** 👦👩 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
+ * **Container manager** 🐋🔧 To easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
+ * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
+ * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies.
+
+ It has been built to be:
+
  * **Easy to use** 🚀👍 to install and use, with a simple web UI to manage your applications from any device
  * **powerful** 🧠🔥 Being easy does not mean being dumb: while Cosmos is easy to use, it is also powerful and flexible, you can even use it from the terminal if you want to!
  * **User-friendly** 🧑‍🎨 For both new and experienced users: easily integrates into your existing home server, the already existing applications you have, and the new ones you want to install
- * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details)
- * **Secure Authentication** 👦👩 Connect to all your applications with the same account, including **strong security**, **multi-factor authentication** and **OpenId** 
- * **Latest Encryption Methods** 🔒🔑 To encrypt your data and protect your privacy. Security by design, and not as an afterthought
- * **Reverse Proxy** 🔄🔗 Reverse Proxy included, with a UI to easily manage your applications and their settings
- * **Automatic HTTPS** 🔑📜 certificates provisioning with Certbot / Let's Encrypt
+ * **Secure** 🔒🔑 Connect to all your applications with the same account, including **strong security**, **multi-factor authentication** and **OpenId**. Cosmos encrypt your data and protect your privacy. Security by design, and not as an afterthought
  * **Anti-Bot** 🤖❌ Collection of tools to prevent bots from accessing your applications, such as common bot detection, IP based detection, and more
  * **Anti-DDOS** 🔥⛔️ Additional protections such as variable timeouts/throttling, IP rate limiting and geo-blacklisting
- * **Proper User Management** 🪪 ❎ to invite your friends and family to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
- * **Container Management** 🐋🔧 to easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
  * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
  * **Visible Source** 📖📝 for full transparency and trust
  
