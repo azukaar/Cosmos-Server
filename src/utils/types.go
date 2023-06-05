@@ -85,6 +85,7 @@ type Config struct {
 	ServerCountry string
 	RequireMFA bool
 	AutoUpdate bool
+	OpenIDClients []OpenIDClient
 }
 
 type HTTPConfig struct {
@@ -159,4 +160,10 @@ type EmailConfig struct {
 	Password   string
 	From       string
 	UseTLS		 bool
+}
+
+type OpenIDClient struct {
+	ID       string `json:"id"`
+	Secret 	 string `json:"secret"`
+	Redirect string `json:"redirect"`
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/authorizationserver"
 )
 
 func main() {
@@ -36,5 +37,7 @@ func main() {
 		utils.Log("Docker API version: " + version.APIVersion)
 	}
 	
+	authorizationserver.Init()
+
 	StartServer()
 }

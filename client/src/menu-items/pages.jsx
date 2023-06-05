@@ -1,5 +1,5 @@
 // assets
-import { ProfileOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
+import { ProfileOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -35,6 +35,13 @@ const pages = {
             type: 'item',
             url: '/ui/config-users',
             icon: icons.ProfileOutlined,
+        },
+        {
+            id: 'openid',
+            title: 'OpenID',
+            type: 'item',
+            url: '/ui/openid-manage',
+            icon: PicLeftOutlined,
         },
         {
             id: 'config',

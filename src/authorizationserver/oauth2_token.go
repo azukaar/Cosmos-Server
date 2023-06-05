@@ -5,7 +5,7 @@ import (
 	"net/http"
 	// "fmt"
 
-	// "github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
@@ -45,6 +45,8 @@ func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 		oauth2.WriteAccessError(ctx, rw, accessRequest, err)
 		return
 	}
+
+	utils.Log("Access token granted to client: " + accessRequest.GetClient().GetID())
 
 	// All done, send the response.
 	oauth2.WriteAccessResponse(ctx, rw, accessRequest, response)

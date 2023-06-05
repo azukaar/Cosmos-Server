@@ -22,14 +22,22 @@ const OpenID = () => {
   const entireSearch = searchParams.toString()
   const [checkedScopes, setCheckedScopes] = useState(["openid"])
 
+  let icon;
+
   // get hostname from redirect_uri with port
-  const port = new URL(redirect_uri).port
-  const protocol = new URL(redirect_uri).protocol + "//"
-  const appHostname = protocol + (new URL(redirect_uri).hostname) + (port ? ":" + port : "")
-  const icon = getFaviconURL({
-    Mode: 'PROXY',
-    Target: appHostname
-  });
+  let port, protocol, appHostname;
+
+  try {
+    port = new URL(redirect_uri).port
+    protocol = new URL(redirect_uri).protocol + "//"
+    appHostname = protocol + (new URL(redirect_uri).hostname) + (port ? ":" + port : "")
+    icon = getFaviconURL({
+      Mode: 'PROXY',
+      Target: appHostname
+    });
+  } catch (e) {
+    icon = getFaviconURL();
+  }
 
   const selfport = new URL(window.location.href).port
   const selfprotocol = new URL(window.location.href).protocol + "//"
@@ -55,7 +63,7 @@ const OpenID = () => {
           }}>
             <img src={icon} alt={'icon'} width="64px" />
             <div>
-              You are logging in to <b>{client_id}</b>. <br />
+              You are about to login into <b>{client_id}</b>. <br />
               Check which permissions you are giving to this application. <br />
             </div>
           </Stack>
@@ -84,7 +92,7 @@ const OpenID = () => {
             opacity: '0.8',
             fontStyle: 'italic',
           }}>
-            You will be redirected to <b>{appHostname}</b> after login. <br />
+            You will be redirected to <b>{redirect_uri}</b> after login. <br />
           </div>
 
           <LoadingButton

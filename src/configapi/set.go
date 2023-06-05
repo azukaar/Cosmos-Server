@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/authorizationserver"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
@@ -37,6 +38,8 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 
 		utils.SaveConfigTofile(request)
 		utils.NeedsRestart = true
+
+		authorizationserver.Init()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

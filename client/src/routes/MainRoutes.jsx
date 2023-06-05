@@ -14,6 +14,7 @@ import HomePage from '../pages/home';
 import ContainerIndex from '../pages/servapps/containers';
 import NewDockerService from '../pages/servapps/containers/newService';
 import NewDockerServiceForm from '../pages/servapps/containers/newServiceForm';
+import OpenIdList from '../pages/openid/openid-list';
 
 
 // render - dashboard
@@ -81,6 +82,10 @@ const MainRoutes = {
             path: '/ui/servapps/containers/:containerName',
             element: <ContainerIndex />,
         },
+        {
+            path: '/ui/openid-manage',
+            element: <OpenIdList />,
+        }
     ]
 };
 

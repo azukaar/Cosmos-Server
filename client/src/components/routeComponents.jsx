@@ -45,7 +45,7 @@ export const RouteMode = ({route}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   let c = routeImages[route.Mode.toUpperCase()];
-  return <>
+  return c ? <>
     <Chip
       icon={<span>{c.icon}</span>}
       label={c.label}
@@ -56,7 +56,7 @@ export const RouteMode = ({route}) => {
         alignItems: "right",
       }}
     ></Chip>
-  </>
+  </> : <></>;
 }
 
 export const RouteSecurity = ({route}) => {

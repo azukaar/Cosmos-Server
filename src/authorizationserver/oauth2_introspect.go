@@ -1,8 +1,8 @@
 package authorizationserver
 
 import (
-	"log"
 	"net/http"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func introspectionEndpoint(rw http.ResponseWriter, req *http.Request) {
@@ -10,7 +10,7 @@ func introspectionEndpoint(rw http.ResponseWriter, req *http.Request) {
 	mySessionData := newSession("", req)
 	ir, err := oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
 	if err != nil {
-		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)
+		utils.Error("Error occurred in NewIntrospectionRequest", err)
 		oauth2.WriteIntrospectionError(ctx, rw, err)
 		return
 	}
