@@ -240,7 +240,7 @@ const DockerComposeImport = ({ refresh }) => {
         <DialogContentText>
           {step === 0 && <Stack spacing={2}>
             <Alert severity="warning" icon={<WarningOutlined />}>
-              This is a highly experimental feature. It is recommended to use with caution.
+        This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
             </Alert>
 
             <UploadButtons

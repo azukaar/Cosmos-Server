@@ -28,7 +28,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
     });
   }
 
-  const clientConfig = Object.values(config.OpenIDClients).find((c) => c.id === clientId);
+  const clientConfig = config.OpenIDClients && Object.values(config.OpenIDClients).find((c) => c.id === clientId);
 
   return <>
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />

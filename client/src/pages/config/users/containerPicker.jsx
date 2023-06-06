@@ -78,8 +78,6 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
     })
     setPortsOptions(portsTemp)
 
-    console.log(targetResult)
-
     if(targetResult.port == '') {
         targetResult.port = '80'
         
@@ -119,7 +117,6 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   }
 
   const onContainerChange = (newContainer) => {
-    console.log(newContainer)
     if(loading) return;
     targetResult.container = newContainer.Names[0]
     targetResult.containerObject = newContainer

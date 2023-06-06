@@ -44,9 +44,8 @@ const OpenID = () => {
   const selfHostname = selfprotocol + (new URL(window.location.href).hostname) + (selfport ? ":" + selfport : "")
 
   const onchange = (e, scope) => {
-    console.log(scope)
     if (e.target.checked) {
-      setCheckedScopes([...checkedScopes,scope])
+      setCheckedScopes([...checkedScopes, scope])
     } else {
       setCheckedScopes(checkedScopes.filter((scope) => scope != scope))
     }

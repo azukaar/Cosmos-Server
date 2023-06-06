@@ -40,6 +40,9 @@ const debounce = (func, wait) => {
         setHostError(err.message)
         setHostIp(null)
       });
+    } else {
+        setHostError(null);
+        setHostIp(null);
     }
   }, 500)
 

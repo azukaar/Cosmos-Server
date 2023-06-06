@@ -16,6 +16,7 @@ type oidcUser struct {
 	Name string `json:"name"`
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
+	Role string `json:"role"`
 	Email string `json:"email"`
 	Subject string `json:"sub"`
 	IssuedAt int64 `json:"iat"`
@@ -81,6 +82,12 @@ func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// check scopes has email
 	if ar.GetGrantedScopes().Has("email") {
 		baseToken.Email = user.Email
+	}
+
+	if user.Role == utils.ADMIN {
+		baseToken.Role = "admin"
+	} else {
+		baseToken.Role = "user"
 	}
 	
 	json.NewEncoder(rw).Encode(baseToken)

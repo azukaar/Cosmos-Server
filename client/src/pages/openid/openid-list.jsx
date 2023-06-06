@@ -115,7 +115,6 @@ const OpenIdList = () => {
   const generateNewSecret = (clientIdToUpdate) => {
     let newSecret = Math.random().toString(36).substring(2, 24) + Math.random().toString(36).substring(2, 15);
     let encryptedSecret = bcrypt.hashSync(newSecret, 10);
-    console.log(newSecret, encryptedSecret)
     let index = clients.findIndex((r) => r.id === clientIdToUpdate);
     clients[index].secret = encryptedSecret;
     save(updateRoutes(clients));
@@ -180,6 +179,11 @@ const OpenIdList = () => {
           <Button onClick={() => setNewSecret(false)}>Close</Button>
         </DialogActions>
       </Dialog>}
+
+      
+      <Alert severity="warning" icon={<WarningOutlined />}>
+        This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
+      </Alert>
 
       {clients && <PrettyTableView
         data={clients}

@@ -109,8 +109,6 @@ const NewDockerServiceForm = () => {
     </Button>
     </Stack>
 
-    console.log(containerInfo)
-
   return <div>
     <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">
@@ -269,7 +267,6 @@ const NewDockerServiceForm = () => {
           title: 'Storage',
           disabled: maxTab < 1,
           children: <Stack spacing={2}><VolumeContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
-            console.log(values)
             const newValues = {
               ...containerInfo,
               HostConfig: {

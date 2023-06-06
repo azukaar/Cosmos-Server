@@ -39,14 +39,21 @@ const checkHost = debounce((host, setHostError) => {
     }).catch((err) => {
       setHostError(err.message)
     });
+  } else {
+    setHostError(null);
   }
 }, 500)
 
 const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
   const [openModal, setOpenModal] = React.useState(false);
   const [hostError, setHostError] = React.useState(null);
- 
 
+  React.useEffect(() => {
+    if(routeConfig && routeConfig.Host) {
+      checkHost(routeConfig.Host, setHostError);
+    }
+  }, [])
+ 
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
     

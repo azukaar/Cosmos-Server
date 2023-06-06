@@ -46,7 +46,7 @@ func Init() {
 			ID:             client.ID,
 			Secret:         []byte(client.Secret),
 			RedirectURIs:   []string{client.Redirect},
-			Scopes:         []string{"openid", "email"},
+			Scopes:         []string{"openid", "email", "profile", "offline", "roles", "groups", "address", "phone", "role"},
 			ResponseTypes:  []string{"id_token", "code", "token", "id_token token", "code id_token", "code token", "code id_token token"},
 			GrantTypes:     []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},
 		}
@@ -121,7 +121,6 @@ func newSession(user string, req *http.Request) *openid.DefaultSession {
 		Claims: &jwt.IDTokenClaims{
 			Issuer:      hostname,
 			Subject:     user,
-			// Audience:    []string{"https://my-client.my-application.com"},
 			ExpiresAt:   time.Now().Add(time.Hour * 6),
 			IssuedAt:    time.Now(),
 			RequestedAt: time.Now(),
