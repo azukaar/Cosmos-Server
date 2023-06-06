@@ -37,3 +37,27 @@ export const newInstall = (req) => {
     );
   });
 }
+
+export const getDNS = (host) => (req) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+        "data": "199.199.199.199"
+      })},
+      100
+    );
+  });
+}
+
+export const checkHost = (host) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+        "data": "199.199.199.199"
+      })},
+      100
+    );
+  });
+}

@@ -324,6 +324,23 @@
 		"DockerConfig": {
 			"SkipPruneNetwork": false
 		},
+		"OpenIDClients": [
+			{
+				"id": "gitea",
+				"secret": "$2a$10$406wbQbinog/zqpnc6amSu1UArA.zVrb/KuRkaBGJYA4oruGnxUga",
+				"redirect": "http://localhost:3000/user/oauth2/Cosmos/callback"
+			},
+			{
+				"id": "minio",
+				"secret": "$2a$10$cE30L/Ik3ThX0G8KX6663ujmDC5UsqAsbMGqE6zRKjI0WFD6zV.N6",
+				"redirect": "http://localhost:9090/oauth_callback"
+			},
+			{
+				"id": "nextcloud",
+				"secret": "$2a$10$IcpiICqki2cBnZc1.VOaYu0SPxKx6sXWyly44s0hsSNYMyfibsVAy",
+				"redirect": "https://localhost:12443/apps/oidc_login/oidc"
+			}
+		],
 		"BlockedCountries": [
 			"CN",
 			"RU",

@@ -94,6 +94,7 @@ const OpenIdList = () => {
       let protocol = new URL(client.redirect).protocol + '//';
       return getFaviconURL({
         Mode: 'PROXY',
+        Name: client.id,
         Target: protocol + hostname + (port ? ':' + port : ''),
       })
     } catch (e) {

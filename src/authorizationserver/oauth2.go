@@ -28,7 +28,11 @@ func Init() {
 	config := utils.ReadConfigFromFile()
 	authKey := config.HTTPConfig.AuthPrivateKey
 
-	secret := []byte(authKey[32:64])
+	secret := []byte("some-super-cool-secret-that-nobody-knows")
+	
+	if len(authKey) > 64 {
+		secret = []byte(authKey[32:64])
+	}
 	
 	foconfig := &fosite.Config{
 		AccessTokenLifespan: time.Minute * 30,
