@@ -40,28 +40,36 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 		imageName = "mongo:4.4"
 	}
 
-	err := RunContainer(
-		imageName,
-		monHost,
-		[]string{
+	service := DockerServiceCreateRequest{
+		Services: map[string]ContainerCreateRequestContainer {},
+	}
+
+	service.Services[monHost] = ContainerCreateRequestContainer{
+		Name: monHost,
+		Image: imageName,
+		RestartPolicy: "always",
+		Environment: []string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
 			"MONGO_INITDB_ROOT_PASSWORD=" + mongoPass,
 		},
-		[]VolumeMount{
+		Labels: map[string]string{
+			"cosmos-force-network-secured": "true",
+		},
+		Volumes: []mount.Mount{
 			{
-				Destination: "/data/db",
-				Volume: &types.Volume{
-					Name: "cosmos-mongo-data-" + id,
-				},
+				Type:   mount.TypeVolume,
+				Source: "cosmos-mongo-data-" + id,
+				Target: "/data/db",
 			},
 			{
-				Destination: "/data/configdb",
-				Volume: &types.Volume{
-					Name: "cosmos-mongo-config-" + id,
-				},
+				Type:   mount.TypeVolume,
+				Source: "cosmos-mongo-config-" + id,
+				Target: "/data/configdb",
 			},
 		},
-	)
+	};
+
+	err := CreateService(w, req, service)
 
 	if err != nil {
 		return "", err
