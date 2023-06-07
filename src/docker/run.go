@@ -29,10 +29,10 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	
 	imageName := "mongo:latest"
 	
-	//if ARM use amd64/mongo
+	//if ARM use arm64v8/mongo
 	if runtime.GOARCH == "arm64" {
 		utils.Warn("ARM64 detected. Using ARM mongo 4.4")
-		imageName = "amd64/mongo:4.4"
+		imageName = "arm64v8/mongo:4.4"
 
 	// if CPU is missing AVX, use 4.4
 	} else if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
