@@ -69,7 +69,11 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 		},
 	};
 
-	err := CreateService(w, req, service)
+	err := CreateService(service, 
+		func (msg string) {
+			utils.Log(msg)
+		},
+	)
 
 	if err != nil {
 		return "", err
