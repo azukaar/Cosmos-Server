@@ -91,6 +91,7 @@ const NewDockerService = ({service, refresh}) => {
         variant="contained"
         color="primary"
         fullWidth
+        className='shinyButton'
         loading={log.length && !isDone}
         startIcon={<PlusCircleOutlined />}
       >Create</LoadingButton>}
@@ -110,7 +111,11 @@ const NewDockerService = ({service, refresh}) => {
         }
       </Stack>}
       <pre style={preStyle} ref={preRef}>
-        {!log.length && JSON.stringify(service, false ,2)}
+        {!log.length && `
+# You are about to create the following service(s):
+
+${JSON.stringify(service, false ,2)}`
+        }
         {log.map((l) => {
           return <div>{tryParseProgressLog(l)}</div>
         })}

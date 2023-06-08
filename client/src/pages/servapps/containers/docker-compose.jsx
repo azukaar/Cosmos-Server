@@ -1,7 +1,7 @@
 // material-ui
 import * as React from 'react';
-import { Alert, Button, Stack, Typography } from '@mui/material';
-import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined, SyncOutlined, UserOutlined, KeyOutlined, ArrowUpOutlined, FileZipOutlined } from '@ant-design/icons';
+import { Alert, Button, FormLabel, Stack, Typography } from '@mui/material';
+import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined, SyncOutlined, UserOutlined, KeyOutlined, ArrowUpOutlined, FileZipOutlined, ArrowDownOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -63,20 +63,68 @@ const preStyle = {
   marginRight: '0',
 }
 
-const DockerComposeImport = ({ refresh }) => {
+const getHostnameFromName = (name) => {
+  return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
+}
+
+const DockerComposeImport = ({ refresh, dockerComposeInit, installer, defaultName }) => {
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [dockerCompose, setDockerCompose] = useState('');
+  const [dockerCompose, setDockerCompose] = useState(dockerComposeInit || '');
   const [service, setService] = useState({});
   const [ymlError, setYmlError] = useState('');
+  const [serviceName, setServiceName] = useState(defaultName || 'my-service');
+  const [hostnames, setHostnames] = useState([]);
 
   useEffect(() => {
+    if(!openModal) {
+      return;
+    }
+    setYmlError('');
     if (dockerCompose === '') {
       return;
     }
 
-    setYmlError('');
+    let isJson = dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}');
+
+    // if Json 
+    if (isJson) {
+      try {
+        let doc = JSON.parse(dockerCompose);
+
+        if(installer) {
+          doc = JSON.parse(dockerCompose.replace(/\{\{self\}\}/gi, serviceName));
+
+          // check hostnames for each service
+          let hostnames = [];
+
+          if(doc.services)
+            Object.keys(doc.services).forEach((key) => {
+              if (doc.services[key].routes) {
+                let routeId = 0;
+                doc.services[key].routes.forEach((route) => {
+                  if (route.useHost) {
+                    let newRoute = Object.assign({}, route);
+                    if(route.useHost === true) {
+                      newRoute.host = getHostnameFromName(key + (routeId > 0 ? '-' + routeId : '')) 
+                    }
+                    hostnames.push(newRoute);
+                  }
+                });
+              }
+            });
+
+          setHostnames(hostnames);
+        }
+
+        setService(doc);
+      } catch (e) {
+        setYmlError(e.message);
+      }
+    }
+    else {
+    // if Yml
     let doc;
     let newService = {};
     try {
@@ -88,7 +136,6 @@ const DockerComposeImport = ({ refresh }) => {
           services: Object.assign({}, doc)
         }
       }
-
 
       // convert to the proper format
       if (doc.services) {
@@ -231,20 +278,51 @@ const DockerComposeImport = ({ refresh }) => {
     }
 
     setService(doc);
-  }, [dockerCompose]);
+  }
+  }, [openModal, dockerCompose]);
+
+  useEffect(() => {
+    if(!openModal) {
+      return;
+    }
+
+    try {
+      if (installer) {
+        let doc = JSON.parse(dockerCompose.replace(/\{\{self\}\}/gi, serviceName));
+
+        if(doc.services)
+          Object.keys(doc.services).forEach((key) => {
+            if (doc.services[key].routes) {
+              doc.services[key].routes.forEach((route, index) => {
+                doc.services[key].routes[index] = {
+                  ...hostnames[index],
+                  name: route.name,
+                  description: route.description,
+                };
+              });
+            }
+          });
+
+        setService(doc);
+      }
+    } catch (e) {
+      setYmlError(e.message);
+      return;
+    }
+  }, [openModal, installer, serviceName, hostnames]);
 
   return <>
-    <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-      <DialogTitle>Import Docker Compose</DialogTitle>
-      <DialogContent>
+    <Dialog open={openModal} onClose={() => setOpenModal(false)} >
+      <DialogTitle>{installer ? "Installation" : "Import Compose File"}</DialogTitle>
+      <DialogContent style={{width: '800px', maxWidth: '100%'}}>
         <DialogContentText>
-          {step === 0 && <Stack spacing={2}>
+          {step === 0 && !installer && <><Stack spacing={2}>
             <Alert severity="warning" icon={<WarningOutlined />}>
-        This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
+              This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
             </Alert>
 
             <UploadButtons
-              accept='.yml,.yaml'
+              accept='.yml,.yaml,.json'
               OnChange={(e) => {
                 const file = e.target.files[0];
                 const reader = new FileReader();
@@ -261,7 +339,7 @@ const DockerComposeImport = ({ refresh }) => {
 
             <TextField
               multiline
-              placeholder='Paste your docker-compose.yml here or use the file upload button.'
+              placeholder='Paste your docker-compose.yml / cosmos-compose.json here or use the file upload button.'
               fullWidth
               value={dockerCompose}
               onChange={(e) => setDockerCompose(e.target.value)}
@@ -272,7 +350,29 @@ const DockerComposeImport = ({ refresh }) => {
                 }
               }}
               rows={20}></TextField>
-          </Stack>}
+          </Stack></>}
+          
+          {step === 0 && installer && <><Stack spacing={2}>
+              <div style={{ color: 'red' }}>
+                {ymlError}
+              </div>
+              {!ymlError && (<><FormLabel>Choose your service name</FormLabel>
+              <TextField label="Service Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
+              {hostnames.map((hostname, index) => {
+                return <>
+                  <FormLabel>Choose URL for {hostname.name}</FormLabel>
+                  <div style={{ opacity: 0.9, fontSize: '0.8em', textDecoration: 'italic'}}
+                  >{hostname.description}</div>
+                  <TextField key={index} label="Hostname" value={hostname.host} onChange={(e) => {
+                    const newHostnames = [...hostnames];
+                    newHostnames[index].host = e.target.value;
+                    setHostnames(newHostnames);
+                  }} />
+                </>
+              })}
+              </>)}
+          </Stack></>}
+
           {step === 1 && <Stack spacing={2}>
             <NewDockerService service={service} refresh={refresh} />
           </Stack>}
@@ -284,8 +384,8 @@ const DockerComposeImport = ({ refresh }) => {
           setStep(0);
           setDockerCompose('');
           setYmlError('');
-        }}>Close</Button>
-        <Button onClick={() => {
+        }}>Cancel</Button>
+        <Button disabled={!dockerCompose || ymlError} onClick={() => {
           if (step === 0) {
             setStep(1);
           } else {
@@ -301,10 +401,10 @@ const DockerComposeImport = ({ refresh }) => {
     <ResponsiveButton
       color="primary"
       onClick={() => setOpenModal(true)}
-      variant="outlined"
-      startIcon={<ArrowUpOutlined />}
+      variant={(installer ? "contained" : "outlined")} 
+      startIcon={(installer ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
     >
-      Import Docker Compose
+      {installer ? 'Install' : 'Import Compose File'}
     </ResponsiveButton>
   </>;
 };

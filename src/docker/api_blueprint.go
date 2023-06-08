@@ -379,6 +379,21 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Tty:          container.Tty,
 			OpenStdin:    container.StdinOpen,
 		}
+
+		// check if there's an empty TZ env, if so, replace it with the host's TZ
+		if containerConfig.Env != nil {
+			for i, env := range containerConfig.Env {
+				if strings.HasPrefix(env, "TZ=") {
+					if strings.TrimPrefix(env, "TZ=") == "" {
+						if os.Getenv("TZ") != "" {
+							containerConfig.Env[i] = "TZ=" + os.Getenv("TZ")
+						} else {
+							containerConfig.Env = append(containerConfig.Env[:i], containerConfig.Env[i+1:]...)
+						}
+					}
+				}
+			}
+		}
 		
 		if container.Command != "" {
 			containerConfig.Cmd = strings.Fields(container.Command)
