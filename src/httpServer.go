@@ -232,9 +232,9 @@ func StartServer() {
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries))
 	}
-	
-	srapi := router.PathPrefix("/cosmos").Subrouter()
 
+	mrouter := router.Host(baseMainConfig.HTTPConfig.Hostname).Subrouter()
+	srapi := mrouter.PathPrefix("/cosmos").Subrouter()
 	srapi.HandleFunc("/api/dns", GetDNSRoute)
 	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
 	
@@ -301,14 +301,13 @@ func StartServer() {
 		fs = utils.EnsureHostname(fs)
 	}
 
-	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
+	mrouter.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
+	mrouter.Path("/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
+	}))
+	SecureAPI(mrouter,true)
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
-	
-	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
-	}))
-
 
 	userRouter := router.PathPrefix("/oauth2").Subrouter()
 	SecureAPI(userRouter, false)
