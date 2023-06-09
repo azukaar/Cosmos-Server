@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, Checkbox, CircularProgress, Input, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
 import * as API from '../../../api';
-import { ReactTerminal } from "react-terminal";
 import LogLine from '../../../components/logLine';
 import { useTheme } from '@emotion/react';
 

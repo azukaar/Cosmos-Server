@@ -86,6 +86,7 @@ type Config struct {
 	RequireMFA bool
 	AutoUpdate bool
 	OpenIDClients []OpenIDClient
+	MarketConfig MarketConfig
 }
 
 type HTTPConfig struct {
@@ -166,4 +167,13 @@ type OpenIDClient struct {
 	ID       string `json:"id"`
 	Secret 	 string `json:"secret"`
 	Redirect string `json:"redirect"`
+}
+
+type MarketConfig struct {
+	Sources []MarketSource
+}
+
+type MarketSource struct {
+	Name string
+	Url string
 }

@@ -78,6 +78,14 @@ var DefaultConfig = Config{
 			Routes: []ProxyRouteConfig{},
 		},
 	},
+  MarketConfig: MarketConfig{
+    Sources: []MarketSource{
+			MarketSource{
+				Url: "https://cosmos-cloud.io/repository",
+				Name: "Cosmos Cloud",
+			},
+		},
+	},
 }
 
 func FileExists(path string) bool {
@@ -166,6 +174,16 @@ func ReadConfigFromFile() Config {
 		Fatal("Reading Config File: " + errString, err)
 	}
 
+	// check if outdated
+	if len(config.MarketConfig.Sources) == 0 {
+		config.MarketConfig.Sources = []MarketSource{
+			MarketSource{
+				Url: "https://cosmos-cloud.io/repository",
+				Name: "Cosmos Cloud",
+			},
+		}
+	}
+
 	return config
 }
 
@@ -242,7 +260,6 @@ func GetConfigFileName() string {
 
 	return configFile
 }
-
 
 func CreateDefaultConfigFileIfNecessary() bool {
 	configFile := GetConfigFileName()

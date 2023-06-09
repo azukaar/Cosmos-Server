@@ -71,11 +71,19 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installer, defaultNam
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-  const [dockerCompose, setDockerCompose] = useState(dockerComposeInit || '');
+  const [dockerCompose, setDockerCompose] = useState('');
   const [service, setService] = useState({});
   const [ymlError, setYmlError] = useState('');
   const [serviceName, setServiceName] = useState(defaultName || 'my-service');
   const [hostnames, setHostnames] = useState([]);
+
+  useEffect(() => {
+    const text = fetch(dockerComposeInit)
+      .then((res) => res.text())
+      .then((text) => {
+        setDockerCompose(text);
+    });
+  }, [dockerComposeInit]);
 
   useEffect(() => {
     if(!openModal) {

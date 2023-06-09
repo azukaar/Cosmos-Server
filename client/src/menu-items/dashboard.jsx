@@ -1,5 +1,5 @@
 // assets
-import { HomeOutlined, AppstoreOutlined, DashboardOutlined } from '@ant-design/icons';
+import { HomeOutlined, AppstoreOutlined, DashboardOutlined, AppstoreAddOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -27,6 +27,14 @@ const dashboard = {
             type: 'item',
             url: '/ui/dashboard',
             icon: DashboardOutlined,
+            breadcrumbs: false
+        },
+        {
+            id: 'market',
+            title: 'Market',
+            type: 'item',
+            url: '/ui/market-listing',
+            icon: AppstoreAddOutlined,
             breadcrumbs: false
         },
     ]

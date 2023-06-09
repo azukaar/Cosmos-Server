@@ -12,7 +12,7 @@ import { getFullOrigin } from "../../utils/routes";
 import IsLoggedIn from "../../isLoggedIn";
 
 
-const HomeBackground = () => {
+export const HomeBackground = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
     return (
@@ -26,6 +26,50 @@ const HomeBackground = () => {
         </Box>
     );
 };
+
+export const TransparentHeader = () => {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+
+    const backColor =  isDark ? '0,0,0' : '255,255,255';
+    const textColor =  isDark ? 'white' : 'dark';
+
+    return <style>
+        {`header {
+        background: rgba(${backColor},0.35) !important;
+        border-bottom-color: rgba(${backColor},0.4) !important;
+        color: ${textColor} !important;
+        font-weight: bold;
+    }
+
+    header .MuiChip-label  {
+        color: ${textColor} !important;
+    }
+
+    header .MuiButtonBase-root, header .MuiChip-colorDefault  {
+        color: ${textColor} !important;
+        background: rgba(${backColor},0.5) !important;
+    }
+
+    .app {
+        transition: background 0.1s ease-in-out;
+        transition: transform 0.1s ease-in-out;
+    }
+    
+    .app:hover {
+        cursor: pointer;
+        background: rgba(${backColor},0.8) !important;
+        transform: scale(1.05);
+    }
+
+    .MuiAlert-standard {
+        background: rgba(${backColor},0.35) !important;
+        color: ${textColor} !important;
+        font-weight: bold;
+    }
+`}
+    </style>;
+}
 
 const HomePage = () => {
     const { routeName } = useParams();
@@ -51,9 +95,6 @@ const HomePage = () => {
         color: 'black',
         background: 'rgba(255,255,255,0.35)',
     }
-
-    const backColor =  isDark ? '0,0,0' : '255,255,255';
-    const textColor =  isDark ? 'white' : 'dark';
 
 
     const refreshStatus = () => {
@@ -82,41 +123,7 @@ const HomePage = () => {
     return <Stack spacing={2} >
         <IsLoggedIn />
         <HomeBackground />
-        <style>
-            {`header {
-            background: rgba(${backColor},0.35) !important;
-            border-bottom-color: rgba(${backColor},0.4) !important;
-            color: ${textColor} !important;
-            font-weight: bold;
-        }
-
-        header .MuiChip-label  {
-            color: ${textColor} !important;
-        }
-
-        header .MuiButtonBase-root, header .MuiChip-colorDefault  {
-            color: ${textColor} !important;
-            background: rgba(${backColor},0.5) !important;
-        }
-
-        .app {
-            transition: background 0.1s ease-in-out;
-            transition: transform 0.1s ease-in-out;
-        }
-        
-        .app:hover {
-            cursor: pointer;
-            background: rgba(${backColor},0.8) !important;
-            transform: scale(1.05);
-        }
-
-        .MuiAlert-standard {
-            background: rgba(${backColor},0.35) !important;
-            color: ${textColor} !important;
-            font-weight: bold;
-        }
-    `}
-        </style>
+        <TransparentHeader />
         <Stack style={{ zIndex: 2 }} spacing={1}>
             {coStatus && !coStatus.database && (
                 <Alert severity="error">

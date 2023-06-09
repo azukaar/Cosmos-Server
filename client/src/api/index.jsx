@@ -2,12 +2,14 @@ import * as _auth from './authentication';
 import * as _users from './users';
 import * as _config from './config';
 import * as _docker from './docker';
+import * as _market from './market';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
 import * as configDemo from './config.demo';
 import * as dockerDemo from './docker.demo';
 import * as indexDemo from './index.demo';
+import * as marketDemo from './market.demo';
 
 import wrap from './wrap';
 
@@ -101,7 +103,7 @@ let newInstall = (req, onProgress) => {
   }
 }
 
-const checkHost = (host) => {
+let checkHost = (host) => {
   return fetch('/cosmos/api/dns-check?url=' + host, {
     method: 'GET',
     headers: {
@@ -124,7 +126,7 @@ const checkHost = (host) => {
   });
 }
 
-const getDNS = (host) => {
+let getDNS = (host) => {
   return fetch('/cosmos/api/dns?url=' + host, {
     method: 'GET',
     headers: {
@@ -153,15 +155,19 @@ let auth = _auth;
 let users = _users;
 let config = _config;
 let docker = _docker;
+let market = _market;
 
 if(isDemo) {
   auth = authDemo;
   users = usersDemo;
   config = configDemo;
   docker = dockerDemo;
+  market = marketDemo;
   getStatus = indexDemo.getStatus;
   newInstall = indexDemo.newInstall;
   isOnline = indexDemo.isOnline;
+  checkHost = indexDemo.checkHost;
+  getDNS = indexDemo.getDNS;
 }
 
 export {
@@ -169,6 +175,7 @@ export {
   users,
   config,
   docker,
+  market,
   getStatus,
   newInstall,
   isOnline,

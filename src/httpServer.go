@@ -8,6 +8,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/proxy"
 		"github.com/azukaar/cosmos-server/src/docker"
 		"github.com/azukaar/cosmos-server/src/authorizationserver"
+		"github.com/azukaar/cosmos-server/src/market"
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
@@ -277,9 +278,9 @@ func StartServer() {
 	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
 	srapi.HandleFunc("/api/servapps/{containerId}/check-update", docker.CanUpdateImageRoute)
 	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
-	
 	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
 	
+	srapi.HandleFunc("/api/markets", market.MarketGet)
 
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
