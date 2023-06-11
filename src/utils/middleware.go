@@ -199,7 +199,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 			http.Error(w, "Bad Request: Invalid hostname.", http.StatusBadRequest)
 			return
 		}
-
+		Debug("middleware EnsureHostname: " + r.Host + "/" + r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
 }

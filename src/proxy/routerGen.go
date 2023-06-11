@@ -18,13 +18,13 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 			r.Header.Del("x-cosmos-user")
 			r.Header.Del("x-cosmos-role")
 			r.Header.Del("x-cosmos-mfa")
-
+			HTTPConfig := utils.GetMainConfig().HTTPConfig
+			utils.Log("Config for " + r.Host + " is " + strconv.FormatBool(enabled))
 			u, err := user.RefreshUserToken(w, r)
 
 			if err != nil {
 				return
 			}
-
 
 			r.Header.Set("x-cosmos-user", u.Nickname)
 			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
@@ -43,11 +43,24 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 					return
 				}
 			} else if enabled {
-				if errT := utils.LoggedInOnlyWithRedirect(w, r); errT != nil {
+				u, err := user.RefreshAppAuthToken(w, r)
+				if err == nil {
+					utils.Log("cookie was retrieved and verified")
+					//set auth and serve
+					r.Header.Set("x-cosmos-user", u.Nickname)
+					r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
+					r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
+				} else {
+					rscheme := "https://"
+					if r.TLS == nil {
+						rscheme = "http://"
+					}
+					utils.Error("tokenMiddleware: User is not logged in for the app, redirected to main auth", err)
+					http.Redirect(w, r, "https://"+HTTPConfig.Hostname+"/ui/login?app_auth=1&app_redir="+rscheme+r.Host+r.URL.Path, http.StatusFound)
 					return
 				}
 			}
-
+			utils.Debug("SERVING: " + HTTPConfig.Hostname + "/" + r.URL.Path)
 			next.ServeHTTP(w, r)
 		})
 	}

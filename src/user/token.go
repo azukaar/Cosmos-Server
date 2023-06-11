@@ -1,6 +1,7 @@
 package user
 
 import (
+	"net/url"
 	"net/http"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/golang-jwt/jwt"
@@ -85,7 +86,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		passwordCycle int
 		mfaDone       bool
 		ok            bool
-		forDomain     string
+		//forDomain     string
 	)
 
 	if nickname, ok = claims["nickname"].(string); !ok {
@@ -108,21 +109,21 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 		}
 	}
 
-	if forDomain, ok = claims["forDomain"].(string); !ok {
-		if _, e := quickLoggout(w, req, nil); e != nil {
-			return utils.User{}, e
-		}
-	}
+	// if forDomain, ok = claims["forDomain"].(string); !ok {
+	// 	if _, e := quickLoggout(w, req, nil); e != nil {
+	// 		return utils.User{}, e
+	// 	}
+	// }
 	
-	reqHostname := req.Host
-	reqHostNoPort := strings.Split(reqHostname, ":")[0]
+	//reqHostname := req.Host
+	//reqHostNoPort := strings.Split(reqHostname, ":")[0]
 	
-	if !strings.HasSuffix(reqHostNoPort, forDomain) {
-		utils.Error("UserToken: token is not valid for this domain", nil)
-		logOutUser(w, req)
-		redirectToReLogin(w, req)
-		return utils.User{}, errors.New("JWT Token not valid for this domain")
-	}
+	// if !strings.HasSuffix(reqHostNoPort, forDomain) {
+	// 	utils.Error("UserToken: token is not valid for this domain", nil)
+	// 	logOutUser(w, req)
+	// 	redirectToReLogin(w, req)
+	// 	return utils.User{}, errors.New("JWT Token not valid for this domain")
+	// }
 
 	userInBase := utils.User{}
 
@@ -260,10 +261,217 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		cookie.Domain = ""
 	} else {
 		if utils.IsValidHostname(reqHostNoPort) {
-			cookie.Domain = "." + reqHostNoPort
+			cookie.Domain = "." + "bruj0.net"//reqHostNoPort
 		} else {
 			utils.Error("UserLogin: Invalid hostname", nil)
 			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
+			return
+		}
+	}
+
+	http.SetCookie(w, &cookie)
+}
+
+
+func RefreshAppAuthToken(w http.ResponseWriter, req *http.Request) (utils.User, error) {
+	config := utils.GetMainConfig()
+	
+	cookie, err := req.Cookie("jwttoken_"+req.Host)
+
+	if err != nil {
+		utils.Log("Cokkie 'jwttoken_"+req.Host+" not found")
+		return utils.User{}, err
+	}
+	
+	tokenString := cookie.Value
+
+	if tokenString == "" {
+		return utils.User{}, nil
+	}
+	
+	ed25519Key, errK := jwt.ParseEdPublicKeyFromPEM([]byte(utils.GetPublicAuthKey()))
+
+	if errK != nil {
+		utils.Error("UserToken: Cannot read auth public key", errK)
+		utils.HTTPError(w, "Authorization Error", http.StatusInternalServerError, "A001")
+		return utils.User{}, errors.New("Cannot read auth public key")
+	}
+
+	parts := strings.Split(tokenString, ".")
+	
+	errT := jwt.SigningMethodEdDSA.Verify(strings.Join(parts[0:2], "."), parts[2], ed25519Key)
+
+	if errT != nil {
+		if _, e := quickLoggout(w, req, errT); e != nil {
+			return utils.User{}, errT
+		}
+	}
+
+	type claimsType struct {
+		nickname string
+	}
+
+	claims := jwt.MapClaims{}
+
+	_, errP := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+    return ed25519Key, nil
+	})
+
+	if errP != nil {
+		utils.Error("UserToken: token is not valid", nil)
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return utils.User{}, errors.New("Token not valid")
+	}
+
+	var (
+		nickname      string
+		passwordCycle int
+		mfaDone       bool
+		ok            bool
+		forDomain     string
+	)
+
+	if nickname, ok = claims["nickname"].(string); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	if passwordCycleFloat, ok := claims["passwordCycle"].(float64); ok {
+		passwordCycle = int(passwordCycleFloat)
+	} else {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	if mfaDone, ok = claims["mfaDone"].(bool); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+
+	if forDomain, ok = claims["forDomain"].(string); !ok {
+		if _, e := quickLoggout(w, req, nil); e != nil {
+			return utils.User{}, e
+		}
+	}
+	
+	reqHostname := req.Host
+	reqHostNoPort := strings.Split(reqHostname, ":")[0]
+	
+	if !strings.HasSuffix(reqHostNoPort, forDomain) {
+		utils.Error("UserToken: token is not valid for this domain", nil)
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return utils.User{}, errors.New("JWT Token not valid for this domain")
+	}
+
+	userInBase := utils.User{}
+
+	c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+				utils.Error("Database Connect", errCo)
+				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				return utils.User{}, errCo
+		}
+	
+	errDB := c.FindOne(nil, map[string]interface{}{
+		"Nickname": nickname,
+	}).Decode(&userInBase)
+	
+	if errDB != nil {
+		utils.Error("UserToken: User not found", errDB)
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return utils.User{}, errors.New("User not found")
+	}
+
+	if userInBase.PasswordCycle != passwordCycle {
+		utils.Error("UserToken: Password cycle changed, token is too old", nil)
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return utils.User{}, errors.New("Password cycle changed, token is too old")
+	}
+
+	requestURL := req.URL.Path
+	isSettingMFA := strings.HasPrefix(requestURL, "/ui/loginmfa") || strings.HasPrefix(requestURL, "/ui/newmfa") || strings.HasPrefix(requestURL, "/api/mfa")
+
+	userInBase.MFAState = 0
+
+	if !isSettingMFA && (userInBase.MFAKey != "" && userInBase.Was2FAVerified && !mfaDone) {
+		utils.Warn("UserToken: MFA required")
+		userInBase.MFAState = 1
+	} else if !isSettingMFA && (config.RequireMFA && !mfaDone) {
+		utils.Warn("UserToken: MFA not set")
+		userInBase.MFAState = 2
+	}
+
+	if time.Now().Unix() - int64(claims["iat"].(float64)) > 3600 {
+		SendUserToken(w, req, userInBase, mfaDone)
+	}
+
+	return userInBase, nil
+}
+
+func SendAppAuthToken(w http.ResponseWriter, req *http.Request, user utils.User, mfaDone bool) {
+	HostnameStr := req.URL.Query().Get("app_redir")
+	Hostname, err := url.Parse(HostnameStr)
+	if err != nil {
+		utils.Log("SendAuthUrlToken: Redirect param not found, not setting cookie")
+		return
+	 }
+
+	expiration := time.Now().Add(3 * 24 * time.Hour)
+
+	token := jwt.New(jwt.SigningMethodEdDSA)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["exp"] = expiration.Unix()
+	claims["role"] = user.Role
+	claims["nickname"] = user.Nickname
+	claims["passwordCycle"] = user.PasswordCycle
+	claims["iat"] = time.Now().Unix()
+	claims["nbf"] = time.Now().Unix()
+	claims["mfaDone"] = mfaDone
+	claims["forDomain"] = Hostname.Host
+
+	key, err5 := jwt.ParseEdPrivateKeyFromPEM([]byte(utils.GetPrivateAuthKey()))
+	
+	if err5 != nil {
+		utils.Error("SendAuthUrlToken: Error while retrieving signing key", err5)
+		utils.HTTPError(w, "SendAuthUrlToken Logging Error", http.StatusInternalServerError, "UL001")
+		return
+	}
+
+	tokenString, err4 := token.SignedString(key)
+
+	if err4 != nil {
+		utils.Error("SendAuthUrlToken: Error while signing token", err4)
+		utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
+		return
+	}
+
+	cookie := http.Cookie{
+		Name: "jwttoken_"+Hostname.Host,
+		Value: tokenString,
+		Expires: expiration,
+		Path: "/",
+		Secure: utils.IsHTTPS,
+		HttpOnly: true,
+	}
+
+	utils.Log("SendAuthUrlToken: Setting cookie for " + Hostname.Host)
+
+	if Hostname.Host == "localhost" || Hostname.Host == "0.0.0.0" {
+		cookie.Domain = ""
+	} else {
+		if utils.IsValidHostname(Hostname.Host) {
+			cookie.Domain = "." + "example.net"//Hostname.Host
+			utils.Debug("Setting cookie.Domain to:"+cookie.Domain )
+		} else {
+			utils.Error("SendAuthUrlToken: Invalid hostname", nil)
+			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "SendAuthUrlToken")
 			return
 		}
 	}

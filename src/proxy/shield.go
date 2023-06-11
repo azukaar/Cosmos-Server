@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/user"
 	"sync"
 	"time"
 	"net/http"
@@ -356,7 +357,41 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 					wrapper.isOver = true
 					shield.Unlock()
 				})()
+				HTTPConfig := utils.GetMainConfig().HTTPConfig
+				//If request come to the main hostname and its a request for app_auth
+				if r.Host == HTTPConfig.Hostname {
+					utils.Log("Test Auth app")
+					utils.Debug(fmt.Sprintf("Query()=%+v\n", r.URL.Query()))
+					app_auth := r.URL.Query().Get("app_auth")
+					if app_auth != "" {
+						u, err := user.RefreshUserToken(w, r)
 
+						if err != nil {
+							utils.Error("User not logged in (AppAuth)",err)
+							return
+						}
+						userNickname := u.Nickname
+						role := u.Role
+						isUserLoggedIn := role > 0
+
+						utils.Log("Test Auth app for " + app_auth)
+
+						if isUserLoggedIn && userNickname != "" {
+							user.SendAppAuthToken(w, r, u, false)
+							app_redir := r.URL.Query().Get("app_redir")
+							utils.Log("User verified (AppAuth) redirecting: " + app_redir)
+							http.Redirect(w, r, app_redir, http.StatusFound)
+						} else {
+							utils.Log("User not logged in (AppAuth) for:" + HTTPConfig.Hostname)
+							http.Redirect(w, r, "/ui/login?notlogged=1", http.StatusFound)
+						}
+					} else {
+						utils.Log("No Auth app request found")
+					}
+				} else {
+					utils.Log("Request not for main hostname " + HTTPConfig.Hostname + ": " + r.Host)
+				}
+				utils.Debug("middleware EnsureHostname: " + r.Host + "/" + r.URL.Path)
 				next.ServeHTTP(wrapper, r)
 				close(done)
 			}
