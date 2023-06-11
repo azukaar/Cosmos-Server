@@ -1,14 +1,15 @@
 package user
 
 import (
-	"net/url"
-	"net/http"
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/golang-jwt/jwt"
+	"encoding/json"
 	"errors"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
-	"encoding/json"
+
+	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/golang-jwt/jwt"
 )
 
 func quickLoggout(w http.ResponseWriter, req *http.Request, err error) (utils.User, error) {
@@ -261,7 +262,7 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		cookie.Domain = ""
 	} else {
 		if utils.IsValidHostname(reqHostNoPort) {
-			cookie.Domain = "." + "bruj0.net"//reqHostNoPort
+			cookie.Domain = "." + "example.net"//reqHostNoPort
 		} else {
 			utils.Error("UserLogin: Invalid hostname", nil)
 			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
