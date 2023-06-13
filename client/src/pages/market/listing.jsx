@@ -67,9 +67,9 @@ function ShowcasesItem({ isDark, item }) {
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
-            <Button className="CheckButton" color="primary" variant="contained">
-              Install
-            </Button>
+            <div>
+            <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
+            </div>
             <Link to={"/cosmos-ui/market-listing/" + item.name} style={{
               textDecoration: 'none',
             }}>
