@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM debian
+FROM debian:11
 
 EXPOSE 443 80
 
