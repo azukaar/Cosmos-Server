@@ -92,55 +92,12 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     if (!openModal) {
       return;
     }
-    // fetch(dockerComposeInit)
-    //   .then((res) => res.text())
-    //   .then((text) => {
-    //     setDockerCompose(text);
-    // });
     if(dockerComposeInit)
-    setDockerCompose(`
-      {
-        "cosmos-installer": {
-          "form": [
-            {
-              "name": "caca",
-              "label": "Caca?",
-              "type": "text"
-            }
-          ]
-        },
-        "services": {
-          "{ServiceName}": {
-            "image": "lscr.io/linuxserver/jellyfin:latest",
-            "container_name": "{ServiceName}",
-            "restart": "unless-stopped",
-            "environment": [
-              "PUID=1000",
-              "PGID=1000",
-              "TZ=auto"
-            ],
-            "labels": {
-              "cosmos-force-network-secured": "true",
-              "caca": "{Context.caca}"
-            },
-            "volumes": [{
-              "source": "{ServiceName}-config",
-              "target": "/config",
-              "type": "volume"
-            }],
-            "routes": [
-              {
-                "name": "{ServiceName}",
-                "description": "Expose {ServiceName} to the web",
-                "useHost": true,
-                "target": "http://{ServiceName}:8096",
-                "mode": "SERVAPP"
-              }
-            ]
-          }
-        }
-      }
-    `);
+      fetch(dockerComposeInit)
+        .then((res) => res.text())
+        .then((text) => {
+          setDockerCompose(text);
+      });
   }, [openModal, dockerComposeInit]);
 
   useEffect(() => {
