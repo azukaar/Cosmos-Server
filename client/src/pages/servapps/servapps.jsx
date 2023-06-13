@@ -150,7 +150,7 @@ const ServeApps = () => {
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServeApps();
         }}>Refresh</ResponsiveButton>
-        <Link to="/ui/servapps/new-service">
+        <Link to="/cosmos-ui/servapps/new-service">
           <ResponsiveButton
             variant="contained" 
             startIcon={<AppstoreAddOutlined />}
@@ -303,7 +303,7 @@ const ServeApps = () => {
                 </Stack>
               </Stack>
               <div>
-                <Link to={`/ui/servapps/containers/${app.Names[0].replace('/', '')}`}>
+                <Link to={`/cosmos-ui/servapps/containers/${app.Names[0].replace('/', '')}`}>
                   <Button variant="outlined" color="primary" fullWidth>Details</Button>
                 </Link>
               </div>

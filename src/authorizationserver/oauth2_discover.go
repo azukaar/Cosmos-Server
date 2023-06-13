@@ -72,7 +72,7 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 
 	json.NewEncoder(rw).Encode(&oidcConfiguration{
 		Issuer:                                 hostname,
-		AuthURL:                                realHostname + "/ui/openid",
+		AuthURL:                                realHostname + "/cosmos-ui/openid",
 		TokenURL:                               hostname + "/oauth2/token",
 		JWKsURI:                                hostname + "/.well-known/jwks.json",
 		RevocationEndpoint:                     hostname + "/oauth2/revoke",
@@ -96,7 +96,7 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 		BackChannelLogoutSessionSupported:      true,
 		FrontChannelLogoutSupported:            true,
 		FrontChannelLogoutSessionSupported:     true,
-		EndSessionEndpoint:                     hostname + "/ui/logout",
+		EndSessionEndpoint:                     hostname + "/cosmos-ui/logout",
 		RequestObjectSigningAlgValuesSupported: []string{"RS256"},
 		CodeChallengeMethodsSupported:          []string{"plain", "S256"},
 	})

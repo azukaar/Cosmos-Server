@@ -8,6 +8,7 @@ import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 import LogsInModal from '../../../components/logsInModal';
+import ResponsiveButton from '../../../components/responseiveButton';
 
 const containerInfoFrom = (values) => {
   const labels = {};
@@ -27,7 +28,7 @@ const containerInfoFrom = (values) => {
   return realvalues;
 }
 
-const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newContainer, OnForceSecure}) => {
+const DockerContainerSetup = ({noCard, containerInfo, installer, OnChange, refresh, newContainer, OnForceSecure}) => {
   const restartPolicies = [
     ['no', 'No Restart'],
     ['always', 'Always Restart'],
@@ -39,6 +40,13 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const padding = isMobile ? '6px 4px' : '12px 10px';
   const [latestImage, setLatestImage] = React.useState(containerInfo.Config.Image);
+  
+  const wrapCard = (children) => {
+    if (noCard) return children;
+    return <MainCard title="Docker Container Setup">
+      {children}
+    </MainCard>;
+  };
 
   return (
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
@@ -56,6 +64,7 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
           }),
           interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
         }}
+        enableReinitialize
         validate={(values) => {
           const errors = {};
           if (!values.image) {
@@ -115,13 +124,14 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
               }}
             />
             <Stack spacing={2}>
-              <MainCard title={'Docker Container Setup'}>
+              {wrapCard(<>
               {containerInfo.State && containerInfo.State.Status !== 'running' && (
               <Alert severity="warning" style={{ marginBottom: '15px' }}>
                   This container is not running. Editing any settings will cause the container to start again.
                 </Alert>
               )}
                 <Grid container spacing={4}>
+                {!installer && <>
                     {newContainer && <CosmosInputText
                       name="name"
                       label="Name"
@@ -161,6 +171,7 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                         }}
                       />
                   </Grid>}
+                  </>}
 
                   <CosmosFormDivider title={'Environment Variables'} />
                   <Grid item xs={12}>
@@ -206,8 +217,7 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                         </Grid>
                       </Grid>
                     ))}
-                    <IconButton
-                      fullWidth
+                    <ResponsiveButton
                       variant="outlined"
                       color="primary"
                       size='large'
@@ -216,9 +226,10 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                         newEnvVars.push({ key: '', value: '' });
                         formik.setFieldValue('envVars', newEnvVars);
                       }}
+                      startIcon={<PlusCircleOutlined />}
                     >
-                      <PlusCircleOutlined />
-                    </IconButton>
+                      Add
+                    </ResponsiveButton>
                   </Grid>
                   <CosmosFormDivider title={'Labels'} />
                   <Grid item xs={12}>
@@ -264,8 +275,7 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                         </Grid>
                       </Grid>
                     ))}
-                    <IconButton
-                      fullWidth
+                    <ResponsiveButton
                       variant="outlined"
                       color="primary"
                       size='large'
@@ -274,12 +284,13 @@ const DockerContainerSetup = ({config, containerInfo, OnChange, refresh, newCont
                         newLabels.push({ key: '', value: '' });
                         formik.setFieldValue('labels', newLabels);
                       }}
+                      startIcon={<PlusCircleOutlined />}
                     >
-                      <PlusCircleOutlined />
-                    </IconButton>
+                      Add
+                    </ResponsiveButton>
                   </Grid>
                 </Grid>
-              </MainCard>
+              </>)}
               {!newContainer && <MainCard>
                 <Stack direction="column" spacing={2}>
                   {formik.errors.submit && (

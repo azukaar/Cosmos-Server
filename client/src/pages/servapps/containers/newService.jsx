@@ -60,6 +60,8 @@ const NewDockerService = ({service, refresh}) => {
   const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
 
+  delete service['cosmos-installer'];
+
   React.useEffect(() => {
     // refreshContainer();
   }, []);

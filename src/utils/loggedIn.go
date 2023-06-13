@@ -15,15 +15,15 @@ func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
 
 	if !isUserLoggedIn || userNickname == "" {
 		Error("LoggedInOnlyWithRedirect: User is not logged in", nil)
-		http.Redirect(w, req, "/ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
+		http.Redirect(w, req, "/cosmos-ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
 		return errors.New("User not logged in")
 	}
 
 	if(mfa == 1) {
-		http.Redirect(w, req, "/ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "/cosmos-ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 		return errors.New("User requires MFA")
 	} else if(mfa == 2) {
-		http.Redirect(w, req, "/ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "/cosmos-ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 		return errors.New("User requires MFA Setup")
 	}
 
@@ -39,7 +39,7 @@ func AdminOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
 
 	if !isUserLoggedIn || userNickname == "" {
 		Error("AdminLoggedInOnlyWithRedirect: User is not logged in", nil)
-		http.Redirect(w, req, "/ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
+		http.Redirect(w, req, "/cosmos-ui/login?notlogged=1&redirect="+req.URL.Path, http.StatusFound)
 		return errors.New("User is not logged")
 	}
 
@@ -50,10 +50,10 @@ func AdminOnlyWithRedirect(w http.ResponseWriter, req *http.Request) error {
 	}
 
 	if(mfa == 1) {
-		http.Redirect(w, req, "/ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "/cosmos-ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 		return errors.New("User requires MFA")
 	} else if(mfa == 2) {
-		http.Redirect(w, req, "/ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+		http.Redirect(w, req, "/cosmos-ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 		return errors.New("User requires MFA Setup")
 	}
 

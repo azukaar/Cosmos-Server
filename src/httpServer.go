@@ -302,12 +302,12 @@ func StartServer() {
 		fs = utils.EnsureHostname(fs)
 	}
 
-	router.PathPrefix("/ui").Handler(http.StripPrefix("/ui", fs))
+	router.PathPrefix("/cosmos-ui").Handler(http.StripPrefix("/cosmos-ui", fs))
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/ui", http.StatusMovedPermanently)
+    http.Redirect(w, r, "/cosmos-ui", http.StatusMovedPermanently)
 	}))
 
 

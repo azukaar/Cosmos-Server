@@ -17,7 +17,7 @@ const dashboard = {
             id: 'home',
             title: 'Home',
             type: 'item',
-            url: '/ui/',
+            url: '/cosmos-ui/',
             icon: icons.HomeOutlined,
             breadcrumbs: false
         },
@@ -25,7 +25,7 @@ const dashboard = {
             id: 'dashboard',
             title: 'Dashboard',
             type: 'item',
-            url: '/ui/dashboard',
+            url: '/cosmos-ui/dashboard',
             icon: DashboardOutlined,
             breadcrumbs: false
         },
@@ -33,7 +33,7 @@ const dashboard = {
             id: 'market',
             title: 'Market',
             type: 'item',
-            url: '/ui/market-listing',
+            url: '/cosmos-ui/market-listing',
             icon: AppstoreAddOutlined,
             breadcrumbs: false
         },

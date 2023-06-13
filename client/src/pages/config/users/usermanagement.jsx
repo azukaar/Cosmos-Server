@@ -57,7 +57,7 @@ const UserManagement = () => {
             formType: ""+formType,
         })
         .then((values) => {
-            let sendLink = window.location.origin + '/ui/register?t='+formType+'&nickname='+nickname+'&key=' + values.data.registerKey;
+            let sendLink = window.location.origin + '/cosmos-ui/register?t='+formType+'&nickname='+nickname+'&key=' + values.data.registerKey;
             setToAction({...values.data, nickname, sendLink, formType, formAction: formType === 2 ? 'invite them to the server' : 'let them reset their password'});
             setOpenInviteForm(true);
         });

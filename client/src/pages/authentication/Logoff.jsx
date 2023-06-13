@@ -17,7 +17,7 @@ const Logout = () => {
       API.auth.logout()
        .then(() => {
           setTimeout(() => {
-            window.location.href = '/ui/login';
+            window.location.href = '/cosmos-ui/login';
           }, 2000);
         });
     },[]);

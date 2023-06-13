@@ -109,7 +109,7 @@ const ForgotPassword = () => {
                         variant="contained"
                         color="primary"
                         component={Link}
-                        to="/ui/login"
+                        to="/cosmos-ui/login"
                     >
                         Back to login
                     </Button>

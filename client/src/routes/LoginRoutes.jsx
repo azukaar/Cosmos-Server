@@ -22,35 +22,35 @@ const LoginRoutes = {
     element: <MinimalLayout />,
     children: [
         {
-            path: '/ui/login',
+            path: '/cosmos-ui/login',
             element: <AuthLogin />
         },
         {
-            path: '/ui/register',
+            path: '/cosmos-ui/register',
             element: <AuthRegister />
         },
         {
-            path: '/ui/logout',
+            path: '/cosmos-ui/logout',
             element: <Logout />
         },
         {
-            path: '/ui/newInstall',
+            path: '/cosmos-ui/newInstall',
             element: <NewInstall />
         },
         {
-            path: '/ui/newmfa',
+            path: '/cosmos-ui/newmfa',
             element: <NewMFA />
         },
         {
-            path: '/ui/openid',
+            path: '/cosmos-ui/openid',
             element: <OpenID />
         },
         {
-            path: '/ui/loginmfa',
+            path: '/cosmos-ui/loginmfa',
             element: <MFALogin />
         },
         {
-            path: '/ui/forgot-password',
+            path: '/cosmos-ui/forgot-password',
             element: <ForgotPassword />
         },
     ]

@@ -1,4 +1,4 @@
-import { Box, Stack } from "@mui/material";
+import { Box, CircularProgress, Stack } from "@mui/material";
 import { HomeBackground, TransparentHeader } from "../home";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
@@ -70,7 +70,7 @@ function ShowcasesItem({ isDark, item }) {
             <Button className="CheckButton" color="primary" variant="contained">
               Install
             </Button>
-            <Link to={"/ui/market-listing/" + item.name} style={{
+            <Link to={"/cosmos-ui/market-listing/" + item.name} style={{
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
@@ -133,7 +133,6 @@ const MarketPage = () => {
   return <>
     <HomeBackground />
     <TransparentHeader />
-    
     {openedApp && <Box style={{
       position: 'fixed',
       top: 0,
@@ -143,7 +142,7 @@ const MarketPage = () => {
       zIndex: 1300,
       backgroundColor: 'rgba(0,0,0,0.5)',
     }}>
-      <Link to="/ui/market-listing" as={Box}
+      <Link to="/cosmos-ui/market-listing" as={Box}
        style={{
         position: 'fixed',
         top: 0,
@@ -169,7 +168,7 @@ const MarketPage = () => {
           }
         }}>
 
-          <Link to="/ui/market-listing" style={{
+          <Link to="/cosmos-ui/market-listing" style={{
             textDecoration: 'none',
           }}>
             <Button className="CheckButton" color="primary" variant="outlined">
@@ -199,7 +198,7 @@ const MarketPage = () => {
           }}></div>
 
           <div>
-          <DockerComposeImport installer defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
+          <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
           </div>
         </Stack>
       </Stack>
@@ -207,7 +206,19 @@ const MarketPage = () => {
  
     <Stack style={{ position: 'relative' }} spacing={1}>
       <Stack style={{ height: '35vh' }} spacing={1}>
-        <Showcases showcase={showcase} isDark={isDark}/>
+        {(!showcase || !Object.keys(showcase).length) && <Box style={{
+          width: '100%',
+          height: '100%',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <CircularProgress
+            size={100} 
+          />
+        </Box>}
+        {showcase && showcase.length && <Showcases showcase={showcase} isDark={isDark}/>}
       </Stack>
 
       <Stack spacing={1} style={{
@@ -218,12 +229,26 @@ const MarketPage = () => {
         minHeight: 'calc(65vh - 80px)',
         padding: '24px',
       }}>
-        <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
-          {apps && Object.keys(apps).length > 0 && apps[Object.keys(apps)[0]].map((app) => {
+        {(!apps || !Object.keys(apps).length) && <Box style={{
+          width: '100%',
+          height: '100%',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '150px',
+        }}>
+          <CircularProgress
+            size={100} 
+          />
+        </Box>}
+
+        {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
+          {apps[Object.keys(apps)[0]].map((app) => {
             return <Grid2 style={{
               ...gridAnim,
               cursor: 'pointer',
-            }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/ui/market-listing/" + app.name} style={{
+            }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + app.name} style={{
               textDecoration: 'none',
             }}>
               <div key={app.name} style={appCardStyle(theme)}>
@@ -248,7 +273,7 @@ const MarketPage = () => {
               </Link>
             </Grid2>
           })}
-        </Grid2>
+        </Grid2>}
       </Stack>
     </Stack>
   </>

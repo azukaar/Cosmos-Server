@@ -12,7 +12,7 @@ import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
 import ResponsiveButton from '../../../components/responseiveButton';
 
-const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange }) => {
+const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refresh, newContainer, OnChange }) => {
   const restartPolicies = [
     ['no', 'No Restart'],
     ['always', 'Always Restart'],
@@ -44,6 +44,13 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
       });
   };
 
+  const wrapCard = (children) => {
+    if (noCard) return children;
+    return <MainCard title="Volume Mounts">
+      {children}
+    </MainCard>
+  };
+
   return (<Stack spacing={2}>
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
       <Formik
@@ -60,6 +67,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
             })
           ])
         }}
+        enableReinitialize
         validate={(values) => {
           const errors = {};
           // check unique
@@ -70,7 +78,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
           if (unique.length !== volumes.length) {
             errors.submit = 'Mounts must have unique targets';
           }
-          OnChange && OnChange(values);
+          OnChange && OnChange(values, volumes);
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -95,8 +103,8 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
-            <MainCard title={'Volume Mounts'}>
-            {containerInfo.State && containerInfo.State.Status !== 'running' && (
+            {wrapCard(<>
+            {!newContainer && containerInfo.State && containerInfo.State.Status !== 'running' && (
             <Alert severity="warning" style={{ marginBottom: '15px' }}>
                 This container is not running. Editing any settings will cause the container to start again.
               </Alert>
@@ -129,6 +137,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                               <div style={{fontWeight: 'bold', wordSpace: 'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth: '100px'}}>
                                 <TextField
                                   className="px-2 my-2"
+                                  disabled={frozenVolumes.includes(r.Source)}
                                   variant="outlined"
                                   name='Type'
                                   id='Type'
@@ -155,6 +164,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                                     variant="outlined"
                                     name='Source'
                                     id='Source'
+                                    disabled={frozenVolumes.includes(r.Source)}
                                     style={{minWidth: '200px'}}
                                     value={r.Source}
                                     onChange={(e) => {
@@ -168,6 +178,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                                     variant="outlined"
                                     name='Source'
                                     id='Source'
+                                    disabled={frozenVolumes.includes(r.Source)}
                                     select
                                     style={{minWidth: '200px'}}
                                     value={r.Source}
@@ -177,9 +188,9 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                                       formik.setFieldValue('volumes', newVolumes);
                                     }}
                                   >
-                                    {volumes.map((volume) => (
-                                      <MenuItem key={volume.Id} value={volume.Name}>
-                                        {volume.Name}
+                                    {[...volumes, r].map((volume) => (
+                                      <MenuItem key={volume.Id || "last"} value={volume.Name || volume.Source}>
+                                        {volume.Name || volume.Source}
                                       </MenuItem>
                                     ))}
                                   </TextField>
@@ -195,6 +206,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                                     variant="outlined"
                                     name='Target'
                                     id='Target'
+                                    disabled={frozenVolumes.includes(r.Source)}
                                     style={{minWidth: '200px'}}
                                     value={r.Target}
                                     onChange={(e) => {
@@ -211,6 +223,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                               return (<Button
                                 variant="outlined"
                                 color="primary"
+                                disabled={frozenVolumes.includes(r.Source)}
                                 onClick={() => {
                                   const newVolumes = [...formik.values.volumes];
                                   newVolumes.splice(newVolumes.indexOf(r), 1);
@@ -252,7 +265,7 @@ const VolumeContainerSetup = ({ config, containerInfo, refresh, newContainer, On
                   </Stack>
                 </Grid>
               </Grid>
-            </MainCard>
+            </>)}
           </form>
         )}
       </Formik>

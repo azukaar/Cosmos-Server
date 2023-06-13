@@ -17,7 +17,7 @@ const ServappsIndex = () => {
   return <div>
     <IsLoggedIn />
     
-    <PrettyTabbedView path="/ui/servapps/:tab" tabs={[
+    <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {
           title: 'Containers',
           children: <ServeApps />,

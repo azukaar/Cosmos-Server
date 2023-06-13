@@ -19,35 +19,35 @@ const pages = {
             id: 'servapps',
             title: 'ServApps',
             type: 'item',
-            url: '/ui/servapps',
+            url: '/cosmos-ui/servapps',
             icon: AppstoreOutlined
         },
         {
             id: 'url',
             title: 'URLs',
             type: 'item',
-            url: '/ui/config-url',
+            url: '/cosmos-ui/config-url',
             icon: icons.NodeExpandOutlined,
         },
         {
             id: 'users',
             title: 'Users',
             type: 'item',
-            url: '/ui/config-users',
+            url: '/cosmos-ui/config-users',
             icon: icons.ProfileOutlined,
         },
         {
             id: 'openid',
             title: 'OpenID',
             type: 'item',
-            url: '/ui/openid-manage',
+            url: '/cosmos-ui/openid-manage',
             icon: PicLeftOutlined,
         },
         {
             id: 'config',
             title: 'Configuration',
             type: 'item',
-            url: '/ui/config-general',
+            url: '/cosmos-ui/config-general',
             icon: icons.SettingOutlined,
         }
     ]

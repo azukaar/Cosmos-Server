@@ -152,7 +152,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.User, err
 	}
 
 	requestURL := req.URL.Path
-	isSettingMFA := strings.HasPrefix(requestURL, "/ui/loginmfa") || strings.HasPrefix(requestURL, "/ui/newmfa") || strings.HasPrefix(requestURL, "/api/mfa")
+	isSettingMFA := strings.HasPrefix(requestURL, "/cosmos-ui/loginmfa") || strings.HasPrefix(requestURL, "/cosmos-ui/newmfa") || strings.HasPrefix(requestURL, "/api/mfa")
 
 	userInBase.MFAState = 0
 
@@ -201,15 +201,15 @@ func logOutUser(w http.ResponseWriter, req *http.Request) {
 }
 
 func redirectToReLogin(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/ui/login?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, "/cosmos-ui/login?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
 func redirectToLoginMFA(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, "/cosmos-ui/loginmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
 func redirectToNewMFA(w http.ResponseWriter, req *http.Request) {
-	http.Redirect(w, req, "/ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
+	http.Redirect(w, req, "/cosmos-ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
 func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mfaDone bool) {

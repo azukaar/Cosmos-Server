@@ -39,60 +39,60 @@ const MainRoutes = {
     children: [
         {
             path: '/',
-            // redirect to /ui
-            element: <Navigate to="/ui" />
+            // redirect to /cosmos-ui
+            element: <Navigate to="/cosmos-ui" />
         },
         {
-            path: '/ui/logo',
-            // redirect to /ui
+            path: '/cosmos-ui/logo',
+            // redirect to /cosmos-ui
             element: <Navigate to={logo} />
         },
         {
-            path: '/ui',
+            path: '/cosmos-ui',
             element: <HomePage />
         },
         {
-            path: '/ui/dashboard',
+            path: '/cosmos-ui/dashboard',
             element: <DashboardDefault />
         },
         {
-            path: '/ui/servapps',
+            path: '/cosmos-ui/servapps',
             element: <ServeAppsIndex />
         },
         {
-            path: '/ui/config-users',
+            path: '/cosmos-ui/config-users',
             element: <UserManagement />
         },
         {
-            path: '/ui/config-general',
+            path: '/cosmos-ui/config-general',
             element: <ConfigManagement />
         },
         {
-            path: '/ui/servapps/new-service',
+            path: '/cosmos-ui/servapps/new-service',
             element: <NewDockerServiceForm />
         },
         {
-            path: '/ui/config-url',
+            path: '/cosmos-ui/config-url',
             element: <ProxyManagement />
         },
         {
-            path: '/ui/config-url/:routeName',
+            path: '/cosmos-ui/config-url/:routeName',
             element: <RouteConfigPage />,
         },
         {
-            path: '/ui/servapps/containers/:containerName',
+            path: '/cosmos-ui/servapps/containers/:containerName',
             element: <ContainerIndex />,
         },
         {
-            path: '/ui/openid-manage',
+            path: '/cosmos-ui/openid-manage',
             element: <OpenIdList />,
         },
         {
-            path: '/ui/market-listing/',
+            path: '/cosmos-ui/market-listing/',
             element: <MarketPage />
         },
         {
-            path: '/ui/market-listing/:appName',
+            path: '/cosmos-ui/market-listing/:appName',
             element: <MarketPage />
         }
     ]

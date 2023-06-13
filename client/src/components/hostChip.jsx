@@ -36,7 +36,7 @@ const HostChip = ({route, settings, style}) => {
         window.open(window.location.origin + route.PathPrefix, '_blank');
     }}
     onDelete={settings ? () => {
-      window.open('/ui/config-url/'+route.Name, '_blank');
+      window.open('/cosmos-ui/config-url/'+route.Name, '_blank');
     } : null}
     deleteIcon={settings ? <SettingOutlined /> : null}
   />

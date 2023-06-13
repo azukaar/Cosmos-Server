@@ -18,7 +18,7 @@ const HeaderContent = () => {
             {!matchesXs && <Search />}
             {matchesXs && <Box sx={{ width: '100%', ml: 1 }} />}
 
-            <Link href="/ui/logout" underline="none">
+            <Link href="/cosmos-ui/logout" underline="none">
                 <Chip label="Logout" />
             </Link>
             {/* <Notification /> */}

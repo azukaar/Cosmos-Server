@@ -384,7 +384,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		if containerConfig.Env != nil {
 			for i, env := range containerConfig.Env {
 				if strings.HasPrefix(env, "TZ=") {
-					if strings.TrimPrefix(env, "TZ=") == "" {
+					if strings.TrimPrefix(env, "TZ=") == "auto" {
 						if os.Getenv("TZ") != "" {
 							containerConfig.Env[i] = "TZ=" + os.Getenv("TZ")
 						} else {

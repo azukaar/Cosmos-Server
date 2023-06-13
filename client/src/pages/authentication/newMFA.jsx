@@ -35,14 +35,14 @@ import { CosmosCollapse } from '../config/users/formShortcuts';
 
 const MFALoginForm = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/ui';
+  const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
 
   useEffect(() => {
     API.auth.me().then((data) => {
         if(data.status == 'OK') {
             window.location.href = redirectTo;
         } else if(data.status == 'NEW_INSTALL') {
-            window.location.href = '/ui/newInstall';
+            window.location.href = '/cosmos-ui/newInstall';
         }
     });
   });  
@@ -149,7 +149,7 @@ const MFASetup = () => {
         <MFALoginForm />
       </Grid>
       <Grid item xs={12}>
-        <Link to="/ui/logout">
+        <Link to="/cosmos-ui/logout">
           <Typography variant="h5">Logout</Typography>
         </Link>
       </Grid>

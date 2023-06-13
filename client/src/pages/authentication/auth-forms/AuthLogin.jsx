@@ -53,14 +53,14 @@ const AuthLogin = () => {
     const notLogged = urlSearchParams.get('notlogged') == 1;
     const notLoggedAdmin = urlSearchParams.get('notlogged') == 2;
     const invalid = urlSearchParams.get('invalid') == 1;
-    const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/ui';
+    const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
 
     useEffect(() => {
         API.auth.me().then((data) => {
             if(data.status == 'OK') {
                 window.location.href = redirectTo;
             } else if(data.status == 'NEW_INSTALL') {
-                window.location.href = '/ui/newInstall';
+                window.location.href = '/cosmos-ui/newInstall';
             }
         });
 
@@ -190,7 +190,7 @@ const AuthLogin = () => {
                                         }
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
-                                    {showResetPassword && <Link variant="h6" component={RouterLink} to="/ui/forgot-password" color="primary">
+                                    {showResetPassword && <Link variant="h6" component={RouterLink} to="/cosmos-ui/forgot-password" color="primary">
                                         Forgot Your Password?
                                     </Link>}
                                     {!showResetPassword &&  <Typography variant="h6">

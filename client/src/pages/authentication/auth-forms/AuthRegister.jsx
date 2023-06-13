@@ -85,7 +85,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                     }).then((res) => {
                         setStatus({ success: true });
                         setSubmitting(false);
-                        window.location.href = '/ui/login';
+                        window.location.href = '/cosmos-ui/login';
                     }).catch((err) => {
                         setStatus({ success: false });
                         setErrors({ submit: err.message });
