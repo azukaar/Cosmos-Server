@@ -34,8 +34,16 @@ import { CosmosCollapse, CosmosSelect } from '../pages/config/users/formShortcut
   
 
 export const DnsChallengeComp = ({ name, configName, style, multiline, type, placeholder, onChange, label, formik }) => {
-    const [dnsSetConfig, setDnsSetConfig] = useState({});
-
+    const filterVars = (obj) => {
+      const newObj = {};
+      Object.keys(obj).forEach((key) => {
+        if (obj[key] !== '' && dnsConfig[formik.values[name]].vars.includes(key)) {
+          newObj[key] = obj[key];
+        }
+      });
+      return newObj;
+    };
+  
     return <><CosmosSelect
       name={name}
       label={label}
@@ -69,7 +77,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
                     ...formik.values[configName],
                     [dnsVar]: ar[0].target.value
                   };
-                  formik.setFieldValue(configName, newConfig);
+                  formik.setFieldValue(configName, filterVars(newConfig));
                 }}
                 placeholder={"leave blank if unused"}
                 fullWidth
