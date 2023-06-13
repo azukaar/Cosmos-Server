@@ -313,7 +313,7 @@ func StartServer() {
 
 	// temporary message to help people migrate version. DELETE IN NEXT VERSION
 	router.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Please empty your browser's cache and reload the page. You are seeing this message because the UI was moved from /ui to /cosmos-ui, in order to fix compatibility with apps like OpenSense who also use /ui. The issue is that your browser still has the old UI URL cached. This message will disappear in the next version of Cosmos, to solve the compatibility issue. Sorry for the inconvenience."))
+		w.Write([]byte("You are seeing this message because the UI was moved from /ui to /cosmos-ui, in order to fix compatibility with apps like OpenSense who also use /ui. The issue is that your browser still has the old UI URL cached. Please empty your browser's cache and reload the page. Also, make sure you don't have a bookmark with the /ui in the URL. This message will disappear in the next version of Cosmos, to solve the compatibility issue. Sorry for the inconvenience."))
 	})
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
