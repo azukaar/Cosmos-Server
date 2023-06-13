@@ -216,7 +216,7 @@ const MarketPage = () => {
             size={100} 
           />
         </Box>}
-        {showcase && showcase.length && <Showcases showcase={showcase} isDark={isDark}/>}
+        {showcase && showcase.length > 0 && <Showcases showcase={showcase} isDark={isDark}/>}
       </Stack>
 
       <Stack spacing={1} style={{
@@ -241,6 +241,7 @@ const MarketPage = () => {
           />
         </Box>}
 
+        <h2>Applications</h2>
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
           {apps[Object.keys(apps)[0]].map((app) => {
             return <Grid2 style={{

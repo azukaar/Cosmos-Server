@@ -80,10 +80,6 @@ var DefaultConfig = Config{
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{
-			MarketSource{
-				Url: "https://cosmos-cloud.io/repository",
-				Name: "Cosmos Cloud",
-			},
 		},
 	},
 }
@@ -172,16 +168,6 @@ func ReadConfigFromFile() Config {
 		m1 := regexp.MustCompile(`json: cannot unmarshal ([A-Za-z\.]+) into Go struct field ([A-Za-z\.]+) of type ([A-Za-z\.]+)`)
 		errString = m1.ReplaceAllString(errString, "Invalid JSON in config file.\n > Field $2 is wrong.\n > Type is $1 Should be $3")
 		Fatal("Reading Config File: " + errString, err)
-	}
-
-	// check if outdated
-	if len(config.MarketConfig.Sources) == 0 {
-		config.MarketConfig.Sources = []MarketSource{
-			MarketSource{
-				Url: "https://cosmos-cloud.io/repository",
-				Name: "Cosmos Cloud",
-			},
-		}
 	}
 
 	return config

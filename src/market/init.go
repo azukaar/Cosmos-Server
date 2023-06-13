@@ -7,8 +7,16 @@ import (
 func Init() {
 	config := utils.GetMainConfig()
 	currentMarketcache = []marketCacheObject{}
+	sources := config.MarketConfig.Sources
 
-	for _, marketDef := range config.MarketConfig.Sources {
+	// prepend the default market
+	defaultMarket := utils.MarketSource{
+		Url: "https://cosmos-cloud.io/repository",
+		Name: "cosmos-cloud",
+	}
+	sources = append([]utils.MarketSource{defaultMarket}, sources...)
+
+	for _, marketDef := range sources {
 		market := marketCacheObject{
 			Url: marketDef.Url,
 			Name: marketDef.Name,
