@@ -148,24 +148,24 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                       <Grid container key={idx}>
                         <Grid item xs={4} style={{ padding }}>
                           <TextField
-                            label="Container Port"
-                            fullWidth
-                            value={port.port}
-                            onChange={(e) => {
-                              const newports = [...formik.values.ports];
-                              newports[idx].port = e.target.value;
-                              formik.setFieldValue('ports', newports);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={4} style={{ padding }}>
-                          <TextField
                             fullWidth
                             label="Host port"
                             value={'' + port.hostPort}
                             onChange={(e) => {
                               const newports = [...formik.values.ports];
                               newports[idx].hostPort = e.target.value;
+                              formik.setFieldValue('ports', newports);
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={4} style={{ padding }}>
+                          <TextField
+                            label="Container Port"
+                            fullWidth
+                            value={port.port}
+                            onChange={(e) => {
+                              const newports = [...formik.values.ports];
+                              newports[idx].port = e.target.value;
                               formik.setFieldValue('ports', newports);
                             }}
                           />

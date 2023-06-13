@@ -183,7 +183,7 @@ const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls 
                       : <CosmosInputText
                         name="Target"
                         label={formik.values.Mode == "PROXY" ? "Target URL" : "Target Folder Path"}
-                        placeholder={formik.values.Mode == "PROXY" ? "localhost:8080" : "/path/to/my/app"}
+                        placeholder={formik.values.Mode == "PROXY" ? "http://localhost:8080" : "/path/to/my/app"}
                         formik={formik}
                       />
                   }

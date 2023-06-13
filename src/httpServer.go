@@ -57,6 +57,13 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	var certReloader *simplecert.CertReloader 
 	var errSimCert error
 	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+		if(config.HTTPConfig.DNSChallengeProvider != "") {
+			newEnv := config.HTTPConfig.DNSChallengeConfig
+			for key, value := range newEnv {
+				os.Setenv(key, value)
+			}
+		}
+
 		certReloader, errSimCert = simplecert.Init(cfg, nil)
 		if errSimCert != nil {
 			  // Temporary before we have a better way to handle this

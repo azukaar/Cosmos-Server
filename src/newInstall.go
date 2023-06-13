@@ -34,6 +34,7 @@ type NewInstallJSON struct {
 	SSLEmail string `json:"sslEmail",validate:"omitempty,email"`
 	UseWildcardCertificate bool `json:"useWildcardCertificate",validate:"omitempty"`
 	DNSChallengeProvider string `json:"dnsChallengeProvider",validate:"omitempty"`
+	DNSChallengeConfig map[string]string
 }
 
 type AdminJSON struct {
@@ -110,6 +111,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			newConfig.HTTPConfig.SSLEmail = request.SSLEmail
 			newConfig.HTTPConfig.UseWildcardCertificate = request.UseWildcardCertificate
 			newConfig.HTTPConfig.DNSChallengeProvider = request.DNSChallengeProvider
+			newConfig.HTTPConfig.DNSChallengeConfig = request.DNSChallengeConfig
 			newConfig.HTTPConfig.TLSCert = request.TLSCert
 			newConfig.HTTPConfig.TLSKey = request.TLSKey
 

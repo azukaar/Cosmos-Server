@@ -26,10 +26,14 @@ import ResponsiveButton from '../../../components/responseiveButton';
 import UploadButtons from '../../../components/fileUpload';
 import NewDockerService from './newService';
 import yaml from 'js-yaml';
-import { CosmosCollapse, CosmosFormDivider, CosmosInputText } from '../../config/users/formShortcuts';
+import { CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText } from '../../config/users/formShortcuts';
 import VolumeContainerSetup from './volumes';
 import DockerContainerSetup from './setup';
 import whiskers from 'whiskers';
+import {version} from '../../../../../package.json';
+import cmp from 'semver-compare';
+import { HostnameChecker } from '../../../utils/routes';
+import { CosmosContainerPicker } from '../../config/users/containerPicker';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -67,8 +71,8 @@ const preStyle = {
   marginRight: '0',
 }
 
-const isNewerVersion = (v1, v2) => {
-  return false;
+const isNewerVersion = (minver) => {
+  return cmp(version, minver) === -1;
 }
 
 const getHostnameFromName = (name) => {
@@ -224,6 +228,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             if (!doc.services[key].container_name) {
               doc.services[key].container_name = key;
             }
+
+            // convert healthcheck
+            if (doc.services[key].healthcheck && typeof doc.services[key].healthcheck.timeout === 'string') {
+              doc.services[key].healthcheck.timeout = parseInt(doc.services[key].healthcheck.timeout);
+            }
           });
         }
 
@@ -293,7 +302,8 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
     try {
       if (installer) {
-        const rendered = whiskers.render(dockerCompose, {
+        console.log(hostnames)
+        const rendered = whiskers.render(dockerCompose.replace(/{StaticServiceName}/ig, serviceName), {
           ServiceName: serviceName,
           Hostnames: hostnames,
           Context: context,
@@ -333,13 +343,34 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
           let newVolumes = [];
 
+          // SET DEFAULT CONTEXT
+          let newContext = {};
+          if (jsoned['cosmos-installer'] && jsoned['cosmos-installer'].form) {
+            jsoned['cosmos-installer'].form.forEach((field) => {
+              [field.name, field['name-container']].forEach((fieldName) => {
+                if(typeof context[fieldName] === "undefined" && typeof field.initialValue !== "undefined") {
+                  newContext[fieldName] = field.initialValue;
+                } else if (typeof context[fieldName] !== "undefined") {
+                  newContext[fieldName] = context[fieldName];
+                }
+              });
+            });
+          }
+          
+          if(JSON.stringify(Object.keys(newContext)) !== JSON.stringify(Object.keys(context)))
+            setContext({...newContext});
+
           Object.keys(jsoned.services).forEach((key) => {
             // APPLY OVERRIDE
             if (overrides[key]) {
               // prevent customizing static volumes
               if (jsoned.services[key].volumes && jsoned['cosmos-installer'] && jsoned['cosmos-installer']['frozen-volumes']) {
-                jsoned['cosmos-installer']['frozen-volumes'].forEach((volume) => {
-                  delete overrides[key].volumes;
+                jsoned['cosmos-installer']['frozen-volumes'].forEach((volumeName) => {
+                  const keyVolume = overrides[key].volumes.findIndex((v) => {
+                    console.log(v)
+                    return v.source === volumeName;
+                  });
+                  delete overrides[key].volumes[keyVolume];
                 });
               }
 
@@ -363,7 +394,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             // CREATE NEW VOLUMES
             if (jsoned.services[key].volumes) {
               jsoned.services[key].volumes.forEach((volume) => {
-                if (typeof volume === 'object' && !volume.existing) {
+                if (typeof volume === 'object' && !volume.source.startsWith('/') && !volume.existing) {
                   newVolumes.push(volume);
                 } else if (typeof volume === 'object' && volume.existing) {
                   delete volume.existing;
@@ -396,6 +427,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     setYmlError(null);
     setOverrides({});
     setHostnames({});
+    setContext({});
     setDockerCompose('');
     setInstaller(installerInit);
     setServiceName(defaultName || 'default-name');
@@ -452,15 +484,61 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               <TextField label="Service Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
 
               {service['cosmos-installer'] && service['cosmos-installer'].form.map((formElement) => {
-                return formElement.type === 'checkbox' ? <FormControlLabel
-                  control={<Checkbox checked={context[formElement.name] || formElement.initialValue} onChange={(e) => {
+                return formElement.type === 'checkbox' ?
+                <FormControlLabel
+                  control={<Checkbox checked={context[formElement.name]} onChange={(e) => {
                     setContext({ ...context, [formElement.name]: e.target.checked });
                   }
                   } />}
                   label={formElement.label}
-                /> : <TextField
+                /> : (formElement.type === 'password' || formElement.type === 'email') ?
+                  <TextField
                   label={formElement.label}
-                  value={context[formElement.name] || formElement.initialValue}
+                  value={context[formElement.name]}
+                  type={formElement.type}
+                  onChange={(e) => {
+                    setContext({ ...context, [formElement.name]: e.target.value });
+                  }
+                  } />
+                : formElement.type === 'hostname' ? 
+                  <>
+                    <TextField
+                      label={formElement.label}
+                      value={context[formElement.name]}
+                      onChange={(e) => {
+                        setContext({ ...context, [formElement.name]: e.target.value });
+                      }
+                      } />
+                    <HostnameChecker hostname={context[formElement.name]} />
+                  </>
+                : formElement.type === 'container' || formElement.type === 'container-full' ? 
+                  <CosmosContainerPicker
+                      name={formElement.name} 
+                      formik={{
+                        values: {
+                          [formElement.name] : context[formElement.name]
+                        },
+                        errors: {},
+                        setFieldValue: (name, value) => {
+                          setContext({ ...context, [formElement.name]: value });
+                        },
+                      }}
+                      nameOnly={formElement.type === 'container'}
+                      label={formElement.label}
+                      onTargetChange={(_, name) => {
+                        console.log(formElement['name-container'], name)
+                        console.log(context)
+                        setContext({ ...context, [formElement['name-container']]: name });
+                      }}
+                  />
+                : formElement.type === 'error' || formElement.type === 'info' || formElement.type === 'warning' ?
+                  <Alert severity={formElement.type}>
+                    {formElement.label}
+                  </Alert>
+                
+                : <TextField
+                  label={formElement.label}
+                  value={context[formElement.name]}
                   onChange={(e) => {
                     setContext({ ...context, [formElement.name]: e.target.value });
                   }
@@ -479,6 +557,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                       hostnames[serviceIndex][hostname.name].host = e.target.value;
                       setHostnames({...hostnames});
                     }} />
+                    <HostnameChecker hostname={hostname.host} />
                   </>
                 })
               })}
@@ -518,7 +597,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                       containerInfo={{
                         HostConfig: {
                           Binds: [],
-                          Mounts: Object.keys(value.volumes).map(k => {
+                          Mounts: value.volumes && Object.keys(value.volumes).map(k => {
                             return {
                               Type: value.volumes[k].type || (k.startsWith('/') ? 'bind' : 'volume'),
                               Source: value.volumes[k].source || "",
@@ -560,14 +639,23 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           </Stack>}
         </DialogContentText>
       </DialogContent>
-      {!isLoading && <DialogActions>
+      {(installerInit && service.minVersion && isNewerVersion(service.minVersion)) ?
+      <Alert severity="error" icon={<WarningOutlined />}>
+        This service requires a newer version of Cosmos. Please update Cosmos to install this service.
+      </Alert>
+      : 
+      (!isLoading && <DialogActions>
         <Button onClick={() => {
           setOpenModal(false);
           setStep(0);
           setDockerCompose('');
           setYmlError('');
           setInstaller(false);
-        }}>Cancel</Button>
+          setServiceName('');
+          setContext({});
+          setHostnames({});
+          setOverrides({});
+        }}>Close</Button>
         <Button disabled={!dockerCompose || ymlError} onClick={() => {
           if (step === 0) {
             setStep(1);
@@ -578,24 +666,20 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           {step === 0 && 'Next'}
           {step === 1 && 'Back'}
         </Button>
-      </DialogActions>}
+      </DialogActions>)}
     </Dialog>
 
-    {(installerInit && service.minVersion && isNewerVersion(service.minVersion)) ?
-      <Alert severity="error" icon={<WarningOutlined />}>
-        This service requires a newer version of Cosmos. Please update Cosmos to install this service.
-      </Alert>
-      : <ResponsiveButton
-        color="primary"
-        onClick={() => {
-          openModalFunc();
-        }}
-        variant={(installerInit ? "contained" : "outlined")}
-        startIcon={(installerInit ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
-      >
-        {installerInit ? 'Install' : 'Import Compose File'}
-      </ResponsiveButton>
-    }
+    <ResponsiveButton
+      color="primary"
+      onClick={() => {
+        openModalFunc();
+      }}
+      variant={(installerInit ? "contained" : "outlined")}
+      startIcon={(installerInit ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
+    >
+      {installerInit ? 'Install' : 'Import Compose File'}
+    </ResponsiveButton>
+    
   </>;
 };
 

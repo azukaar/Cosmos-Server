@@ -30,6 +30,7 @@ import RestartModal from './restart';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect, { countries } from '../../../components/countrySelect';
+import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
 
 
 const ConfigManagement = () => {
@@ -70,6 +71,7 @@ const ConfigManagement = () => {
           UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
           DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
+          DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -103,6 +105,7 @@ const ConfigManagement = () => {
                 UseWildcardCertificate: values.UseWildcardCertificate,
                 HTTPSCertificateMode: values.HTTPSCertificateMode,
                 DNSChallengeProvider: values.DNSChallengeProvider,
+                DNSChallengeConfig: values.DNSChallengeConfig,
               },
               EmailConfig: {
                 ...config.EmailConfig,
@@ -371,6 +374,18 @@ const ConfigManagement = () => {
                     <Alert severity="info">For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.</Alert>
                   </Grid>
 
+                  <Grid item xs={12}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                      <Field
+                        type="checkbox"
+                        name="GenerateMissingAuthCert"
+                        as={FormControlLabel}
+                        control={<Checkbox size="large" />}
+                        label="Generate missing Authentication Certificates automatically (Default: true)"
+                      />
+                    </Stack>
+                  </Grid>
+
                   <CosmosSelect
                     name="HTTPSCertificateMode"
                     label="HTTPS Certificates"
@@ -400,25 +415,14 @@ const ConfigManagement = () => {
                   
                   {
                     formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
-                      <CosmosInputText
+                      <DnsChallengeComp 
+                        label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
                         name="DNSChallengeProvider"
-                        label="DNS provider (if you are using a DNS Challenge)"
+                        configName="DNSChallengeConfig"
                         formik={formik}
                       />
                     )
                   }
-
-                  <Grid item xs={12}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                      <Field
-                        type="checkbox"
-                        name="GenerateMissingAuthCert"
-                        as={FormControlLabel}
-                        control={<Checkbox size="large" />}
-                        label="Generate missing Authentication Certificates automatically (Default: true)"
-                      />
-                    </Stack>
-                  </Grid>
 
                   <Grid item xs={12}>
                     <h4>Authentication Public Key</h4>

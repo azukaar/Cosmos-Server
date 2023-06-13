@@ -151,8 +151,8 @@ const MarketPage = () => {
         height: '100%',
       }}></Link>
 
-      <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
-        <Stack direction="column" spacing={3} style={{ height: '100%' }} sx={{
+      <Stack direction="row" spacing={2} style={{ height: '100%'}} justifyContent="flex-end">
+        <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto"}} sx={{
           backgroundColor: isDark ? '#1A2027' : '#fff',
           padding: '80px 80px',
           width: '100%',
@@ -193,9 +193,7 @@ const MarketPage = () => {
             <div><strong>compose:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>  
 
-          <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }} style={{
-            overflow: 'hidden',
-          }}></div>
+          <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
 
           <div>
           <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />

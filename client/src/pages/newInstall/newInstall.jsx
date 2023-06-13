@@ -20,6 +20,7 @@ import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 import { pull } from 'lodash';
 import { isDomain } from '../../utils/indexs';
+import { DnsChallengeComp } from '../../utils/dns-challenge-comp';
 // ================================|| LOGIN ||================================ //
 
 const debounce = (func, wait) => {
@@ -272,6 +273,7 @@ const NewInstall = () => {
                     HTTPSCertificateMode: "LETSENCRYPT",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
+                    DNSChallengeConfig: {},
                 }}
                 validationSchema={Yup.object().shape({
                         SSLEmail: Yup.string().when('HTTPSCertificateMode', {
@@ -305,6 +307,7 @@ const NewInstall = () => {
                             TLSCert: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSCert : '',
                             Hostname: values.Hostname,
                             DNSChallengeProvider: values.DNSChallengeProvider,
+                            DNSChallengeConfig: values.DNSChallengeConfig,
                         });
                         if(res.status == "OK") {
                             setStatus({ success: true });
@@ -350,10 +353,10 @@ const NewInstall = () => {
                                     Cosmos after this installer. See doc here: <a target="_blank" href="https://go-acme.github.io/lego/dns/">https://go-acme.github.io/lego/dns/</a>
                                 </Alert>
                             )}
-                            <CosmosInputText
-                                label={"DNS Provider (only set if you want to use the DNS challenge)"}
+                            <DnsChallengeComp 
+                                label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
                                 name="DNSChallengeProvider"
-                                placeholder={"provider"}
+                                configName="DNSChallengeConfig"
                                 formik={formik}
                             />
                             </>

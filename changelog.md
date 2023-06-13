@@ -1,3 +1,10 @@
+## Version 0.7.0
+ - Add Cosmos Market
+ - Fix issue with docker compose timeout healthcheck as string, and inverted ports
+
+## Version 0.6.0
+// todo
+
 ## Version 0.6.0
 - OpenID support!
 - Add hostname check when adding new routes to Cosmos

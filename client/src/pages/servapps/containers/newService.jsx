@@ -60,6 +60,8 @@ const NewDockerService = ({service, refresh}) => {
   const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
 
+  const installer = {...service['cosmos-installer']};
+  service = {...service};
   delete service['cosmos-installer'];
 
   React.useEffect(() => {
@@ -99,6 +101,9 @@ const NewDockerService = ({service, refresh}) => {
       >Create</LoadingButton>}
       {isDone && <Stack spacing={1}>
         <Alert severity="success">Service Created!</Alert>
+        {installer && installer['post-install'] && installer['post-install'].map(m =>{
+          return <Alert severity={m.type}>{m.label}</Alert>
+        })}
         {needsRestart && <Alert severity="warning">Cosmos needs to be restarted to apply changes to the URLs</Alert>}
         {needsRestart &&
           <Button

@@ -3,9 +3,14 @@ import demoicons from './icons.demo.json';
 import logogray from '../assets/images/icons/cosmos_gray.png';
 
 import * as Yup from 'yup';
+import { Alert, Grid } from '@mui/material';
+import { debounce, isDomain } from './indexs';
+
+import * as API from '../api';
+import { useEffect, useState } from 'react';
 
 export const sanitizeRoute = (_route) => {
-  let route = {..._route};
+  let route = { ..._route };
 
   if (!route.UseHost) {
     route.Host = "";
@@ -13,14 +18,14 @@ export const sanitizeRoute = (_route) => {
   if (!route.UsePathPrefix) {
     route.PathPrefix = "";
   }
-  
+
   route.Name = route.Name.trim();
 
-  if(!route.SmartShield) {
+  if (!route.SmartShield) {
     route.SmartShield = {};
   }
 
-  if(typeof route._SmartShield_Enabled !== "undefined") {
+  if (typeof route._SmartShield_Enabled !== "undefined") {
     route.SmartShield.Enabled = route._SmartShield_Enabled;
     delete route._SmartShield_Enabled;
   }
@@ -46,13 +51,13 @@ export const getFullOrigin = (route) => {
 const isDemo = import.meta.env.MODE === 'demo';
 
 export const getFaviconURL = (route) => {
-  if(isDemo) {
+  if (isDemo) {
     if (route.Mode == "STATIC")
       return Folder;
     return demoicons[route.Name] || logogray;
   }
 
-  if(!route) {
+  if (!route) {
     return logogray;
   }
 
@@ -60,7 +65,7 @@ export const getFaviconURL = (route) => {
     return '/cosmos/api/favicon?q=' + encodeURIComponent(url)
   }
 
-  if(route.Mode == "SERVAPP" || route.Mode == "PROXY") {
+  if (route.Mode == "SERVAPP" || route.Mode == "PROXY") {
     return addRemote(route.Target)
   } else if (route.Mode == "STATIC") {
     return Folder;
@@ -75,6 +80,9 @@ export const ValidateRouteSchema = Yup.object().shape({
   Target: Yup.string().required('Target is required').when('Mode', {
     is: 'SERVAPP',
     then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
+  }).when('Mode', {
+    is: 'PROXY',
+    then: Yup.string().matches(/^(https?:\/\/)/, 'Invalid Target, must start with http:// or https://'),
   }),
 
   Host: Yup.string().when('UseHost', {
@@ -96,7 +104,7 @@ export const ValidateRouteSchema = Yup.object().shape({
 })
 
 export const ValidateRoute = (routeConfig, config) => {
-  let routeNames= config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name);
+  let routeNames = config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name);
 
   try {
     ValidateRouteSchema.validateSync(routeConfig);
@@ -115,3 +123,35 @@ export const getContainersRoutes = (config, containerName) => {
     return route.Mode == "SERVAPP" && reg.test(route.Target)
   })) || [];
 }
+
+const checkHost = debounce((host, setHostError, setHostIp) => {
+  console.log(host)
+  if (isDomain(host)) {
+    API.getDNS(host).then((data) => {
+      setHostError(null)
+      setHostIp(data.data)
+    }).catch((err) => {
+      setHostError(err.message)
+      setHostIp(null)
+    });
+  } else {
+    setHostError(null);
+    setHostIp(null);
+  }
+}, 500)
+
+export const HostnameChecker = ({hostname}) => {
+  const [hostError, setHostError] = useState(null);
+  const [hostIp, setHostIp] = useState(null);
+
+  useEffect(() => {
+    if (hostname) {
+      checkHost(hostname, setHostError, setHostIp);
+    }
+  }, [hostname]);
+
+  return <>{hostError && <Alert color='error'>{hostError}</Alert>}
+
+    {hostIp && <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, make sure it is your server IP!</Alert>}
+  </>
+};

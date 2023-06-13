@@ -246,6 +246,41 @@ func _debounceNetworkCleanUp() func(string) {
 	}
 }
 
+func CreateLinkNetwork(containerName string, container2Name string) error {
+	// create network
+	networkName := "cosmos-link-" + containerName + "-" + container2Name + "-" + utils.GenerateRandomString(2)
+	_, err := DockerClient.NetworkCreate(DockerContext, networkName, types.NetworkCreate{
+		CheckDuplicate: true,
+		Labels: map[string]string{
+			"cosmos-link": "true",
+			"cosmos-link-name": networkName,
+			"cosmos-link-container1": containerName,
+			"cosmos-link-container2": container2Name,
+		},
+	})
+
+	if err != nil {
+		return err
+	}
+
+	// connect containers to network
+	err = ConnectToNetworkSync(networkName, containerName)
+	if err != nil {
+		return err
+	}
+
+	err = ConnectToNetworkSync(networkName, container2Name)
+	if err != nil {
+		// disconnect first container
+		DockerClient.NetworkDisconnect(DockerContext, networkName, containerName, true)
+		// destroy network
+		DockerClient.NetworkRemove(DockerContext, networkName)
+		return err
+	}
+
+	return nil
+}
+
 var DebouncedNetworkCleanUp = _debounceNetworkCleanUp()
 
 func NetworkCleanUp() {

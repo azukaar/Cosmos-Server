@@ -33,7 +33,7 @@ import defaultport from '../../servapps/defaultport.json';
 
 import * as API  from '../../../api';
 
-export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange}) {
+export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange, label = "Container Name", name = "Target"}) {
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
@@ -42,8 +42,6 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   const [portsOptions, setPortsOptions] = React.useState(null);
   const loading = options === null;
 
-  const name = "Target"
-  const label = "Container Name"
   let targetResult = {
     container: 'null',
     port: "",
@@ -51,6 +49,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   }
 
   let preview = formik.values[name];
+  console.log(name)
 
   if(preview) {
     let protocols = preview.split("://")

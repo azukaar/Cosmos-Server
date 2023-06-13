@@ -37,6 +37,7 @@ type ContainerCreateRequestContainer struct {
 	Volumes     []mount.Mount          `json:"volumes"`
 	Networks    map[string]ContainerCreateRequestServiceNetwork `json:"networks"`
 	Routes 			[]utils.ProxyRouteConfig          `json:"routes"`
+	Links       []string  `json:"links,omitempty"`
 
 	RestartPolicy  string            `json:"restart,omitempty"`
 	Devices        []string          `json:"devices"`
@@ -49,6 +50,8 @@ type ContainerCreateRequestContainer struct {
 	Entrypoint string `json:"entrypoint,omitempty"`
 	WorkingDir string `json:"working_dir,omitempty"`
 	User string `json:"user,omitempty"`
+	UID int `json:"uid,omitempty"`
+	GID int `json:"gid,omitempty"`
 	Hostname string `json:"hostname,omitempty"`
 	Domainname string `json:"domainname,omitempty"`
 	MacAddress string `json:"mac_address,omitempty"`
@@ -66,7 +69,6 @@ type ContainerCreateRequestContainer struct {
 	DNS []string `json:"dns,omitempty"`
 	DNSSearch []string `json:"dns_search,omitempty"`
 	ExtraHosts []string `json:"extra_hosts,omitempty"`
-	Links []string `json:"links,omitempty"`
 	SecurityOpt []string `json:"security_opt,omitempty"`
 	StorageOpt map[string]string `json:"storage_opt,omitempty"`
 	Sysctls map[string]string `json:"sysctls,omitempty"`
@@ -412,8 +414,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		PortBindings := nat.PortMap{}
 
 		for _, port := range container.Ports {
-			portContainer := strings.Split(port, ":")[0]
-			portHost := strings.Split(port, ":")[1]			
+			portHost := strings.Split(port, ":")[0]
+			portContainer := strings.Split(port, ":")[1]
 
 			containerConfig.ExposedPorts[nat.Port(portContainer)] = struct{}{}
 			PortBindings[nat.Port(portContainer)] = []nat.PortBinding{
@@ -445,20 +447,26 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
 					OnLog(fmt.Sprintf("Not found. Creating directory %s for bind mount\n", newSource))
 	
-					err := os.MkdirAll(newSource, 0755)
+					err := os.MkdirAll(newSource, 0750)
 					if err != nil {
 						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
 						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
 						Rollback(rollbackActions, OnLog)
 						return err
 					}
-		
-					if container.User != "" {
+					if container.UID != 0 {
+						// Change the ownership of the directory to the container.UID
+						err = os.Chown(newSource, container.UID, container.GID)
+						if err != nil {
+							utils.Error("CreateService: Unable to change ownership of directory", err)
+							OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
+						}
+					} else if container.User != "" {
 						// Change the ownership of the directory to the container.User
 						userInfo, err := user.Lookup(container.User)
 						if err != nil {
 							utils.Error("CreateService: Unable to lookup user", err)
-							OnLog(fmt.Sprintf("[ERROR] Unable to lookup user " + container.User + "." +err.Error()))
+							OnLog(fmt.Sprintf("[ERROR] Unable to lookup user " + container.User + ". " +err.Error()))
 						} else {
 							uid, _ := strconv.Atoi(userInfo.Uid)
 							gid, _ := strconv.Atoi(userInfo.Gid)
@@ -484,7 +492,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			DNS:         container.DNS,
 			DNSSearch:   container.DNSSearch,
 			ExtraHosts:  container.ExtraHosts,
-			Links:       container.Links,
 			SecurityOpt: container.SecurityOpt,
 			StorageOpt:  container.StorageOpt,
 			Sysctls:     container.Sysctls,
@@ -563,6 +570,26 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Route already exist"))
 				Rollback(rollbackActions, OnLog)
 				return errors.New("Route already exist")
+			}
+		}
+		
+
+		// Create the networks for links
+		for _, targetContainer := range container.Links {
+			if strings.Contains(targetContainer, ":") {
+				err = errors.New("Link network cannot contain ':' please use container name only")
+				utils.Error("CreateService: Rolling back changes because of -- Link network", err)
+				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Link network creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+
+			err = CreateLinkNetwork(container.Name, targetContainer)
+			if err != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Link network", err)
+				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Link network creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
 			}
 		}
 		

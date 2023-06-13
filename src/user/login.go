@@ -32,7 +32,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
-				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+				utils.HTTPError(w, "Database Error", http.StatusInternalServerError, "DB001")
 				return
 		}
 

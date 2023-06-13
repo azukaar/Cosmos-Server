@@ -27,23 +27,11 @@ export function isDomain(hostname) {
   return true;
 }
 
-export function debounce(func, wait, immediate) {
-  var timeout;
-
-  return () => {
-      var context = this, args = arguments;
-
-      var later = () => {
-          timeout = null;
-          if (!immediate) func.apply(context, args);
-      };
-
-      var callNow = immediate && !timeout;
-
+export const debounce = (func, wait) => {
+    let timeout;
+    return function (...args) {
+      const context = this;
       clearTimeout(timeout);
-
-      timeout = setTimeout(later, wait);
-
-      if (callNow) func.apply(context, args);
+      timeout = setTimeout(() => func.apply(context, args), wait);
+    };
   };
-};

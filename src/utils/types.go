@@ -105,6 +105,7 @@ type HTTPConfig struct {
 	SSLEmail string `validate:"omitempty,email"`
 	UseWildcardCertificate bool
 	AcceptAllInsecureHostname bool
+	DNSChallengeConfig map[string]string
 } 
 
 const (
