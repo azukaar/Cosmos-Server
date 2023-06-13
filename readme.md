@@ -38,6 +38,7 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 
 Cosmos is a: 
 
+ * **App Store** 📦📱 To easily install and manage your applications, with simple installers, automatic updates and security checks
  * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
  * **Authentication Server** 👦👩 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Container manager** 🐋🔧 To easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
@@ -57,11 +58,14 @@ Cosmos is a:
  
 And a **lot more planned features** are coming!
 
-![schema](./schema.png)
 
 # What are the differences with other alternatives?
 
-Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc:
+Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc...
+
+<p align="center">
+  <img src="./compare.png" />
+</p>
 
 * **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
 * **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who kows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
@@ -70,6 +74,10 @@ Cosmos has a few key differences with other alternatives such as YunoHost, Unrai
 # What is the SmartShield?
 
 SmartShield is a modern API protection package designed to secure your API by implementing advanced rate-limiting and user restrictions. This helps efficiently allocate and protect your resources without manual adjustment of limits and policies.
+
+<p align="center">
+  <img src="./schema.png" width="70%" />
+</p>
 
 Key Features:
 
