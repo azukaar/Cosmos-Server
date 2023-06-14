@@ -44,8 +44,8 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 			resp, err := http.Get(cachedMarket.Url)
 			if err != nil {
 				utils.Error("MarketUpdate: Error while fetching market" + cachedMarket.Url, err)
-				utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK001")
-				return err
+				// utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK001")
+				continue
 			}
 
 			defer resp.Body.Close()
@@ -56,8 +56,8 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 
 			if err != nil {
 				utils.Error("MarketUpdate: Error while parsing market" + cachedMarket.Url, err)
-				utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK003")
-				return err
+				// utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK003")
+				continue
 			}
 
 			cachedMarket.Results = result

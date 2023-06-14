@@ -92,7 +92,7 @@ const MainRoutes = {
             element: <MarketPage />
         },
         {
-            path: '/cosmos-ui/market-listing/:appName',
+            path: '/cosmos-ui/market-listing/:appStore/:appName',
             element: <MarketPage />
         }
     ]

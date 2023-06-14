@@ -34,6 +34,7 @@ import {version} from '../../../../../package.json';
 import cmp from 'semver-compare';
 import { HostnameChecker } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
+import { randomString } from '../../../utils/indexs';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -307,6 +308,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           ServiceName: serviceName,
           Hostnames: hostnames,
           Context: context,
+          Passwords: [
+            randomString(32),
+            randomString(32),
+            randomString(32)
+          ]
         });
 
         const jsoned = JSON.parse(rendered);

@@ -107,7 +107,7 @@ const MarketPage = () => {
   const [showcase, setShowcase] = useState([]);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { appName } = useParams();
+  const { appName, appStore } = useParams();
 
   const backgroundStyle = isDark ? {
     backgroundColor: 'rgb(0,0,0)',
@@ -127,7 +127,7 @@ const MarketPage = () => {
 
   let openedApp = null;
   if (appName && Object.keys(apps).length > 0) {
-    openedApp = apps[Object.keys(apps)[0]].find((app) => app.name === appName);
+    openedApp = apps[appStore].find((app) => app.name === appName);
   }
 
   return <>
@@ -227,6 +227,7 @@ const MarketPage = () => {
         minHeight: 'calc(65vh - 80px)',
         padding: '24px',
       }}>
+        <h2>Applications</h2>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
           height: '100%',
@@ -241,13 +242,12 @@ const MarketPage = () => {
           />
         </Box>}
 
-        <h2>Applications</h2>
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
-          {apps[Object.keys(apps)[0]].map((app) => {
+          {Object.keys(apps).map(appstore => apps[appstore].map((app) => {
             return <Grid2 style={{
               ...gridAnim,
               cursor: 'pointer',
-            }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + app.name} style={{
+            }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + appstore + "/" + app.name} style={{
               textDecoration: 'none',
             }}>
               <div key={app.name} style={appCardStyle(theme)}>
@@ -271,7 +271,7 @@ const MarketPage = () => {
 
               </Link>
             </Grid2>
-          })}
+          }))}
         </Grid2>}
       </Stack>
     </Stack>
