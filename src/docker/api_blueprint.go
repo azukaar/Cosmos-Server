@@ -448,15 +448,26 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					OnLog(fmt.Sprintf("Not found. Creating directory %s for bind mount\n", newSource))
 	
 					err := os.MkdirAll(newSource, 0750)
+
 					if err != nil {
 						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
 						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
 						Rollback(rollbackActions, OnLog)
 						return err
 					}
+
 					if container.UID != 0 {
 						// Change the ownership of the directory to the container.UID
 						err = os.Chown(newSource, container.UID, container.GID)
+						if err != nil {
+							utils.Error("CreateService: Unable to change ownership of directory", err)
+							OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
+						}
+					} else if container.User != "" && strings.Contains(container.User, ":") { 
+						uidgid := strings.Split(container.User, ":")
+						uid, _ := strconv.Atoi(uidgid[0])
+						gid, _ := strconv.Atoi(uidgid[1])
+						err = os.Chown(newSource, uid, gid)
 						if err != nil {
 							utils.Error("CreateService: Unable to change ownership of directory", err)
 							OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
@@ -530,13 +541,14 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			EndpointsConfig: make(map[string]*network.EndpointSettings),
 		}
 		
-		for netName, netConfig := range container.Networks {
+		// Stupid Docker does not want to connect to multiple networks at once
+		/*for netName, netConfig := range container.Networks {
 				networkingConfig.EndpointsConfig[netName] = &network.EndpointSettings{
 						Aliases:     netConfig.Aliases,
 						IPAddress:   netConfig.IPV4Address,
 						GlobalIPv6Address: netConfig.IPV6Address,
 				}
-		}
+		}*/
 
 		_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
 		
@@ -552,6 +564,22 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Type:   "container",
 			Name:   container.Name,
 		})
+		
+		// connect to networks
+		for netName, netConfig := range container.Networks {
+			err = DockerClient.NetworkConnect(DockerContext, netName, container.Name, &network.EndpointSettings{
+				Aliases:     netConfig.Aliases,
+				IPAddress:   netConfig.IPV4Address,
+				GlobalIPv6Address: netConfig.IPV6Address,
+			})
+			if err != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Network Connection -- ", err)
+				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Network connection error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+		}
+
 
 		// add routes 
 		for _, route := range container.Routes {

@@ -26,7 +26,7 @@ import ResponsiveButton from '../../../components/responseiveButton';
 import UploadButtons from '../../../components/fileUpload';
 import NewDockerService from './newService';
 import yaml from 'js-yaml';
-import { CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText } from '../../config/users/formShortcuts';
+import { CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from '../../config/users/formShortcuts';
 import VolumeContainerSetup from './volumes';
 import DockerContainerSetup from './setup';
 import whiskers from 'whiskers';
@@ -117,8 +117,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
     let isJson = dockerCompose && dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}');
 
-    // if Json 
     if (isJson) {
+      if (dockerCompose.trim().match(/{\n*\s*"cosmos-installer"\s*:\s*{/)) {
+        setInstaller(true);
+        return;
+      }
       try {
         let doc = JSON.parse(dockerCompose);
         if(typeof doc['cosmos-installer'] === 'object') {
@@ -132,7 +135,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     else {
       // if Yml
       let doc;
-      let newService = {};
+
       try {
         doc = yaml.load(dockerCompose);
 
@@ -231,8 +234,22 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             }
 
             // convert healthcheck
-            if (doc.services[key].healthcheck && typeof doc.services[key].healthcheck.timeout === 'string') {
-              doc.services[key].healthcheck.timeout = parseInt(doc.services[key].healthcheck.timeout);
+            if (doc.services[key].healthcheck) {
+              const toConvert = ["timeout", "interval", "start_period"];
+              toConvert.forEach((valT) => {
+                if(typeof doc.services[key].healthcheck[valT] === 'string') {
+                  let original = doc.services[key].healthcheck[valT];
+                  let value = parseInt(original);
+                  if (original.endsWith('m')) {
+                    value = value * 60;
+                  } else if (original.endsWith('h')) {
+                    value = value * 60 * 60;
+                  } else if (original.endsWith('d')) {
+                    value = value * 60 * 60 * 24;
+                  }
+                  doc.services[key].healthcheck[valT] = value;
+                }
+              });
             }
           });
         }
@@ -283,7 +300,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         }
 
       } catch (e) {
-        console.log(e);
         setYmlError(e.message);
         return;
       }
@@ -303,7 +319,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
     try {
       if (installer) {
-        console.log(hostnames)
         const rendered = whiskers.render(dockerCompose.replace(/{StaticServiceName}/ig, serviceName), {
           ServiceName: serviceName,
           Hostnames: hostnames,
@@ -312,7 +327,9 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             randomString(32),
             randomString(32),
             randomString(32)
-          ]
+          ],
+          CPU_ARCH: API.CPU_ARCH,
+          CPU_AVX: API.CPU_AVX,
         });
 
         const jsoned = JSON.parse(rendered);
@@ -373,7 +390,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               if (jsoned.services[key].volumes && jsoned['cosmos-installer'] && jsoned['cosmos-installer']['frozen-volumes']) {
                 jsoned['cosmos-installer']['frozen-volumes'].forEach((volumeName) => {
                   const keyVolume = overrides[key].volumes.findIndex((v) => {
-                    console.log(v)
                     return v.source === volumeName;
                   });
                   delete overrides[key].volumes[keyVolume];
@@ -424,7 +440,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       setYmlError(e.message);
       return;
     }
-  }, [openModal, dockerCompose, serviceName, hostnames, overrides]);
+  }, [openModal, dockerCompose, serviceName, hostnames, overrides, installer]);
 
   const openModalFunc = () => {
     setOpenModal(true);
@@ -489,7 +505,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
               <TextField label="Service Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
 
-              {service['cosmos-installer'] && service['cosmos-installer'].form.map((formElement) => {
+              {service['cosmos-installer'] && service['cosmos-installer'].form && service['cosmos-installer'].form.map((formElement) => {
                 return formElement.type === 'checkbox' ?
                 <FormControlLabel
                   control={<Checkbox checked={context[formElement.name]} onChange={(e) => {
@@ -506,6 +522,24 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     setContext({ ...context, [formElement.name]: e.target.value });
                   }
                   } />
+                :  (formElement.type === 'select') ?
+                    <CosmosSelect
+                    name={formElement.name} 
+                    label={formElement.label}
+                    formik={{
+                      values: {
+                        [formElement.name] : context[formElement.name]
+                      },
+                      touched: {},
+                      errors: {},
+                      setFieldValue: () => {},
+                      handleChange: () => {}
+                    }}
+                    onChange={(e) => {
+                      setContext({ ...context, [formElement.name]: e.target.value });
+                    }}
+                    options={formElement.options}
+                  />
                 : formElement.type === 'hostname' ? 
                   <>
                     <TextField
@@ -532,8 +566,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                       nameOnly={formElement.type === 'container'}
                       label={formElement.label}
                       onTargetChange={(_, name) => {
-                        console.log(formElement['name-container'], name)
-                        console.log(context)
                         setContext({ ...context, [formElement['name-container']]: name });
                       }}
                   />

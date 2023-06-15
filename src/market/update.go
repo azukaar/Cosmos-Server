@@ -18,6 +18,7 @@ type appDefinition struct {
 	Screenshots []string	`json:"screenshots"`
 	Icon string		`json:"icon"`
 	Compose string	`json:"compose"`
+	SupportedArchitectures []string	`json:"supported_architectures"`
 }
 
 type marketDefinition struct {

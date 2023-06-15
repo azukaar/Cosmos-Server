@@ -51,7 +51,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
       onChange={(e) => {
         onChange && onChange(e);
       }}
-      options={dnsList.map((dns) => ([dns,dns]))}
+      options={[["", "DISABLE"], ...(dnsList).map((dns) => ([dns,dns]))]}
     />
 
       <Grid item xs={12}>
@@ -71,7 +71,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
             {dnsVar}:
               <OutlinedInput
                 type={type ? type : 'text'}
-                value={formik.values[configName][dnsVar] || ''}
+                value={formik.values[configName] ? (formik.values[configName][dnsVar] || '') : ''}
                 onChange={(...ar) => {
                   const newConfig = {
                     ...formik.values[configName],

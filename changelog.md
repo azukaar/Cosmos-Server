@@ -1,6 +1,7 @@
 ## Version 0.7.0
  - Add Cosmos Market
- - Fix issue with docker compose timeout healthcheck as string, and inverted ports
+ - Reforged the DNS CHallenge to be more user friendly. You can select your DNS provider in a list, and it will guide you through the process with the right fields to set (directly in the UI). No more env variables to set!
+ - Fix issue with docker compose timeout healthcheck as string, inverted ports, and supports for uid:gid syntax in user
 
 ## Version 0.6.0
 // todo

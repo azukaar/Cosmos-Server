@@ -3,6 +3,8 @@ package main
 import (
 	"net/http"
 	"encoding/json"
+	"runtime"
+	"golang.org/x/sys/cpu"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/azukaar/cosmos-server/src/docker" 
@@ -46,6 +48,8 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"needsRestart": utils.NeedsRestart,
 				"newVersionAvailable": utils.NewVersionAvailable,
 				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,
+				"CPU": runtime.GOARCH,
+				"AVX": cpu.X86.HasAVX,
 			},
 		})
 	} else {

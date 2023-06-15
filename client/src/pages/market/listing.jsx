@@ -13,7 +13,7 @@ import DockerComposeImport from '../servapps/containers/docker-compose';
 
 function Screenshots({ screenshots }) {
   return (
-    <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true">
+    <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
         screenshots.map((item, i) => <img key={i} src={item} width="100%" />)
       }
@@ -23,7 +23,7 @@ function Screenshots({ screenshots }) {
 
 function Showcases({ showcase, isDark }) {
   return (
-    <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true">
+    <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
         showcase.map((item, i) => <ShowcasesItem isDark={isDark} key={i} item={item} />)
       }
@@ -33,7 +33,7 @@ function Showcases({ showcase, isDark }) {
 
 function ShowcasesItem({ isDark, item }) {
   return (
-    <Paper style={{ 
+     <Paper style={{ 
         position: 'relative',
         background: 'url(' + item.screenshots[0] + ')',
         height: '31vh',
@@ -42,7 +42,6 @@ function ShowcasesItem({ isDark, item }) {
         margin: 'auto',
       }}>
       <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
-        {/* <img src={item.screenshots[0]} style={{ height: '100%' }} /> */}
         <Stack direction="column" spacing={2} style={{ height: '100%' }} sx={{
           backgroundColor: isDark ? '#1A2027' : '#fff',
           padding: '20px 100px',
@@ -184,7 +183,11 @@ const MarketPage = () => {
           </Stack>
 
           <div>
-            {openedApp.tags.slice(0, 8).map((tag) => <Chip label={tag} />)}
+            {openedApp.tags && openedApp.tags.slice(0, 8).map((tag) => <Chip label={tag} />)}
+          </div>
+
+          <div>
+            {openedApp.supported_architectures && openedApp.supported_architectures.slice(0, 8).map((tag) => <Chip label={tag} />)}
           </div>
 
           <div>

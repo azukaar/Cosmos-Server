@@ -128,7 +128,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
   </Grid>
 }
 
-export const CosmosSelect = ({ name, label, formik, disabled, options }) => {
+export const CosmosSelect = ({ name, onChange, label, formik, disabled, options }) => {
   return <Grid item xs={12}>
     <Stack spacing={1}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
@@ -140,7 +140,10 @@ export const CosmosSelect = ({ name, label, formik, disabled, options }) => {
         disabled={disabled}
         select
         value={formik.values[name]}
-        onChange={formik.handleChange}
+        onChange={(...ar) => {
+          onChange && onChange(...ar);
+          formik.handleChange(...ar);
+        }}
         error={
           formik.touched[name] &&
           Boolean(formik.errors[name])

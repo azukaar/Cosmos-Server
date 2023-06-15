@@ -13,6 +13,9 @@ import * as marketDemo from './market.demo';
 
 import wrap from './wrap';
 
+export let CPU_ARCH = '';
+export let CPU_AVX = true;
+
 let getStatus = () => {
   return wrap(fetch('/cosmos/api/status', {
     method: 'GET',
@@ -20,6 +23,11 @@ let getStatus = () => {
       'Content-Type': 'application/json'
     }
   }))
+  .then(async (response) => {
+    CPU_ARCH = response.data.CPU;
+    CPU_AVX = response.data.AVX;
+    return response
+  });
 }
 
 let isOnline = () => {
