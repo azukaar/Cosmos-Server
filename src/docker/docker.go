@@ -605,6 +605,9 @@ func SelfRecreate() error {
 		Name: "cosmos-self-updater-agent",
 		Image: "azukaar/docker-self-updater:" + version,
 		RestartPolicy: "no",
+		SecurityOpt: []string{
+			"label:disable",
+		},
 		Environment: []string{
 			"CONTAINER_NAME=" + containerName,
 			"ACTION=recreate",
