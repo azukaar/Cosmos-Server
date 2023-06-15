@@ -69,7 +69,7 @@ function ShowcasesItem({ isDark, item }) {
             <div>
             <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
             </div>
-            <Link to={"/cosmos-ui/market-listing/" + item.name} style={{
+            <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
