@@ -125,7 +125,6 @@ export const getContainersRoutes = (config, containerName) => {
 }
 
 const checkHost = debounce((host, setHostError, setHostIp) => {
-  console.log(host)
   if (isDomain(host)) {
     API.getDNS(host).then((data) => {
       setHostError(null)

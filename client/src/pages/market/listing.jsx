@@ -117,7 +117,6 @@ const MarketPage = () => {
   };
 
   useEffect(() => {
-    console.log(API.market)
     API.market.list().then((res) => {
       setApps(res.data.all);
       setShowcase(res.data.showcase);

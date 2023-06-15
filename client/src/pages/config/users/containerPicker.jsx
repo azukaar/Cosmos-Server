@@ -49,7 +49,6 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   }
 
   let preview = formik.values[name];
-  console.log(name)
 
   if(preview) {
     let protocols = preview.split("://")

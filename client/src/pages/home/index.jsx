@@ -170,9 +170,7 @@ const HomePage = () => {
                 let skip = false;
                 if(route.Mode == "SERVAPP") {
                     const containerName = route.Target.split(':')[1].slice(2);
-                    console.log('try ' + containerName)
                     const container = serveApps.find((c) => c.Names.includes('/' + containerName));
-                    console.log('found ' + container)
                     if(!container || container.State != "running") {
                         skip = true
                     }
