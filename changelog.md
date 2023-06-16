@@ -1,8 +1,9 @@
 ## Version 0.7.0
- - Add Cosmos Market
+ - Add Cosmos App Market!
  - Reforged the DNS CHallenge to be more user friendly. You can select your DNS provider in a list, and it will guide you through the process with the right fields to set (directly in the UI). No more env variables to set!
  - Fix issue with docker compose timeout healthcheck as string, inverted ports, and supports for uid:gid syntax in user
  - Fix for SELinux compatibility
+ - Fix false-negative error message on login screen when SMTP is disabled
 
 ## Version 0.6.1 - 0.6.4
  - Workaround for Docker-compose race condition in Debian

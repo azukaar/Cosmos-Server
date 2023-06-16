@@ -34,12 +34,14 @@ function restart() {
 }
 
 function canSendEmail() {
-  return wrap(fetch('/cosmos/api/can-send-email', {
+  return fetch('/cosmos/api/can-send-email', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     },
-  }))
+  }).then((response) => {
+    return response.json();
+  });
 }
 
 async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<void> {
