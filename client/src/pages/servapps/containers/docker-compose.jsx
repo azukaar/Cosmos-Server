@@ -81,13 +81,14 @@ const getHostnameFromName = (name) => {
 }
 
 const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
+  const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openModal, setOpenModal] = useState(false);
   const [dockerCompose, setDockerCompose] = useState('');
   const [service, setService] = useState({});
   const [ymlError, setYmlError] = useState('');
-  const [serviceName, setServiceName] = useState(defaultName || 'my-service');
+  const [serviceName, setServiceName] = useState(cleanDefaultName || 'my-service');
   const [hostnames, setHostnames] = useState({});
   const [overrides, setOverrides] = useState({});
   const [context, setContext] = useState({});
@@ -452,7 +453,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     setContext({});
     setDockerCompose('');
     setInstaller(installerInit);
-    setServiceName(defaultName || 'default-name');
+    setServiceName(cleanDefaultName || 'default-name');
   }
 
   return <>

@@ -9,6 +9,7 @@ import (
 	"bufio"
 	"strconv"
 	"os"
+	"io/ioutil"
 	"os/user"
 	"errors"
 	"github.com/docker/go-connections/nat"
@@ -77,6 +78,8 @@ type ContainerCreateRequestContainer struct {
 	CapAdd []string `json:"cap_add,omitempty"`
 	CapDrop []string `json:"cap_drop,omitempty"`
 	SysctlsMap map[string]string `json:"sysctls,omitempty"`
+
+	PostInstall []string `json:"post_install,omitempty"`	 
 }
 
 type ContainerCreateRequestVolume struct {
@@ -646,8 +649,71 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		}
 
 		// Write a response to the client
-		utils.Log(fmt.Sprintf("Container %s started", container.Name))
-		OnLog(fmt.Sprintf("Container %s started", container.Name))
+		utils.Log(fmt.Sprintf("Container %s initiated", container.Name))
+		OnLog(fmt.Sprintf("Container %s initiated", container.Name))
+
+		// if post install
+		if len(container.PostInstall) > 0 {
+			utils.Log(fmt.Sprintf("Waiting for container %s to start", container.Name))
+			OnLog(fmt.Sprintf("Waiting for container %s to start", container.Name))
+
+			// wait for container to start
+			for {
+				time.Sleep(1 * time.Second)
+				inspect, _ := DockerClient.ContainerInspect(DockerContext, container.Name)
+				if inspect.State.Running {
+					break
+				}
+			}
+			time.Sleep(1 * time.Second)
+
+			// run post install commands
+			for _, cmd := range container.PostInstall {
+				utils.Log(fmt.Sprintf("Running post install command: %s", cmd))
+				OnLog(fmt.Sprintf("Running post install command: %s", cmd))
+			
+				// setup the execution of command
+				execResponse, err := DockerClient.ContainerExecCreate(DockerContext, container.Name, doctype.ExecConfig{
+					Cmd:          []string{"/bin/sh", "-c", cmd},
+					AttachStdout: true,
+					AttachStderr: true,
+				})
+			
+				if err != nil {
+					utils.Error("CreateService: Post Install", err)
+					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					Rollback(rollbackActions, OnLog)
+					return err
+				}
+			
+				// attach to the exec instance
+				response, err := DockerClient.ContainerExecAttach(DockerContext, execResponse.ID, doctype.ExecStartCheck{})
+				if err != nil {
+					utils.Error("CreateService: Post Install", err)
+					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					Rollback(rollbackActions, OnLog)
+					return err
+				}
+				defer response.Close()
+			
+				// run the command
+				err = DockerClient.ContainerExecStart(DockerContext, execResponse.ID, doctype.ExecStartCheck{})
+				if err != nil {
+					utils.Error("CreateService: Post Install", err)
+					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					Rollback(rollbackActions, OnLog)
+					return err
+				}
+
+				// read the output
+				out, _ := ioutil.ReadAll(response.Reader)
+				OnLog(fmt.Sprintf("----> %s", out))
+			}
+
+			// restart container
+			DockerClient.ContainerRestart(DockerContext, container.Name, conttype.StopOptions{})
+		}
+		
 	}
 	
 	// Save the route configs 
