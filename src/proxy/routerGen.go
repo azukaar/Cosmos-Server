@@ -54,7 +54,7 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 }
 
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
-	origin := router.Methods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD")
+	origin := router.NewRoute()
 
 	if route.UseHost {
 		origin = origin.Host(route.Host)

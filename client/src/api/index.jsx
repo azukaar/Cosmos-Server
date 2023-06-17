@@ -13,7 +13,7 @@ import * as marketDemo from './market.demo';
 
 import wrap from './wrap';
 
-export let CPU_ARCH = '';
+export let CPU_ARCH = 'amd64';
 export let CPU_AVX = true;
 
 let getStatus = () => {
