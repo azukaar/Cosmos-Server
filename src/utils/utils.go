@@ -308,8 +308,8 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	}
 
 	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
-		mainHostnameWild = "*." + mainHostname
-		hostnames := []string{
+		mainHostnameWild := "*." + mainHostname
+		hostnames = []string{
 			mainHostname,
 			mainHostnameWild,
 		}
