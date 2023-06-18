@@ -303,14 +303,17 @@ func RestartServer() {
 
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
-
-	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
-		mainHostname = "*." + mainHostname
-		Log("Using wildcard certificate for " + mainHostname + " and all subdomains.")
-	}
-
 	hostnames := []string{
 		mainHostname,
+	}
+
+	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
+		mainHostnameWild = "*." + mainHostname
+		hostnames := []string{
+			mainHostname,
+			mainHostnameWild,
+		}
+		Log("Using wildcard certificate for " + mainHostname + " and all subdomains.")
 	}
 
 	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
