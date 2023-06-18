@@ -307,15 +307,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		mainHostname,
 	}
 
-	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
-		mainHostnameWild := "*." + mainHostname
-		hostnames = []string{
-			mainHostname,
-			mainHostnameWild,
-		}
-		Log("Using wildcard certificate for " + mainHostname + " and all subdomains.")
-	}
-
 	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
 	for _, proxy := range proxies {
 		if proxy.UseHost && proxy.Host != "" && strings.Contains(proxy.Host, ".") && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
@@ -339,14 +330,16 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 
 	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
 		filteredHostnames := []string{
+			"*." + mainHostname,
 			mainHostname,
 		}
 
 		for _, hostname := range uniqueHostnames {
-			if hostname != mainHostname && !strings.HasSuffix(hostname, mainHostname[1:]) {
+			if hostname != mainHostname && !strings.HasSuffix(hostname, "."+mainHostname) {
 				filteredHostnames = append(filteredHostnames, hostname)
 			}
 		}
+
 		uniqueHostnames = filteredHostnames
 	}
 
