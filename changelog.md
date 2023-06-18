@@ -1,3 +1,8 @@
+## Version 0.7.1 -> 
+ - Fix compat with non-HTTP protocol like WebDAV (for Nextcloud for example)
+ - Fix regression with DNS wildcards certificates
+ - Fix issue with the installer when changing both the labels and the volumes
+
 ## Version 0.7.0
  - Add Cosmos App Market!
  - Reforged the DNS CHallenge to be more user friendly. You can select your DNS provider in a list, and it will guide you through the process with the right fields to set (directly in the UI). No more env variables to set!

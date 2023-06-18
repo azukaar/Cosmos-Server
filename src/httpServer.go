@@ -40,13 +40,14 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 
 	cfg := simplecert.Default
 
-	cfg.Domains = utils.GetAllHostnames(false, false)
+	cfg.Domains = utils.GetAllHostnames(true, false)
 	cfg.CacheDir = "/config/certificates"
 	cfg.SSLEmail = config.HTTPConfig.SSLEmail
 	cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
 	cfg.TLSAddress = "0.0.0.0:"+serverPortHTTPS
 	
 	if config.HTTPConfig.DNSChallengeProvider != "" {
+		utils.Log("Using DNS Challenge with Provider: " + config.HTTPConfig.DNSChallengeProvider)
 		cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
 	}
 

@@ -621,6 +621,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                         setOverrides({
                           ...overrides,
                           [value.container_name]: {
+                            ...overrides[value.container_name],
                             environment: containerInfo.envVars,
                             labels: containerInfo.labels,
                           }
@@ -649,6 +650,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                         setOverrides({
                           ...overrides,
                           [value.container_name]: {
+                            ...overrides[value.container_name],
                             volumes: containerInfo.volumes.map((v, k) => {
                               return {
                                 type: v.Type,
