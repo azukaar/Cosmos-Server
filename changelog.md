@@ -1,4 +1,4 @@
-## Version 0.7.1 -> 0.7.6
+## Version 0.7.1 -> 0.7.7
  - Add more special characters to be used for password validation
  - Add configurable default data path for binds
  - Remove Redirects from home page

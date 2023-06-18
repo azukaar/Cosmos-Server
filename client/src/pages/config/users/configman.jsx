@@ -82,7 +82,7 @@ const ConfigManagement = () => {
           Email_UseTLS : config.EmailConfig.UseTLS,
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
-          DefaultDataPath: config.DockerConfig.DefaultDataPath
+          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr"
         }}
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
@@ -373,6 +373,7 @@ const ConfigManagement = () => {
                     label="Default data path for installs"
                     name="DefaultDataPath"
                     formik={formik}
+                    placeholder={'/usr'}
                   />
                 </Stack>
               </MainCard>
