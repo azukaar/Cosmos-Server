@@ -13,7 +13,7 @@ import (
 
 type RegisterRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
-	Password string `validate:"required,min=9,max=128,containsany=!@#$%^&*()_+,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
+	Password string `validate:"required,min=9,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 	RegisterKey string `validate:"required,min=1,max=512,alphanum"`
 }
 

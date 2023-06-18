@@ -80,6 +80,9 @@ const ConfigManagement = () => {
           Email_Password: config.EmailConfig.Password,
           Email_From: config.EmailConfig.From,
           Email_UseTLS : config.EmailConfig.UseTLS,
+
+          SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
+          DefaultDataPath: config.DockerConfig.DefaultDataPath
         }}
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
@@ -116,6 +119,11 @@ const ConfigManagement = () => {
                 Password: values.Email_Password,
                 From: values.Email_From,
                 UseTLS: values.Email_UseTLS,
+              },
+              DockerConfig: {
+                ...config.DockerConfig,
+                SkipPruneNetwork: values.SkipPruneNetwork,
+                DefaultDataPath: values.DefaultDataPath
               }
             }
             
@@ -352,6 +360,23 @@ const ConfigManagement = () => {
                   </>)}
                 </Stack>
               </MainCard>
+
+              <MainCard title="Docker">
+                <Stack spacing={2}>
+                  <CosmosCheckbox
+                    label="Skip Prune Network"
+                    name="SkipPruneNetwork"
+                    formik={formik}
+                  />
+
+                  <CosmosInputText
+                    label="Default data path for installs"
+                    name="DefaultDataPath"
+                    formik={formik}
+                  />
+                </Stack>
+              </MainCard>
+
 
               <MainCard title="Security">
                   <Grid container spacing={3}>

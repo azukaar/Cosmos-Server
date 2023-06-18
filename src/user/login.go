@@ -14,7 +14,7 @@ import (
 
 type LoginRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
-	Password string `validate:"required,min=8,max=128,containsany=!@#$%^&*()_+,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
+	Password string `validate:"required,min=8,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 }
 
 func UserLogin(w http.ResponseWriter, req *http.Request) {

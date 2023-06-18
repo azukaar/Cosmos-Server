@@ -93,6 +93,17 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   const [overrides, setOverrides] = useState({});
   const [context, setContext] = useState({});
   const [installer, setInstaller] = useState(installerInit);
+  const [config, setConfig] = useState({});
+
+  function refreshConfig() {
+    API.config.get().then((res) => {
+      setConfig(res.data);
+    });
+  }
+
+  React.useEffect(() => {
+    refreshConfig();
+  }, []);
 
   useEffect(() => {
     if (!openModal) {
@@ -325,12 +336,14 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           Hostnames: hostnames,
           Context: context,
           Passwords: [
-            randomString(32),
-            randomString(32),
-            randomString(32)
+            randomString(24),
+            randomString(24),
+            randomString(24),
+            randomString(24)
           ],
           CPU_ARCH: API.CPU_ARCH,
           CPU_AVX: API.CPU_AVX,
+          DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
         });
 
         const jsoned = JSON.parse(rendered);
@@ -441,7 +454,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       setYmlError(e.message);
       return;
     }
-  }, [openModal, dockerCompose, serviceName, hostnames, overrides, installer]);
+  }, [openModal, dockerCompose, serviceName, hostnames, overrides, installer, config]);
 
   const openModalFunc = () => {
     setOpenModal(true);

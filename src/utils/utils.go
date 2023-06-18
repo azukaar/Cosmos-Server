@@ -78,6 +78,9 @@ var DefaultConfig = Config{
 			Routes: []ProxyRouteConfig{},
 		},
 	},
+	DockerConfig: DockerConfig{
+		DefaultDataPath: "/usr",
+	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{
 		},
@@ -216,9 +219,9 @@ func LoadBaseMainConfig(config Config) {
 		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
 	}
 	
-	// if BaseMainConfig.NewInstall {
-	// 	MainConfig.HTTPConfig.HTTPSCertificateMode = "DISABLED"
-	// }
+	if MainConfig.DockerConfig.DefaultDataPath == "" {
+		MainConfig.DockerConfig.DefaultDataPath = "/usr"
+	}
 }
 
 func GetMainConfig() Config {

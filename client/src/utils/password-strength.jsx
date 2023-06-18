@@ -5,7 +5,7 @@ const hasNumber = (number) => new RegExp(/[0-9]/).test(number);
 const hasMixed = (number) => new RegExp(/[a-z]/).test(number) && new RegExp(/[A-Z]/).test(number);
 
 // has special chars
-const hasSpecial = (number) => new RegExp(/[!#@$%^&*)(+=._-]/).test(number);
+const hasSpecial = (number) => new RegExp(/[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\.\?\/]/).test(number);
 
 // set color based on password strength
 export const strengthColor = (count) => {

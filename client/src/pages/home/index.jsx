@@ -167,7 +167,7 @@ const HomePage = () => {
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
             {config && serveApps && routes.map((route) => {
-                let skip = false;
+                let skip = route.Mode == "REDIRECT";
                 if(route.Mode == "SERVAPP") {
                     const containerName = route.Target.split(':')[1].slice(2);
                     const container = serveApps.find((c) => c.Names.includes('/' + containerName));

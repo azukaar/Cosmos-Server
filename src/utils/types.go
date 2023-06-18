@@ -126,6 +126,7 @@ type SmartShieldPolicy struct {
 
 type DockerConfig struct {
 	SkipPruneNetwork bool
+	DefaultDataPath string
 }
 
 type ProxyConfig struct {
