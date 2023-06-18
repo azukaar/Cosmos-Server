@@ -1,4 +1,4 @@
-## Version 0.7.1 -> 0.7.4
+## Version 0.7.1 -> 0.7.5
  - Fix compat with non-HTTP protocol like WebDAV (for Nextcloud for example)
  - Fix regression with DNS wildcards certificates
  - Fix issue with the installer when changing both the labels and the volumes
