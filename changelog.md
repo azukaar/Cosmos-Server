@@ -1,7 +1,8 @@
-## Version 0.7.1 -> 
+## Version 0.7.1 -> 0.7.4
  - Fix compat with non-HTTP protocol like WebDAV (for Nextcloud for example)
  - Fix regression with DNS wildcards certificates
  - Fix issue with the installer when changing both the labels and the volumes
+ - Fix regression where DNS keys don't appear in the config page after being changed
 
 ## Version 0.7.0
  - Add Cosmos App Market!

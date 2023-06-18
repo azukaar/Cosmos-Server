@@ -43,7 +43,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
       });
       return newObj;
     };
-  
+
     return <><CosmosSelect
       name={name}
       label={label}
