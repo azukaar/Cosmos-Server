@@ -71,6 +71,11 @@ Cosmos has a few key differences with other alternatives such as YunoHost, Unrai
 * **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who kows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
 * **Flexible**: Unlike the alternatives, Cosmos is not exclusively focused around its app-store. Instead, it lets you freely install any application any way you want, and manage them from the UI, from Portainer, or from docker directly. Any of those applications will still be integrated into Cosmos and will also benefit from all the security features, Let's Encrypt, etc...
 
+You might also wonder about **cloudflare proxy** and **cloudflare tunnel** when it comes to security. But unlike popular beliefs those are hardly options as:
+
+ * While they protect your remote access to your applications, they leave your origin server completely unprotected. A rogue device / application in your local network would have no troubles taking advantage of it
+ * Those options let **Cloudflare see your entire network unencrypted**. Yes, even if you use HTTPS: Cloudflare proxy de-encrypt your traffic, to re-encrypt it. Meaning that everything that goes through your traffic is plain readable text to Cloudflare. On the other hand, Cosmos is self-hosted so you stay in control of your data.
+
 # What is the SmartShield?
 
 SmartShield is a modern API protection package designed to secure your API by implementing advanced rate-limiting and user restrictions. This helps efficiently allocate and protect your resources without manual adjustment of limits and policies.
