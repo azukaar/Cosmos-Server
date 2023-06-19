@@ -35,8 +35,8 @@ const noOver = {
   height: "50px"
 }
 
-const ServeApps = () => {
-  const [serveApps, setServeApps] = useState([]);
+const ServApps = () => {
+  const [servApps, setServApps] = useState([]);
   const [isUpdating, setIsUpdating] = useState({});
   const [search, setSearch] = useState("");
   const [config, setConfig] = useState(null);
@@ -47,9 +47,9 @@ const ServeApps = () => {
   const [openRestartModal, setOpenRestartModal] = useState(false);
   const [selfName, setSelfName] = useState("");
 
-  const refreshServeApps = () => {
+  const refreshServApps = () => {
     API.docker.list().then((res) => {
-      setServeApps(res.data);
+      setServApps(res.data);
     });
     API.config.get().then((res) => {
       setConfig(res.data);
@@ -67,7 +67,7 @@ const ServeApps = () => {
   }
 
   useEffect(() => {
-    refreshServeApps();
+    refreshServApps();
   }, []);
   
   function updateRoutes(newRoute) {
@@ -123,7 +123,7 @@ const ServeApps = () => {
     <ExposeModal
       openModal={openModal} 
       setOpenModal={setOpenModal}
-      container={serveApps.find((app) => {
+      container={servApps.find((app) => {
         return app.Names[0].replace('/', '') === (openModal && openModal.Names[0].replace('/', ''));
       })}
       config={config}
@@ -148,7 +148,7 @@ const ServeApps = () => {
           }}
         />
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
-          refreshServeApps();
+          refreshServApps();
         }}>Refresh</ResponsiveButton>
         <Link to="/cosmos-ui/servapps/new-service">
           <ResponsiveButton
@@ -156,7 +156,7 @@ const ServeApps = () => {
             startIcon={<AppstoreAddOutlined />}
             >Start ServApp</ResponsiveButton>
         </Link>
-        <DockerComposeImport refresh={refreshServeApps}/>
+        <DockerComposeImport refresh={refreshServApps}/>
       </Stack>
       
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
@@ -165,7 +165,7 @@ const ServeApps = () => {
             <Alert severity="info">Update are available for {Object.keys(updatesAvailable).join(', ')}</Alert>
           </Item>
         </Grid2>}
-        {serveApps && serveApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
+        {servApps && servApps.filter(app => search.length < 2 || app.Names[0].toLowerCase().includes(search.toLowerCase())).map((app) => {
           return <Grid2 style={gridAnim} xs={12} sm={6} md={6} lg={6} xl={4} key={app.Id} item>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
@@ -202,7 +202,7 @@ const ServeApps = () => {
                     image={app.Image}
                     state={app.State}
                     setIsUpdatingId={setIsUpdatingId}
-                    refreshServeApps={refreshServeApps}
+                    refreshServApps={refreshServApps}
                     updateAvailable={updatesAvailable && updatesAvailable[app.Names[0]]}
                   />
                 </Stack>
@@ -247,11 +247,11 @@ const ServeApps = () => {
                         API.docker.secure(name, e.target.checked).then(() => {
                           setTimeout(() => {
                             setIsUpdatingId(name, false);
-                            refreshServeApps();
+                            refreshServApps();
                           }, 3000);
                         }).catch(() => {
                           setIsUpdatingId(name, false);
-                          refreshServeApps();
+                          refreshServApps();
                         })
                       }}
                     /> Force Secure Network <ContainerNetworkWarning container={app} />
@@ -267,11 +267,11 @@ const ServeApps = () => {
                         API.docker.autoUpdate(name, e.target.checked).then(() => {
                           setTimeout(() => {
                             setIsUpdatingId(name, false);
-                            refreshServeApps();
+                            refreshServApps();
                           }, 3000);
                         }).catch(() => {
                           setIsUpdatingId(name, false);
-                          refreshServeApps();
+                          refreshServApps();
                         })
                       }}
                     /> Auto Update Container
@@ -321,4 +321,4 @@ const ServeApps = () => {
   </div>
 }
 
-export default ServeApps;
+export default ServApps;

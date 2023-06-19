@@ -9,7 +9,7 @@ import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../isLoggedIn';
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
-import ServeApps from './servapps';
+import ServApps from './servapps';
 import VolumeManagementList from './volumes';
 import NetworkManagementList from './networks';
 
@@ -20,7 +20,7 @@ const ServappsIndex = () => {
     <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {
           title: 'Containers',
-          children: <ServeApps />,
+          children: <ServApps />,
           path: 'containers'
         },
         {

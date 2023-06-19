@@ -8,7 +8,7 @@ const GetActions = ({
   Id,
   state,
   image,
-  refreshServeApps,
+  refreshServApps,
   setIsUpdatingId,
   updateAvailable
 }) => {
@@ -30,10 +30,10 @@ const GetActions = ({
     setIsUpdatingId(Id, true);
     return API.docker.manageContainer(Id, action).then((res) => {
       setIsUpdating(false);
-      refreshServeApps();
+      refreshServApps();
     }).catch((err) => {
       setIsUpdating(false);
-      refreshServeApps();
+      refreshServApps();
     });
   };
 
@@ -119,7 +119,7 @@ const GetActions = ({
       request={pullRequest}
       title="Updating ServeApp..."
       OnSuccess={() => {
-        refreshServeApps();
+        refreshServApps();
       }}
     />
     

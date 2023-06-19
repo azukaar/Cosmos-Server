@@ -93,7 +93,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 Id={containerInfo.Name}
                 image={Image}
                 state={State.Status}
-                refreshServeApps={() => {
+                refreshServApps={() => {
                   refreshAll()
                 }}
                 setIsUpdatingId={() => {

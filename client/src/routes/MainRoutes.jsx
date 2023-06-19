@@ -6,7 +6,7 @@ import MainLayout from '../layout/MainLayout';
 import UserManagement from '../pages/config/users/usermanagement';
 import ConfigManagement from '../pages/config/users/configman';
 import ProxyManagement from '../pages/config/users/proxyman';
-import ServeAppsIndex from '../pages/servapps/';
+import ServAppsIndex from '../pages/servapps/';
 import { Navigate } from 'react-router';
 import RouteConfigPage from '../pages/config/routeConfigPage';
 import logo from '../assets/images/icons/cosmos.png';
@@ -57,7 +57,7 @@ const MainRoutes = {
         },
         {
             path: '/cosmos-ui/servapps',
-            element: <ServeAppsIndex />
+            element: <ServAppsIndex />
         },
         {
             path: '/cosmos-ui/config-users',

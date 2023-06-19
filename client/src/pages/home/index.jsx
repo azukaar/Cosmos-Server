@@ -73,7 +73,7 @@ export const TransparentHeader = () => {
 
 const HomePage = () => {
     const { routeName } = useParams();
-    const [serveApps, setServeApps] = useState([]);
+    const [servApps, setServApps] = useState([]);
     const [config, setConfig] = useState(null);
     const [coStatus, setCoStatus] = useState(null);
     const [containers, setContainers] = useState(null);
@@ -105,7 +105,7 @@ const HomePage = () => {
 
     const refreshConfig = () => {
         API.docker.list().then((res) => {
-            setServeApps(res.data);
+            setServApps(res.data);
         });
         API.config.get().then((res) => {
             setConfig(res.data);
@@ -166,11 +166,11 @@ const HomePage = () => {
         </Stack>
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
-            {config && serveApps && routes.map((route) => {
+            {config && servApps && routes.map((route) => {
                 let skip = route.Mode == "REDIRECT";
                 if(route.Mode == "SERVAPP") {
                     const containerName = route.Target.split(':')[1].slice(2);
-                    const container = serveApps.find((c) => c.Names.includes('/' + containerName));
+                    const container = servApps.find((c) => c.Names.includes('/' + containerName));
                     if(!container || container.State != "running") {
                         skip = true
                     }

@@ -121,7 +121,6 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			utils.SaveConfigTofile(newConfig)
 			utils.LoadBaseMainConfig(newConfig)
 		} else if (request.Step == "4") {
-			
 			adminObj := AdminJSON{
 				Nickname: request.Nickname,
 				Password: request.Password,

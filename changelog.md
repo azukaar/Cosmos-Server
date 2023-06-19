@@ -1,4 +1,5 @@
-## Version 0.7.1 -> 0.7.7
+## Version 0.7.1 -> 0.7.8
+ - Fix issue where multiple DBs get created at the setup
  - Add more special characters to be used for password validation
  - Add configurable default data path for binds
  - Remove Redirects from home page
