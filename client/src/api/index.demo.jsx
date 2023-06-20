@@ -61,3 +61,13 @@ export const checkHost = (host) => {
     );
   });
 }
+
+export const uploadBackground = (file) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+        "data": ""
+      })}, 100 );
+    });
+  }

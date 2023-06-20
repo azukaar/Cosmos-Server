@@ -22,6 +22,7 @@ import {
   Collapse,
   TextField,
   MenuItem,
+  Skeleton,
   
 } from '@mui/material';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
@@ -31,11 +32,17 @@ import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOut
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect, { countries } from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
+import { values } from 'lodash';
+import UploadButtons from '../../../components/fileUpload';
+import { TwitterPicker
+ } from 'react-color';
+import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
 
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
+  const [uploadingBackground, setUploadingBackground] = React.useState(false);
 
   function refresh() {
     API.config.get().then((res) => {
@@ -82,7 +89,11 @@ const ConfigManagement = () => {
           Email_UseTLS : config.EmailConfig.UseTLS,
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
-          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr"
+          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
+
+          Background: config && config.HomepageConfig && config.HomepageConfig.Background,
+          PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
+          SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         }}
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
@@ -124,7 +135,16 @@ const ConfigManagement = () => {
                 ...config.DockerConfig,
                 SkipPruneNetwork: values.SkipPruneNetwork,
                 DefaultDataPath: values.DefaultDataPath
-              }
+              },
+              HomepageConfig: {
+                ...config.HomepageConfig,
+                Background: values.Background
+              },
+              ThemeConfig: {
+                ...config.ThemeConfig,
+                PrimaryColor: values.PrimaryColor,
+                SecondaryColor: values.SecondaryColor
+              },
             }
             
             API.config.set(toSave).then((data) => {
@@ -153,6 +173,29 @@ const ConfigManagement = () => {
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={3}>
+            <MainCard>
+                {formik.errors.submit && (
+                  <Grid item xs={12}>
+                    <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                  </Grid>
+                )}
+                <Grid item xs={12}>
+                  <AnimateButton>
+                    <Button
+                      disableElevation
+                      disabled={formik.isSubmitting}
+                      fullWidth
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                    >
+                      Save
+                    </Button>
+                  </AnimateButton>
+                </Grid>
+              </MainCard>
+
               <MainCard title="General">
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
@@ -227,6 +270,64 @@ const ConfigManagement = () => {
                           ERROR
                         </MenuItem>
                       </TextField>
+                    </Stack>
+                  </Grid>
+                </Grid>
+              </MainCard>
+              
+              <MainCard title="Appearance">
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                      {!uploadingBackground && formik.values.Background && <img src=
+                        {formik.values.Background} alt="preview seems broken. Please re-upload."
+                        width={285} />}
+                      {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
+                     <Stack spacing={1} direction="row">
+                      <UploadButtons
+                        accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
+                        label="Upload Wallpaper"
+                        OnChange={(e) => {
+                          const file = e.target.files[0];
+                          API.uploadBackground(file).then((data) => {
+                            formik.setFieldValue('Background', "/cosmos/api/background/" + data.data.extension.replace(".", ""));
+                          });
+                        }}
+                      />
+
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          formik.setFieldValue('Background', "");
+                        }}
+                      >
+                        Reset Wallpaper
+                      </Button>
+                    </Stack>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Stack spacing={1}>
+                      <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">Primary Color</InputLabel>
+                      <TwitterPicker
+                        id="PrimaryColor"
+                        color={formik.values.PrimaryColor}
+                        onChange={color => {
+                          let colorRGB = `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                          formik.setFieldValue('PrimaryColor', colorRGB);
+                          SetPrimaryColor(colorRGB);
+                        }}
+                      />
+                    </Stack>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Stack spacing={1}>
+                      <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">Secondary Color</InputLabel>
+                      <TwitterPicker
+                        id="SecondaryColor"
+                        color={formik.values.SecondaryColor}
+                        onChange={color => formik.setFieldValue('SecondaryColor', color.rgb)}
+                      />
                     </Stack>
                   </Grid>
                 </Grid>

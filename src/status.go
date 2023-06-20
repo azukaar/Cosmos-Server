@@ -11,7 +11,9 @@ import (
 )
 
 func StatusRoute(w http.ResponseWriter, req *http.Request) {
-	if !utils.GetMainConfig().NewInstall && (utils.LoggedInOnly(w, req) != nil) {
+	config := utils.GetMainConfig()
+
+	if !config.NewInstall && (utils.LoggedInOnly(w, req) != nil) {
 		return
 	}
 
@@ -20,7 +22,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 
 		databaseStatus := true
 		
-		if(!utils.GetMainConfig().DisableUserManagement) {
+		if(!config.DisableUserManagement) {
 			err := utils.DB()
 			if err != nil {
 				utils.Error("Status: Database error", err)
@@ -40,6 +42,15 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": map[string]interface{}{
+				"homepage": config.HomepageConfig,
+				"theme": config.ThemeConfig,
+				"resources": map[string]interface{}{
+					// "ram": utils.GetRAMUsage(),
+					// "ramFree": utils.GetAvailableRAM(),
+					// "cpu": utils.GetCPUUsage(),
+					// "disk": utils.GetDiskUsage(),
+					// "network": utils.GetNetworkUsage(),
+				},
 				"database": databaseStatus,
 				"docker": docker.DockerIsConnected,
 				"letsencrypt": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && utils.GetMainConfig().HTTPConfig.SSLEmail == "",

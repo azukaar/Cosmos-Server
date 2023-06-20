@@ -16,17 +16,52 @@ import wrap from './wrap';
 export let CPU_ARCH = 'amd64';
 export let CPU_AVX = true;
 
-let getStatus = () => {
+export let HOME_BACKGROUND;
+export let PRIMARY_COLOR;
+export let SECONDARY_COLOR;
+
+export let FIRST_LOAD = false;
+
+let getStatus = (initial) => {
   return wrap(fetch('/cosmos/api/status', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     }
-  }))
+  }), initial)
   .then(async (response) => {
     CPU_ARCH = response.data.CPU;
     CPU_AVX = response.data.AVX;
+    HOME_BACKGROUND = response.data.homepage.Background;
+    PRIMARY_COLOR = response.data.theme.PrimaryColor;
+    SECONDARY_COLOR = response.data.theme.SecondaryColor;
+    FIRST_LOAD = true;
     return response
+  }).catch((response) => {
+    const urlSearch = encodeURIComponent(window.location.search);
+    const redirectTo = (window.location.pathname + urlSearch);
+
+    if(response.status != 'OK') {
+      if( 
+          window.location.href.indexOf('/cosmos-ui/newInstall') == -1 && 
+          window.location.href.indexOf('/cosmos-ui/login') == -1 && 
+          window.location.href.indexOf('/cosmos-ui/loginmfa') == -1 && 
+          window.location.href.indexOf('/cosmos-ui/newmfa') == -1 &&
+          window.location.href.indexOf('/cosmos-ui/register') == -1 &&
+          window.location.href.indexOf('/cosmos-ui/forgot-password') == -1) {
+        if(response.status == 'NEW_INSTALL') {
+            window.location.href = '/cosmos-ui/newInstall';
+        } else if (response.status == 'error' && response.code == "HTTP004") {
+            window.location.href = '/cosmos-ui/login?redirect=' + redirectTo;
+        } else if (response.status == 'error' && response.code == "HTTP006") {
+            window.location.href = '/cosmos-ui/loginmfa?redirect=' + redirectTo;
+        } else if (response.status == 'error' && response.code == "HTTP007") {
+            window.location.href = '/cosmos-ui/newmfa?redirect=' + redirectTo;
+        }
+      } else {
+        return "nothing";
+      }
+    }
   });
 }
 
@@ -157,6 +192,15 @@ let getDNS = (host) => {
   });
 }
 
+let uploadBackground = (file) => {
+  const formData = new FormData();
+  formData.append('background', file);
+  return wrap(fetch('/cosmos/api/background', {
+    method: 'POST',
+    body: formData
+  }));
+};
+
 const isDemo = import.meta.env.MODE === 'demo';
 
 let auth = _auth;
@@ -176,6 +220,7 @@ if(isDemo) {
   isOnline = indexDemo.isOnline;
   checkHost = indexDemo.checkHost;
   getDNS = indexDemo.getDNS;
+  uploadBackground = indexDemo.uploadBackground;
 }
 
 export {
@@ -188,5 +233,6 @@ export {
   newInstall,
   isOnline,
   checkHost,
-  getDNS
+  getDNS,
+  uploadBackground
 };

@@ -176,7 +176,7 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))
 	userRouter.Use(utils.BlockPostWithoutReferer)
 	userRouter.Use(proxy.BotDetectionMiddleware)
-	userRouter.Use(httprate.Limit(60, 1*time.Minute, 
+	userRouter.Use(httprate.Limit(120, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
     httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			utils.Error("Too many requests. Throttling", nil)
@@ -289,6 +289,9 @@ func StartServer() {
 	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
 	
 	srapi.HandleFunc("/api/markets", market.MarketGet)
+
+	srapi.HandleFunc("/api/background", UploadBackground)
+	srapi.HandleFunc("/api/background/{ext}", GetBackground)
 
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {

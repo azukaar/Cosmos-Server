@@ -62,7 +62,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
           <Stack spacing={2}>
           <Alert severity="info">
             Please be careful you are filling the correct values. Check the doc if unsure. Leave blank unused variables. <br />
-            Doc link: <a href={dnsConfig[formik.values[name]].url} target="_blank">{dnsConfig[formik.values[name]].url}</a>
+            Doc link: <a href={dnsConfig[formik.values[name]].url} rel="noopener noreferrer" target="_blank">{dnsConfig[formik.values[name]].url}</a>
           </Alert>
           <div className="raw-table">
             <div dangerouslySetInnerHTML={{__html: dnsConfig[formik.values[name]].docs}}></div>

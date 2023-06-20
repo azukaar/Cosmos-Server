@@ -12,9 +12,12 @@ import (
 	"io/ioutil"
 	"fmt"
 	"sync"
+	"time"
 	"path/filepath"
-
+	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/net"
 )
 
 var ConfigLock sync.Mutex
@@ -448,4 +451,79 @@ func Max(x, y int) int {
 		return y
 	}
 	return x
+}
+
+func GetCPUUsage() ([]float64) {
+	percentages, _ := cpu.Percent(time.Second, false)
+	return percentages
+}
+
+func GetRAMUsage() (uint64) {
+	v, _ := mem.VirtualMemory()
+	return v.Used
+}
+
+type DiskStatus struct {
+	Path       string
+	TotalBytes uint64
+	UsedBytes  uint64
+}
+
+func GetDiskUsage() []DiskStatus {
+	partitions, err := disk.Partitions(false)
+	if err != nil {
+		Error("Error getting disk partitions", err)
+		return nil
+	}
+
+	var diskStatuses []DiskStatus
+
+	for _, partition := range partitions {
+		usageStat, err := disk.Usage(partition.Mountpoint)
+		if err != nil {
+			Error("Error getting disk usage", err)
+			return nil
+		}
+		diskStatus := DiskStatus{
+			Path:       partition.Mountpoint,
+			TotalBytes: usageStat.Total,
+			UsedBytes:  usageStat.Used,
+		}
+		diskStatuses = append(diskStatuses, diskStatus)
+	}
+
+	return diskStatuses
+}
+
+type NetworkStatus struct {
+	BytesSent uint64
+	BytesRecv  uint64
+}
+
+func GetNetworkUsage() NetworkStatus {
+	initialStat, err := net.IOCounters(true)
+	if err != nil {
+		Error("Error getting network usage", err)
+		return NetworkStatus{}
+	}
+
+	time.Sleep(1 * time.Second)
+
+	finalStat, err := net.IOCounters(true)
+	if err != nil {
+		Error("Error getting network usage", err)
+		return NetworkStatus{}
+	}
+
+	res := NetworkStatus{
+		BytesSent: 0,
+		BytesRecv: 0,
+	}
+	
+	for i := range initialStat {
+		res.BytesSent += finalStat[i].BytesSent - initialStat[i].BytesSent
+		res.BytesRecv += finalStat[i].BytesRecv - initialStat[i].BytesRecv
+	}
+
+	return NetworkStatus{}
 }

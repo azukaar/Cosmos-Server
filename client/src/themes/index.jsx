@@ -13,11 +13,10 @@ import componentsOverride from './overrides';
 
 // ==============================|| DEFAULT THEME - MAIN  ||============================== //
 
-export default function ThemeCustomization({ children }) {
+export default function ThemeCustomization({ children, PrimaryColor, SecondaryColor }) {
     const theme = Palette(
         window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ?
-             'dark' : 'light');
-
+             'dark' : 'light', PrimaryColor, SecondaryColor);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const themeTypography = Typography(`'Public Sans', sans-serif`);

@@ -7,9 +7,11 @@ import { presetPalettes } from '@ant-design/colors';
 // project import
 import ThemeOption from './theme';
 
+import * as API from '../api';
+
 // ==============================|| DEFAULT THEME - PALETTE  ||============================== //
 
-const Palette = (mode) => {
+const Palette = (mode, PrimaryColor, SecondaryColor) => {
     const colors = presetPalettes;
 
     const greyPrimary = [
@@ -31,6 +33,13 @@ const Palette = (mode) => {
     colors.grey = [...greyPrimary, ...greyAscent, ...greyConstant];
 
     const paletteColor = ThemeOption(colors, mode === 'dark');
+
+    if(PrimaryColor) {
+        paletteColor.primary.main = PrimaryColor;
+    }
+    if(SecondaryColor) {
+        paletteColor.secondary.main = SecondaryColor;
+    }
 
     return createTheme(mode === 'dark' ? {
         palette: {

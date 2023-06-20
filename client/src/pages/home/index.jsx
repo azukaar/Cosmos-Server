@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
 import Back from "../../components/back";
-import { Alert, Box, CircularProgress, Grid, Stack, useTheme } from "@mui/material";
+import { Alert, Box, CircularProgress, Grid, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
 import wallpaper from '../../assets/images/wallpaper2.jpg';
@@ -10,19 +10,23 @@ import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
 import IsLoggedIn from "../../isLoggedIn";
+import { ServAppIcon } from "../../utils/servapp-icon";
+import Chart from 'react-apexcharts';
 
 
 export const HomeBackground = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const customPaper = API.HOME_BACKGROUND;
     return (
-        <Box sx={{ position: 'fixed', float: 'left', overflow: 'hidden', zIndex: 0, top: 0, left: 0, right: 0, bottom: 0,
+        <Box sx={{
+            position: 'fixed', float: 'left', overflow: 'hidden', zIndex: 0, top: 0, left: 0, right: 0, bottom: 0,
             // gradient
             // backgroundImage: isDark ? 
             //     `linear-gradient(#371d53, #26143a)` : 
             //     `linear-gradient(#e6d3fb, #c8b0e2)`,
         }}>
-            <img src={isDark ? wallpaper : wallpaperLight } style={{ display: 'inline' }} alt="" draggable="false" width="100%" height="100%" />
+            <img src={customPaper ? customPaper : (isDark ? wallpaper : wallpaperLight)} style={{ display: 'inline' }} alt="" draggable="false" width="100%" height="100%" />
         </Box>
     );
 };
@@ -31,15 +35,16 @@ export const TransparentHeader = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
 
-    const backColor =  isDark ? '0,0,0' : '255,255,255';
-    const textColor =  isDark ? 'white' : 'dark';
+    const backColor = isDark ? '0,0,0' : '255,255,255';
+    const textColor = isDark ? 'white' : 'dark';
 
     return <style>
         {`header {
-        background: rgba(${backColor},0.35) !important;
-        border-bottom-color: rgba(${backColor},0.4) !important;
+        background: rgba(${backColor}, 0.40) !important;
+        border-bottom-color: rgba(${backColor},0.45) !important;
         color: ${textColor} !important;
         font-weight: bold;
+        backdrop-filter: blur(15px);
     }
 
     header .MuiChip-label  {
@@ -52,18 +57,20 @@ export const TransparentHeader = () => {
     }
 
     .app {
+        backdrop-filter: blur(15px);
         transition: background 0.1s ease-in-out;
         transition: transform 0.1s ease-in-out;
     }
     
-    .app:hover {
+    .app-hover:hover {
         cursor: pointer;
         background: rgba(${backColor},0.8) !important;
         transform: scale(1.05);
     }
 
     .MuiAlert-standard {
-        background: rgba(${backColor},0.35) !important;
+        backdrop-filter: blur(15px);
+        background: rgba(${backColor},0.40) !important;
         color: ${textColor} !important;
         font-weight: bold;
     }
@@ -79,6 +86,7 @@ const HomePage = () => {
     const [containers, setContainers] = useState(null);
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const isMd = useMediaQuery(theme.breakpoints.up('md'));
 
     const blockStyle = {
         margin: 0,
@@ -88,12 +96,12 @@ const HomePage = () => {
         verticalAlign: 'middle',
     }
 
-    const appColor =  isDark ? {
-        color: 'white', 
-        background: 'rgba(0,0,0,0.35)',
+    const appColor = isDark ? {
+        color: 'white',
+        background: 'rgba(0,0,0,0.40)',
     } : {
         color: 'black',
-        background: 'rgba(255,255,255,0.35)',
+        background: 'rgba(255,255,255,0.40)',
     }
 
 
@@ -112,17 +120,97 @@ const HomePage = () => {
         });
     };
 
+
     let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
     useEffect(() => {
         refreshConfig();
         refreshStatus();
+
+        // const interval = setInterval(() => {
+        //     refreshStatus();
+        // }, 5000);
+
+        // return () => clearInterval(interval);
     }, []);
+
+    const optionsRadial = {
+        plotOptions: {
+            radialBar: {
+                startAngle: -135,
+                endAngle: 225,
+                hollow: {
+                    margin: 0,
+                    size: "70%",
+                    background: "#fff",
+                    image: undefined,
+                    imageOffsetX: 0,
+                    imageOffsetY: 0,
+                    position: "front",
+                    dropShadow: {
+                        enabled: true,
+                        top: 3,
+                        left: 0,
+                        blur: 4,
+                        opacity: 0.24
+                    }
+                },
+
+                track: {
+                    background: "#fff",
+                    strokeWidth: "67%",
+                    margin: 0, // margin is in pixels
+                    dropShadow: {
+                        enabled: true,
+                        top: -3,
+                        left: 0,
+                        blur: 4,
+                        opacity: 0.35
+                    }
+                },
+
+                dataLabels: {
+                    showOn: "always",
+                    name: {
+                        show: false,
+                        color: "#888",
+                        fontSize: "13px"
+                    },
+                    value: {
+                        formatter: function (val) {
+                            return val + "%";
+                        },
+                        color: "#111",
+                        offsetY: 9,
+                        fontSize: "24px",
+                        show: true
+                    }
+                }
+            }
+        },
+        fill: {
+            type: "gradient",
+            gradient: {
+                shade: "dark",
+                type: "horizontal",
+                shadeIntensity: 0.5,
+                gradientToColors: ["#ABE5A1"],
+                inverseColors: true,
+                opacityFrom: 1,
+                opacityTo: 1,
+                stops: [0, 100]
+            }
+        },
+        stroke: {
+            lineCap: "round"
+        },
+        labels: []
+    };
 
 
     return <Stack spacing={2} >
         <IsLoggedIn />
-        <HomeBackground />
+        <HomeBackground status={coStatus} />
         <TransparentHeader />
         <Stack style={{ zIndex: 2 }} spacing={1}>
             {coStatus && !coStatus.database && (
@@ -166,25 +254,93 @@ const HomePage = () => {
         </Stack>
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
+            {/* {(!isMd || !coStatus || !coStatus.resources || !coStatus.resources.cpu ) && (<>
+                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'000'}>
+                    <Box className='app' style={{ padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
+                        <Stack style={{flexGrow: 1}} spacing={0}>
+                            <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                            <div>--</div>
+                            <div>--</div>
+                        </Stack>
+                    </Box>
+                </Grid2>
+                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'001'}>
+                <Box className='app' style={{  padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
+                        <Stack style={{flexGrow: 1}} spacing={0}>
+                        <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
+                            <div>Available: --GB</div>
+                            <div>Used: --GB</div>
+                        </Stack>
+                    </Box>
+                </Grid2>
+            </>)}
+
+            {isMd && coStatus && coStatus.resources.cpu && (<>
+                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'000'}>
+                    <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
+                    <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                        <div style={{width: '110px', height: '97px'}}>
+                            <Chart
+                                options={optionsRadial}
+                                series={[parseInt(coStatus.resources.cpu)]}
+                                type="radialBar"
+                                height={120}
+                                width={120}
+                            />
+                        </div>
+                        <Stack style={{flexGrow: 1}} spacing={0}>
+                            <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                            <div>{coStatus.CPU}</div>
+                            <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
+                        </Stack>
+                    </Stack>
+                    </Box>
+                </Grid2>
+                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'001'}>
+                    <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                    <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                        <div style={{width: '110px', height: '97px'}}>
+                            <Chart
+                                options={optionsRadial}
+                                series={[parseInt(
+                                    coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
+                                )]}
+                                type="radialBar"
+                                height={120}
+                                width={120}
+                            />
+                        </div>
+                        <Stack style={{flexGrow: 1}} spacing={0}>
+                            <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
+                            <div>Available: {Math.ceil((coStatus.resources.ram + coStatus.resources.ramFree) / 1024 / 1024 / 1024)}GB</div>
+                            <div>Used: {Math.ceil(coStatus.resources.ram / 1024 / 1024 / 1024)}GB</div>
+                        </Stack>
+                    </Stack>
+                    </Box>
+                </Grid2>
+            
+            </>)} */}
+            
             {config && servApps && routes.map((route) => {
                 let skip = route.Mode == "REDIRECT";
-                if(route.Mode == "SERVAPP") {
-                    const containerName = route.Target.split(':')[1].slice(2);
-                    const container = servApps.find((c) => c.Names.includes('/' + containerName));
-                    if(!container || container.State != "running") {
+                let containerName;
+                let container;
+                if (route.Mode == "SERVAPP") {
+                    containerName = route.Target.split(':')[1].slice(2);
+                    container = servApps.find((c) => c.Names.includes('/' + containerName));
+                    if (!container || container.State != "running") {
                         skip = true
                     }
                 }
-                return !skip && <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={2} key={route.Name}>
-                    <Box className='app' style={{ padding: 10,  borderRadius: 5, ...appColor }}>
+                return !skip && <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
+                    <Box className='app app-hover' style={{ padding: 18, borderRadius: 5, ...appColor }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <img className="loading-image" alt="" src={getFaviconURL(route)} width="64px" height="64px"/>
-
-                                <div style={{minWidth: 0 }}>
+                                <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
+                                <div style={{ minWidth: 0 }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                     <p style={blockStyle}>{route.Description}</p>
-                                    <p style={{...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45'}}>{route.Target}</p>
+                                    <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
                                 </div>
                             </Stack>
                         </Link>

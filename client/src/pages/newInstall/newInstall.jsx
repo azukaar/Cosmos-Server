@@ -89,6 +89,8 @@ const NewInstall = () => {
             component: <div>
                 First of all, thanks a lot for trying out Cosmos! And Welcome to the setup wizard.
                 This wizard will guide you through the setup of Cosmos. It will take about 2-3 minutes and you will be ready to go.
+                <br /><br />
+                <a target='_blank' rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/2%20setup">📄 Don't hesitate to rely on the documentation to guide you!</a>
             </div>,
             nextButtonLabel: () => {
                 return 'Start';
@@ -100,16 +102,15 @@ const NewInstall = () => {
                 <div>
                     <QuestionCircleOutlined /> Cosmos is using docker to run applications. It is optional, but Cosmos will run in reverse-proxy-only mode if it cannot connect to Docker.
                 </div>
-                {(status && status.docker) ? 
-                    <Alert severity="success">
-                        Docker is installed and running.
-                    </Alert> :
-                    <Alert severity="error">
-                        Docker is not connected! Please check your docker connection.<br/>
-                        Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
-                        if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
-                    </Alert>
-                }
+                {status && (status.docker ? 
+                <Alert severity="success">
+                    Docker is installed and running.
+                </Alert> :
+                <Alert severity="error">
+                    Docker is not connected! Please check your docker connection.<br/>
+                    Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
+                    if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
+                </Alert>)}
                 {(status && status.docker) ? (
                     <div>
                         <center>
@@ -350,7 +351,7 @@ const NewInstall = () => {
                                 <Alert severity="info">
                                     You have enabled the DNS challenge. Make sure you have set the environment variables for your DNS provider.
                                     You can enable it now, but make sure you have set up your API tokens accordingly before attempting to access 
-                                    Cosmos after this installer. See doc here: <a target="_blank" href="https://go-acme.github.io/lego/dns/">https://go-acme.github.io/lego/dns/</a>
+                                    Cosmos after this installer. See doc here: <a target="_blank" rel="noopener noreferrer" href="https://go-acme.github.io/lego/dns/">https://go-acme.github.io/lego/dns/</a>
                                 </Alert>
                             )}
                             <DnsChallengeComp 
@@ -536,7 +537,7 @@ const NewInstall = () => {
                 Well done! You have successfully installed Cosmos. You can now login to your server using the admin account you created.
                 If you have changed the hostname, don't forget to use that URL to access your server after the restart.
                 If you have are running into issues, check the logs for any error messages and edit the file in the /config folder. 
-                If you still don't manage, please join our <a target="_blank" href="https://discord.gg/PwMWwsrwHA">Discord server</a> and we'll be happy to help!
+                If you still don't manage, please join our <a target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwMWwsrwHA">Discord server</a> and we'll be happy to help!
             </div>,
             nextButtonLabel: () => {
                 return 'Apply and Restart';

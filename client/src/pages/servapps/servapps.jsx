@@ -19,6 +19,7 @@ import GetActions from './actionBar';
 import ResponsiveButton from '../../components/responseiveButton';
 import DockerComposeImport from './containers/docker-compose';
 import { ContainerNetworkWarning } from '../../components/containers';
+import { ServAppIcon } from '../../utils/servapp-icon';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -108,6 +109,13 @@ const ServApps = () => {
     }
   }
 
+  const getFirstRoute = (app) => {
+    let routes = getContainersRoutes(config, app.Names[0].replace('/', ''));
+    if(routes.length > 0) {
+      return routes[0];
+    }
+  }
+
   const getFirstRouteFavIcon = (app) => {
     let routes = getContainersRoutes(config, app.Names[0].replace('/', ''));
     if(routes.length > 0) {
@@ -185,7 +193,7 @@ const ServApps = () => {
                     }
                   </Typography>
                   <Stack direction="row" spacing={2} alignItems="center">
-                    <img className="loading-image" alt="" src={getFirstRouteFavIcon(app)} width="40px" />
+                    <ServAppIcon container={app} route={getFirstRoute(app)} className="loading-image" width="40px"/>
                     <Stack direction="column" spacing={0} alignItems="flex-start" style={{height: '40px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'no-wrap'}}>
                       <Typography  variant="h5" color="text.secondary">
                       {app.Names[0].replace('/', '')}&nbsp; 

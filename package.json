@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.7.10",
+  "version": "0.8.0-unstable",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -34,6 +34,7 @@
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.0",
+    "react-color": "^2.19.3",
     "react-copy-to-clipboard": "^5.1.0",
     "react-device-detect": "^2.2.2",
     "react-dom": "^18.2.0",

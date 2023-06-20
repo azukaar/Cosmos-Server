@@ -87,6 +87,18 @@ type Config struct {
 	AutoUpdate bool
 	OpenIDClients []OpenIDClient
 	MarketConfig MarketConfig
+	HomepageConfig HomepageConfig
+	ThemeConfig ThemeConfig
+}
+
+type HomepageConfig struct {
+	Background string
+	Widgets []string
+}
+
+type ThemeConfig struct {
+	PrimaryColor string
+	SecondaryColor string
 }
 
 type HTTPConfig struct {

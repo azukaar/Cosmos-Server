@@ -1,3 +1,7 @@
+## Version 0.8.0
+ - Stop showing Docker not connected when first loading status
+ - Add privacy settings to external links
+
 ## Version 0.7.1 -> 0.7.10
  - Fix issue where multiple DBs get created at the setup
  - Add more special characters to be used for password validation
