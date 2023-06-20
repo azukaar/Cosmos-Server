@@ -117,7 +117,7 @@ const GetActions = ({
   return <>
     <LogsInModal
       request={pullRequest}
-      title="Updating ServeApp..."
+      title="Updating ServApp..."
       OnSuccess={() => {
         refreshServApps();
       }}

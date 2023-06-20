@@ -1,4 +1,4 @@
-## Version 0.7.1 -> 0.7.9
+## Version 0.7.1 -> 0.7.10
  - Fix issue where multiple DBs get created at the setup
  - Add more special characters to be used for password validation
  - Add configurable default data path for binds
@@ -7,6 +7,7 @@
  - Fix regression with DNS wildcards certificates
  - Fix issue with the installer when changing both the labels and the volumes
  - Fix regression where DNS keys don't appear in the config page after being changed
+ - Fix typo on "updating ServApp" message
 
 ## Version 0.7.0
  - Add Cosmos App Market!
