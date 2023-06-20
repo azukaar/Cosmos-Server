@@ -287,9 +287,11 @@ const ConfigManagement = () => {
                         accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
                         label="Upload Wallpaper"
                         OnChange={(e) => {
+                          setUploadingBackground(true);
                           const file = e.target.files[0];
                           API.uploadBackground(file).then((data) => {
                             formik.setFieldValue('Background', "/cosmos/api/background/" + data.data.extension.replace(".", ""));
+                            setUploadingBackground(false);
                           });
                         }}
                       />

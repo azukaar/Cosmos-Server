@@ -1,4 +1,5 @@
 ## Version 0.8.0
+ - Custmizable homepage / theme colors
  - Stop showing Docker not connected when first loading status
  - Add privacy settings to external links
 
