@@ -19,11 +19,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool) (*httputil.Reve
 	proxy := httputil.NewSingleHostReverseProxy(url)
 	
 	proxy.Director = func(req *http.Request) {
-		req.URL.Scheme = url.Scheme
-		req.URL.Host = url.Host
-		req.Header.Set("X-Forwarded-Host", req.Host)
 		req.Header.Set("X-Forwarded-Proto", url.Scheme)
-		req.Host = url.Host
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
