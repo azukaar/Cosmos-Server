@@ -5,7 +5,8 @@ import (
 	"io"
 	"os"
 	"net/http"
-
+	"fmt"
+	"errors"
 
 	// "github.com/docker/docker/client"
 	"github.com/docker/docker/api/types/container"
@@ -22,6 +23,18 @@ type VolumeMount struct {
 }
 
 func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Transfer-Encoding", "chunked")
+	
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+			http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+			return "", errors.New("Streaming unsupported!")
+	}
+
+	fmt.Fprintf(w, "NewInstall: Create DB\n")
+	flusher.Flush()
+
 	id := utils.GenerateRandomString(3)
 	mongoUser := "cosmos-" + utils.GenerateRandomString(5) 
 	mongoPass := utils.GenerateRandomString(24)
@@ -72,6 +85,8 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	err := CreateService(service, 
 		func (msg string) {
 			utils.Log(msg)
+			fmt.Fprintf(w, msg + "\n")
+			flusher.Flush()
 		},
 	)
 

@@ -98,6 +98,8 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 				utils.LoadBaseMainConfig(newConfig)
 				utils.Log("NewInstall: MongoDB created, waiting for it to be ready")
 				waitForDB()
+				w.WriteHeader(http.StatusOK)
+				return
 			} else {
 				utils.Log("NewInstall: Invalid MongoDBMode")
 				utils.Error("NewInstall: Invalid MongoDBMode", nil)

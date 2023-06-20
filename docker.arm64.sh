@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION=$(grep -o '\"version\": \"[^\"]*\"' package.json | sed 's/[^0-9a-z.-]//g')
+VERSION=$(grep -o '\"version\": \"[^\"]*\"' package.json | sed 's/[^0-9a-z.-]//g' | sed 's/version//g')
 LATEST="latest"
 
 # if branch is unstable in git for circle ci

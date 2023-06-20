@@ -1,4 +1,4 @@
-## Version 0.7.1 -> 0.7.8
+## Version 0.7.1 -> 0.7.9
  - Fix issue where multiple DBs get created at the setup
  - Add more special characters to be used for password validation
  - Add configurable default data path for binds
