@@ -131,7 +131,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                     }, 3000);
                   })
                 }}
-              /> Force Secure Network
+              /> Isolate Container Network
             </Stack>
             <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox

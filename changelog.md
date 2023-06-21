@@ -1,6 +1,7 @@
 ## Version 0.8.0
  - Custmizable homepage / theme colors
  - Create smaller subnets when using force secure / links to not hit IP range limit
+ - Auto-connect containers that have SERVAPP routes attached to them
  - Stop showing Docker not connected when first loading status
  - Self-heal containers that have lost their network configurations
  - Add a cosmos-icon label to containers to change the icon in the UI

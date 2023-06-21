@@ -29,14 +29,6 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                   Welcome to the URL Wizard. This interface will help you expose your ServApp securely to the internet by creating a new URL.
                 </div>
                 <div>
-                    {openModal && !hasCosmosNetwork(containerName) && 
-                      <Alert severity="warning">
-                        This ServApp does not use the "Force Secure" option, 
-                        so the hostname might not be accessible.
-                        The easiest way to fix this is to check the box "Force Secure Network" or manually create a hostname and sub-network in Docker.
-                      </Alert>}
-                </div>
-                <div>
                     <RouteManagement TargetContainer={openModal} 
                       routeConfig={{
                         Target: "http://"+containerName.replace('/', '') + ":",

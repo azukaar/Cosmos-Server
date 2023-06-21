@@ -262,7 +262,7 @@ const ServApps = () => {
                           refreshServApps();
                         })
                       }}
-                    /> Force Secure Network <ContainerNetworkWarning container={app} />
+                    /> Isolate Container Network <ContainerNetworkWarning container={app} />
                   </Stack>
                   <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
                     <Checkbox
