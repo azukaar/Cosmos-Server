@@ -169,13 +169,13 @@ func ConnectToSecureNetwork(containerConfig types.ContainerJSON) (bool, error) {
 				RemoveLabels(containerConfig, []string{"cosmos-network-name"})
 				return ConnectToSecureNetwork(containerConfig)
 			}
-	
-		// else check if already connected
-		if(IsConnectedToNetwork(containerConfig, netName)) {
-			return false, nil
-		}
+
+			// else check if already connected
+			if(IsConnectedToNetwork(containerConfig, netName)) {
+				return false, nil
+			}
 	}
-	
+
 	// at this point network is created and container is not connected to it
 	
 	errCo := ConnectToNetworkSync(netName, containerConfig.ID)
@@ -211,14 +211,17 @@ func GetAllPorts(container types.ContainerJSON) []string {
 func IsConnectedToNetwork(containerConfig types.ContainerJSON, networkName string) bool {
 	if(containerConfig.NetworkSettings == nil) {
 		return false
+		utils.Debug("IsConnectedToNetwork - " + containerConfig.Name + ": has no settings")
 	}
 
 	for name, _ := range containerConfig.NetworkSettings.Networks {
 		if name == networkName {
 			return true
+			utils.Debug("IsConnectedToNetwork - " + containerConfig.Name + ": is connected to " + networkName)
 		}
 	}
 
+	utils.Debug("IsConnectedToNetwork - " + containerConfig.Name + ": is NOT connected to " + networkName)
 	return false
 }
 
@@ -263,8 +266,8 @@ func IsConnectedToASecureCosmosNetwork(self types.ContainerJSON, containerConfig
 		utils.Warn("Container wasn't connected to the network it claimed, connecting it.")
 		err := ConnectToNetworkSync(GetLabel(containerConfig, "cosmos-network-name"), containerConfig.ID)
 		if err != nil {
-			utils.Error("ConnectToSecureNetworkConnect", err)
-			return true, err, false
+			utils.Error("ReConnectToSecureNetworkConnectFromLabel", err)
+			return false, err, false
 		}
 	}
 

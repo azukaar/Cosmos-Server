@@ -220,45 +220,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	var rollbackActions []DockerServiceCreateRollback
 	var err error
 
-	// check if services have the cosmos-force-network-secured label or
-	// if label cosmos-network-name is set ao auto, create a new network
-	for serviceName, service := range serviceRequest.Services {
-		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
-		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
-
-		if service.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(service.Labels["cosmos-network-name"]) == "auto" {
-			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
-			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
-	
-			newNetwork, errNC := CreateCosmosNetwork()
-			if errNC != nil {
-				utils.Error("CreateService: Network", err)
-				OnLog(fmt.Sprintf("[ERROR] Network %s cant be created\n", newNetwork))
-				Rollback(rollbackActions, OnLog)
-				return err
-			}
-
-			service.Labels["cosmos-network-name"] = newNetwork
-
-			AttachNetworkToCosmos(newNetwork)
-
-			if service.Networks == nil {
-				service.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
-			}
-
-			service.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
-
-			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-				Action: "remove",
-				Type:   "network",
-				Name:   newNetwork,
-			})
-			
-			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
-			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
-		}
-	}
-
 	// Create networks
 	for networkToCreateName, networkToCreate := range serviceRequest.Networks {
 		utils.Log(fmt.Sprintf("Creating network %s...", networkToCreateName))
@@ -366,7 +327,42 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	}
 
 	// Create containers
-	for _, container := range serviceRequest.Services {
+	for serviceName, container := range serviceRequest.Services {
+		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
+		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
+
+		if container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto" {
+			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
+			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
+	
+			newNetwork, errNC := CreateCosmosNetwork()
+			if errNC != nil {
+				utils.Error("CreateService: Network", err)
+				OnLog(fmt.Sprintf("[ERROR] Network %s cant be created\n", newNetwork))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+
+			container.Labels["cosmos-network-name"] = newNetwork
+
+			AttachNetworkToCosmos(newNetwork)
+
+			if container.Networks == nil {
+				container.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
+			}
+
+			container.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
+
+			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+				Action: "remove",
+				Type:   "network",
+				Name:   newNetwork,
+			})
+			
+			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
+			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
+		}
+
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
 		OnLog(fmt.Sprintf("Creating container %s...\n", container.Name))
 
@@ -540,7 +536,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		hostConfig.Devices = devices
 
-
 		networkingConfig := &network.NetworkingConfig{
 			EndpointsConfig: make(map[string]*network.EndpointSettings),
 		}
@@ -559,9 +554,12 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Type:   "container",
 			Name:   container.Name,
 		})
+
+		utils.Debug(fmt.Sprintf("CACABOUDIN %v", container.Networks))
 		
 		// connect to networks
 		for netName, netConfig := range container.Networks {
+			utils.Log("CreateService: Connecting to network: " + netName)
 			err = DockerClient.NetworkConnect(DockerContext, netName, container.Name, &network.EndpointSettings{
 				Aliases:     netConfig.Aliases,
 				IPAddress:   netConfig.IPV4Address,

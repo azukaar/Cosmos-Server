@@ -94,6 +94,7 @@ func BootstrapContainerFromTags(containerID string) error {
 			needsRestart := false
 			var errCT error
 			if !isCosmosCon {
+				utils.Debug(container.Name+": Not connected to a cosmos network")
 				needsRestart, errCT = ConnectToSecureNetwork(container)
 				if errCT != nil {
 					utils.Warn("DockerContainerBootstrapConnectToSecureNetwork -- Cannot connect to network, removing force secure")

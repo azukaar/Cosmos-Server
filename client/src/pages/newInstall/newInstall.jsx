@@ -152,9 +152,6 @@ const NewInstall = () => {
                         }}
                         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                             setSubmitting(true);
-                            const submittingPromise = new Promise((resolve, reject) => {
-                                setPullRequestOnSuccess(() => resolve);
-                            });
                             
                             setPullRequest(() => ((cb) => {
                                 API.newInstall({
@@ -164,7 +161,7 @@ const NewInstall = () => {
                                 }, cb)
                             }));
 
-                            return submittingPromise;
+                            return new Promise(() => {});
                         }}>
                         {(formik) => (
                             <form noValidate onSubmit={formik.handleSubmit}>
@@ -175,9 +172,11 @@ const NewInstall = () => {
                                         if(formik.values.DBMode === "DisableUserManagement") {
                                             setDatabaseEnable(false);
                                         }
-                                        formik.setStatus({ success: true });
-                                        formik.setSubmitting(false);
                                         pullRequestOnSuccess();
+                                        API.getStatus().then((res) => {
+                                            formik.setSubmitting(false);
+                                            formik.setStatus({ success: true });
+                                        });
                                     }}
                                     OnError={(error) => {
                                         formik.setStatus({ success: false });
@@ -239,9 +238,7 @@ const NewInstall = () => {
                             />
                         </center>
                     </div>
-                ) : (<><div>
-                    Rechecking Database Status...
-                </div>
+                ) : (<>
                 <div>
                     <center><CircularProgress color="inherit" /></center>
                 </div></>)}
