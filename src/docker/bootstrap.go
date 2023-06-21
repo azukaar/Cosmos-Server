@@ -62,14 +62,13 @@ func BootstrapContainerFromTags(containerID string) error {
 		return err
 	}
 
-	needsUpdate := false
+	isCosmosCon, _, needsUpdate := IsConnectedToASecureCosmosNetwork(selfContainer, container)
 
 	if(IsLabel(container, "cosmos-force-network-secured")) {
 		utils.Log(container.Name+": Checking Force network secured")
 
 		// check if connected to bridge and to a cosmos network
 		isCon := IsConnectedToNetwork(container, "bridge")
-		isCosmosCon, _ := IsConnectedToASecureCosmosNetwork(selfContainer, container)
 		
 		if isCon || !isCosmosCon {
 			utils.Log(container.Name+": Needs isolating on a secured network")

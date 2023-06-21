@@ -425,7 +425,6 @@ func GetLabel(containerConfig types.ContainerJSON, label string) string {
 }
 
 func Test() error {
-
 	// connect()
 
 	// jellyfin, _ := DockerClient.ContainerInspect(DockerContext, "jellyfin")

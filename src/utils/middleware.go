@@ -68,7 +68,7 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 	
 		
 		w.Header().Set("X-Content-Type-Options", "nosniff")
-		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("X-Served-By-Cosmos", "1")
 

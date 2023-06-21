@@ -209,12 +209,6 @@ const ConfigManagement = () => {
                     helperText="Require MFA for all users"
                   />
                   
-                  {/* <CosmosCheckbox
-                    label="Auto Update Cosmos"
-                    name="AutoUpdate"
-                    formik={formik}
-                  /> */}
-
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel htmlFor="MongoDB-login">MongoDB connection string. It is advised to use Environment variable to store this securely instead. (Optional)</InputLabel>
@@ -328,7 +322,11 @@ const ConfigManagement = () => {
                       <TwitterPicker
                         id="SecondaryColor"
                         color={formik.values.SecondaryColor}
-                        onChange={color => formik.setFieldValue('SecondaryColor', color.rgb)}
+                        onChange={color => {
+                          let colorRGB = `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                          formik.setFieldValue('SecondaryColor', colorRGB);
+                          SetSecondaryColor(colorRGB);
+                        }}
                       />
                     </Stack>
                   </Grid>
