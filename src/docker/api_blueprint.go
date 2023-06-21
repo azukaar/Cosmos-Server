@@ -555,8 +555,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Name:   container.Name,
 		})
 
-		utils.Debug(fmt.Sprintf("CACABOUDIN %v", container.Networks))
-		
 		// connect to networks
 		for netName, netConfig := range container.Networks {
 			utils.Log("CreateService: Connecting to network: " + netName)

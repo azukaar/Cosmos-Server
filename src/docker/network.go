@@ -272,22 +272,17 @@ func IsConnectedToASecureCosmosNetwork(self types.ContainerJSON, containerConfig
 	}
 
 	// else check if Cosmos is already connected
-	for name, _ := range containerConfig.NetworkSettings.Networks {
-		if name == GetLabel(containerConfig, "cosmos-network-name") {
-			if os.Getenv("HOSTNAME") != "" {
-				if(!IsConnectedToNetwork(self, name)) {
-					err := DockerClient.NetworkConnect(DockerContext, name, os.Getenv("HOSTNAME"), &network.EndpointSettings{})
-					if err != nil {
-						utils.Error("Docker Network Connect EXISTING ", err)
-						return false, err, false
-					}
-				}
+	if os.Getenv("HOSTNAME") != "" {
+		utils.Debug("IsSelfConnectedToASecureCosmosNetwork - " + self.Name + ": is connected to " + GetLabel(containerConfig, "cosmos-network-name"))
+		if(!IsConnectedToNetwork(self, GetLabel(containerConfig, "cosmos-network-name"))) {
+			err := DockerClient.NetworkConnect(DockerContext, GetLabel(containerConfig, "cosmos-network-name"), os.Getenv("HOSTNAME"), &network.EndpointSettings{})
+			if err != nil {
+				utils.Error("Docker Network Connect EXISTING ", err)
+				return false, err, false
 			}
-			return true, nil, false
 		}
 	}
-
-	return false, nil, false
+	return true, nil, false
 }
 
 func ConnectToNetworkIfNotConnected(containerConfig types.ContainerJSON, networkName string) error {
