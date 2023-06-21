@@ -155,6 +155,70 @@ function list() {
         "all": {
           "cosmos-cloud": [
             {
+              "name": "Bazarr",
+              "description": "Bazarr is an automated subtitle download application designed to complement Sonarr and Radarr. It simplifies the process of finding and downloading subtitles in various languages. Bazarr supports Windows, Linux, MacOS and provides a mobile-friendly web interface. If you're using Sonarr and Radarr, Bazarr can enhance your media management experience.",
+              "url": "",
+              "longDescription": "<p>Bazarr is a companion application to Sonarr and Radarr that manages and downloads subtitles based on your requirements. It was designed with the aim to make it easier for users to find and download subtitles for their media content.</p><p>Bazarr provides a simple and efficient interface to manage your subtitle collection, supporting many languages and integrating with popular subtitle providers. The software works seamlessly with Sonarr and Radarr to provide a unified experience for managing your media.</p><p>Bazarr supports a variety of platforms including Windows, Linux, and MacOS, and also offers a mobile-friendly web interface. Setting up Bazarr is easy, making it a must-have tool for anyone using Sonarr and Radarr.</p>",
+              "tags": [
+                "download",
+                "subtitle",
+                "automated",
+                "downloader",
+                "media",
+                "collection",
+                "sonarr",
+                "radarr",
+                "windows",
+                "linux",
+                "macos",
+                "web interface",
+                "movie management",
+                "media management",
+                "bazarr"
+              ],
+              "repository": "https://github.com/morpheus65535/bazarr",
+              "image": "https://hub.docker.com/r/linuxserver/bazarr",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/screenshots/2.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Gitea",
+              "description": "Gitea is a lightweight, open-source Git platform for self-hosted repository management, code collaboration, and issue tracking. It offers an intuitive interface, powerful access control, and integrations with popular development tools.",
+              "url": "",
+              "longDescription": "<p>Gitea is a lightweight, open-source Git platform that provides a self-hosted solution for managing repositories, collaborative code reviews, and issue tracking.</p><p>With Gitea, you can easily create and manage Git repositories, track changes, collaborate with team members, and streamline your software development workflow. It offers a simple and intuitive user interface, powerful access control, and a range of features such as code highlighting, pull requests, and issue management.</p><p>Gitea is written in Go and is designed to be lightweight, fast, and easy to deploy. It supports multiple authentication methods, including built-in user accounts, LDAP, and OAuth. Gitea also provides integrations with popular development tools and services.</p><p>Whether you're a small team or a large organization, Gitea provides a flexible and customizable platform for hosting your Git repositories and managing your software projects.</p>",
+              "tags": [
+                "development",
+                "git",
+                "repository management",
+                "code collaboration",
+                "issue tracking",
+                "go",
+                "self-hosted",
+                "gitea"
+              ],
+              "repository": "https://github.com/go-gitea/gitea",
+              "image": "https://hub.docker.com/r/gitea/gitea",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/screenshots/2.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/screenshots/3.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Home Assistant",
               "description": "Home Assistant is an open-source home automation platform that focuses on privacy and local control. It allows you to control all your devices from a single interface, integrating with a large number of devices and services. Home Assistant offers advanced automation capabilities, running perfectly on a Raspberry Pi or a local server. Start using Home Assistant today for a comprehensive home automation solution.",
               "url": "",
@@ -240,6 +304,39 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyfin/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyfin/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Joplin",
+              "description": "Joplin is a free, open-source note-taking and to-do application that supports markdown and end-to-end encryption. It offers capabilities such as tagging, searching, and modifying notes, and can sync with various cloud platforms. It features an extensible plugin system, allowing for tailored functionality. Joplin is compatible across multiple platforms including Windows, Linux, MacOS, iOS, and Android.",
+              "url": "",
+              "longDescription": "<p>Joplin is a free and open-source note-taking and to-do application, which can handle a large number of notes organised into notebooks. The notes are searchable, can be copied, tagged and modified directly from the applications or from your own text editor. It also supports markdown, with inline previewing.</p><p>Joplin offers end-to-end encryption and can synchronize with various cloud platforms, making it a secure choice for your note-taking needs. With its API, Joplin can be extended with plugins for custom functionality, further tailoring your note management experience.</p><p>Available for Windows, Linux, MacOS, iOS, and Android, Joplin is flexible to fit a variety of environments and workflows. Start using Joplin today to organize your thoughts and tasks in a secure and efficient manner!</p>",
+              "tags": [
+                "productivity",
+                "note-taking",
+                "to-do",
+                "markdown",
+                "encryption",
+                "syncing",
+                "windows",
+                "linux",
+                "macos",
+                "ios",
+                "android",
+                "self-hosted",
+                "joplin"
+              ],
+              "repository": "https://github.com/laurent22/joplin",
+              "image": "https://hub.docker.com/r/joplin/server",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Joplin/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Joplin/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Joplin/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Joplin/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
@@ -509,6 +606,67 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sonarr/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sonarr/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Transmission",
+              "description": "Transmission is an open-source, cross-platform BitTorrent client. It is widely praised for its minimal resource usage, ease-of-use, and performance. Transmission provides features like built-in encryption, webseed support, peer exchange, automatic port mapping, and individual torrent speed limit settings. It supports Windows, Linux, MacOS, and also offers a web interface for remote control.",
+              "url": "",
+              "longDescription": "<p>Transmission is a cross-platform BitTorrent client that is open-source, volunteer-based, and free from advertisements. It is highly regarded for its low resource usage, simplicity, and performance.</p><p>With its intuitive interface, Transmission allows users to quickly and easily download and share files via the BitTorrent protocol. Its standout features include built-in encryption, webseed support, peer exchange, automatic port mapping, and the ability to set speed limits for individual torrents.</p><p>Transmission is available for a variety of platforms including Windows, Linux, and MacOS. It also provides a web interface for remote control, making it a popular choice among users looking for a lightweight, reliable BitTorrent client.</p>",
+              "tags": [
+                "download",
+                "torrent",
+                "bittorrent",
+                "downloader",
+                "open-source",
+                "cross-platform",
+                "file sharing",
+                "peer-to-peer",
+                "p2p",
+                "transmission",
+                "windows",
+                "linux",
+                "macos",
+                "web interface"
+              ],
+              "repository": "https://github.com/transmission/transmission",
+              "image": "https://hub.docker.com/r/linuxserver/transmission",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Transmission/screenshots/1.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Transmission/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Transmission/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "WordPress",
+              "description": "WordPress is a free, open-source content management system based on PHP and MySQL. Known for its flexibility and ease-of-use, it supports a range of website types with thousands of plugins and themes. WordPress features a robust administrative dashboard for website creation, modification, and management. It is widely supported across various hosting platforms.",
+              "url": "",
+              "longDescription": "<p>WordPress is a free and open-source content management system (CMS) based on PHP and MySQL. It is one of the most popular website management or blogging system in use on the Web, supporting more than 60 million websites.</p><p>WordPress allows users to create and edit websites through a central administrative dashboard, which includes a text editor for modifying content, menus and various design elements. It offers thousands of themes and plugins that can enhance functionality and customization options, making it suitable for a variety of website types, from personal blogs to online stores.</p><p>With its vast community, WordPress users have access to a plethora of resources, tutorials, and guides. Start your website journey with WordPress today!</p>",
+              "tags": [
+                "blogging",
+                "cms",
+                "website management",
+                "php",
+                "mysql",
+                "themes",
+                "plugins",
+                "self-hosted",
+                "wordpress"
+              ],
+              "repository": "https://github.com/WordPress/WordPress",
+              "image": "https://hub.docker.com/_/wordpress",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Wordpress/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Wordpress/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Wordpress/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"

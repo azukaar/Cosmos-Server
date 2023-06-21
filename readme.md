@@ -40,6 +40,7 @@ Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with application
 Cosmos is a: 
 
  * **App Store** 📦📱 To easily install and manage your applications, with simple installers, automatic updates and security checks
+ * **Customizable Homepage** 🏠🖼 To access all your applications from a single place, with a beautiful and customizable UI
  * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
  * **Authentication Server** 👦👩 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Container manager** 🐋🔧 To easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!

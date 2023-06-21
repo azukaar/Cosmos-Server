@@ -1,11 +1,13 @@
 ## Version 0.8.0
  - Custmizable homepage / theme colors
- - Create smaller subnets when using force secure / links to not hit IP range limit
- - Auto-connect containers that have SERVAPP routes attached to them
- - Stop showing Docker not connected when first loading status
+ - Auto-connect containers that have SERVAPP routes attached to them. aka. you do not need to "force secure" containers anymore
+ - Manually create smaller docker subnets when using force secure / links to not hit IP range limit
  - Self-heal containers that have lost their network configurations
+ - Stop showing Docker not connected when first loading status in new installs
  - Add a cosmos-icon label to containers to change the icon in the UI
  - Add privacy settings to external links
+ - Force secure is now called "isolate network" to make it more clear, but does the same thing
+ - allow iframes in the same subdomain as the app to fix wordpress compatibility
 
 ## Version 0.7.1 -> 0.7.10
  - Fix issue where multiple DBs get created at the setup
