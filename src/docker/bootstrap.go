@@ -4,6 +4,8 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/docker/docker/api/types"
 	"os"
+	"fmt"
+	"regexp"
 )
 
 func BootstrapAllContainersFromTags() []error {
@@ -62,6 +64,23 @@ func BootstrapContainerFromTags(containerID string) error {
 		return err
 	}
 
+	// check if any route has been added to the container
+	config := utils.GetMainConfig()
+	if(!HasLabel(container, "cosmos-network-name")) {
+		for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+				utils.Debug("No cosmos-network-name label on container "+container.Name)
+				pattern := fmt.Sprintf(`(?i)^(([a-z]+):\/\/)?%s(:?[0-9]+)?$`, container.Name[1:])
+				match, _ := regexp.MatchString(pattern, route.Target)
+				if route.Mode == "SERVAPP" && match {
+					utils.Log("Adding cosmos-network-name label to container "+container.Name)
+					AddLabels(container, map[string]string{
+						"cosmos-network-name": "auto",
+					})	
+				}
+		}
+	}
+
+	// Check cosmos-network-name tag
 	isCosmosCon, _, needsUpdate := IsConnectedToASecureCosmosNetwork(selfContainer, container)
 
 	if(IsLabel(container, "cosmos-force-network-secured")) {

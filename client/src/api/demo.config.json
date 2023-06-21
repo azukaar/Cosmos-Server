@@ -76,7 +76,7 @@
 						"BlockAPIAbuse": false
 					},
 					{
-						"Name": "avidrome",
+						"Name": "Navidrome",
 						"Description": "Expose navidrome to the internet",
 						"UseHost": true,
 						"Host": "navidrome.cosmos-cloud.io",

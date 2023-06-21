@@ -21,12 +21,12 @@ export const HomeBackground = () => {
     return (
         <Box sx={{
             position: 'fixed', float: 'left', overflow: 'hidden', zIndex: 0, top: 0, left: 0, right: 0, bottom: 0,
-            // gradient
-            // backgroundImage: isDark ? 
-            //     `linear-gradient(#371d53, #26143a)` : 
-            //     `linear-gradient(#e6d3fb, #c8b0e2)`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundAttachment: 'fixed',
+            backgroundImage: customPaper ? `url(${customPaper})` : (isDark ? `url(${wallpaper})` : `url(${wallpaperLight})`),
         }}>
-            <img src={customPaper ? customPaper : (isDark ? wallpaper : wallpaperLight)} style={{ display: 'inline' }} alt="" draggable="false" width="100%" height="100%" />
         </Box>
     );
 };

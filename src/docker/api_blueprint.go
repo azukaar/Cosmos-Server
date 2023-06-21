@@ -220,12 +220,13 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	var rollbackActions []DockerServiceCreateRollback
 	var err error
 
-	// check if services have the cosmos-force-network-secured label
+	// check if services have the cosmos-force-network-secured label or
+	// if label cosmos-network-name is set ao auto, create a new network
 	for serviceName, service := range serviceRequest.Services {
 		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
-		if service.Labels["cosmos-force-network-secured"] == "true" {
+		if service.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(service.Labels["cosmos-network-name"]) == "auto" {
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
 			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
@@ -544,15 +545,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			EndpointsConfig: make(map[string]*network.EndpointSettings),
 		}
 		
-		// Stupid Docker does not want to connect to multiple networks at once
-		/*for netName, netConfig := range container.Networks {
-				networkingConfig.EndpointsConfig[netName] = &network.EndpointSettings{
-						Aliases:     netConfig.Aliases,
-						IPAddress:   netConfig.IPV4Address,
-						GlobalIPv6Address: netConfig.IPV6Address,
-				}
-		}*/
-
 		_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
 		
 		if err != nil {
