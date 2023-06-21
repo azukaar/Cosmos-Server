@@ -8,6 +8,7 @@ import ExposeModal from '../exposeModal';
 import * as API from '../../../api';
 import RestartModal from '../../config/users/restart';
 import GetActions from '../actionBar';
+import { ServAppIcon } from '../../../utils/servapp-icon';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -66,7 +67,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
           <Stack spacing={2} direction={'column'} justifyContent={'center'} alignItems={'center'}>
           <div style={{ position: 'relative' }}>
-            <img className={"loading-image " + (isUpdating ? 'darken' : '')} alt="" src={getFaviconURL(routes && routes[0])} width="128px" />
+            <ServAppIcon container={Config} route={routes && routes[0]} className={"loading-image " + (isUpdating ? 'darken' : '')} width="128px" />
             {isUpdating ? (
               <CircularProgress
                 style={{ position: 'absolute', top: 'calc(50% - 22.5px)', left: 'calc(50% - 22.5px)' }}

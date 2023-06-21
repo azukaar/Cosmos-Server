@@ -3,6 +3,7 @@
  - Create smaller subnets when using force secure / links to not hit IP range limit
  - Stop showing Docker not connected when first loading status
  - Self-heal containers that have lost their network configurations
+ - Add a cosmos-icon label to containers to change the icon in the UI
  - Add privacy settings to external links
 
 ## Version 0.7.1 -> 0.7.10
