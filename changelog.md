@@ -1,3 +1,6 @@
+## version 0.8.1
+ - App store image size issue
+
 ## Version 0.8.0
  - Custmizable homepage / theme colors
  - Auto-connect containers that have SERVAPP routes attached to them. aka. you do not need to "force secure" containers anymore
