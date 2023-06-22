@@ -12,13 +12,13 @@ import {Link as LinkMUI} from '@mui/material'
 import DockerComposeImport from '../servapps/containers/docker-compose';
 
 function Screenshots({ screenshots }) {
-  return (
+  return screenshots.length > 1 ? (
     <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
-        screenshots.map((item, i) => <img key={i} src={item} width="100%" />)
+        screenshots.map((item, i) => <img style={{height:'300px'}} key={i} src={item} />)
       }
-    </Carousel>
-  )
+    </Carousel>)
+    : <img src={screenshots[0]} height="300px" />
 }
 
 function Showcases({ showcase, isDark }) {
@@ -174,7 +174,9 @@ const MarketPage = () => {
             </Button>
           </Link>
 
-          <Screenshots screenshots={openedApp.screenshots} />
+          <div style={{textAlign: 'center'}}>
+            <Screenshots screenshots={openedApp.screenshots} />
+          </div>
 
           <Stack direction="row" spacing={2}>
             <img src={openedApp.icon} style={{ width: '36px', height: '36px' }} />
