@@ -15,10 +15,10 @@ function Screenshots({ screenshots }) {
   return screenshots.length > 1 ? (
     <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
-        screenshots.map((item, i) => <img style={{height:'300px'}} key={i} src={item} />)
+        screenshots.map((item, i) => <img style={{maxHeight:'300px', height: '100%', maxWidth: '100%'}} key={i} src={item} />)
       }
     </Carousel>)
-    : <img src={screenshots[0]} height="300px" />
+    : <img src={screenshots[0]} style={{maxHeight:'300px', height: '100%', maxWidth: '100%'}} />
 }
 
 function Showcases({ showcase, isDark }) {
