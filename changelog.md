@@ -1,5 +1,7 @@
-## version 0.8.1
+## version 0.8.1 -> 0.8.2
  - App store image size issue
+ - Add installer hostname prefix/suffix
+ - Fix issue with inconsistent password when installing from the market
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors

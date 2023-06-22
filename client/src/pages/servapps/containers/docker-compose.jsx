@@ -94,6 +94,22 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   const [context, setContext] = useState({});
   const [installer, setInstaller] = useState(installerInit);
   const [config, setConfig] = useState({});
+  const [passwords, setPasswords] = useState([
+    randomString(24),
+    randomString(24),
+    randomString(24),
+    randomString(24)
+  ]);
+
+  const resetPassword = () => {
+    setPasswords([
+      randomString(24),
+      randomString(24),
+      randomString(24),
+      randomString(24)
+    ]);
+  }
+
 
   function refreshConfig() {
     API.config.get().then((res) => {
@@ -335,12 +351,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           ServiceName: serviceName,
           Hostnames: hostnames,
           Context: context,
-          Passwords: [
-            randomString(24),
-            randomString(24),
-            randomString(24),
-            randomString(24)
-          ],
+          Passwords: passwords,
           CPU_ARCH: API.CPU_ARCH,
           CPU_AVX: API.CPU_AVX,
           DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
@@ -358,7 +369,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 if (route.useHost) {
                   let newRoute = Object.assign({}, route);
                   if (route.useHost === true) {
-                    newRoute.host = getHostnameFromName(key + (routeId > 0 ? '-' + routeId : ''))
+                    newRoute.host = (newRoute.hostPrefix || '') + getHostnameFromName(key + (routeId > 0 ? '-' + routeId : '')) + (newRoute.hostSuffix || '');
                   }
                   
                   if(!newHostnames[key]) newHostnames[key] = {};
@@ -467,6 +478,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     setDockerCompose('');
     setInstaller(installerInit);
     setServiceName(cleanDefaultName || 'default-name');
+    resetPassword();
   }
 
   return <>
