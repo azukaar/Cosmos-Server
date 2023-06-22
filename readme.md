@@ -9,6 +9,7 @@
 <a href="https://github.com/JustDalek"><img src="https://avatars.githubusercontent.com/JustDalek" style="border-radius:48px" width="48" height="48" alt="JustDalek" title="JustDalek" /></a>
 <a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/LarsNorgaard"><img src="https://avatars.githubusercontent.com/LarsNorgaard" style="border-radius:48px" width="48" height="48" alt="Lars Nørgaard" title="Lars Nørgaard" /></a>
+<a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 </p><!-- /sponsors -->
 
 ---
