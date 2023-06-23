@@ -129,7 +129,7 @@ func UpdatePorts(finalPorts []string) error {
 	version := "latest"
 
 	// if arm
-	if runtime.GOARCH == "arm" {
+	if runtime.GOARCH == "arm64" {
 		version = "latest-arm64"
 	}
 	
