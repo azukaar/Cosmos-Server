@@ -25,7 +25,6 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 				return
 			}
 
-
 			r.Header.Set("x-cosmos-user", u.Nickname)
 			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
 			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))

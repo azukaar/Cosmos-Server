@@ -1,7 +1,8 @@
-## version 0.8.1 -> 0.8.3
+## version 0.8.1 -> 0.8.4
  - Added new automatic Docker mapping feature (for people not using (sub)domains)
  - Added guardrails to prevent Let's Encrypt from failing to initialize when adding wrong domains
  - App store image size issue
+ - Fixed wrong x-forwarded-proto header 
  - Add installer option for hostname prefix/suffix
  - Fix minor issue with inconsistent password on market installer
  - Fixed issue where home page was https:// links on http only servers
