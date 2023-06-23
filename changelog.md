@@ -1,11 +1,11 @@
 ## version 0.8.1 -> 0.8.3
  - Added new automatic Docker mapping feature (for people not using (sub)domains)
+ - Added guardrails to prevent Let's Encrypt from failing to initialize when adding wrong domains
  - App store image size issue
  - Add installer option for hostname prefix/suffix
  - Fix minor issue with inconsistent password on market installer
  - Fixed issue where home page was https:// links on http only servers
  - Improved setup flow for setting up hostname and HTTPS
- - Added a new port range system for people not using a domain name
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors
