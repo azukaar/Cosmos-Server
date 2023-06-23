@@ -32,7 +32,7 @@ import DockerContainerSetup from './setup';
 import whiskers from 'whiskers';
 import {version} from '../../../../../package.json';
 import cmp from 'semver-compare';
-import { HostnameChecker } from '../../../utils/routes';
+import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
 import { randomString } from '../../../utils/indexs';
 
@@ -76,10 +76,6 @@ const isNewerVersion = (minver) => {
   return cmp(version, minver) === -1;
 }
 
-const getHostnameFromName = (name) => {
-  return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
-}
-
 const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
   const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
   const [step, setStep] = useState(0);
@@ -94,6 +90,19 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   const [context, setContext] = useState({});
   const [installer, setInstaller] = useState(installerInit);
   const [config, setConfig] = useState({});
+
+  let hostnameErrors = () => {
+    let broken = false;
+    Object.values(hostnames).forEach((service) => {
+      Object.values(service).forEach((route) => {
+        if(!route.host || route.host.match(/\s/g)) {
+          broken = true;
+        }
+      });
+    });
+    return broken;
+  }
+
   const [passwords, setPasswords] = useState([
     randomString(24),
     randomString(24),
@@ -369,7 +378,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 if (route.useHost) {
                   let newRoute = Object.assign({}, route);
                   if (route.useHost === true) {
-                    newRoute.host = (newRoute.hostPrefix || '') + getHostnameFromName(key + (routeId > 0 ? '-' + routeId : '')) + (newRoute.hostSuffix || '');
+                    newRoute.host = getHostnameFromName(key + (routeId > 0 ? '-' + routeId : ''), newRoute, config);
                   }
                   
                   if(!newHostnames[key]) newHostnames[key] = {};
@@ -722,7 +731,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           setHostnames({});
           setOverrides({});
         }}>Close</Button>
-        <Button disabled={!dockerCompose || ymlError} onClick={() => {
+        <Button disabled={!dockerCompose || ymlError || hostnameErrors()} onClick={() => {
           if (step === 0) {
             setStep(1);
           } else {

@@ -337,7 +337,7 @@ const ConfigManagement = () => {
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel htmlFor="Hostname-login">Hostname: This will be used to restrict access to your Cosmos Server (Default: 0.0.0.0)</InputLabel>
+                      <InputLabel htmlFor="Hostname-login">Hostname: This will be used to restrict access to your Cosmos Server (Your IP, or your domain name)</InputLabel>
                       <OutlinedInput
                         id="Hostname-login"
                         type="text"

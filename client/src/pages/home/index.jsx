@@ -240,7 +240,7 @@ const HomePage = () => {
 
             {coStatus && coStatus.domain && (
                 <Alert severity="error">
-                    You are using localhost or 0.0.0.0 as a hostname in the configuration. It is recommended that you use a domain name instead.
+                    You are using localhost or 0.0.0.0 as a hostname in the configuration. It is recommended that you use a domain name or an IP instead.
                 </Alert>
             )}
 

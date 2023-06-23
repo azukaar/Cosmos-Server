@@ -28,6 +28,8 @@ var serverPortHTTPS = ""
 func startHTTPServer(router *mux.Router) {
 	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
 
+	docker.CheckPorts()
+
 	err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, router)
 
 	if err != nil {
@@ -40,16 +42,20 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 
 	cfg := simplecert.Default
 
-	cfg.Domains = utils.GetAllHostnames(true, false)
-	cfg.CacheDir = "/config/certificates"
-	cfg.SSLEmail = config.HTTPConfig.SSLEmail
-	cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
-	cfg.TLSAddress = "0.0.0.0:"+serverPortHTTPS
+	if config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"] {
+		cfg.CacheDir = "/config/certificates"
+		cfg.SSLEmail = config.HTTPConfig.SSLEmail
+		cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
+		cfg.TLSAddress = "0.0.0.0:"+serverPortHTTPS
 	
-	if config.HTTPConfig.DNSChallengeProvider != "" {
-		utils.Log("Using DNS Challenge with Provider: " + config.HTTPConfig.DNSChallengeProvider)
-		cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
-	}
+		if config.HTTPConfig.DNSChallengeProvider != "" {
+			utils.Log("Using DNS Challenge with Provider: " + config.HTTPConfig.DNSChallengeProvider)
+			cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
+			cfg.Domains = utils.GetAllHostnames(true, false)
+		} else {
+			cfg.Domains = utils.LetsEncryptValidOnly(utils.GetAllHostnames(true, false))
+		}
+	}	
 
 	cfg.FailedToRenewCertificate = func(err error) {
 		utils.Error("Failed to renew certificate", err)
@@ -73,6 +79,10 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 				return
 		}
 	}
+	
+	utils.IsHTTPS = true
+	// Redirect ports 
+	docker.CheckPorts()
 		
 	// redirect http to https
 	go (func () {
@@ -107,8 +117,6 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	utils.Log("Listening to HTTP on :" + serverPortHTTP)
 	utils.Log("Listening to HTTPS on :" + serverPortHTTPS)
 
-	utils.IsHTTPS = true
-
 	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
 	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
@@ -132,6 +140,7 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 		Handler: router,
 		DisableGeneralOptionsHandler: true,
 	}
+
 
 	// start https server
 	errServ := server.ListenAndServeTLS("", "")
@@ -197,13 +206,13 @@ func StartServer() {
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
 
-	domains := utils.GetAllHostnames(true, true)
+	domains := utils.GetAllHostnames(true, false)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 
 	NeedsRefresh := (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains)
 
 	if(NeedsRefresh && HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
-		utils.Log("Generating new TLS certificate")
+		utils.Log("Generating new TLS certificate for domains: " + strings.Join(domains, ", "))
 		pub, priv := utils.GenerateRSAWebCertificates(domains)
 		
 		baseMainConfig.HTTPConfig.TLSCert = pub

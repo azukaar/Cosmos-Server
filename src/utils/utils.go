@@ -307,6 +307,22 @@ func RestartServer() {
 	os.Exit(0)
 }
 
+func LetsEncryptValidOnly(hostnames []string) []string {
+	wrongPattern := `^(localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|.*\.local)$`
+	re, _ := regexp.Compile(wrongPattern)
+
+	var validDomains []string
+	for _, domain := range hostnames {
+		if !re.MatchString(domain) && !strings.Contains(domain, "*") && !strings.Contains(domain, " ") && !strings.Contains(domain, ",") {
+			validDomains = append(validDomains, domain)
+		} else {
+			Error("Invalid domain found in URLs: " + domain + " it was removed from the certificate to not break Let's Encrypt", nil)
+		}
+	}
+
+	return validDomains
+}
+
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
 	hostnames := []string{
@@ -315,7 +331,7 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 
 	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
 	for _, proxy := range proxies {
-		if proxy.UseHost && proxy.Host != "" && strings.Contains(proxy.Host, ".") && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
+		if proxy.UseHost && proxy.Host != "" && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
 			if removePorts {
 				hostnames = append(hostnames, strings.Split(proxy.Host, ":")[0])
 			} else {

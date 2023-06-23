@@ -37,6 +37,10 @@ const addProtocol = (url) => {
   if (url.indexOf("http://") === 0 || url.indexOf("https://") === 0) {
     return url;
   }
+  // get current protocol
+  if (window.location.protocol === "http:") {
+    return "http://" + url;
+  }
   return "https://" + url;
 }
 
@@ -154,3 +158,35 @@ export const HostnameChecker = ({hostname}) => {
     {hostIp && <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, make sure it is your server IP!</Alert>}
   </>
 };
+
+const hostnameIsDomainReg = /^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/
+
+export const getHostnameFromName = (name, route, config) => {
+  let origin = window.location.origin.split('://')[1];
+  let protocol = window.location.origin.split('://')[0];
+  let res;
+
+  if(origin.match(hostnameIsDomainReg)) {
+    res = name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + origin
+    if(route)
+      res = (route.hostPrefix || '') + res + (route.hostSuffix || '');
+  } else {
+    const existingRoutes = Object.values(config.HTTPConfig.ProxyConfig.Routes);
+    origin = origin.split(':')[0];
+
+    // find first port available in range 7200-7400
+    let port = protocol == "https" ? 7200 : 7351;
+    let endPort = protocol == "https" ? 7350 : 7500;
+    while(port < endPort) {
+      if(!existingRoutes.find((exiroute) => exiroute.Host == (origin + ":" + port))) {
+        res = origin + ":" + port;
+        return res;
+      }
+      else
+        port++;
+      }
+      
+    return "NO MORE PORT AVAILABLE. PLEASE CLEAN YOUR URLS!";
+  }
+  return res;
+}

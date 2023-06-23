@@ -2,12 +2,8 @@ import React, { useState } from 'react';
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack } from '@mui/material';
 import { Alert } from '@mui/material';
 import RouteManagement from '../config/routes/routeman';
-import { ValidateRoute, getFaviconURL, sanitizeRoute, getContainersRoutes } from '../../utils/routes';
+import { ValidateRoute, getFaviconURL, sanitizeRoute, getContainersRoutes, getHostnameFromName } from '../../utils/routes';
 import * as API from '../../api';
-
-const getHostnameFromName = (name) => {
-  return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
-}
 
 const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container }) => {
   const [submitErrors, setSubmitErrors] = useState([]);
@@ -36,7 +32,7 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                         Name: containerName.replace('/', ''),
                         Description: "Expose " + containerName.replace('/', '') + " to the internet",
                         UseHost: true,
-                        Host: getHostnameFromName(containerName),
+                        Host: getHostnameFromName(containerName, null, config),
                         UsePathPrefix: false,
                         PathPrefix: '',
                         CORSOrigin: '',

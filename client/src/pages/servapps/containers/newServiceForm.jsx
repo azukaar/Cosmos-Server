@@ -4,7 +4,7 @@ import RestartModal from '../../config/users/restart';
 import { Alert, Button, Checkbox, Chip, Divider, Stack, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
-import { getFaviconURL } from '../../../utils/routes';
+import { getFaviconURL, getHostnameFromName } from '../../../utils/routes';
 import * as API from '../../../api';
 import { ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../../isLoggedIn';
@@ -20,13 +20,10 @@ import DockerTerminal from './terminal';
 import NewDockerService from './newService';
 import RouteManagement from '../../config/routes/routeman';
 
-const getHostnameFromName = (name) => {
-  return name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + window.location.origin.split('://')[1]
-}
-
 const NewDockerServiceForm = () => {
   const [currentTab, setCurrentTab] = React.useState(0);
   const [maxTab, setMaxTab] = React.useState(0);
+  const [config, setConfig] = React.useState(null);
   const [containerInfo, setContainerInfo] = React.useState({
     Name: '',
     Names: [],
@@ -54,6 +51,16 @@ const NewDockerServiceForm = () => {
       Ports: [],
     },
   });
+  
+  const refreshConfig = () => {
+    API.config.get().then((res) => {
+      setConfig(res.data);
+    });
+  };
+
+  React.useEffect(() => {
+    refreshConfig();
+  }, []);
 
   let service = {
     services: {
@@ -182,7 +189,7 @@ const NewDockerServiceForm = () => {
                 Name: containerInfo.Name.replace('/', ''),
                 Description: "Expose " + containerInfo.Name.replace('/', '') + " to the internet",
                 UseHost: true,
-                Host: getHostnameFromName(containerInfo.Name),
+                Host: getHostnameFromName(containerInfo.Name, null, config),
                 UsePathPrefix: false,
                 PathPrefix: '',
                 CORSOrigin: '',

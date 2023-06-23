@@ -47,6 +47,8 @@ const debounce = (func, wait) => {
     }
   }, 500)
 
+const hostnameIsDomainReg = /^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/
+
 const NewInstall = () => {
     const [activeStep, setActiveStep] = useState(0);
     const [status, setStatus] = useState(null);
@@ -82,6 +84,29 @@ const NewInstall = () => {
             setActiveStep(5);
         }
     }, [activeStep, status]);
+
+    const getHTTPSOptions = (hostname) => {
+        if(!hostname) {
+            return [["", "Set your hostname first"]];
+        }
+
+        if(hostname.match(hostnameIsDomainReg)) {
+            return [
+                ["", "Select an option"],
+                ["LETSENCRYPT", "Use Let's Encrypt automatic HTTPS (recommended)"],
+                ["SELFSIGNED", "Generate self-signed certificate"],
+                ["PROVIDED", "Supply my own HTTPS certificate"],
+                ["DISABLED", "Use HTTP only (not recommended)"],
+            ]
+        } else {
+            return [
+                ["", "Select an option"],
+                ["SELFSIGNED", "Generate self-signed certificate (recommended)"],
+                ["PROVIDED", "Supply my own HTTPS certificate"],
+                ["DISABLED", "Use HTTP only (not recommended)"],
+            ] 
+        }
+    }
 
     const steps = [
         {
@@ -252,26 +277,17 @@ const NewInstall = () => {
             component: (<Stack item xs={12} spacing={2}>
             <div>
                 <QuestionCircleOutlined /> It is recommended to use Let's Encrypt to automatically provide HTTPS Certificates.
-                This requires a valid domain name pointing to this server. If you don't have one, you can use a self-signed certificate. 
+                This requires a valid domain name pointing to this server. If you don't have one, <strong>you can select "Generate self-signed certificate" in the dropdown. </strong> 
                 If you enable HTTPS, it will be effective after the next restart.
-            </div>
-            <div>
-                {status && <>
-                    <div>
-                        HTTPS Certificate Mode is currently: <b>{status.HTTPSCertificateMode}</b>
-                    </div>
-                    <div>
-                        Hostname is currently: <b>{status.hostname}</b>
-                    </div>
-                </>}
             </div>
             <div>
             <Formik
                 initialValues={{
-                    HTTPSCertificateMode: "LETSENCRYPT",
+                    HTTPSCertificateMode: "",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
                     DNSChallengeConfig: {},
+                    __success: false,
                 }}
                 validationSchema={Yup.object().shape({
                         SSLEmail: Yup.string().when('HTTPSCertificateMode', {
@@ -289,7 +305,7 @@ const NewInstall = () => {
                         }),
                         Hostname: Yup.string().when('HTTPSCertificateMode', {
                             is: "LETSENCRYPT",
-                            then: Yup.string().required().matches(/^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/, 'Let\'s Encrypt only accepts domain names'),
+                            then: Yup.string().required().matches(hostnameIsDomainReg, 'Let\'s Encrypt only accepts domain names'),
                             otherwise: Yup.string().required()
                         }),
                 })}
@@ -310,7 +326,9 @@ const NewInstall = () => {
                         if(res.status == "OK") {
                             setStatus({ success: true });
                             setHostname((values.HTTPSCertificateMode == "DISABLED" ? "http://" : "https://") + values.Hostname);
+                            setActiveStep(4);
                         }
+                        return res;
                     } catch (error) {
                         setStatus({ success: false });
                         setErrors({ submit: "Please check you have filled all the inputs properly" });
@@ -320,16 +338,31 @@ const NewInstall = () => {
                 {(formik) => (
                     <form noValidate onSubmit={formik.handleSubmit}>
                         <Stack item xs={12} spacing={2}>
+                        <CosmosInputText
+                            name="Hostname"
+                            label="Hostname (Domain required for Let's Encrypt)"
+                            placeholder="yourdomain.com, your ip, or localhost"
+                            formik={formik}
+                            onChange={(e) => {
+                              checkHost(e.target.value, setHostError, setHostIp);
+                            }}
+                        />
+                        {formik.values.Hostname && (formik.values.Hostname.match(hostnameIsDomainReg) ? 
+                            <Alert severity="info">
+                                You seem to be using a domain name. <br />
+                                Let's Encrypt can automatically generate a certificate for you.
+                            </Alert>
+                            :
+                            <Alert severity="info">
+                                You seem to be using an IP address or local domain. <br />
+                                You can use automatic Self-Signed certificates.
+                            </Alert>)
+                        }
                         <CosmosSelect
                             name="HTTPSCertificateMode"
                             label="Select your choice"
                             formik={formik}
-                            options={[
-                                ["LETSENCRYPT", "Use Let's Encrypt automatic HTTPS (recommended)"],
-                                ["PROVIDED", "Supply my own HTTPS certificate"],
-                                ["SELFSIGNED", "Generate a self-signed certificate"],
-                                ["DISABLED", "Use HTTP only (not recommended)"],
-                            ]}
+                            options={getHTTPSOptions(formik.values.Hostname && formik.values.Hostname)}
                         />
                         {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                             <>
@@ -378,15 +411,6 @@ const NewInstall = () => {
                             </>
                         )}
                         
-                        <CosmosInputText
-                            name="Hostname"
-                            label="Hostname (Domain required for Let's Encrypt)"
-                            placeholder="yourdomain.com, your ip, or localhost"
-                            formik={formik}
-                            onChange={(e) => {
-                              checkHost(e.target.value, setHostError, setHostIp);
-                            }}
-                        />
                         {hostError && <Grid item xs={12}>
                           <Alert color='error'>{hostError}</Alert>
                         </Grid>}
@@ -401,11 +425,12 @@ const NewInstall = () => {
                             </Alert>
                         )}
                         
+                        {(formik.values.HTTPSCertificateMode === "LETSENCRYPT" || formik.values.HTTPSCertificateMode === "SELFSIGNED") && formik.values.Hostname && formik.values.Hostname.match(hostnameIsDomainReg) && (
                         <CosmosCheckbox
                             label={"Use Wildcard Certificate for *." + (formik.values.Hostname ||  "")}
                             name="UseWildcardCertificate"
                             formik={formik}
-                        />
+                        />)}
 
                         {formik.errors.submit && (
                           <Grid item xs={12}>
@@ -432,7 +457,7 @@ const NewInstall = () => {
             </div>
             </Stack>),
             nextButtonLabel: () => {
-                return status ? 'Next' : 'Skip';
+                return (status && status.hostname != '0.0.0.0') ? 'Next' : '';
             }
         },
         {

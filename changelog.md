@@ -1,7 +1,11 @@
-## version 0.8.1 -> 0.8.2
+## version 0.8.1 -> 0.8.3
+ - Added new automatic Docker mapping feature (for people not using (sub)domains)
  - App store image size issue
- - Add installer hostname prefix/suffix
- - Fix issue with inconsistent password when installing from the market
+ - Add installer option for hostname prefix/suffix
+ - Fix minor issue with inconsistent password on market installer
+ - Fixed issue where home page was https:// links on http only servers
+ - Improved setup flow for setting up hostname and HTTPS
+ - Added a new port range system for people not using a domain name
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors
