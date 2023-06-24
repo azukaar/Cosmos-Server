@@ -190,6 +190,219 @@ function list() {
               ]
             },
             {
+              "name": "Calibre",
+              "description": "Calibre is an open-source e-book management tool that allows users to organize, save, and manage e-books of various formats. It supports a wide range of e-book formats and offers features like format conversion, e-book syncing, news feeds from web sources, a built-in e-book viewer, and a server for online access.",
+              "url": "",
+              "longDescription": "<p>Calibre is a powerful, open-source e-book management tool. It allows users to organize, save and manage e-books of various formats. Calibre supports a wide range of e-book formats including EPUB, Kindle, PDF, and more.</p><p>With its easy-to-use interface, Calibre allows users to convert e-books from different formats, sync e-books with e-book readers, and even provides news feeds from web sources. Calibre also features a built-in e-book viewer and a server for online access to your book collection.</p><p>Calibre is available for a variety of platforms, including Windows, Linux, and MacOS.</p>",
+              "tags": [
+                "e-book",
+                "open-source",
+                "cross-platform",
+                "management",
+                "calibre",
+                "windows",
+                "linux",
+                "macos"
+              ],
+              "repository": "https://github.com/kovidgoyal/calibre",
+              "image": "https://hub.docker.com/r/linuxserver/calibre",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Calibre-web",
+              "description": "Calibre-web is a web application providing a clean interface for browsing, reading, and downloading eBooks using an existing Calibre database. It offers features like categorization, a browser-based eBook reader, sending eBooks to Kindle devices, user management, and Goodreads integration.",
+              "url": "",
+              "longDescription": "<p>Calibre-web is a web application providing a clean interface for browsing, reading and downloading eBooks using an existing Calibre database. This software is a fork of the original Calibre web with several additional features and enhancements.</p><p>Calibre-web allows users to sort and categorize eBooks, provides a browser-based eBook reader, and even allows the sending of eBooks to Kindle devices. It also supports user management to control access to the eBook collection and offers the ability to interface with Goodreads for book reviews and recommendations.</p><p>Calibre-web is compatible with Docker and can be used on any platform that supports Docker.</p>",
+              "tags": [
+                "e-book",
+                "web interface",
+                "management",
+                "calibre-web",
+                "docker",
+                "reading",
+                "goodreads",
+                "kindle"
+              ],
+              "repository": "https://github.com/janeczku/calibre-web",
+              "image": "https://hub.docker.com/r/linuxserver/calibre-web",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre-Web/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre-Web/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Calibre-Web/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Code-Server",
+              "description": "Code-Server is an open-source tool that enables running Visual Studio Code on a remote server. It provides a full VS Code experience, secure remote access, and compatibility with VS Code extensions. Code-Server is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Code-Server is an open-source project that allows developers to run Visual Studio Code, a popular development environment, on any machine remotely. This makes it possible to code on your cloud server, which can be particularly beneficial when dealing with large datasets, complex computations, or restricted local resources.</p><p>Key features of Code-Server include full Visual Studio Code experience, secure access over SSH or HTTPS, and compatibility with VS Code extensions. It is also designed to be easy to install and get up and running.</p><p>Code-Server is available on various platforms including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for developers across different environments.</p>",
+              "tags": [
+                "code-server",
+                "open-source",
+                "cross-platform",
+                "VS Code",
+                "development environment",
+                "remote coding",
+                "SSH",
+                "HTTPS",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/cdr/code-server",
+              "image": "https://hub.docker.com/r/codercom/code-server",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/CodeServer/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/CodeServer/screenshots/2.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/CodeServer/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/CodeServer/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Deluge",
+              "description": "Deluge is a lightweight, open-source BitTorrent client known for its extensibility and low resource demand. It supports multiple BitTorrent protocols, offers a web interface for remote control, and includes features like encryption, peer exchange, speed limits, and proxy support. Deluge is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Deluge is a lightweight, open-source BitTorrent client. It's highly extendable via a rich collection of plugins and is noted for its multi-platform compatibility and low resource demand.</p><p>Key features include support for a wide range of BitTorrent protocols, a web interface for remote control, encryption, peer exchange, speed limits, and proxy support. With its intuitive interface, users can easily download and share files via the BitTorrent protocol.</p><p>Deluge is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "deluge",
+                "open-source",
+                "cross-platform",
+                "BitTorrent client",
+                "file sharing",
+                "peer-to-peer",
+                "p2p",
+                "encryption",
+                "web interface",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/deluge-torrent/deluge",
+              "image": "https://hub.docker.com/r/linuxserver/deluge",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Deluge/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Deluge/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Deluge/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Duplicati",
+              "description": "Duplicati is an open-source backup software that creates, encrypts, and stores backups of your files. It offers AES-256 encryption, incremental backups, scheduling, automated backups, and backup verification. Duplicati is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Duplicati is an open-source backup software designed to secure your data by creating, encrypting, and storing backups of your files. It can backup your files to local drives or various online storage services.</p><p>Key features of Duplicati include AES-256 encryption, incremental backups, scheduling, and automated backups. It also supports backup verification, ensuring that your files are not corrupted or lost. Its web-based interface makes it easy to manage and schedule your backups.</p><p>Duplicati is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a versatile tool for various environments.</p>",
+              "tags": [
+                "duplicati",
+                "open-source",
+                "cross-platform",
+                "backup",
+                "encryption",
+                "scheduling",
+                "automated backup",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/duplicati/duplicati",
+              "image": "https://hub.docker.com/r/duplicati/duplicati",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/screenshots/2.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Emulator-JS",
+              "description": "Emulator-JS is an open-source, in-browser multi-system emulator. It allows users to play games from various console systems directly in the browser, facilitated by an intuitive ROM management system. Emulator-JS can be used on any platform that supports a modern web browser, such as Windows, Linux, MacOS, and mobile devices.",
+              "url": "",
+              "longDescription": "<p>Emulator-JS is an open-source, in-browser multi-system emulator. It leverages JavaScript to emulate a wide range of gaming consoles, creating a convenient, accessible, and platform-agnostic gaming experience.</p><p>Key features of Emulator-JS include compatibility with multiple console systems, an intuitive ROM management system, and the ability to save game states. Because it's browser-based, Emulator-JS eliminates the need for complex installations or system-specific emulators.</p><p>As Emulator-JS runs directly in the browser, it can be used on any platform that supports a modern web browser, including Windows, Linux, MacOS, and even mobile devices. This makes it highly versatile for users across different environments.</p>",
+              "tags": [
+                "emulation",
+                "open-source",
+                "cross-platform",
+                "emulator",
+                "in-browser",
+                "gaming",
+                "rom management",
+                "javascript",
+                "windows",
+                "linux",
+                "macos",
+                "mobile"
+              ],
+              "repository": "https://github.com/EmulatorJS/EmulatorJS",
+              "image": "https://hub.docker.com/r/linuxserver/emulatorjs",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Emulator-JS/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Emulator-JS/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Emulator-JS/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Emulator-JS/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "FreshRSS",
+              "description": "FreshRSS is an open-source, self-hosted RSS feed aggregator that is lightweight and easy to use. Features include a responsive design, import/export OPML files, multiple themes, filters, categories, multi-user support, and extensibility with plugins. FreshRSS is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>FreshRSS is an open-source, self-hosted RSS feed aggregator. It is lightweight, easy to use, and packed with features. FreshRSS lets you collect, manage, and read your RSS feeds from your own server, offering a high degree of control and privacy.</p><p>Key features include a responsive design that works well on desktop and mobile devices, the ability to import/export OPML files, multiple themes, filters, categories, and multi-user support with the ability to manage user roles. Furthermore, it's extensible with plugins for additional functionalities.</p><p>FreshRSS is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "freshrss",
+                "open-source",
+                "self-hosted",
+                "RSS",
+                "feed aggregator",
+                "responsive",
+                "OPML",
+                "multi-user",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/FreshRSS/FreshRSS",
+              "image": "https://hub.docker.com/r/linuxserver/freshrss",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/FreshRSS/screenshots/1.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/FreshRSS/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/FreshRSS/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Gitea",
               "description": "Gitea is a lightweight, open-source Git platform for self-hosted repository management, code collaboration, and issue tracking. It offers an intuitive interface, powerful access control, and integrations with popular development tools.",
               "url": "",
@@ -213,6 +426,71 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Gitea/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Grocy",
+              "description": "Grocy is a self-hosted, open-source grocery management solution offering features like stock management with a barcode scanner, recipe management, household chore management, and tracking of purchased items with expiration dates. Grocy is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Grocy is a self-hosted, open-source grocery management solution designed to help users manage their groceries. It provides a suite of tools for managing shopping lists, recipes, inventory, and chores.</p><p>Key features include stock management with a barcode scanner, recipe management, household chore management, and tracking of purchased items with expiration dates. Grocy helps users to avoid waste by providing reminders about due dates of perishable items.</p><p>Grocy is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "grocy",
+                "open-source",
+                "self-hosted",
+                "grocery",
+                "management",
+                "shopping list",
+                "inventory",
+                "recipes",
+                "chores",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/grocy/grocy",
+              "image": "https://hub.docker.com/r/linuxserver/grocy",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Grocy/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Grocy/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Grocy/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Heimdall",
+              "description": "Heimdall is an open-source, self-hosted dashboard software that provides a central hub for web-based applications and services. Features include a built-in application library, custom themes, multi-user support, and compatibility with desktop and mobile browsers. Heimdall is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Heimdall is an open-source, self-hosted dashboard software that allows you to organize and access your web-based applications and services all in one place. It's designed to provide a central hub to simplify your web environment.</p><p>Key features of Heimdall include the ability to add applications via a built-in library or by creating custom application definitions, custom themes, and the capacity to run on a desktop or mobile browser. It supports multiple users and each user can have their own personalized set of applications.</p><p>Heimdall is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "dashboard",
+                "heimdall",
+                "open-source",
+                "self-hosted",
+                "web-based applications",
+                "services",
+                "central hub",
+                "multi-user",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/linuxserver/Heimdall",
+              "image": "https://hub.docker.com/r/linuxserver/heimdall",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Heimdall/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Heimdall/screenshots/2.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Heimdall/screenshots/3.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Heimdall/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Heimdall/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
@@ -448,6 +726,37 @@ function list() {
               ]
             },
             {
+              "name": "Ombi",
+              "description": "Ombi is an open-source, self-hosted web application that enables Plex or Emby users to request content. It offers features like user management, a request system, notification system, and automatic updates. Ombi is compatible with popular platforms such as Plex, Emby, Sonarr, Radarr, and Tautulli. It can be run on Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Ombi is an open-source, self-hosted web application that enables you to give your shared Plex or Emby users the ability to request content. It's an intuitive interface between your media server and the users.</p><p>Key features of Ombi include user management, a request system, notification system, and automatic updates. Ombi can be integrated with popular platforms such as Plex, Emby, Sonarr, Radarr, and Tautulli, making it an essential tool for managing requests for media content.</p><p>Ombi is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "ombi",
+                "open-source",
+                "self-hosted",
+                "web application",
+                "plex",
+                "emby",
+                "request system",
+                "media content",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/Ombi-app/Ombi",
+              "image": "https://hub.docker.com/r/linuxserver/ombi",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Ombi/screenshots/1.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Ombi/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Ombi/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "PhotoPrism",
               "description": "PhotoPrism is an open-source personal photo management tool that uses smart search, automated tagging, and geolocation to help organize your photos. It supports various image formats, generates thumbnails, and converts RAW images. PhotoPrism works across various platforms and offers a private, self-hosted solution for managing your photos. Start using PhotoPrism today for your photo management needs.",
               "url": "",
@@ -575,6 +884,38 @@ function list() {
               ]
             },
             {
+              "name": "Readarr",
+              "description": "Readarr is an open-source, self-hosted PVR for managing and downloading ebooks. It offers features like adding favorite authors, automatic book searching, calendar integration, and importing existing libraries. Readarr supports integration with popular download clients and can send notifications. It can be run on Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Readarr is an open-source, self-hosted PVR (Personal Video Recorder) for managing and downloading ebooks. It's built off of the Radarr, Sonarr, and Lidarr platforms and brings the same powerful features to the world of ebooks.</p><p>Key features of Readarr include the ability to add your favorite authors, automatic book searching, calendar integration, and the ability to import existing libraries. It supports integration with popular download clients and can send notifications via a number of platforms.</p><p>Readarr is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "download",
+                "readarr",
+                "open-source",
+                "self-hosted",
+                "PVR",
+                "ebooks",
+                "book management",
+                "download",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/Readarr/Readarr",
+              "image": "https://hub.docker.com/r/linuxserver/readarr",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Readarr/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Readarr/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Readarr/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Readarr/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Sonarr",
               "description": "Sonarr is an automated TV show manager that can search, download, and manage your TV series. It offers features like automatic quality upgrades, episode tracking, and metadata fetching. Sonarr works across various platforms including Windows, Linux, MacOS, and has a mobile-friendly web interface. Start using Sonarr now to automate your TV show management process.",
               "url": "",
@@ -606,6 +947,33 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sonarr/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sonarr/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Tandoor",
+              "description": "Tandoor is a recipe manager that allows you to manage your ever growing collection of digital recipes.",
+              "url": "",
+              "longDescription": "<p>Tandoor Recipes is the self hosted recipe manager with meal planning, shopping lists and cookbook collections.</p><p>The days of storing recipes on paper cards is in the past and what better way to preserve older recipes that were handed down then to log them into a digital, self hosted recipe manager where you can access them anywhere?</p><p>Tandoor Recipes is much more than a digital recipe reference archive, it's a complete meal planning power house.</p>",
+              "tags": [
+                "recipes",
+                "meals",
+                "shopping",
+                "planning",
+                "cookbook",
+                "docker",
+                "pwa"
+              ],
+              "repository": "https://github.com/TandoorRecipes/recipes",
+              "image": "https://hub.docker.com/r/vabene1111/recipes",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Tandoor/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Tandoor/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Tandoor/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Tandoor/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
