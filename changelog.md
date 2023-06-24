@@ -1,4 +1,4 @@
-## version 0.8.1 -> 0.8.5
+## version 0.8.1 -> 0.8.6
  - Added new automatic Docker mapping feature (for people not using (sub)domains)
  - Added guardrails to prevent Let's Encrypt from failing to initialize when adding wrong domains
  - App store image size issue
@@ -8,6 +8,7 @@
  - Fixed issue where home page was https:// links on http only servers
  - Improved setup flow for setting up hostname and HTTPS
  - Fixed auto-update on ARM based CPU
+ - Fix issue with email links
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors
