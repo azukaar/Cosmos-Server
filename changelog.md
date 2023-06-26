@@ -9,6 +9,7 @@
  - Improved setup flow for setting up hostname and HTTPS
  - Fixed auto-update on ARM based CPU
  - Fix issue with email links
+ - HideFromDashboard option on routes
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors

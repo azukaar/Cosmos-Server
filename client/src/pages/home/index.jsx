@@ -332,6 +332,8 @@ const HomePage = () => {
                         skip = true
                     }
                 }
+                if (route.HideFromDashboard) 
+                    skip = true;
                 return !skip && <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
                     <Box className='app app-hover' style={{ padding: 18, borderRadius: 5, ...appColor }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>

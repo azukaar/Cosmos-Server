@@ -165,6 +165,7 @@ type ProxyRouteConfig struct {
 	BlockCommonBots bool
 	BlockAPIAbuse bool
 	AcceptInsecureHTTPSTarget bool
+	HideFromDashboard bool
 }
 
 type EmailConfig struct {
