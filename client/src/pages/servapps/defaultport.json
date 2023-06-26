@@ -54,6 +54,7 @@
     "ubooquity": 2202,
     "unifi-controller": 8443,
     "watchtower": 8080,
-    "wordpress": 80
+    "wordpress": 80,
+    "deluge": 8112
   }  
 }
