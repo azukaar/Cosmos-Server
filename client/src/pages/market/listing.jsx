@@ -289,7 +289,11 @@ const MarketPage = () => {
                     }}
                     >{app.description}</div>
                     <Stack direction={'row'} spacing={1}>
-                      <div style={{ fontStyle: "italic", opacity: 0.7 }}>{app.tags.slice(0,3).join(", ")}</div>
+                      <div style={{ fontStyle: "italic", opacity: 0.7,
+                      overflow: 'hidden',
+                      height: '21px',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'pre-wrap', }}>{app.tags.slice(0,3).join(", ")}</div>
                     </Stack>
                   </Stack>
                 </Stack>

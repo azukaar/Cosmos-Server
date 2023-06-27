@@ -1,8 +1,9 @@
-## version 0.8.1 -> 0.8.9
+## version 0.8.1 -> 0.8.10
  - Added new automatic Docker mapping feature (for people not using (sub)domains)
  - Added guardrails to prevent Let's Encrypt from failing to initialize when adding wrong domains
  - Add search bar on the marketplace
  - App store image size issue
+ - Display more tags in the market
  - Fixed wrong x-forwarded-proto header 
  - Add installer option for hostname prefix/suffix
  - Fix minor issue with inconsistent password on market installer
