@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Stack } from "@mui/material";
+import { Box, CircularProgress, Input, InputAdornment, Stack } from "@mui/material";
 import { HomeBackground, TransparentHeader } from "../home";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
@@ -10,6 +10,7 @@ import { Paper, Button , Chip} from '@mui/material'
 import { Link } from "react-router-dom";
 import {Link as LinkMUI} from '@mui/material'
 import DockerComposeImport from '../servapps/containers/docker-compose';
+import { SearchOutlined } from "@ant-design/icons";
 
 function Screenshots({ screenshots }) {
   return screenshots.length > 1 ? (
@@ -107,6 +108,7 @@ const MarketPage = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const { appName, appStore } = useParams();
+  const [search, setSearch] = useState("");
 
   const backgroundStyle = isDark ? {
     backgroundColor: 'rgb(0,0,0)',
@@ -232,6 +234,18 @@ const MarketPage = () => {
         padding: '24px',
       }}>
         <h2>Applications</h2>
+        <Input placeholder="Search"
+          value={search}
+          style={{maxWidth: '400px'}}
+          startAdornment={
+            <InputAdornment position="start">
+              <SearchOutlined />
+            </InputAdornment>
+          }
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+        />
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
           height: '100%',
@@ -247,7 +261,15 @@ const MarketPage = () => {
         </Box>}
 
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
-          {Object.keys(apps).map(appstore => apps[appstore].map((app) => {
+          {Object.keys(apps).map(appstore => apps[appstore]
+          .filter((app) => {
+            if (!search || search.length <= 2) {
+              return true;
+            }
+            return app.name.toLowerCase().includes(search.toLowerCase()) ||
+              app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
+            })
+          .map((app) => {
             return <Grid2 style={{
               ...gridAnim,
               cursor: 'pointer',
@@ -267,7 +289,7 @@ const MarketPage = () => {
                     }}
                     >{app.description}</div>
                     <Stack direction={'row'} spacing={1}>
-                      <div style={{ fontStyle: "italic", opacity: 0.7 }}>{app.tags[0]}</div>
+                      <div style={{ fontStyle: "italic", opacity: 0.7 }}>{app.tags.slice(0,3).join(", ")}</div>
                     </Stack>
                   </Stack>
                 </Stack>
