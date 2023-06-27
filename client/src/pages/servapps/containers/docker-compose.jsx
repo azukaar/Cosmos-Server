@@ -197,9 +197,9 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                   } else {
                     let volumeSplit = volume.split(':');
                     let volumeObj = {
-                      Source: volumeSplit[0],
-                      Target: volumeSplit[1],
-                      Type: volume[0] === '/' ? 'bind' : 'volume',
+                      source: volumeSplit[0],
+                      target: volumeSplit[1],
+                      type: volume[0] === '/' ? 'bind' : 'volume',
                     };
                     volumes.push(volumeObj);
                   }

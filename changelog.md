@@ -12,6 +12,7 @@
  - Fixed auto-update on ARM based CPU
  - Fix issue with email links
  - HideFromDashboard option on routes
+ - Fix docker compose import issue with uppercase volumes
 
 ## Version 0.8.0
  - Custmizable homepage / theme colors
