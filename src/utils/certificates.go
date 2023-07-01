@@ -200,7 +200,7 @@ func DoLetsEncrypt() (string, string) {
 	myUser.Registration = reg
 
 	request := certificate.ObtainRequest{
-		Domains: LetsEncryptValidOnly(GetAllHostnames(true, false)),
+		Domains: LetsEncryptValidOnly(GetAllHostnames(true, false), config.HTTPConfig.DNSChallengeProvider != ""),
 		Bundle:  true,
 	}
 	certificates, err := client.Certificate.Obtain(request)

@@ -140,8 +140,8 @@ func HTTPError(w http.ResponseWriter, message string, code int, userCode string)
 }
 
 func SetBaseMainConfig(config Config) {
-	LoadBaseMainConfig(config)
 	SaveConfigTofile(config)
+	LoadBaseMainConfig(config)
 }
 
 func ReadConfigFromFile() Config {
@@ -309,13 +309,13 @@ func RestartServer() {
 	os.Exit(0)
 }
 
-func LetsEncryptValidOnly(hostnames []string) []string {
+func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
 	wrongPattern := `^(localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|.*\.local)$`
 	re, _ := regexp.Compile(wrongPattern)
 
 	var validDomains []string
 	for _, domain := range hostnames {
-		if !re.MatchString(domain) && !strings.Contains(domain, "*") && !strings.Contains(domain, " ") && !strings.Contains(domain, ",") {
+		if !re.MatchString(domain) && (acceptWildcard || !strings.Contains(domain, "*")) && !strings.Contains(domain, " ") && !strings.Contains(domain, ",") {
 			validDomains = append(validDomains, domain)
 		} else {
 			Error("Invalid domain found in URLs: " + domain + " it was removed from the certificate to not break Let's Encrypt", nil)

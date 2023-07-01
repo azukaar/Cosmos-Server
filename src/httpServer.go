@@ -240,7 +240,6 @@ func InitServer() *mux.Router {
 			baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
 	
 			utils.SetBaseMainConfig(baseMainConfig)
-
 			utils.Log("Saved new LETSENCRYPT TLS certificate")
 	
 			tlsCert = pub
@@ -385,13 +384,13 @@ func InitServer() *mux.Router {
 }
 
 func StartServer() {
+	router := InitServer()
+
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
 
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
-
-	router := InitServer()
 
 	if (
 		(
