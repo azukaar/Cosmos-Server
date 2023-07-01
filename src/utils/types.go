@@ -105,11 +105,13 @@ type HTTPConfig struct {
 	TLSCert string `validate:"omitempty,contains=\n`
 	TLSKey string
 	TLSKeyHostsCached []string
+	TLSValidUntil time.Time
 	AuthPrivateKey string
 	AuthPublicKey string
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
 	DNSChallengeProvider string
+	ForceHTTPSCertificateRenewal bool
 	HTTPPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	HTTPSPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	ProxyConfig ProxyConfig

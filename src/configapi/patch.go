@@ -87,7 +87,9 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 
 	config.HTTPConfig.ProxyConfig.Routes = routes
 	utils.SaveConfigTofile(config)
-	utils.NeedsRestart = true
+	//utils.NeedsRestart = true
+	
+	utils.RestartHTTPServer()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",

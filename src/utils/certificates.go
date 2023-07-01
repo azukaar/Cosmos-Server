@@ -6,10 +6,22 @@ import (
 	"math/big"
 	"time"
 	"crypto/rand"
+	"crypto"
 	"crypto/rsa"
 	"crypto/ed25519"
 	"crypto/x509/pkix"
 	"encoding/asn1"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"os"
+	
+	"github.com/go-acme/lego/v4/certcrypto"
+	"github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/challenge/http01"
+	"github.com/go-acme/lego/v4/lego"
+	"github.com/go-acme/lego/v4/registration"
+	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
+	"github.com/go-acme/lego/v4/providers/dns"
 )
 
 func GenerateRSAWebCertificates(domains []string) (string, string) {
@@ -107,4 +119,113 @@ func GenerateEd25519Certificates() (string, string) {
 	}
 
 	return string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: bpub})), string(pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: bpriv}))
+}
+
+type CertUser struct {
+	Email        string
+	Registration *registration.Resource
+	key          crypto.PrivateKey
+}
+func (u *CertUser) GetEmail() string {
+	return u.Email
+}
+
+func (u CertUser) GetRegistration() *registration.Resource {
+	return u.Registration
+}
+
+func (u *CertUser) GetPrivateKey() crypto.PrivateKey {
+	return u.key
+}
+
+
+func DoLetsEncrypt() (string, string) {
+	config := GetMainConfig()
+
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		Error("LETSENCRYPT_ECDSA", err)
+		return "", ""
+	}
+
+	myUser := CertUser{
+		Email: config.HTTPConfig.SSLEmail,
+		key:   privateKey,
+	}
+
+	certConfig := lego.NewConfig(&myUser)
+
+	if os.Getenv("ACME_STAGING") == "true" {
+		certConfig.CADirURL = "https://acme-staging-v02.api.letsencrypt.org/directory"
+	} else {
+		certConfig.CADirURL = "https://acme-v02.api.letsencrypt.org/directory"
+	}
+
+	certConfig.Certificate.KeyType = certcrypto.RSA2048
+
+	client, err := lego.NewClient(certConfig)
+	if err != nil {
+		Error("LETSENCRYPT_NEW", err)
+		return "", ""
+	}
+
+	if config.HTTPConfig.DNSChallengeProvider != "" {
+		provider, err := dns.NewDNSChallengeProviderByName(config.HTTPConfig.DNSChallengeProvider)
+		if err != nil {
+			Error("LETSENCRYPT_DNS", err)
+			return "", ""
+		}
+
+		err = client.Challenge.SetDNS01Provider(provider)
+	}
+
+	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
+	if err != nil {
+		Error("LETSENCRYPT_HTTP01", err)
+		return "", ""
+	}
+
+	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", config.HTTPConfig.HTTPSPort))
+	if err != nil {
+		Error("LETSENCRYPT_TLS01", err)
+		return "", ""
+	}
+
+	// New users will need to register
+	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	if err != nil {
+		Error("LETSENCRYPT_REGISTER", err)
+		return "", ""
+	}
+	myUser.Registration = reg
+
+	request := certificate.ObtainRequest{
+		Domains: LetsEncryptValidOnly(GetAllHostnames(true, false)),
+		Bundle:  true,
+	}
+	certificates, err := client.Certificate.Obtain(request)
+	if err != nil {
+		Error("LETSENCRYPT_OBTAIN", err)
+		return "", ""
+	}
+
+	// return cert and key
+	return string(certificates.Certificate), string(certificates.PrivateKey)
+}
+
+// You'll need a user or account type that implements acme.User
+type MyUser struct {
+	Email        string
+	Registration *registration.Resource
+	key          crypto.PrivateKey
+}
+
+func (u *MyUser) GetEmail() string {
+	return u.Email
+}
+func (u MyUser) GetRegistration() *registration.Resource {
+	return u.Registration
+}
+func (u *MyUser) GetPrivateKey() crypto.PrivateKey {
+	return u.key
 }

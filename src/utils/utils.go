@@ -31,6 +31,8 @@ var NeedsRestart = false
 
 var UpdateAvailable = map[string]bool{}
 
+var RestartHTTPServer func()
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
@@ -352,8 +354,8 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 
 	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
 		filteredHostnames := []string{
-			"*." + mainHostname,
 			mainHostname,
+			"*." + mainHostname,
 		}
 
 		for _, hostname := range uniqueHostnames {

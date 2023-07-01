@@ -79,6 +79,7 @@ const ConfigManagement = () => {
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
           DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
           DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
+          ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -120,6 +121,7 @@ const ConfigManagement = () => {
                 HTTPSCertificateMode: values.HTTPSCertificateMode,
                 DNSChallengeProvider: values.DNSChallengeProvider,
                 DNSChallengeConfig: values.DNSChallengeConfig,
+                ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               },
               EmailConfig: {
                 ...config.EmailConfig,
@@ -517,6 +519,9 @@ const ConfigManagement = () => {
                     name="HTTPSCertificateMode"
                     label="HTTPS Certificates"
                     formik={formik}
+                    onChange={(e) => {
+                      formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                    }}
                     options={[
                       ["LETSENCRYPT", "Automatically generate certificates using Let's Encrypt (Recommended)"],
                       ["SELFSIGNED", "Locally self-sign certificates (unsecure)"],
@@ -527,6 +532,9 @@ const ConfigManagement = () => {
 
                   <CosmosCheckbox
                     label={"Use Wildcard Certificate for *." + formik.values.Hostname}
+                    onChange={(e) => {
+                      formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                    }}
                     name="UseWildcardCertificate"
                     formik={formik}
                   />
@@ -534,6 +542,9 @@ const ConfigManagement = () => {
                   {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                       <CosmosInputText
                         name="SSLEmail"
+                        onChange={(e) => {
+                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                        }}
                         label="Email address for Let's Encrypt"
                         formik={formik}
                       />
@@ -543,6 +554,9 @@ const ConfigManagement = () => {
                   {
                     formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                       <DnsChallengeComp 
+                        onChange={(e) => {
+                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                        }}
                         label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
                         name="DNSChallengeProvider"
                         configName="DNSChallengeConfig"

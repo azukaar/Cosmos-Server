@@ -18,81 +18,53 @@ import (
 		"github.com/go-chi/httprate"
 		"crypto/tls"
 		spa "github.com/roberthodgen/spa-server"
-		"github.com/foomo/simplecert"
 		"github.com/foomo/tlsconfig"
+		"context"
 )
 
 var serverPortHTTP = ""
 var serverPortHTTPS = ""
+var HTTPServer *http.Server
 
 func startHTTPServer(router *mux.Router) {
-	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
+	var errServ error
+	for(errServ == http.ErrServerClosed || errServ == nil) {
+		HTTPServer = &http.Server{
+			Addr: "0.0.0.0:" + serverPortHTTP,
+			ReadTimeout: 0,
+			ReadHeaderTimeout: 10 * time.Second,
+			WriteTimeout: 0,
+			IdleTimeout: 30 * time.Second,
+			Handler: router,
+			DisableGeneralOptionsHandler: true,
+		}
 
-	docker.CheckPorts()
+		utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
+	
+		docker.CheckPorts()
+	
+		errServ = HTTPServer.ListenAndServe()
 
-	err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, router)
+		if errServ != nil && errServ != http.ErrServerClosed {
+			utils.Fatal("Listening to HTTPS", errServ)
+		}
 
-	if err != nil {
-		utils.Fatal("Listening to HTTP", err)
+		utils.Log("HTTP Server closed. Restarting.")
+		errServ = nil
+
+		router = InitServer()
 	}
 }
 
 func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
-	config  := utils.GetMainConfig()
+	//config  := utils.GetMainConfig()
 
-	cfg := simplecert.Default
-
-	if config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"] {
-		cfg.CacheDir = "/config/certificates"
-		cfg.SSLEmail = config.HTTPConfig.SSLEmail
-		cfg.HTTPAddress = "0.0.0.0:"+serverPortHTTP
-		cfg.TLSAddress = "0.0.0.0:"+serverPortHTTPS
-	
-		if config.HTTPConfig.DNSChallengeProvider != "" {
-			utils.Log("Using DNS Challenge with Provider: " + config.HTTPConfig.DNSChallengeProvider)
-			cfg.DNSProvider  = config.HTTPConfig.DNSChallengeProvider
-			cfg.Domains = utils.GetAllHostnames(true, false)
-		} else {
-			cfg.Domains = utils.LetsEncryptValidOnly(utils.GetAllHostnames(true, false))
-		}
-	}	
-
-	cfg.FailedToRenewCertificate = func(err error) {
-		utils.Error("Failed to renew certificate", err)
-	}
-
-	var certReloader *simplecert.CertReloader 
-	var errSimCert error
-	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
-		if(config.HTTPConfig.DNSChallengeProvider != "") {
-			newEnv := config.HTTPConfig.DNSChallengeConfig
-			for key, value := range newEnv {
-				os.Setenv(key, value)
-			}
-		}
-
-		certReloader, errSimCert = simplecert.Init(cfg, nil)
-		if errSimCert != nil {
-			  // Temporary before we have a better way to handle this
-				utils.Error("Failed to Init Let's Encrypt. HTTPS wont renew", errSimCert)
-				startHTTPServer(router)
-				return
-		}
-	}
-	
 	utils.IsHTTPS = true
-	// Redirect ports 
-	docker.CheckPorts()
 		
 	// redirect http to https
 	go (func () {
 		httpRouter := mux.NewRouter()
 
-		// add support for internal OpenID requests
-		// if os.Getenv("HOSTNAME") != "" {
-		// 	authorizationserver.RegisterHandlers(httpRouter.Host(os.Getenv("HOSTNAME")).Subrouter())
-		// } 
-		
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// change port in host
 			if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
@@ -106,7 +78,6 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 			http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 		})
 
-		// err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, http.HandlerFunc(simplecert.Redirect))
 		err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, httpRouter)
 		
 		if err != nil {
@@ -119,34 +90,47 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 
 	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
-	if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+	/*if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		tlsConf.GetCertificate = certReloader.GetCertificateFunc()
-	} else {
+	} else {*/
 		cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
 		if errCert != nil {
 			utils.Fatal("Getting Certificate pair", errCert)
 		}
 
 		tlsConf.Certificates = []tls.Certificate{cert}
-	}
-	
-	server := http.Server{
-		TLSConfig: tlsConf,
-		Addr: "0.0.0.0:" + serverPortHTTPS,
-		ReadTimeout: 0,
-		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout: 0,
-		IdleTimeout: 30 * time.Second,
-		Handler: router,
-		DisableGeneralOptionsHandler: true,
-	}
-
+	//}
 
 	// start https server
-	errServ := server.ListenAndServeTLS("", "")
+	var errServ error
 
-	if errServ != nil {
-		utils.Fatal("Listening to HTTPS", errServ)
+	for(errServ == http.ErrServerClosed || errServ == nil) {
+		HTTPServer = &http.Server{
+			TLSConfig: tlsConf,
+			Addr: "0.0.0.0:" + serverPortHTTPS,
+			ReadTimeout: 0,
+			ReadHeaderTimeout: 10 * time.Second,
+			WriteTimeout: 0,
+			IdleTimeout: 30 * time.Second,
+			Handler: router,
+			DisableGeneralOptionsHandler: true,
+		}
+
+		// Redirect ports 
+		docker.CheckPorts()
+
+		utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
+
+		errServ = HTTPServer.ListenAndServeTLS("", "")
+
+		if errServ != nil && errServ != http.ErrServerClosed {
+			utils.Fatal("Listening to HTTPS", errServ)
+		}
+
+		utils.Log("HTTPS Server closed. Restarting.")
+		errServ = nil
+
+		router = InitServer()
 	}
 }
 
@@ -196,7 +180,18 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 	))
 }
 
-func StartServer() {
+func CertificateIsValid(validUntil time.Time) bool {
+	// allow 5 days of leeway
+	isValid := time.Now().Add(5 * 24 * time.Hour).Before(validUntil)
+	if !isValid {
+		utils.Log("Certificate is not valid anymore. Needs refresh")
+	}
+	return isValid
+}
+
+func InitServer() *mux.Router {
+	utils.RestartHTTPServer = RestartServer
+
 	baseMainConfig := utils.GetBaseMainConfig()
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
@@ -208,20 +203,65 @@ func StartServer() {
 
 	domains := utils.GetAllHostnames(true, false)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
+	falledBack := false
 
-	NeedsRefresh := (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains)
+	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
+	
+	// If we have a certificate, we can fallback to it if necessary
+	CanFallback := tlsCert != "" && tlsKey != "" && 
+		len(config.HTTPConfig.TLSKeyHostsCached) > 0 && 
+		config.HTTPConfig.TLSKeyHostsCached[0] == config.HTTPConfig.Hostname  &&
+		CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
 
+	if(NeedsRefresh && config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+		if(config.HTTPConfig.DNSChallengeProvider != "") {
+			newEnv := config.HTTPConfig.DNSChallengeConfig
+			for key, value := range newEnv {
+				os.Setenv(key, value)
+			}
+		}
+
+		// Get Certificates 
+		pub, priv := utils.DoLetsEncrypt()
+
+		if(pub == "" || priv == "") {
+			if(!CanFallback) {
+				utils.Error("Getting TLS certificate. Fallback to SELFSIGNED certificates", nil)
+				HTTPConfig.HTTPSCertificateMode = utils.HTTPSCertModeList["SELFSIGNED"]
+				falledBack = true
+			} else {
+				utils.Error("Getting TLS certificate. Fallback to previous certificate", nil)
+			}
+		} else {
+			baseMainConfig.HTTPConfig.TLSCert = pub
+			baseMainConfig.HTTPConfig.TLSKey = priv
+			baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
+			baseMainConfig.HTTPConfig.TLSValidUntil = time.Now().AddDate(0, 0, 90)
+			baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
+	
+			utils.SetBaseMainConfig(baseMainConfig)
+
+			utils.Log("Saved new LETSENCRYPT TLS certificate")
+	
+			tlsCert = pub
+			tlsKey = priv
+		}
+	}
+	
 	if(NeedsRefresh && HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
 		utils.Log("Generating new TLS certificate for domains: " + strings.Join(domains, ", "))
 		pub, priv := utils.GenerateRSAWebCertificates(domains)
 		
-		baseMainConfig.HTTPConfig.TLSCert = pub
-		baseMainConfig.HTTPConfig.TLSKey = priv
-		baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
+		if !falledBack {
+			baseMainConfig.HTTPConfig.TLSCert = pub
+			baseMainConfig.HTTPConfig.TLSKey = priv
+			baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
+			baseMainConfig.HTTPConfig.TLSValidUntil = time.Now().AddDate(0, 0, 364)
+			baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
 
-		utils.SetBaseMainConfig(baseMainConfig)
-
-		utils.Log("Saved new TLS certificate")
+			utils.SetBaseMainConfig(baseMainConfig)
+			utils.Log("Saved new SELFISGNED TLS certificate")
+		}
 
 		tlsCert = pub
 		tlsKey = priv
@@ -238,12 +278,11 @@ func StartServer() {
 		utils.Log("Saved new Auth ED25519 certificate")
 	}
 
+	utils.Log("Initialising HTTP(S) Router and all routes")
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/logo", SendLogo)
 
-	// need rewrite bc it catches too many things and prevent
-	// client to be notified of the error
-	
 	router.Use(middleware.Logger)
 	router.Use(utils.SetSecurityHeaders)
 
@@ -324,11 +363,6 @@ func StartServer() {
 
 	router.PathPrefix("/cosmos-ui").Handler(http.StripPrefix("/cosmos-ui", fs))
 
-	// temporary message to help people migrate version. DELETE IN NEXT VERSION
-	router.HandleFunc("/ui", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("You are seeing this message because the UI was moved from /ui to /cosmos-ui, in order to fix compatibility with apps like OpenSense who also use /ui. The issue is that your browser still has the old UI URL cached. Please empty your browser's cache and reload the page. Also, make sure you don't have a bookmark with the /ui in the URL. This message will disappear in the next version of Cosmos, to solve the compatibility issue. Sorry for the inconvenience."))
-	})
-
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -347,12 +381,39 @@ func StartServer() {
 
 	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
 
-	if ((HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] || HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]) &&
-			 tlsCert != "" && tlsKey != "") || (HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+	return router
+}
+
+func StartServer() {
+	config := utils.GetMainConfig()
+	HTTPConfig := config.HTTPConfig
+
+	var tlsCert = HTTPConfig.TLSCert
+	var tlsKey= HTTPConfig.TLSKey
+
+	router := InitServer()
+
+	if (
+		(
+			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] ||
+			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]  ||
+			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) &&
+			tlsCert != "" && tlsKey != "") {
 		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
 		startHTTPSServer(router, tlsCert, tlsKey)
 	} else {
 		utils.Log("TLS certificates do not exists or are disabled, starting HTTP server only")
 		startHTTPServer(router)
 	}
+}
+
+func RestartServer() {
+	utils.Log("Restarting HTTP Server...")
+	LoadConfig()
+
+	go func() {
+		HTTPServer.Shutdown(context.Background())
+	}()
+
+	utils.Log("HTTP Server stopped. Restarting...")
 }

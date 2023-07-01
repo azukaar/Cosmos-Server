@@ -101,9 +101,28 @@ func checkUpdatesAvailable() {
 	utils.UpdateAvailable = docker.CheckUpdatesAvailable()
 }
 
+func checkCerts() {
+	config := utils.GetMainConfig()
+	HTTPConfig := config.HTTPConfig
+
+	if (
+		HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] ||
+		HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
+		utils.Log("Checking certificates for renewal")
+		if !CertificateIsValid(HTTPConfig.TLSValidUntil) {
+			utils.Log("Certificates are not valid anymore, renewing")
+			RestartServer()
+		}
+	}
+}
+
 func CRON() {
 	go func() {
 		gocron.Every(1).Day().At("00:00").Do(checkVersion)
+		<-gocron.Start()
+	}()
+	go func() {
+		gocron.Every(1).Day().At("01:00").Do(checkCerts)
 		<-gocron.Start()
 	}()
 	go func() {
