@@ -707,7 +707,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	// Save the route configs 
 	config.HTTPConfig.ProxyConfig.Routes = configRoutes
 	utils.SaveConfigTofile(config)
-	utils.NeedsRestart = true
+	utils.RestartHTTPServer()
 
 	// After all operations
 	utils.Log("CreateService: Operation succeeded. SERVICE STARTED")

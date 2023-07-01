@@ -118,15 +118,10 @@ func checkCerts() {
 
 func CRON() {
 	go func() {
-		gocron.Every(1).Day().At("00:00").Do(checkVersion)
-		<-gocron.Start()
-	}()
-	go func() {
-		gocron.Every(1).Day().At("01:00").Do(checkCerts)
-		<-gocron.Start()
-	}()
-	go func() {
-		gocron.Every(6).Hours().Do(checkUpdatesAvailable)
-		<-gocron.Start()
+		s := gocron.NewScheduler()
+		s.Every(1).Day().At("00:00").Do(checkVersion)
+		s.Every(1).Day().At("01:00").Do(checkCerts)
+		s.Every(6).Hours().Do(checkUpdatesAvailable)
+		s.Start()
 	}()
 }
