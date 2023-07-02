@@ -327,6 +327,11 @@ func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
 
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
+
+	if removePorts {
+		mainHostname = strings.Split(mainHostname, ":")[0]
+	}
+
 	hostnames := []string{
 		mainHostname,
 	}
@@ -399,6 +404,15 @@ func StringArrayEquals(a []string, b []string) bool {
 	}
 
 	return true
+}
+
+func HasAnyNewItem(after []string, before []string) bool {
+	for _, value := range after {
+		if !StringArrayContains(before, value) {
+			return true
+		}
+	}
+	return false
 }
 
 func StringArrayContains(a []string, b string) bool {

@@ -214,6 +214,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	utils.Log("Starting creation of new service...")
 	OnLog("Starting creation of new service...\n")
 	
+	needsHTTPRestart := false
 	config := utils.ReadConfigFromFile()
 	configRoutes := config.HTTPConfig.ProxyConfig.Routes
 
@@ -325,6 +326,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		utils.Log(fmt.Sprintf("Image %s pulled", container.Image))
 		OnLog(fmt.Sprintf("Image %s pulled\n", container.Image))
 	}
+
 
 	// Create containers
 	for serviceName, container := range serviceRequest.Services {
@@ -583,6 +585,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				}
 			}
 			if !exists {
+				needsHTTPRestart = true
 				configRoutes = append([]utils.ProxyRouteConfig{(utils.ProxyRouteConfig)(route)}, configRoutes...)
 			} else {
 				utils.Error("CreateService: Rolling back changes because of -- Route already exist", nil)
@@ -707,7 +710,10 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	// Save the route configs 
 	config.HTTPConfig.ProxyConfig.Routes = configRoutes
 	utils.SaveConfigTofile(config)
-	utils.RestartHTTPServer()
+	
+	if needsHTTPRestart {
+		utils.RestartHTTPServer()
+	}
 
 	// After all operations
 	utils.Log("CreateService: Operation succeeded. SERVICE STARTED")

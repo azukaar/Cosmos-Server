@@ -69,16 +69,17 @@ func CheckPorts() error {
 
 	// Get the ports
 	ports := map[string]struct{}{}
+	finalPorts := []string{}
+
 	for containerPort, hostConfig := range inspect.NetworkSettings.Ports {
 		utils.Debug("Container port: " + containerPort.Port())
 		
 		for _, hostPort := range hostConfig {
 			utils.Debug("Host port: " + hostPort.HostPort)
 			ports[hostPort.HostPort] = struct{}{}
+			finalPorts = append(finalPorts, hostPort.HostPort + ":" + containerPort.Port())
 		}
 	}
-
-	finalPorts := []string{}
 
 	hasChanged := false
 
@@ -94,21 +95,18 @@ func CheckPorts() error {
 				finalPorts = append(finalPorts, port + ":" + expectedPort)
 				hasChanged = true
 			}
-		} else {
-			finalPorts = append(finalPorts, port + ":" + expectedPort)
 		}
 	}
 
 	if hasChanged {
-		finalPorts = append(finalPorts, config.HTTPConfig.HTTPPort + ":" + config.HTTPConfig.HTTPPort)
-		finalPorts = append(finalPorts, config.HTTPConfig.HTTPSPort + ":" + config.HTTPConfig.HTTPSPort)
-
 		utils.Log("Port mapping changed. Needs update.")
 		utils.Log("New ports: " + strings.Join(finalPorts, ", "))
 
 		UpdatePorts(finalPorts)
+		return nil
 	}
 
+	utils.Log("Port mapping not changed.")
 	return nil
 }
 
@@ -121,10 +119,11 @@ func UpdatePorts(finalPorts []string) error {
 		return errors.New("SelUpdatePorts - not using Docker")
 	}
 
+	containerName := os.Getenv("HOSTNAME")
+	utils.Log("SelUpdatePorts - Container name: " + containerName)
+
 	// make sure to remove resiude of old self updater
 	RemoveSelfUpdater()
-
-	containerName := os.Getenv("HOSTNAME")
 
 	version := "latest"
 
@@ -158,6 +157,8 @@ func UpdatePorts(finalPorts []string) error {
 			},
 		},
 	};
+
+	utils.Log("SelUpdatePorts - Creating updater service")
 
 	err := CreateService(service, func (msg string) {})
 

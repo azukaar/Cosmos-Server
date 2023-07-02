@@ -38,11 +38,11 @@ func startHTTPServer(router *mux.Router) {
 			Handler: router,
 			DisableGeneralOptionsHandler: true,
 		}
-
-		utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
-	
+		
 		docker.CheckPorts()
-	
+		
+		utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
+
 		errServ = HTTPServer.ListenAndServe()
 
 		if errServ != nil && errServ != http.ErrServerClosed {
@@ -201,11 +201,11 @@ func InitServer() *mux.Router {
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
 
-	domains := utils.GetAllHostnames(true, false)
+	domains := utils.GetAllHostnames(true, true)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	falledBack := false
 
-	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || !utils.StringArrayEquals(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
+	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || !utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
 	
 	// If we have a certificate, we can fallback to it if necessary
 	CanFallback := tlsCert != "" && tlsKey != "" && 
@@ -414,5 +414,5 @@ func RestartServer() {
 		HTTPServer.Shutdown(context.Background())
 	}()
 
-	utils.Log("HTTP Server stopped. Restarting...")
+	utils.Log("HTTPServer shutdown.")
 }
