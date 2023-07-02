@@ -33,6 +33,8 @@ var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer func()
 
+var LetsEncryptErrors = []string{}
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,

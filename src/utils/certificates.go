@@ -141,10 +141,12 @@ func (u *CertUser) GetPrivateKey() crypto.PrivateKey {
 
 func DoLetsEncrypt() (string, string) {
 	config := GetMainConfig()
+	LetsEncryptErrors = []string{}
 
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		Error("LETSENCRYPT_ECDSA", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 
@@ -166,6 +168,7 @@ func DoLetsEncrypt() (string, string) {
 	client, err := lego.NewClient(certConfig)
 	if err != nil {
 		Error("LETSENCRYPT_NEW", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 
@@ -173,6 +176,7 @@ func DoLetsEncrypt() (string, string) {
 		provider, err := dns.NewDNSChallengeProviderByName(config.HTTPConfig.DNSChallengeProvider)
 		if err != nil {
 			Error("LETSENCRYPT_DNS", err)
+			LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 			return "", ""
 		}
 
@@ -182,12 +186,14 @@ func DoLetsEncrypt() (string, string) {
 	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 	if err != nil {
 		Error("LETSENCRYPT_HTTP01", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 
 	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", config.HTTPConfig.HTTPSPort))
 	if err != nil {
 		Error("LETSENCRYPT_TLS01", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 
@@ -195,6 +201,7 @@ func DoLetsEncrypt() (string, string) {
 	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 	if err != nil {
 		Error("LETSENCRYPT_REGISTER", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 	myUser.Registration = reg
@@ -206,6 +213,7 @@ func DoLetsEncrypt() (string, string) {
 	certificates, err := client.Certificate.Obtain(request)
 	if err != nil {
 		Error("LETSENCRYPT_OBTAIN", err)
+		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
 	}
 

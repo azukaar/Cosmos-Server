@@ -61,6 +61,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,
 				"CPU": runtime.GOARCH,
 				"AVX": cpu.X86.HasAVX,
+				"LetsEncryptErrors": utils.LetsEncryptErrors,
 			},
 		})
 	} else {
