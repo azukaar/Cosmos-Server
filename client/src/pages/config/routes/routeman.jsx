@@ -44,7 +44,7 @@ const checkHost = debounce((host, setHostError) => {
   }
 }, 500)
 
-const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
+const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
   const [openModal, setOpenModal] = React.useState(false);
   const [hostError, setHostError] = React.useState(null);
 
@@ -55,7 +55,7 @@ const RouteManagement = ({ routeConfig, routeNames, TargetContainer, noControls 
   }, [])
  
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
     
     {routeConfig && <>
       <Formik

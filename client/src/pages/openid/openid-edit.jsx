@@ -17,21 +17,12 @@ import { Formik, useFormik } from 'formik';
 import * as yup from 'yup';
 
 const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSubmit }) => {
-  const [openRestartModal, setOpenRestartModal] = useState(false);
   const [submitErrors, setSubmitErrors] = useState([]);
   const [newRoute, setNewRoute] = useState(null);
-
-  function addRoute() {
-    return API.config.addRoute(newRoute).then((res) => {
-      setOpenNewModal(false);
-      setOpenRestartModal(true);
-    });
-  }
 
   const clientConfig = config.OpenIDClients && Object.values(config.OpenIDClients).find((c) => c.id === clientId);
 
   return <>
-    <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
     <Dialog open={openNewModal} onClose={() => setOpenNewModal(false)}>
       <Formik
         initialValues={{

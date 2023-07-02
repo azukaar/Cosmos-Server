@@ -14,11 +14,11 @@ import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { snackit } from '../../../api/wrap';
 
-const RouteSecurity = ({ routeConfig }) => {
+const RouteSecurity = ({ routeConfig, config }) => {
   const [openModal, setOpenModal] = React.useState(false);
 
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
 
     {routeConfig && <>
       <Formik

@@ -37,12 +37,14 @@ import UploadButtons from '../../../components/fileUpload';
 import { TwitterPicker
  } from 'react-color';
 import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
+import { LoadingButton } from '@mui/lab';
 
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
+  const [saveLabel, setSaveLabel] = React.useState("Save");
 
   function refresh() {
     API.config.get().then((res) => {
@@ -60,7 +62,7 @@ const ConfigManagement = () => {
         refresh();
     }}>Refresh</Button><br /><br />
     {config && <>
-      <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+      <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
       <Formik
         initialValues={{
           MongoDB: config.MongoDB,
@@ -101,75 +103,69 @@ const ConfigManagement = () => {
           MongoDB: Yup.string().max(512),
           LoggingLevel: Yup.string().max(255).required('Logging Level is required'),
         })}
+
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-          try {
-            let toSave = {
-              ...config,
-              MongoDB: values.MongoDB,
-              LoggingLevel: values.LoggingLevel,
-              RequireMFA: values.RequireMFA,
-              // AutoUpdate: values.AutoUpdate,
-              BlockedCountries: values.GeoBlocking,
-              HTTPConfig: {
-                ...config.HTTPConfig,
-                Hostname: values.Hostname,
-                GenerateMissingAuthCert: values.GenerateMissingAuthCert,
-                HTTPPort: values.HTTPPort,
-                HTTPSPort: values.HTTPSPort,
-                SSLEmail: values.SSLEmail,
-                UseWildcardCertificate: values.UseWildcardCertificate,
-                HTTPSCertificateMode: values.HTTPSCertificateMode,
-                DNSChallengeProvider: values.DNSChallengeProvider,
-                DNSChallengeConfig: values.DNSChallengeConfig,
-                ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
-              },
-              EmailConfig: {
-                ...config.EmailConfig,
-                Enabled: values.Email_Enabled,
-                Host: values.Email_Host,
-                Port: values.Email_Port,
-                Username: values.Email_Username,
-                Password: values.Email_Password,
-                From: values.Email_From,
-                UseTLS: values.Email_UseTLS,
-              },
-              DockerConfig: {
-                ...config.DockerConfig,
-                SkipPruneNetwork: values.SkipPruneNetwork,
-                DefaultDataPath: values.DefaultDataPath
-              },
-              HomepageConfig: {
-                ...config.HomepageConfig,
-                Background: values.Background
-              },
-              ThemeConfig: {
-                ...config.ThemeConfig,
-                PrimaryColor: values.PrimaryColor,
-                SecondaryColor: values.SecondaryColor
-              },
-            }
-            
-            API.config.set(toSave).then((data) => {
-              if (data.status == 'error') {
-                setStatus({ success: false });
-                if (data.code == 'UL001') {
-                  setErrors({ submit: 'Wrong nickname or password. Try again or try resetting your password' });
-                } else if (data.status == 'error') {
-                  setErrors({ submit: 'Unexpected error. Try again later.' });
-                }
-                setSubmitting(false);
-                return;
-              } else {
-                setStatus({ success: true });
-                setSubmitting(false);
-                setOpenModal(true);
-              }
-            })
-          } catch (err) {
-            setStatus({ success: false });
-            setErrors({ submit: err.message });
-            setSubmitting(false);
+          setSubmitting(true);
+        
+          let toSave = {
+            ...config,
+            MongoDB: values.MongoDB,
+            LoggingLevel: values.LoggingLevel,
+            RequireMFA: values.RequireMFA,
+            // AutoUpdate: values.AutoUpdate,
+            BlockedCountries: values.GeoBlocking,
+            HTTPConfig: {
+              ...config.HTTPConfig,
+              Hostname: values.Hostname,
+              GenerateMissingAuthCert: values.GenerateMissingAuthCert,
+              HTTPPort: values.HTTPPort,
+              HTTPSPort: values.HTTPSPort,
+              SSLEmail: values.SSLEmail,
+              UseWildcardCertificate: values.UseWildcardCertificate,
+              HTTPSCertificateMode: values.HTTPSCertificateMode,
+              DNSChallengeProvider: values.DNSChallengeProvider,
+              DNSChallengeConfig: values.DNSChallengeConfig,
+              ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
+            },
+            EmailConfig: {
+              ...config.EmailConfig,
+              Enabled: values.Email_Enabled,
+              Host: values.Email_Host,
+              Port: values.Email_Port,
+              Username: values.Email_Username,
+              Password: values.Email_Password,
+              From: values.Email_From,
+              UseTLS: values.Email_UseTLS,
+            },
+            DockerConfig: {
+              ...config.DockerConfig,
+              SkipPruneNetwork: values.SkipPruneNetwork,
+              DefaultDataPath: values.DefaultDataPath
+            },
+            HomepageConfig: {
+              ...config.HomepageConfig,
+              Background: values.Background
+            },
+            ThemeConfig: {
+              ...config.ThemeConfig,
+              PrimaryColor: values.PrimaryColor,
+              SecondaryColor: values.SecondaryColor
+            },
           }
+          
+          return API.config.set(toSave).then((data) => {
+            setOpenModal(true);
+            setSaveLabel("Saved!");
+            setTimeout(() => {
+              setSaveLabel("Save");
+            }, 3000);
+          }).catch((err) => {
+            setOpenModal(true);
+            setSaveLabel("Error while saving, try again.");
+            setTimeout(() => {
+              setSaveLabel("Save");
+            }, 3000);
+          });
         }}
       >
         {(formik) => (
@@ -182,19 +178,17 @@ const ConfigManagement = () => {
                   </Grid>
                 )}
                 <Grid item xs={12}>
-                  <AnimateButton>
-                    <Button
+                  <LoadingButton
                       disableElevation
-                      disabled={formik.isSubmitting}
+                      loading={formik.isSubmitting}
                       fullWidth
                       size="large"
                       type="submit"
                       variant="contained"
                       color="primary"
                     >
-                      Save
-                    </Button>
-                  </AnimateButton>
+                      {saveLabel}
+                    </LoadingButton>
                 </Grid>
               </MainCard>
 
@@ -593,19 +587,17 @@ const ConfigManagement = () => {
                   </Grid>
                 )}
                 <Grid item xs={12}>
-                  <AnimateButton>
-                    <Button
+                  <LoadingButton
                       disableElevation
-                      disabled={formik.isSubmitting}
+                      loading={formik.isSubmitting}
                       fullWidth
                       size="large"
                       type="submit"
                       variant="contained"
                       color="primary"
                     >
-                      Save
-                    </Button>
-                  </AnimateButton>
+                      {saveLabel}
+                    </LoadingButton>
                 </Grid>
               </MainCard>
             </Stack>

@@ -43,10 +43,11 @@ func DB() error {
 	return nil
 }
 
-func Disconnect() {
+func DisconnectDB() {
 	if err := client.Disconnect(context.TODO()); err != nil {
 		Fatal("DB", err)
 	}
+	client = nil
 }
 
 func GetCollection(applicationId string, collection string) (*mongo.Collection, error) {

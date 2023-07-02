@@ -64,9 +64,19 @@ const NewDockerService = ({service, refresh}) => {
   service = {...service};
   delete service['cosmos-installer'];
 
+  const refreshConfig = () => {
+    API.config.get().then((res) => {
+      setConfig(res.data);
+    });
+  };
+
   React.useEffect(() => {
-    // refreshContainer();
+    refreshConfig();
   }, []);
+
+  const needsRestart = service && service.services && Object.values(service.services).some((c) => {
+    return c.routes && c.routes.length > 0;
+  }); 
 
   const create = () => {
     setLog([
@@ -77,18 +87,16 @@ const NewDockerService = ({service, refresh}) => {
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
         setIsDone(true);
+        
+        needsRestart && setOpenModal(true);
         refresh && refresh();
       }
     });
   }
 
-  const needsRestart = service && service.services && Object.values(service.services).some((c) => {
-    return c.routes && c.routes.length > 0;
-  }); 
-
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <MainCard title="Create Service">
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
         onClick={create}
@@ -104,18 +112,6 @@ const NewDockerService = ({service, refresh}) => {
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
           return <Alert severity={m.type}>{m.label}</Alert>
         })}
-        {needsRestart && <Alert severity="warning">Cosmos needs to be restarted to apply changes to the URLs</Alert>}
-        {needsRestart &&
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            startIcon={<SyncOutlined />}
-            onClick={() => {
-              setOpenModal(true);
-            }}
-            >Restart</Button>
-        }
       </Stack>}
       <pre style={preStyle} ref={preRef}>
         {!log.length && `

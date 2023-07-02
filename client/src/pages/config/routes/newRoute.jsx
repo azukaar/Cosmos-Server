@@ -30,7 +30,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
   const routes = config.HTTPConfig.ProxyConfig.Routes || [];
 
   return <>
-  <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} />
+  <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} />
   <Dialog open={openNewModal} onClose={() => setOpenNewModal(false)}>
     <DialogTitle>New URL</DialogTitle>
         {openNewModal && <>
@@ -66,6 +66,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
                       down={() => {}}
                       deleteRoute={() => {}}
                       noControls
+                      config={config}
                     />
                 </div>
               </Stack>

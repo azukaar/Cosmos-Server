@@ -33,13 +33,16 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		// restore AuthPrivateKey and TLSKey
 		config := utils.ReadConfigFromFile()
 		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
+		request.HTTPConfig.AuthPublicKey = config.HTTPConfig.AuthPublicKey
+		request.HTTPConfig.TLSCert = config.HTTPConfig.TLSCert
 		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
 		request.NewInstall = config.NewInstall
 
-		utils.SaveConfigTofile(request)
-		utils.NeedsRestart = true
+		utils.SetBaseMainConfig(request)
 
+		utils.DisconnectDB()
 		authorizationserver.Init()
+		utils.RestartHTTPServer()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

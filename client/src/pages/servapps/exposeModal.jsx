@@ -45,6 +45,7 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                           Enabled: true,
                         }
                       }} 
+                      config={config}
                       routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
                       setRouteConfig={(_newRoute) => {
                         setNewRoute(sanitizeRoute(_newRoute));

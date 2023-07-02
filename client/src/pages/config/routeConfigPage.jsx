@@ -53,12 +53,14 @@ const RouteConfigPage = () => {
             submitButton
             routeConfig={currentRoute}
             routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
+            config={config}
           />
         },
         {
           title: 'Security',
           children:  <RouteSecurity
             routeConfig={currentRoute}
+            config={config}
           />
         },
       ]}/>}

@@ -22,6 +22,7 @@ import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
+import { isDomain } from '../../../utils/indexs';
 
 function checkIsOnline() {
     API.isOnline().then((res) => {
@@ -33,11 +34,29 @@ function checkIsOnline() {
     });
 }
 
-const RestartModal = ({openModal, setOpenModal}) => {
+const RestartModal = ({openModal, setOpenModal, config}) => {
     const [isRestarting, setIsRestarting] = useState(false);
     const [warn, setWarn] = useState(false);
+    const needsRefresh = config && (config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" ||
+        !isDomain(config.HTTPConfig.Hostname))
+    const isNotDomain = config && !isDomain(config.HTTPConfig.Hostname);
 
-    return <>
+    return config ? (needsRefresh && <>
+        <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+            <DialogTitle>Refresh Page</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    You need to refresh the page to apply changes. {isNotDomain && 'You are not using a domain names, the server will be offline for a few seconds to remap your docker ports.'}
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={() => {
+                    window.location.reload(true);                
+                }}>Refresh</Button>
+            </DialogActions>
+        </Dialog>
+    </>)
+    :(<>
         <Dialog open={openModal} onClose={() => setOpenModal(false)}>
             <DialogTitle>{!isRestarting ? 'Restart Server?' : 'Restarting Server...'}</DialogTitle>
             <DialogContent>
@@ -68,7 +87,7 @@ const RestartModal = ({openModal, setOpenModal}) => {
                 }}>Restart</Button>
             </DialogActions>}
         </Dialog>
-    </>;
+    </>);
 };
 
 export default RestartModal;

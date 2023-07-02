@@ -16,20 +16,17 @@ const info = {
 }
 
 const RouteOverview = ({ routeConfig }) => {
-  const [openModal, setOpenModal] = React.useState(false);
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
   function deleteRoute(event) {
     event.stopPropagation();
     API.config.deleteRoute(routeConfig.Name).then(() => {
-      setOpenModal(true);
+      window.location.href = '/cosmos-ui/config-url';
     });
   }
 
   return <div style={{ maxWidth: '1000px', width: '100%'}}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
-
     {routeConfig && <>
       <MainCard name={routeConfig.Name} title={<div>
         {routeConfig.Name} &nbsp;&nbsp;

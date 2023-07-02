@@ -144,7 +144,7 @@ const ProxyManagement = () => {
     </Stack>
 
     {config && <>
-      <RestartModal openModal={openModal} setOpenModal={setOpenModal} />
+      <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
       <NewRouteCreate openNewModal={openNewModal} setOpenNewModal={setOpenNewModal} config={config}/>
       
       {routes && <PrettyTableView 

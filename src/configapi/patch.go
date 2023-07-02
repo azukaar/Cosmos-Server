@@ -86,7 +86,7 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 		}
 
 	config.HTTPConfig.ProxyConfig.Routes = routes
-	utils.SaveConfigTofile(config)
+	utils.SetBaseMainConfig(config)
 	//utils.NeedsRestart = true
 	
 	utils.RestartHTTPServer()

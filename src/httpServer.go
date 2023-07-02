@@ -56,7 +56,7 @@ func startHTTPServer(router *mux.Router) {
 	}
 }
 
-func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
+func startHTTPSServer(router *mux.Router) {
 	//config  := utils.GetMainConfig()
 
 	utils.IsHTTPS = true
@@ -88,23 +88,29 @@ func startHTTPSServer(router *mux.Router, tlsCert string, tlsKey string) {
 	utils.Log("Listening to HTTP on :" + serverPortHTTP)
 	utils.Log("Listening to HTTPS on :" + serverPortHTTPS)
 
-	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
-	/*if(config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
-		tlsConf.GetCertificate = certReloader.GetCertificateFunc()
-	} else {*/
-		cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
-		if errCert != nil {
-			utils.Fatal("Getting Certificate pair", errCert)
-		}
-
-		tlsConf.Certificates = []tls.Certificate{cert}
-	//}
 
 	// start https server
 	var errServ error
 
 	for(errServ == http.ErrServerClosed || errServ == nil) {
+		config := utils.GetMainConfig()
+		HTTPConfig := config.HTTPConfig
+	
+		var tlsCert = HTTPConfig.TLSCert
+		var tlsKey= HTTPConfig.TLSKey
+		
+		tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
+	
+		cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
+		if errCert != nil {
+			config.HTTPConfig.ForceHTTPSCertificateRenewal = true
+			utils.SetBaseMainConfig(config)
+			utils.Fatal("Getting Certificate pair", errCert)
+		}
+
+		tlsConf.Certificates = []tls.Certificate{cert}
+
 		HTTPServer = &http.Server{
 			TLSConfig: tlsConf,
 			Addr: "0.0.0.0:" + serverPortHTTPS,
@@ -205,7 +211,7 @@ func InitServer() *mux.Router {
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	falledBack := false
 
-	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || !utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
+	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
 	
 	// If we have a certificate, we can fallback to it if necessary
 	CanFallback := tlsCert != "" && tlsKey != "" && 
@@ -399,7 +405,7 @@ func StartServer() {
 			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) &&
 			tlsCert != "" && tlsKey != "") {
 		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
-		startHTTPSServer(router, tlsCert, tlsKey)
+		startHTTPSServer(router)
 	} else {
 		utils.Log("TLS certificates do not exists or are disabled, starting HTTP server only")
 		startHTTPServer(router)
