@@ -70,7 +70,7 @@ const RestartModal = ({openModal, setOpenModal, config}) => {
                     <div style={{textAlign: 'center', padding: '20px'}}>
                         <CircularProgress />
                     </div>
-                    : 'A restart is required to apply changes. Do you want to restart?'}
+                    : 'Do you want to restart your server?'}
                 </DialogContentText>
             </DialogContent>
             {!isRestarting && <DialogActions>

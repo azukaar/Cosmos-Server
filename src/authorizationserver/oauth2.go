@@ -7,6 +7,7 @@ import (
 	"time"
 	"net/http"
 	"os"
+	"strings"
 	"crypto/sha256"
 	"encoding/binary"
 
@@ -49,7 +50,7 @@ func Init() {
 		store.Clients[client.ID] = &fosite.DefaultClient{
 			ID:             client.ID,
 			Secret:         []byte(client.Secret),
-			RedirectURIs:   []string{client.Redirect},
+			RedirectURIs:   strings.Split(client.Redirect, ","),
 			Scopes:         []string{"openid", "email", "profile", "offline", "roles", "groups", "address", "phone", "role"},
 			ResponseTypes:  []string{"id_token", "code", "token", "id_token token", "code id_token", "code token", "code id_token token"},
 			GrantTypes:     []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},

@@ -358,9 +358,12 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	}
 
 	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
+		// remove subdomains, keep domain.extension
+		bareMainHostname := strings.Split(mainHostname, ".")[len(strings.Split(mainHostname, "."))-2] + "." + strings.Split(mainHostname, ".")[len(strings.Split(mainHostname, "."))-1]
+
 		filteredHostnames := []string{
-			mainHostname,
-			"*." + mainHostname,
+			bareMainHostname,
+			"*." + bareMainHostname,
 		}
 
 		for _, hostname := range uniqueHostnames {

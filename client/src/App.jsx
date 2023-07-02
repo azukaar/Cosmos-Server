@@ -9,7 +9,8 @@ import logo from './assets/images/icons/cosmos.png';
 
 import * as API from './api';
 
-import { setSnackit } from './api/wrap';
+import { setSnackit, snackit } from './api/wrap';
+import { DisconnectOutlined } from '@ant-design/icons';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
@@ -33,6 +34,7 @@ const App = () => {
     const [statusLoaded, setStatusLoaded] = React.useState(false);
     const [PrimaryColor, setPrimaryColor] = React.useState(API.PRIMARY_COLOR);
     const [SecondaryColor, setSecondaryColor] = React.useState(API.SECONDARY_COLOR);
+    const [timeoutError, setTimeoutError] = React.useState(false);
 
     SetPrimaryColor = (color) => {
         setPrimaryColor(color);
@@ -45,13 +47,24 @@ const App = () => {
     }
 
     React.useEffect(() => {
+        const timeout = setTimeout(
+            () => {
+                setTimeoutError(true);
+            }, 10000
+        )
         API.getStatus(true).then((r) => {
-            if(r) {
+            clearTimeout(timeout);
+            if(r == "NOT_AVAILABLE") {
+                setTimeoutError(true);
+            }
+            else if(r) {
                 setStatusLoaded(true);
-            }    
+            }
             setPrimaryColor(API.PRIMARY_COLOR);
             setSecondaryColor(API.SECONDARY_COLOR);
+
         }).catch(() => {
+            clearTimeout(timeout);
             setStatusLoaded(true);
             setPrimaryColor(API.PRIMARY_COLOR);
             setSecondaryColor(API.SECONDARY_COLOR);
@@ -84,7 +97,11 @@ const App = () => {
         : <div>
             <Box sx={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                 {/* <img src={logo} style={{ display:'inline', height: '200px'}} className='pulsing' /> */}
-                <LoadingAnimation />
+                {!timeoutError && <LoadingAnimation />}
+                {timeoutError && <DisconnectOutlined style={{
+                    fontSize: '200px',
+                    color: 'red',
+                }}/>}
             </Box>
         </div>
 

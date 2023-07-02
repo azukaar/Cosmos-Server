@@ -8,41 +8,34 @@ import {
   Alert,
   Button,
   Checkbox,
-  Divider,
   FormControlLabel,
   Grid,
-  IconButton,
-  InputAdornment,
   InputLabel,
-  Link,
   OutlinedInput,
   Stack,
-  Typography,
   FormHelperText,
-  Collapse,
   TextField,
   MenuItem,
   Skeleton,
-  
 } from '@mui/material';
-import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
-import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
-import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { SyncOutlined } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
-import CountrySelect, { countries } from '../../../components/countrySelect';
+import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
-import { values } from 'lodash';
+
 import UploadButtons from '../../../components/fileUpload';
 import { TwitterPicker
  } from 'react-color';
-import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
-import { LoadingButton } from '@mui/lab';
+ import { LoadingButton } from '@mui/lab';
 
+ // TODO: Remove circular deps
+ import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
+  const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
   const [saveLabel, setSaveLabel] = React.useState("Save");
 
@@ -58,11 +51,21 @@ const ConfigManagement = () => {
 
   return <div style={{maxWidth: '1000px', margin: ''}}>
     <IsLoggedIn />
-    <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-        refresh();
-    }}>Refresh</Button><br /><br />
+
+    <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
+      <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+          refresh();
+      }}>Refresh</Button>
+
+      <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+          setOpenRestartModal(true);
+      }}>Restart Server</Button>
+    </Stack>
+    
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
+      <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
+
       <Formik
         initialValues={{
           MongoDB: config.MongoDB,
@@ -98,6 +101,7 @@ const ConfigManagement = () => {
           PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
           SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         }}
+
         validationSchema={Yup.object().shape({
           Hostname: Yup.string().max(255).required('Hostname is required'),
           MongoDB: Yup.string().max(512),

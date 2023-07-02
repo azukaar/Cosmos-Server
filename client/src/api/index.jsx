@@ -62,6 +62,8 @@ let getStatus = (initial) => {
         return "nothing";
       }
     }
+
+    return "NOT_AVAILABLE";
   });
 }
 
