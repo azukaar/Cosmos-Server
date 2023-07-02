@@ -17,7 +17,7 @@ func DB() error {
 		return errors.New("User Management is disabled")
 	}
 
-	uri := MainConfig.MongoDB + "/?retryWrites=true&w=majority"
+	uri := GetBaseMainConfig().MongoDB + "/?retryWrites=true&w=majority"
 
 	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
 		return nil

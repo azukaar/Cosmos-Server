@@ -98,6 +98,7 @@ const ConfigManagement = () => {
           DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
 
           Background: config && config.HomepageConfig && config.HomepageConfig.Background,
+          Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
           PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
           SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         }}
@@ -148,7 +149,8 @@ const ConfigManagement = () => {
             },
             HomepageConfig: {
               ...config.HomepageConfig,
-              Background: values.Background
+              Background: values.Background,
+              Expanded: values.Expanded
             },
             ThemeConfig: {
               ...config.ThemeConfig,
@@ -299,6 +301,14 @@ const ConfigManagement = () => {
                         Reset Wallpaper
                       </Button>
                     </Stack>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <CosmosCheckbox 
+                      label="Show Application Details on Homepage"
+                      name="Expanded"
+                      formik={formik}
+                    />
                   </Grid>
                   
                   <Grid item xs={12}>

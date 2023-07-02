@@ -69,6 +69,20 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 
 		newConfig := utils.GetBaseMainConfig()
 
+		if(request.Step == "-1") {
+			// remove everythin in /config
+			utils.Log("NewInstall: Step cleanup")
+			utils.Log("NewInstall: Removing config file")
+			configFile := utils.GetConfigFileName()
+			os.Remove(configFile)
+			if(os.Getenv("HOSTNAME") != "") {
+				utils.Log("NewInstall: Emptying /config")
+				os.RemoveAll("/config")
+				os.Mkdir("/config", 0700)
+			}
+			utils.DisconnectDB()
+			LoadConfig()
+		}
 		if(request.Step == "2") {
 			utils.Log("NewInstall: Step Database")
 			// User Management & Mongo DB

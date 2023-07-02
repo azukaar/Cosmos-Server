@@ -94,6 +94,7 @@ type Config struct {
 type HomepageConfig struct {
 	Background string
 	Widgets []string
+	Expanded bool
 }
 
 type ThemeConfig struct {

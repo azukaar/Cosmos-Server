@@ -343,7 +343,9 @@ const HomePage = () => {
                 }
                 if (route.HideFromDashboard) 
                     skip = true;
-                return !skip && <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
+                return !skip && coStatus && (coStatus.homepage.Expanded ?
+                
+                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
                     <Box className='app app-hover' style={{ padding: 18, borderRadius: 5, ...appColor }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="row" spacing={2} alignItems="center">
@@ -357,18 +359,19 @@ const HomePage = () => {
                         </Link>
                     </Box>
                 </Grid2>
-                // return !skip && <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
-                //     <Box className='app app-hover' style={{ padding: 18, borderRadius: 5, ...appColor }}>
-                //         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                //             <Stack direction="column" spacing={2} alignItems="center">
-                //                 <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
-                //                 <div style={{ minWidth: 0 }}>
-                //                     <h3 style={blockStyle}>{route.Name}</h3>
-                //                 </div>
-                //             </Stack>
-                //         </Link>
-                //     </Box>
-                // </Grid2>
+                :
+                <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
+                    <Box className='app app-hover' style={{ padding: 18, borderRadius: 5, ...appColor }}>
+                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
+                            <Stack direction="column" spacing={2} alignItems="center">
+                                <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
+                                <div style={{ minWidth: 0 }}>
+                                    <h3 style={blockStyle}>{route.Name}</h3>
+                                </div>
+                            </Stack>
+                        </Link>
+                    </Box>
+                </Grid2>)
             })}
 
             {config && routes.length === 0 && (

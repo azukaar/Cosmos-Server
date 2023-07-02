@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 
 // material-ui
-import { Alert, Button, CircularProgress, FormControl, FormHelperText, Grid, Stack, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, CircularProgress, FormControl, FormHelperText, Grid, Stack, Typography } from '@mui/material';
 
 // ant-ui icons
 import { CheckCircleOutlined, LeftOutlined, QuestionCircleFilled, QuestionCircleOutlined, RightOutlined } from '@ant-design/icons';
@@ -59,6 +59,7 @@ const NewInstall = () => {
     const [pullRequestOnSuccess, setPullRequestOnSuccess] = useState(null);
     const [hostError, setHostError] = useState(null);
     const [hostIp, setHostIp] = useState(null);
+    const [cleanInstall, setCleanInstall] = useState(true);
 
     const refreshStatus = async () => {
         try {
@@ -115,7 +116,13 @@ const NewInstall = () => {
                 First of all, thanks a lot for trying out Cosmos! And Welcome to the setup wizard.
                 This wizard will guide you through the setup of Cosmos. It will take about 2-3 minutes and you will be ready to go.
                 <br /><br />
-                <a target='_blank' rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/2%20setup">📄 Don't hesitate to rely on the documentation to guide you!</a>
+                <Checkbox checked={cleanInstall} onChange={(e) => setCleanInstall(e.target.checked)} />Clean install (remove any existing config files)
+                <br /><br />
+                <a style={{color: 'white', textDecoration: 'none'}} target='_blank' rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/2%20setup">
+                    <Button variant="outlined" color="inherit" startIcon={<QuestionCircleOutlined />}>
+                     Link to documentation
+                    </Button>
+                </a>
             </div>,
             nextButtonLabel: () => {
                 return 'Start';
@@ -598,6 +605,14 @@ const NewInstall = () => {
                         endIcon={<RightOutlined />}
                         disabled={steps[activeStep].nextButtonLabel() == ''}
                         onClick={() => {
+                            if(activeStep == 0 && cleanInstall) {
+                                API.newInstall({
+                                    step: "-1",
+                                }).then((res) => {
+                                    refreshStatus()
+                                });
+                            }
+
                             if(activeStep >= steps.length - 1) {
                                 API.newInstall({
                                     step: "5",
@@ -605,8 +620,9 @@ const NewInstall = () => {
                                 setTimeout(() => {
                                     window.location.href = hostname + "/cosmos-ui/login";
                                 }, 500);
-                            } else 
+                            } else {
                                 setActiveStep(activeStep + 1)
+                            }
                         }}
                     >{
                         steps[activeStep].nextButtonLabel() ? 
