@@ -413,6 +413,7 @@ func StartServer() {
 }
 
 func RestartServer() {
+	utils.LetsEncryptErrors = []string{}
 	utils.Log("Restarting HTTP Server...")
 	LoadConfig()
 

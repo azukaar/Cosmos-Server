@@ -46,7 +46,7 @@ const RestartModal = ({openModal, setOpenModal, config}) => {
             <DialogTitle>Refresh Page</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    You need to refresh the page to apply changes. {isNotDomain && 'You are not using a domain names, the server will be offline for a few seconds to remap your docker ports.'}
+                    You need to refresh the page because you are using a self-signed certificate, in case you have to accept any new certificates. To avoid it in the future, please use Let's Encrypt. {isNotDomain && 'You are also not using a domain name, the server might go offline for a few seconds to remap your docker ports.'}
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
