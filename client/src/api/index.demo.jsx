@@ -9,7 +9,17 @@ export const getStatus = () => {
         "domain": false,
         "letsencrypt": false,
         "needsRestart": false,
-        "newVersionAvailable": false
+        "newVersionAvailable": false,
+        "homepage": {
+          "Background": "",
+          "Widgets": null,
+          "Expanded": false
+        },
+        "theme": {
+          "PrimaryColor": "",
+          "SecondaryColor": ""
+        },
+        "LetsEncryptErrors": [],
       },
       "status": "OK"
     });

@@ -101,9 +101,8 @@ function list() {
             "longDescription": "<p>Plex is a comprehensive media solution that organizes your video and music collections, giving you instant access across all your devices. With the free Plex Media Server software installed on your home computer and Plex's iOS app, you can enjoy your personal media on your iPhone, iPad, or iPod touch, and conveniently share it with your friends and family.</p><p>Plex is not just about easy access, it also enhances your media collection by adding rich descriptions, artwork, and other related information, making your media look visually appealing. If you choose to subscribe to the optional premium Plex Pass, you get the added ability to sync videos, music, and photos to your smartphones and tablets for offline enjoyment.</p><p>Premium features also include parental controls, enhanced music features, access to music videos, trailers, extras, and robust management tools. Starting with Plex is straightforward and quick. Get started today and transform your media experience!</p>",
             "tags": [
               "media",
-              "server",
-              "streaming",
               "movies",
+              "streaming",
               "tv",
               "music",
               "photos",
@@ -162,7 +161,7 @@ function list() {
               "tags": [
                 "download",
                 "subtitle",
-                "automated",
+                "automation",
                 "downloader",
                 "media",
                 "collection",
@@ -196,6 +195,8 @@ function list() {
               "longDescription": "<p>Calibre is a powerful, open-source e-book management tool. It allows users to organize, save and manage e-books of various formats. Calibre supports a wide range of e-book formats including EPUB, Kindle, PDF, and more.</p><p>With its easy-to-use interface, Calibre allows users to convert e-books from different formats, sync e-books with e-book readers, and even provides news feeds from web sources. Calibre also features a built-in e-book viewer and a server for online access to your book collection.</p><p>Calibre is available for a variety of platforms, including Windows, Linux, and MacOS.</p>",
               "tags": [
                 "e-book",
+                "library",
+                "reader",
                 "open-source",
                 "cross-platform",
                 "management",
@@ -224,6 +225,8 @@ function list() {
               "longDescription": "<p>Calibre-web is a web application providing a clean interface for browsing, reading and downloading eBooks using an existing Calibre database. This software is a fork of the original Calibre web with several additional features and enhancements.</p><p>Calibre-web allows users to sort and categorize eBooks, provides a browser-based eBook reader, and even allows the sending of eBooks to Kindle devices. It also supports user management to control access to the eBook collection and offers the ability to interface with Goodreads for book reviews and recommendations.</p><p>Calibre-web is compatible with Docker and can be used on any platform that supports Docker.</p>",
               "tags": [
                 "e-book",
+                "library",
+                "reader",
                 "web interface",
                 "management",
                 "calibre-web",
@@ -250,6 +253,8 @@ function list() {
               "url": "",
               "longDescription": "<p>Code-Server is an open-source project that allows developers to run Visual Studio Code, a popular development environment, on any machine remotely. This makes it possible to code on your cloud server, which can be particularly beneficial when dealing with large datasets, complex computations, or restricted local resources.</p><p>Key features of Code-Server include full Visual Studio Code experience, secure access over SSH or HTTPS, and compatibility with VS Code extensions. It is also designed to be easy to install and get up and running.</p><p>Code-Server is available on various platforms including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for developers across different environments.</p>",
               "tags": [
+                "development",
+                "visual studio code",
                 "code-server",
                 "open-source",
                 "cross-platform",
@@ -282,8 +287,9 @@ function list() {
               "url": "",
               "longDescription": "<p>Deluge is a lightweight, open-source BitTorrent client. It's highly extendable via a rich collection of plugins and is noted for its multi-platform compatibility and low resource demand.</p><p>Key features include support for a wide range of BitTorrent protocols, a web interface for remote control, encryption, peer exchange, speed limits, and proxy support. With its intuitive interface, users can easily download and share files via the BitTorrent protocol.</p><p>Deluge is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
-                "deluge",
-                "open-source",
+                "download",
+                "torrent",
+                "bittorrent",
                 "cross-platform",
                 "BitTorrent client",
                 "file sharing",
@@ -309,12 +315,50 @@ function list() {
               ]
             },
             {
+              "name": "Docker Mailserver",
+              "description": "Docker Mailserver is a full-featured, open-source mailserver solution that runs on Docker. It supports various protocols such as SMTP, IMAP, POP3, and LDAP, and includes features such as spam protection, antivirus, DKIM signing, and automated SSL/TLS certificates. Docker Mailserver can be run on platforms that support Docker, including Linux, MacOS, and Windows.",
+              "url": "",
+              "longDescription": "<p>Docker Mailserver is a full-featured, open-source mailserver solution that is designed to run on Docker. It provides a comprehensive set of tools and features needed to run your own mailserver in a production environment.</p><p>Key features of Docker Mailserver include support for various protocols such as SMTP, IMAP, POP3, and LDAP. It also includes SpamAssassin for spam protection, ClamAV for antivirus, Postfix for SMTP, and Dovecot for IMAP/POP3. It also supports DKIM signing to authenticate your email and prevent phishing, and provides automated SSL/TLS certificates via Let's Encrypt.</p><p>Docker Mailserver is designed to be run on any platform that supports Docker, including Linux, MacOS, and Windows.</p>",
+              "tags": [
+                "email",
+                "mail server",
+                "SMTP",
+                "docker mailserver",
+                "open-source",
+                "mail server",
+                "docker",
+                "IMAP",
+                "POP3",
+                "LDAP",
+                "spam protection",
+                "antivirus",
+                "DKIM",
+                "SSL/TLS",
+                "linux",
+                "macos",
+                "windows"
+              ],
+              "repository": "https://github.com/docker-mailserver/docker-mailserver",
+              "image": "https://hub.docker.com/r/mailserver/docker-mailserver",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/DockerMailServer/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/DockerMailServer/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/DockerMailServer/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Duplicati",
               "description": "Duplicati is an open-source backup software that creates, encrypts, and stores backups of your files. It offers AES-256 encryption, incremental backups, scheduling, automated backups, and backup verification. Duplicati is compatible with Windows, Linux, MacOS, and Docker.",
               "url": "",
               "longDescription": "<p>Duplicati is an open-source backup software designed to secure your data by creating, encrypting, and storing backups of your files. It can backup your files to local drives or various online storage services.</p><p>Key features of Duplicati include AES-256 encryption, incremental backups, scheduling, and automated backups. It also supports backup verification, ensuring that your files are not corrupted or lost. Its web-based interface makes it easy to manage and schedule your backups.</p><p>Duplicati is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a versatile tool for various environments.</p>",
               "tags": [
-                "duplicati",
+                "backup",
+                "automation",
+                "encryption",
                 "open-source",
                 "cross-platform",
                 "backup",
@@ -345,7 +389,9 @@ function list() {
               "url": "",
               "longDescription": "<p>Emulator-JS is an open-source, in-browser multi-system emulator. It leverages JavaScript to emulate a wide range of gaming consoles, creating a convenient, accessible, and platform-agnostic gaming experience.</p><p>Key features of Emulator-JS include compatibility with multiple console systems, an intuitive ROM management system, and the ability to save game states. Because it's browser-based, Emulator-JS eliminates the need for complex installations or system-specific emulators.</p><p>As Emulator-JS runs directly in the browser, it can be used on any platform that supports a modern web browser, including Windows, Linux, MacOS, and even mobile devices. This makes it highly versatile for users across different environments.</p>",
               "tags": [
+                "gaming",
                 "emulation",
+                "web",
                 "open-source",
                 "cross-platform",
                 "emulator",
@@ -377,11 +423,12 @@ function list() {
               "url": "",
               "longDescription": "<p>FreshRSS is an open-source, self-hosted RSS feed aggregator. It is lightweight, easy to use, and packed with features. FreshRSS lets you collect, manage, and read your RSS feeds from your own server, offering a high degree of control and privacy.</p><p>Key features include a responsive design that works well on desktop and mobile devices, the ability to import/export OPML files, multiple themes, filters, categories, and multi-user support with the ability to manage user roles. Furthermore, it's extensible with plugins for additional functionalities.</p><p>FreshRSS is compatible with various platforms, including Windows, Linux, and MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
+                "RSS",
+                "feed aggregator",
+                "news",
                 "freshrss",
                 "open-source",
                 "self-hosted",
-                "RSS",
-                "feed aggregator",
                 "responsive",
                 "OPML",
                 "multi-user",
@@ -432,12 +479,47 @@ function list() {
               ]
             },
             {
+              "name": "Grav",
+              "description": "Grav is an open-source, self-hosted, flat-file content management system (CMS). It offers features like content filtering, multi-language support, flexible templating with Twig, and simple content creation with Markdown. Grav can be extended with plugins and themes. It can be run on Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Grav is an open-source, self-hosted, flat-file content management system (CMS). Unlike traditional CMS platforms, Grav does not use a database to store content, making it incredibly lightweight and easy to manage.</p><p>Key features of Grav include powerful content filtering, multi-language support, flexible templating with Twig, and simple content creation process with Markdown. Its extendibility with a rich ecosystem of plugins and themes, plus a strong focus on performance, makes Grav a versatile platform for creating all kinds of websites.</p><p>Grav is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "web",
+                "blog",
+                "code",
+                "open-source",
+                "self-hosted",
+                "CMS",
+                "flat-file",
+                "content management",
+                "twig",
+                "markdown",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/getgrav/grav",
+              "image": "https://hub.docker.com/r/getgrav/grav",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Grav/screenshots/1.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Grav/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Grav/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Grocy",
               "description": "Grocy is a self-hosted, open-source grocery management solution offering features like stock management with a barcode scanner, recipe management, household chore management, and tracking of purchased items with expiration dates. Grocy is compatible with Windows, Linux, MacOS, and Docker.",
               "url": "",
               "longDescription": "<p>Grocy is a self-hosted, open-source grocery management solution designed to help users manage their groceries. It provides a suite of tools for managing shopping lists, recipes, inventory, and chores.</p><p>Key features include stock management with a barcode scanner, recipe management, household chore management, and tracking of purchased items with expiration dates. Grocy helps users to avoid waste by providing reminders about due dates of perishable items.</p><p>Grocy is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
-                "grocy",
+                "life",
+                "groceries",
+                "list",
                 "open-source",
                 "self-hosted",
                 "grocery",
@@ -470,7 +552,8 @@ function list() {
               "longDescription": "<p>Heimdall is an open-source, self-hosted dashboard software that allows you to organize and access your web-based applications and services all in one place. It's designed to provide a central hub to simplify your web environment.</p><p>Key features of Heimdall include the ability to add applications via a built-in library or by creating custom application definitions, custom themes, and the capacity to run on a desktop or mobile browser. It supports multiple users and each user can have their own personalized set of applications.</p><p>Heimdall is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
                 "dashboard",
-                "heimdall",
+                "home",
+                "icons",
                 "open-source",
                 "self-hosted",
                 "web-based applications",
@@ -523,6 +606,39 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Immich",
+              "description": "Immich - High performance self-hosted photo and video backup solution",
+              "url": "",
+              "longDescription": "<p>Immich is an open-source personal photo management tool that makes use of the latest technologies to provide an easy and intuitive way to keep your photos organized. It provides a web-based platform to browse, organize, and share your personal photo collection.</p><p>With features like smart search, automated tagging, and geolocation, Immich makes it easy to find and group your photos. It supports various image formats and RAW files from high-quality cameras. Immich can also automatically generate thumbnails and convert RAW images.</p><p>Available for Windows, Linux, MacOS, and other platforms, Immich offers a private, self-hosted solution for your photo management needs. Start using Immich today to take control of your photo collection!</p>",
+              "tags": [
+                "photo management",
+                "image organizer",
+                "smart search",
+                "automated tagging",
+                "geolocation",
+                "thumbnails",
+                "RAW images",
+                "self-hosted",
+                "windows",
+                "linux",
+                "macos",
+                "Immich"
+              ],
+              "repository": "https://github.com/Immich/Immich",
+              "image": "https://hub.docker.com/r/Immich/Immich",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/screenshots/2.webp",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/screenshots/3.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
@@ -621,6 +737,66 @@ function list() {
               ]
             },
             {
+              "name": "KitchenOwl",
+              "description": "KitchenOwl helps you organize your grocery life.",
+              "url": "",
+              "longDescription": "<p>KitchenOwl is a smart grocery list and recipe manager.</p><p>Easily add items to your shopping list before you go shopping. You can also create recipes and get suggestions on what you want to cook.</p><p>Track your expenses so you know how much you've spent.</p>",
+              "tags": [
+                "recipes",
+                "meals",
+                "shopping",
+                "planning",
+                "expenses",
+                "docker"
+              ],
+              "repository": "https://github.com/tombursch/kitchenowl",
+              "image": "https://hub.docker.com/r/tombursch/kitchenowl",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Lemmy",
+              "description": "Lemmy is an open-source, self-hosted, federated link aggregator similar to Reddit. It offers community formation, moderation tools, content voting, and supports commenting and private messaging between users. Lemmy can be run on Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Lemmy is an open-source, self-hosted, federated link aggregator application similar to Reddit, which allows users to create their own communities and share links and posts with others.</p><p>Key features of Lemmy include its ability to form federated link-aggregator communities, moderation tools, and the ability to vote on content. It also supports commenting and private messaging between users. Lemmy is designed to consume minimal resources and can be easily self-hosted on small servers.</p><p>Lemmy is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "social",
+                "federation",
+                "reddit",
+                "open-source",
+                "self-hosted",
+                "federated",
+                "link aggregator",
+                "community",
+                "moderation",
+                "content voting",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/LemmyNet/lemmy",
+              "image": "https://hub.docker.com/r/dessalines/lemmy",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Lemmy/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Lemmy/screenshots/2.webp"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Lemmy/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Lemmy/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Lidarr",
               "description": "Lidarr is an automated music manager for maintaining your music library. It does this by finding and automatically downloading your desired music tracks. It integrates with popular download clients and supports metadata fetching from multiple music databases. With Lidarr, your music downloading and organization process can be streamlined and automated. It supports various platforms and has a mobile-friendly web interface for easy access. Get started with Lidarr now and enhance your music management experience!",
               "url": "",
@@ -628,8 +804,8 @@ function list() {
               "tags": [
                 "download",
                 "torrent",
-                "usenet",
                 "music",
+                "usenet",
                 "automation",
                 "manager",
                 "media",
@@ -656,6 +832,40 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Lidarr/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Lidarr/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Mastodon",
+              "description": "Mastodon is a free and open-source self-hosted social networking service. It features decentralization, ability to build your own community, per-post privacy settings, anti-abuse tools, and supports multimedia attachments. Mastodon can be run on any platform that supports Ruby, Node.js, and PostgreSQL, including various Linux distributions and Docker.",
+              "url": "",
+              "longDescription": "<p>Mastodon is a free and open-source self-hosted social networking service. It allows anyone to host their own server node in the network, while interacting with other users in a federated manner. It is similar to Twitter, but is distinguished by its decentralization and ability for users to host their own servers, and its character limit of 500 as opposed to Twitter's 280.</p><p>Key features of Mastodon include the ability to build your own community, granular, per-post privacy settings, and anti-abuse tools. It supports a rich variety of multimedia attachments in posts, and you can also choose to use content warnings on your posts for viewer discretion.</p><p>Mastodon can be run on any platform that supports Ruby, Node.js, and PostgreSQL, including various Linux distributions and Docker.</p>",
+              "tags": [
+                "social",
+                "federation",
+                "reddit",
+                "open-source",
+                "self-hosted",
+                "federated",
+                "link aggregator",
+                "community",
+                "moderation",
+                "content voting",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/tootsuite/mastodon",
+              "image": "https://hub.docker.com/r/tootsuite/mastodon",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Mastodon/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/Mastodon/screenshots/2.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Mastodon/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Mastodon/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
@@ -726,12 +936,41 @@ function list() {
               ]
             },
             {
+              "name": "OhMyForm",
+              "description": "OhMyForm is a free, open-source form creation software. It offers a range of features for creating, administering, analyzing, and distributing beautiful, embeddable forms for various purposes such as recruiting, market research, and surveys. OhMyForm allows for self-hosting with no installation fees or monthly charges.",
+              "url": "",
+              "longDescription": "<p>OhMyForm is a free, open-source software that allows you to craft beautiful forms in seconds for various purposes such as recruiting, market research, surveys, and more. It offers a user-friendly interface and features that make creating, administering, analyzing, and distributing forms straightforward.</p><p>Key features of OhMyForm include its wide variety of built-in tools, the ability to create embeddable forms, and a powerful community of contributors that constantly improve and vet the platform. As open-source software, OhMyForm is not only always improving but also completely free.</p><p>One of the advantages of OhMyForm is the ability to host it yourself, ensuring no installation fees or monthly charges. This commitment to being 100% open-source allows users to maintain full control over their forms and data.</p>",
+              "tags": [
+                "productivity",
+                "open-source",
+                "self-hosted",
+                "form creation",
+                "surveys",
+                "recruiting",
+                "market research",
+                "embeddable forms"
+              ],
+              "repository": "https://github.com/ohmyform/ohmyform",
+              "image": "https://hub.docker.com/r/ohmyform/ohmyform",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/OhMyForm/screenshots/1.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/OhMyForm/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/OhMyForm/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Ombi",
               "description": "Ombi is an open-source, self-hosted web application that enables Plex or Emby users to request content. It offers features like user management, a request system, notification system, and automatic updates. Ombi is compatible with popular platforms such as Plex, Emby, Sonarr, Radarr, and Tautulli. It can be run on Windows, Linux, MacOS, and Docker.",
               "url": "",
               "longDescription": "<p>Ombi is an open-source, self-hosted web application that enables you to give your shared Plex or Emby users the ability to request content. It's an intuitive interface between your media server and the users.</p><p>Key features of Ombi include user management, a request system, notification system, and automatic updates. Ombi can be integrated with popular platforms such as Plex, Emby, Sonarr, Radarr, and Tautulli, making it an essential tool for managing requests for media content.</p><p>Ombi is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
-                "ombi",
+                "media",
+                "request",
+                "library",
                 "open-source",
                 "self-hosted",
                 "web application",
@@ -795,9 +1034,8 @@ function list() {
               "longDescription": "<p>Plex is a comprehensive media solution that organizes your video and music collections, giving you instant access across all your devices. With the free Plex Media Server software installed on your home computer and Plex's iOS app, you can enjoy your personal media on your iPhone, iPad, or iPod touch, and conveniently share it with your friends and family.</p><p>Plex is not just about easy access, it also enhances your media collection by adding rich descriptions, artwork, and other related information, making your media look visually appealing. If you choose to subscribe to the optional premium Plex Pass, you get the added ability to sync videos, music, and photos to your smartphones and tablets for offline enjoyment.</p><p>Premium features also include parental controls, enhanced music features, access to music videos, trailers, extras, and robust management tools. Starting with Plex is straightforward and quick. Get started today and transform your media experience!</p>",
               "tags": [
                 "media",
-                "server",
-                "streaming",
                 "movies",
+                "streaming",
                 "tv",
                 "music",
                 "photos",
@@ -852,9 +1090,9 @@ function list() {
               "longDescription": "<p>Radarr is an independent fork of Sonarr reworked for automatically downloading movies via Usenet and BitTorrent. The project was inspired by other Usenet/BitTorrent movie downloaders such as CouchPotato.</p><p>Radarr provides a sleek, customizable interface to manage your movie collection, offering features like trailer linking, metadata fetching, and more. The software integrates with popular download clients and can automate your movie download process.</p><p>Radarr supports a variety of platforms including Windows, Linux, and MacOS, and also offers a mobile-friendly web interface. Setting up Radarr is straightforward. Get started today to streamline your movie downloading and management experience!</p>",
               "tags": [
                 "download",
+                "movies",
                 "torrent",
                 "usenet",
-                "movies",
                 "automated",
                 "downloader",
                 "media",
@@ -890,11 +1128,11 @@ function list() {
               "longDescription": "<p>Readarr is an open-source, self-hosted PVR (Personal Video Recorder) for managing and downloading ebooks. It's built off of the Radarr, Sonarr, and Lidarr platforms and brings the same powerful features to the world of ebooks.</p><p>Key features of Readarr include the ability to add your favorite authors, automatic book searching, calendar integration, and the ability to import existing libraries. It supports integration with popular download clients and can send notifications via a number of platforms.</p><p>Readarr is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
               "tags": [
                 "download",
+                "ebooks",
                 "readarr",
                 "open-source",
                 "self-hosted",
                 "PVR",
-                "ebooks",
                 "book management",
                 "download",
                 "windows",
@@ -922,9 +1160,9 @@ function list() {
               "longDescription": "<p>Sonarr is a multi-platform app to search, download, and manage TV shows. It automates the process of searching for new episodes, and can automatically download these files with your preferred download software.</p><p>Sonarr offers features such as automatic quality upgrades, series and episode tracking, and metadata fetching to enrich your media library. The interface is user-friendly and mobile-responsive, ensuring you can manage your TV shows easily on any device.</p><p>Available for Windows, Linux, and MacOS, Sonarr makes the TV show management process easy and efficient. Get started with Sonarr today and transform your media management experience!</p>",
               "tags": [
                 "download",
+                "tv shows",
                 "torrent",
                 "usenet",
-                "tv shows",
                 "automated",
                 "manager",
                 "media",
@@ -1007,6 +1245,39 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Transmission/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Transmission/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
+              "name": "Uptime Kuma",
+              "description": "Uptime Kuma is an open-source, self-hosted monitoring tool for tracking the uptime of online services. It offers status checks for various services, detailed statistics with charts, and multiple notification methods. Uptime Kuma is compatible with Windows, Linux, MacOS, and Docker.",
+              "url": "",
+              "longDescription": "<p>Uptime Kuma is an open-source, self-hosted monitoring tool that allows users to monitor their online services and get alerts when they go down or become unresponsive. This robust yet user-friendly tool is designed to help you keep track of your services' uptime.</p><p>Key features of Uptime Kuma include status checking for various services including HTTP(s), TCP, and ICMP, detailed statistics with charts, and multiple notification methods (like email, Slack, Telegram, etc.). Its clean, intuitive user interface makes setup and management of monitored services easy.</p><p>Uptime Kuma is compatible with various platforms, including Windows, Linux, MacOS, and it supports Docker, making it a highly versatile tool for various environments.</p>",
+              "tags": [
+                "technical",
+                "administration",
+                "server",
+                "open-source",
+                "self-hosted",
+                "monitoring",
+                "uptime",
+                "service status",
+                "notifications",
+                "windows",
+                "linux",
+                "macos",
+                "docker"
+              ],
+              "repository": "https://github.com/louislam/uptime-kuma",
+              "image": "https://hub.docker.com/r/louislam/uptime-kuma",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/UptimeKuma/screenshots/1.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/UptimeKuma/screenshots/2.jpg"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/UptimeKuma/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/UptimeKuma/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"

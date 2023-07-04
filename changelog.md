@@ -9,7 +9,6 @@
  - No more restart needed when changing config, adding route, installing apps, etc...
  - Change auto mapper to keep existing user definied ports
  - open id now supports multiple redirect uri (comma separated)
- - When using a subdomain as the main Cosmos domain, UseWildcardCertificate will now request the root domain instead of *.sub.domain.com
  - add manual restart button in config
  - New simpler Homepage style, with a toggle for expanded details homepage style in the config
  - add a button on the first setup screen to perform a clean install
