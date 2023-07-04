@@ -40,8 +40,8 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
     const needsRefresh = config && (config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" ||
         !isDomain(config.HTTPConfig.Hostname))
     const isNotDomain = config && !isDomain(config.HTTPConfig.Hostname);
-    const newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
-        !config.HTTPConfig.DNSChallengeProvider);
+    let newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
+        (!config.HTTPConfig.DNSChallengeProvider || !config.HTTPConfig.UseWildcardCertificate))
 
     return config ? (<>
         {needsRefresh && <>
@@ -64,7 +64,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
                 <DialogTitle>Certificate Renewal</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        You are using Let's Encrypt but you are not using the DNS Challenge. This means the server has to renew the certificate everytime you add a new hostname, causing a few seconds of downtime. To avoid it in the future, please use the DNS Challenge.
+                        You are using Let's Encrypt but you are not using the DNS Challenge with a wildcard certificate. This means the server has to renew the certificate everytime you add a new hostname, causing a few seconds of downtime. To avoid it in the future, please refer to <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">this link to the documentation</a>.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
