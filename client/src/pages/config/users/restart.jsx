@@ -40,8 +40,8 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
     const needsRefresh = config && (config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" ||
         !isDomain(config.HTTPConfig.Hostname))
     const isNotDomain = config && !isDomain(config.HTTPConfig.Hostname);
-    const newRouteWarning = config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
-        !config.HTTPConfig.DNSChallengeProvider;
+    const newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
+        !config.HTTPConfig.DNSChallengeProvider);
 
     return config ? (<>
         {needsRefresh && <>
