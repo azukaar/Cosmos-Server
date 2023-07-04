@@ -127,7 +127,7 @@ const ServApps = () => {
   }
 
   return <div>
-    <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} />
+    <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} newRoute />
     <ExposeModal
       openModal={openModal} 
       setOpenModal={setOpenModal}

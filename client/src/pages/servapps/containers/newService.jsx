@@ -96,7 +96,7 @@ const NewDockerService = ({service, refresh}) => {
 
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <MainCard title="Create Service">
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
+    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
         onClick={create}

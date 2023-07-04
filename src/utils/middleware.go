@@ -196,7 +196,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 		if !isOk {
 			Error("Invalid Hostname " + r.Host + " for request. Expecting one of " + fmt.Sprintf("%v", hostnames), nil)
 			w.WriteHeader(http.StatusBadRequest)
-			http.Error(w, "Bad Request: Invalid hostname.", http.StatusBadRequest)
+			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
 			return
 		}
 
