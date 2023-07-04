@@ -1,3 +1,19 @@
+## Version 0.9.0
+ - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use
+   - Let's Encrypt Certificate is now saved in the config file
+   - Cosmos will re-use previous certificate if renewal fails
+   - Self-Signed certificate will now renew on expiry
+   - If LE fails to renew, Cosmos will fallback to self-signed certificate
+   - If LE fails to renew, Cosmos will display a warning on the home page
+   - If certificate have more hostnames than required, Cosmos will not request a new certificate to prevent LE rate limiting issues
+ - No more restart needed when changing config, adding route, installing apps, etc...
+ - Change auto mapper to keep existing user definied ports
+ - open id now supports multiple redirect uri (comma separated)
+ - When using a subdomain as the main Cosmos domain, UseWildcardCertificate will now request the root domain instead of *.sub.domain.com
+ - add manual restart button in config
+ - New simpler Homepage style, with a toggle for expanded details homepage style in the config
+ - add a button on the first setup screen to perform a clean install
+
 ## version 0.8.1 -> 0.8.10
  - Added new automatic Docker mapping feature (for people not using (sub)domains)
  - Added guardrails to prevent Let's Encrypt from failing to initialize when adding wrong domains
