@@ -45,6 +45,11 @@ const ConfigManagement = () => {
     });
   }
 
+  function getRouteDomain(domain) {
+    let parts = domain.split('.');
+    return parts[parts.length - 2] + '.' + parts[parts.length - 1];
+  }
+
   React.useEffect(() => {
     refresh();
   }, []);
@@ -539,7 +544,7 @@ const ConfigManagement = () => {
                   />
 
                   <CosmosCheckbox
-                    label={"Use Wildcard Certificate for *." + formik.values.Hostname}
+                    label={"Use Wildcard Certificate for *." + getRouteDomain(formik.values.Hostname)}
                     onChange={(e) => {
                       formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                     }}
