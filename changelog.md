@@ -1,5 +1,6 @@
-## Version 0.9.1 > 0.9.2
+## Version 0.9.1 > 0.9.3
  - Fix subdomain logic for composed TLDs
+ - Fix domain depupe logic
 
 ## Version 0.9.0
  - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use

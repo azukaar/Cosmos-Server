@@ -371,7 +371,7 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		}
 
 		for _, hostname := range uniqueHostnames {
-			if hostname != mainHostname && !strings.HasSuffix(hostname, "."+mainHostname) {
+			if hostname != bareMainHostname && !strings.HasSuffix(hostname, "." + bareMainHostname) {
 				filteredHostnames = append(filteredHostnames, hostname)
 			}
 		}
