@@ -544,7 +544,7 @@ const ConfigManagement = () => {
                   />
 
                   <CosmosCheckbox
-                    label={"Use Wildcard Certificate for *." + getRouteDomain(formik.values.Hostname)}
+                    label={"Use Wildcard Certificate for the root domain of " + formik.values.Hostname}
                     onChange={(e) => {
                       formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                     }}

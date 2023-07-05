@@ -86,10 +86,6 @@ const RouteSecurity = ({ routeConfig, config }) => {
             <Stack spacing={2}>
               <MainCard name={routeConfig.Name} title={'Security'}>
                 <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <Alert color='info'>Additional security settings. MFA and Captcha are not yet implemented.</Alert>
-                    </Grid>
-
                     <CosmosFormDivider title={'Authentication'} />
 
                     <CosmosCheckbox

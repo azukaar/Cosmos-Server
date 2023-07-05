@@ -1,3 +1,6 @@
+## Version 0.9.1 > 0.9.2
+ - Fix subdomain logic for composed TLDs
+
 ## Version 0.9.0
  - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use
    - Let's Encrypt Certificate is now saved in the config file
@@ -8,6 +11,7 @@
    - If certificate have more hostnames than required, Cosmos will not request a new certificate to prevent LE rate limiting issues
  - No more restart needed when changing config, adding route, installing apps, etc...
  - Change auto mapper to keep existing user definied ports
+ - When using a subdomain as the main Cosmos domain, UseWildcardCertificate will now request the root domain instead of *.sub.domain.com
  - open id now supports multiple redirect uri (comma separated)
  - add manual restart button in config
  - New simpler Homepage style, with a toggle for expanded details homepage style in the config
