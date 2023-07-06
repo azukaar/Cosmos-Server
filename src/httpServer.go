@@ -25,38 +25,28 @@ import (
 var serverPortHTTP = ""
 var serverPortHTTPS = ""
 var HTTPServer *http.Server
+var HTTPServer2 *http.Server
 
-func startHTTPServer(router *mux.Router) {
-	var errServ error
-	for(errServ == http.ErrServerClosed || errServ == nil) {
-		HTTPServer = &http.Server{
-			Addr: "0.0.0.0:" + serverPortHTTP,
-			ReadTimeout: 0,
-			ReadHeaderTimeout: 10 * time.Second,
-			WriteTimeout: 0,
-			IdleTimeout: 30 * time.Second,
-			Handler: router,
-			DisableGeneralOptionsHandler: true,
-		}
-		
-		docker.CheckPorts()
-		
-		utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
-
-		errServ = HTTPServer.ListenAndServe()
-
-		if errServ != nil && errServ != http.ErrServerClosed {
-			utils.Fatal("Listening to HTTPS", errServ)
-		}
-
-		utils.Log("HTTP Server closed. Restarting.")
-		errServ = nil
-
-		router = InitServer()
+func startHTTPServer(router *mux.Router) error {
+	HTTPServer2 = nil
+	HTTPServer = &http.Server{
+		Addr: "0.0.0.0:" + serverPortHTTP,
+		ReadTimeout: 0,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout: 0,
+		IdleTimeout: 30 * time.Second,
+		Handler: router,
+		DisableGeneralOptionsHandler: true,
 	}
+	
+	docker.CheckPorts()
+	
+	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
+
+	return HTTPServer.ListenAndServe()
 }
 
-func startHTTPSServer(router *mux.Router) {
+func startHTTPSServer(router *mux.Router) error {
 	//config  := utils.GetMainConfig()
 
 	utils.IsHTTPS = true
@@ -78,9 +68,19 @@ func startHTTPSServer(router *mux.Router) {
 			http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 		})
 
-		err := http.ListenAndServe("0.0.0.0:" + serverPortHTTP, httpRouter)
+		HTTPServer2 = &http.Server{
+			Addr: "0.0.0.0:" + serverPortHTTP,
+			ReadTimeout: 0,
+			ReadHeaderTimeout: 10 * time.Second,
+			WriteTimeout: 0,
+			IdleTimeout: 30 * time.Second,
+			Handler: httpRouter,
+			DisableGeneralOptionsHandler: true,
+		}
+
+		err := HTTPServer2.ListenAndServe()
 		
-		if err != nil {
+		if err != nil && err != http.ErrServerClosed {
 			utils.Fatal("Listening to HTTP (Redirecting to HTTPS)", err)
 		}
 	})()
@@ -88,56 +88,40 @@ func startHTTPSServer(router *mux.Router) {
 	utils.Log("Listening to HTTP on :" + serverPortHTTP)
 	utils.Log("Listening to HTTPS on :" + serverPortHTTPS)
 
+	config := utils.GetMainConfig()
+	HTTPConfig := config.HTTPConfig
 
-
-	// start https server
-	var errServ error
-
-	for(errServ == http.ErrServerClosed || errServ == nil) {
-		config := utils.GetMainConfig()
-		HTTPConfig := config.HTTPConfig
+	var tlsCert = HTTPConfig.TLSCert
+	var tlsKey= HTTPConfig.TLSKey
 	
-		var tlsCert = HTTPConfig.TLSCert
-		var tlsKey= HTTPConfig.TLSKey
-		
-		tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
-	
-		cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
-		if errCert != nil {
-			config.HTTPConfig.ForceHTTPSCertificateRenewal = true
-			utils.SetBaseMainConfig(config)
-			utils.Fatal("Getting Certificate pair", errCert)
-		}
+	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
-		tlsConf.Certificates = []tls.Certificate{cert}
-
-		HTTPServer = &http.Server{
-			TLSConfig: tlsConf,
-			Addr: "0.0.0.0:" + serverPortHTTPS,
-			ReadTimeout: 0,
-			ReadHeaderTimeout: 10 * time.Second,
-			WriteTimeout: 0,
-			IdleTimeout: 30 * time.Second,
-			Handler: router,
-			DisableGeneralOptionsHandler: true,
-		}
-
-		// Redirect ports 
-		docker.CheckPorts()
-
-		utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
-
-		errServ = HTTPServer.ListenAndServeTLS("", "")
-
-		if errServ != nil && errServ != http.ErrServerClosed {
-			utils.Fatal("Listening to HTTPS", errServ)
-		}
-
-		utils.Log("HTTPS Server closed. Restarting.")
-		errServ = nil
-
-		router = InitServer()
+	cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
+	if errCert != nil {
+		config.HTTPConfig.ForceHTTPSCertificateRenewal = true
+		utils.SetBaseMainConfig(config)
+		utils.Fatal("Getting Certificate pair", errCert)
 	}
+
+	tlsConf.Certificates = []tls.Certificate{cert}
+
+	HTTPServer = &http.Server{
+		TLSConfig: tlsConf,
+		Addr: "0.0.0.0:" + serverPortHTTPS,
+		ReadTimeout: 0,
+		ReadHeaderTimeout: 10 * time.Second,
+		WriteTimeout: 0,
+		IdleTimeout: 30 * time.Second,
+		Handler: router,
+		DisableGeneralOptionsHandler: true,
+	}
+
+	// Redirect ports 
+	docker.CheckPorts()
+
+	utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
+
+	return HTTPServer.ListenAndServeTLS("", "")
 }
 
 func tokenMiddleware(next http.Handler) http.Handler {
@@ -392,23 +376,35 @@ func InitServer() *mux.Router {
 func StartServer() {
 	router := InitServer()
 
-	config := utils.GetMainConfig()
-	HTTPConfig := config.HTTPConfig
+	// start https server
+	var errServ error
 
-	var tlsCert = HTTPConfig.TLSCert
-	var tlsKey= HTTPConfig.TLSKey
+	for(errServ == http.ErrServerClosed || errServ == nil) {
+		config := utils.GetMainConfig()
+		HTTPConfig := config.HTTPConfig
 
-	if (
-		(
-			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] ||
-			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]  ||
-			HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) &&
-			tlsCert != "" && tlsKey != "") {
-		utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
-		startHTTPSServer(router)
-	} else {
-		utils.Log("TLS certificates do not exists or are disabled, starting HTTP server only")
-		startHTTPServer(router)
+		var tlsCert = HTTPConfig.TLSCert
+		var tlsKey= HTTPConfig.TLSKey
+
+		if (
+			(
+				HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] ||
+				HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["PROVIDED"]  ||
+				HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) &&
+				tlsCert != "" && tlsKey != "") {
+			utils.Log("TLS certificate exist, starting HTTPS servers and redirecting HTTP to HTTPS")
+			errServ = startHTTPSServer(router)
+		} else {
+			utils.Log("TLS certificates do not exists or are disabled, starting HTTP server only")
+			errServ = startHTTPServer(router)
+		}
+		if errServ != nil && errServ != http.ErrServerClosed {
+			utils.Fatal("Listening to HTTPS", errServ)
+		}
+
+		utils.Log("HTTPS Server closed. Restarting.")
+		errServ = nil
+		router = InitServer()
 	}
 }
 
@@ -418,6 +414,9 @@ func RestartServer() {
 	LoadConfig()
 
 	go func() {
+		if HTTPServer2 != nil {
+			HTTPServer2.Shutdown(context.Background())
+		}
 		HTTPServer.Shutdown(context.Background())
 	}()
 
