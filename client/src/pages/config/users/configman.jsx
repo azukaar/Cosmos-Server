@@ -90,6 +90,7 @@ const ConfigManagement = () => {
           DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
           DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
           ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
+          OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -136,6 +137,7 @@ const ConfigManagement = () => {
               DNSChallengeProvider: values.DNSChallengeProvider,
               DNSChallengeConfig: values.DNSChallengeConfig,
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
+              OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
             },
             EmailConfig: {
               ...config.EmailConfig,
@@ -551,6 +553,19 @@ const ConfigManagement = () => {
                     name="UseWildcardCertificate"
                     formik={formik}
                   />
+
+                  {formik.values.UseWildcardCertificate && (
+                    <CosmosInputText
+                      name="OverrideWildcardDomains"
+                      onChange={(e) => {
+                        formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                      }}
+                      label="(optional) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
+                      formik={formik}
+                      placeholder={"example.com,*.example.com"}
+                    />
+                  )}
+
 
                   {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                       <CosmosInputText

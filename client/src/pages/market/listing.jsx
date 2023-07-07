@@ -6,20 +6,21 @@ import { useTheme } from "@emotion/react";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { useParams } from "react-router";
 import Carousel from 'react-material-ui-carousel'
-import { Paper, Button , Chip} from '@mui/material'
+import { Paper, Button, Chip } from '@mui/material'
 import { Link } from "react-router-dom";
-import {Link as LinkMUI} from '@mui/material'
+import { Link as LinkMUI } from '@mui/material'
 import DockerComposeImport from '../servapps/containers/docker-compose';
-import { SearchOutlined } from "@ant-design/icons";
+import { AppstoreAddOutlined, SearchOutlined } from "@ant-design/icons";
+import ResponsiveButton from "../../components/responseiveButton";
 
 function Screenshots({ screenshots }) {
   return screenshots.length > 1 ? (
     <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
-        screenshots.map((item, i) => <img style={{maxHeight:'300px', height: '100%', maxWidth: '100%'}} key={i} src={item} />)
+        screenshots.map((item, i) => <img style={{ maxHeight: '300px', height: '100%', maxWidth: '100%' }} key={i} src={item} />)
       }
     </Carousel>)
-    : <img src={screenshots[0]} style={{maxHeight:'300px', height: '100%', maxWidth: '100%'}} />
+    : <img src={screenshots[0]} style={{ maxHeight: '300px', height: '100%', maxWidth: '100%' }} />
 }
 
 function Showcases({ showcase, isDark }) {
@@ -34,14 +35,14 @@ function Showcases({ showcase, isDark }) {
 
 function ShowcasesItem({ isDark, item }) {
   return (
-     <Paper style={{ 
-        position: 'relative',
-        background: 'url(' + item.screenshots[0] + ')',
-        height: '31vh',
-        backgroundSize: 'auto 100%',
-        maxWidth: '120vh',
-        margin: 'auto',
-      }}>
+    <Paper style={{
+      position: 'relative',
+      background: 'url(' + item.screenshots[0] + ')',
+      height: '31vh',
+      backgroundSize: 'auto 100%',
+      maxWidth: '120vh',
+      margin: 'auto',
+    }}>
       <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
         <Stack direction="column" spacing={2} style={{ height: '100%' }} sx={{
           backgroundColor: isDark ? '#1A2027' : '#fff',
@@ -49,7 +50,7 @@ function ShowcasesItem({ isDark, item }) {
           width: '50%',
           filter: 'drop-shadow(-20px 0px 20px rgba(0, 0, 0, 1))',
 
-          '@media (max-width: 1100px)':  {
+          '@media (max-width: 1100px)': {
             width: '70%',
             padding: '20px 40px',
           },
@@ -60,15 +61,15 @@ function ShowcasesItem({ isDark, item }) {
           }
         }}>
           <Stack direction="row" spacing={2}>
-          <img src={item.icon} style={{ width: '36px', height: '36px' }} />
-          <h2>{item.name}</h2>
+            <img src={item.icon} style={{ width: '36px', height: '36px' }} />
+            <h2>{item.name}</h2>
           </Stack>
           <p dangerouslySetInnerHTML={{ __html: item.longDescription }} style={{
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
             <div>
-            <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
+              <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
             </div>
             <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
@@ -143,23 +144,23 @@ const MarketPage = () => {
       backgroundColor: 'rgba(0,0,0,0.5)',
     }}>
       <Link to="/cosmos-ui/market-listing" as={Box}
-       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-      }}></Link>
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+        }}></Link>
 
-      <Stack direction="row" spacing={2} style={{ height: '100%'}} justifyContent="flex-end">
-        <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto"}} sx={{
+      <Stack direction="row" spacing={2} style={{ height: '100%' }} justifyContent="flex-end">
+        <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto" }} sx={{
           backgroundColor: isDark ? '#1A2027' : '#fff',
           padding: '80px 80px',
           width: '100%',
           maxWidth: '800px',
           filter: 'drop-shadow(-20px 0px 20px rgba(0, 0, 0, 1))',
 
-          '@media (max-width: 700px)':  {
+          '@media (max-width: 700px)': {
             padding: '60px 40px',
           },
 
@@ -176,7 +177,7 @@ const MarketPage = () => {
             </Button>
           </Link>
 
-          <div style={{textAlign: 'center'}}>
+          <div style={{ textAlign: 'center' }}>
             <Screenshots screenshots={openedApp.screenshots} />
           </div>
 
@@ -197,17 +198,17 @@ const MarketPage = () => {
             <div><strong>repository:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
             <div><strong>image:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
             <div><strong>compose:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
-          </div>  
+          </div>
 
           <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
 
           <div>
-          <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
+            <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
           </div>
         </Stack>
       </Stack>
     </Box>}
- 
+
     <Stack style={{ position: 'relative' }} spacing={1}>
       <Stack style={{ height: '35vh' }} spacing={1}>
         {(!showcase || !Object.keys(showcase).length) && <Box style={{
@@ -219,10 +220,10 @@ const MarketPage = () => {
           justifyContent: 'center',
         }}>
           <CircularProgress
-            size={100} 
+            size={100}
           />
         </Box>}
-        {showcase && showcase.length > 0 && <Showcases showcase={showcase} isDark={isDark}/>}
+        {showcase && showcase.length > 0 && <Showcases showcase={showcase} isDark={isDark} />}
       </Stack>
 
       <Stack spacing={1} style={{
@@ -234,18 +235,28 @@ const MarketPage = () => {
         padding: '24px',
       }}>
         <h2>Applications</h2>
-        <Input placeholder="Search"
-          value={search}
-          style={{maxWidth: '400px'}}
-          startAdornment={
-            <InputAdornment position="start">
-              <SearchOutlined />
-            </InputAdornment>
-          }
-          onChange={(e) => {
-            setSearch(e.target.value);
-          }}
-        />
+        <Stack direction="row" spacing={2}>
+          <Input placeholder="Search"
+            value={search}
+            style={{ maxWidth: '400px' }}
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchOutlined />
+              </InputAdornment>
+            }
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+          />
+
+          <Link to="/cosmos-ui/servapps/new-service">
+            <ResponsiveButton
+              variant="contained"
+              startIcon={<AppstoreAddOutlined />}
+            >Start ServApp</ResponsiveButton>
+          </Link>
+          <DockerComposeImport refresh={() => { }} />
+        </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
           height: '100%',
@@ -256,52 +267,54 @@ const MarketPage = () => {
           marginTop: '150px',
         }}>
           <CircularProgress
-            size={100} 
+            size={100}
           />
         </Box>}
 
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
           {Object.keys(apps).map(appstore => apps[appstore]
-          .filter((app) => {
-            if (!search || search.length <= 2) {
-              return true;
-            }
-            return app.name.toLowerCase().includes(search.toLowerCase()) ||
-              app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
+            .filter((app) => {
+              if (!search || search.length <= 2) {
+                return true;
+              }
+              return app.name.toLowerCase().includes(search.toLowerCase()) ||
+                app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
             })
-          .map((app) => {
-            return <Grid2 style={{
-              ...gridAnim,
-              cursor: 'pointer',
-            }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + appstore + "/" + app.name} style={{
-              textDecoration: 'none',
-            }}>
-              <div key={app.name} style={appCardStyle(theme)}>
-                <Stack spacing={3} direction={'row'} alignItems={'center'} style={{ padding: '0px 15px' }}>
-                  <img src={app.icon} style={{ width: 64, height: 64 }} />
-                  <Stack spacing={1}>
-                    <div style={{ fontWeight: "bold" }}>{app.name}</div>
-                    <div style={{
-                      height: '40px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                    >{app.description}</div>
-                    <Stack direction={'row'} spacing={1}>
-                      <div style={{ fontStyle: "italic", opacity: 0.7,
-                      overflow: 'hidden',
-                      height: '21px',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'pre-wrap', }}>{app.tags.slice(0,3).join(", ")}</div>
+            .map((app) => {
+              return <Grid2 style={{
+                ...gridAnim,
+                cursor: 'pointer',
+              }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + appstore + "/" + app.name} style={{
+                textDecoration: 'none',
+              }}>
+                  <div key={app.name} style={appCardStyle(theme)}>
+                    <Stack spacing={3} direction={'row'} alignItems={'center'} style={{ padding: '0px 15px' }}>
+                      <img src={app.icon} style={{ width: 64, height: 64 }} />
+                      <Stack spacing={1}>
+                        <div style={{ fontWeight: "bold" }}>{app.name}</div>
+                        <div style={{
+                          height: '40px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'pre-wrap',
+                        }}
+                        >{app.description}</div>
+                        <Stack direction={'row'} spacing={1}>
+                          <div style={{
+                            fontStyle: "italic", opacity: 0.7,
+                            overflow: 'hidden',
+                            height: '21px',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'pre-wrap',
+                          }}>{app.tags.slice(0, 3).join(", ")}</div>
+                        </Stack>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                </Stack>
-              </div>
+                  </div>
 
-              </Link>
-            </Grid2>
-          }))}
+                </Link>
+              </Grid2>
+            }))}
         </Grid2>}
       </Stack>
     </Stack>

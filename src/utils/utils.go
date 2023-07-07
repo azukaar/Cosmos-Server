@@ -330,6 +330,7 @@ func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
 
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
+	OverrideWildcardDomains := GetMainConfig().HTTPConfig.OverrideWildcardDomains
 
 	if removePorts {
 		mainHostname = strings.Split(mainHostname, ":")[0]
@@ -368,6 +369,10 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		filteredHostnames := []string{
 			bareMainHostname,
 			"*." + bareMainHostname,
+		}
+
+		if(OverrideWildcardDomains != "") {
+			filteredHostnames = strings.Split(OverrideWildcardDomains, ",")
 		}
 
 		for _, hostname := range uniqueHostnames {

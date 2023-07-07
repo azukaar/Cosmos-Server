@@ -496,9 +496,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       <DialogContent style={{ width: '800px', maxWidth: '100%' }}>
         <DialogContentText>
           {step === 0 && !installer && <><Stack spacing={2}>
-            <Alert severity="warning" icon={<WarningOutlined />}>
-              This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
-            </Alert>
+
 
             <UploadButtons
               accept='.yml,.yaml,.json'

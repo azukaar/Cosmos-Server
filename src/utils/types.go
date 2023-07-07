@@ -119,6 +119,7 @@ type HTTPConfig struct {
 	Hostname string `validate:"required,excludesall=0x2C/ "`
 	SSLEmail string `validate:"omitempty,email"`
 	UseWildcardCertificate bool
+	OverrideWildcardDomains string `validate:"omitempty,excludesall=/ "`
 	AcceptAllInsecureHostname bool
 	DNSChallengeConfig map[string]string `json:"DNSChallengeConfig,omitempty"`
 } 

@@ -30,9 +30,9 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
   const healthIconColor = healthStatus === 'Healthy' ? 'green' : 'red';
   const routes = getContainersRoutes(config, Name.replace('/', ''));
 
-  let refreshAll = refresh && (() => refresh().then(() => {
+  let refreshAll = refresh ? (() => refresh().then(() => {
     setIsUpdating(false);
-  }));
+  })) : (() => {setIsUpdating(false);});
 
   const updateRoutes = (newRoute) => {
     API.config.addRoute(newRoute).then(() => {
@@ -95,6 +95,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 image={Image}
                 state={State.Status}
                 refreshServApps={() => {
+                  setIsUpdating(false);
                   refreshAll()
                 }}
                 setIsUpdatingId={() => {
