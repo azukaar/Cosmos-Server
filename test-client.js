@@ -1,8 +1,10 @@
 const https = require('https');
 
 const options = {
-  hostname: 'example.com', // Replace with your target URL
+  hostname: 'radarr.yann-server.com', // Replace with your target URL
   method: 'OPTIONS',
+  port: 443,
+  path: '/cosmos-ui', // Replace with your target path
 };
 
 const req = https.request(options, (res) => {

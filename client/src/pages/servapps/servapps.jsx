@@ -72,21 +72,7 @@ const ServApps = () => {
   }, []);
   
   function updateRoutes(newRoute) {
-    let con = {
-      ...config,
-      HTTPConfig: {
-        ...config.HTTPConfig,
-        ProxyConfig: {
-          ...config.HTTPConfig.ProxyConfig,
-          Routes: [
-            newRoute,
-            ...config.HTTPConfig.ProxyConfig.Routes,
-          ]
-        },
-      },
-    };
-    
-    API.config.set(con).then((res) => {
+    return API.config.addRoute(newRoute).then((res) => {
       setOpenModal(false);
       setOpenRestartModal(true);
     });

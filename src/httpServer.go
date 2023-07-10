@@ -410,6 +410,8 @@ func StartServer() {
 
 func RestartServer() {
 	utils.LetsEncryptErrors = []string{}
+	IconCache = map[string]CachedImage{}
+	
 	utils.Log("Restarting HTTP Server...")
 	LoadConfig()
 

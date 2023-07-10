@@ -560,7 +560,7 @@ const ConfigManagement = () => {
                       onChange={(e) => {
                         formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                       }}
-                      label="(optional) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
+                      label="(optional, only if you know what you are doing) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
                       formik={formik}
                       placeholder={"example.com,*.example.com"}
                     />

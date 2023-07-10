@@ -1,4 +1,4 @@
-## Version 0.9.1 > 0.9.5
+## Version 0.9.1 > 0.9.6
  - Fix subdomain logic for composed TLDs
  - Add option for custom wildcard domains
  - Fix domain depupe logic
@@ -6,6 +6,8 @@
  - Update LEGO
  - Fix issue with hot-reloading between HTTP and HTTPS 
  - Fix loading bar in container overview page
+ - Flush Etag cache on restart
+ - Bootstrap containers when adding new routes to them
 
 ## Version 0.9.0
  - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use

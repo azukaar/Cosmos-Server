@@ -13,6 +13,8 @@ import (
 
 func main() {
 	utils.Log("Starting...")
+	
+	utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
 
 	rand.Seed(time.Now().UnixNano())
 

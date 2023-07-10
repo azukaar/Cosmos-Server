@@ -21,7 +21,7 @@ type CachedImage struct {
 	Body []byte
 }
 
-var cache = make(map[string]CachedImage)
+var IconCache = make(map[string]CachedImage)
 
 func sendImage(w http.ResponseWriter, image CachedImage) {
 		// Copy the response to the output
@@ -73,9 +73,9 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 		utils.Log("Fetch favicon for " + siteurl)
 
 		// Check if we have the favicon in cache
-		if _, ok := cache[siteurl]; ok {
+		if _, ok := IconCache[siteurl]; ok {
 			utils.Debug("Favicon in cache")
-			resp := cache[siteurl]
+			resp := IconCache[siteurl]
 			sendImage(w, resp)
 			return
 		}
@@ -178,9 +178,9 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 						Body: body,
 					}
 
-					cache[siteurl] = finalImage
+					IconCache[siteurl] = finalImage
 
-					sendImage(w, cache[siteurl])
+					sendImage(w, IconCache[siteurl])
 					return
 				}
 			}
