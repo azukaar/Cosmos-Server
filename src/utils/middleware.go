@@ -65,7 +65,6 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 			// TODO: Add preload if we have a valid certificate
 			w.Header().Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		}
-	
 		
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")

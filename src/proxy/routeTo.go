@@ -71,6 +71,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool) (*httputil.Reve
 		}
 		
 		req.Header.Set("X-Forwarded-Proto", originalScheme)
+		
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
@@ -82,6 +83,15 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool) (*httputil.Reve
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
+		
+		resp.Header.Del("Access-Control-Allow-Origin")
+		resp.Header.Del("Access-Control-Allow-Methods")
+		resp.Header.Del("Access-Control-Allow-Headers")
+		resp.Header.Del("Access-Control-Allow-Credentials")
+		resp.Header.Del("Strict-Transport-Security")
+		resp.Header.Del("X-Content-Type-Options")
+		resp.Header.Del("Content-Security-Policy")
+		resp.Header.Del("X-XSS-Protection")
 
 		return nil
 	}

@@ -8,6 +8,7 @@
  - Fix loading bar in container overview page
  - Flush Etag cache on restart
  - Bootstrap containers when adding new routes to them
+ - Remove headers from origin server to prevent duplicates
 
 ## Version 0.9.0
  - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use
