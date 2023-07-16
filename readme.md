@@ -136,7 +136,7 @@ Authentication is very hard (how do you check the password match? What encryptio
 
 # Licence
 
-Cosmos is using the Apache 2.0 Licence with the Commons Clause 1.0.
+Cosmos is using the Apache 2.0 Licence with the Commons Clause 1.0. This is a common clause among open source infrastructure software, such as databases, reverse proxies, etc...
 
 The TL;DR is: You can use it freely. You can also fork it and redistribute it, But you are not allowed to sell it, a derivative or to sell a service based on it (ex. SaaS or PaaS).
 
