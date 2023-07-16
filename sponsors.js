@@ -86,5 +86,16 @@ function changelog() {
   })
 }
 
+function refreshLicenceDate() {
+  const year = new Date().getFullYear() + 3
+  const month = new Date().getMonth() + 1
+  const day = new Date().getDate()
+
+  const licence = fs.readFileSync('./LICENCE', 'utf8')
+  const newLicence = licence.replace(/(Change Date:\s+)(\d+-\d+-\d+)/, `$1${year}-${month}-${day}`)
+  fs.writeFileSync('./LICENCE', newLicence)
+}
+
 sponsorsGenerate()
+//refreshLicenceDate()
 // changelog();

@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"path"
+	"time"
+	"context"
 
 	"go.deanishe.net/favicon"
 
@@ -19,6 +21,24 @@ type CachedImage struct {
 	ContentType string
 	ETag string
 	Body []byte
+}
+
+func httpGetWithTimeout(url string) (*http.Response, error) {
+	timeout := 10 * time.Second
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
 }
 
 var IconCache = make(map[string]CachedImage)
@@ -89,7 +109,8 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// follow siteurl and check if any redirect. 
-		respNew, err := http.Get(siteurl)
+		
+		respNew, err := httpGetWithTimeout(siteurl)
 
 		if err != nil {
 			utils.Error("FaviconFetch", err)
@@ -149,7 +170,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				utils.Debug("Favicon Trying to fetch " + iconURL)
 
 				// Fetch the favicon
-				resp, err := http.Get(iconURL)
+				resp, err := httpGetWithTimeout(iconURL)
 				if err != nil {
 					utils.Debug("FaviconFetch" + err.Error())
 					continue
@@ -216,7 +237,7 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") { 
 		utils.Log("Ping for " + siteurl)
 
-		resp, err := http.Get(siteurl)
+		resp, err := httpGetWithTimeout(siteurl)
 		if err != nil {
 			utils.Error("Ping", err)
 			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "PI0001")

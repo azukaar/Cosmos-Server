@@ -58,10 +58,8 @@ Cosmos is a:
  * **Anti-Bot** 🤖❌ Collection of tools to prevent bots from accessing your applications, such as common bot detection, IP based detection, and more
  * **Anti-DDOS** 🔥⛔️ Additional protections such as variable timeouts/throttling, IP rate limiting and geo-blacklisting
  * **Modular** 🧩📦 to easily add new features and integrations, but also run only the features you need (for example No docker, no Databases, or no HTTPS)
- * **Visible Source** 📖📝 for full transparency and trust
  
 And a **lot more planned features** are coming!
-
 
 # What are the differences with other alternatives?
 
@@ -135,6 +133,14 @@ Cosmos Server can automatically generate and renews HTTPS certificates for your 
 **If you're a self-hosted application developer**, integrate your application with Cosmos and enjoy **secure authentication**, **robust HTTP layer protection**, **HTTPS support**, **user management**, **encryption**, **logging**, **backup**, and more - all with **minimal effort**. And if your users prefer **not to install** Cosmos, your application will **still work seamlessly**.
 
 Authentication is very hard (how do you check the password match? What encryption do you use? How do you store tokens? How do you check if the user is allowed to access the application?). Cosmos Server provides a **secure authentication system** that can be used by any application, and that is **easy to integrate**.
+
+# Licence
+
+Cosmos is using the Apache 2.0 Licence with the Commons Clause 1.0.
+
+The TL;DR is: You can use it freely. You can also fork it and redistribute it, But you are not allowed to sell it, a derivative or to sell a service based on it (ex. SaaS or PaaS).
+
+Note that **you are allowed** to use it to host a monetized business website, a blog etc... as long as your business does not involve selling Cosmos or its features.
 
 # Installation
 

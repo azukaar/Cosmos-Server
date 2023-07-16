@@ -1,4 +1,4 @@
-## Version 0.9.1 > 0.9.6
+## Version 0.9.1 > 0.9.8
  - Fix subdomain logic for composed TLDs
  - Add option for custom wildcard domains
  - Fix domain depupe logic
@@ -7,8 +7,10 @@
  - Fix issue with hot-reloading between HTTP and HTTPS 
  - Fix loading bar in container overview page
  - Flush Etag cache on restart
+ - Add timeout to icon fetching
  - Bootstrap containers when adding new routes to them
  - Remove headers from origin server to prevent duplicates
+ - Add licence
 
 ## Version 0.9.0
  - Rewrote the entire HTTPS / DNS challenge system to be more robust and easier to use
