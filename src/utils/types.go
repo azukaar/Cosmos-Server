@@ -149,6 +149,12 @@ type ProxyConfig struct {
 	Routes []ProxyRouteConfig
 }
 
+type AddionalFiltersConfig struct {
+	Type string
+	Name string
+	Value string
+}
+
 type ProxyRouteConfig struct {
 	Name string `validate:"required"`
 	Description string
@@ -170,6 +176,7 @@ type ProxyRouteConfig struct {
 	BlockAPIAbuse bool
 	AcceptInsecureHTTPSTarget bool
 	HideFromDashboard bool
+	AddionalFilters []AddionalFiltersConfig
 }
 
 type EmailConfig struct {

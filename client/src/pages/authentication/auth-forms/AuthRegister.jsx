@@ -73,7 +73,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                         .max(255)
                         .required('Password is required')
                         .matches(
-                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\.\/])(?=.{9,})/,
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\/])(?=.{9,})/,
                             'Must Contain 9 Characters, One Uppercase, One Lowercase, One Number and one special case Character (~!@#$%^&*()_+=-{[}]:;"\'<>.?/)'
                         ),
                 })}

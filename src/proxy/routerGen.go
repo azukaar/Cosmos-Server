@@ -72,6 +72,18 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 		destination = http.StripPrefix(route.PathPrefix, destination)
 	}
+
+	for filter := range route.AddionalFilters {
+		if route.AddionalFilters[filter].Type == "header" {
+			origin = origin.Headers(route.AddionalFilters[filter].Name, route.AddionalFilters[filter].Value)
+		} else if route.AddionalFilters[filter].Type == "query" {
+			origin = origin.Queries(route.AddionalFilters[filter].Name, route.AddionalFilters[filter].Value)
+		} else if route.AddionalFilters[filter].Type == "method" {
+			origin = origin.Methods(route.AddionalFilters[filter].Value)
+		} else {
+			utils.Error("Unknown filter type: "+route.AddionalFilters[filter].Type, nil)
+		}
+	}
 	
 	destination = SmartShieldMiddleware(route.SmartShield)(destination)
 

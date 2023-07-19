@@ -1,3 +1,6 @@
+## Version 0.9.9
+ - Add new filters for routes based on method, query strings and headers (missing UI)
+
 ## Version 0.9.1 > 0.9.8
  - Fix subdomain logic for composed TLDs
  - Add option for custom wildcard domains

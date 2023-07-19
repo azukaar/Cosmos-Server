@@ -235,6 +235,11 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 
 func GetClientID(r *http.Request) string {
 	// when using Docker we need to get the real IP
+	utils.Debug("SmartShield TEMPLOG: Getting client ID")
+	utils.Debug("SmartShield TEMPLOG HOSTNAME: " + os.Getenv("HOSTNAME"))
+	utils.Debug("SmartShield TEMPLOG x-forwarded-for: " + r.Header.Get("x-forwarded-for"))
+	utils.Debug("SmartShield TEMPLOG RemoteAddr: " + r.RemoteAddr)
+	
 	if os.Getenv("HOSTNAME") != "" && r.Header.Get("x-forwarded-for") != "" {
 		ip, _, _ := net.SplitHostPort(r.Header.Get("x-forwarded-for"))
 		utils.Debug("SmartShield: Getting client ID " + ip)
