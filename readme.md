@@ -7,7 +7,6 @@
 <p align="center"><a href="https://github.com/zarevskaya"><img src="https://avatars.githubusercontent.com/zarevskaya" style="border-radius:48px" width="48" height="48" alt="zarev" title="zarev" /></a>
 <a href="https://github.com/DrMxrcy"><img src="https://avatars.githubusercontent.com/DrMxrcy" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/LarsNorgaard"><img src="https://avatars.githubusercontent.com/LarsNorgaard" style="border-radius:48px" width="48" height="48" alt="Lars Nørgaard" title="Lars Nørgaard" /></a>
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/vp-en"><img src="https://avatars.githubusercontent.com/vp-en" style="border-radius:48px" width="48" height="48" alt="vp-en" title="vp-en" /></a>
 </p><!-- /sponsors -->

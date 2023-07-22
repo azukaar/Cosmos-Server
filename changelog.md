@@ -1,3 +1,8 @@
+## Version 0.9.10
+ - Never ban gateway ips
+ - Prevent deleting networks if there's an error on disconnect
+ - Disabling network pruning now also disables cleaning up Cosmos networks
+
 ## Version 0.9.9
  - Add new filters for routes based on method, query strings and headers (missing UI)
 

@@ -392,10 +392,15 @@ func CreateLinkNetwork(containerName string, container2Name string) error {
 var DebouncedNetworkCleanUp = _debounceNetworkCleanUp()
 
 func NetworkCleanUp() {
+	config := utils.GetMainConfig()
+	
+	if(config.DockerConfig.SkipPruneNetwork) {
+		return
+	}
+
 	DockerNetworkLock <- true
 	defer func() { <-DockerNetworkLock }()
 
-	config := utils.GetMainConfig()
 	
 	utils.Log("Cleaning up orphan networks...")
 
@@ -427,12 +432,8 @@ func NetworkCleanUp() {
 		}
 
 		utils.Debug("Ready to Check network: " + network.Name)
-
-		if(config.DockerConfig.SkipPruneNetwork){
-			utils.Debug("Skipping network prune")
-		}
 		
-		if(!config.DockerConfig.SkipPruneNetwork && len(network.Containers) == 0) {
+		if(len(network.Containers) == 0) {
 			utils.Log("Removing orphan network: " + network.Name)
 			err := DockerClient.NetworkRemove(DockerContext, network.ID)
 			if err != nil {
@@ -463,6 +464,7 @@ func NetworkCleanUp() {
 			err := DockerClient.NetworkDisconnect(DockerContext, network.ID, self, true)
 			if err != nil {
 				utils.Error("DockerNetworkCleanupDisconnect", err)
+				continue
 			}
 			err = DockerClient.NetworkRemove(DockerContext, network.ID)
 			if err != nil {

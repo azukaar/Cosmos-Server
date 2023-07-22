@@ -118,6 +118,12 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 	defer shield.Unlock()
 
 	ClientID := userConsumed.ClientID
+
+	if ClientID == "192.168.1.1" || 
+		 ClientID == "192.168.0.1" ||
+		 ClientID == "172.17.0.1" {
+		return true
+	}
 	
 	nbTempBans := 0
 	nbStrikes := 0
