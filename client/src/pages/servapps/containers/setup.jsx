@@ -56,7 +56,7 @@ const DockerContainerSetup = ({noCard, containerInfo, installer, OnChange, refre
           image: containerInfo.Config.Image,
           restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
           envVars: containerInfo.Config.Env.map((envVar) => {
-            const [key, value] = envVar.split('=');
+            const [key, value] = envVar.split(/=(.*)/s);
             return { key, value }; 
           }),
           labels: Object.keys(containerInfo.Config.Labels).map((key) => {
