@@ -199,7 +199,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     let volumeObj = {
                       source: volumeSplit[0],
                       target: volumeSplit[1],
-                      type: volume[0] === '/' ? 'bind' : 'volume',
+                      type: (volume[0] === '/' || volume[0] === '.') ? 'bind' : 'volume',
                     };
                     volumes.push(volumeObj);
                   }
@@ -207,6 +207,14 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 doc.services[key].volumes = volumes;
               }
             }
+
+            if(doc.services[key].volumes)
+              Object.values(doc.services[key].volumes).forEach((volume) => {
+                if (volume.source && volume.source[0] === '.') {
+                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr"
+                  volume.source = defaultPath + volume.source.replace('.', '');
+                }
+              });
 
             // convert expose
             if (doc.services[key].expose) {

@@ -68,25 +68,22 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
       <Formik
         initialValues={{
           networkMode: containerInfo.HostConfig.NetworkMode,
-          ports: Object.keys(containerInfo.NetworkSettings.Ports).map((port) => {
-            return {
-              port: port.split('/')[0],
-              protocol: port.split('/')[1],
-              hostPort: containerInfo.NetworkSettings.Ports[port] && containerInfo.NetworkSettings.Ports[port][0] ?
-                containerInfo.NetworkSettings.Ports[port][0].HostPort : '',
-            };
-          })
+          ports: Object.keys(containerInfo.NetworkSettings.Ports).map((contPort) => {
+            return containerInfo.NetworkSettings.Ports[contPort] ? containerInfo.NetworkSettings.Ports[contPort].map((hostPort) => {
+              return {
+                port: contPort.split('/')[0],
+                protocol: contPort.split('/')[1],
+                hostPort: hostPort.HostPort,
+              };
+            }) : {
+              port: contPort.split('/')[0],
+              protocol: contPort.split('/')[1],
+              hostPort: '',
+            }
+          }).flat(),
         }}
         validate={(values) => {
           const errors = {};
-          // check unique
-          const ports = values.ports.map((port) => {
-            return `${port.port}/${port.protocol}`;
-          });
-          const unique = [...new Set(ports)];
-          if (unique.length !== ports.length) {
-            errors.submit = 'Ports must be unique';
-          }
           OnChange && OnChange(values);
           return errors;
         }}
@@ -98,12 +95,14 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
             networkMode: values.networkMode,
           };
           values.ports.forEach((port) => {
+            let key = `${port.port}/${port.protocol}`;
+            
             if (port.hostPort) {
-              realvalues.portBindings[`${port.port}/${port.protocol}`] = [
-                {
-                  HostPort: port.hostPort,
-                }
-              ];
+              if(!realvalues.portBindings[key]) realvalues.portBindings[key] = [];
+              
+              realvalues.portBindings[`${port.port}/${port.protocol}`].push({
+                HostPort: port.hostPort,
+              })
             }
           });
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)

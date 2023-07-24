@@ -208,7 +208,7 @@ const ServApps = () => {
                 <Stack style={noOver} margin={1} direction="row" spacing={1}>
                   {app.Ports.filter(p => p.IP != '::').map((port) => {
                     return <Tooltip title={port.PublicPort ? 'Warning, this port is publicly accessible' : ''}>
-                      <Chip style={{ fontSize: '80%' }} label={port.PrivatePort + (port.PublicPort ? (":" + port.PublicPort) : '')} color={port.PublicPort ? 'warning' : 'default'} />
+                      <Chip style={{ fontSize: '80%' }} label={(port.PublicPort ? (port.PublicPort + ":") : '') + port.PrivatePort} color={port.PublicPort ? 'warning' : 'default'} />
                     </Tooltip>
                   })}
                 </Stack>

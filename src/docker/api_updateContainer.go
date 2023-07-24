@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	containerType "github.com/docker/docker/api/types/container"
@@ -77,6 +78,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.Labels = form.Labels
 		}
 		if(form.PortBindings != nil) {
+			utils.Debug(fmt.Sprintf("UpdateContainer: PortBindings: %v", form.PortBindings))
 			container.HostConfig.PortBindings = form.PortBindings
 			container.Config.ExposedPorts = make(map[nat.Port]struct{})
 			for port := range form.PortBindings {

@@ -206,6 +206,24 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// generatePorts is a helper function to generate a slice of ports from a string range.
+func generatePorts(portRangeStr string) []string {
+	portsStr := strings.Split(portRangeStr, "-")
+	if len(portsStr) != 2 {
+		return []string{
+			portsStr[0],
+		}
+	}
+	start, _ := strconv.Atoi(portsStr[0])
+	end, _ := strconv.Atoi(portsStr[1])
+
+	ports := make([]string, end-start+1)
+	for i := range ports {
+		ports[i] = strconv.Itoa(start + i)
+	}
+
+	return ports
+}
 
 func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)) error {
 	utils.ConfigLock.Lock()
@@ -408,24 +426,69 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		}
 
 		// For Expose / Ports
+		
 		for _, expose := range container.Expose {
 			exposePort := nat.Port(expose)
 			containerConfig.ExposedPorts[exposePort] = struct{}{}
 		}
 
 		PortBindings := nat.PortMap{}
+		finalPorts := []string{}
 
-		for _, port := range container.Ports {
-			portHost := strings.Split(port, ":")[0]
-			portContainer := strings.Split(port, ":")[1]
+		for _, portRaw := range container.Ports {
+			portStuff := strings.Split(portRaw, "/")
 
-			containerConfig.ExposedPorts[nat.Port(portContainer)] = struct{}{}
-			PortBindings[nat.Port(portContainer)] = []nat.PortBinding{
-				{
-					HostIP:   "",
-					HostPort: portHost,
-				},
+			if len(portStuff) == 1 {
+				portStuff = append(portStuff, "tcp")
 			}
+
+			port, protocol := portStuff[0], portStuff[1]
+			
+			ports := strings.Split(port, ":")
+
+			hostPorts := generatePorts(ports[0])
+			containerPorts := generatePorts(ports[1])
+
+			for i := 0; i < utils.Max(len(hostPorts), len(containerPorts)); i++ {
+				hostPort := hostPorts[i%len(hostPorts)]
+				containerPort := containerPorts[i%len(containerPorts)]
+				
+				finalPorts = append(finalPorts, fmt.Sprintf("%s:%s/%s", hostPort, containerPort, protocol))
+			}
+		}
+
+		utils.Debug(fmt.Sprintf("Final ports: %s", finalPorts))
+		
+		hostPortsBound := make(map[string]bool)
+
+		for _, portRaw := range finalPorts {
+			portStuff := strings.Split(portRaw, "/")
+			port, protocol := portStuff[0], portStuff[1]
+			nextPort := strings.Split(port, ":")
+			hostPort, contPort := nextPort[0], nextPort[1]
+
+			contPort = contPort + "/" + protocol
+			
+			if hostPortsBound[hostPort] {
+				utils.Warn("Port " + hostPort + " already bound, skipping")
+				continue
+			}
+
+			// Get the existing bindings for this container port, if any
+			bindings := PortBindings[nat.Port(contPort)]
+
+			// Append a new PortBinding to the slice of bindings
+			bindings = append(bindings, nat.PortBinding{
+				HostPort: hostPort,
+			})
+
+			// Update the port bindings for this container port
+			PortBindings[nat.Port(contPort)] = bindings
+
+			// Mark the container port as exposed
+			containerConfig.ExposedPorts[nat.Port(contPort)] = struct{}{}
+
+			hostPortsBound[hostPort] = true
 		}
 
 		// Create missing folders for bind mounts

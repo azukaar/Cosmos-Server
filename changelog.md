@@ -1,3 +1,13 @@
+## Version 0.9.11
+ - Add support for port ranges in cosmos-compose
+ - Fix bug where multiple host port to the same container would override each other
+ - Port display on Servapp tab was inverted
+ - Fixed Network screen to support complex port mappings
+ - Add support for protocol in cosmos-compose port exposing logic
+ - Add support for relative bind path in docker-compose import
+ - Fix environment vars and labels containing multiple equals (@jwr1)
+ - Fix link to Other Setups page (@jwr1)
+
 ## Version 0.9.10
  - Never ban gateway ips
  - Prevent deleting networks if there's an error on disconnect
