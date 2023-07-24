@@ -225,7 +225,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               if (Array.isArray(doc.services[key].labels)) {
                 let labels = {};
                 doc.services[key].labels.forEach((label) => {
-                  const [key, value] = label.split('=');
+                  const [key, value] = label.split(/=(.*)/s);
                   labels['' + key] = '' + value;
                 });
                 doc.services[key].labels = labels;
