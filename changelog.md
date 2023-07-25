@@ -1,3 +1,6 @@
+## Version 0.9.13
+ - Fix issue with duplicated ports in network tab of servapps (because it shows the IPV4 and the IPV6 ports)
+
 ## Version 0.9.12
  - Add integration to the `docker login` credentials store
  - Smart-shield now works with different budgets per routes, so that requests on a permissive route don't count as requests on a strict route

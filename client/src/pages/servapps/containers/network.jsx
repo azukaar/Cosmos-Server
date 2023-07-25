@@ -63,24 +63,34 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
     }
   }
 
+  const getPortBindings = () => {
+    let portsBound = [];
+    let portsConfig = containerInfo.NetworkSettings.Ports;
+
+    return Object.keys(portsConfig).map((contPort) => {
+      return portsConfig[contPort] ? portsConfig[contPort].map((hostPort) => {
+        let key = contPort + ":" + hostPort.HostPort + "/" + hostPort.protocol;
+        if (portsBound.includes(key)) return null;
+        portsBound.push(key);
+        return {
+          port: contPort.split('/')[0],
+          protocol: contPort.split('/')[1],
+          hostPort: hostPort.HostPort,
+        };
+      }) : {
+        port: contPort.split('/')[0],
+        protocol: contPort.split('/')[1],
+        hostPort: '',
+      }
+    }).flat().filter((p) => p);
+  }
+
   return (<Stack spacing={2}>
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
       <Formik
         initialValues={{
           networkMode: containerInfo.HostConfig.NetworkMode,
-          ports: Object.keys(containerInfo.NetworkSettings.Ports).map((contPort) => {
-            return containerInfo.NetworkSettings.Ports[contPort] ? containerInfo.NetworkSettings.Ports[contPort].map((hostPort) => {
-              return {
-                port: contPort.split('/')[0],
-                protocol: contPort.split('/')[1],
-                hostPort: hostPort.HostPort,
-              };
-            }) : {
-              port: contPort.split('/')[0],
-              protocol: contPort.split('/')[1],
-              hostPort: '',
-            }
-          }).flat(),
+          ports: getPortBindings(),
         }}
         validate={(values) => {
           const errors = {};
