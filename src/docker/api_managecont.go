@@ -70,7 +70,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "recreate":
 			_, err = RecreateContainer(container.Name, container)
 		case "update":
-			out, errPull := DockerClient.ImagePull(DockerContext, imagename, doctype.ImagePullOptions{})
+			out, errPull := DockerPullImage(imagename)
 			if errPull != nil {
 				utils.Error("Docker Pull", errPull)
 				utils.HTTPError(w, "Cannot pull new image", http.StatusBadRequest, "DS004")

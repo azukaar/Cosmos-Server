@@ -325,7 +325,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		utils.Log(fmt.Sprintf("Pulling image %s", container.Image))
 		OnLog(fmt.Sprintf("Pulling image %s\n", container.Image))
 
-		out, err := DockerClient.ImagePull(DockerContext, container.Image, doctype.ImagePullOptions{})
+		out, err := DockerPullImage(container.Image)
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Image pull", err)
 			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Image pull error: %s\n", err.Error()))

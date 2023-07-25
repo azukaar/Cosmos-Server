@@ -85,7 +85,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 	}
 	
-	destination = SmartShieldMiddleware(route.SmartShield)(destination)
+	destination = SmartShieldMiddleware(route.Name, route.SmartShield)(destination)
 
 	originCORS := route.CORSOrigin
 

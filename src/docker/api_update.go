@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"bufio"
 
-	"github.com/docker/docker/api/types"
-
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -43,7 +41,7 @@ func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 			utils.Log("PullImageIfMissing - Image not found, pulling " + imageName)
 			fmt.Fprintf(w, "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
 			flusher.Flush()
-			out, errPull := DockerClient.ImagePull(DockerContext, imageName, types.ImagePullOptions{})
+			out, errPull := DockerPullImage(imageName)
 			if errPull != nil {
 				utils.Error("PullImageIfMissing - Image not found.", errPull)
 				fmt.Fprintf(w, "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")
@@ -104,7 +102,7 @@ func PullImage(w http.ResponseWriter, req *http.Request) {
 		utils.Log("PullImageIfMissing - Image not found, pulling " + imageName)
 		fmt.Fprintf(w, "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
 		flusher.Flush()
-		out, errPull := DockerClient.ImagePull(DockerContext, imageName, types.ImagePullOptions{})
+		out, errPull := DockerPullImage(imageName)
 		if errPull != nil {
 			utils.Error("PullImageIfMissing - Image not found.", errPull)
 			fmt.Fprintf(w, "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")

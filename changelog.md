@@ -1,3 +1,8 @@
+## Version 0.9.12
+ - Add integration to the `docker login` credentials store
+ - Smart-shield now works with different budgets per routes, so that requests on a permissive route don't count as requests on a strict route
+ - Fix an issue where users would never receive permanent bans from the shield
+
 ## Version 0.9.11
  - Add support for port ranges in cosmos-compose
  - Fix bug where multiple host port to the same container would override each other

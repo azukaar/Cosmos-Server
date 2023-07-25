@@ -104,7 +104,7 @@ func RunContainer(imagename string, containername string, inputEnv []string, vol
 		return errD
 	}
 
-	pull, errPull := DockerClient.ImagePull(DockerContext, imagename, types.ImagePullOptions{})
+	pull, errPull := DockerPullImage(imagename)
 	if errPull != nil {
 		utils.Error("Docker Pull", errPull)
 		return errPull

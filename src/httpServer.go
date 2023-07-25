@@ -150,6 +150,7 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 		userRouter.Use(tokenMiddleware)
 	}
 	userRouter.Use(proxy.SmartShieldMiddleware(
+		"__COSMOS",
 		utils.SmartShieldPolicy{
 			Enabled: true,
 			PolicyStrictness: 1,

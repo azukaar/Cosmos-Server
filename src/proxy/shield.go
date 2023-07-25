@@ -27,6 +27,7 @@ type userBan struct {
 	banType int
 	time time.Time
 	reason string
+	shieldID string
 }
 
 type smartShieldState struct {
@@ -45,7 +46,7 @@ type userUsedBudget struct {
 
 var shield smartShieldState
 
-func (shield *smartShieldState) GetServerNbReq() int {
+func (shield *smartShieldState) GetServerNbReq(shieldID string) int {
 	shield.Lock()
 	defer shield.Unlock()
 	nbRequests := 0
@@ -55,7 +56,7 @@ func (shield *smartShieldState) GetServerNbReq() int {
 		if(request.IsOld()) {
 			return nbRequests
 		}
-		if(!request.IsOver()) {
+		if(!request.IsOver() && request.shieldID == shieldID) {
 			nbRequests++
 		}
 	}
@@ -63,7 +64,7 @@ func (shield *smartShieldState) GetServerNbReq() int {
 	return nbRequests
 }
 
-func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudget {
+func (shield *smartShieldState) GetUserUsedBudgets(shieldID string, ClientID string) userUsedBudget {
 	shield.Lock()
 	defer shield.Unlock()
 
@@ -78,6 +79,11 @@ func (shield *smartShieldState) GetUserUsedBudgets(ClientID string) userUsedBudg
 	// Check for recent requests
 	for i := len(shield.requests) - 1; i >= 0; i-- {
 		request := shield.requests[i]
+		
+		if(request.shieldID != shieldID) {
+			continue
+		}
+
 		if(request.IsOld()) {
 			return userConsumed
 		}
@@ -113,7 +119,7 @@ func (shield *smartShieldState) GetLastBan(policy utils.SmartShieldPolicy, userC
 	return nil
 }
 
-func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy, userConsumed userUsedBudget) bool {
+func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.SmartShieldPolicy, userConsumed userUsedBudget) bool {
 	shield.Lock()
 	defer shield.Unlock()
 
@@ -121,6 +127,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 
 	if ClientID == "192.168.1.1" || 
 		 ClientID == "192.168.0.1" ||
+		 ClientID == "192.168.0.254" ||
 		 ClientID == "172.17.0.1" {
 		return true
 	}
@@ -131,18 +138,19 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 	// Check for bans
 	for i := len(shield.bans) - 1; i >= 0; i-- {
 		ban := shield.bans[i]
+
 		if ban.banType == PERM && ban.ClientID == ClientID {
 			return false
 		} else if ban.banType == TEMP && ban.ClientID == ClientID {
-			if(ban.time.Add(4 * 3600 * time.Second).Before(time.Now())) {
+			if(ban.time.Add(4 * 3600 * time.Second).After(time.Now())) {
 				return false
-			} else if (ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
+			} else if (ban.time.Add(72 * 3600 * time.Second).After(time.Now())) {
 				nbTempBans++
 			}
 		} else if ban.banType == STRIKE && ban.ClientID == ClientID {
-			if(ban.time.Add(3600 * time.Second).Before(time.Now())) {
+			if(ban.time.Add(3600 * time.Second).After(time.Now())) {
 				return false
-			} else if (ban.time.Add(24 * 3600 * time.Second).Before(time.Now())) {
+			} else if (ban.time.Add(24 * 3600 * time.Second).After(time.Now())) {
 				nbStrikes++
 			}
 		}
@@ -179,6 +187,7 @@ func (shield *smartShieldState) isAllowedToReqest(policy utils.SmartShieldPolicy
 			banType: STRIKE,
 			time: time.Now(),
 			reason: fmt.Sprintf("%+v out of %+v", userConsumed, policy),
+			shieldID: shieldID,
 		})
 		utils.Warn("User " + ClientID + " has received a strike: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
@@ -220,11 +229,11 @@ func (shield *smartShieldState) computeThrottle(policy utils.SmartShieldPolicy, 
 		}
 	}
 	
-	if throttle > 0 {
+	// if throttle > 0 {
 		utils.Debug(fmt.Sprintf("User Time: %f, Requests: %d, Bytes: %d", userConsumed.Time, userConsumed.Requests, userConsumed.Bytes))
 		utils.Debug(fmt.Sprintf("Policy Time: %f, Requests: %d, Bytes: %d", policy.PerUserTimeBudget, policy.PerUserRequestLimit, policy.PerUserByteLimit))	
 		utils.Debug(fmt.Sprintf("Throttling: %d", throttle))
-	}
+	// }
 
 	return throttle
 }
@@ -241,11 +250,7 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 
 func GetClientID(r *http.Request) string {
 	// when using Docker we need to get the real IP
-	utils.Debug("SmartShield TEMPLOG: Getting client ID")
-	utils.Debug("SmartShield TEMPLOG HOSTNAME: " + os.Getenv("HOSTNAME"))
-	utils.Debug("SmartShield TEMPLOG x-forwarded-for: " + r.Header.Get("x-forwarded-for"))
-	utils.Debug("SmartShield TEMPLOG RemoteAddr: " + r.RemoteAddr)
-	
+
 	if os.Getenv("HOSTNAME") != "" && r.Header.Get("x-forwarded-for") != "" {
 		ip, _, _ := net.SplitHostPort(r.Header.Get("x-forwarded-for"))
 		utils.Debug("SmartShield: Getting client ID " + ip)
@@ -262,7 +267,7 @@ func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
 	return role >= policy.PrivilegedGroups
 }
 
-func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) http.Handler {
+func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func(http.Handler) http.Handler {
 	if policy.Enabled == false {
 		return func(next http.Handler) http.Handler {
 			return next
@@ -294,7 +299,7 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			utils.Log("SmartShield: Request received")
-			currentGlobalRequests := shield.GetServerNbReq() + 1
+			currentGlobalRequests := shield.GetServerNbReq(shieldID) + 1
 			utils.Debug(fmt.Sprintf("SmartShield: Current global requests: %d", currentGlobalRequests))
 
 			if !isPrivileged(r, policy) {
@@ -308,7 +313,7 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 				}
 				for tooManyReq {
 					time.Sleep(5000 * time.Millisecond)
-					currentGlobalRequests := shield.GetServerNbReq() + 1
+					currentGlobalRequests := shield.GetServerNbReq(shieldID) + 1
 					tooManyReq = currentGlobalRequests > policy.MaxGlobalSimultaneous
 					retries--
 					if retries <= 0 {
@@ -320,9 +325,9 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 			}
 
 			clientID := GetClientID(r)
-			userConsumed := shield.GetUserUsedBudgets(clientID)
+			userConsumed := shield.GetUserUsedBudgets(shieldID, clientID)
 
-			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(policy, userConsumed) {
+			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(shieldID, policy, userConsumed) {
 				lastBan := shield.GetLastBan(policy, userConsumed)
 				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", lastBan))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
@@ -340,6 +345,7 @@ func SmartShieldMiddleware(policy utils.SmartShieldPolicy) func(http.Handler) ht
 					RequestCost:    1,
 					Method: 				r.Method,
 					shield: shield,
+					shieldID: shieldID,
 					policy: policy,
 					isPrivileged: isPrivileged(r, policy),
 				}

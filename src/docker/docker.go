@@ -7,12 +7,15 @@ import (
 	"bufio"
 	"os"
 	"os/user"
+	"io"
 	"fmt"
 	"strings"
+	"encoding/base64"
+	"encoding/json"
 	"strconv"
 	"runtime"
 	"github.com/azukaar/cosmos-server/src/utils" 
-	
+	"github.com/docker/cli/cli/config"
 
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
@@ -190,7 +193,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		_, _, errImage := DockerClient.ImageInspectWithRaw(DockerContext, newConfig.Config.Image)
 		if errImage != nil {
 			utils.Log("EditContainer - Image not found, pulling " + newConfig.Config.Image)
-			out, errPull := DockerClient.ImagePull(DockerContext, newConfig.Config.Image, types.ImagePullOptions{})
+			out, errPull := DockerPullImage(newConfig.Config.Image)
 			if errPull != nil {
 				utils.Error("EditContainer - Image not found.", errPull)
 				return "", errors.New("Image not found. " + errPull.Error())
@@ -477,7 +480,7 @@ func CheckUpdatesAvailable() map[string]bool {
 			continue
 		}
 
-		rc, err := DockerClient.ImagePull(DockerContext, container.Image, types.ImagePullOptions{})
+		rc, err := DockerPullImage(container.Image)
 		if err != nil {
 			utils.Error("CheckUpdatesAvailable", err)
 			continue
@@ -628,4 +631,33 @@ func SelfRecreate() error {
 	}
 
 	return nil
+}
+
+func DockerPullImage(image string) (io.ReadCloser, error) {
+	options := types.ImagePullOptions{}
+
+	configfile, err := config.Load(config.Dir())
+	if err != nil {
+			utils.Error("DockerPull - Read config file error -", err)
+	} else {
+
+		
+		slashIndex := strings.Index(image, "/")
+		
+		if slashIndex >= 1 && strings.ContainsAny(image[:slashIndex], ".:") {
+			repoURL := strings.Split(image, "/")[0]
+			creds, err := configfile.GetCredentialsStore(repoURL).Get(repoURL)
+			
+			if err != nil {
+				utils.Error("DockerPull - Read config file error -", err)
+				} else {	
+				encodedJSON, _ := json.Marshal(creds)
+				options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
+			}
+		} 
+	}
+	
+	out, errPull := DockerClient.ImagePull(DockerContext, image, options)
+
+	return out, errPull
 }

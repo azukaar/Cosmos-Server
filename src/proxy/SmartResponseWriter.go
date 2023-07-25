@@ -25,6 +25,7 @@ type SmartResponseWriterWrapper struct {
 	isOver bool
 	hasBeenInterrupted bool
 	isPrivileged bool
+	shieldID string
 }
 
 func (w *SmartResponseWriterWrapper) IsOver() bool {
@@ -57,8 +58,8 @@ func (w *SmartResponseWriterWrapper) WriteHeader(status int) {
 }
 
 func (w *SmartResponseWriterWrapper) Write(p []byte) (int, error) {
-	userConsumed := shield.GetUserUsedBudgets(w.ClientID)
-	if !w.isPrivileged && !shield.isAllowedToReqest(w.policy, userConsumed) {
+	userConsumed := shield.GetUserUsedBudgets(w.shieldID, w.ClientID)
+	if !w.isPrivileged && !shield.isAllowedToReqest(w.shieldID, w.policy, userConsumed) {
 		utils.Log(fmt.Sprintf("SmartShield: %s has been blocked due to abuse", w.ClientID))
 		w.isOver = true
 		w.TimeEnded = time.Now()
