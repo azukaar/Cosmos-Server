@@ -460,8 +460,21 @@ func NetworkCleanUp() {
 		}
 		
 		if(containsCosmos) {
+			// docker inspect self
+			selfContainer, err := DockerClient.ContainerInspect(DockerContext, self)
+			if err != nil {
+				utils.Error("NetworkCleanUpInspectSelf", err)
+				continue
+			}
+
+			// check if self is network_mode to this network
+			if(string(selfContainer.HostConfig.NetworkMode) == network.Name) {
+				utils.Warn("Skipping network cleanup because self is network_mode to this network")
+				continue
+			}
+
 			utils.Log("Disconnecting and removing zombie network: " + network.Name)
-			err := DockerClient.NetworkDisconnect(DockerContext, network.ID, self, true)
+			err = DockerClient.NetworkDisconnect(DockerContext, network.ID, self, true)
 			if err != nil {
 				utils.Error("DockerNetworkCleanupDisconnect", err)
 				continue

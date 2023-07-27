@@ -27,7 +27,7 @@ const NavItem = ({ item, level }) => {
         rel={itemTarget === '_blank' ? 'noopener noreferrer' : ''} 
      />) };
     if (item?.external) {
-        listItemProps = { component: 'a', href: item.url, target: itemTarget };
+        listItemProps = { component: 'a', href: item.url, target: itemTarget, rel: itemTarget === '_blank' ? 'noopener noreferrer' : '' };
     }
 
     const itemHandler = (id) => {

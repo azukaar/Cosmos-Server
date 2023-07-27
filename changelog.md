@@ -1,3 +1,6 @@
+## Version 0.9.14
+ - Check network mode before pruning networks
+
 ## Version 0.9.13
  - Fix issue with duplicated ports in network tab of servapps (because it shows the IPV4 and the IPV6 ports)
 
