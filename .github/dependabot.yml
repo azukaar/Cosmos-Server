@@ -1,0 +1,161 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+enable-beta-ecosystems: true
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "npm dependencies"
+  - package-ecosystem: "bundler"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "bundler dependencies"
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "composer dependencies"
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "maven dependencies"
+  - package-ecosystem: "mix"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "mix dependencies"
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "cargo dependencies"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "gradle dependencies"
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "nuget dependencies"
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "gomod dependencies"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "docker dependencies"
+  - package-ecosystem: "elm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "elm dependencies"
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "gitsubmodule library"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "github-actions"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "pip dependencies"
+  - package-ecosystem: "terraform"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "terraform dependencies"
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "pub dependencies"
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    target-branch: "library-updates"
+    allow: 
+    - dependency-type: "all"
+    labels:
+      - "swift dependencies"
