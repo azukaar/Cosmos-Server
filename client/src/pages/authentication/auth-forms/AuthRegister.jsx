@@ -33,6 +33,7 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
+import { redirectTo } from '../../../utils/indexs';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 
@@ -85,7 +86,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                     }).then((res) => {
                         setStatus({ success: true });
                         setSubmitting(false);
-                        window.location.href = '/cosmos-ui/login';
+                        redirectToLocal('/cosmos-ui/login');
                     }).catch((err) => {
                         setStatus({ success: false });
                         setErrors({ submit: err.message });

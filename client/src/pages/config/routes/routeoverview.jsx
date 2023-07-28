@@ -8,6 +8,7 @@ import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../../isLoggedIn';
+import { redirectTo } from '../../../utils/indexs';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -22,7 +23,7 @@ const RouteOverview = ({ routeConfig }) => {
   function deleteRoute(event) {
     event.stopPropagation();
     API.config.deleteRoute(routeConfig.Name).then(() => {
-      window.location.href = '/cosmos-ui/config-url';
+      redirectToLocal('/cosmos-ui/config-url');
     });
   }
 

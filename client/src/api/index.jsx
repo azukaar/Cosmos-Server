@@ -12,6 +12,7 @@ import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
 
 import wrap from './wrap';
+import { redirectToLocal } from '../utils/indexs';
 
 export let CPU_ARCH = 'amd64';
 export let CPU_AVX = true;
@@ -39,7 +40,7 @@ let getStatus = (initial) => {
     return response
   }).catch((response) => {
     const urlSearch = encodeURIComponent(window.location.search);
-    const redirectTo = (window.location.pathname + urlSearch);
+    const redirectToURL = (window.location.pathname + urlSearch);
 
     if(response.status != 'OK') {
       if( 
@@ -50,13 +51,13 @@ let getStatus = (initial) => {
           window.location.href.indexOf('/cosmos-ui/register') == -1 &&
           window.location.href.indexOf('/cosmos-ui/forgot-password') == -1) {
         if(response.status == 'NEW_INSTALL') {
-            window.location.href = '/cosmos-ui/newInstall';
+            redirectToLocal('/cosmos-ui/newInstall');
         } else if (response.status == 'error' && response.code == "HTTP004") {
-            window.location.href = '/cosmos-ui/login?redirect=' + redirectTo;
+            redirectToLocal('/cosmos-ui/login?redirect=' + redirectToURL);
         } else if (response.status == 'error' && response.code == "HTTP006") {
-            window.location.href = '/cosmos-ui/loginmfa?redirect=' + redirectTo;
+            redirectToLocal('/cosmos-ui/loginmfa?redirect=' + redirectToURL);
         } else if (response.status == 'error' && response.code == "HTTP007") {
-            window.location.href = '/cosmos-ui/newmfa?redirect=' + redirectTo;
+            redirectToLocal('/cosmos-ui/newmfa?redirect=' + redirectToURL);
         }
       } else {
         return "nothing";

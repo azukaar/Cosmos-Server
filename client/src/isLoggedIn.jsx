@@ -1,22 +1,23 @@
 
 import * as API from './api';
 import { useEffect } from 'react';
+import { redirectToLocal } from './utils/indexs';
 
 const IsLoggedIn = () => useEffect(() => {
     console.log("CHECK LOGIN")
     const urlSearch = encodeURIComponent(window.location.search);
-    const redirectTo = (window.location.pathname + urlSearch);
+    const redirectToURL = (window.location.pathname + urlSearch);
 
     API.auth.me().then((data) => {
         if(data.status != 'OK') {
             if(data.status == 'NEW_INSTALL') {
-                window.location.href = '/cosmos-ui/newInstall';
+                redirectToLocal('/cosmos-ui/newInstall');
             } else if (data.status == 'error' && data.code == "HTTP004") {
-                window.location.href = '/cosmos-ui/login?redirect=' + redirectTo;
+                redirectToLocal('/cosmos-ui/login?redirect=' + redirectToURL);
             } else if (data.status == 'error' && data.code == "HTTP006") {
-                window.location.href = '/cosmos-ui/loginmfa?redirect=' + redirectTo;
+                redirectToLocal('/cosmos-ui/loginmfa?redirect=' + redirectToURL);
             } else if (data.status == 'error' && data.code == "HTTP007") {
-                window.location.href = '/cosmos-ui/newmfa?redirect=' + redirectTo;
+                redirectToLocal('/cosmos-ui/newmfa?redirect=' + redirectToURL);
             }
         }
     })

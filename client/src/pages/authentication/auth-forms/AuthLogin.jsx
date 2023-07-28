@@ -31,6 +31,7 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
+import { redirectToLocal } from '../../../utils/indexs';
 
 // ============================|| FIREBASE - LOGIN ||============================ //
 
@@ -53,14 +54,14 @@ const AuthLogin = () => {
     const notLogged = urlSearchParams.get('notlogged') == 1;
     const notLoggedAdmin = urlSearchParams.get('notlogged') == 2;
     const invalid = urlSearchParams.get('invalid') == 1;
-    const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
+    const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
 
     useEffect(() => {
         API.auth.me().then((data) => {
             if(data.status == 'OK') {
-                window.location.href = redirectTo;
+                redirectToLocal(redirectToURL);
             } else if(data.status == 'NEW_INSTALL') {
-                window.location.href = '/cosmos-ui/newInstall';
+                redirectToLocal('/cosmos-ui/newInstall');
             }
         });
 
@@ -103,7 +104,7 @@ const AuthLogin = () => {
                     return API.auth.login(values).then((data) => {
                         setStatus({ success: true });
                         setSubmitting(false);
-                        window.location.href = redirectTo;
+                        redirectToLocal(redirectToURL);
                     }).catch((err) => {
                         setStatus({ success: false });
                         if(err.code == 'UL001') {

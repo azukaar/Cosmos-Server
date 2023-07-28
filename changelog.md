@@ -1,3 +1,9 @@
+## Version 0.9.15
+ - Check background extension on upload is an image
+ - Update Docker for security patch
+ - Check redirect target is local
+ - Improve OpenID client secret generation
+
 ## Version 0.9.14
  - Check network mode before pruning networks
 

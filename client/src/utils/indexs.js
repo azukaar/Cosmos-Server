@@ -35,3 +35,14 @@ export const debounce = (func, wait) => {
       timeout = setTimeout(() => func.apply(context, args), wait);
     };
   };
+
+export const redirectTo = (url) => {
+  window.location.href = url;
+}
+
+export const redirectToLocal = (url) => {
+  if(url.startsWith("http://") || url.startsWith("https://")) {
+    throw new Error("URL must be local");
+  }
+  window.location.href = url;
+}

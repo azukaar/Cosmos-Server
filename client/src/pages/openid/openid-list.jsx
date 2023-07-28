@@ -114,7 +114,11 @@ const OpenIdList = () => {
   }, []);
 
   const generateNewSecret = (clientIdToUpdate) => {
-    let newSecret = Math.random().toString(36).substring(2, 24) + Math.random().toString(36).substring(2, 15);
+    let newSecretSeed = window.crypto.getRandomValues(new Uint32Array(4));
+    let newSecret = "";
+    newSecretSeed.forEach((r) => {
+      newSecret += r.toString(36);
+    });
     let encryptedSecret = bcrypt.hashSync(newSecret, 10);
     let index = clients.findIndex((r) => r.id === clientIdToUpdate);
     clients[index].secret = encryptedSecret;

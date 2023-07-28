@@ -32,17 +32,18 @@ import { useTheme } from '@mui/material/styles';
 import { Formik } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import { CosmosCollapse } from '../config/users/formShortcuts';
+import { redirectToLocal } from '../../utils/indexs';
 
 const MFALoginForm = () => {
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const redirectTo = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
+  const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
 
   useEffect(() => {
     API.auth.me().then((data) => {
         if(data.status == 'OK') {
-            window.location.href = redirectTo;
+          redirectToLocal(redirectToURL);
         } else if(data.status == 'NEW_INSTALL') {
-            window.location.href = '/cosmos-ui/newInstall';
+          redirectToLocal('/cosmos-ui/newInstall');
         }
     });
   });  
@@ -56,7 +57,7 @@ const MFALoginForm = () => {
     })}
     onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
       API.users.check2FA(values.token).then((data) => {
-        window.location.href = redirectTo;
+        redirectToLocal(redirectToURL);
       }).catch((error) => {
         console.log(error)
         setStatus({ success: false });

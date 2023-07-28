@@ -9,6 +9,7 @@ import AuthWrapper from './AuthWrapper';
 import { useEffect } from 'react';
 
 import * as API from '../../api';
+import { redirectTo } from '../../utils/indexs';
 
 // ================================|| REGISTER ||================================ //
 
@@ -17,7 +18,7 @@ const Logout = () => {
       API.auth.logout()
        .then(() => {
           setTimeout(() => {
-            window.location.href = '/cosmos-ui/login';
+            redirectToLocal('/cosmos-ui/login');
           }, 2000);
         });
     },[]);

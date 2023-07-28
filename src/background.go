@@ -12,6 +12,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+var validExtensions = map[string]bool{
+	".jpg":  true,
+	".jpeg": true,
+	".png":  true,
+	".gif":  true,
+	".bmp":  true,
+	".svg":  true,
+	".webp": true,
+	".tiff": true,
+	".avif": true,
+}
+
 func UploadBackground(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
@@ -32,9 +44,14 @@ func UploadBackground(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		defer file.Close()
-
+		
 		// get the file extension
 		ext := filepath.Ext(header.Filename)
+		
+		if !validExtensions[ext] {
+			utils.HTTPError(w, "Invalid file extension " + ext, http.StatusBadRequest, "FILE001")
+			return
+		}
 
 		// create a new file in the config directory
 		dst, err := os.Create("/config/background" + ext)
@@ -75,19 +92,7 @@ func GetBackground(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	ext := vars["ext"]
 
-	validExtensions := map[string]bool{
-		"jpg":  true,
-		"jpeg": true,
-		"png":  true,
-		"gif":  true,
-		"bmp":  true,
-		"svg":  true,
-		"webp": true,
-		"tiff": true,
-		"avif": true,
-	}
-
-	if !validExtensions[ext] {
+	if !validExtensions["." + ext] {
 		utils.HTTPError(w, "Invalid file extension", http.StatusBadRequest, "FILE001")
 		return
 	}

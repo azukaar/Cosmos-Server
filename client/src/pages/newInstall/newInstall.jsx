@@ -19,7 +19,7 @@ import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } fr
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 import { pull } from 'lodash';
-import { isDomain } from '../../utils/indexs';
+import { isDomain, redirectTo } from '../../utils/indexs';
 import { DnsChallengeComp } from '../../utils/dns-challenge-comp';
 // ================================|| LOGIN ||================================ //
 
@@ -67,7 +67,7 @@ const NewInstall = () => {
             setStatus(res.data);
         } catch(error) {
             if(error.status == 401)
-                window.location.href = "/cosmos-ui/login";
+            redirectToLocal("/cosmos-ui/login");
         }
         if (typeof status !== 'undefined') {
             setTimeout(() => {
@@ -618,7 +618,7 @@ const NewInstall = () => {
                                     step: "5",
                                 })
                                 setTimeout(() => {
-                                    window.location.href = hostname + "/cosmos-ui/login";
+                                    redirectTo(hostname + "/cosmos-ui/login");
                                 }, 500);
                             } else {
                                 setActiveStep(activeStep + 1)
