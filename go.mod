@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/Masterminds/semver v1.5.0
 	github.com/docker/cli v24.0.5+incompatible
-	github.com/docker/docker v23.0.1+incompatible
+	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
 	github.com/go-acme/lego/v4 v4.8.0
