@@ -19,7 +19,7 @@ import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } fr
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 import { pull } from 'lodash';
-import { isDomain, redirectTo } from '../../utils/indexs';
+import { isDomain, redirectTo, redirectToLocal } from '../../utils/indexs';
 import { DnsChallengeComp } from '../../utils/dns-challenge-comp';
 // ================================|| LOGIN ||================================ //
 

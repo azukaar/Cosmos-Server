@@ -33,7 +33,7 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
-import { redirectTo } from '../../../utils/indexs';
+import { redirectToLocal } from '../../../utils/indexs';
 
 // ============================|| FIREBASE - REGISTER ||============================ //
 

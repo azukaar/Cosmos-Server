@@ -1,3 +1,6 @@
+## Version 0.9.16
+ - Small redirection bug fix
+
 ## Version 0.9.15
  - Check background extension on upload is an image
  - Update Docker for security patch

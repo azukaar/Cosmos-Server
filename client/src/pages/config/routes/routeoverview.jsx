@@ -8,7 +8,7 @@ import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../../isLoggedIn';
-import { redirectTo } from '../../../utils/indexs';
+import { redirectToLocal } from '../../../utils/indexs';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
