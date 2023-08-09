@@ -8,7 +8,7 @@ require (
 	github.com/docker/docker v23.0.3+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/foomo/tlsconfig v0.0.0-20180418120404-b67861b076c9
-	github.com/go-acme/lego/v4 v4.8.0
+	github.com/go-acme/lego/v4 v4.11.0
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/go-chi/httprate v0.7.1
 	github.com/go-playground/validator/v10 v10.12.0
