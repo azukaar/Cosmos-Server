@@ -1,4 +1,4 @@
 {
-  "contributors": ["azukaar", "jwr1", "Jogai"],
+  "contributors": ["azukaar", "jwr1", "Jogai", "Ronald-Diemicke"],
   "message": "We require contributors to sign our [Contributor License Agreement](https://github.com/azukaar/Cosmos-Server/blob/master/cla.md). In order for us to review and merge your code, add yourself to the .clabot file as contributor, as a way of signing the CLA."
 }
