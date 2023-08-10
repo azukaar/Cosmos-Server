@@ -274,7 +274,6 @@ func InitServer() *mux.Router {
 	router.HandleFunc("/logo", SendLogo)
 
 	router.Use(middleware.Logger)
-	router.Use(utils.SetSecurityHeaders)
 
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries))
@@ -284,6 +283,7 @@ func InitServer() *mux.Router {
 
 	srapi.HandleFunc("/api/dns", GetDNSRoute)
 	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
+	srapi.Use(utils.SetSecurityHeaders)
 	
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)

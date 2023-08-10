@@ -176,6 +176,8 @@ type ProxyRouteConfig struct {
 	BlockAPIAbuse bool
 	AcceptInsecureHTTPSTarget bool
 	HideFromDashboard bool
+	DisableHeaderHardening bool
+	VerboseForwardHeader bool
 	AddionalFilters []AddionalFiltersConfig
 }
 

@@ -1,3 +1,8 @@
+## Version 0.9.17
+ - Upgraded to Lego 4.13.3 (support for Google Domain)
+ - Add VerboseForwardHeader to URL Config to allow to transfer more sensitive header to target app
+ - App DisableHeaderHardening to allow disabling header hardening for specific apps
+ 
 ## Version 0.9.16
  - Small redirection bug fix
 

@@ -31,6 +31,8 @@ const RouteSecurity = ({ routeConfig, config }) => {
           BlockAPIAbuse: routeConfig.BlockAPIAbuse,
           BlockCommonBots: routeConfig.BlockCommonBots,
           AdminOnly: routeConfig.AdminOnly,
+          VerboseForwardHeader: routeConfig.VerboseForwardHeader,
+          DisableHeaderHardening: routeConfig.DisableHeaderHardening,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           _SmartShield_PolicyStrictness: (routeConfig.SmartShield ? routeConfig.SmartShield.PolicyStrictness : 0),
           _SmartShield_PerUserTimeBudget: (routeConfig.SmartShield ? routeConfig.SmartShield.PerUserTimeBudget : 0),
@@ -97,6 +99,20 @@ const RouteSecurity = ({ routeConfig, config }) => {
                     <CosmosCheckbox
                       name="AdminOnly"
                       label="Admin only"
+                      formik={formik}
+                    />
+
+                    <CosmosFormDivider title={'Headers'} />
+
+                    <CosmosCheckbox
+                      name="VerboseForwardHeader"
+                      label="Forward IP and Host Headers to target"
+                      formik={formik}
+                    />
+
+                    <CosmosCheckbox
+                      name="DisableHeaderHardening"
+                      label="Disable Header Hardening"
                       formik={formik}
                     />
 
