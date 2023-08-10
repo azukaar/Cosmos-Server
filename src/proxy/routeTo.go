@@ -74,7 +74,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		req.Header.Set("X-Forwarded-Protocol", originalScheme)
 		
 		if VerboseForwardHeader {
-			req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))
+			req.Header.Set("X-Forwarded-Host", url.Host)
 			req.Header.Set("X-Origin-Host", url.Host)
 			req.Header.Set("Host", url.Host)
 			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
