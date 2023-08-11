@@ -8,8 +8,8 @@ jobs:
       - checkout
 
      - run:
-        name: Setup docker and buildx
-        command: docker buildx create --use
+          name: Setup docker and buildx
+          command: docker buildx create --use
 
       - run:
           name: install dependencies
