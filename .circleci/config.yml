@@ -7,6 +7,10 @@ jobs:
     steps:
       - checkout
 
+     - run:
+        name: Setup docker and buildx
+        command: docker buildx create --use
+
       - run:
           name: install dependencies
           command: sudo apt-get install bash curl
