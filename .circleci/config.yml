@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
 
-     - run:
+      - run:
           name: Setup docker and buildx
           command: docker buildx create --use
 
