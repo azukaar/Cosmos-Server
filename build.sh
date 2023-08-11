@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo " ---- Build Cosmos ----"
+
 rm -rf build
 
 env GOARCH=arm64 go build -o build/cosmos-arm64 src/*.go
