@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     machine: # executor type
-      image: ubuntu-2204:2022.04.1 # # recommended linux image - includes Ubuntu 20.04, docker 19.03.13, docker-compose 1.27.4
+      image: ubuntu-2204:2023.07.2
 
     steps:
       - checkout
