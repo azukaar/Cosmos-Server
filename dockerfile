@@ -18,7 +18,10 @@ EXPOSE 443 80
 
 VOLUME /config
 
-RUN apt-get update && apt-get install -y ca-certificates openssl
+RUN apt-get update \
+    && apt-get install -y ca-certificates openssl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
