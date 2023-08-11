@@ -26,7 +26,7 @@ RUN apt-get update \
 WORKDIR /app
 
 # Copy the respective binary based on the BINARY_NAME
-COPY build/$BINARY_NAME ./
+COPY build/cosmos build/cosmos-arm64 ./
 
 # Copy other resources
 COPY build/cosmos_gray.png build/Logo.png build/GeoLite2-Country.mmdb build/meta.json ./
