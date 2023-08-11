@@ -131,9 +131,3 @@ workflows:
               only:
                 - master
                 - unstable
-      - buildarm:
-          filters:
-            branches:
-              only:
-                - master
-                - unstable

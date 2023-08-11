@@ -1,5 +1,8 @@
 ## Version 0.9.19
  - Add country whitelist option to geoblocker
+ - No countries blocked by default anymore
+ - Merged ARM and AMD into a single docker tag (latest)
+ - Update to Debian 12
  - Fix issue with Contradictory scheme headers
  - Fix issue where non-admin users cant see Servapp on the homepage
 
