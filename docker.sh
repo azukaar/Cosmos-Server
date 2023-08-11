@@ -12,12 +12,12 @@ fi
 
 echo "Pushing azukaar/cosmos-server:$VERSION and azukaar/cosmos-server:$LATEST"
 
-sh build.sh
+# sh build.sh
 
-docker build \
-  -t azukaar/cosmos-server:$VERSION \
-  -t azukaar/cosmos-server:$LATEST \
+# Multi-architecture build
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --tag azukaar/cosmos-server:$VERSION \
+  --tag azukaar/cosmos-server:$LATEST \
+  --push \
   .
-
-docker push azukaar/cosmos-server:$VERSION
-docker push azukaar/cosmos-server:$LATEST

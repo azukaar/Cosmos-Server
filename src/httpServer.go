@@ -276,7 +276,7 @@ func InitServer() *mux.Router {
 	router.Use(middleware.Logger)
 
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
-		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries))
+		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries, config.CountryBlacklistIsWhitelist))
 	}
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()

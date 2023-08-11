@@ -1,6 +1,7 @@
 #!/bin/bash
 
 rm -rf build
+env GOARCH=arm64 go build -o build/cosmos-arm64 src/*.go
 go build -o build/cosmos src/*.go
 if [ $? -ne 0 ]; then
     exit 1

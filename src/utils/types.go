@@ -82,6 +82,7 @@ type Config struct {
 	EmailConfig EmailConfig `validate:"required,dive,required"`
 	DockerConfig DockerConfig
 	BlockedCountries []string
+	CountryBlacklistIsWhitelist bool
 	ServerCountry string
 	RequireMFA bool
 	AutoUpdate bool

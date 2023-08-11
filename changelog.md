@@ -1,3 +1,8 @@
+## Version 0.9.19
+ - Add country whitelist option to geoblocker
+ - Fix issue with Contradictory scheme headers
+ - Fix issue where non-admin users cant see Servapp on the homepage
+
 ## Version 0.9.18
  - Typo with x-forwarded-host
 

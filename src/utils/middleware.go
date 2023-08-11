@@ -118,7 +118,7 @@ func GetIPLocation(ip string) (string, error) {
 }
 
 // BlockByCountryMiddleware returns a middleware function that blocks requests from specified countries.
-func BlockByCountryMiddleware(blockedCountries []string) func(http.Handler) http.Handler {
+func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhitelist bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ip, _, err := net.SplitHostPort(r.RemoteAddr)
@@ -138,10 +138,28 @@ func BlockByCountryMiddleware(blockedCountries []string) func(http.Handler) http
 
 				config := GetMainConfig()
 
-				for _, blockedCountry := range blockedCountries {
-					if config.ServerCountry != countryCode && countryCode == blockedCountry {
-						http.Error(w, "Access denied", http.StatusForbidden)
-						return
+				if CountryBlacklistIsWhitelist {
+					if countryCode != "" {
+						blocked := true
+						for _, blockedCountry := range blockedCountries {
+							if config.ServerCountry != countryCode && countryCode == blockedCountry {
+								blocked = false
+							}
+						}
+
+						if blocked {
+							http.Error(w, "Access denied", http.StatusForbidden)
+							return
+						}
+					} else {
+						Warn("Missing geolocation information to block IPs")
+					}
+				} else {
+					for _, blockedCountry := range blockedCountries {
+						if config.ServerCountry != countryCode && countryCode == blockedCountry {
+							http.Error(w, "Access denied", http.StatusForbidden)
+							return
+						}
 					}
 				}
 			} else {

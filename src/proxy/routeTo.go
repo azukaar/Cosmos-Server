@@ -71,8 +71,11 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		}
 		
 		req.Header.Set("X-Forwarded-Proto", originalScheme)
-		req.Header.Set("X-Forwarded-Protocol", originalScheme)
 		
+		if(originalScheme == "https") {
+			req.Header.Set("X-Forwarded-Ssl", "on")
+		}
+
 		if VerboseForwardHeader {
 			req.Header.Set("X-Forwarded-Host", url.Host)
 			req.Header.Set("X-Origin-Host", url.Host)

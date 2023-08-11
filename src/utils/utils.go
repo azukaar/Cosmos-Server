@@ -41,41 +41,7 @@ var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
 	AutoUpdate:	  true,
-	// By default we block all countries that have a high amount of attacks
-	// Note that Cosmos wont block the country of origin of the server even if it is in this list
 	BlockedCountries: []string{
-		// china
-		"CN",
-		// Russia
-		"RU",
-		// turkey
-		"TR",
-		// Brazil
-		"BR",
-		// Bangladesh
-		"BD",
-		// India
-		"IN",
-		// Nepal
-		"NP",
-		// Pakistan
-		"PK",
-		// Sri Lanka
-		"LK",
-		// Vietnam
-		"VN",
-		// Indonesia
-		"ID",
-		// Iran
-		"IR",
-		// Iraq
-		"IQ",
-		// Egypt
-		"EG",
-		// Afghanistan
-		"AF",
-		// Romania
-		"RO",
 	},
 	HTTPConfig: HTTPConfig{
 		HTTPSCertificateMode:    "DISABLED",

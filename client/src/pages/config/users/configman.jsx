@@ -77,6 +77,7 @@ const ConfigManagement = () => {
           LoggingLevel: config.LoggingLevel,
           RequireMFA: config.RequireMFA,
           GeoBlocking: config.BlockedCountries,
+          CountryBlacklistIsWhitelist: config.CountryBlacklistIsWhitelist,
           AutoUpdate: config.AutoUpdate,
 
           Hostname: config.HTTPConfig.Hostname,
@@ -125,6 +126,7 @@ const ConfigManagement = () => {
             RequireMFA: values.RequireMFA,
             // AutoUpdate: values.AutoUpdate,
             BlockedCountries: values.GeoBlocking,
+            CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
             HTTPConfig: {
               ...config.HTTPConfig,
               Hostname: values.Hostname,
@@ -501,14 +503,25 @@ const ConfigManagement = () => {
                   <Grid container spacing={3}>
                   
                   <CosmosFormDivider title='Geo-Blocking' />
+
+                  <CosmosCheckbox
+                    label={"Use list as whitelist instead of blacklist"}
+                    name="CountryBlacklistIsWhitelist"
+                    formik={formik}
+                  />
+
                   <Grid item xs={12}>
-                    <InputLabel htmlFor="GeoBlocking">Geo-Blocking: (Those countries will be blocked from accessing your server)</InputLabel>
+                    <InputLabel htmlFor="GeoBlocking">Geo-Blocking: (Those countries will be 
+                    {formik.values.CountryBlacklistIsWhitelist ? " allowed to access " : " blocked from accessing "}
+                    your server)</InputLabel>
                   </Grid>
-                  <CountrySelect name="GeoBlocking" label="Choose which countries you want to block" formik={formik} />
+
+                  <CountrySelect name="GeoBlocking" label="Choose which countries you want to block or allow" formik={formik} />
 
                   <Grid item xs={12}>
                     <Button onClick={() => {
                       formik.setFieldValue("GeoBlocking", ["CN","RU","TR","BR","BD","IN","NP","PK","LK","VN","ID","IR","IQ","EG","AF","RO",])
+                      formik.setFieldValue("CountryBlacklistIsWhitelist", false)
                     }} variant="outlined">Reset to default (most dangerous countries)</Button>
                   </Grid>
 

@@ -337,12 +337,15 @@ const HomePage = () => {
                 if (route.Mode == "SERVAPP") {
                     containerName = route.Target.split(':')[1].slice(2);
                     container = servApps.find((c) => c.Names.includes('/' + containerName));
-                    if (!container || container.State != "running") {
-                        skip = true
-                    }
+                    // TOOD: rework, as it prevents users from seeing the apps
+                    // if (!container || container.State != "running") {
+                    //     skip = true
+                    // }
                 }
+                
                 if (route.HideFromDashboard) 
                     skip = true;
+
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
                 
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
