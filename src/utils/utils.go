@@ -62,6 +62,9 @@ var DefaultConfig = Config{
     Sources: []MarketSource{
 		},
 	},
+  ConstellationConfig: ConstellationConfig{
+    Enabled: true,
+	},
 }
 
 func FileExists(path string) bool {
