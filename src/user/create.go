@@ -2,12 +2,9 @@ package user
 
 import (
 	"net/http"
-	// "io"
-	// "os"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/mongo"
 	"time"
-	// "golang.org/x/crypto/bcrypt"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 )

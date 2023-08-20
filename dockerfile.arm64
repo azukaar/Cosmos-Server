@@ -13,7 +13,8 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY build/cosmos build/cosmos_gray.png build/Logo.png build/GeoLite2-Country.mmdb build/meta.json ./
+
+COPY build/* ./
 COPY static ./static
 
 CMD ["./cosmos"]

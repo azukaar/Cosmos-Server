@@ -3,6 +3,7 @@ import * as _users from './users';
 import * as _config from './config';
 import * as _docker from './docker';
 import * as _market from './market';
+import * as _constellation from './constellation';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -211,6 +212,7 @@ let users = _users;
 let config = _config;
 let docker = _docker;
 let market = _market;
+let constellation = _constellation;
 
 if(isDemo) {
   auth = authDemo;
@@ -232,6 +234,7 @@ export {
   config,
   docker,
   market,
+  constellation,
   getStatus,
   newInstall,
   isOnline,

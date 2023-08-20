@@ -54,7 +54,7 @@ func UploadBackground(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// create a new file in the config directory
-		dst, err := os.Create("/config/background" + ext)
+		dst, err := os.Create(utils.CONFIGFOLDER + "background" + ext)
 		if err != nil {
 			utils.HTTPError(w, "Error creating destination file", http.StatusInternalServerError, "FILE004")
 			return
@@ -99,7 +99,7 @@ func GetBackground(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "GET") {
 		// get the background image
-		bg, err := ioutil.ReadFile("/config/background." + ext)
+		bg, err := ioutil.ReadFile(utils.CONFIGFOLDER + "background." + ext)
 		if err != nil {
 			utils.HTTPError(w, "Error reading background image", http.StatusInternalServerError, "FILE003")
 			return

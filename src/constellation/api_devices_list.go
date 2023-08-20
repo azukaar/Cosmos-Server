@@ -1,0 +1,83 @@
+package constellation
+
+import (
+	"net/http"
+	"encoding/json"
+
+	
+	"github.com/azukaar/cosmos-server/src/utils" 
+)
+
+func DeviceList(w http.ResponseWriter, req *http.Request) {
+	// Check for GET method
+	if req.Method != "GET" {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP002")
+		return
+	}
+
+	if utils.LoggedInOnly(w, req) != nil {
+		return
+	}
+
+	isAdmin := utils.IsAdmin(req)
+	
+	// Connect to the collection
+	c, errCo := utils.GetCollection(utils.GetRootAppId(), "devices")
+	if errCo != nil {
+		utils.Error("Database Connect", errCo)
+		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+		return
+	}
+	
+	var devices []utils.Device
+	
+	// Check if user is an admin
+	if isAdmin {
+		// If admin, get all devices
+		cursor, err := c.Find(nil, map[string]interface{}{})
+		if err != nil {
+			utils.Error("DeviceList: Error fetching devices", err)
+			utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DL001")
+			return
+		}
+		defer cursor.Close(nil)
+		
+		if err = cursor.All(nil, &devices); err != nil {
+			utils.Error("DeviceList: Error decoding devices", err)
+			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL002")
+			return
+		}
+
+		// Remove the private key from the response
+		for i := range devices {
+			devices[i].PrivateKey = ""
+		}
+	} else {
+		// If not admin, get user's devices based on their nickname
+		nickname := req.Header.Get("x-cosmos-user")
+		cursor, err := c.Find(nil, map[string]interface{}{"Nickname": nickname})
+		if err != nil {
+			utils.Error("DeviceList: Error fetching devices", err)
+			utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DL003")
+			return
+		}
+		defer cursor.Close(nil)
+		
+		if err = cursor.All(nil, &devices); err != nil {
+			utils.Error("DeviceList: Error decoding devices", err)
+			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL004")
+			return
+		}
+		
+		// Remove the private key from the response
+		for i := range devices {
+			devices[i].PrivateKey = ""
+		}
+	}
+	
+	// Respond with the list of devices
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status":  "OK",
+		"data": devices,
+	})
+}

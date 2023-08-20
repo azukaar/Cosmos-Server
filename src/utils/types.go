@@ -90,6 +90,7 @@ type Config struct {
 	MarketConfig MarketConfig
 	HomepageConfig HomepageConfig
 	ThemeConfig ThemeConfig
+	ConstellationConfig ConstellationConfig
 }
 
 type HomepageConfig struct {
@@ -205,4 +206,84 @@ type MarketConfig struct {
 type MarketSource struct {
 	Name string
 	Url string
+}
+
+type ConstellationConfig struct {
+	Enabled bool
+	NebulaConfig NebulaConfig
+}
+
+type NebulaFirewallRule struct {
+	Port   string   `yaml:"port"`
+	Proto  string   `yaml:"proto"`
+	Host   string   `yaml:"host"`
+	Groups []string `yaml:"groups,omitempty"omitempty"`
+}
+
+type NebulaConntrackConfig struct {
+	TCPTimeout     string `yaml:"tcp_timeout"`
+	UDPTimeout     string `yaml:"udp_timeout"`
+	DefaultTimeout string `yaml:"default_timeout"`
+}
+
+type NebulaConfig struct {
+	PKI struct {
+		CA   string `yaml:"ca"`
+		Cert string `yaml:"cert"`
+		Key  string `yaml:"key"`
+	} `yaml:"pki"`
+
+	StaticHostMap map[string][]string `yaml:"static_host_map"`
+
+	Lighthouse struct {
+		AMLighthouse bool     `yaml:"am_lighthouse"`
+		Interval     int      `yaml:"interval"`
+		Hosts        []string `yaml:"hosts"`
+	} `yaml:"lighthouse"`
+
+	Listen struct {
+		Host string `yaml:"host"`
+		Port int    `yaml:"port"`
+	} `yaml:"listen"`
+
+	Punchy struct {
+		Punch bool `yaml:"punch"`
+	} `yaml:"punchy"`
+
+	Relay struct {
+		AMRelay   bool `yaml:"am_relay"`
+		UseRelays bool `yaml:"use_relays"`
+	} `yaml:"relay"`
+
+	TUN struct {
+		Disabled            bool     `yaml:"disabled"`
+		Dev                 string   `yaml:"dev"`
+		DropLocalBroadcast bool     `yaml:"drop_local_broadcast"`
+		DropMulticast       bool     `yaml:"drop_multicast"`
+		TxQueue             int      `yaml:"tx_queue"`
+		MTU                 int      `yaml:"mtu"`
+		Routes              []string `yaml:"routes"`
+		UnsafeRoutes        []string `yaml:"unsafe_routes"`
+	} `yaml:"tun"`
+
+	Logging struct {
+		Level  string `yaml:"level"`
+		Format string `yaml:"format"`
+	} `yaml:"logging"`
+
+	Firewall struct {
+		OutboundAction string                    `yaml:"outbound_action"`
+		InboundAction  string                    `yaml:"inbound_action"`
+		Conntrack      NebulaConntrackConfig `yaml:"conntrack"`
+		Outbound       []NebulaFirewallRule  `yaml:"outbound"`
+		Inbound        []NebulaFirewallRule  `yaml:"inbound"`
+	} `yaml:"firewall"`
+}
+
+type Device struct {
+	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
+	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
+	PublicKey string `json:"publicKey",omitempty`
+	PrivateKey string `json:"privateKey",omitempty`
+	IP string `json:"ip",validate:"required,ipv4"`
 }

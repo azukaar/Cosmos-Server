@@ -37,6 +37,8 @@ var ReBootstrapContainer func(string) error
 
 var LetsEncryptErrors = []string{}
 
+var CONFIGFOLDER = "/config/"
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
@@ -193,6 +195,10 @@ func LoadBaseMainConfig(config Config) {
 	if os.Getenv("COSMOS_SERVER_COUNTRY") != "" {
 		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
 	}
+	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
+		Log("Overwriting config folder with " + os.Getenv("COSMOS_CONFIG_FOLDER"))
+		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
@@ -219,7 +225,7 @@ func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {
-		configFile = "/config/cosmos.config.json"
+		configFile = CONFIGFOLDER + "cosmos.config.json"
 	}
 
 	return configFile

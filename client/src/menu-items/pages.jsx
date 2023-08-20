@@ -1,5 +1,6 @@
 // assets
 import { ProfileOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
+import ConstellationIcon from '../assets/images/icons/constellation.png'
 
 // icons
 const icons = {
@@ -7,7 +8,6 @@ const icons = {
     ProfileOutlined,
     SettingOutlined
 };
-
 // ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
 
 const pages = {
@@ -28,6 +28,14 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/config-url',
             icon: icons.NodeExpandOutlined,
+        },
+        {
+            id: 'constellation',
+            title: 'Constellation',
+            type: 'item',
+            url: '/cosmos-ui/constellation',
+            icon: () => <img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />,
+            
         },
         {
             id: 'users',

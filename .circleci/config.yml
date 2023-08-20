@@ -53,6 +53,24 @@ jobs:
           command: |
             curl -s -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=$MAX_TOKEN&suffix=tar.gz" -o GeoLite2-Country.tar.gz
             tar -xzf GeoLite2-Country.tar.gz --strip-components 1 --wildcards "*.mmdb"
+      
+      - run:
+          name: Download and Extract ARM Nebula Binary
+          command: |
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-arm64.tar.gz
+            tar -xzvf nebula-linux-arm64.tar.gz
+      
+      - run:
+          name: Rename ARM Nebula Binary
+          command: |
+            mv nebula nebula-arm
+            mv nebula-cert nebula-cert-arm
+      
+      - run:
+          name: Download and Extract Nebula Binary
+          command: |
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-amd64.tar.gz
+            tar -xzvf nebula-linux-amd64.tar.gz
 
       - run:
           name: Build UI

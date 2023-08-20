@@ -13,3 +13,8 @@ LICENCE
 tokens.json
 .vscode
 GeoLite2-Country.mmdb
+zz_test_config
+nebula-arm
+nebula-arm-cert
+nebula
+nebula-cert
