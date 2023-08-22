@@ -6,10 +6,16 @@ import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
 import { CloudOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, TabletOutlined } from "@ant-design/icons";
 import IsLoggedIn from "../../isLoggedIn";
+import { Button, CircularProgress, Stack } from "@mui/material";
+import { CosmosCheckbox, CosmosFormDivider } from "../config/users/formShortcuts";
+import MainCard from "../../components/MainCard";
+import { Formik } from "formik";
+import { LoadingButton } from "@mui/lab";
 
 export const ConstellationIndex = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
+  const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
 
   const refreshConfig = async () => {
@@ -17,6 +23,7 @@ export const ConstellationIndex = () => {
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setDevices((await API.constellation.list()).data || []);
+    setUsers((await API.users.list()).data || []);
   };
 
   useEffect(() => {
@@ -40,12 +47,48 @@ export const ConstellationIndex = () => {
 
   return <>
     <IsLoggedIn />
-    {devices && config && <>
+    {(devices && config && users) ? <>
+      <Stack spacing={2}>
+      <div>
+        <MainCard title={"Constellation Setup"} content={config.constellationIP}>
+          <Stack spacing={2}>
+          <Formik
+            initialValues={{
+              Enabled: config.ConstellationConfig.Enabled,
+            }}
+            onSubmit={(values) => {
+              let newConfig = { ...config };
+              newConfig.ConstellationConfig.Enabled = values.Enabled;
+              return API.config.set(newConfig);
+            }}
+          >
+            {(formik) => (
+              <form onSubmit={formik.handleSubmit}>
+                <Stack spacing={2}>
+                  <CosmosCheckbox formik={formik} name="Enabled" label="Constellation Enabled" />
+                  <LoadingButton
+                      disableElevation
+                      loading={formik.isSubmitting}
+                      fullWidth
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                    >
+                      Save
+                  </LoadingButton>
+                </Stack>
+              </form>
+            )}
+          </Formik>
+          </Stack>
+        </MainCard>
+      </div>
+      <CosmosFormDivider title={"Devices"} />
       <PrettyTableView 
             data={devices}
             getKey={(r) => r.deviceName}
             buttons={[
-              <AddDeviceModal isAdmin={isAdmin} config={config} refreshConfig={refreshConfig} devices={devices} />
+              <AddDeviceModal isAdmin={isAdmin} users={users} config={config} refreshConfig={refreshConfig} devices={devices} />
             ]}
             columns={[
                 {
@@ -76,6 +119,9 @@ export const ConstellationIndex = () => {
                 }
             ]}
         />
-    </>}
+        </Stack>
+    </> : <center>
+      <CircularProgress color="inherit" size={20} />
+    </center>}
   </>
 };

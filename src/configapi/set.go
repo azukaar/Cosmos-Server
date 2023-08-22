@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/azukaar/cosmos-server/src/authorizationserver"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
@@ -43,6 +44,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		utils.DisconnectDB()
 		authorizationserver.Init()
 		utils.RestartHTTPServer()
+		constellation.RestartNebula()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

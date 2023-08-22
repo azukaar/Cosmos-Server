@@ -16,7 +16,6 @@ type DeviceCreateRequestJSON struct {
 }
 
 func DeviceCreate(w http.ResponseWriter, req *http.Request) {
-	
 	if(req.Method == "POST") {
 		var request DeviceCreateRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -58,7 +57,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		}).Decode(&device)
 
 		if err2 == mongo.ErrNoDocuments {
-			cert, key, err := generateNebulaCert(deviceName, request.IP, false)
+
+			cert, key, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while creating Device", err)
@@ -71,7 +71,6 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"Nickname": nickname,
 				"DeviceName": deviceName,
 				"PublicKey": cert,
-				"PrivateKey": key,
 				"IP": request.IP,
 			})
 

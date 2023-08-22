@@ -206,7 +206,7 @@ export const CosmosCollapse = ({ children, title }) => {
 export function CosmosFormDivider({title}) {
   return <Grid item xs={12}>
     <Divider>
-    <Chip label={title} />
+    {title && <Chip label={title} />}
     </Divider>
   </Grid>
 }

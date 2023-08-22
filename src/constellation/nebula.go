@@ -58,7 +58,7 @@ func stop() error {
 	defer processMux.Unlock()
 
 	if process == nil {
-		return errors.New("nebula is not running")
+		return nil
 	}
 
 	if err := process.Process.Kill(); err != nil {
@@ -69,11 +69,9 @@ func stop() error {
 	return nil
 }
 
-func restart() error {
-	if err := stop(); err != nil {
-		return err
-	}
-	return startNebulaInBackground()
+func RestartNebula() {
+	stop()
+	Init()
 }
 
 func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath string) error {
@@ -192,15 +190,36 @@ func killAllNebulaInstances() error {
 	return nil
 }
 
-func generateNebulaCert(name, ip string, saveToFile bool) (string, string, error) {
+func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, error) {
 	// Run the nebula-cert command
-	cmd := exec.Command(binaryToRun() + "-cert",
-		 "sign",
-		 "-ca-crt", utils.CONFIGFOLDER + "ca.crt",
-		 "-ca-key", utils.CONFIGFOLDER + "ca.key",
-		 "-name", name,
-		 "-ip", ip,
-	)
+	var cmd *exec.Cmd
+
+	if(PK == "") {
+		cmd = exec.Command(binaryToRun() + "-cert",
+			"sign",
+			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
+			"-ca-key", utils.CONFIGFOLDER + "ca.key",
+			"-name", name,
+			"-ip", ip,
+		)
+	} else {
+		// write PK to temp.cert
+		err := ioutil.WriteFile("./temp.cert", []byte(PK), 0644)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to write temp.cert: %s", err)
+		}
+		cmd = exec.Command(binaryToRun() + "-cert",
+			"sign",
+			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
+			"-ca-key", utils.CONFIGFOLDER + "ca.key",
+			"-name", name,
+			"-ip", ip,
+			"-in-pub", "./temp.cert",
+		)
+		// delete temp.cert
+		defer os.Remove("./temp.cert")
+	}
+
 	utils.Debug(cmd.String())
 
 	cmd.Stderr = os.Stderr
