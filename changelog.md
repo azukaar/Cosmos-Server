@@ -1,3 +1,6 @@
+## Version 0.9.20
+ - Add option to disable CORS hardening (with empty value)
+
 ## Version 0.9.19
  - Add country whitelist option to geoblocker
  - No countries blocked by default anymore

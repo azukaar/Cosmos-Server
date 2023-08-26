@@ -46,7 +46,7 @@ func joinURLPath(a, b *url.URL) (path, rawpath string) {
 
 
 // NewProxy takes target host and creates a reverse proxy
-func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardHeader bool, DisableHeaderHardening bool) (*httputil.ReverseProxy, error) {
+func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardHeader bool, DisableHeaderHardening bool, CORSOrigin string) (*httputil.ReverseProxy, error) {
 	url, err := url.Parse(targetHost)
 	if err != nil {
 			return nil, err
@@ -76,8 +76,11 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 			req.Header.Set("X-Forwarded-Ssl", "on")
 		}
 
-		if VerboseForwardHeader {
+		if CORSOrigin != "" {
 			req.Header.Set("X-Forwarded-Host", url.Host)
+		}
+
+		if VerboseForwardHeader {
 			req.Header.Set("X-Origin-Host", url.Host)
 			req.Header.Set("Host", url.Host)
 			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
@@ -120,7 +123,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	routeType := route.Mode
 
 	if(routeType == "SERVAPP" || routeType == "PROXY") {
-		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening)
+		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin)
 		if err != nil {
 				utils.Error("Create Route", err)
 		}
