@@ -111,12 +111,12 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                   />
                   <DownloadFile
                     filename={isDone.DeviceName + `.key`}
-                    content={isDone.PrivateKey}
+                    content={isDone.PublicKey}
                     label={"Download " + isDone.DeviceName + `.key`}
                   />
                   <DownloadFile
                     filename={isDone.DeviceName + `.crt`}
-                    content={isDone.PublicKey}
+                    content={isDone.PrivateKey}
                     label={"Download " + isDone.DeviceName + `.crt`}
                   />
                   <DownloadFile

@@ -70,7 +70,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			_, err3 := c.InsertOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"DeviceName": deviceName,
-				"PublicKey": cert,
+				"PublicKey": key,
 				"IP": request.IP,
 			})
 
@@ -103,8 +103,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"data": map[string]interface{}{
 					"Nickname": nickname,
 					"DeviceName": deviceName,
-					"PublicKey": cert,
-					"PrivateKey": key,
+					"PublicKey": key,
+					"PrivateKey": cert,
 					"IP": request.IP,
 					"Config": configYml,
 					"CA": capki,
