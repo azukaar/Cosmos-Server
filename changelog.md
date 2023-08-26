@@ -1,4 +1,4 @@
-## Version 0.9.20
+## Version 0.9.20 - 0.9.21
  - Add option to disable CORS hardening (with empty value)
 
 ## Version 0.9.19

@@ -97,12 +97,15 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
-		
-		if !DisableHeaderHardening {
+
+		if CORSOrigin != "" {
 			resp.Header.Del("Access-Control-Allow-Origin")
 			resp.Header.Del("Access-Control-Allow-Methods")
 			resp.Header.Del("Access-Control-Allow-Headers")
 			resp.Header.Del("Access-Control-Allow-Credentials")
+		}
+		
+		if !DisableHeaderHardening {
 			resp.Header.Del("Strict-Transport-Security")
 			resp.Header.Del("X-Content-Type-Options")
 			resp.Header.Del("Content-Security-Policy")
