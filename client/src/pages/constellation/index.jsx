@@ -11,6 +11,7 @@ import { CosmosCheckbox, CosmosFormDivider } from "../config/users/formShortcuts
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
 import { LoadingButton } from "@mui/lab";
+import ApiModal from "../../components/apiModal";
 
 export const ConstellationIndex = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -48,28 +49,45 @@ export const ConstellationIndex = () => {
   return <>
     <IsLoggedIn />
     {(devices && config && users) ? <>
-      <Stack spacing={2}>
+      <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
         <MainCard title={"Constellation Setup"} content={config.constellationIP}>
           <Stack spacing={2}>
           <Formik
             initialValues={{
               Enabled: config.ConstellationConfig.Enabled,
+              IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
             }}
             onSubmit={(values) => {
               let newConfig = { ...config };
               newConfig.ConstellationConfig.Enabled = values.Enabled;
+              newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
               return API.config.set(newConfig);
             }}
           >
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
-                <Stack spacing={2}>
+                <Stack spacing={2}>        
+                <Stack spacing={2} direction="row">          
+                  <Button
+                      disableElevation
+                      variant="outlined"
+                      color="primary"
+                      onClick={async () => {
+                        await API.constellation.restart();
+                      }}
+                    >
+                      Restart Nebula
+                  </Button>
+                  <ApiModal callback={API.constellation.getLogs} label={"Show Nebula logs"} />
+                  <ApiModal callback={API.constellation.getConfig} label={"Render Nebula Config"} />
+                  </Stack>
                   <CosmosCheckbox formik={formik} name="Enabled" label="Constellation Enabled" />
+                  <CosmosCheckbox formik={formik} name="IsRelay" label="Relay requests via this Node" />
+
                   <LoadingButton
                       disableElevation
                       loading={formik.isSubmitting}
-                      fullWidth
                       type="submit"
                       variant="contained"
                       color="primary"
@@ -85,39 +103,39 @@ export const ConstellationIndex = () => {
       </div>
       <CosmosFormDivider title={"Devices"} />
       <PrettyTableView 
-            data={devices}
-            getKey={(r) => r.deviceName}
-            buttons={[
-              <AddDeviceModal isAdmin={isAdmin} users={users} config={config} refreshConfig={refreshConfig} devices={devices} />
-            ]}
-            columns={[
-                {
-                    title: '',
-                    field: getIcon,
-                },
-                {
-                    title: 'Device Name',
-                    field: (r) => <strong>{r.deviceName}</strong>,
-                },
-                {
-                    title: 'Owner',
-                    field: (r) => <strong>{r.nickname}</strong>,
-                },
-                {
-                    title: 'Constellation IP',
-                    screenMin: 'md', 
-                    field: (r) => r.ip,
-                },
-                {
+          data={devices}
+          getKey={(r) => r.deviceName}
+          buttons={[
+            <AddDeviceModal isAdmin={isAdmin} users={users} config={config} refreshConfig={refreshConfig} devices={devices} />
+          ]}
+          columns={[
+              {
                   title: '',
-                  clickable: true,
-                  field: (r) => {
-                    return <DeleteButton onDelete={async () => {
-                      alert("caca")
-                    }}></DeleteButton>
-                  }
+                  field: getIcon,
+              },
+              {
+                  title: 'Device Name',
+                  field: (r) => <strong>{r.deviceName}</strong>,
+              },
+              {
+                  title: 'Owner',
+                  field: (r) => <strong>{r.nickname}</strong>,
+              },
+              {
+                  title: 'Constellation IP',
+                  screenMin: 'md', 
+                  field: (r) => r.ip,
+              },
+              {
+                title: '',
+                clickable: true,
+                field: (r) => {
+                  return <DeleteButton onDelete={async () => {
+                    alert("caca")
+                  }}></DeleteButton>
                 }
-            ]}
+              }
+          ]}
         />
         </Stack>
     </> : <center>

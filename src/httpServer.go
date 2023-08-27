@@ -333,6 +333,9 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/background/{ext}", GetBackground)
 
 	srapi.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
+	srapi.HandleFunc("/api/constellation/restart", constellation.API_Restart)
+	srapi.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
+	srapi.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)

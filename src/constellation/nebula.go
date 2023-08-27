@@ -12,7 +12,11 @@ import (
 	"strings"
 	"io/ioutil"
 	"strconv"
+	"io"
+	"bytes"
 )
+
+var logBuffer bytes.Buffer
 
 var (
 	process    *exec.Cmd
@@ -34,14 +38,16 @@ func startNebulaInBackground() error {
 		return errors.New("nebula is already running")
 	}
 
-	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER + "nebula.yml")
+	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula.yml")
 
-	process.Stderr = os.Stderr
-	
+	// Set up multi-writer for stderr
+	process.Stderr = io.MultiWriter(&logBuffer, os.Stderr)
+
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
-		process.Stdout = os.Stdout
+		// Set up multi-writer for stdout if in debug mode
+		process.Stdout = io.MultiWriter(&logBuffer, os.Stdout)
 	} else {
-		process.Stdout = nil
+		process.Stdout = io.MultiWriter(&logBuffer)
 	}
 
 	// Start the process in the background
@@ -82,10 +88,17 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		"192.168.201.0": []string{utils.GetMainConfig().HTTPConfig.Hostname + ":4242"},
 	}
 
+	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
+
 	// Marshal the combined config to YAML
 	yamlData, err := yaml.Marshal(finalConfig)
 	if err != nil {
 		return err
+	}
+
+	// delete nebula.yml if exists
+	if _, err := os.Stat(outputPath); err == nil {
+		os.Remove(outputPath)
 	}
 
 	// Write YAML data to the specified file

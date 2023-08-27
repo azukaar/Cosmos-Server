@@ -46,9 +46,11 @@ func InitConfig() {
 		Relay: struct {
 			AMRelay   bool `yaml:"am_relay"`
 			UseRelays bool `yaml:"use_relays"`
+			Relays		[]string `yaml:"relays"`
 		}{
 			AMRelay:   true,
 			UseRelays: true,
+			Relays:    []string{},
 		},
 		TUN: struct {
 			Disabled            bool     `yaml:"disabled"`

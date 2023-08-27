@@ -254,7 +254,7 @@ type NebulaConfig struct {
 	Relay struct {
 		AMRelay   bool `yaml:"am_relay"`
 		UseRelays bool `yaml:"use_relays"`
-		relays		[]string `yaml:"relays"`
+		Relays		[]string `yaml:"relays"`
 	} `yaml:"relay"`
 
 	TUN struct {
