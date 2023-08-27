@@ -63,7 +63,9 @@ var DefaultConfig = Config{
 		},
 	},
   ConstellationConfig: ConstellationConfig{
-    Enabled: true,
+    Enabled: false,
+		DNS: true,
+		DNSFallback: "8.8.8.8:53",
 	},
 }
 

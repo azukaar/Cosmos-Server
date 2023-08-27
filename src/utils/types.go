@@ -210,6 +210,11 @@ type MarketSource struct {
 
 type ConstellationConfig struct {
 	Enabled bool
+	DNS bool
+	DNSPort string
+	DNSFallback string
+	DNSBlockBlacklist bool
+	CustomDNSEntries map[string]string
 	NebulaConfig NebulaConfig
 }
 

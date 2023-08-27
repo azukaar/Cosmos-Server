@@ -85,7 +85,10 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	finalConfig := NebulaDefaultConfig
 
 	finalConfig.StaticHostMap = map[string][]string{
-		"192.168.201.0": []string{utils.GetMainConfig().HTTPConfig.Hostname + ":4242"},
+		"192.168.201.0": []string{
+			"lighthouse-cosmos.constellation:4242",
+			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
+		},
 	}
 
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
@@ -130,6 +133,15 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 	err = yaml.Unmarshal(yamlData, &configMap)
 	if err != nil {
 		return "", err
+	}
+
+	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
+		staticHostMap["192.168.201.0"] = []string{
+			"lighthouse-cosmos.constellation:4242",
+			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
+		}
+	} else {
+		return "", errors.New("static_host_map not found in nebula.yml")
 	}
 
 	// set lightHouse to false

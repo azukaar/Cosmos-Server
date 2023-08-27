@@ -13,6 +13,7 @@ LICENCE
 tokens.json
 .vscode
 GeoLite2-Country.mmdb
+dns-blacklist.txt
 zz_test_config
 nebula-arm
 nebula-arm-cert

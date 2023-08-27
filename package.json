@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.10.0-unstable7",
+  "version": "0.10.0-unstable8",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -67,7 +67,7 @@
     "build": "sh build.sh",
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "sh build.sh && docker build -f dockerfile.local --tag cosmos-dev .",
-    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 443:443 -p 4242:4242 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
+    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
     "dockerdev": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun",
     "demo": "vite build --base=/cosmos-ui/ --mode demo",
     "devdemo": "vite --mode demo"

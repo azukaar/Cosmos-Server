@@ -45,6 +45,8 @@ func main() {
 	
 	authorizationserver.Init()
 
+	constellation.InitDNS()
+	
 	constellation.Init()
 
 	StartServer()
