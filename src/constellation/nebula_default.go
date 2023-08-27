@@ -88,8 +88,20 @@ func InitConfig() {
 				UDPTimeout:     "3m",
 				DefaultTimeout: "10m",
 			},
-			Outbound: nil,
-			Inbound:  nil,
+			Outbound: []utils.NebulaFirewallRule {
+				utils.NebulaFirewallRule {
+					Host: "any",
+					Port: "any",
+					Proto: "any",
+				},
+			},
+			Inbound: []utils.NebulaFirewallRule {
+				utils.NebulaFirewallRule {
+					Host: "any",
+					Port: "any",
+					Proto: "any",
+				},
+			},
 		},
 	}
 }

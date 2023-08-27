@@ -28,8 +28,12 @@ func Init() {
 
 		// export nebula.yml
 		utils.Log("Constellation: exporting nebula.yml...")
-		ExportConfigToYAML(utils.GetMainConfig().ConstellationConfig, utils.CONFIGFOLDER + "nebula.yml")
+		err := ExportConfigToYAML(utils.GetMainConfig().ConstellationConfig, utils.CONFIGFOLDER + "nebula.yml")
 
+		if err != nil {
+			utils.Error("Constellation: error while exporting nebula.yml", err)
+		}
+		
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
 		err := startNebulaInBackground()
