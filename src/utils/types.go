@@ -248,6 +248,7 @@ type NebulaConfig struct {
 
 	Punchy struct {
 		Punch bool `yaml:"punch"`
+		Respond bool `yaml:"respond"`
 	} `yaml:"punchy"`
 
 	Relay struct {

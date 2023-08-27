@@ -78,6 +78,9 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
+	//...
+
+	// add the hostnames
 	finalConfig.StaticHostMap = map[string][]string{
 		"192.168.201.0": []string{utils.GetMainConfig().HTTPConfig.Hostname + ":4242"},
 	}

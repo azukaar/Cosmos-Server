@@ -38,14 +38,16 @@ func InitConfig() {
 		},
 		Punchy: struct {
 			Punch bool `yaml:"punch"`
+			Respond bool `yaml:"respond"`
 		}{
 			Punch: true,
+			Respond: true,
 		},
 		Relay: struct {
 			AMRelay   bool `yaml:"am_relay"`
 			UseRelays bool `yaml:"use_relays"`
 		}{
-			AMRelay:   false,
+			AMRelay:   true,
 			UseRelays: true,
 		},
 		TUN: struct {
