@@ -78,9 +78,6 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
-	//...
-
-	// add the hostnames
 	finalConfig.StaticHostMap = map[string][]string{
 		"192.168.201.0": []string{utils.GetMainConfig().HTTPConfig.Hostname + ":4242"},
 	}
@@ -139,6 +136,13 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 		pkiMap["key"] = name + ".key"
 	} else {
 		return "", errors.New("pki not found in nebula.yml")
+	}
+
+	if relayMap, ok := configMap["relay"].(map[interface{}]interface{}); ok {
+		relayMap["am_relay"] = false
+		relayMap["relays"] = []string{"192.168.201.0"}
+	} else {
+		return "", errors.New("relay not found in nebula.yml")
 	}
 
 	// export configMap as YML
