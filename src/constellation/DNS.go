@@ -185,12 +185,14 @@ func InitDNS() {
 	}
 
 	if(config.ConstellationConfig.DNS) {
-		dns.HandleFunc(".", handleDNSRequest)
-		server := &dns.Server{Addr: ":" + DNSPort, Net: "udp"}
+		go (func() {
+			dns.HandleFunc(".", handleDNSRequest)
+			server := &dns.Server{Addr: ":" + DNSPort, Net: "udp"}
 
-		utils.Log("Starting DNS server on :" + DNSPort)
-		if err := server.ListenAndServe(); err != nil {
-			utils.Fatal("Failed to start server: %s\n", err)
-		}
+			utils.Log("Starting DNS server on :" + DNSPort)
+			if err := server.ListenAndServe(); err != nil {
+				utils.Fatal("Failed to start server: %s\n", err)
+			}
+		})()
 	}
 }
