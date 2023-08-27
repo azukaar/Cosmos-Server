@@ -36,7 +36,7 @@ func Init() {
 		
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
-		err := startNebulaInBackground()
+		err = startNebulaInBackground()
 		if err != nil {
 			utils.Error("Constellation: error while starting nebula", err)
 		}
