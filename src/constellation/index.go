@@ -23,7 +23,7 @@ func Init() {
 		if _, err := os.Stat(utils.CONFIGFOLDER + "cosmos.crt"); os.IsNotExist(err) {
 			utils.Log("Constellation: cosmos.crt not found, generating...")
 			// generate cosmos.crt
-			generateNebulaCert("cosmos", "192.168.201.0/24", "", true)
+			generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
 		}
 
 		// export nebula.yml

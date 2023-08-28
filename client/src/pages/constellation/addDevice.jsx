@@ -21,7 +21,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
   const [isDone, setIsDone] = useState(null);
   const canvasRef = React.useRef(null);
 
-  let firstIP = "192.168.201.1/24";
+  let firstIP = "192.168.201.2/24";
   if (devices && devices.length > 0) { 
     const isIpFree = (ip) => {
       return devices.filter((d) => d.ip === ip).length === 0;

@@ -94,8 +94,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			utils.Debug("DNS Question " + q.Name)
 			for _, hostname := range hostnames {
 				if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
-					utils.Debug("DNS Overwrite " + hostname + " with 192.168.201.0")
-					rr, _ := dns.NewRR(q.Name + " A 192.168.201.0")
+					utils.Debug("DNS Overwrite " + hostname + " with 192.168.201.1")
+					rr, _ := dns.NewRR(q.Name + " A 192.168.201.1")
 					m.Answer = append(m.Answer, rr)
 					customHandled = true
 				}

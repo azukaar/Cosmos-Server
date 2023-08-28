@@ -85,7 +85,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	finalConfig := NebulaDefaultConfig
 
 	finalConfig.StaticHostMap = map[string][]string{
-		"192.168.201.0": []string{
+		"192.168.201.1": []string{
 			"lighthouse-cosmos.constellation:4242",
 			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
 		},
@@ -136,7 +136,7 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		staticHostMap["192.168.201.0"] = []string{
+		staticHostMap["192.168.201.1"] = []string{
 			"lighthouse-cosmos.constellation:4242",
 			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
 		}
@@ -149,7 +149,7 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 		lighthouseMap["am_lighthouse"] = false
 
 		lighthouseMap["hosts"] = []string{
-			"192.168.201.0",
+			"192.168.201.1",
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
@@ -165,7 +165,7 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 
 	if relayMap, ok := configMap["relay"].(map[interface{}]interface{}); ok {
 		relayMap["am_relay"] = false
-		relayMap["relays"] = []string{"192.168.201.0"}
+		relayMap["relays"] = []string{"192.168.201.1"}
 	} else {
 		return "", errors.New("relay not found in nebula.yml")
 	}
