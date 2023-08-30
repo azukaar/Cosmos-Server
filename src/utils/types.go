@@ -181,6 +181,7 @@ type ProxyRouteConfig struct {
 	DisableHeaderHardening bool
 	VerboseForwardHeader bool
 	AddionalFilters []AddionalFiltersConfig
+	RestrictToConstellation bool
 }
 
 type EmailConfig struct {

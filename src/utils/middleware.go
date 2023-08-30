@@ -261,3 +261,26 @@ func IsValidHostname(hostname string) bool {
 
 	return false
 }
+
+func Restrictions(RestrictToConstellation bool) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// check if the request is coming from the constellation IP range 192.168.201.0/24
+		if RestrictToConstellation {
+			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			if err != nil {
+				http.Error(w, "Invalid request", http.StatusBadRequest)
+				return
+			}
+
+			if !strings.HasPrefix(ip, "192.168.201.") && !strings.HasPrefix(ip, "192.168.202.") {
+				http.Error(w, "Access denied", http.StatusForbidden)
+				return
+			}
+		}
+
+		next.ServeHTTP(w, r)
+		})
+	}
+}
