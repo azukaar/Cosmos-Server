@@ -143,6 +143,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		destination = utils.SetSecurityHeaders(destination)
 	}
 
+	destination = utils.Restrictions(route.RestrictToConstellation)(destination)
+
 	destination = tokenMiddleware(route.AuthEnabled, route.AdminOnly)(utils.CORSHeader(originCORS)((destination)))
 
 	origin.Handler(destination)
