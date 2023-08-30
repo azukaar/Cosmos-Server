@@ -214,6 +214,7 @@ type ConstellationConfig struct {
 	DNSPort string
 	DNSFallback string
 	DNSBlockBlacklist bool
+	DNSAdditionalBlocklists []string
 	CustomDNSEntries map[string]string
 	NebulaConfig NebulaConfig
 }

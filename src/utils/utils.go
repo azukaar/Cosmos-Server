@@ -66,6 +66,12 @@ var DefaultConfig = Config{
     Enabled: false,
 		DNS: true,
 		DNSFallback: "8.8.8.8:53",
+		DNSAdditionalBlocklists: []string{
+			"https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
+      "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
+      "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+      "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts",
+		},
 	},
 }
 
@@ -548,6 +554,21 @@ func GetNetworkUsage() NetworkStatus {
 	}
 
 	return NetworkStatus{}
+}
+
+func DownloadFile(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(body), nil
 }
 
 func GetClientIP(req *http.Request) string {

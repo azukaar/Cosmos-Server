@@ -11,7 +11,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
-var DNSBlacklist = []string{}
+var DNSBlacklist = map[string]bool{}
 
 func externalLookup(client *dns.Client, r *dns.Msg, serverAddr string) (*dns.Msg, time.Duration, error) {
 	rCopy := r.Copy() // Create a copy of the request to forward
@@ -88,6 +88,22 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	} 
 	
+	if !customHandled {
+		customDNSEntries := config.ConstellationConfig.CustomDNSEntries
+
+		// Overwrite local hostnames with custom entries
+		for _, q := range r.Question {
+			for hostname, ip := range customDNSEntries {
+				if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
+					utils.Debug("DNS Overwrite " + hostname + " with " + ip)
+					rr, _ := dns.NewRR(q.Name + " A " + ip)
+					m.Answer = append(m.Answer, rr)
+					customHandled = true
+				}
+			}
+		}
+	}
+
 	if !specialQuery {
 		// Overwrite local hostnames with Constellation IP
 		for _, q := range r.Question {
@@ -101,37 +117,19 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 				}
 			}
 		}
-		
-		if !customHandled {
-			// map[string]string customEntries
-			customDNSEntries := config.ConstellationConfig.CustomDNSEntries
-
-			// Overwrite local hostnames with custom entries
-			for _, q := range r.Question {
-				for hostname, ip := range customDNSEntries {
-					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
-						utils.Debug("DNS Overwrite " + hostname + " with " + ip)
-						rr, _ := dns.NewRR(q.Name + " A " + ip)
-						m.Answer = append(m.Answer, rr)
-						customHandled = true
-					}
-				}
-			}
-		}
 
 		if !customHandled {
 			// Block blacklisted domains
 			for _, q := range r.Question {
-				for _, hostname := range DNSBlacklist {
-					if strings.HasSuffix(q.Name, hostname + ".") {
-						if q.Qtype == dns.TypeA {
-							utils.Debug("DNS Block " + hostname)
-							rr, _ := dns.NewRR(q.Name + " A 0.0.0.0")
-							m.Answer = append(m.Answer, rr)
-						}
-						
-						customHandled = true
+				noDot := strings.TrimSuffix(q.Name, ".")
+				if DNSBlacklist[noDot] {
+					if q.Qtype == dns.TypeA {
+						utils.Debug("DNS Block " + noDot)
+						rr, _ := dns.NewRR(q.Name + " A 0.0.0.0")
+						m.Answer = append(m.Answer, rr)
 					}
+					
+					customHandled = true
 				}
 			}
 		}
@@ -155,6 +153,32 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	w.WriteMsg(m)
 }
 
+func isDomain(domain string) bool {
+	// contains . and at least a letter and no special characters invalid in a domain
+	if strings.Contains(domain, ".") && strings.ContainsAny(domain, "abcdefghijklmnopqrstuvwxyz") && !strings.ContainsAny(domain, " !@#$%^&*()+=[]{}\\|;:'\",/<>?") {
+		return true
+	}
+	return false
+}
+
+func loadRawBlockList(DNSBlacklistRaw string) {
+	DNSBlacklistArray := strings.Split(string(DNSBlacklistRaw), "\n")
+	for _, domain := range DNSBlacklistArray {
+		if domain != "" && !strings.HasPrefix(domain, "#") {
+			splitDomain := strings.Split(domain, " ")
+			if len(splitDomain) == 1 && isDomain(splitDomain[0]) {
+				DNSBlacklist[splitDomain[0]] = true
+			} else if len(splitDomain) == 2 {
+				if isDomain(splitDomain[0]) {
+					DNSBlacklist[splitDomain[0]] = true
+				} else if isDomain(splitDomain[1]) {
+					DNSBlacklist[splitDomain[1]] = true
+				}
+			}
+		}
+	}
+}
+
 func InitDNS() {
 	config := utils.GetMainConfig()
 	DNSPort := config.ConstellationConfig.DNSPort
@@ -165,7 +189,7 @@ func InitDNS() {
 	}
 
 	if DNSBlockBlacklist {
-		DNSBlacklist = []string{}
+		DNSBlacklist = map[string]bool{}
 		blacklistPath := utils.CONFIGFOLDER + "dns-blacklist.txt"
 
 		utils.Log("Loading DNS blacklist from " + blacklistPath)
@@ -176,12 +200,24 @@ func InitDNS() {
 			if err != nil {
 				utils.Error("Failed to load DNS blacklist", err)
 			} else {
-				DNSBlacklist = strings.Split(string(DNSBlacklistRaw), "\n")
-				utils.Log("Loaded " + strconv.Itoa(len(DNSBlacklist)) + " domains to block")
+				loadRawBlockList(string(DNSBlacklistRaw))
 			}
 		} else {
 			utils.Log("No DNS blacklist found")
 		}
+
+		// download additional blocklists from config.DNSAdditionalBlocklists []string
+		for _, url := range config.ConstellationConfig.DNSAdditionalBlocklists {
+			utils.Log("Downloading DNS blacklist from " + url)
+			DNSBlacklistRaw, err := utils.DownloadFile(url)
+			if err != nil {
+				utils.Error("Failed to download DNS blacklist", err)
+			} else {
+				loadRawBlockList(DNSBlacklistRaw)
+			}
+		}
+		
+		utils.Log("Loaded " + strconv.Itoa(len(DNSBlacklist)) + " domains")
 	}
 
 	if(config.ConstellationConfig.DNS) {
