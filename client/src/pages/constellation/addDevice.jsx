@@ -72,7 +72,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
           return API.constellation.addDevice(values).then(({data}) => {
             setIsDone(data);
             refreshConfig();
-            renderCanvas(data);
+            renderCanvas(data.Config);
           }).catch((err) => {
             setErrors(err.response.data);
           });
@@ -92,24 +92,24 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                 </p>
 
                 <Stack spacing={2} direction={"column"}>
-                <CosmosFormDivider title={"Cosmos Client (QR Code)"} />
+                <CosmosFormDivider title={"QR Code"} />
                 <div style={{textAlign: 'center'}}>
                 <canvas style={{borderRadius: '15px'}} ref={canvasRef} />
                 </div>
-                <CosmosFormDivider title={"Cosmos Client (File)"} />
+                {/* <CosmosFormDivider title={"Cosmos Client (File)"} />
                   <DownloadFile 
                     filename={isDone.DeviceName + `.constellation`}
                     content={JSON.stringify(isDone, null, 2)}
                     label={"Download " + isDone.DeviceName + `.constellation`}
-                  />
-                <CosmosFormDivider title={"Nebula Client"} />
+                  /> */}
+                <CosmosFormDivider title={"File"} />
 
                   <DownloadFile 
-                    filename={`config.yml`}
+                    filename={`constellation.yml`}
                     content={isDone.Config}
-                    label={"Download config.yml"}
+                    label={"Download constellation.yml"}
                   />
-                  <DownloadFile
+                  {/* <DownloadFile
                     filename={isDone.DeviceName + `.key`}
                     content={isDone.PublicKey}
                     label={"Download " + isDone.DeviceName + `.key`}
@@ -123,7 +123,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                     filename={`ca.crt`}
                     content={isDone.CA}
                     label={"Download ca.crt"}
-                  />
+                  /> */}
                 </Stack>
               </DialogContentText>
             </DialogContent> : <DialogContent>

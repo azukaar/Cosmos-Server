@@ -86,7 +86,6 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 	finalConfig.StaticHostMap = map[string][]string{
 		"192.168.201.1": []string{
-			"lighthouse-cosmos.constellation:4242",
 			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
 		},
 	}
@@ -119,7 +118,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath string) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key string) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -137,7 +136,6 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		staticHostMap["192.168.201.1"] = []string{
-			"lighthouse-cosmos.constellation:4242",
 			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
 		}
 	} else {
@@ -156,9 +154,9 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 	}
 
 	if pkiMap, ok := configMap["pki"].(map[interface{}]interface{}); ok {
-		pkiMap["ca"] = "ca.crt"
-		pkiMap["cert"] = name + ".crt"
-		pkiMap["key"] = name + ".key"
+		pkiMap["ca"] = capki
+		pkiMap["cert"] = cert
+		pkiMap["key"] = key
 	} else {
 		return "", errors.New("pki not found in nebula.yml")
 	}
@@ -169,6 +167,8 @@ func getYAMLClientConfig(name, configPath string) (string, error) {
 	} else {
 		return "", errors.New("relay not found in nebula.yml")
 	}
+
+	configMap["deviceName"] = name
 
 	// export configMap as YML
 	yamlData, err = yaml.Marshal(configMap)

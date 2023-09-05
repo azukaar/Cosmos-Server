@@ -85,6 +85,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 	}
 	
+	destination = utils.Restrictions(route.RestrictToConstellation)(destination)
+	
 	destination = SmartShieldMiddleware(route.Name, route.SmartShield)(destination)
 
 	originCORS := route.CORSOrigin
@@ -142,8 +144,6 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	if !route.DisableHeaderHardening {
 		destination = utils.SetSecurityHeaders(destination)
 	}
-
-	destination = utils.Restrictions(route.RestrictToConstellation)(destination)
 
 	destination = tokenMiddleware(route.AuthEnabled, route.AdminOnly)(utils.CORSHeader(originCORS)((destination)))
 

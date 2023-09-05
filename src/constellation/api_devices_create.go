@@ -81,15 +81,6 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return 
 			} 
 
-			// read configYml from config/nebula.yml
-			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml")
-			if err != nil {
-				utils.Error("DeviceCreation: Error while reading config", err)
-				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
-					http.StatusInternalServerError, "DC005")
-				return
-			}
-
 			capki, err := getCApki()
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading ca.crt", err)
@@ -98,6 +89,15 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			
+			// read configYml from config/nebula.yml
+			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key)
+			if err != nil {
+				utils.Error("DeviceCreation: Error while reading config", err)
+				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+					http.StatusInternalServerError, "DC005")
+				return
+			}
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{

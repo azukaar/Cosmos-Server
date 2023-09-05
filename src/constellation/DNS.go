@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"strings"
 	"io/ioutil"
-	"fmt"
 
 	"github.com/miekg/dns"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -41,52 +40,6 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	// []string hostnames
 	hostnames := utils.GetAllHostnames(false, true)
-	originalHostname := hostnames[0]
-
-	specialQuery := false
-
-	// if lighthouse-cosmos.constellation is the query, return originalHostname's external lookup
-	for i, q := range r.Question {
-		if strings.HasSuffix(q.Name, "lighthouse-cosmos.constellation.") {
-			utils.Debug("DNS Overwrite lighthouse-cosmos.constellation with " + originalHostname)
-			
-			// Create a deep copy of the original request.
-			modifiedRequest := r.Copy()
-			
-			client := new(dns.Client)
-			
-			// Modify only the copied request.
-			modifiedRequest.Question[i].Name = originalHostname + "."
-			
-			externalResponse, time, err := externalLookup(client, modifiedRequest, DNSFallback)
-			if err != nil {
-				utils.Error("Failed to forward query:", err)
-				return
-			}
-			utils.Debug("DNS Forwarded DNS query to "+DNSFallback+" in " + time.String())
-			
-			for _, rr := range externalResponse.Answer {
-				if aRecord, ok := rr.(*dns.A); ok {
-						// 2. Replace the hostname with "lighthouse-cosmos.constellation".
-						modifiedString := fmt.Sprintf("lighthouse-cosmos.constellation. A %s", aRecord.A.String())
-		
-						// 3. Convert the string back into a dns.RR.
-						newRR, err := dns.NewRR(modifiedString)
-						if err != nil {
-								utils.Error("Failed to convert string into dns.RR:", err)
-								return
-						}
-		
-						// Replace the response RR with the new RR.
-						r.Answer = append(r.Answer, newRR)
-				}
-			}
-
-			m = r
-			
-			specialQuery = true
-		}
-	} 
 	
 	if !customHandled {
 		customDNSEntries := config.ConstellationConfig.CustomDNSEntries
@@ -104,7 +57,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}
 
-	if !specialQuery {
+	if !customHandled {
 		// Overwrite local hostnames with Constellation IP
 		for _, q := range r.Question {
 			utils.Debug("DNS Question " + q.Name)
@@ -117,37 +70,37 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 				}
 			}
 		}
+	}
 
-		if !customHandled {
-			// Block blacklisted domains
-			for _, q := range r.Question {
-				noDot := strings.TrimSuffix(q.Name, ".")
-				if DNSBlacklist[noDot] {
-					if q.Qtype == dns.TypeA {
-						utils.Debug("DNS Block " + noDot)
-						rr, _ := dns.NewRR(q.Name + " A 0.0.0.0")
-						m.Answer = append(m.Answer, rr)
-					}
-					
-					customHandled = true
+	if !customHandled {
+		// Block blacklisted domains
+		for _, q := range r.Question {
+			noDot := strings.TrimSuffix(q.Name, ".")
+			if DNSBlacklist[noDot] {
+				if q.Qtype == dns.TypeA {
+					utils.Debug("DNS Block " + noDot)
+					rr, _ := dns.NewRR(q.Name + " A 0.0.0.0")
+					m.Answer = append(m.Answer, rr)
 				}
+				
+				customHandled = true
 			}
 		}
+	}
 
-		// If not custom handled, use external DNS
-		if !customHandled {
-			client := new(dns.Client)
-			externalResponse, time, err := externalLookup(client, r, DNSFallback)
-			if err != nil {
-				utils.Error("Failed to forward query:", err)
-				return
-			}
-			utils.Debug("DNS Forwarded DNS query to "+DNSFallback+" in " + time.String())
-			
-			externalResponse.Id = r.Id
-
-			m = externalResponse
+	// If not custom handled, use external DNS
+	if !customHandled {
+		client := new(dns.Client)
+		externalResponse, time, err := externalLookup(client, r, DNSFallback)
+		if err != nil {
+			utils.Error("Failed to forward query:", err)
+			return
 		}
+		utils.Debug("DNS Forwarded DNS query to "+DNSFallback+" in " + time.String())
+		
+		externalResponse.Id = r.Id
+
+		m = externalResponse
 	}
 
 	w.WriteMsg(m)
