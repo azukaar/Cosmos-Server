@@ -41,7 +41,7 @@ const support = {
             id: 'documentation',
             title: 'Documentation',
             type: 'item',
-            url: 'https://github.com/azukaar/Cosmos-Server/wiki',
+            url: 'https://cosmos-cloud.io/doc',
             icon: QuestionOutlined,
             external: true,
             target: true
