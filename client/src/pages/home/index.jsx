@@ -228,7 +228,7 @@ const HomePage = () => {
 
             {coStatus && coStatus.LetsEncryptErrors && coStatus.LetsEncryptErrors.length > 0 && (
                 <Alert severity="error">
-                    There are errors with your Let's Encrypt configuration or one of your routes, please fix them as soon as possible.:
+                    There are errors with your Let's Encrypt configuration or one of your routes, please fix them as soon as possible:
                     {coStatus.LetsEncryptErrors.map((err) => {
                         return <div> - {err}</div>
                     })}
