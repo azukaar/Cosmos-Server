@@ -72,6 +72,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           StripPathPrefix: routeConfig.StripPathPrefix,
           AuthEnabled: routeConfig.AuthEnabled,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
+          RestrictToConstellation: routeConfig.RestrictToConstellation,
         }}
         validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -254,6 +255,12 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   <CosmosCheckbox
                     name="_SmartShield_Enabled"
                     label="Smart Shield Protection"
+                    formik={formik}
+                  />
+                  
+                  <CosmosCheckbox
+                    name="RestrictToConstellation"
+                    label="Restrict access to Constellation VPN"
                     formik={formik}
                   />
                 </Grid>
