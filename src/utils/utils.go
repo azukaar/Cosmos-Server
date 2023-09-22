@@ -214,6 +214,15 @@ func LoadBaseMainConfig(config Config) {
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
 	}
+	
+	if MainConfig.ConstellationConfig.ConstellationHostname == "" {
+		// if hostname is a domain add vpn. suffix otherwise use hostname
+		if IsDomain(MainConfig.HTTPConfig.Hostname) {
+			MainConfig.ConstellationConfig.ConstellationHostname = "vpn." + MainConfig.HTTPConfig.Hostname
+		} else {
+			MainConfig.ConstellationConfig.ConstellationHostname = MainConfig.HTTPConfig.Hostname
+		}
+	}
 }
 
 func GetMainConfig() Config {
@@ -577,4 +586,12 @@ func GetClientIP(req *http.Request) string {
 		ip = req.RemoteAddr
 	}*/
 	return req.RemoteAddr
+}
+
+func IsDomain(domain string) bool {
+	// contains . and at least a letter and no special characters invalid in a domain
+	if strings.Contains(domain, ".") && strings.ContainsAny(domain, "abcdefghijklmnopqrstuvwxyz") && !strings.ContainsAny(domain, " !@#$%^&*()+=[]{}\\|;:'\",/<>?") {
+		return true
+	}
+	return false
 }

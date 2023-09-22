@@ -55,6 +55,26 @@ func API_Restart(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func API_Reset(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if(req.Method == "GET") {
+		ResetNebula()
+
+		utils.Log("Constellation: nebula reset")
+		
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+		})
+	} else {
+		utils.Error("SettingGet: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
 func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return

@@ -6,7 +6,11 @@
 ## Version 0.10.0
  - Added Constellation
  - DNS Challenge is now used for all certificates when enabled
->>>>>>> b8a9e71 ([release] v0.10.0-unstable)
+ - Rework headers for better compatibility
+ 
+## Version 0.9.20 - 0.9.21
+ - Add option to disable CORS hardening (with empty value)
+
 ## Version 0.9.19
  - Add country whitelist option to geoblocker
  - No countries blocked by default anymore

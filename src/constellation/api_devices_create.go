@@ -9,10 +9,18 @@ import (
 )
 
 type DeviceCreateRequestJSON struct {
-	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
 	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
 	IP string `json:"ip",validate:"required,ipv4"`
 	PublicKey string `json:"publicKey",omitempty`
+	
+	// for devices only
+	Nickname string `json:"nickname",validate:"max=32,alphanum",omitempty`
+	
+	// for lighthouse only
+	IsLighthouse bool `json:"isLighthouse",omitempty`
+	IsRelay bool `json:"isRelay",omitempty`
+	PublicHostname string `json:"PublicHostname",omitempty`
+	Port string `json:"port",omitempty`
 }
 
 func DeviceCreate(w http.ResponseWriter, req *http.Request) {
@@ -67,11 +75,22 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			if request.IsLighthouse && request.Nickname != "" {
+				utils.Error("DeviceCreation: Lighthouse cannot belong to a user", nil)
+				utils.HTTPError(w, "Device Creation Error: Lighthouse cannot have a nickname",
+					http.StatusInternalServerError, "DC003")
+				return
+			}
+
 			_, err3 := c.InsertOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"DeviceName": deviceName,
 				"PublicKey": key,
 				"IP": request.IP,
+				"IsLighthouse": request.IsLighthouse,
+				"IsRelay": request.IsRelay,
+				"PublicHostname": request.PublicHostname,
+				"Port": request.Port,
 			})
 
 			if err3 != nil {
@@ -88,9 +107,24 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					http.StatusInternalServerError, "DC006")
 				return
 			}
+
+			lightHousesList := []utils.ConstellationDevice{}
+			if request.IsLighthouse {
+				lightHousesList, err = GetAllLightHouses()
+			}
 			
 			// read configYml from config/nebula.yml
-			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key)
+			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, utils.ConstellationDevice{
+				Nickname: nickname,
+				DeviceName: deviceName,
+				PublicKey: key,
+				IP: request.IP,
+				IsLighthouse: request.IsLighthouse,
+				IsRelay: request.IsRelay,
+				PublicHostname: request.PublicHostname,
+				Port: request.Port,
+			})
+
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading config", err)
 				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
@@ -108,6 +142,11 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"IP": request.IP,
 					"Config": configYml,
 					"CA": capki,
+					"IsLighthouse": request.IsLighthouse,
+					"IsRelay": request.IsRelay,
+					"PublicHostname": request.PublicHostname,
+					"Port": request.Port,
+					"LighthousesList": lightHousesList,
 				},
 			})
 		} else if err2 == nil {

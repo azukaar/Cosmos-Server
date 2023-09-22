@@ -12,9 +12,66 @@ import { PlusCircleFilled } from '@ant-design/icons';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import * as API from '../../api';
-import { CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
+import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
+
+const getDocker = (data, isCompose) => {
+  let lighthouses = '';
+
+  for (let i = 0; i < data.LighthousesList.length; i++) {
+    const l = data.LighthousesList[i];
+    lighthouses += l.publicHostname + ";" +  l.ip + ":" + l.port + ";" + l.isRelay + ",";
+  }
+
+  let containerName = "cosmos-constellation-lighthouse";
+  let imageName = "cosmos-constellation-lighthouse:latest";
+
+  let volPath = "/var/lib/cosmos-constellation";
+
+  if (isCompose) {
+    return `
+version: "3.8"
+services:
+  ${containerName}:
+    image: ${imageName}
+    container_name: ${containerName}
+    restart: unless-stopped
+    network_mode: bridge
+    ports:
+      - "${data.Port}:4242"
+    volumes:
+      - ${volPath}:/config
+    environment:
+      - CA=${JSON.stringify(data.CA)}
+      - CERT=${JSON.stringify(data.PrivateKey)}
+      - KEY=${JSON.stringify(data.PublicKey)}
+      - LIGHTHOUSES=${lighthouses}
+      - PUBLIC_HOSTNAME=${data.PublicHostname}
+      - IS_RELAY=${data.IsRelay}
+      - IP=${data.IP}
+`;
+  } else {
+    return `
+docker run -d \\
+  --name ${containerName} \\
+  --restart unless-stopped \\
+  --network bridge \\
+  -v ${volPath}:/config \\
+  -e CA=${JSON.stringify(data.CA)} \\
+  -e CERT=${JSON.stringify(data.PrivateKey)} \\
+  -e KEY=${JSON.stringify(data.PublicKey)} \\
+  -e LIGHTHOUSES=${lighthouses} \\
+  -e PUBLIC_HOSTNAME=${data.PublicHostname} \\
+  -e IS_RELAY=${data.IsRelay} \\
+  -e IP=${data.IP} \\
+  -p ${data.Port}:4242 \\
+  ${imageName}
+`;
+  }
+
+}
+
 
 const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
   const [openModal, setOpenModal] = useState(false);
@@ -63,12 +120,18 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
           deviceName: '',
           ip: firstIP,
           publicKey: '',
+          Port: "4242",
+          PublicHostname: '',
+          IsRelay: true,
+          isLighthouse: false,
         }}
 
         validationSchema={yup.object({
         })}
 
         onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
+          if(values.isLighthouse) values.nickname = null;
+
           return API.constellation.addDevice(values).then(({data}) => {
             setIsDone(data);
             refreshConfig();
@@ -85,52 +148,55 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
             {isDone ? <DialogContent>
               <DialogContentText>
                 <p>
-                  Device added successfully!
+                Device added successfully!
                   Download scan the QR Code from the Cosmos app or download the relevant
                   files to your device along side the config and network certificate to
                   connect:
                 </p>
 
                 <Stack spacing={2} direction={"column"}>
-                <CosmosFormDivider title={"QR Code"} />
-                <div style={{textAlign: 'center'}}>
-                <canvas style={{borderRadius: '15px'}} ref={canvasRef} />
-                </div>
-                {/* <CosmosFormDivider title={"Cosmos Client (File)"} />
-                  <DownloadFile 
-                    filename={isDone.DeviceName + `.constellation`}
-                    content={JSON.stringify(isDone, null, 2)}
-                    label={"Download " + isDone.DeviceName + `.constellation`}
-                  /> */}
+                {/* {isDone.isLighthouse ? <>
+                  <CosmosFormDivider title={"Docker"} />
+                  <TextField
+                    fullWidth
+                    multiline
+                    value={getDocker(isDone, false)}
+                    variant="outlined"
+                    size="small"
+                    disabled
+                  />
+                  <CosmosFormDivider title={"File (Docker-Compose)"} />
+                  <DownloadFile
+                    filename={`docker-compose.yml`}
+                    content={getDocker(isDone, true)}
+                    label={"Download docker-compose.yml"}
+                  />
+                </> : <> */}
+                  <CosmosFormDivider title={"QR Code"} />
+                  <div style={{textAlign: 'center'}}>
+                  <canvas style={{borderRadius: '15px'}} ref={canvasRef} />
+                  </div>
+                {/* </>} */}
+                
                 <CosmosFormDivider title={"File"} />
-
                   <DownloadFile 
                     filename={`constellation.yml`}
                     content={isDone.Config}
                     label={"Download constellation.yml"}
                   />
-                  {/* <DownloadFile
-                    filename={isDone.DeviceName + `.key`}
-                    content={isDone.PublicKey}
-                    label={"Download " + isDone.DeviceName + `.key`}
-                  />
-                  <DownloadFile
-                    filename={isDone.DeviceName + `.crt`}
-                    content={isDone.PrivateKey}
-                    label={"Download " + isDone.DeviceName + `.crt`}
-                  />
-                  <DownloadFile
-                    filename={`ca.crt`}
-                    content={isDone.CA}
-                    label={"Download ca.crt"}
-                  /> */}
                 </Stack>
               </DialogContentText>
             </DialogContent> : <DialogContent>
               <DialogContentText>
-                <p>Add a device to the constellation using either the Cosmos or Nebula client</p>
+                <p>Add a Device to the constellation using either the Cosmos or Nebula client</p>
                 <div>
                   <Stack spacing={2} style={{}}>
+                  <CosmosCheckbox
+                    name="isLighthouse"
+                    label="Lighthouse"
+                    formik={formik}
+                  />
+                  {!formik.values.isLighthouse &&
                     <CosmosSelect
                       name="nickname"
                       label="Owner"
@@ -141,7 +207,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                           return [u.nickname, u.nickname]
                         })
                       }
-                    />
+                    />}
 
                     <CosmosInputText
                       name="deviceName"
@@ -155,12 +221,33 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                       formik={formik}
                     />
 
+                    {/* <CosmosInputText
+                      name="Port"
+                      label="VPN Port (default: 4242)"
+                      formik={formik}
+                    /> */}
+
                     <CosmosInputText
                       multiline
                       name="publicKey"
                       label="Public Key (Optional)"
                       formik={formik}
                     />
+                    {formik.values.isLighthouse && <>
+                      <CosmosFormDivider title={"Lighthouse Setup"} />
+
+                      <CosmosInputText
+                        name="PublicHostname"
+                        label="Public Hostname"
+                        formik={formik}
+                      />
+
+                      <CosmosCheckbox
+                        name="IsRelay"
+                        label="Can Relay Traffic"
+                        formik={formik}
+                      />
+                    </>}
                     <div>
                       {formik.errors && formik.errors.length > 0 && <Stack spacing={2} direction={"column"}>
                         <Alert severity="error">{formik.errors.map((err) => {
@@ -189,7 +276,9 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
         setIsDone(null);
         setOpenModal(true);
       }}
-      variant="contained"
+      variant={
+        "contained"
+      }
       startIcon={<PlusCircleFilled />}
     >
       Add Device

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@mui/material';
 import { UploadOutlined } from '@ant-design/icons';
 
-export default function UploadButtons({OnChange, accept, label}) {
+export default function UploadButtons({OnChange, accept, label, variant, fullWidth, size}) {
   return (
     <div>
       <input
@@ -14,7 +14,8 @@ export default function UploadButtons({OnChange, accept, label}) {
         onChange={OnChange}
       />
       <label htmlFor="contained-button-file">
-        <Button variant="contained" component="span" startIcon={<UploadOutlined />}>
+        <Button variant={variant || "contained"} component="span"
+        fullWidth={fullWidth} startIcon={<UploadOutlined />}>
           {label || 'Upload'}
         </Button>
       </label>

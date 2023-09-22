@@ -29,7 +29,7 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	var devices []utils.Device
+	var devices []utils.ConstellationDevice
 	
 	// Check if user is an admin
 	if isAdmin {
@@ -47,11 +47,6 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL002")
 			return
 		}
-
-		// Remove the private key from the response
-		for i := range devices {
-			devices[i].PrivateKey = ""
-		}
 	} else {
 		// If not admin, get user's devices based on their nickname
 		nickname := req.Header.Get("x-cosmos-user")
@@ -67,11 +62,6 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 			utils.Error("DeviceList: Error decoding devices", err)
 			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL004")
 			return
-		}
-		
-		// Remove the private key from the response
-		for i := range devices {
-			devices[i].PrivateKey = ""
 		}
 	}
 	

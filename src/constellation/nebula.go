@@ -80,17 +80,91 @@ func RestartNebula() {
 	Init()
 }
 
+func ResetNebula() error {
+	stop()
+	utils.Log("Resetting nebula...")
+	os.RemoveAll(utils.CONFIGFOLDER + "nebula.yml")
+	os.RemoveAll(utils.CONFIGFOLDER + "ca.crt")
+	os.RemoveAll(utils.CONFIGFOLDER + "ca.key")
+	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.crt")
+	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.key")
+	// remove everything in db
+
+	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	if err != nil {
+			return err
+	}
+
+	_, err = c.DeleteMany(nil, map[string]interface{}{})
+	if err != nil {
+		return err
+	}
+
+	Init()
+
+	return nil
+}
+
+func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
+	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"IsLighthouse": true,
+	})
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
+}
+
+func cleanIp(ip string) string {
+	return strings.Split(ip, "/")[0]
+}
+
 func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath string) error {
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
 	finalConfig.StaticHostMap = map[string][]string{
 		"192.168.201.1": []string{
-			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
+			utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
 		},
 	}
 
+	// for each lighthouse
+	lh, err := GetAllLightHouses()
+	if err != nil {
+		return err
+	}
+
+	for _, l := range lh {
+		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
+			l.PublicHostname + ":" + l.Port,
+		}
+	}
+	
+	// add other lighthouses 
+	finalConfig.Lighthouse.Hosts = []string{}
+	for _, l := range lh {
+		finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
+	}
+
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
+
+	finalConfig.Relay.Relays = []string{}
+	for _, l := range lh {
+		if l.IsRelay && l.IsLighthouse {
+			finalConfig.Relay.Relays = append(finalConfig.Relay.Relays, cleanIp(l.IP))
+		}
+	}
 
 	// Marshal the combined config to YAML
 	yamlData, err := yaml.Marshal(finalConfig)
@@ -118,7 +192,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath, capki, cert, key string) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key string, device utils.ConstellationDevice) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -134,20 +208,37 @@ func getYAMLClientConfig(name, configPath, capki, cert, key string) (string, err
 		return "", err
 	}
 
+	lh, err := GetAllLightHouses()
+	if err != nil {
+		return "", err
+	}
+
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		staticHostMap["192.168.201.1"] = []string{
-			utils.GetMainConfig().HTTPConfig.Hostname + ":4242",
+			utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+		}
+		
+		for _, l := range lh {
+			staticHostMap[cleanIp(l.IP)] = []string{
+				l.PublicHostname + ":" + l.Port,
+			}
 		}
 	} else {
 		return "", errors.New("static_host_map not found in nebula.yml")
 	}
 
-	// set lightHouse to false
+	// set lightHouse
 	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
-		lighthouseMap["am_lighthouse"] = false
-
+		lighthouseMap["am_lighthouse"] = device.IsLighthouse
+		
 		lighthouseMap["hosts"] = []string{
 			"192.168.201.1",
+		}
+		
+		for _, l := range lh {
+			if cleanIp(l.IP) != cleanIp(device.IP) {
+				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))
+			}
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
@@ -162,13 +253,34 @@ func getYAMLClientConfig(name, configPath, capki, cert, key string) (string, err
 	}
 
 	if relayMap, ok := configMap["relay"].(map[interface{}]interface{}); ok {
-		relayMap["am_relay"] = false
-		relayMap["relays"] = []string{"192.168.201.1"}
+		relayMap["am_relay"] = device.IsRelay && device.IsLighthouse
+		relayMap["relays"] = []string{}
+		if utils.GetMainConfig().ConstellationConfig.NebulaConfig.Relay.AMRelay {
+			relayMap["relays"] = append(relayMap["relays"].([]string), "192.168.201.1")
+		}
+
+		for _, l := range lh {
+			if l.IsRelay && l.IsLighthouse && cleanIp(l.IP) != cleanIp(device.IP) {
+				relayMap["relays"] = append(relayMap["relays"].([]string), cleanIp(l.IP))
+			}
+		}
 	} else {
 		return "", errors.New("relay not found in nebula.yml")
 	}
+	
+	if listen, ok := configMap["listen"].(map[interface{}]interface{}); ok {
+		if device.Port != "" {
+			listen["port"] = device.Port
+		} else {
+			listen["port"] = "4242"
+		}
+	} else {
+		return "", errors.New("listen not found in nebula.yml")
+	}
 
 	configMap["deviceName"] = name
+	configMap["local_dns_overwrite"] = "192.168.201.1"
+	configMap["public_hostname"] = device.PublicHostname
 
 	// export configMap as YML
 	yamlData, err = yaml.Marshal(configMap)

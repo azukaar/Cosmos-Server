@@ -28,6 +28,16 @@ function restart() {
   }))
 }
 
+
+function reset() {
+  return wrap(fetch('/cosmos/api/constellation/reset', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    }
+  }))
+}
+
 function getConfig() {
   return wrap(fetch('/cosmos/api/constellation/config', {
     method: 'GET',
@@ -46,10 +56,22 @@ function getLogs() {
   }))
 }
 
+function connect(file) {
+  return wrap(fetch('/cosmos/api/constellation/connect', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(file),
+  }))
+}
+
 export {
   list,
   addDevice,
   restart,
   getConfig,
   getLogs,
+  reset,
+  connect,
 };

@@ -211,6 +211,7 @@ type MarketSource struct {
 
 type ConstellationConfig struct {
 	Enabled bool
+	SlaveMode bool
 	DNS bool
 	DNSPort string
 	DNSFallback string
@@ -218,6 +219,18 @@ type ConstellationConfig struct {
 	DNSAdditionalBlocklists []string
 	CustomDNSEntries map[string]string
 	NebulaConfig NebulaConfig
+	ConstellationHostname string
+}
+
+type ConstellationDevice struct {
+	Nickname string `json:"nickname"`
+	DeviceName string `json:"deviceName"`
+	PublicKey string `json:"publicKey"`
+	IP string `json:"ip"`
+	IsLighthouse bool `json:"isLighthouse"`
+	IsRelay bool `json:"isRelay"`
+	PublicHostname string `json:"publicHostname"`
+	Port string `json:"port"`
 }
 
 type NebulaFirewallRule struct {

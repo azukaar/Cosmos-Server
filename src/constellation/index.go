@@ -6,32 +6,36 @@ import (
 )
 
 func Init() {
+	var err error
+	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {
-		InitConfig()
-		
-		utils.Log("Initializing Constellation module...")
+		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			InitConfig()
+			
+			utils.Log("Initializing Constellation module...")
 
-		// check if ca.crt exists
-		if _, err := os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
-			utils.Log("Constellation: ca.crt not found, generating...")
-			// generate ca.crt
-			generateNebulaCACert("Cosmos - " + utils.GetMainConfig().HTTPConfig.Hostname)
-		}
+			// check if ca.crt exists
+			if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
+				utils.Log("Constellation: ca.crt not found, generating...")
+				// generate ca.crt
+				generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+			}
 
-		// check if cosmos.crt exists
-		if _, err := os.Stat(utils.CONFIGFOLDER + "cosmos.crt"); os.IsNotExist(err) {
-			utils.Log("Constellation: cosmos.crt not found, generating...")
-			// generate cosmos.crt
-			generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
-		}
+			// check if cosmos.crt exists
+			if _, err := os.Stat(utils.CONFIGFOLDER + "cosmos.crt"); os.IsNotExist(err) {
+				utils.Log("Constellation: cosmos.crt not found, generating...")
+				// generate cosmos.crt
+				generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
+			}
 
-		// export nebula.yml
-		utils.Log("Constellation: exporting nebula.yml...")
-		err := ExportConfigToYAML(utils.GetMainConfig().ConstellationConfig, utils.CONFIGFOLDER + "nebula.yml")
+			// export nebula.yml
+			utils.Log("Constellation: exporting nebula.yml...")
+			err := ExportConfigToYAML(utils.GetMainConfig().ConstellationConfig, utils.CONFIGFOLDER + "nebula.yml")
 
-		if err != nil {
-			utils.Error("Constellation: error while exporting nebula.yml", err)
+			if err != nil {
+				utils.Error("Constellation: error while exporting nebula.yml", err)
+			}
 		}
 		
 		// start nebula
