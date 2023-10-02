@@ -27,26 +27,33 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
-export const CosmosInputText = ({ name, style, multiline, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputText = ({ name, style, value, errors, multiline, type, placeholder, onChange, label, formik }) => {
   return <Grid item xs={12}>
     <Stack spacing={1} style={style}>
-      <InputLabel htmlFor={name}>{label}</InputLabel>
+      {label && <InputLabel htmlFor={name}>{label}</InputLabel>}
       <OutlinedInput
         id={name}
         type={type ? type : 'text'}
-        value={formik.values[name]}
+        value={value || (formik && formik.values[name])}
         name={name}
         multiline={multiline}
-        onBlur={formik.handleBlur}
+        onBlur={(...ar) => {
+          return formik && formik.handleBlur(...ar);
+        }}
         onChange={(...ar) => {
           onChange && onChange(...ar);
-          return formik.handleChange(...ar);
+          return formik && formik.handleChange(...ar);
         }}
         placeholder={placeholder}
         fullWidth
-        error={Boolean(formik.touched[name] && formik.errors[name])}
+        error={Boolean(formik && formik.touched[name] && formik.errors[name])}
       />
-      {formik.touched[name] && formik.errors[name] && (
+      {formik && formik.touched[name] && formik.errors[name] && (
+        <FormHelperText error id="standard-weight-helper-text-name-login">
+          {formik.errors[name]}
+        </FormHelperText>
+      )}
+      {errors && (
         <FormHelperText error id="standard-weight-helper-text-name-login">
           {formik.errors[name]}
         </FormHelperText>

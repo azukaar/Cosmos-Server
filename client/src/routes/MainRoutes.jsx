@@ -15,7 +15,7 @@ import ContainerIndex from '../pages/servapps/containers';
 import NewDockerServiceForm from '../pages/servapps/containers/newServiceForm';
 import OpenIdList from '../pages/openid/openid-list';
 import MarketPage from '../pages/market/listing';
-import { ConstellationIndex } from '../pages/constellation';
+import ConstellationIndex  from '../pages/constellation';
 
 
 // render - dashboard

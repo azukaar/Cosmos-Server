@@ -46,7 +46,10 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 		// Overwrite local hostnames with custom entries
 		for _, q := range r.Question {
-			for hostname, ip := range customDNSEntries {
+			for _, entry := range customDNSEntries {
+				hostname := entry.Key
+				ip := entry.Value
+
 				if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
 					utils.Debug("DNS Overwrite " + hostname + " with " + ip)
 					rr, _ := dns.NewRR(q.Name + " A " + ip)

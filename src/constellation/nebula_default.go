@@ -12,10 +12,12 @@ func InitConfig() {
 			CA   string `yaml:"ca"`
 			Cert string `yaml:"cert"`
 			Key  string `yaml:"key"`
+			Blocklist []string `yaml:"blocklist"`
 		}{
 			CA:   utils.CONFIGFOLDER + "ca.crt",
 			Cert: utils.CONFIGFOLDER + "cosmos.crt",
 			Key:  utils.CONFIGFOLDER + "cosmos.key",
+			Blocklist: []string{},
 		},
 		StaticHostMap: map[string][]string{
 			

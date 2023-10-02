@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/mongo"
-	
+
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
@@ -62,11 +62,12 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		
 		err2 := c.FindOne(nil, map[string]interface{}{
 			"DeviceName": deviceName,
+			"Blocked": false,
 		}).Decode(&device)
 
 		if err2 == mongo.ErrNoDocuments {
 
-			cert, key, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
+			cert, key, fingerprint, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while creating Device", err)
@@ -82,6 +83,13 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			if err != nil {
+				utils.Error("DeviceCreation: Error while getting fingerprint", err)
+				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+					http.StatusInternalServerError, "DC007")
+				return
+			}
+
 			_, err3 := c.InsertOne(nil, map[string]interface{}{
 				"Nickname": nickname,
 				"DeviceName": deviceName,
@@ -91,6 +99,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"IsRelay": request.IsRelay,
 				"PublicHostname": request.PublicHostname,
 				"Port": request.Port,
+				"Fingerprint": fingerprint,
 			})
 
 			if err3 != nil {

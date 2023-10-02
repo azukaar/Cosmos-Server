@@ -66,6 +66,18 @@ function connect(file) {
   }))
 }
 
+function block(nickname, devicename, block) {
+  return wrap(fetch(`/cosmos/api/constellation/block`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      nickname, devicename, block
+    }),
+  }))
+}
+
 export {
   list,
   addDevice,
@@ -74,4 +86,5 @@ export {
   getLogs,
   reset,
   connect,
+  block,
 };

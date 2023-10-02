@@ -12,11 +12,12 @@ import (
 	"strings"
 	"io/ioutil"
 	"strconv"
+	"encoding/json"
 	"io"
-	"bytes"
+	"github.com/natefinch/lumberjack"
 )
 
-var logBuffer bytes.Buffer
+var logBuffer *lumberjack.Logger
 
 var (
 	process    *exec.Cmd
@@ -38,16 +39,24 @@ func startNebulaInBackground() error {
 		return errors.New("nebula is already running")
 	}
 
+	logBuffer = &lumberjack.Logger{
+		Filename:   utils.CONFIGFOLDER+"nebula.log",
+		MaxSize:    1, // megabytes
+		MaxBackups: 1,
+		MaxAge:     15, //days
+		Compress:   false,
+	}
+
 	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula.yml")
 
 	// Set up multi-writer for stderr
-	process.Stderr = io.MultiWriter(&logBuffer, os.Stderr)
+	process.Stderr = io.MultiWriter(logBuffer, os.Stderr)
 
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		// Set up multi-writer for stdout if in debug mode
-		process.Stdout = io.MultiWriter(&logBuffer, os.Stdout)
+		process.Stdout = io.MultiWriter(logBuffer, os.Stdout)
 	} else {
-		process.Stdout = io.MultiWriter(&logBuffer)
+		process.Stdout = io.MultiWriter(logBuffer)
 	}
 
 	// Start the process in the background
@@ -125,6 +134,26 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	return devices, nil
 }
 
+func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
+	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": true,
+	})
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
+}
+
 func cleanIp(ip string) string {
 	return strings.Split(ip, "/")[0]
 }
@@ -133,10 +162,14 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
-	finalConfig.StaticHostMap = map[string][]string{
-		"192.168.201.1": []string{
-			utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
-		},
+	if !overwriteConfig.PrivateNode {
+		finalConfig.StaticHostMap = map[string][]string{
+			"192.168.201.1": []string{
+				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			},
+		}
+	} else {
+		finalConfig.StaticHostMap = map[string][]string{}
 	}
 
 	// for each lighthouse
@@ -149,6 +182,16 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
 			l.PublicHostname + ":" + l.Port,
 		}
+	}
+
+	// add blocked devices
+	blockedDevices, err := GetBlockedDevices()
+	if err != nil {
+		return err
+	}
+
+	for _, d := range blockedDevices {
+		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 	
 	// add other lighthouses 
@@ -334,7 +377,40 @@ func killAllNebulaInstances() error {
 	return nil
 }
 
-func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, error) {
+func GetCertFingerprint(certPath string) (string, error) {
+	// nebula-cert print -json 
+	var cmd *exec.Cmd
+	
+	cmd = exec.Command(binaryToRun() + "-cert",
+		"print",
+		"-json",
+		"-path", certPath,
+	)
+
+	// capture and parse output
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		utils.Error("Error while printing cert", err)
+	}
+
+	var certInfo map[string]interface{}
+	err = json.Unmarshal(output, &certInfo)
+	if err != nil {
+		utils.Error("Error while unmarshalling cert information", err)
+		return "", err
+	}
+
+	// Extract fingerprint, replace "fingerprint" with the actual key where the fingerprint is stored in the JSON output
+	fingerprint, ok := certInfo["fingerprint"].(string)
+	if !ok {
+		utils.Error("Fingerprint not found or not a string", nil)
+		return "", errors.New("fingerprint not found or not a string")
+	}
+
+	return fingerprint, nil
+}
+
+func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
 
@@ -348,9 +424,9 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, e
 		)
 	} else {
 		// write PK to temp.cert
-		err := ioutil.WriteFile("./temp.cert", []byte(PK), 0644)
+		err := ioutil.WriteFile("./temp.key", []byte(PK), 0644)
 		if err != nil {
-			return "", "", fmt.Errorf("failed to write temp.cert: %s", err)
+			return "", "", "", fmt.Errorf("failed to write temp.key: %s", err)
 		}
 		cmd = exec.Command(binaryToRun() + "-cert",
 			"sign",
@@ -358,10 +434,10 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, e
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
 			"-name", name,
 			"-ip", ip,
-			"-in-pub", "./temp.cert",
+			"-in-pub", "./temp.key",
 		)
-		// delete temp.cert
-		defer os.Remove("./temp.cert")
+		// delete temp.key
+		defer os.Remove("./temp.key")
 	}
 
 	utils.Debug(cmd.String())
@@ -377,7 +453,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, e
 	cmd.Run()
 
 	if cmd.ProcessState.ExitCode() != 0 {
-		return "", "", fmt.Errorf("nebula-cert exited with an error, check the Cosmos logs")
+		return "", "", "", fmt.Errorf("nebula-cert exited with an error, check the Cosmos logs")
 	}
 
 	// Read the generated certificate and key files
@@ -387,14 +463,19 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, e
 	utils.Debug("Reading certificate from " + certPath)
 	utils.Debug("Reading key from " + keyPath)
 
+	fingerprint, err := GetCertFingerprint(certPath)
+	if err != nil {
+		return "", "", "", fmt.Errorf("failed to get certificate fingerprint: %s", err)
+	}
+
 	certContent, errCert := ioutil.ReadFile(certPath)
 	if errCert != nil {
-		return "", "", fmt.Errorf("failed to read certificate file: %s", errCert)
+		return "", "", "", fmt.Errorf("failed to read certificate file: %s", errCert)
 	}
 
 	keyContent, errKey := ioutil.ReadFile(keyPath)
 	if errKey != nil {
-		return "", "", fmt.Errorf("failed to read key file: %s", errKey)
+		return "", "", "", fmt.Errorf("failed to read key file: %s", errKey)
 	}
 
 	if saveToFile {
@@ -407,15 +488,15 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, e
 	} else {
 		// Delete the generated certificate and key files
 		if err := os.Remove(certPath); err != nil {
-			return "", "", fmt.Errorf("failed to delete certificate file: %s", err)
+			return "", "", "", fmt.Errorf("failed to delete certificate file: %s", err)
 		}
 
 		if err := os.Remove(keyPath); err != nil {
-			return "", "", fmt.Errorf("failed to delete key file: %s", err)
+			return "", "", "", fmt.Errorf("failed to delete key file: %s", err)
 		}
 	}
 
-	return string(certContent), string(keyContent), nil
+	return string(certContent), string(keyContent), fingerprint, nil
 }
 
 func generateNebulaCACert(name string) (error) {

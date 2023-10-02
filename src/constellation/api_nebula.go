@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"io/ioutil"
-
+	"os"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
@@ -81,11 +81,15 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if(req.Method == "GET") {
-		
+		logs, err := os.ReadFile(utils.CONFIGFOLDER+"nebula.log")
+		if err != nil {
+			utils.Error("Error reading file:", err)
+			return
+		}
 		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data": logBuffer.String(),
+			"data": string(logs),
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)

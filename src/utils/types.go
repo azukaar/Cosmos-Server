@@ -212,16 +212,22 @@ type MarketSource struct {
 type ConstellationConfig struct {
 	Enabled bool
 	SlaveMode bool
+	PrivateNode bool
 	DNS bool
 	DNSPort string
 	DNSFallback string
 	DNSBlockBlacklist bool
 	DNSAdditionalBlocklists []string
-	CustomDNSEntries map[string]string
+	CustomDNSEntries []ConstellationDNSEntry
 	NebulaConfig NebulaConfig
 	ConstellationHostname string
 }
 
+type ConstellationDNSEntry struct {
+	Type string
+	Key string
+	Value string
+}
 type ConstellationDevice struct {
 	Nickname string `json:"nickname"`
 	DeviceName string `json:"deviceName"`
@@ -231,6 +237,8 @@ type ConstellationDevice struct {
 	IsRelay bool `json:"isRelay"`
 	PublicHostname string `json:"publicHostname"`
 	Port string `json:"port"`
+	Blocked bool `json:"blocked"`
+	Fingerprint string `json:"fingerprint"`
 }
 
 type NebulaFirewallRule struct {
@@ -251,6 +259,7 @@ type NebulaConfig struct {
 		CA   string `yaml:"ca"`
 		Cert string `yaml:"cert"`
 		Key  string `yaml:"key"`
+		Blocklist []string `yaml:"blocklist"`
 	} `yaml:"pki"`
 
 	StaticHostMap map[string][]string `yaml:"static_host_map"`
