@@ -112,7 +112,7 @@ const MarketPage = () => {
   const { appName, appStore } = useParams();
   const [search, setSearch] = useState("");
   const {role} = useClientInfos();
-  const isAdmin = role === 1;
+  const isAdmin = role === 2;
 
   const backgroundStyle = isDark ? {
     backgroundColor: 'rgb(0,0,0)',

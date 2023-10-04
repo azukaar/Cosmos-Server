@@ -40,7 +40,7 @@ const ConfigManagement = () => {
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
   const [saveLabel, setSaveLabel] = React.useState("Save");
   const {role} = useClientInfos();
-  const isAdmin = role === 1;
+  const isAdmin = role === 2;
 
   function refresh() {
     API.config.get().then((res) => {

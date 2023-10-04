@@ -79,7 +79,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const [isDone, setIsDone] = useState(null);
   const canvasRef = React.useRef(null);
   const {role, nickname} = useClientInfos();
-  const isAdmin = role === 1;
+  const isAdmin = role === 2;
 
   let firstIP = "192.168.201.2/24";
   if (devices && devices.length > 0) { 

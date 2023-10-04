@@ -89,7 +89,7 @@ const HomePage = () => {
     const isDark = theme.palette.mode === 'dark';
     const isMd = useMediaQuery(theme.breakpoints.up('md'));
     const {role} = useClientInfos();
-    const isAdmin = role === 1;
+    const isAdmin = role === 2;
 
     const blockStyle = {
         margin: 0,

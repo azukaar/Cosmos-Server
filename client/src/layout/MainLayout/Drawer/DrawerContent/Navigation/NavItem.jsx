@@ -19,7 +19,7 @@ const NavItem = ({ item, level }) => {
     const menu = useSelector((state) => state.menu);
     const { drawerOpen, openItem } = menu;
     const {role} = useClientInfos();
-    const isAdmin = role === 1;
+    const isAdmin = role === 2;
 
     if (item.adminOnly && !isAdmin) {
         return null;
