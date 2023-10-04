@@ -31,7 +31,7 @@ export const ConstellationVPN = () => {
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
   const {role} = useClientInfos();
-  const isAdmin = role === 2;
+  const isAdmin = role === "2";
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();

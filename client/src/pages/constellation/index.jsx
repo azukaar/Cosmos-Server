@@ -15,7 +15,7 @@ import { ConstellationDNS } from './dns';
 
 const ConstellationIndex = () => {
   const {role} = useClientInfos();
-  const isAdmin = role === 2;
+  const isAdmin = role === "2";
 
   return isAdmin ? <div>
     <IsLoggedIn />
