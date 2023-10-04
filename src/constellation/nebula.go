@@ -235,7 +235,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath, capki, cert, key string, device utils.ConstellationDevice) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -321,9 +321,11 @@ func getYAMLClientConfig(name, configPath, capki, cert, key string, device utils
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	configMap["deviceName"] = name
-	configMap["local_dns_overwrite"] = "192.168.201.1"
-	configMap["public_hostname"] = device.PublicHostname
+	configMap["constellation_device_name"] = name
+	configMap["constellation_local_dns_overwrite"] = true
+	configMap["constellation_local_dns_overwrite_address"] = "192.168.201.1"
+	configMap["constellation_public_hostname"] = device.PublicHostname
+	configMap["constellation_api_key"] = APIKey
 
 	// export configMap as YML
 	yamlData, err = yaml.Marshal(configMap)

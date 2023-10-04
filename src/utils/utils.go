@@ -64,7 +64,7 @@ var DefaultConfig = Config{
 	},
   ConstellationConfig: ConstellationConfig{
     Enabled: false,
-		DNS: true,
+		DNSDisabled: false,
 		DNSFallback: "8.8.8.8:53",
 		DNSAdditionalBlocklists: []string{
 			"https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",

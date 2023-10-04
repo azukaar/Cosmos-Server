@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.10.0-unstable16",
+  "version": "0.10.0-unstable17",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -36,6 +36,7 @@
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.0",
     "react-color": "^2.19.3",
+    "react-cookie": "^6.1.1",
     "react-copy-to-clipboard": "^5.1.0",
     "react-device-detect": "^2.2.2",
     "react-dom": "^18.2.0",

@@ -1,31 +1,57 @@
-“Commons Clause” License Condition v1.0
-
-The Software is provided to you by the Licensor under the
-License, as defined below, subject to the following condition.
-
-Without limiting other conditions in the License, the grant
-of rights under the License will not include, and the License
-does not grant to you, the right to Sell the Software.
-
-For purposes of the foregoing, “Sell” means practicing any or
-all of the rights granted to you under the License to provide
-to third parties, for a fee or other consideration (including
-without limitation fees for hosting or consulting/ support
-services related to the Software), a product or service whose
-value derives, entirely or substantially, from the functionality
-of the Software. Any license notice or attribution required by
-the License must also include this Commons Clause License
-Condition notice.
-
 Software: Cosmos-Server
 
-License: Apache 2.0 with Commons Clause
+License: Apache 2.0 with Commons Clause and Anti Tampering Clause
 
 Licensor: Yann Stepienik
 
+---------------------------------------------------------------------
+
+      “Commons Clause” License Condition v1.0
+
+      The Software is provided to you by the Licensor under the
+      License, as defined below, subject to the following condition.
+
+      Without limiting other conditions in the License, the grant
+      of rights under the License will not include, and the License
+      does not grant to you, the right to Sell the Software.
+
+      For purposes of the foregoing, “Sell” means practicing any or
+      all of the rights granted to you under the License to provide
+      to third parties, for a fee or other consideration (including
+      without limitation fees for hosting or consulting/ support
+      services related to the Software), a product or service whose
+      value derives, entirely or substantially, from the functionality
+      of the Software. Any license notice or attribution required by
+      the License must also include this Commons Clause License
+      Condition notice.
 
 ---------------------------------------------------------------------
 
+      "Anti Tampering Clause” License Condition v1.0
+   
+      Notwithstanding any provision of the Apache License 2.0, if the User
+      (or any party receiving or distributing derivative works, services,
+      or anything of value from the User related to the Software), directly 
+      or indirectly, seeks to tamper with, alter, circumvent, or avoid
+      compliance with any subscription, paywall, feature restriction, or any 
+      other licensing mechanism built into the Software or its usage, the 
+      License granted under the Apache License 2.0 shall automatically and
+      immediately terminate, and access to the Software shall be withdrawn 
+      with immediate effect. Upon such termination, any and all rights 
+      established under the Apache License 2.0 shall be null and void.
+
+      Tampering includes but is not limited to: (a) removing, disabling,
+      or circumventing any license key or other copy protection mechanism,
+      (b) redistributing parts or all of a feature that was intended
+      to be a paid feature, without keeping the restrictions, limitations,
+      or other licensing mechanisms with it(c) disabling, circumventing, or
+      avoiding any feature of the Software that is intended to enforce usage or
+      copy restrictions, or (d) providing or distributing any information
+      or code that enables disabling, circumvention, or avoidance of any
+      feature of the Software that is intended to enforce usage or copy
+      restrictions.
+
+---------------------------------------------------------------------
 
                                  Apache License
                            Version 2.0, January 2004

@@ -5,6 +5,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/golang-jwt/jwt"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 	"encoding/json"
@@ -189,13 +190,25 @@ func logOutUser(w http.ResponseWriter, req *http.Request) {
 		HttpOnly: true,
 	}
 
+	clientCookie := http.Cookie{
+		Name: "client-infos",
+		Value: "{}",
+		Expires: time.Now().Add(-time.Hour * 24 * 365),
+		Path: "/",
+		Secure: utils.IsHTTPS,
+		HttpOnly: false,
+	}
+
 	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
 		cookie.Domain = ""
+		clientCookie.Domain = ""
 	} else {
 		cookie.Domain = "." + reqHostNoPort
+		clientCookie.Domain = "." + reqHostNoPort
 	}
 
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &clientCookie)
 
 	// TODO: logout every other device if asked by increasing passwordcycle
 }
@@ -254,13 +267,24 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		HttpOnly: true,
 	}
 
+	clientCookie := http.Cookie{
+		Name: "client-infos",
+		Value: user.Nickname + "," + strconv.Itoa(int(user.Role)),
+		Expires: expiration,
+		Path: "/",
+		Secure: utils.IsHTTPS,
+		HttpOnly: false,
+	}
+
 	utils.Log("UserLogin: Setting cookie for " + reqHostNoPort)
 
 	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
 		cookie.Domain = ""
+		clientCookie.Domain = ""
 	} else {
 		if utils.IsValidHostname(reqHostNoPort) {
 			cookie.Domain = "." + reqHostNoPort
+			clientCookie.Domain = "." + reqHostNoPort
 		} else {
 			utils.Error("UserLogin: Invalid hostname", nil)
 			utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
@@ -269,4 +293,5 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 	}
 
 	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &clientCookie)
 }

@@ -31,7 +31,6 @@ export const ConstellationDNS = () => {
   }, []);
 
   return <>
-    <IsLoggedIn />
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
@@ -40,8 +39,6 @@ export const ConstellationDNS = () => {
 
           <Formik
             initialValues={{
-              Enabled: config.ConstellationConfig.DNS,
-              Port: config.ConstellationConfig.DNSPort,
               Fallback: config.ConstellationConfig.DNSFallback,
               DNSBlockBlacklist: config.ConstellationConfig.DNSBlockBlacklist,
               DNSAdditionalBlocklists: config.ConstellationConfig.DNSAdditionalBlocklists,
@@ -49,8 +46,6 @@ export const ConstellationDNS = () => {
             }}
             onSubmit={(values) => {
               let newConfig = { ...config };
-              newConfig.ConstellationConfig.DNS = values.Enabled;
-              newConfig.ConstellationConfig.DNSPort = values.Port;
               newConfig.ConstellationConfig.DNSFallback = values.Fallback;
               newConfig.ConstellationConfig.DNSBlockBlacklist = values.DNSBlockBlacklist;
               newConfig.ConstellationConfig.DNSAdditionalBlocklists = values.DNSAdditionalBlocklists;
@@ -62,13 +57,18 @@ export const ConstellationDNS = () => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Stack spacing={2}>        
-                  <CosmosCheckbox formik={formik} name="Enabled" label="Constellation DNS Server Enabled" />
-                  <CosmosInputText formik={formik} name="Port" label="DNS Port" />
+                  <Alert severity="info">This is a DNS that runs inside your Constellation network. It automatically
+                  rewrites your domains DNS entries to be local to your network, and also allows you to do things like block ads
+                  and trackers on all devices connected to your network. You can also add custom DNS entries to resolve to specific
+                  IP addresses. This DNS server is only accessible from inside your network.</Alert>
+
                   <CosmosInputText formik={formik} name="Fallback" label="DNS Fallback" placeholder={'8.8.8.8:53'} />
                   
                   <CosmosFormDivider title={"DNS Blocklists"} />
 
                   <CosmosCheckbox formik={formik} name="DNSBlockBlacklist" label="Use Blacklists to block domains" />
+
+                  <Alert severity="warning">When changing your DNS records, always use private mode on your browser and allow some times for various caches to expire.</Alert>
 
                   <InputLabel>DNS Blocklist URLs</InputLabel>
                   {formik.values.DNSAdditionalBlocklists.map((item, index) => (

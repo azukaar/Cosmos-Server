@@ -20,7 +20,8 @@ const pages = {
             title: 'ServApps',
             type: 'item',
             url: '/cosmos-ui/servapps',
-            icon: AppstoreOutlined
+            icon: AppstoreOutlined,
+            adminOnly: true
         },
         {
             id: 'url',
@@ -43,6 +44,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/config-users',
             icon: icons.ProfileOutlined,
+            adminOnly: true
         },
         {
             id: 'openid',
@@ -50,6 +52,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/openid-manage',
             icon: PicLeftOutlined,
+            adminOnly: true
         },
         {
             id: 'config',

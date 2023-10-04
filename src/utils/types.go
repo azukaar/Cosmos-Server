@@ -213,7 +213,7 @@ type ConstellationConfig struct {
 	Enabled bool
 	SlaveMode bool
 	PrivateNode bool
-	DNS bool
+	DNSDisabled bool
 	DNSPort string
 	DNSFallback string
 	DNSBlockBlacklist bool
@@ -239,6 +239,7 @@ type ConstellationDevice struct {
 	Port string `json:"port"`
 	Blocked bool `json:"blocked"`
 	Fingerprint string `json:"fingerprint"`
+	APIKey string `json:"-"`
 }
 
 type NebulaFirewallRule struct {

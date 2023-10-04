@@ -12,6 +12,7 @@ import { getFullOrigin } from "../../utils/routes";
 import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
 import Chart from 'react-apexcharts';
+import { useClientInfos } from "../../utils/hooks";
 
 
 export const HomeBackground = () => {
@@ -87,6 +88,8 @@ const HomePage = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
     const isMd = useMediaQuery(theme.breakpoints.up('md'));
+    const {role} = useClientInfos();
+    const isAdmin = role === 1;
 
     const blockStyle = {
         margin: 0,
@@ -112,9 +115,13 @@ const HomePage = () => {
     }
 
     const refreshConfig = () => {
-        API.docker.list().then((res) => {
-            setServApps(res.data);
-        });
+        if(isAdmin) {
+            API.docker.list().then((res) => {
+                setServApps(res.data);
+            });
+        } else {
+            setServApps([]);
+        }
         API.config.get().then((res) => {
             setConfig(res.data);
         });
@@ -213,20 +220,20 @@ const HomePage = () => {
         <HomeBackground status={coStatus} />
         <TransparentHeader />
         <Stack style={{ zIndex: 2 }} spacing={1}>
-            {coStatus && !coStatus.database && (
+            {isAdmin && coStatus && !coStatus.database && (
                 <Alert severity="error">
                     No Database is setup for Cosmos! User Management and Authentication will not work.<br />
                     You can either setup the database, or disable user management in the configuration panel.<br />
                 </Alert>
             )}
 
-            {coStatus && coStatus.letsencrypt && (
+            {isAdmin && coStatus && coStatus.letsencrypt && (
                 <Alert severity="error">
                     You have enabled Let's Encrypt for automatic HTTPS Certificate. You need to provide the configuration with an email address to use for Let's Encrypt in the configs.
                 </Alert>
             )}
 
-            {coStatus && coStatus.LetsEncryptErrors && coStatus.LetsEncryptErrors.length > 0 && (
+            {isAdmin && coStatus && coStatus.LetsEncryptErrors && coStatus.LetsEncryptErrors.length > 0 && (
                 <Alert severity="error">
                     There are errors with your Let's Encrypt configuration or one of your routes, please fix them as soon as possible:
                     {coStatus.LetsEncryptErrors.map((err) => {
@@ -235,25 +242,25 @@ const HomePage = () => {
                 </Alert>
             )}
 
-            {coStatus && coStatus.newVersionAvailable && (
+            {isAdmin && coStatus && coStatus.newVersionAvailable && (
                 <Alert severity="warning">
                     A new version of Cosmos is available! Please update to the latest version to get the latest features and bug fixes.
                 </Alert>
             )}
 
-            {coStatus && coStatus.needsRestart && (
+            {isAdmin && coStatus && coStatus.needsRestart && (
                 <Alert severity="warning">
                     You have made changes to the configuration that require a restart to take effect. Please restart Cosmos to apply the changes.
                 </Alert>
             )}
 
-            {coStatus && coStatus.domain && (
+            {isAdmin && coStatus && coStatus.domain && (
                 <Alert severity="error">
                     You are using localhost or 0.0.0.0 as a hostname in the configuration. It is recommended that you use a domain name or an IP instead.
                 </Alert>
             )}
 
-            {coStatus && !coStatus.docker && (
+            {isAdmin && coStatus && !coStatus.docker && (
                 <Alert severity="error">
                     Docker is not connected! Please check your docker connection.<br />
                     Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />

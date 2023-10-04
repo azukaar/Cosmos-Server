@@ -1,5 +1,5 @@
 // material-ui
-import { Alert, Button, Stack, TextField } from '@mui/material';
+import { Alert, Button, InputLabel, OutlinedInput, Stack, TextField } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -15,6 +15,7 @@ import * as API from '../../api';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
+import { useClientInfos } from '../../utils/hooks';
 
 const getDocker = (data, isCompose) => {
   let lighthouses = '';
@@ -73,10 +74,12 @@ docker run -d \\
 }
 
 
-const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
+const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
   const canvasRef = React.useRef(null);
+  const {role, nickname} = useClientInfos();
+  const isAdmin = role === 1;
 
   let firstIP = "192.168.201.2/24";
   if (devices && devices.length > 0) { 
@@ -116,7 +119,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
     <Dialog open={openModal} onClose={() => setOpenModal(false)}>
       <Formik
         initialValues={{
-          nickname: users[0].nickname,
+          nickname: nickname,
           deviceName: '',
           ip: firstIP,
           publicKey: '',
@@ -197,7 +200,7 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                     formik={formik}
                   />
                   {!formik.values.isLighthouse &&
-                    <CosmosSelect
+                    (isAdmin ? <CosmosSelect
                       name="nickname"
                       label="Owner"
                       formik={formik}
@@ -207,7 +210,17 @@ const AddDeviceModal = ({ users, config, isAdmin, refreshConfig, devices }) => {
                           return [u.nickname, u.nickname]
                         })
                       }
-                    />}
+                    /> : <>
+                      <InputLabel>Owner</InputLabel>
+                      <OutlinedInput
+                        fullWidth
+                        multiline
+                        value={nickname}
+                        variant="outlined"
+                        size="small"
+                        disabled
+                      />
+                    </>)}
 
                     <CosmosInputText
                       name="deviceName"

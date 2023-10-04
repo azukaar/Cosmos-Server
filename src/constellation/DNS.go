@@ -176,7 +176,7 @@ func InitDNS() {
 		utils.Log("Loaded " + strconv.Itoa(len(DNSBlacklist)) + " domains")
 	}
 
-	if(config.ConstellationConfig.DNS) {
+	if(!config.ConstellationConfig.DNSDisabled) {
 		go (func() {
 			dns.HandleFunc(".", handleDNSRequest)
 			server := &dns.Server{Addr: ":" + DNSPort, Net: "udp"}

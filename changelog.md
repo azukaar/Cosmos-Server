@@ -7,6 +7,8 @@
  - Added Constellation
  - DNS Challenge is now used for all certificates when enabled
  - Rework headers for better compatibility
+ - Improve experience for non-admin users
+ - Fix bug with redirect on logout
  
 ## Version 0.9.20 - 0.9.21
  - Add option to disable CORS hardening (with empty value)

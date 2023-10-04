@@ -15,6 +15,7 @@ import ApiModal from "../../components/apiModal";
 import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
+import { useClientInfos } from "../../utils/hooks";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -26,17 +27,20 @@ const getDefaultConstellationHostname = (config) => {
 }
 
 export const ConstellationVPN = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
+  const {role} = useClientInfos();
+  const isAdmin = role === 1;
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setDevices((await API.constellation.list()).data || []);
-    setUsers((await API.users.list()).data || []);
+    if(isAdmin)
+      setUsers((await API.users.list()).data || []);
+    else 
+      setUsers([]);
   };
 
   useEffect(() => {
@@ -61,7 +65,6 @@ export const ConstellationVPN = () => {
   }
 
   return <>
-    <IsLoggedIn />
     {(devices && config && users) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
@@ -160,7 +163,7 @@ export const ConstellationVPN = () => {
           data={devices.filter((d) => !d.blocked)}
           getKey={(r) => r.deviceName}
           buttons={[
-            <AddDeviceModal isAdmin={isAdmin} users={users} config={config} refreshConfig={refreshConfig} devices={devices} />,
+            <AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices}/>,
           ]}
           columns={[
               {

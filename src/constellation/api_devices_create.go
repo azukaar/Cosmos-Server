@@ -44,10 +44,13 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		
 		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
+		APIKey := utils.GenerateRandomString(32)
 		
 		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 			return
 		}
+
+		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
 
 		c, errCo := utils.GetCollection(utils.GetRootAppId(), "devices")
 		if errCo != nil {
@@ -100,6 +103,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"PublicHostname": request.PublicHostname,
 				"Port": request.Port,
 				"Fingerprint": fingerprint,
+				"APIKey": APIKey,
+				"Blocked": false,
 			})
 
 			if err3 != nil {
@@ -123,7 +128,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			}
 			
 			// read configYml from config/nebula.yml
-			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, utils.ConstellationDevice{
+			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{
 				Nickname: nickname,
 				DeviceName: deviceName,
 				PublicKey: key,
@@ -132,6 +137,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				IsRelay: request.IsRelay,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
+				APIKey: APIKey,
 			})
 
 			if err != nil {

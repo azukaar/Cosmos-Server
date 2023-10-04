@@ -9,6 +9,7 @@ import { Avatar, Chip, ListItemButton, ListItemIcon, ListItemText, Typography } 
 
 // project import
 import { activeItem } from '../../../../../store/reducers/menu';
+import { useClientInfos } from '../../../../../utils/hooks';
 
 // ==============================|| NAVIGATION - LIST ITEM ||============================== //
 
@@ -17,6 +18,12 @@ const NavItem = ({ item, level }) => {
     const dispatch = useDispatch();
     const menu = useSelector((state) => state.menu);
     const { drawerOpen, openItem } = menu;
+    const {role} = useClientInfos();
+    const isAdmin = role === 1;
+
+    if (item.adminOnly && !isAdmin) {
+        return null;
+    }
 
     let itemTarget = '_self';
     if (item.target) {
