@@ -301,12 +301,12 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			}
 		}
 
-		isInConstellationBlocking := !RestrictToConstellation || isInConstellation
-		isWhitelistBlocking := !isUsingWhiteList || isInWhitelist
+		isInConstellationPassing := !RestrictToConstellation || isInConstellation
+		isWhitelistPassing := !isUsingWhiteList || isInWhitelist
 
 		// check if the request is coming from the constellation IP range 192.168.201.0/24
-		if (isInConstellationBlocking && isWhitelistBlocking) { 
-			Log("Request from " + ip + " is blocked because of restrictions isInConstellationBlocking: " + fmt.Sprintf("%v", isInConstellationBlocking) + " and isWhitelistBlocking: " + fmt.Sprintf("%v", isWhitelistBlocking))
+		if (!isInConstellationPassing || !isWhitelistPassing) { 
+			Log("Request from " + ip + " is blocked because of restrictions isInConstellationPassing: " + fmt.Sprintf("%v", isInConstellationPassing) + " and isWhitelistPassing: " + fmt.Sprintf("%v", isWhitelistPassing))
 			http.Error(w, "Access denied", http.StatusForbidden)
 			return
 		}
