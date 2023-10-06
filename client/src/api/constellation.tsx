@@ -57,13 +57,33 @@ function getLogs() {
 }
 
 function connect(file) {
-  return wrap(fetch('/cosmos/api/constellation/connect', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/yaml'
-    },
-    body: file,
-  }))
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      fetch('/cosmos/api/constellation/connect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+        body: reader.result,
+      })
+      .then(response => {
+        // Add additional response handling here if needed.
+        resolve(response);
+      })
+      .catch(error => {
+        // Handle the error.
+        reject(error);
+      });
+    };
+    
+    reader.onerror = () => {
+      reject(new Error('Failed to read the file.'));
+    };
+    
+    reader.readAsText(file);
+  });
 }
 
 function block(nickname, devicename, block) {

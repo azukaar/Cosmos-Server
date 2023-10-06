@@ -147,7 +147,9 @@ export const ConstellationVPN = () => {
                     OnChange={async (e) => {
                       let file = e.target.files[0];
                       await API.constellation.connect(file);
-                      refreshConfig();
+                      setTimeout(() => {
+                        refreshConfig();
+                      }, 1000);
                     }}
                   />
                 </Stack>
