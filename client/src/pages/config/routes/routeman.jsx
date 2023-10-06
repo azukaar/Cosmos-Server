@@ -74,7 +74,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
-          WhitelistInboundIPs: routeConfig.WhitelistInboundIPs.join(', '),
+          WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
         validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
