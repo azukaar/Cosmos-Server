@@ -108,6 +108,13 @@ func ResetNebula() error {
 	if err != nil {
 		return err
 	}
+	
+	config := utils.ReadConfigFromFile()
+	config.ConstellationConfig.Enabled = false
+	config.ConstellationConfig.SlaveMode = false
+	config.ConstellationConfig.DNSDisabled = false
+
+	utils.SetBaseMainConfig(config)
 
 	Init()
 
@@ -194,6 +201,8 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 	
+	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
+
 	// add other lighthouses 
 	finalConfig.Lighthouse.Hosts = []string{}
 	for _, l := range lh {
@@ -204,7 +213,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 	finalConfig.Relay.Relays = []string{}
 	for _, l := range lh {
-		if l.IsRelay && l.IsLighthouse {
+		if l.IsRelay {
 			finalConfig.Relay.Relays = append(finalConfig.Relay.Relays, cleanIp(l.IP))
 		}
 	}
@@ -257,8 +266,10 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		staticHostMap["192.168.201.1"] = []string{
-			utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
+			staticHostMap["192.168.201.1"] = []string{
+				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			}
 		}
 		
 		for _, l := range lh {
@@ -274,10 +285,11 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
 		
-		lighthouseMap["hosts"] = []string{
-			"192.168.201.1",
+		lighthouseMap["hosts"] = []string{}
+		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
+			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
-		
+
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))

@@ -89,6 +89,9 @@ export const ConstellationVPN = () => {
               newConfig.ConstellationConfig.PrivateNode = values.PrivateNode;
               newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
               newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
+              setTimeout(() => {
+                refreshConfig();
+              }, 1500);
               return API.config.set(newConfig);
             }}
           >
