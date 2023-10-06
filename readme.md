@@ -8,7 +8,6 @@
 <a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/bleibdirtroy"><img src="https://avatars.githubusercontent.com/bleibdirtroy" style="border-radius:48px" width="48" height="48" alt="Adrian" title="Adrian" /></a>
 </p><!-- /sponsors -->
 
 ---

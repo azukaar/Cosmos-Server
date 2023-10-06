@@ -60,9 +60,9 @@ function connect(file) {
   return wrap(fetch('/cosmos/api/constellation/connect', {
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/yaml'
     },
-    body: JSON.stringify(file),
+    body: file,
   }))
 }
 

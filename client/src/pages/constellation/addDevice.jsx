@@ -275,7 +275,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
             <DialogActions>
               <Button onClick={() => setOpenModal(false)}>Close</Button>
-              <Button color="primary" variant="contained" type="submit">Add</Button>
+              {!isDone && <Button color="primary" variant="contained" type="submit">Add</Button>}
             </DialogActions>
           </form>
 

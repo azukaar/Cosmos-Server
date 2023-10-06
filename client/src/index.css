@@ -124,8 +124,8 @@
 }
 
 .loading-image:empty {
-  background: url('assets/images/icons/cosmos_gray.png') no-repeat center center;
-  background-size: contain;
+  /* background: url('assets/images/icons/cosmos_gray.png') no-repeat center center;
+  background-size: contain; */
 }
 
 .raw-table table {
