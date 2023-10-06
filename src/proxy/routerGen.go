@@ -85,7 +85,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 	}
 	
-	destination = utils.Restrictions(route.RestrictToConstellation)(destination)
+	destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
 	
 	destination = SmartShieldMiddleware(route.Name, route.SmartShield)(destination)
 

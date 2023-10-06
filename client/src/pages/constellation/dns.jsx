@@ -71,7 +71,7 @@ export const ConstellationDNS = () => {
                   <Alert severity="warning">When changing your DNS records, always use private mode on your browser and allow some times for various caches to expire.</Alert>
 
                   <InputLabel>DNS Blocklist URLs</InputLabel>
-                  {formik.values.DNSAdditionalBlocklists.map((item, index) => (
+                  {formik.values.DNSAdditionalBlocklists && formik.values.DNSAdditionalBlocklists.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`DNSAdditionalBlocklists${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
                         formik.setFieldValue("DNSAdditionalBlocklists", [...formik.values.DNSAdditionalBlocklists.slice(0, index), ...formik.values.DNSAdditionalBlocklists.slice(index + 1)]);
@@ -105,7 +105,7 @@ export const ConstellationDNS = () => {
                   <CosmosFormDivider title={"DNS Custom Entries"} />
 
                   <InputLabel>DNS Custom Entries</InputLabel>
-                  {formik.values.CustomDNSEntries.map((item, index) => (
+                  {formik.values.CustomDNSEntries && formik.values.CustomDNSEntries.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`CustomDNSEntries${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
                         formik.setFieldValue("CustomDNSEntries", [...formik.values.CustomDNSEntries.slice(0, index), ...formik.values.CustomDNSEntries.slice(index + 1)]);

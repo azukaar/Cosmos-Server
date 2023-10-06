@@ -260,22 +260,51 @@ func IsValidHostname(hostname string) bool {
 	return false
 }
 
-func Restrictions(RestrictToConstellation bool) func(next http.Handler) http.Handler {
+func IPInRange(ipStr, cidrStr string) (bool, error) {
+	_, cidrNet, err := net.ParseCIDR(cidrStr)
+	if err != nil {
+		return false, fmt.Errorf("parse CIDR range: %w", err)
+	}
+
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return false, fmt.Errorf("parse IP: invalid IP address")
+	}
+
+	return cidrNet.Contains(ip), nil
+}
+
+func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		// check if the request is coming from the constellation IP range 192.168.201.0/24
-		if RestrictToConstellation {
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
-				http.Error(w, "Invalid request", http.StatusBadRequest)
-				return
-			}
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
 
-			if !strings.HasPrefix(ip, "192.168.201.") && !strings.HasPrefix(ip, "192.168.202.") {
-				http.Error(w, "Access denied", http.StatusForbidden)
-				return
+		isUsingWhiteList := len(WhitelistInboundIPs) > 0
+
+		isInWhitelist := false
+		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
+
+		for _, ipRange := range WhitelistInboundIPs {
+			if strings.Contains(ipRange, "/") {
+				if ok, _ := IPInRange(ip, ipRange); ok {
+					isInWhitelist = true
+				}
+			} else {
+				if ip == ipRange {
+					isInWhitelist = true
+				}
 			}
+		}
+
+		// check if the request is coming from the constellation IP range 192.168.201.0/24
+		if (RestrictToConstellation && !isInConstellation && (!isUsingWhiteList || !isInWhitelist)) || (!RestrictToConstellation && (!isUsingWhiteList || !isInWhitelist)) {
+			http.Error(w, "Access denied", http.StatusForbidden)
+			return
 		}
 
 		next.ServeHTTP(w, r)

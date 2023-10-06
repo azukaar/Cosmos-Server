@@ -182,6 +182,8 @@ type ProxyRouteConfig struct {
 	VerboseForwardHeader bool
 	AddionalFilters []AddionalFiltersConfig
 	RestrictToConstellation bool
+	OverwriteHostHeader string
+	WhitelistInboundIPs []string
 }
 
 type EmailConfig struct {

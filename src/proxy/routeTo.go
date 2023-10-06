@@ -80,7 +80,8 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		req.Header.Del("X-Forwarded-Host")
 		req.Header.Del("X-Forwarded-For")
 		req.Header.Del("X-Real-Ip")
-		req.Header.Del("Host")
+		// hide hostname (dangerous)
+		// req.Header.Del("Host")
 
 		hostname := utils.GetMainConfig().HTTPConfig.Hostname
 		if route.Host != "" && route.UseHost {
@@ -90,15 +91,25 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 			hostname = hostname + route.PathPrefix
 		}
 
+		hostDest := hostname
+		if route.OverwriteHostHeader != "" {
+			hostDest = route.OverwriteHostHeader
+		}
+		
+		// hide hostname (dangerous)
+		// req.Header.Set("Host", url.Host)
+		// req.Host = url.Host
+
+		req.Header.Set("Host", hostDest)
+		req.Host = hostDest
+
 		if VerboseForwardHeader {
-			req.Header.Set("X-Origin-Host", hostname)
-			req.Header.Set("Host", hostname)
-			req.Header.Set("X-Forwarded-Host", hostname)
+			req.Header.Set("X-Origin-Host", hostDest)
+			req.Header.Set("X-Forwarded-Host", hostDest)
 			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
 			req.Header.Set("X-Real-IP", utils.GetClientIP(req))
-		} else {
-			req.Host = url.Host
-		}
+		} 
+		
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
