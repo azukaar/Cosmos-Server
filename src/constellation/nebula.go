@@ -515,6 +515,14 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 }
 
 func generateNebulaCACert(name string) (error) {
+	// if ca.key exists, delete it, remove it 
+	if _, err := os.Stat("./ca.key"); err == nil {
+		os.Remove("./ca.key")
+	}
+	if _, err := os.Stat("./ca.crt"); err == nil {
+		os.Remove("./ca.crt")
+	}
+	
 	// Run the nebula-cert command to generate CA certificate and key
 	cmd := exec.Command(binaryToRun() + "-cert", "ca", "-name", "\""+name+"\"")
 
