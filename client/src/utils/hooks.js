@@ -3,16 +3,8 @@ import { useCookies } from 'react-cookie';
 import { logout } from '../api/authentication';
 
 function useClientInfos() {
-  const [cookies] = useCookies(['client-infos', 'jwttoken']);
+  const [cookies] = useCookies(['client-infos']);
 
-  if(cookies['jwttoken'] === undefined) {
-    // probably the demo or new install
-    return {
-      nickname: "",
-      role: "2"
-    }
-  }
-  
   let clientInfos = null;
   
   try {
@@ -25,7 +17,10 @@ function useClientInfos() {
     };
   } catch (error) {
     console.error('Error parsing client-infos cookie:', error);
-    logout();
+    return {
+      nickname: "",
+      role: 2
+    };
   }
 }
 
