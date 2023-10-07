@@ -290,6 +290,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
 
 		for _, ipRange := range WhitelistInboundIPs {
+			utils.Debug("Checking if " + ip + " is in " + ipRange)
 			if strings.Contains(ipRange, "/") {
 				if ok, _ := IPInRange(ip, ipRange); ok {
 					isInWhitelist = true
@@ -300,6 +301,11 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 				}
 			}
 		}
+
+		utils.Debug("Is using whitelist: " + fmt.Sprintf("%v", isUsingWhiteList))
+		utils.Debug("Is in whitelist: " + fmt.Sprintf("%v", isInWhitelist))
+		utils.Debug("Is using constellation: " + fmt.Sprintf("%v", RestrictToConstellation))
+		utils.Debug("Is in constellation: " + fmt.Sprintf("%v", isInConstellation))
 
 		if(RestrictToConstellation) {
 			if(!isInConstellation) {
