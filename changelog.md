@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-## Version 0.9.20 - 0.9.21
- - Add option to disable CORS hardening (with empty value)
-
-=======
 ## Version 0.10.0
  - Added Constellation
  - DNS Challenge is now used for all certificates when enabled [breaking change]
