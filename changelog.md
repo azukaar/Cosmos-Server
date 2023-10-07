@@ -1,3 +1,7 @@
+## Version 0.10.1
+ - Fix an issue where Constellation is stuck if creating a new network is interrupted
+ - Fix a logic issue with the whitelist inbound IPs
+
 ## Version 0.10.0
  - Added Constellation
  - DNS Challenge is now used for all certificates when enabled [breaking change]
