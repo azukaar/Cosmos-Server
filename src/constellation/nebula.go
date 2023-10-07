@@ -428,6 +428,19 @@ func GetCertFingerprint(certPath string) (string, error) {
 func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
+	
+	// Read the generated certificate and key files
+	certPath := fmt.Sprintf("./%s.crt", name)
+	keyPath := fmt.Sprintf("./%s.key", name)
+
+	
+	// if the temp exists, delete it
+	if _, err := os.Stat(certPath); err == nil {
+		os.Remove(certPath)
+	}
+	if _, err := os.Stat(keyPath); err == nil {
+		os.Remove(keyPath)
+	}
 
 	if(PK == "") {
 		cmd = exec.Command(binaryToRun() + "-cert",
@@ -471,9 +484,6 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 		return "", "", "", fmt.Errorf("nebula-cert exited with an error, check the Cosmos logs")
 	}
 
-	// Read the generated certificate and key files
-	certPath := fmt.Sprintf("./%s.crt", name)
-	keyPath := fmt.Sprintf("./%s.key", name)
 
 	utils.Debug("Reading certificate from " + certPath)
 	utils.Debug("Reading key from " + keyPath)
@@ -515,7 +525,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 }
 
 func generateNebulaCACert(name string) (error) {
-	// if ca.key exists, delete it, remove it 
+	// if ca.key exists, delete it
 	if _, err := os.Stat("./ca.key"); err == nil {
 		os.Remove("./ca.key")
 	}
