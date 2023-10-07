@@ -44,6 +44,7 @@ Cosmos is a:
  * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
  * **Authentication Server** 👦👩 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Container manager** 🐋🔧 To easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
+ * **VPN** 🌐🔒 To securely access your applications from anywhere, without having to open ports on your router.
  * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
  * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies.
 
@@ -145,14 +146,16 @@ Note that **you are allowed** to use it to host a monetized business website, a 
 Installation is simple using Docker:
 
 ```
-docker run -d -p 80:80 -p 443:443 --privileged  --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
+docker run -d -p 80:80 -p 443:443 -p 4242:4242/udp --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
 
 in this command, `-v /:/mnt/host` is optional and allow to manage folders from Cosmos, you can remove it if you don't want it but you will have to create your container's bind folders manually.
 
-`--privileged` is also optional, but it is required to use Constellation. It is also required if you use hardening software like AppArmor or SELinux, as they restrict access to the docker socket.
+`--privileged` is also optional, but it is required if you use hardening software like AppArmor or SELinux, as they restrict access to the docker socket. It is also required for Constellation to work. If you don't want to use it, you can add the following capabilities: NET_ADMIN for Constellation.
 
 Once installed, simply go to `http://your-server-ip` and follow the instructions of the setup wizard.
+
+Port 4242 is a UDP port used for the Constellation VPN.
 
 make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
 

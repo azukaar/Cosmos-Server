@@ -11,6 +11,7 @@ import * as configDemo from './config.demo';
 import * as dockerDemo from './docker.demo';
 import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
+import * as constellationDemo from './constellation.demo';
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -226,6 +227,7 @@ if(isDemo) {
   checkHost = indexDemo.checkHost;
   getDNS = indexDemo.getDNS;
   uploadBackground = indexDemo.uploadBackground;
+  constellation = constellationDemo;
 }
 
 export {

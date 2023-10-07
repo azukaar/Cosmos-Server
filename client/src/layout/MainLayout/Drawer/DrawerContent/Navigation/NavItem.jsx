@@ -61,6 +61,16 @@ const NavItem = ({ item, level }) => {
     const textColor = 'text.primary';
     const iconSelectedColor = 'primary.main';
 
+    // SET BETA (TODO REMOVE)
+    if(item.title === "Constellation")
+    item.title = <>{item.title} <span style={{
+        color: 'gray',
+        fontSize: '11px',
+        textDecoration: 'italic',
+        transform: 'translateY(-5px)',
+        display: 'inline-block',
+    }}>Beta</span></>;
+
     return (
         <ListItemButton
             {...listItemProps}

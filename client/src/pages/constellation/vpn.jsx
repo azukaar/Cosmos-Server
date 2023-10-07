@@ -68,6 +68,12 @@ export const ConstellationVPN = () => {
     {(devices && config && users) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
+        <Alert severity="info">
+          Constellation is a VPN that runs inside your Cosmos network. It automatically
+          connects all your devices together, and allows you to access them from anywhere.
+          Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank">documentation</a> for more information.
+          In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank">Constellation App</a>.
+        </Alert>
         <MainCard title={"Constellation Setup"} content={config.constellationIP}>
           <Stack spacing={2}>
           {config.ConstellationConfig.Enabled && config.ConstellationConfig.SlaveMode && <>

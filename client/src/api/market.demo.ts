@@ -5,6 +5,38 @@ function list() {
         "data": {
           "showcase": [
             {
+              "name": "Home Assistant",
+              "description": "Home Assistant is an open-source home automation platform that focuses on privacy and local control. It allows you to control all your devices from a single interface, integrating with a large number of devices and services. Home Assistant offers advanced automation capabilities, running perfectly on a Raspberry Pi or a local server. Start using Home Assistant today for a comprehensive home automation solution.",
+              "url": "",
+              "longDescription": "<p>Home Assistant is an open-source home automation platform focused on privacy and local control. It allows you to control all your devices from a single, unified interface. It is powered by a worldwide community of tinkerers and DIY enthusiasts, perfect to run on a Raspberry Pi or a local server.</p><p>Home Assistant integrates with a large number of different devices and services, providing the user with a powerful and flexible home automation control center. In addition to its powerful, flexible features, it provides advanced automation capabilities to help make your life easier.</p><p>With support for a vast array of devices and services, Home Assistant can be the one-stop solution for all your home automation needs. Get started with Home Assistant today and take control of your home automation!</p>",
+              "tags": [
+                "smart home",
+                "home automation",
+                "IoT",
+                "Raspberry Pi",
+                "local server",
+                "privacy",
+                "control",
+                "automation",
+                "devices",
+                "services",
+                "home assistant"
+              ],
+              "repository": "https://github.com/home-assistant/core",
+              "image": "https://hub.docker.com/r/homeassistant/home-assistant",
+              "screenshots": [
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/screenshots/1.png",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/screenshots/2.jpg",
+                "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/screenshots/3.png"
+              ],
+              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/icon.png",
+              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/HomeAssistant/cosmos-compose.json",
+              "supported_architectures": [
+                "amd64",
+                "arm64"
+              ]
+            },
+            {
               "name": "Jellyfin",
               "description": "Jellyfin is a Free Software Media System that puts you in control of managing and streaming your media. It is an alternative to the proprietary Plex, to provide media from a dedicated server to end-user devices via multiple apps.",
               "url": "",
@@ -89,62 +121,6 @@ function list() {
               ],
               "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Nextcloud/icon.png",
               "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Nextcloud/cosmos-compose.json",
-              "supported_architectures": [
-                "amd64",
-                "arm64"
-              ]
-            },
-            {
-              "name": "Plex",
-              "description": "Plex organizes all of your video, and music collections, and gives you instant access to them on all of your devices. With the free Plex Media Server software on your home computer and Plex for iOS, you can enjoy all of your personal media on your iPhone, iPad or iPod touch, and easily share it with friends and family. Plex also makes your media look beautiful with rich descriptions, artwork, and other related information. With an optional premium Plex Pass subscription, you can even sync videos, music, and photos to your smartphones and tablets to enjoy while offline. Parental controls, premium music features, music videos, trailers and extras, and powerful management tools are also part of our premium offering. Getting up and running is fast and simple, so get started now!",
-              "url": "",
-              "longDescription": "<p>Plex is a comprehensive media solution that organizes your video and music collections, giving you instant access across all your devices. With the free Plex Media Server software installed on your home computer and Plex's iOS app, you can enjoy your personal media on your iPhone, iPad, or iPod touch, and conveniently share it with your friends and family.</p><p>Plex is not just about easy access, it also enhances your media collection by adding rich descriptions, artwork, and other related information, making your media look visually appealing. If you choose to subscribe to the optional premium Plex Pass, you get the added ability to sync videos, music, and photos to your smartphones and tablets for offline enjoyment.</p><p>Premium features also include parental controls, enhanced music features, access to music videos, trailers, extras, and robust management tools. Starting with Plex is straightforward and quick. Get started today and transform your media experience!</p>",
-              "tags": [
-                "media",
-                "movies",
-                "streaming",
-                "tv",
-                "music",
-                "photos",
-                "videos",
-                "audiobooks",
-                "podcasts",
-                "dlna",
-                "chromecast",
-                "android",
-                "ios",
-                "roku",
-                "firetv",
-                "smarttv",
-                "web",
-                "browser",
-                "kodi",
-                "emby",
-                "plex",
-                "media browser",
-                "media server",
-                "media streaming",
-                "media player",
-                "media center",
-                "media management",
-                "media organizer",
-                "media collection",
-                "media library",
-                "media manager",
-                "media sharing",
-                "media transcoding",
-                "media casting",
-                "media casting",
-                "media casting"
-              ],
-              "repository": "https://github.com/plex/plex",
-              "image": "https://hub.docker.com/r/linuxserver/plex",
-              "screenshots": [
-                "https://azukaar.github.io/cosmos-servapps-official/servapps/Plex/screenshots/1.png",
-                "https://azukaar.github.io/cosmos-servapps-official/servapps/Plex/screenshots/2.png"
-              ],
-              "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plex/icon.png",
-              "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plex/cosmos-compose.json",
               "supported_architectures": [
                 "amd64",
                 "arm64"
@@ -431,6 +407,65 @@ function list() {
                 ],
                 "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/icon.png",
                 "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
+                "name": "Emby",
+                "description": "Emby(https://emby.media/) organizes video, music, live TV, and photos from personal media libraries and streams them to smart TVs, streaming boxes and mobile devices. This container is packaged as a standalone emby Media Server.",
+                "url": "",
+                "longDescription": "<p>Emby is an open-source media system that gives you the power to control the management and streaming of your media content. It offers an alternative to proprietary systems like Plex, empowering users to deliver media content from a dedicated server to various end-user devices through a range of apps.</p><p>Key features of Emby include the ability to stream movies, TV shows, music, photos, videos, audiobooks, and podcasts. It also supports various technologies and platforms such as DLNA, Chromecast, Android, iOS, Roku, FireTV, SmartTV, Web browser and Kodi. Emby essentially functions as a comprehensive media browser, server, streaming system, player, center, manager, organizer, and library. In addition to these, it also facilitates media sharing, transcoding, and casting, offering a robust solution for your media needs.</p>",
+                "tags": [
+                  "media",
+                  "server",
+                  "streaming",
+                  "movies",
+                  "tv",
+                  "music",
+                  "photos",
+                  "videos",
+                  "audiobooks",
+                  "podcasts",
+                  "dlna",
+                  "chromecast",
+                  "android",
+                  "ios",
+                  "roku",
+                  "firetv",
+                  "smarttv",
+                  "web",
+                  "browser",
+                  "kodi",
+                  "emby",
+                  "plex",
+                  "media browser",
+                  "media server",
+                  "media streaming",
+                  "media player",
+                  "media center",
+                  "media management",
+                  "media organizer",
+                  "media collection",
+                  "media library",
+                  "media manager",
+                  "media sharing",
+                  "media transcoding",
+                  "media casting",
+                  "media casting",
+                  "media casting"
+                ],
+                "repository": "https://github.com/linuxserver/docker-emby",
+                "image": "https://hub.docker.com/r/linuxserver/emby",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/screenshots/1.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/screenshots/2.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/screenshots/3.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/screenshots/4.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Emby/cosmos-compose.json",
                 "supported_architectures": [
                   "amd64",
                   "arm64"
@@ -873,6 +908,45 @@ function list() {
                 ]
               },
               {
+                "name": "Jellyseerr",
+                "description": "Jellyseerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!",
+                "url": "",
+                "longDescription": "<p>Jellyseerr is a free and open source software application for managing requests for your media library. It is a a fork of Overseerr built to bring support for Jellyfin & Emby media servers!</p>",
+                "tags": [
+                  "media",
+                  "request",
+                  "library",
+                  "open-source",
+                  "self-hosted",
+                  "web application",
+                  "plex",
+                  "emby",
+                  "jellyfin",
+                  "request system",
+                  "media content",
+                  "windows",
+                  "linux",
+                  "macos",
+                  "docker",
+                  "radarr",
+                  "sonarr"
+                ],
+                "repository": "https://github.com/Fallenbagel/jellyseerr",
+                "image": "https://hub.docker.com/r/fallenbagel/jellyseerr",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/screenshots/1.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/screenshots/2.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/screenshots/3.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/screenshots/4.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellyseerr/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
                 "name": "Joplin",
                 "description": "Joplin is a free, open-source note-taking and to-do application that supports markdown and end-to-end encryption. It offers capabilities such as tagging, searching, and modifying notes, and can sync with various cloud platforms. It features an extensible plugin system, allowing for tailored functionality. Joplin is compatible across multiple platforms including Windows, Linux, MacOS, iOS, and Android.",
                 "url": "",
@@ -926,6 +1000,31 @@ function list() {
                 ],
                 "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/icon.png",
                 "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Kitchenowl/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
+                "name": "LSDVR",
+                "description": "Automatic VOD recording",
+                "url": "",
+                "longDescription": "Automatic VOD recording around when the stream goes live, instead of checking it every minute like many other scripts do. Because of notification delays, the stream usually starts capturing after ~2 minutes after the stream goes live. Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted. Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc. Viewer count logging with graphs. Chapters (titles and games) are written to the final video file. <a href='https://github.com/MrBrax/twitch-vod-chat'>Video player</a> with chat playback. Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering. Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does. Writes a <a href='https://github.com/mifi/lossless-cut/'>losslesscut</a> compatible csv file for the full VOD, so you don't have to find all the games. Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted. Audio only support. Optionally either dumps chat while capturing or downloads the chat file after it's done. Basic tools for downloading any VOD, chat, or clip. Can be set to automatically download the whole stream chat to a JSON file, to be used in my <a href='https://github.com/MrBrax/twitch-vod-chat'>twitch-vod-chat</a> webapp or automatically burned in with <a href='https://github.com/lay295/TwitchDownloader'>TwitchDownloader</a>. Basic webhook support for external scripting. Notifications over the browser, telegram, pushover, and discord. Mobile friendly site with PWA. Exporting of videos to external file, SFTP, and YouTube. Can be enabled for all finished captures Can be run for an entire channel at once</p>",
+                "tags": [
+                  "twitch",
+                  "youtube",
+                  "download",
+                  "videos",
+                  "vod",
+                  "media"
+                ],
+                "repository": "https://github.com/alexta69/metube",
+                "image": "https://github.com/alexta69/metube/pkgs/container/metube",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/LSDVR/screenshots/1.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/LSDVR/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/LSDVR/cosmos-compose.json",
                 "supported_architectures": [
                   "amd64",
                   "arm64"
@@ -1088,6 +1187,32 @@ function list() {
                 ]
               },
               {
+                "name": "Mealie",
+                "description": "Recipe Management For The Modern Household",
+                "url": "",
+                "longDescription": "<p>Mealie is an intuitive and easy to use recipe management app. It's designed to make your life easier by being the best recipes management experience on the web and providing you with an easy to use interface to manage your growing collection of recipes. </p><p>Default Password is: MyPassword</p>",
+                "tags": [
+                  "recipes",
+                  "meals",
+                  "shopping",
+                  "planning",
+                  "cookbook",
+                  "docker",
+                  "pwa"
+                ],
+                "repository": "https://github.com/mealie-recipes/mealie",
+                "image": "https://hub.docker.com/r/hkotel/mealie/",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Mealie/screenshots/1.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Mealie/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Mealie/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
                 "name": "Minecraft",
                 "description": "Minecraft is a sandbox video game developed by Mojang Studios that allows players to explore, interact with, and modify a dynamically-generated map made of blocks. Players can build structures, craft items, and interact with the game world in a variety of ways. The game supports multiple gameplay styles and modes, and is available on a wide range of platforms.",
                 "url": "",
@@ -1184,6 +1309,29 @@ function list() {
                 ],
                 "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Nextcloud/icon.png",
                 "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Nextcloud/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
+                "name": "Notifiarr",
+                "description": "You just found one of the coolest tools on the Internet for a homelab enthusiast. We do notifications.",
+                "url": "",
+                "longDescription": "<p>You just found one of the coolest tools on the Internet for a homelab enthusiast. We do notifications. We do them right. We've been doing then for years and we'll keep doing them for years to come. Notifiarr provides native custom integrations with dozens, maybe hundreds of applications and websites. That means these applications or websites can send data to Notifiarr, and we'll format a message according to your configuration then send it to your chat server.</p>",
+                "tags": [
+                  "notifications",
+                  "rest api",
+                  "curl",
+                  "push notifications"
+                ],
+                "repository": "https://github.com/Notifiarr/notifiarr",
+                "image": "https://hub.docker.com/r/golift/notifiarr",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/Notifiarr/screenshots/1.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Notifiarr/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Notifiarr/cosmos-compose.json",
                 "supported_architectures": [
                   "amd64",
                   "arm64"
@@ -1349,7 +1497,7 @@ function list() {
                 "name": "Plex",
                 "description": "Plex organizes all of your video, and music collections, and gives you instant access to them on all of your devices. With the free Plex Media Server software on your home computer and Plex for iOS, you can enjoy all of your personal media on your iPhone, iPad or iPod touch, and easily share it with friends and family. Plex also makes your media look beautiful with rich descriptions, artwork, and other related information. With an optional premium Plex Pass subscription, you can even sync videos, music, and photos to your smartphones and tablets to enjoy while offline. Parental controls, premium music features, music videos, trailers and extras, and powerful management tools are also part of our premium offering. Getting up and running is fast and simple, so get started now!",
                 "url": "",
-                "longDescription": "<p>Plex is a comprehensive media solution that organizes your video and music collections, giving you instant access across all your devices. With the free Plex Media Server software installed on your home computer and Plex's iOS app, you can enjoy your personal media on your iPhone, iPad, or iPod touch, and conveniently share it with your friends and family.</p><p>Plex is not just about easy access, it also enhances your media collection by adding rich descriptions, artwork, and other related information, making your media look visually appealing. If you choose to subscribe to the optional premium Plex Pass, you get the added ability to sync videos, music, and photos to your smartphones and tablets for offline enjoyment.</p><p>Premium features also include parental controls, enhanced music features, access to music videos, trailers, extras, and robust management tools. Starting with Plex is straightforward and quick. Get started today and transform your media experience!</p>",
+                "longDescription": "<p>WARNING! We highly advise AGAINST using Plex. It is gradually becoming agressive against the self-hosting community to the point that it might as well become cloud only in the next few years. It is also NOT a selfhosted app as a lof of your data are in the cloud (include analytics about what you watch) and it is not opensource. Instead, consider using Jellyfin, which is selfhosted and opensource unlike Plex.</p><p>Plex is a comprehensive media solution that organizes your video and music collections, giving you instant access across all your devices. With the free Plex Media Server software installed on your home computer and Plex's iOS app, you can enjoy your personal media on your iPhone, iPad, or iPod touch, and conveniently share it with your friends and family.</p><p>Plex is not just about easy access, it also enhances your media collection by adding rich descriptions, artwork, and other related information, making your media look visually appealing. If you choose to subscribe to the optional premium Plex Pass, you get the added ability to sync videos, music, and photos to your smartphones and tablets for offline enjoyment.</p><p>Premium features also include parental controls, enhanced music features, access to music videos, trailers, extras, and robust management tools. Starting with Plex is straightforward and quick. Get started today and transform your media experience!</p>",
                 "tags": [
                   "media",
                   "movies",
@@ -1753,6 +1901,30 @@ function list() {
                 ],
                 "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Wordpress/icon.png",
                 "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Wordpress/cosmos-compose.json",
+                "supported_architectures": [
+                  "amd64",
+                  "arm64"
+                ]
+              },
+              {
+                "name": "ntfy",
+                "description": "Send push notifications to your phone or desktop using PUT/POST.",
+                "url": "",
+                "longDescription": "<p>ntfy (pronounced \"notify\") is a simple HTTP-based pub-sub notification service. With ntfy, you can send notifications to your phone or desktop via scripts from any computer, without having to sign up or pay any fees.</p>",
+                "tags": [
+                  "notifications",
+                  "rest api",
+                  "curl",
+                  "push notifications"
+                ],
+                "repository": "https://github.com/binwiederhier/ntfy",
+                "image": "https://hub.docker.com/r/binwiederhier/ntfy",
+                "screenshots": [
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/ntfy/screenshots/1.png",
+                  "https://azukaar.github.io/cosmos-servapps-official/servapps/ntfy/screenshots/2.png"
+                ],
+                "icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/ntfy/icon.png",
+                "compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/ntfy/cosmos-compose.json",
                 "supported_architectures": [
                   "amd64",
                   "arm64"
