@@ -302,31 +302,23 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			}
 		}
 
-		Debug("Is using whitelist: " + fmt.Sprintf("%v", isUsingWhiteList))
-		Debug("Is in whitelist: " + fmt.Sprintf("%v", isInWhitelist))
-		Debug("Is using constellation: " + fmt.Sprintf("%v", RestrictToConstellation))
-		Debug("Is in constellation: " + fmt.Sprintf("%v", isInConstellation))
-
-		if(RestrictToConstellation) { // true
-			Debug("RestrictToConstellation")
-			if(!isInConstellation) { // true
-				Debug("isInConstellation")
-				if(!isUsingWhiteList) { // false
-					Debug("isUsingWhiteList")
+		if(RestrictToConstellation) {
+			if(!isInConstellation) {
+				if(!isUsingWhiteList) {
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
+					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
 					http.Error(w, "Access denied", http.StatusForbidden)
 					return
-				} else if (!isInWhitelist) { // false
-					Debug("isInWhitelist")
+				} else if (!isInWhitelist) {
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
+					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
 					http.Error(w, "Access denied", http.StatusForbidden)
 					return
 				}
 			}
 		} else if(isUsingWhiteList && !isInWhitelist) {
-			Debug("isUsingWhiteList && !isInWhitelist")
-					Debug("isInWhitelist")
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
+			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")
 			http.Error(w, "Access denied", http.StatusForbidden)
 			return
 		}
