@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.9.21",
+  "version": "0.10.0-unstable31",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -36,6 +36,7 @@
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.0",
     "react-color": "^2.19.3",
+    "react-cookie": "^6.1.1",
     "react-copy-to-clipboard": "^5.1.0",
     "react-device-detect": "^2.2.2",
     "react-dom": "^18.2.0",
@@ -63,13 +64,12 @@
   "scripts": {
     "client": "vite",
     "client-build": "vite build --base=/cosmos-ui/",
-    "start": "env CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
+    "start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
     "build": "sh build.sh",
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "sh build.sh && docker build -f dockerfile.local --tag cosmos-dev .",
-    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run -d -p 7200:443 -p 80:80 -p 443:443 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
-    "dockerdev": "npm run dockerdevbuild && npm run dockerdevrun",
-    "dockerdevclient": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun",
+    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242 -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
+    "dockerdev": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun",
     "demo": "vite build --base=/cosmos-ui/ --mode demo",
     "devdemo": "vite --mode demo"
   },

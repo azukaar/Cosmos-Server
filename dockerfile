@@ -29,7 +29,7 @@ WORKDIR /app
 COPY build/cosmos build/cosmos-arm64 ./
 
 # Copy other resources
-COPY build/cosmos_gray.png build/Logo.png build/GeoLite2-Country.mmdb build/meta.json ./
+COPY build/* ./
 COPY static ./static
 
 # Run the respective binary based on the BINARY_NAME

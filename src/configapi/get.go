@@ -42,6 +42,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			"data": config,
 			"updates": utils.UpdateAvailable,
 			"hostname": os.Getenv("HOSTNAME"),
+			"isAdmin": isAdmin,
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MainCard from '../../../components/MainCard';
 import RestartModal from '../users/restart';
-import { Chip, Divider, Stack, useMediaQuery } from '@mui/material';
+import { Checkbox, Chip, Divider, FormControlLabel, Stack, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
@@ -9,6 +9,8 @@ import * as API from '../../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../../isLoggedIn';
 import { redirectToLocal } from '../../../utils/indexs';
+import { CosmosCheckbox } from '../users/formShortcuts';
+import { Field } from 'formik';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',

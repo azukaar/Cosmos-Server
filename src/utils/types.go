@@ -90,6 +90,7 @@ type Config struct {
 	MarketConfig MarketConfig
 	HomepageConfig HomepageConfig
 	ThemeConfig ThemeConfig
+	ConstellationConfig ConstellationConfig
 }
 
 type HomepageConfig struct {
@@ -180,6 +181,9 @@ type ProxyRouteConfig struct {
 	DisableHeaderHardening bool
 	VerboseForwardHeader bool
 	AddionalFilters []AddionalFiltersConfig
+	RestrictToConstellation bool
+	OverwriteHostHeader string
+	WhitelistInboundIPs []string
 }
 
 type EmailConfig struct {
@@ -205,4 +209,115 @@ type MarketConfig struct {
 type MarketSource struct {
 	Name string
 	Url string
+}
+
+type ConstellationConfig struct {
+	Enabled bool
+	SlaveMode bool
+	PrivateNode bool
+	DNSDisabled bool
+	DNSPort string
+	DNSFallback string
+	DNSBlockBlacklist bool
+	DNSAdditionalBlocklists []string
+	CustomDNSEntries []ConstellationDNSEntry
+	NebulaConfig NebulaConfig
+	ConstellationHostname string
+}
+
+type ConstellationDNSEntry struct {
+	Type string
+	Key string
+	Value string
+}
+type ConstellationDevice struct {
+	Nickname string `json:"nickname"`
+	DeviceName string `json:"deviceName"`
+	PublicKey string `json:"publicKey"`
+	IP string `json:"ip"`
+	IsLighthouse bool `json:"isLighthouse"`
+	IsRelay bool `json:"isRelay"`
+	PublicHostname string `json:"publicHostname"`
+	Port string `json:"port"`
+	Blocked bool `json:"blocked"`
+	Fingerprint string `json:"fingerprint"`
+	APIKey string `json:"-"`
+}
+
+type NebulaFirewallRule struct {
+	Port   string   `yaml:"port"`
+	Proto  string   `yaml:"proto"`
+	Host   string   `yaml:"host"`
+	Groups []string `yaml:"groups,omitempty"omitempty"`
+}
+
+type NebulaConntrackConfig struct {
+	TCPTimeout     string `yaml:"tcp_timeout"`
+	UDPTimeout     string `yaml:"udp_timeout"`
+	DefaultTimeout string `yaml:"default_timeout"`
+}
+
+type NebulaConfig struct {
+	PKI struct {
+		CA   string `yaml:"ca"`
+		Cert string `yaml:"cert"`
+		Key  string `yaml:"key"`
+		Blocklist []string `yaml:"blocklist"`
+	} `yaml:"pki"`
+
+	StaticHostMap map[string][]string `yaml:"static_host_map"`
+
+	Lighthouse struct {
+		AMLighthouse bool     `yaml:"am_lighthouse"`
+		Interval     int      `yaml:"interval"`
+		Hosts        []string `yaml:"hosts"`
+	} `yaml:"lighthouse"`
+
+	Listen struct {
+		Host string `yaml:"host"`
+		Port int    `yaml:"port"`
+	} `yaml:"listen"`
+
+	Punchy struct {
+		Punch bool `yaml:"punch"`
+		Respond bool `yaml:"respond"`
+	} `yaml:"punchy"`
+
+	Relay struct {
+		AMRelay   bool `yaml:"am_relay"`
+		UseRelays bool `yaml:"use_relays"`
+		Relays		[]string `yaml:"relays"`
+	} `yaml:"relay"`
+
+	TUN struct {
+		Disabled            bool     `yaml:"disabled"`
+		Dev                 string   `yaml:"dev"`
+		DropLocalBroadcast bool     `yaml:"drop_local_broadcast"`
+		DropMulticast       bool     `yaml:"drop_multicast"`
+		TxQueue             int      `yaml:"tx_queue"`
+		MTU                 int      `yaml:"mtu"`
+		Routes              []string `yaml:"routes"`
+		UnsafeRoutes        []string `yaml:"unsafe_routes"`
+	} `yaml:"tun"`
+
+	Logging struct {
+		Level  string `yaml:"level"`
+		Format string `yaml:"format"`
+	} `yaml:"logging"`
+
+	Firewall struct {
+		OutboundAction string                    `yaml:"outbound_action"`
+		InboundAction  string                    `yaml:"inbound_action"`
+		Conntrack      NebulaConntrackConfig `yaml:"conntrack"`
+		Outbound       []NebulaFirewallRule  `yaml:"outbound"`
+		Inbound        []NebulaFirewallRule  `yaml:"inbound"`
+	} `yaml:"firewall"`
+}
+
+type Device struct {
+	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
+	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
+	PublicKey string `json:"publicKey",omitempty`
+	PrivateKey string `json:"privateKey",omitempty`
+	IP string `json:"ip",validate:"required,ipv4"`
 }

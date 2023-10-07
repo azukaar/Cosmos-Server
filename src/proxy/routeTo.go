@@ -46,7 +46,7 @@ func joinURLPath(a, b *url.URL) (path, rawpath string) {
 
 
 // NewProxy takes target host and creates a reverse proxy
-func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardHeader bool, DisableHeaderHardening bool, CORSOrigin string) (*httputil.ReverseProxy, error) {
+func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardHeader bool, DisableHeaderHardening bool, CORSOrigin string, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
 	url, err := url.Parse(targetHost)
 	if err != nil {
 			return nil, err
@@ -76,16 +76,40 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 			req.Header.Set("X-Forwarded-Ssl", "on")
 		}
 
-		if CORSOrigin != "" {
-			req.Header.Set("X-Forwarded-Host", url.Host)
+		req.Header.Del("X-Origin-Host")
+		req.Header.Del("X-Forwarded-Host")
+		req.Header.Del("X-Forwarded-For")
+		req.Header.Del("X-Real-Ip")
+		// hide hostname (dangerous)
+		// req.Header.Del("Host")
+
+		hostname := utils.GetMainConfig().HTTPConfig.Hostname
+		if route.Host != "" && route.UseHost {
+			hostname = route.Host
+		}
+		if route.UsePathPrefix {
+			hostname = hostname + route.PathPrefix
 		}
 
+		hostDest := hostname
+		if route.OverwriteHostHeader != "" {
+			hostDest = route.OverwriteHostHeader
+		}
+		
+		// hide hostname (dangerous)
+		// req.Header.Set("Host", url.Host)
+		// req.Host = url.Host
+
+		req.Header.Set("Host", hostDest)
+		req.Host = hostDest
+
 		if VerboseForwardHeader {
-			req.Header.Set("X-Origin-Host", url.Host)
-			req.Header.Set("Host", url.Host)
+			req.Header.Set("X-Origin-Host", hostDest)
+			req.Header.Set("X-Forwarded-Host", hostDest)
 			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
 			req.Header.Set("X-Real-IP", utils.GetClientIP(req))
-		}
+		} 
+		
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
@@ -100,8 +124,6 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 
 		if CORSOrigin != "" {
 			resp.Header.Del("Access-Control-Allow-Origin")
-			resp.Header.Del("Access-Control-Allow-Methods")
-			resp.Header.Del("Access-Control-Allow-Headers")
 			resp.Header.Del("Access-Control-Allow-Credentials")
 		}
 		
@@ -126,7 +148,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	routeType := route.Mode
 
 	if(routeType == "SERVAPP" || routeType == "PROXY") {
-		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin)
+		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin, route)
 		if err != nil {
 				utils.Error("Create Route", err)
 		}

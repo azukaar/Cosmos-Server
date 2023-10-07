@@ -31,6 +31,7 @@ import { TwitterPicker
 
  // TODO: Remove circular deps
  import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
+import { useClientInfos } from '../../../utils/hooks';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
@@ -38,6 +39,8 @@ const ConfigManagement = () => {
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
   const [saveLabel, setSaveLabel] = React.useState("Save");
+  const {role} = useClientInfos();
+  const isAdmin = role === "2";
 
   function refresh() {
     API.config.get().then((res) => {
@@ -62,9 +65,9 @@ const ConfigManagement = () => {
           refresh();
       }}>Refresh</Button>
 
-      <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+      {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           setOpenRestartModal(true);
-      }}>Restart Server</Button>
+      }}>Restart Server</Button>}
     </Stack>
     
     {config && <>
@@ -186,7 +189,7 @@ const ConfigManagement = () => {
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={3}>
-            <MainCard>
+            {isAdmin && <MainCard>
                 {formik.errors.submit && (
                   <Grid item xs={12}>
                     <FormHelperText error>{formik.errors.submit}</FormHelperText>
@@ -205,7 +208,13 @@ const ConfigManagement = () => {
                       {saveLabel}
                     </LoadingButton>
                 </Grid>
-              </MainCard>
+              </MainCard>}
+
+              {!isAdmin && <div>
+                <Alert severity="warning">As you are not an admin, you can't edit the configuration.
+                This page is only here for visibility. 
+                </Alert>
+              </div>} 
 
               <MainCard title="General">
                 <Grid container spacing={3}>
@@ -331,6 +340,29 @@ const ConfigManagement = () => {
                           formik.setFieldValue('PrimaryColor', colorRGB);
                           SetPrimaryColor(colorRGB);
                         }}
+                        colors={[
+                          '#ab47bc',
+                          '#4527a0',
+                          '#FF6900',
+                          '#FCB900',
+                          '#7BDCB5',
+                          '#00D084',
+                          '#8ED1FC',
+                          '#0693E3',
+                          '#ABB8C3',
+                          '#EB144C',
+                          '#F78DA7',
+                          '#9900EF',
+                          '#FF0000',
+                          '#FFC0CB',
+                          '#20B2AA',
+                          '#FFFF00',
+                          '#8A2BE2',
+                          '#A52A2A',
+                          '#5F9EA0',
+                          '#7FFF00',
+                          '#D2691E' 
+                        ]}
                       />
                     </Stack>
                   </Grid>
@@ -346,6 +378,29 @@ const ConfigManagement = () => {
                           formik.setFieldValue('SecondaryColor', colorRGB);
                           SetSecondaryColor(colorRGB);
                         }}
+                        colors={[
+                          '#ab47bc',
+                          '#4527a0',
+                          '#FF6900',
+                          '#FCB900',
+                          '#7BDCB5',
+                          '#00D084',
+                          '#8ED1FC',
+                          '#0693E3',
+                          '#ABB8C3',
+                          '#EB144C',
+                          '#F78DA7',
+                          '#9900EF',
+                          '#FF0000',
+                          '#FFC0CB',
+                          '#20B2AA',
+                          '#FFFF00',
+                          '#8A2BE2',
+                          '#A52A2A',
+                          '#5F9EA0',
+                          '#7FFF00',
+                          '#D2691E' 
+                        ]}
                       />
                     </Stack>
                   </Grid>
@@ -627,7 +682,7 @@ const ConfigManagement = () => {
                 </Grid>
               </MainCard>
 
-              <MainCard>
+              {isAdmin && <MainCard>
                 {formik.errors.submit && (
                   <Grid item xs={12}>
                     <FormHelperText error>{formik.errors.submit}</FormHelperText>
@@ -646,7 +701,7 @@ const ConfigManagement = () => {
                       {saveLabel}
                     </LoadingButton>
                 </Grid>
-              </MainCard>
+              </MainCard>}
             </Stack>
           </form>
         )}

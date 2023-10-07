@@ -82,8 +82,6 @@ func CORSHeader(origin string) func(next http.Handler) http.Handler {
 
 			if origin != "" {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
-				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-				w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 
@@ -260,4 +258,60 @@ func IsValidHostname(hostname string) bool {
 	}
 
 	return false
+}
+
+func IPInRange(ipStr, cidrStr string) (bool, error) {
+	_, cidrNet, err := net.ParseCIDR(cidrStr)
+	if err != nil {
+		return false, fmt.Errorf("parse CIDR range: %w", err)
+	}
+
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return false, fmt.Errorf("parse IP: invalid IP address")
+	}
+
+	return cidrNet.Contains(ip), nil
+}
+
+func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		ip, _, err := net.SplitHostPort(r.RemoteAddr)
+		if err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		isUsingWhiteList := len(WhitelistInboundIPs) > 0
+
+		isInWhitelist := false
+		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
+
+		for _, ipRange := range WhitelistInboundIPs {
+			if strings.Contains(ipRange, "/") {
+				if ok, _ := IPInRange(ip, ipRange); ok {
+					isInWhitelist = true
+				}
+			} else {
+				if ip == ipRange {
+					isInWhitelist = true
+				}
+			}
+		}
+
+		isInConstellationPassing := !RestrictToConstellation || isInConstellation
+		isWhitelistPassing := !isUsingWhiteList || isInWhitelist
+
+		// check if the request is coming from the constellation IP range 192.168.201.0/24
+		if (!isInConstellationPassing && !isWhitelistPassing) { 
+			Log("Request from " + ip + " is blocked because of restrictions isInConstellationPassing: " + fmt.Sprintf("%v", isInConstellationPassing) + " and isWhitelistPassing: " + fmt.Sprintf("%v", isWhitelistPassing))
+			http.Error(w, "Access denied", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+		})
+	}
 }

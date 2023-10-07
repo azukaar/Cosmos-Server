@@ -9,6 +9,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/docker"
 		"github.com/azukaar/cosmos-server/src/authorizationserver"
 		"github.com/azukaar/cosmos-server/src/market"
+		"github.com/azukaar/cosmos-server/src/constellation"
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
@@ -331,6 +332,13 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/background", UploadBackground)
 	srapi.HandleFunc("/api/background/{ext}", GetBackground)
 
+	srapi.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
+	srapi.HandleFunc("/api/constellation/restart", constellation.API_Restart)
+	srapi.HandleFunc("/api/constellation/reset", constellation.API_Reset)
+	srapi.HandleFunc("/api/constellation/connect", constellation.API_ConnectToExisting)
+	srapi.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
+	srapi.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
+	srapi.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)

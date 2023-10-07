@@ -37,6 +37,8 @@ var ReBootstrapContainer func(string) error
 
 var LetsEncryptErrors = []string{}
 
+var CONFIGFOLDER = "/config/"
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
@@ -58,6 +60,17 @@ var DefaultConfig = Config{
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{
+		},
+	},
+  ConstellationConfig: ConstellationConfig{
+    Enabled: false,
+		DNSDisabled: false,
+		DNSFallback: "8.8.8.8:53",
+		DNSAdditionalBlocklists: []string{
+			"https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
+      "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
+      "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+      "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts",
 		},
 	},
 }
@@ -193,9 +206,22 @@ func LoadBaseMainConfig(config Config) {
 	if os.Getenv("COSMOS_SERVER_COUNTRY") != "" {
 		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
 	}
+	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
+		Log("Overwriting config folder with " + os.Getenv("COSMOS_CONFIG_FOLDER"))
+		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
+	}
+	
+	if MainConfig.ConstellationConfig.ConstellationHostname == "" {
+		// if hostname is a domain add vpn. suffix otherwise use hostname
+		if IsDomain(MainConfig.HTTPConfig.Hostname) {
+			MainConfig.ConstellationConfig.ConstellationHostname = "vpn." + MainConfig.HTTPConfig.Hostname
+		} else {
+			MainConfig.ConstellationConfig.ConstellationHostname = MainConfig.HTTPConfig.Hostname
+		}
 	}
 }
 
@@ -219,7 +245,7 @@ func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {
-		configFile = "/config/cosmos.config.json"
+		configFile = CONFIGFOLDER + "cosmos.config.json"
 	}
 
 	return configFile
@@ -539,10 +565,33 @@ func GetNetworkUsage() NetworkStatus {
 	return NetworkStatus{}
 }
 
+func DownloadFile(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(body), nil
+}
+
 func GetClientIP(req *http.Request) string {
 	/*ip := req.Header.Get("X-Forwarded-For")
 	if ip == "" {
 		ip = req.RemoteAddr
 	}*/
 	return req.RemoteAddr
+}
+
+func IsDomain(domain string) bool {
+	// contains . and at least a letter and no special characters invalid in a domain
+	if strings.Contains(domain, ".") && strings.ContainsAny(domain, "abcdefghijklmnopqrstuvwxyz") && !strings.ContainsAny(domain, " !@#$%^&*()+=[]{}\\|;:'\",/<>?") {
+		return true
+	}
+	return false
 }

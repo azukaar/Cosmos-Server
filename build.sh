@@ -18,6 +18,7 @@ echo " ---- Build complete, copy assets ----"
 
 cp -r static build/
 cp -r GeoLite2-Country.mmdb build/
+cp nebula-arm-cert nebula-cert nebula-arm nebula build/
 cp -r Logo.png build/
 mkdir build/images
 cp client/src/assets/images/icons/cosmos_gray.png build/cosmos_gray.png

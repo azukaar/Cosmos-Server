@@ -181,20 +181,20 @@ func DoLetsEncrypt() (string, string) {
 		}
 
 		err = client.Challenge.SetDNS01Provider(provider)
-	}
+	} else {
+		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
+		if err != nil {
+			Error("LETSENCRYPT_HTTP01", err)
+			LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
+			return "", ""
+		}
 
-	err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
-	if err != nil {
-		Error("LETSENCRYPT_HTTP01", err)
-		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
-		return "", ""
-	}
-
-	err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", config.HTTPConfig.HTTPSPort))
-	if err != nil {
-		Error("LETSENCRYPT_TLS01", err)
-		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
-		return "", ""
+		err = client.Challenge.SetTLSALPN01Provider(tlsalpn01.NewProviderServer("", config.HTTPConfig.HTTPSPort))
+		if err != nil {
+			Error("LETSENCRYPT_TLS01", err)
+			LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
+			return "", ""
+		}
 	}
 
 	// New users will need to register

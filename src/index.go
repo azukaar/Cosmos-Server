@@ -9,6 +9,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/authorizationserver"
 	"github.com/azukaar/cosmos-server/src/market"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 func main() {
@@ -43,6 +44,10 @@ func main() {
 	market.Init()
 	
 	authorizationserver.Init()
+
+	constellation.InitDNS()
+	
+	constellation.Init()
 
 	StartServer()
 }

@@ -123,8 +123,9 @@
   align-items: center;
 }
 
-.loading-image {
-  background: url('/assets/images/icons/cosmos_gray.png') no-repeat center center;
+.loading-image:empty {
+  /* background: url('assets/images/icons/cosmos_gray.png') no-repeat center center;
+  background-size: contain; */
 }
 
 .raw-table table {

@@ -3,6 +3,7 @@ import * as _users from './users';
 import * as _config from './config';
 import * as _docker from './docker';
 import * as _market from './market';
+import * as _constellation from './constellation';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -10,6 +11,7 @@ import * as configDemo from './config.demo';
 import * as dockerDemo from './docker.demo';
 import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
+import * as constellationDemo from './constellation.demo';
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -211,6 +213,7 @@ let users = _users;
 let config = _config;
 let docker = _docker;
 let market = _market;
+let constellation = _constellation;
 
 if(isDemo) {
   auth = authDemo;
@@ -224,6 +227,7 @@ if(isDemo) {
   checkHost = indexDemo.checkHost;
   getDNS = indexDemo.getDNS;
   uploadBackground = indexDemo.uploadBackground;
+  constellation = constellationDemo;
 }
 
 export {
@@ -232,6 +236,7 @@ export {
   config,
   docker,
   market,
+  constellation,
   getStatus,
   newInstall,
   isOnline,

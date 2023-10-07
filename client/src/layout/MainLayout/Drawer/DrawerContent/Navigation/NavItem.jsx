@@ -9,6 +9,7 @@ import { Avatar, Chip, ListItemButton, ListItemIcon, ListItemText, Typography } 
 
 // project import
 import { activeItem } from '../../../../../store/reducers/menu';
+import { useClientInfos } from '../../../../../utils/hooks';
 
 // ==============================|| NAVIGATION - LIST ITEM ||============================== //
 
@@ -17,6 +18,12 @@ const NavItem = ({ item, level }) => {
     const dispatch = useDispatch();
     const menu = useSelector((state) => state.menu);
     const { drawerOpen, openItem } = menu;
+    const {role} = useClientInfos();
+    const isAdmin = role === "2";
+
+    if (item.adminOnly && !isAdmin) {
+        return null;
+    }
 
     let itemTarget = '_self';
     if (item.target) {
@@ -53,6 +60,16 @@ const NavItem = ({ item, level }) => {
 
     const textColor = 'text.primary';
     const iconSelectedColor = 'primary.main';
+
+    // SET BETA (TODO REMOVE)
+    if(item.title === "Constellation")
+    item.title = <>{item.title} <span style={{
+        color: 'gray',
+        fontSize: '11px',
+        textDecoration: 'italic',
+        transform: 'translateY(-5px)',
+        display: 'inline-block',
+    }}>Beta</span></>;
 
     return (
         <ListItemButton

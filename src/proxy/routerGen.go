@@ -30,12 +30,12 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
 
 			ogcookies := r.Header.Get("Cookie")
-			cookieRemoveRegex := regexp.MustCompile(`jwttoken=[^;]*;`)
+			cookieRemoveRegex := regexp.MustCompile(`\s?jwttoken=[^;]*;?\s?`)
 			cookies := cookieRemoveRegex.ReplaceAllString(ogcookies, "")
 			r.Header.Set("Cookie", cookies)
 
 			// Replace the token with a application speicfic one
-			r.Header.Set("x-cosmos-token", "1234567890")
+			//r.Header.Set("x-cosmos-token", "1234567890")
 
 			if enabled && adminOnly {
 				if errT := utils.AdminOnlyWithRedirect(w, r); errT != nil {
@@ -84,6 +84,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 			utils.Error("Unknown filter type: "+route.AddionalFilters[filter].Type, nil)
 		}
 	}
+	
+	destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
 	
 	destination = SmartShieldMiddleware(route.Name, route.SmartShield)(destination)
 

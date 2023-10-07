@@ -9,7 +9,7 @@ import AuthWrapper from './AuthWrapper';
 import { useEffect } from 'react';
 
 import * as API from '../../api';
-import { redirectTo } from '../../utils/indexs';
+import { redirectTo, redirectToLocal } from '../../utils/indexs';
 
 // ================================|| REGISTER ||================================ //
 

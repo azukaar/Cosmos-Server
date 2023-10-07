@@ -12,7 +12,7 @@ type marketGetResult struct {
 }
 
 func MarketGet(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.LoggedInOnly(w, req) != nil {
 		return
 	}
 
@@ -22,7 +22,6 @@ func MarketGet(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		
-		// return the first 10 results of each market
 		marketGetResult := marketGetResult{
 			All: make(map[string]interface{}),
 			Showcase: []appDefinition{},

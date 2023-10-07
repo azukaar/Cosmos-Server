@@ -1,3 +1,19 @@
+<<<<<<< HEAD
+## Version 0.9.20 - 0.9.21
+ - Add option to disable CORS hardening (with empty value)
+
+=======
+## Version 0.10.0
+ - Added Constellation
+ - DNS Challenge is now used for all certificates when enabled [breaking change]
+ - Rework headers for better compatibility
+ - Improve experience for non-admin users
+ - Fix bug with redirect on logout
+ - Added OverwriteHostHeader to routes to override the host header sent to the target app
+ - Added WhitelistInboundIPs to routes to  filter incoming requests based on IP per URL
+
+ > **Note: If you use the ARM (:latest-arm) you need to manually update to using the :latest tag instead**
+ 
 ## Version 0.9.20 - 0.9.21
  - Add option to disable CORS hardening (with empty value)
 

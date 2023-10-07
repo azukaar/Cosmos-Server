@@ -12,6 +12,7 @@ import { Link as LinkMUI } from '@mui/material'
 import DockerComposeImport from '../servapps/containers/docker-compose';
 import { AppstoreAddOutlined, SearchOutlined } from "@ant-design/icons";
 import ResponsiveButton from "../../components/responseiveButton";
+import { useClientInfos } from "../../utils/hooks";
 
 function Screenshots({ screenshots }) {
   return screenshots.length > 1 ? (
@@ -23,17 +24,17 @@ function Screenshots({ screenshots }) {
     : <img src={screenshots[0]} style={{ maxHeight: '300px', height: '100%', maxWidth: '100%' }} />
 }
 
-function Showcases({ showcase, isDark }) {
+function Showcases({ showcase, isDark, isAdmin }) {
   return (
     <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
-        showcase.map((item, i) => <ShowcasesItem isDark={isDark} key={i} item={item} />)
+        showcase.map((item, i) => <ShowcasesItem isDark={isDark} key={i} item={item} isAdmin={isAdmin} />)
       }
     </Carousel>
   )
 }
 
-function ShowcasesItem({ isDark, item }) {
+function ShowcasesItem({ isDark, item, isAdmin }) {
   return (
     <Paper style={{
       position: 'relative',
@@ -68,9 +69,9 @@ function ShowcasesItem({ isDark, item }) {
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
-            <div>
+            {isAdmin && <div>
               <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
-            </div>
+            </div>}
             <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
             }}>
@@ -110,6 +111,8 @@ const MarketPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const { appName, appStore } = useParams();
   const [search, setSearch] = useState("");
+  const {role} = useClientInfos();
+  const isAdmin = role === "2";
 
   const backgroundStyle = isDark ? {
     backgroundColor: 'rgb(0,0,0)',
@@ -178,7 +181,7 @@ const MarketPage = () => {
           </Link>
 
           <div style={{ textAlign: 'center' }}>
-            <Screenshots screenshots={openedApp.screenshots} />
+            <Screenshots screenshots={openedApp.screenshots} isAdmin={isAdmin}/>
           </div>
 
           <Stack direction="row" spacing={2}>
@@ -202,9 +205,9 @@ const MarketPage = () => {
 
           <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
 
-          <div>
+          {isAdmin && <div>
             <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
-          </div>
+          </div>}
         </Stack>
       </Stack>
     </Box>}
@@ -223,7 +226,7 @@ const MarketPage = () => {
             size={100}
           />
         </Box>}
-        {showcase && showcase.length > 0 && <Showcases showcase={showcase} isDark={isDark} />}
+        {showcase && showcase.length > 0 && <Showcases showcase={showcase} isDark={isDark} isAdmin={isAdmin} />}
       </Stack>
 
       <Stack spacing={1} style={{

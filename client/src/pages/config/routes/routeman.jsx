@@ -11,7 +11,7 @@ import {
   FormHelperText,
 } from '@mui/material';
 import RestartModal from '../users/restart';
-import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
+import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
 import { ValidateRouteSchema, sanitizeRoute } from '../../../utils/routes';
@@ -72,12 +72,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           StripPathPrefix: routeConfig.StripPathPrefix,
           AuthEnabled: routeConfig.AuthEnabled,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
+          RestrictToConstellation: routeConfig.RestrictToConstellation,
+          OverwriteHostHeader: routeConfig.OverwriteHostHeader,
+          WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
         validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           if(!submitButton) {
             return false;
           } else {
+            let commaSepIps = values.WhitelistInboundIPs;
+            if(commaSepIps) {
+              values.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
+            }
+
             let fullValues = {
               ...routeConfig,
               ...values,
@@ -256,6 +264,37 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     label="Smart Shield Protection"
                     formik={formik}
                   />
+                  
+                  <CosmosCheckbox
+                    name="RestrictToConstellation"
+                    label="Restrict access to Constellation VPN"
+                    formik={formik}
+                  />
+
+                  <CosmosCollapse title={'Advanced Settings'}>
+                    <Stack spacing={2}>
+                      <Alert severity='info'>These settings are for advanced users only. Please do not change these unless you know what you are doing.</Alert>
+                      <CosmosInputText
+                        name="OverwriteHostHeader"
+                        label="Overwrite Host Header (use this to chain resolve request from another server/ip)"
+                        placeholder="Overwrite Host Header"
+                        formik={formik}
+                      />
+
+                      <Alert severity='warning'>
+                        This setting will filter out all requests that do not come from the specified IPs.
+                        This requires your setup to report the true IP of the client. By default it will, but some exotic setup (like installing docker/cosmos on Windows, or behind Cloudlfare)
+                        will prevent Cosmos from knowing what is the client's real IP. If you used "Restrict to Constellation" above, Constellation IPs will always be allowed regardless of this setting.
+                      </Alert>
+
+                      <CosmosInputText
+                        name="WhitelistInboundIPs"
+                        label="Whitelist Inbound IPs and/or IP ranges (comma separated)"
+                        placeholder="Whitelist Inbound IPs"
+                        formik={formik}
+                      />
+                    </Stack>
+                  </CosmosCollapse>
                 </Grid>
               </MainCard>
               {submitButton && <MainCard ><Button
