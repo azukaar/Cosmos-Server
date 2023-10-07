@@ -41,8 +41,8 @@ export const ConstellationDNS = () => {
             initialValues={{
               Fallback: config.ConstellationConfig.DNSFallback,
               DNSBlockBlacklist: config.ConstellationConfig.DNSBlockBlacklist,
-              DNSAdditionalBlocklists: config.ConstellationConfig.DNSAdditionalBlocklists,
-              CustomDNSEntries: config.ConstellationConfig.CustomDNSEntries,
+              DNSAdditionalBlocklists: config.ConstellationConfig.DNSAdditionalBlocklists || [],
+              CustomDNSEntries: config.ConstellationConfig.CustomDNSEntries || []
             }}
             onSubmit={(values) => {
               let newConfig = { ...config };
