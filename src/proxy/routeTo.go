@@ -92,8 +92,16 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		}
 
 		hostDest := hostname
+		hostPort := ""
 		if route.OverwriteHostHeader != "" {
 			hostDest = route.OverwriteHostHeader
+		}
+
+		// split port
+		hostDestSplit := strings.Split(hostDest, ":")
+		if len(hostDestSplit) > 1 {
+			hostDest = hostDestSplit[0]
+			hostPort = hostDestSplit[1]
 		}
 		
 		// hide hostname (dangerous)
@@ -104,12 +112,13 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		req.Host = hostDest
 
 		if VerboseForwardHeader {
-			req.Header.Set("X-Origin-Host", hostDest)
 			req.Header.Set("X-Forwarded-Host", hostDest)
+			if hostPort != "" {
+				req.Header.Set("X-Forwarded-Port", hostPort)
+			}
 			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
 			req.Header.Set("X-Real-IP", utils.GetClientIP(req))
 		} 
-		
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
