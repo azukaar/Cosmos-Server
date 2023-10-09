@@ -1,3 +1,6 @@
+## Version 0.10.2
+ - Fix port in host header
+
 ## Version 0.10.1
  - Fix an issue where Constellation is stuck if creating a new network is interrupted
  - Fix a logic issue with the whitelist inbound IPs
