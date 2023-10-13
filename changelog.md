@@ -1,3 +1,7 @@
+## Version 0.10.3
+ - Add missing Constellation logs when creating certs
+ - Ignore empty links in cosmos-compose
+
 ## Version 0.10.2
  - Fix port in host header
 

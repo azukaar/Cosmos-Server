@@ -661,6 +661,10 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// Create the networks for links
 		for _, targetContainer := range container.Links {
+			if targetContainer == "" {
+				continue
+			}
+			
 			if strings.Contains(targetContainer, ":") {
 				err = errors.New("Link network cannot contain ':' please use container name only")
 				utils.Error("CreateService: Rolling back changes because of -- Link network", err)

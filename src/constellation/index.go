@@ -31,14 +31,21 @@ func Init() {
 			if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
 				utils.Log("Constellation: ca.crt not found, generating...")
 				// generate ca.crt
-				generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+				
+				errG := generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+				if errG != nil {
+					utils.Error("Constellation: error while generating ca.crt", errG)
+				}
 			}
 
 			// check if cosmos.crt exists
 			if _, err := os.Stat(utils.CONFIGFOLDER + "cosmos.crt"); os.IsNotExist(err) {
 				utils.Log("Constellation: cosmos.crt not found, generating...")
 				// generate cosmos.crt
-				generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
+				_,_,_,errG := generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
+				if errG != nil {
+					utils.Error("Constellation: error while generating cosmos.crt", errG)
+				}
 			}
 
 			// export nebula.yml
