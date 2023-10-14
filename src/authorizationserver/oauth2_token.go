@@ -23,7 +23,7 @@ func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// * invalid redirect
 	// * ...
 	if err != nil {
-		log.Printf("Error occurred in NewAccessRequest: %+v", err)
+		utils.Log("Error occurred in NewAccessRequest", err)
 		oauth2.WriteAccessError(ctx, rw, accessRequest, err)
 		return
 	}
@@ -41,7 +41,7 @@ func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// and aggregate the result in response.
 	response, err := oauth2.NewAccessResponse(ctx, accessRequest)
 	if err != nil {
-		log.Printf("Error occurred in NewAccessResponse: %+v", err)
+		utils.Log("Error occurred in NewAccessResponse", err)
 		oauth2.WriteAccessError(ctx, rw, accessRequest, err)
 		return
 	}

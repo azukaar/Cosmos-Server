@@ -367,7 +367,6 @@ func InitServer() *mux.Router {
     http.Redirect(w, r, "/cosmos-ui", http.StatusTemporaryRedirect)
 	}))
 
-
 	userRouter := router.PathPrefix("/oauth2").Subrouter()
 	SecureAPI(userRouter, false)
 
