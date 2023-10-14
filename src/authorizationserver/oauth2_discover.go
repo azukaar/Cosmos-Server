@@ -68,7 +68,8 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-
+	rw.Header().Del("Content-Type")
+	rw.Header().Set("Content-Type", "application/json")
 
 	json.NewEncoder(rw).Encode(&oidcConfiguration{
 		Issuer:                                 hostname,

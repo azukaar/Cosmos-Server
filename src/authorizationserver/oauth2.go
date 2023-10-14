@@ -86,8 +86,11 @@ func RegisterHandlers(wellKnown *mux.Router, userRouter *mux.Router, serverRoute
 	serverRouter.HandleFunc("/introspect", introspectionEndpoint)
 
 	// public endpoints
-	wellKnown.HandleFunc("/openid-configuration", discoverEndpoint)
-	wellKnown.HandleFunc("/jwks.json", jwksEndpoint)
+	// set well-known endpoints to be json encoded
+	wellKnown.Use(utils.AcceptHeader("application/json"))
+	
+	wellKnown.HandleFunc("/.well-known/openid-configuration", discoverEndpoint)
+	wellKnown.HandleFunc("/.well-known/jwks.json", jwksEndpoint)
 }
 
 // A session is passed from the `/auth` to the `/token` endpoint. You probably want to store data like: "Who made the request",

@@ -35,6 +35,9 @@ func jwksEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// RSA Public Key from rsa.GenerateKey
 	publicKey := AuthPrivateKey.Public().(*rsa.PublicKey)
 
+	rw.Header().Del("Content-Type")
+	rw.Header().Set("Content-Type", "application/json")
+
 	json.NewEncoder(rw).Encode(&JsonWebKeySet{
 		Keys: []JsonWebKey{
 			{

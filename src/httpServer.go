@@ -372,10 +372,10 @@ func InitServer() *mux.Router {
 	SecureAPI(userRouter, false)
 
 	serverRouter := router.PathPrefix("/oauth2").Subrouter()
-	SecureAPI(userRouter, true)
+	SecureAPI(serverRouter, true)
 
-	wellKnownRouter := router.PathPrefix("/.well-known").Subrouter()
-	SecureAPI(userRouter, true)
+	wellKnownRouter := router.PathPrefix("/").Subrouter()
+	SecureAPI(wellKnownRouter, true)
 
 	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
 

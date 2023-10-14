@@ -1,3 +1,8 @@
+## Version 0.10.4
+ - Encode OpenID .well-known to JSON
+ - Fix incompatibility with other apps using .well-known
+ - Secure the OpenID routes that missed the hardening
+
 ## Version 0.10.3
  - Add missing Constellation logs when creating certs
  - Ignore empty links in cosmos-compose
