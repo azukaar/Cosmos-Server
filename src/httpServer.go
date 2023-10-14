@@ -159,7 +159,6 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 		},
 	))
 	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))
-	userRouter.Use(utils.BlockPostWithoutReferer)
 	userRouter.Use(proxy.BotDetectionMiddleware)
 	userRouter.Use(httprate.Limit(120, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),

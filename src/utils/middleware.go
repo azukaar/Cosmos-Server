@@ -177,6 +177,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 		if r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH" || r.Method == "DELETE" {
 			referer := r.Header.Get("Referer")
 			if referer == "" {
+				utils.Error("Blocked POST request without Referer header", nil)
 				http.Error(w, "Bad Request: Invalid request.", http.StatusBadRequest)
 				return
 			}
