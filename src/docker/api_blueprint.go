@@ -515,10 +515,28 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 			port, protocol := portStuff[0], portStuff[1]
 			
-			ports := strings.Split(port, ":")
+			hostPorts := []string{}
+			containerPorts := []string{}
 
-			hostPorts := generatePorts(ports[0])
-			containerPorts := generatePorts(ports[1])
+			// if port contains ->, it's ip bound
+			if strings.Contains(port, "->") {
+				ports := strings.Split(port, "->")
+				hostPortSlice = strings.Split(ports[0], ":")[1]
+				containerPortSlice = strings.Split(ports[1], ":")[1]
+
+				hostPorts = []string{
+					hostPortSlice[len(hostPortSlice)-1],
+				}
+
+				containerPorts = []string{
+					containerPortSlice[len(containerPortSlice)-1],
+				}				
+			} else {
+				ports := strings.Split(port, ":")
+
+				hostPorts = generatePorts(ports[0])
+				containerPorts = generatePorts(ports[1])
+			}
 
 			for i := 0; i < utils.Max(len(hostPorts), len(containerPorts)); i++ {
 				hostPort := hostPorts[i%len(hostPorts)]
