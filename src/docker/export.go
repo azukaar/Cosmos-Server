@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"bytes"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/docker/docker/api/types"
@@ -209,12 +210,25 @@ func ExportDocker() {
 	// Convert the services map to your finalBackup struct
 	finalBackup.Services = services
 
+	// Create a buffer to hold the JSON output
+	var buf bytes.Buffer
 
-	// Convert the finalBackup struct to JSON
-	jsonData, err := json.MarshalIndent(finalBackup, "", "  ")
+	// Create a new JSON encoder that writes to the buffer
+	encoder := json.NewEncoder(&buf)
+
+	// Set escape HTML to false to avoid escaping special characters
+	encoder.SetEscapeHTML(false)
+	//format
+	encoder.SetIndent("", "  ")
+
+	// Use the encoder to write the structured data to the buffer
+	err = encoder.Encode(finalBackup)
 	if err != nil {
-		utils.Error("Cannot marshal docker backup", err)
+			utils.Error("Cannot marshal docker backup", err)
 	}
+
+	// The JSON data is now in buf.Bytes()
+	jsonData := buf.Bytes()
 
 	// Write the JSON data to a file
 	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0644)

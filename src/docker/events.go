@@ -3,6 +3,9 @@ package docker
 import (
 	"context"
 	
+	"sync"
+	"time"
+
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/docker/docker/api/types"
@@ -35,14 +38,27 @@ func DockerListenEvents() error {
 				case msg := <-msgs:
 					utils.Debug("Docker Event: " + msg.Type + " " + msg.Action + " " + msg.Actor.ID)
 					if msg.Type == "container" && msg.Action == "start" {
-						onDockerCreated(msg.Actor.ID)
+						onDockerStarted(msg.Actor.ID)
 					}
+
 					// on container destroy and network disconnect
 					if msg.Type == "container" && msg.Action == "destroy" {
 						onDockerDestroyed(msg.Actor.ID)
 					}
+					if msg.Type == "container" && msg.Action == "create" {
+						onDockerCreated(msg.Actor.ID)
+					}
 					if msg.Type == "network" && msg.Action == "disconnect" {
 						onNetworkDisconnect(msg.Actor.ID)
+					}
+					if msg.Type == "network" && msg.Action == "destroy" {
+						onNetworkDestroy(msg.Actor.ID)
+					}
+					if msg.Type == "network" && msg.Action == "create" {
+						onNetworkCreate(msg.Actor.ID)
+					}
+					if msg.Type == "network" && msg.Action == "connect" {
+						onNetworkConnect(msg.Actor.ID)
 					}
 			}
 		}
@@ -51,16 +67,56 @@ func DockerListenEvents() error {
 	return nil
 }
 
-func onDockerCreated(containerID string) {
-	utils.Debug("onDockerCreated: " + containerID)
+var (
+	timer    *time.Timer
+	interval = 30000 * time.Millisecond
+	mu       sync.Mutex
+)
+
+func DebouncedExportDocker() {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if timer != nil {
+		timer.Stop()
+	}
+
+	timer = time.AfterFunc(interval, ExportDocker)
+}
+
+func onDockerStarted(containerID string) {
+	utils.Debug("onDockerStarted: " + containerID)
 	BootstrapContainerFromTags(containerID)
+	DebouncedExportDocker()
 }
 
 func onDockerDestroyed(containerID string) {
 	utils.Debug("onDockerDestroyed: " + containerID)
+	DebouncedExportDocker()
 }
 
 func onNetworkDisconnect(networkID string) {
 	utils.Debug("onNetworkDisconnect: " + networkID)
 	DebouncedNetworkCleanUp(networkID)
+	DebouncedExportDocker()
+}
+
+func onDockerCreated(containerID string) {
+	utils.Debug("onDockerCreated: " + containerID)
+	DebouncedExportDocker()
+}
+
+func onNetworkDestroy(networkID string) {
+	utils.Debug("onNetworkDestroy: " + networkID)
+	DebouncedExportDocker()
+}
+
+func onNetworkCreate(networkID string) {
+	utils.Debug("onNetworkCreate: " + networkID)
+	DebouncedExportDocker()
+}
+
+func onNetworkConnect(networkID string) {
+	utils.Debug("onNetworkConnect: " + networkID)
+	DebouncedExportDocker()
 }
