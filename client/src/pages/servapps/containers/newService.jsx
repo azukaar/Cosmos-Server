@@ -20,6 +20,7 @@ import DockerTerminal from './terminal';
 import { Link } from 'react-router-dom';
 import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker';
 import { LoadingButton } from '@mui/lab';
+import LogLine from '../../../components/logLine';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -59,6 +60,7 @@ const NewDockerService = ({service, refresh}) => {
   const [isDone, setIsDone] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
+  const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
 
   const installer = {...service['cosmos-installer']};
   service = {...service};
@@ -120,7 +122,7 @@ const NewDockerService = ({service, refresh}) => {
 ${JSON.stringify(service, false ,2)}`
         }
         {log.map((l) => {
-          return <div>{tryParseProgressLog(l)}</div>
+          return <LogLine message={tryParseProgressLog(l)} docker isMobile={!screenMin} />
         })}
       </pre>
     </Stack>

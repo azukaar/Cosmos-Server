@@ -71,7 +71,6 @@ func findAvailableSubnet() string {
 }
 
 func CreateCosmosNetwork() (string, error) {
-	// check if network exists already
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
 		utils.Error("Docker Network List", err)

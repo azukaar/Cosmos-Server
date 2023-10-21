@@ -1,3 +1,12 @@
+## Version 0.11.0
+ - Disable support for X-FORWARDED-FOR incoming header (needs further testing)
+ - Docker export feature for backups on every docker event
+ - Compose Import feature now supports skipping creating existing resources
+ - Compose Import now overwrite containers if they are differents
+ - Added support for cosmos-persistent-env, to persist password when overwriting containers (useful for encrypted or password protected volumes, like databases use)
+ - Fixed bug where import compose would try to revert a previously created volume when errors occurs
+ - Terminal for import now has colours 
+
 ## Version 0.10.4
  - Encode OpenID .well-known to JSON
  - Fix incompatibility with other apps using .well-known

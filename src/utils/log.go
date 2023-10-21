@@ -2,6 +2,7 @@ package utils
 
 import (
 	"log"
+	"fmt"
 )
 
 var Reset  = "\033[0m"
@@ -55,4 +56,25 @@ func Fatal(message string, err error) {
 	if ll <= ERROR {
 		log.Fatal(Red + "[FATAL] " + message + " : " + errStr + Reset)
 	}
+}
+
+func DoWarn(format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	// \033[1;33m is the ANSI code for bold yellow
+	// \033[0m resets the color
+	return fmt.Sprintf("\033[1;33m[WARN] %s\033[0m", message)
+}
+
+func DoErr(format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	// \033[1;31m is the ANSI code for bold red
+	// \033[0m resets the color
+	return fmt.Sprintf("\033[1;31m[ERROR] %s\033[0m", message)
+}
+
+func DoSuccess(format string, a ...interface{}) string {
+	message := fmt.Sprintf(format, a...)
+	// \033[1;32m is the ANSI code for bold green
+	// \033[0m resets the color
+	return fmt.Sprintf("\033[1;32m[SUCCESS] %s\033[0m", message)
 }

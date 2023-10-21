@@ -29,6 +29,15 @@ type ContainerCreateRequestServiceNetwork struct {
 	IPV6Address string `json:"ipv6_address,omitempty"`
 }
 
+type ContainerCreateRequestContainerHealthcheck struct {
+	Test        []string `json:"test"`
+	Interval int `json:"interval"`
+	Timeout int `json:"timeout"`
+	Retries int `json:"retries"`
+	StartPeriod int `json:"start_period"`
+}
+
+
 type ContainerCreateRequestContainer struct {
 	Name 			string            `json:"container_name"`
 	Image       string            `json:"image"`
@@ -60,13 +69,7 @@ type ContainerCreateRequestContainer struct {
 	NetworkMode string `json:"network_mode,omitempty"`
 	StopSignal string `json:"stop_signal,omitempty"`
 	StopGracePeriod int `json:"stop_grace_period,omitempty"`
-	HealthCheck struct {
-		Test []string `json:"test"`
-		Interval int `json:"interval"`
-		Timeout int `json:"timeout"`
-		Retries int `json:"retries"`
-		StartPeriod int `json:"start_period"`
-	} `json:"healthcheck,omitempty"`
+	HealthCheck ContainerCreateRequestContainerHealthcheck `json:"healthcheck,omitempty"`
 	DNS []string `json:"dns,omitempty"`
 	DNSSearch []string `json:"dns_search,omitempty"`
 	ExtraHosts []string `json:"extra_hosts,omitempty"`
@@ -90,6 +93,11 @@ type ContainerCreateRequestVolume struct {
 	Target string `json:"target"`
 }
 
+type ContainerCreateRequestNetworkIPAMConfig struct {
+	Subnet string `json:"subnet"`
+	Gateway string `json:"gateway"`
+}
+
 type ContainerCreateRequestNetwork struct {
 	// name must be unique
 	Name string `json:"name"`
@@ -97,11 +105,10 @@ type ContainerCreateRequestNetwork struct {
 	Attachable bool `json:"attachable"`
 	Internal bool `json:"internal"`
 	EnableIPv6 bool `json:"enable_ipv6"`
+	Labels map[string]string `json:"labels"`
 	IPAM struct {
 		Driver string `json:"driver"`
-		Config []struct {
-			Subnet string `json:"subnet"`
-		} `json:"config"`
+		Config []ContainerCreateRequestNetworkIPAMConfig `json:"config"`
 	} `json:"ipam"`
 }
 
@@ -118,6 +125,8 @@ type DockerServiceCreateRollback struct {
 	Type string `json:"type"`
 	// name: container name, volume name, network name
 	Name string `json:"name"`
+	// was: container old settings
+	Was doctype.ContainerJSON `json:"was"`
 }
 
 func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
@@ -125,29 +134,54 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 		action := actions[i]
 		switch action.Type {
 		case "container":
-			DockerClient.ContainerKill(DockerContext, action.Name, "SIGKILL")
-			err := DockerClient.ContainerRemove(DockerContext, action.Name, doctype.ContainerRemoveOptions{})
-			if err != nil {
-				utils.Error("Rollback: Container", err)
-			} else {
-				utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
-				OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
+			if action.Action == "remove" {
+				utils.Log(fmt.Sprintf("Removing container %s...", action.Name))
+
+				DockerClient.ContainerKill(DockerContext, action.Name, "SIGKILL")
+				err := DockerClient.ContainerRemove(DockerContext, action.Name, doctype.ContainerRemoveOptions{})
+		
+				if err != nil {
+					utils.Error("Rollback: Container", err)
+					OnLog(utils.DoErr("Rollback: Container %s", err))
+				} else {
+					utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
+					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
+				}	
+			} else if action.Action == "revert" {
+				utils.Log(fmt.Sprintf("Reverting container %s...", action.Name))
+
+				// Edit Container
+				_, err := EditContainer(action.Name, action.Was, false)
+	
+				if err != nil {
+					utils.Error("Rollback: Container", err)
+					OnLog(utils.DoErr("Rollback: Container %s", err))
+				} else {
+					utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
+					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
+				}	
 			}
 		case "volume":
+			utils.Log(fmt.Sprintf("Removing volume %s...", action.Name))
+
 			err := DockerClient.VolumeRemove(DockerContext, action.Name, true)
 			if err != nil {
 				utils.Error("Rollback: Volume", err)
+				OnLog(utils.DoErr("Rollback: Volume %s", err))
 			} else {
 				utils.Log(fmt.Sprintf("Rolled back volume %s", action.Name))
 				OnLog(fmt.Sprintf("Rolled back volume %s\n", action.Name))
 			}
 		case "network":
+			utils.Log(fmt.Sprintf("Removing network %s...", action.Name))
+
 			if os.Getenv("HOSTNAME") != "" {
 				DockerClient.NetworkDisconnect(DockerContext, action.Name, os.Getenv("HOSTNAME"), true)
 			}
 			err := DockerClient.NetworkRemove(DockerContext, action.Name)
 			if err != nil {
 				utils.Error("Rollback: Network", err)
+				OnLog(utils.DoErr("Rollback: Network %s", err))
 			} else {
 				utils.Log(fmt.Sprintf("Rolled back network %s", action.Name))
 				OnLog(fmt.Sprintf("Rolled back network %s\n", action.Name))
@@ -245,12 +279,23 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		OnLog(fmt.Sprintf("Creating network %s...\n", networkToCreateName))
 
 		// check if network already exists
-		_, err = DockerClient.NetworkInspect(DockerContext, networkToCreateName, doctype.NetworkInspectOptions{})
+		exNetworkDef, err := DockerClient.NetworkInspect(DockerContext, networkToCreateName, doctype.NetworkInspectOptions{})
+
 		if err == nil {
-			utils.Error("CreateService: Network", err)
-			OnLog(fmt.Sprintf("[ERROR] Network %s already exists\n", networkToCreateName))
-			Rollback(rollbackActions, OnLog)
-			return err
+			if networkToCreate.Driver == "" {
+				networkToCreate.Driver = "bridge"
+			}
+
+			if (exNetworkDef.Driver != networkToCreate.Driver) {
+				utils.Error("CreateService: Network", err)
+				OnLog(utils.DoErr("Network %s already exists with incompatible settings, cannot merge new network into it.\n", networkToCreateName))
+				Rollback(rollbackActions, OnLog)
+				return err
+			} else {
+				utils.Warn(fmt.Sprintf("Network %s already exists, skipping creation", networkToCreateName))
+				OnLog(utils.DoWarn("Network %s already exists, skipping creation\n", networkToCreateName))
+				continue
+			}
 		}
 
 		ipamConfig := make([]network.IPAMConfig, len(networkToCreate.IPAM.Config))
@@ -275,7 +320,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Network", err)
-			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Network creation error: %s\n", err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Network creation error: %s\n", err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
@@ -292,7 +337,19 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	}
 
 	// Create volumes
-	for _, volume := range serviceRequest.Volumes {
+	for volumeName, volume := range serviceRequest.Volumes {
+		if volume.Name == "" {
+			volume.Name = volumeName
+		}
+
+		// check if volume already exists
+		_, err := DockerClient.VolumeInspect(DockerContext, volume.Name)
+		if err == nil {
+			utils.Warn(fmt.Sprintf("Volume %s already exists, skipping creation", volume.Name))
+			OnLog(utils.DoWarn("Volume %s already exists, skipping creation\n", volume.Name))
+			continue
+		}
+
 		utils.Log(fmt.Sprintf("Creating volume %s...", volume.Name))
 		OnLog(fmt.Sprintf("Creating volume %s...\n", volume.Name))
 		
@@ -303,7 +360,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Volume", err)
-			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Volume creation error: %s\n", err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Volume creation error: %s\n", err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
@@ -328,7 +385,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		out, err := DockerPullImage(container.Image)
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Image pull", err)
-			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Image pull error: %s\n", err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Image pull error: %s\n", err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
@@ -351,14 +408,16 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
-		if container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto" {
+		// If container request a Cosmos network, create and attach it
+		if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
+					container.Labels["cosmos-network-name"] == "" {
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
 			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
 			newNetwork, errNC := CreateCosmosNetwork()
 			if errNC != nil {
 				utils.Error("CreateService: Network", err)
-				OnLog(fmt.Sprintf("[ERROR] Network %s cant be created\n", newNetwork))
+				OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))
 				Rollback(rollbackActions, OnLog)
 				return err
 			}
@@ -381,6 +440,18 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			
 			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
 			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
+		} else if container.Labels["cosmos-network-name"] != "" {
+			// Container has a declared a Cosmos network, check if it exists and connect to it
+			utils.Log(fmt.Sprintf("Checking declared network %s...", container.Labels["cosmos-network-name"]))
+			OnLog(fmt.Sprintf("Checking declared network %s...\n", container.Labels["cosmos-network-name"]))
+
+			_, err := DockerClient.NetworkInspect(DockerContext, container.Labels["cosmos-network-name"], doctype.NetworkInspectOptions{})
+			if err == nil {
+				utils.Log(fmt.Sprintf("Connecting to declared network %s...", container.Labels["cosmos-network-name"]))
+				OnLog(fmt.Sprintf("Connecting to declared network %s...\n", container.Labels["cosmos-network-name"]))
+	
+				AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
+			}
 		}
 
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
@@ -499,7 +570,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				if os.Getenv("HOSTNAME") != "" {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
-						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
+						OnLog(utils.DoErr("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
 					} else {
 						newSource = "/mnt/host" + newSource
 					}
@@ -516,7 +587,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 					if err != nil {
 						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
-						OnLog(fmt.Sprintf("[ERROR] Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
+						OnLog(utils.DoErr("Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
 						Rollback(rollbackActions, OnLog)
 						return err
 					}
@@ -526,7 +597,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 						err = os.Chown(newSource, container.UID, container.GID)
 						if err != nil {
 							utils.Error("CreateService: Unable to change ownership of directory", err)
-							OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
+							OnLog(utils.DoErr("Unable to change ownership of directory: " + err.Error()))
 						}
 					} else if container.User != "" && strings.Contains(container.User, ":") { 
 						uidgid := strings.Split(container.User, ":")
@@ -535,21 +606,21 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 						err = os.Chown(newSource, uid, gid)
 						if err != nil {
 							utils.Error("CreateService: Unable to change ownership of directory", err)
-							OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
+							OnLog(utils.DoErr("Unable to change ownership of directory: " + err.Error()))
 						}
 					} else if container.User != "" {
 						// Change the ownership of the directory to the container.User
 						userInfo, err := user.Lookup(container.User)
 						if err != nil {
 							utils.Error("CreateService: Unable to lookup user", err)
-							OnLog(fmt.Sprintf("[ERROR] Unable to lookup user " + container.User + ". " +err.Error()))
+							OnLog(utils.DoErr("Unable to lookup user " + container.User + ". " +err.Error()))
 						} else {
 							uid, _ := strconv.Atoi(userInfo.Uid)
 							gid, _ := strconv.Atoi(userInfo.Gid)
 							err = os.Chown(newSource, uid, gid)
 							if err != nil {
 								utils.Error("CreateService: Unable to change ownership of directory", err)
-								OnLog(fmt.Sprintf("[ERROR] Unable to change ownership of directory: " + err.Error()))
+								OnLog(utils.DoErr("Unable to change ownership of directory: " + err.Error()))
 							}
 						}	
 					}
@@ -604,21 +675,89 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		networkingConfig := &network.NetworkingConfig{
 			EndpointsConfig: make(map[string]*network.EndpointSettings),
 		}
+
+		// check if container exist
+		existingContainer, err := DockerClient.ContainerInspect(DockerContext, container.Name)
+		if err == nil {
+			utils.Warn("CreateService: Container " + container.Name + " already exist, overwriting.")
+			OnLog(utils.DoWarn("Container " + container.Name + " already exist, overwriting.\n"))
+	
+			// Edit Container
+			newConfig := doctype.ContainerJSON{}
+			newConfig.ContainerJSONBase = new(doctype.ContainerJSONBase)
+			newConfig.Config = containerConfig
+			newConfig.HostConfig = hostConfig
+
+			// check if there are persistent env var
+			if containerConfig.Labels["cosmos-persistent-env"] != "" {
+				// split env vars
+				envVars := strings.Split(containerConfig.Labels["cosmos-persistent-env"], ",")
+				// get existing env vars
+				existingEnvVars := existingContainer.Config.Env
+				// loop through env vars
+				for _, envVar := range envVars {
+					envVar = strings.TrimSpace(envVar)
+					
+					// check if env var already exist
+					exists := false
+					existingEnvVarValue := ""
+					for _, existingEnvVar := range existingEnvVars {
+						if strings.HasPrefix(existingEnvVar, envVar + "=") {
+							exists = true
+							existingEnvVarValue = existingEnvVar
+							break
+						}
+					}
+					// if it exist, copy value to new container
+					if exists {
+						wasReplace := false
+						for i, newEnvVar := range newConfig.Config.Env {
+							if strings.HasPrefix(newEnvVar, envVar + "=") {
+								newConfig.Config.Env[i] = envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "=")
+								wasReplace = true
+								break
+							}
+						}
+						if !wasReplace {
+							newConfig.Config.Env = append(newConfig.Config.Env, envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "="))
+						}
+					}
+				}
+			}
+			
+			_, errEdit := EditContainer(container.Name, newConfig, false)
+
+			if errEdit != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Container", err)
+				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+
+			// rollback action
 		
-		_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
+			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+				Action: "revert",
+				Type:   "container",
+				Name:   container.Name,
+				Was: existingContainer,
+			})
+		} else {
+			_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
+
+			if err != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Container", err)
+				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
 		
-		if err != nil {
-			utils.Error("CreateService: Rolling back changes because of -- Container", err)
-			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container creation error: "+err.Error()))
-			Rollback(rollbackActions, OnLog)
-			return err
-		}
-		
-		rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-			Action: "remove",
-			Type:   "container",
-			Name:   container.Name,
-		})
+			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+				Action: "remove",
+				Type:   "container",
+				Name:   container.Name,
+			})
+		}	
 
 		// connect to networks
 		for netName, netConfig := range container.Networks {
@@ -628,17 +767,19 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				IPAddress:   netConfig.IPV4Address,
 				GlobalIPv6Address: netConfig.IPV6Address,
 			})
-			if err != nil {
+			if err != nil && !strings.Contains(err.Error(), "already exists in network") {
 				utils.Error("CreateService: Rolling back changes because of -- Network Connection -- ", err)
-				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Network connection error: "+err.Error()))
+				OnLog(utils.DoErr("Rolling back changes because of -- Network connection error: "+err.Error()))
 				Rollback(rollbackActions, OnLog)
 				return err
+			} else if strings.Contains(err.Error(), "already exists in network") {
+				utils.Warn("CreateService: Container " + container.Name + " already connected to network " + netName + ", skipping.")
+				OnLog(utils.DoWarn("Container %s already connected to network %s, skipping.", container.Name, netName))			
 			}
 		}
 
-
 		// add routes 
-		for _, route := range container.Routes {
+		for routeIndex, route := range container.Routes {
 			// check if route already exists
 			exists := false
 			for _, configRoute := range configRoutes {
@@ -651,10 +792,15 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				needsHTTPRestart = true
 				configRoutes = append([]utils.ProxyRouteConfig{(utils.ProxyRouteConfig)(route)}, configRoutes...)
 			} else {
-				utils.Error("CreateService: Rolling back changes because of -- Route already exist", nil)
-				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Route already exist"))
-				Rollback(rollbackActions, OnLog)
-				return errors.New("Route already exist")
+				// utils.Error("CreateService: Rolling back changes because of -- Route already exist", nil)
+				// OnLog(utils.DoErr("Rolling back changes because of -- Route already exist"))
+				// Rollback(rollbackActions, OnLog)
+				// return errors.New("Route already exist")
+
+				//overwrite route
+				configRoutes[routeIndex] = (utils.ProxyRouteConfig)(route)
+				utils.Warn("CreateService: Route " + route.Name + " already exist, overwriting.")
+				OnLog(utils.DoWarn("Route " + route.Name + " already exist, overwriting.\n"))
 			}
 		}
 		
@@ -668,7 +814,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			if strings.Contains(targetContainer, ":") {
 				err = errors.New("Link network cannot contain ':' please use container name only")
 				utils.Error("CreateService: Rolling back changes because of -- Link network", err)
-				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Link network creation error: "+err.Error()))
+				OnLog(utils.DoErr("Rolling back changes because of -- Link network creation error: "+err.Error()))
 				Rollback(rollbackActions, OnLog)
 				return err
 			}
@@ -676,7 +822,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			err = CreateLinkNetwork(container.Name, targetContainer)
 			if err != nil {
 				utils.Error("CreateService: Rolling back changes because of -- Link network", err)
-				OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Link network creation error: "+err.Error()))
+				OnLog(utils.DoErr("Rolling back changes because of -- Link network creation error: "+err.Error()))
 				Rollback(rollbackActions, OnLog)
 				return err
 			}
@@ -691,7 +837,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	startOrder, err := ReOrderServices(serviceRequest.Services)
 	if err != nil {
 		utils.Error("CreateService: Rolling back changes because of -- Container", err)
-		OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container creation error: "+err.Error()))
+		OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
 		Rollback(rollbackActions, OnLog)
 		return err
 	}
@@ -701,7 +847,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		err = DockerClient.ContainerStart(DockerContext, container.Name, doctype.ContainerStartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
-			OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Container start error: "+err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Container start error: "+err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
@@ -739,7 +885,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			
 				if err != nil {
 					utils.Error("CreateService: Post Install", err)
-					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					OnLog(utils.DoErr("Rolling back changes because of -- Post install error: "+err.Error()))
 					Rollback(rollbackActions, OnLog)
 					return err
 				}
@@ -748,7 +894,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				response, err := DockerClient.ContainerExecAttach(DockerContext, execResponse.ID, doctype.ExecStartCheck{})
 				if err != nil {
 					utils.Error("CreateService: Post Install", err)
-					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					OnLog(utils.DoErr("Rolling back changes because of -- Post install error: "+err.Error()))
 					Rollback(rollbackActions, OnLog)
 					return err
 				}
@@ -758,7 +904,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				err = DockerClient.ContainerExecStart(DockerContext, execResponse.ID, doctype.ExecStartCheck{})
 				if err != nil {
 					utils.Error("CreateService: Post Install", err)
-					OnLog(fmt.Sprintf("[ERROR] Rolling back changes because of -- Post install error: "+err.Error()))
+					OnLog(utils.DoErr("Rolling back changes because of -- Post install error: "+err.Error()))
 					Rollback(rollbackActions, OnLog)
 					return err
 				}
@@ -784,7 +930,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 	// After all operations
 	utils.Log("CreateService: Operation succeeded. SERVICE STARTED")
-	OnLog("[OPERATION SUCCEEDED]. SERVICE STARTED\n")
+	OnLog("\n")
+	OnLog(utils.DoSuccess("[OPERATION SUCCEEDED]. SERVICE STARTED\n"))
 
 	return nil
 }

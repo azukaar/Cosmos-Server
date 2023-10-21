@@ -23,7 +23,7 @@ func main() {
 
 	go CRON()
 
-	docker.Test()
+	docker.ExportDocker()
 
 	docker.DockerListenEvents()
 

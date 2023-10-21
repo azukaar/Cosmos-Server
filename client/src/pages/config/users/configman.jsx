@@ -95,6 +95,7 @@ const ConfigManagement = () => {
           DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
           ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
           OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
+          UseForwardedFor: config.HTTPConfig.UseForwardedFor,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -143,6 +144,7 @@ const ConfigManagement = () => {
               DNSChallengeConfig: values.DNSChallengeConfig,
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
+              UseForwardedFor: values.UseForwardedFor,
             },
             EmailConfig: {
               ...config.EmailConfig,
@@ -556,7 +558,13 @@ const ConfigManagement = () => {
 
               <MainCard title="Security">
                   <Grid container spacing={3}>
-                  
+
+                  {/* <CosmosCheckbox
+                    label={"Read Client IP from X-Forwarded-For header (not recommended)"}
+                    name="UseForwardedFor"
+                    formik={formik}
+                  /> */}
+
                   <CosmosFormDivider title='Geo-Blocking' />
 
                   <CosmosCheckbox
