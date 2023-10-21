@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	
 	"sync"
 	"time"
 
@@ -71,6 +70,7 @@ var (
 	timer    *time.Timer
 	interval = 30000 * time.Millisecond
 	mu       sync.Mutex
+	cancelFunc      context.CancelFunc
 )
 
 func DebouncedExportDocker() {
@@ -78,45 +78,60 @@ func DebouncedExportDocker() {
 	defer mu.Unlock()
 
 	if timer != nil {
+		if cancelFunc != nil {
+			cancelFunc() // cancel the previous context
+		}
 		timer.Stop()
 	}
 
-	timer = time.AfterFunc(interval, ExportDocker)
+	// Create a new context and cancelFunc
+	ctx, newCancelFunc := context.WithCancel(context.Background())
+	cancelFunc = newCancelFunc
+
+	timer = time.AfterFunc(interval, func() {
+		select {
+		case <-ctx.Done():
+			// if the context was canceled, don't execute ExportDocker
+			return
+		default:
+			ExportDocker()
+		}
+	})
 }
 
 func onDockerStarted(containerID string) {
 	utils.Debug("onDockerStarted: " + containerID)
 	BootstrapContainerFromTags(containerID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onDockerDestroyed(containerID string) {
 	utils.Debug("onDockerDestroyed: " + containerID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onNetworkDisconnect(networkID string) {
 	utils.Debug("onNetworkDisconnect: " + networkID)
 	DebouncedNetworkCleanUp(networkID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onDockerCreated(containerID string) {
 	utils.Debug("onDockerCreated: " + containerID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onNetworkDestroy(networkID string) {
 	utils.Debug("onNetworkDestroy: " + networkID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onNetworkCreate(networkID string) {
 	utils.Debug("onNetworkCreate: " + networkID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }
 
 func onNetworkConnect(networkID string) {
 	utils.Debug("onNetworkConnect: " + networkID)
-	DebouncedExportDocker()
+	// DebouncedExportDocker()
 }

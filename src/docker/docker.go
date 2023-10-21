@@ -634,14 +634,14 @@ func SelfRecreate() error {
 }
 
 func DockerPullImage(image string) (io.ReadCloser, error) {
+	utils.Debug("DockerPull - Preparing Pulling image " + image)
+
 	options := types.ImagePullOptions{}
 
 	configfile, err := config.Load(config.Dir())
 	if err != nil {
 			utils.Error("DockerPull - Read config file error -", err)
 	} else {
-
-		
 		slashIndex := strings.Index(image, "/")
 		
 		if slashIndex >= 1 && strings.ContainsAny(image[:slashIndex], ".:") {
@@ -657,6 +657,8 @@ func DockerPullImage(image string) (io.ReadCloser, error) {
 		} 
 	}
 	
+	utils.Debug("DockerPull - Starting Pulling image " + image)
+
 	out, errPull := DockerClient.ImagePull(DockerContext, image, options)
 
 	return out, errPull

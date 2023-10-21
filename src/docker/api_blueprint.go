@@ -518,31 +518,21 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			hostPorts := []string{}
 			containerPorts := []string{}
 
-			// if port contains ->, it's ip bound
-			if strings.Contains(port, "->") {
-				ports := strings.Split(port, "->")
-				hostPortSlice = strings.Split(ports[0], ":")[1]
-				containerPortSlice = strings.Split(ports[1], ":")[1]
+			ports := strings.Split(port, ":")
 
-				hostPorts = []string{
-					hostPortSlice[len(hostPortSlice)-1],
-				}
+			hostPorts = generatePorts(ports[len(ports)-2])
+			containerPorts = generatePorts(ports[len(ports)-1])
 
-				containerPorts = []string{
-					containerPortSlice[len(containerPortSlice)-1],
-				}				
-			} else {
-				ports := strings.Split(port, ":")
-
-				hostPorts = generatePorts(ports[0])
-				containerPorts = generatePorts(ports[1])
+			ipExposed := ""
+			if len(portStuff) > 2 {
+				ipExposed = strings.Join(portStuff[0:len(portStuff)-2], ":") + ":"
 			}
 
 			for i := 0; i < utils.Max(len(hostPorts), len(containerPorts)); i++ {
 				hostPort := hostPorts[i%len(hostPorts)]
 				containerPort := containerPorts[i%len(containerPorts)]
 				
-				finalPorts = append(finalPorts, fmt.Sprintf("%s:%s/%s", hostPort, containerPort, protocol))
+				finalPorts = append(finalPorts, fmt.Sprintf("%s%s:%s/%s", ipExposed, hostPort, containerPort, protocol))
 			}
 		}
 
@@ -790,7 +780,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				OnLog(utils.DoErr("Rolling back changes because of -- Network connection error: "+err.Error()))
 				Rollback(rollbackActions, OnLog)
 				return err
-			} else if strings.Contains(err.Error(), "already exists in network") {
+			} else if err != nil && strings.Contains(err.Error(), "already exists in network") {
 				utils.Warn("CreateService: Container " + container.Name + " already connected to network " + netName + ", skipping.")
 				OnLog(utils.DoWarn("Container %s already connected to network %s, skipping.", container.Name, netName))			
 			}

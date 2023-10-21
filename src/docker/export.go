@@ -73,17 +73,20 @@ func ExportDocker() {
 			CapDrop:          detailedInfo.HostConfig.CapDrop,
 			SysctlsMap:       detailedInfo.HostConfig.Sysctls,
 			Privileged:       detailedInfo.HostConfig.Privileged,
+			
 			// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
+			
 			// Ports
 			Ports: func() []string {
 					ports := []string{}
 					for port, binding := range detailedInfo.NetworkSettings.Ports {
 							for _, b := range binding {
-									ports = append(ports, fmt.Sprintf("%s:%s->%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
+									ports = append(ports, fmt.Sprintf("%s:%s:%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
 							}
 					}
 					return ports
 			}(),
+
 			// Volumes
 			Volumes: func() []mount.Mount {
 					mounts := []mount.Mount{}
