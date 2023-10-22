@@ -1,3 +1,6 @@
+## Version 0.11.1
+ - fix issue exporting text user node
+
 ## Version 0.11.0
  - Disable support for X-FORWARDED-FOR incoming header (needs further testing)
  - Docker export feature for backups on every docker event

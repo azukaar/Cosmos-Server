@@ -148,14 +148,12 @@ func ExportDocker() {
 			if len(parts) == 2 {
 				uid, err := strconv.Atoi(parts[0])
 				if err != nil {
-					panic(err)
+					service.UID = uid
 				}
 				gid, err := strconv.Atoi(parts[1])
 				if err != nil {
-					panic(err)
+					service.GID = gid
 				}
-				service.UID = uid
-				service.GID = gid
 			}
 		}
 
