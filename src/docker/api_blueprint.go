@@ -805,7 +805,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		}
 
 		// add routes 
-		for routeIndex, route := range container.Routes {
+		for _, route := range container.Routes {
 			// check if route already exists
 			exists := false
 			existsAt := 0
