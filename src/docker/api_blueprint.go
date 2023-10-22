@@ -525,14 +525,14 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 			ipExposed := ""
 			if len(portStuff) > 2 {
-				ipExposed = strings.Join(portStuff[0:len(portStuff)-2], ":") + ":"
+				ipExposed = strings.Join(portStuff[0:len(portStuff)-2], ":")
 			}
 
 			for i := 0; i < utils.Max(len(hostPorts), len(containerPorts)); i++ {
 				hostPort := hostPorts[i%len(hostPorts)]
 				containerPort := containerPorts[i%len(containerPorts)]
 				
-				finalPorts = append(finalPorts, fmt.Sprintf("%s%s:%s/%s", ipExposed, hostPort, containerPort, protocol))
+				finalPorts = append(finalPorts, fmt.Sprintf("%s@%s:%s/%s", ipExposed, hostPort, containerPort, protocol))
 			}
 		}
 
@@ -542,7 +542,17 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		for _, portRaw := range finalPorts {
 			portStuff := strings.Split(portRaw, "/")
-			port, protocol := portStuff[0], portStuff[1]
+			ipport := strings.Split(portStuff[0], "@")
+
+			ipdest := ""
+			portdef := ipport[0]
+			if len(ipport) > 1 {
+				portdef = ipport[1]
+				ipdest = ipport[0]
+			}
+
+			port, protocol := portdef, portStuff[1]
+
 			nextPort := strings.Split(port, ":")
 			hostPort, contPort := nextPort[0], nextPort[1]
 
@@ -557,9 +567,15 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			bindings := PortBindings[nat.Port(contPort)]
 
 			// Append a new PortBinding to the slice of bindings
-			bindings = append(bindings, nat.PortBinding{
+			pb := nat.PortBinding {
 				HostPort: hostPort,
-			})
+			}
+
+			if ipdest != "" {
+				pb.HostIP = ipdest
+			}
+
+			bindings = append(bindings, pb)
 
 			// Update the port bindings for this container port
 			PortBindings[nat.Port(contPort)] = bindings
@@ -579,6 +595,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
 						OnLog(utils.DoErr("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
+					
+						continue
 					} else {
 						newSource = "/mnt/host" + newSource
 					}
