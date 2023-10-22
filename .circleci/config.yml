@@ -64,7 +64,7 @@ jobs:
           name: Rename ARM Nebula Binary
           command: |
             mv nebula nebula-arm
-            mv nebula-cert nebula-cert-arm
+            mv nebula-cert nebula-arm-cert
       
       - run:
           name: Download and Extract Nebula Binary

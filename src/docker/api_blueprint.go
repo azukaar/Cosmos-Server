@@ -808,12 +808,15 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		for routeIndex, route := range container.Routes {
 			// check if route already exists
 			exists := false
-			for _, configRoute := range configRoutes {
+			existsAt := 0
+			for destRouteIndex, configRoute := range configRoutes {
 				if configRoute.Name == route.Name {
 					exists = true
+					existsAt = destRouteIndex
 					break
 				}
 			}
+
 			if !exists {
 				needsHTTPRestart = true
 				configRoutes = append([]utils.ProxyRouteConfig{(utils.ProxyRouteConfig)(route)}, configRoutes...)
@@ -824,7 +827,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				// return errors.New("Route already exist")
 
 				//overwrite route
-				configRoutes[routeIndex] = (utils.ProxyRouteConfig)(route)
+				configRoutes[existsAt] = (utils.ProxyRouteConfig)(route)
 				utils.Warn("CreateService: Route " + route.Name + " already exist, overwriting.")
 				OnLog(utils.DoWarn("Route " + route.Name + " already exist, overwriting.\n"))
 			}

@@ -6,6 +6,7 @@
  - Added support for cosmos-persistent-env, to persist password when overwriting containers (useful for encrypted or password protected volumes, like databases use)
  - Fixed bug where import compose would try to revert a previously created volume when errors occurs
  - Terminal for import now has colours 
+ - Fix a bug where ARM CPU would not be able to start Constellation
 
 ## Version 0.10.4
  - Encode OpenID .well-known to JSON
