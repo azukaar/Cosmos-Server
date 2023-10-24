@@ -102,36 +102,36 @@ func DebouncedExportDocker() {
 func onDockerStarted(containerID string) {
 	utils.Debug("onDockerStarted: " + containerID)
 	BootstrapContainerFromTags(containerID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onDockerDestroyed(containerID string) {
 	utils.Debug("onDockerDestroyed: " + containerID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onNetworkDisconnect(networkID string) {
 	utils.Debug("onNetworkDisconnect: " + networkID)
 	DebouncedNetworkCleanUp(networkID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onDockerCreated(containerID string) {
 	utils.Debug("onDockerCreated: " + containerID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onNetworkDestroy(networkID string) {
 	utils.Debug("onNetworkDestroy: " + networkID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onNetworkCreate(networkID string) {
 	utils.Debug("onNetworkCreate: " + networkID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }
 
 func onNetworkConnect(networkID string) {
 	utils.Debug("onNetworkConnect: " + networkID)
-	// DebouncedExportDocker()
+	DebouncedExportDocker()
 }

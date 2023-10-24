@@ -1,3 +1,9 @@
+## Version 0.11.3
+ - Fix missing even subscriber on export
+
+## Version 0.11.2
+ - Improve Docker exports logs
+
 ## Version 0.11.1
  - fix issue exporting text user node
 
