@@ -33,7 +33,7 @@ func Init() {
 
 func ReadMarketConfig() MarketConfig {
 	configPath := "/config/cosmos.config.json"
-	/*Only the market section is needed, but Sources are avalible to configure as well
+	/*Only the market section is needed, but Sources are available to configure as well
 		 *
 		 *
 	    "DefaultMarket": {
