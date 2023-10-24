@@ -15,9 +15,12 @@ import (
 
 )
 
+var ExportError = "" 
+
 func ExportDocker() {
 	errD := Connect()
 	if errD != nil {
+		ExportError = "Export Docker - cannot connect - " + errD.Error()
 		utils.Error("ExportDocker - connect - ", errD)
 		return
 	}
@@ -28,6 +31,7 @@ func ExportDocker() {
 	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
 	if err != nil {
 		utils.Error("ExportDocker - Cannot list containers", err)
+		ExportError = "Export Docker - Cannot list containers - " + err.Error()
 		return
 	}
 
@@ -38,7 +42,8 @@ func ExportDocker() {
 		// Fetch detailed info of each container
 		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, container.ID)
 		if err != nil {
-			utils.Error("Cannot inspect container", err)
+			utils.Error("Export Docker - Cannot inspect container" + container.Names[0], err)
+			ExportError = "Export Docker - Cannot inspect container" + container.Names[0] + " - " + err.Error()
 			return
 		}
 
@@ -168,7 +173,8 @@ func ExportDocker() {
 	// List networks
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
-		utils.Error("Cannot list networks", err)
+		utils.Error("Export Docker - Cannot list networks", err)
+		ExportError = "Export Docker - Cannot list networks - " + err.Error()
 		return
 	}
 
@@ -183,7 +189,8 @@ func ExportDocker() {
 		// Fetch detailed info of each network
 		detailedInfo, err := DockerClient.NetworkInspect(DockerContext, network.ID, types.NetworkInspectOptions{})
 		if err != nil {
-			utils.Error("Cannot inspect network", err)
+			utils.Error("Export Docker - Cannot inspect network", err)
+			ExportError = "Export Docker - Cannot inspect network - " + err.Error()
 			return
 		}
 
@@ -225,7 +232,8 @@ func ExportDocker() {
 	// Use the encoder to write the structured data to the buffer
 	err = encoder.Encode(finalBackup)
 	if err != nil {
-			utils.Error("Cannot marshal docker backup", err)
+			utils.Error("Export Docker - Cannot marshal docker backup", err)
+			ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
 	}
 
 	// The JSON data is now in buf.Bytes()
@@ -234,6 +242,7 @@ func ExportDocker() {
 	// Write the JSON data to a file
 	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0644)
 	if err != nil {
-		utils.Error("Cannot save docker backup", err)
+		utils.Error("Export Docker - Cannot save docker backup", err)
+		ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
 	}
 }

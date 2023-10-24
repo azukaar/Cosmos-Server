@@ -233,6 +233,12 @@ const HomePage = () => {
                 </Alert>
             )}
 
+            {isAdmin && coStatus && (coStatus.backup_status != "") && (
+                <Alert severity="error">
+                    {coStatus.backup_status}
+                </Alert>
+            )}
+
             {isAdmin && coStatus && coStatus.LetsEncryptErrors && coStatus.LetsEncryptErrors.length > 0 && (
                 <Alert severity="error">
                     There are errors with your Let's Encrypt configuration or one of your routes, please fix them as soon as possible:
