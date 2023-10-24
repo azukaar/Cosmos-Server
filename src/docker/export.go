@@ -18,6 +18,8 @@ import (
 var ExportError = "" 
 
 func ExportDocker() {
+	ExportError = "" 
+	
 	errD := Connect()
 	if errD != nil {
 		ExportError = "Export Docker - cannot connect - " + errD.Error()
