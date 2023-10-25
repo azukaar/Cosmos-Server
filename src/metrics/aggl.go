@@ -171,7 +171,7 @@ func AggloMetrics() {
 func InitAggl() {
 	go func() {
 		s := gocron.NewScheduler()
-		s.Every(1).Hour().At("00.00").From(gocron.NextTick()).Do(func() {
+		s.Every(1).Hour().At("00.00").From(gocron.NextTick()).Do(AggloMetrics)
 		// s.Every(3).Minute().From(gocron.NextTick()).Do(AggloMetrics)
 
 		s.Start()
