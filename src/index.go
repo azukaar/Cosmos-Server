@@ -10,6 +10,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/authorizationserver"
 	"github.com/azukaar/cosmos-server/src/market"
 	"github.com/azukaar/cosmos-server/src/constellation"
+	"github.com/azukaar/cosmos-server/src/metrics"
 )
 
 func main() {
@@ -40,6 +41,8 @@ func main() {
 	if err == nil {
 		utils.Log("Docker API version: " + version.APIVersion)
 	}
+
+	metrics.Init()
 
 	market.Init()
 	

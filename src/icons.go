@@ -172,7 +172,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 				// Fetch the favicon
 				resp, err := httpGetWithTimeout(iconURL)
 				if err != nil {
-					utils.Debug("FaviconFetch" + err.Error())
+					utils.Debug("FaviconFetch - " + err.Error())
 					continue
 				}
 

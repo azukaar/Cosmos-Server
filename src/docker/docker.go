@@ -663,3 +663,62 @@ func DockerPullImage(image string) (io.ReadCloser, error) {
 
 	return out, errPull
 }
+
+type ContainerStats struct {
+	Name      string
+	CPUUsage  float64
+	MemUsage  uint64
+	MemLimit	uint64
+	NetworkRx uint64
+	NetworkTx uint64
+}
+
+func StatsAll() ([]ContainerStats, error) {
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("StatsAll", err)
+		return nil, err
+	}
+	
+	var containerStatsList []ContainerStats
+
+	for _, container := range containers {
+		statsBody, err := DockerClient.ContainerStatsOneShot(DockerContext, container.ID)
+		if err != nil {
+			return nil, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
+		}
+
+		defer statsBody.Body.Close()
+
+		stats := types.StatsJSON{}
+		if err := json.NewDecoder(statsBody.Body).Decode(&stats); err != nil {
+			return nil, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
+		}
+
+		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
+		systemDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
+		
+		cpuUsage := 0.0
+
+		if systemDelta > 0 && cpuDelta > 0 {
+			cpuUsage = (cpuDelta / systemDelta) * float64(len(stats.CPUStats.CPUUsage.PercpuUsage)) * 100
+		} else {
+			utils.Error("StatsAll - Error calculating CPU usage", nil)
+		}
+
+		// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100
+		netRx := stats.Networks["eth0"].RxBytes
+		netTx := stats.Networks["eth0"].TxBytes
+
+		containerStats := ContainerStats{
+			Name:      strings.TrimPrefix(container.Names[0], "/"),
+			CPUUsage:  cpuUsage,
+			MemUsage:  stats.MemoryStats.Usage,
+			MemLimit:  stats.MemoryStats.Limit,
+			NetworkRx: netRx,
+			NetworkTx: netTx,
+		}
+		containerStatsList = append(containerStatsList, containerStats)
+	}
+	return containerStatsList, nil
+}

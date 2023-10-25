@@ -23,6 +23,7 @@ require (
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pquerna/otp v1.4.0
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253
+	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/shirou/gopsutil/v3 v3.23.5
 	go.deanishe.net/favicon v0.1.0
 	go.mongodb.org/mongo-driver v1.11.3
