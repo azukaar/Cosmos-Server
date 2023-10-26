@@ -683,6 +683,11 @@ func StatsAll() ([]ContainerStats, error) {
 	var containerStatsList []ContainerStats
 
 	for _, container := range containers {
+		// if running
+		if container.State != "running" {
+			continue
+		}
+		
 		statsBody, err := DockerClient.ContainerStatsOneShot(DockerContext, container.ID)
 		if err != nil {
 			return nil, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
@@ -703,7 +708,7 @@ func StatsAll() ([]ContainerStats, error) {
 		if systemDelta > 0 && cpuDelta > 0 {
 			cpuUsage = (cpuDelta / systemDelta) * float64(len(stats.CPUStats.CPUUsage.PercpuUsage)) * 100
 		} else {
-			utils.Error("StatsAll - Error calculating CPU usage", nil)
+			utils.Error("StatsAll - Error calculating CPU usage for " + container.Names[0], nil)
 		}
 
 		// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100

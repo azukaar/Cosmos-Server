@@ -124,14 +124,13 @@ func GetSystemMetrics() {
   for _, part := range parts {
     u, err := disk.Usage(part.Mountpoint)
 		if err != nil {
-			utils.Error("Metrics - Error fetching Disk usage:", err)
-			return
+			utils.Error("Metrics - Error fetching Disk usage for " + part.Mountpoint + " : ", err)
+		} else {
+			PushSetMetric("system.disk." + part.Mountpoint, int(u.Used), DataDef{
+				Max: u.Total,
+				Period: time.Second * 120,
+				Label: "Disk " + part.Mountpoint,
+			})
 		}
-		
-		PushSetMetric("system.disk." + part.Mountpoint, int(u.Used), DataDef{
-			Max: u.Total,
-			Period: time.Second * 120,
-			Label: "Disk " + part.Mountpoint,
-		})
   }
 }
