@@ -2,7 +2,9 @@ package metrics
 
 import (
 	"strconv"
+	"strings"
 	"time"	
+	"os"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
@@ -122,15 +124,23 @@ func GetSystemMetrics() {
 	}
 
   for _, part := range parts {
-    u, err := disk.Usage(part.Mountpoint)
-		if err != nil {
-			utils.Error("Metrics - Error fetching Disk usage for " + part.Mountpoint + " : ", err)
-		} else {
-			PushSetMetric("system.disk." + part.Mountpoint, int(u.Used), DataDef{
-				Max: u.Total,
-				Period: time.Second * 120,
-				Label: "Disk " + part.Mountpoint,
-			})
+		if strings.HasPrefix(part.Mountpoint, "/dev") || strings.HasPrefix(part.Mountpoint, "/mnt") {
+			realMount := part.Mountpoint
+			
+			if os.Getenv("HOSTANME") != "" {
+				realMount = "/mnt/host" + part.Mountpoint
+			}
+
+			u, err := disk.Usage(realMount)
+			if err != nil {
+				utils.Error("Metrics - Error fetching Disk usage for " + realMount + " : ", err)
+			} else {
+				PushSetMetric("system.disk." + part.Mountpoint, int(u.Used), DataDef{
+					Max: u.Total,
+					Period: time.Second * 120,
+					Label: "Disk " + part.Mountpoint,
+				})
+			}
 		}
-  }
+	}
 }
