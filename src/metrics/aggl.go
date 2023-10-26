@@ -74,8 +74,8 @@ func AggloMetrics() {
 		} 
 
 		// if hourly pool does not exist, create it
-		if _, ok := metric.ValuesAggl["hour_" + hourlyPool.String()]; !ok {
-			metric.ValuesAggl["hour_" + hourlyPool.String()] = DataDefDBEntry{
+		if _, ok := metric.ValuesAggl["hour_" + hourlyPool.UTC().Format("2006-01-02 15:04:05")]; !ok {
+			metric.ValuesAggl["hour_" + hourlyPool.UTC().Format("2006-01-02 15:04:05")] = DataDefDBEntry{
 				Date: hourlyPool,
 				Value: 0,
 				Processed: false,
@@ -86,8 +86,8 @@ func AggloMetrics() {
 		}
 	
 		// if daily pool does not exist, create it
-		if _, ok := metric.ValuesAggl["day_" + dailyPool.String()]; !ok {
-			metric.ValuesAggl["day_" + dailyPool.String()] = DataDefDBEntry{
+		if _, ok := metric.ValuesAggl["day_" + dailyPool.UTC().Format("2006-01-02")]; !ok {
+			metric.ValuesAggl["day_" + dailyPool.UTC().Format("2006-01-02")] = DataDefDBEntry{
 				Date: dailyPool,
 				Value: 0,
 				Processed: false,
@@ -100,33 +100,33 @@ func AggloMetrics() {
 		for valInd, value := range values {
 			// if not processed
 			if !value.Processed {
-				valueHourlyPool := ModuloTime(value.Date, time.Hour)
-				valueDailyPool := ModuloTime(value.Date, 24 * time.Hour)
+				valueHourlyPool := ModuloTime(value.Date, time.Hour).UTC().Format("2006-01-02 15:04:05")
+				valueDailyPool := ModuloTime(value.Date, 24 * time.Hour).UTC().Format("2006-01-02")
 
-				if _, ok := metric.ValuesAggl["hour_" + valueHourlyPool.String()]; ok {
-					currentPool := metric.ValuesAggl["hour_" + valueHourlyPool.String()]
+				if _, ok := metric.ValuesAggl["hour_" + valueHourlyPool]; ok {
+					currentPool := metric.ValuesAggl["hour_" + valueHourlyPool]
 					
 					currentPool.Value = MergeMetric(metric.AggloType, currentPool.Value, value.Value, currentPool.AvgIndex)    
 					if metric.AggloType == "avg" {
 						currentPool.AvgIndex++
 					}
 
-					metric.ValuesAggl["hour_" + valueHourlyPool.String()] = currentPool
+					metric.ValuesAggl["hour_" + valueHourlyPool] = currentPool
 				} else {
-					utils.Warn("Metrics: Agglomeration - Pool not found : " + "hour_" + valueHourlyPool.String())
+					utils.Warn("Metrics: Agglomeration - Pool not found : " + "hour_" + valueHourlyPool)
 				}
 
-				if _, ok := metric.ValuesAggl["day_" + valueDailyPool.String()]; ok {
-					currentPool := metric.ValuesAggl["day_" + valueDailyPool.String()]
-
+				if _, ok := metric.ValuesAggl["day_" + valueDailyPool]; ok {
+					currentPool := metric.ValuesAggl["day_" + valueDailyPool]
+					
 					currentPool.Value = MergeMetric(metric.AggloType, currentPool.Value, value.Value, currentPool.AvgIndex)
 					if metric.AggloType == "avg" {
 						currentPool.AvgIndex++
 					}
 
-					metric.ValuesAggl["day_" + valueDailyPool.String()] = currentPool
+					metric.ValuesAggl["day_" + valueDailyPool] = currentPool
 				} else {
-					utils.Warn("Metrics: Agglomeration - Pool not found: " + "day_" + valueDailyPool.String())
+					utils.Warn("Metrics: Agglomeration - Pool not found: " + "day_" + valueDailyPool)
 				}
 
 				values[valInd].Processed = true
@@ -171,7 +171,7 @@ func AggloMetrics() {
 func InitAggl() {
 	go func() {
 		s := gocron.NewScheduler()
-		s.Every(1).Hour().At("00.00").From(gocron.NextTick()).Do(AggloMetrics)
+		s.Every(1).Hour().From(gocron.NextTick()).Do(AggloMetrics)
 		// s.Every(3).Minute().From(gocron.NextTick()).Do(AggloMetrics)
 
 		s.Start()

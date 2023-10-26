@@ -4,6 +4,7 @@ import * as _config from './config';
 import * as _docker from './docker';
 import * as _market from './market';
 import * as _constellation from './constellation';
+import * as _metrics from './metrics';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -214,6 +215,7 @@ let config = _config;
 let docker = _docker;
 let market = _market;
 let constellation = _constellation;
+let metrics = _metrics;
 
 if(isDemo) {
   auth = authDemo;
@@ -242,5 +244,6 @@ export {
   isOnline,
   checkHost,
   getDNS,
+  metrics,
   uploadBackground
 };

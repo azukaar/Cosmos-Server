@@ -38,6 +38,7 @@ import IsLoggedIn from '../../isLoggedIn';
 
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
+import PlotComponent from './components/plot';
 
 // avatar style
 const avatarSX = {
@@ -79,7 +80,19 @@ const DashboardDefault = () => {
     const [slot, setSlot] = useState('week');
 
     const [coStatus, setCoStatus] = useState(null);
+    const [metrics, setMetrics] = useState(null);
     const [isCreatingDB, setIsCreatingDB] = useState(false);
+
+    const refreshMetrics = () => {
+        API.metrics.get().then((res) => {
+            let finalMetrics = {};
+            res.data.forEach((metric) => {
+                finalMetrics[metric.Key] = metric;
+            });
+            setMetrics(finalMetrics);
+            setTimeout(refreshMetrics, 10000);
+        });
+    };
 
     const refreshStatus = () => {
         API.getStatus().then((res) => {
@@ -89,14 +102,8 @@ const DashboardDefault = () => {
 
     useEffect(() => {
         refreshStatus();
+        refreshMetrics();
     }, []);
-
-    const setupDB = () => {
-        setIsCreatingDB(true);
-        API.docker.newDB().then((res) => {
-            refreshStatus();
-        });
-    }
 
     return (
         <>
@@ -145,7 +152,7 @@ const DashboardDefault = () => {
                 <Alert severity="info">Dashboard implementation currently in progress! If you want to voice your opinion on where Cosmos is going, please join us on Discord!</Alert>
             </Stack>
         </div>
-        <div style={{filter: 'blur(10px)', marginTop: '30px', pointerEvents: 'none'}}>
+        {metrics && <div style={{marginTop: '30px'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75}>
                 {/* row 1 */}
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
@@ -167,38 +174,9 @@ const DashboardDefault = () => {
                 <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
 
                 {/* row 2 */}
-                <Grid item xs={12} md={7} lg={8}>
-                    <Grid container alignItems="center" justifyContent="space-between">
-                        <Grid item>
-                            <Typography variant="h5">Unique Visitor</Typography>
-                        </Grid>
-                        <Grid item>
-                            <Stack direction="row" alignItems="center" spacing={0}>
-                                <Button
-                                    size="small"
-                                    onClick={() => setSlot('month')}
-                                    color={slot === 'month' ? 'primary' : 'secondary'}
-                                    variant={slot === 'month' ? 'outlined' : 'text'}
-                                >
-                                    Month
-                                </Button>
-                                <Button
-                                    size="small"
-                                    onClick={() => setSlot('week')}
-                                    color={slot === 'week' ? 'primary' : 'secondary'}
-                                    variant={slot === 'week' ? 'outlined' : 'text'}
-                                >
-                                    Week
-                                </Button>
-                            </Stack>
-                        </Grid>
-                    </Grid>
-                    <MainCard content={false} sx={{ mt: 1.5 }}>
-                        <Box sx={{ pt: 1, pr: 2 }}>
-                            <IncomeAreaChart slot={slot} />
-                        </Box>
-                    </MainCard>
-                </Grid>
+                
+                <PlotComponent data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
+                
                 <Grid item xs={12} md={5} lg={4}>
                     <Grid container alignItems="center" justifyContent="space-between">
                         <Grid item>
@@ -413,7 +391,7 @@ const DashboardDefault = () => {
                     </MainCard>
                 </Grid>
             </Grid>
-        </div>
+        </div>}
       </>
     );
 };

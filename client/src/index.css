@@ -145,3 +145,7 @@
 .pulsing {
   animation: pulsing 2s ease-in-out infinite;
 }
+
+.force-light > * {
+  color: black !important;
+}
