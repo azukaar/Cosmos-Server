@@ -166,6 +166,8 @@ func Run() {
 			utils.Error("Metrics - Cannot start monitoring the server if you don't mount /mnt/host to /. Check the documentation for more information.", nil)
 			return
 		} else {
+			utils.Log("Metrics - Monitoring the server at /mnt/host")
+
 			os.Setenv("HOST_PROC", "/mnt/host/proc")
 			os.Setenv("HOST_SYS", "/mnt/host/sys")
 			os.Setenv("HOST_ETC", "/mnt/host/etc")
