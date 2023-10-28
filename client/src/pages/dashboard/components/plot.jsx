@@ -147,7 +147,9 @@ const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
           },
           
           formatter: (num) => {
-            if (Math.abs(num) >= 1e9) {
+            if (Math.abs(num) >= 1e12) {
+              return (num / 1e12).toFixed(1) + 'T'; // Convert to Millions
+            } else if (Math.abs(num) >= 1e9) {
               return (num / 1e9).toFixed(1) + 'G'; // Convert to Millions
             } else if (Math.abs(num) >= 1e6) {
                 return (num / 1e6).toFixed(1) + 'M'; // Convert to Millions

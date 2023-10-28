@@ -39,6 +39,7 @@ import IsLoggedIn from '../../isLoggedIn';
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';
+import TableComponent from './components/table';
 
 // avatar style
 const avatarSX = {
@@ -177,47 +178,15 @@ const DashboardDefault = () => {
                 
                 <PlotComponent title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
                
-                <Grid item xs={12} md={5} lg={4}>
-                    <Grid container alignItems="center" justifyContent="space-between">
-                        <Grid item>
-                            <Typography variant="h5">Income Overview</Typography>
-                        </Grid>
-                        <Grid item />
-                    </Grid>
-                    <MainCard sx={{ mt: 2 }} content={false}>
-                        <Box sx={{ p: 3, pb: 0 }}>
-                            <Stack spacing={2}>
-                                <Typography variant="h6" color="textSecondary">
-                                    This Week Statistics
-                                </Typography>
-                                <Typography variant="h3">$7,650</Typography>
-                            </Stack>
-                        </Box>
-                        <MonthlyBarChart />
-                    </MainCard>
-                </Grid>
+                <TableComponent title="Containers - Network" data={
+                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.cpu") || key.startsWith("cosmos.system.docker.ram")).map((key) => metrics[key])   
+                }/>
                
                 <PlotComponent title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
                 
-                <Grid item xs={12} md={5} lg={4}>
-                    <Grid container alignItems="center" justifyContent="space-between">
-                        <Grid item>
-                            <Typography variant="h5">Income Overview</Typography>
-                        </Grid>
-                        <Grid item />
-                    </Grid>
-                    <MainCard sx={{ mt: 2 }} content={false}>
-                        <Box sx={{ p: 3, pb: 0 }}>
-                            <Stack spacing={2}>
-                                <Typography variant="h6" color="textSecondary">
-                                    This Week Statistics
-                                </Typography>
-                                <Typography variant="h3">$7,650</Typography>
-                            </Stack>
-                        </Box>
-                        <MonthlyBarChart />
-                    </MainCard>
-                </Grid>
+                <TableComponent title="Containers - Network" data={
+                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])   
+                }/>
 
                 {/* row 3 */}
                 <Grid item xs={12} md={7} lg={8}>

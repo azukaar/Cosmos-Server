@@ -54,10 +54,10 @@ func GetSystemMetrics() {
 	// Get Network Usage
 	netIO, err := net.IOCounters(false)
 	
-	netIOTest, _ := net.IOCounters(true)
-	for _, v := range netIOTest {
-		utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
-	}
+	// netIOTest, _ := net.IOCounters(true)
+	// for _, v := range netIOTest {
+	// 	utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
+	// }
 
 	PushSetMetric("system.netRx", int(netIO[0].BytesRecv), DataDef{
 		Max: 0,
