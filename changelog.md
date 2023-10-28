@@ -1,3 +1,8 @@
+## Version 0.12.0
+ - New Dashboard
+ - New metrics gathering system
+ - Added Button to force reset HTTPS cert in settings
+
 ## Version 0.11.3
  - Fix missing even subscriber on export
 

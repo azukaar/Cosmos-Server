@@ -687,6 +687,15 @@ const ConfigManagement = () => {
                     </Stack>
                   </Grid>
 
+                  <Grid item xs={12}>
+                    <CosmosCheckbox
+                      label={"Force HTTPS Certificate Renewal On Next Save"}
+                      name="ForceHTTPSCertificateRenewal"
+                      formik={formik}
+                    />
+                  </Grid>
+
+                    
                 </Grid>
               </MainCard>
 

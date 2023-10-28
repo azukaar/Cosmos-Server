@@ -124,7 +124,7 @@ func GetSystemMetrics() {
 	}
 
   for _, part := range parts {
-		if strings.HasPrefix(part.Mountpoint, "/dev") || strings.HasPrefix(part.Mountpoint, "/mnt") {
+		if strings.HasPrefix(part.Mountpoint, "/dev") || (strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host")) {
 			realMount := part.Mountpoint
 			
 			if os.Getenv("HOSTANME") != "" {

@@ -45,9 +45,12 @@ function toUTC(date, time) {
   return formatDate(now, time);
 }
 
-const PlotComponent = ({ data, defaultSlot = 'day' }) => {
+const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
   const [slot, setSlot] = useState(defaultSlot);
   const theme = useTheme();
+  const { primary, secondary } = theme.palette.text;
+  const line = theme.palette.divider;
+  const [series, setSeries] = useState([]);
 
   // chart options
   const areaChartOptions = {
@@ -69,116 +72,108 @@ const PlotComponent = ({ data, defaultSlot = 'day' }) => {
       strokeDashArray: 0
     }
   };
-
-  let hourlyDates = [];
-  for(let i = 0; i < 48; i++) {
-    let now = new Date();
-    now.setHours(now.getHours() - i);
-    now.setMinutes(0);
-    now.setSeconds(0);
-    // get as YYYY-MM-DD HH:MM:SS
-    hourlyDates.unshift(formatDate(now, true));
-  }
-
-  let dailyDates = [];
-  for(let i = 0; i < 30; i++) {
-    let now = new Date();
-    now.setDate(now.getDate() - i);
-    dailyDates.unshift(formatDate(now));
-  }
-
-  const { primary, secondary } = theme.palette.text;
-  const line = theme.palette.divider;
-
   const [options, setOptions] = useState(areaChartOptions);
 
   useEffect(() => {
+    let xAxis = [];
+
+    if(slot === 'latest') {
+      for(let i = 0; i < 100; i++) {
+        xAxis.unshift(i);
+      }
+    }
+    else if(slot === 'hourly') {
+      for(let i = 0; i < 48; i++) {
+        let now = new Date();
+        now.setHours(now.getHours() - i);
+        now.setMinutes(0);
+        now.setSeconds(0);
+        xAxis.unshift(formatDate(now, true));
+      }
+    } else if(slot === 'daily') {
+      for(let i = 0; i < 30; i++) {
+        let now = new Date();
+        now.setDate(now.getDate() - i);
+        xAxis.unshift(formatDate(now));
+      }
+    }
+
+    const dataSeries = [];
+    data.forEach((serie) => {
+      dataSeries.push({
+        name: serie.Label,
+        dataAxis: xAxis.map((date) => {
+          if(slot === 'latest') {
+            return serie.Values[serie.Values.length - 1 - date] ? 
+              serie.Values[serie.Values.length - 1 - date].Value :
+              0;
+          } else {
+            let key = slot === 'hourly' ? "hour_" : "day_";
+            let k = key + toUTC(date, slot === 'hourly');
+            if (k in serie.ValuesAggl) {
+              return serie.ValuesAggl[k].Value;
+            } else {
+              return 0;
+            }
+          }
+        })
+      });
+    });
+
     setOptions((prevState) => ({
       ...prevState,
       colors: [theme.palette.primary.main, theme.palette.secondary.main],
       xaxis: {
-        categories:
-          slot === 'hourly'
-            ? hourlyDates.map((date) => date.split(' ')[1])
-            : dailyDates,
+        categories: 
+        slot === 'hourly'
+          ? xAxis.map((date) => date.split(' ')[1])
+          : xAxis,
         labels: {
           style: {
-            fontSize: '11px',
+            fontSize: slot === 'latest' ? '0' : '11px',
           }
         },
         axisBorder: {
           show: true,
           color: line
         },
-        tickAmount: slot === 'hourly' ? hourlyDates.length : dailyDates.length,
+        tickAmount: xAxis.length,
       },
-      yaxis: [{
+      yaxis: data.map((thisdata, ida) => ({
+        opposite: ida === 1, 
         labels: {
           style: {
             colors: [secondary]
+          },
+          
+          formatter: (num) => {
+            if (Math.abs(num) >= 1e9) {
+              return (num / 1e9).toFixed(1) + 'G'; // Convert to Millions
+            } else if (Math.abs(num) >= 1e6) {
+                return (num / 1e6).toFixed(1) + 'M'; // Convert to Millions
+            } else if (Math.abs(num) >= 1e3) {
+                return (num / 1e3).toFixed(1) + 'K'; // Convert to Thousands
+            } else {
+                return num.toString();
+            }
           }
         },
         title: {
-          text: data[0].Label,
+          text: thisdata.Label,
         }
-      },
-      {
-        opposite: true,
-        labels: {
-          style: {
-            colors: [secondary]
-          }
-        },
-        title: {
-          text: data[1].Label,
-        }
-      }
-      ],
+      })),
       grid: {
         borderColor: line
       },
       tooltip: {
-        theme: 'light'
+        theme: theme.palette.mode,
       }
     }));
-  }, [primary, secondary, line, theme, slot]);
 
-  let dataSeries = [];
-  data.forEach((serie) => {
-    dataSeries.push({
-      name: serie.Label,
-      dataDaily: dailyDates.map((date) => {
-        let k = "day_" + toUTC(date);
-        if (k in serie.ValuesAggl) {
-          return serie.ValuesAggl[k].Value;
-        } else {
-          console.log(k)
-          return 0;
-        }
-      }),
-      dataHourly: hourlyDates.map((date) => {
-        let k = "hour_" + toUTC(date, true);
-        if (k in serie.ValuesAggl) {
-          return serie.ValuesAggl[k].Value;
-        } else {
-          return 0;
-        }
-      }),
-    });
-  });
-
-  const [series, setSeries] = useState(dataSeries.map((serie) => {
-    return {
-      name: serie.name,
-      data: slot === 'hourly' ? serie.dataHourly : serie.dataDaily
-    }
-  }));
-
-  useEffect(() => {
     setSeries(dataSeries.map((serie) => {
       return {
         name: serie.name,
-        data: slot === 'hourly' ? serie.dataHourly : serie.dataDaily
+        data: serie.dataAxis
       }
     }));
   }, [slot, data]);
@@ -187,10 +182,18 @@ const PlotComponent = ({ data, defaultSlot = 'day' }) => {
   return <Grid item xs={12} md={7} lg={8}>
     <Grid container alignItems="center" justifyContent="space-between">
       <Grid item>
-        <Typography variant="h5">Server Resources</Typography>
+        <Typography variant="h5">{title}</Typography>
       </Grid>
       <Grid item>
         <Stack direction="row" alignItems="center" spacing={0}>
+          <Button
+            size="small"
+            onClick={() => setSlot('latest')}
+            color={slot === 'latest' ? 'primary' : 'secondary'}
+            variant={slot === 'latest' ? 'outlined' : 'text'}
+          >
+            Latest
+          </Button>
           <Button
             size="small"
             onClick={() => setSlot('hourly')}
@@ -211,8 +214,8 @@ const PlotComponent = ({ data, defaultSlot = 'day' }) => {
       </Grid>
     </Grid>
     <MainCard content={false} sx={{ mt: 1.5 }}>
-      <Box sx={{ pt: 1, pr: 2 }} className="force-light">
-        <ReactApexChart options={options} series={series} type="area" height={450} />;
+      <Box sx={{ pt: 1, pr: 2 }}>
+        <ReactApexChart options={options} series={series} type="area" height={450} />
       </Box>
     </MainCard>
   </Grid>

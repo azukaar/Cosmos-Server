@@ -31,7 +31,7 @@ type DataDefDB struct {
 	AggloType string
 }
 
-func AggloMetrics() {
+func AggloMetrics() []DataDefDB {
 	lock <- true
 	defer func() { <-lock }()
 
@@ -42,7 +42,7 @@ func AggloMetrics() {
 	c, errCo := utils.GetCollection(utils.GetRootAppId(), "metrics")
 	if errCo != nil {
 			utils.Error("Metrics - Database Connect", errCo)
-			return
+			return []DataDefDB{}
 	}
 
 	// get all metrics from database
@@ -50,13 +50,13 @@ func AggloMetrics() {
 	cursor, err := c.Find(nil, map[string]interface{}{})
 	if err != nil {
 		utils.Error("Metrics: Error fetching metrics", err)
-		return
+		return []DataDefDB{}
 	}
 	defer cursor.Close(nil)
 	
 	if err = cursor.All(nil, &metrics); err != nil {
 		utils.Error("Metrics: Error decoding metrics", err)
-		return
+		return []DataDefDB{}
 	}
 
 	// populate aggregation pools
@@ -153,7 +153,17 @@ func AggloMetrics() {
 		metrics[metInd] = metric
 	}
 
+	return metrics
+}
+
+func CommitAggl(metrics []DataDefDB) {
 	utils.Log("Metrics: Agglomeration done. Saving to DB")
+
+	c, errCo := utils.GetCollection(utils.GetRootAppId(), "metrics")
+	if errCo != nil {
+			utils.Error("Metrics - Database Connect", errCo)
+			return
+	}
 
 	// save metrics
 	for _, metric := range metrics {
@@ -166,12 +176,18 @@ func AggloMetrics() {
 			return
 		}
 	}
+
+	utils.Log("Metrics: Agglomeration saved to DB")
+}
+
+func AggloAndCommitMetrics() {
+	CommitAggl(AggloMetrics())
 }
 
 func InitAggl() {
 	go func() {
 		s := gocron.NewScheduler()
-		s.Every(1).Hour().From(gocron.NextTick()).Do(AggloMetrics)
+		s.Every(1).Hour().From(gocron.NextTick()).Do(AggloAndCommitMetrics)
 		// s.Every(3).Minute().From(gocron.NextTick()).Do(AggloMetrics)
 
 		s.Start()
