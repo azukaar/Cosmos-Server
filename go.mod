@@ -23,13 +23,12 @@ require (
 	github.com/oschwald/geoip2-golang v1.8.0
 	github.com/pquerna/otp v1.4.0
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253
-	github.com/shirou/gopsutil v3.21.11+incompatible
-	github.com/shirou/gopsutil/v3 v3.23.5
+	github.com/shirou/gopsutil/v3 v3.23.9
 	go.deanishe.net/favicon v0.1.0
 	go.mongodb.org/mongo-driver v1.11.3
 	golang.org/x/crypto v0.10.0
 	golang.org/x/net v0.11.0
-	golang.org/x/sys v0.9.0
+	golang.org/x/sys v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -198,8 +197,8 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.490 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.490 // indirect
-	github.com/tklauser/go-sysconf v0.3.11 // indirect
-	github.com/tklauser/numcpus v0.6.0 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/transip/gotransip/v6 v6.20.0 // indirect
 	github.com/ultradns/ultradns-go-sdk v1.5.0-20230427130837-23c9b0c // indirect
 	github.com/vinyldns/go-vinyldns v0.9.16 // indirect
