@@ -29,6 +29,7 @@ type DataDefDB struct {
 	Label string
 	Key string
 	AggloType string
+	Scale int
 }
 
 func AggloMetrics() []DataDefDB {

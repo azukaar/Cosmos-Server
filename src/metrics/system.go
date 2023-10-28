@@ -31,17 +31,17 @@ func GetSystemMetrics() {
 		} else {
 			utils.Log("Metrics - Monitoring the server at /mnt/host")
 
-			ctx = context.WithValue(context.Background(), 
-				common.EnvKey, common.EnvMap{
-					common.HostProcEnvKey: "/mnt/host/proc",
-					common.HostSysEnvKey: "/mnt/host/sys",
-					common.HostEtcEnvKey: "/mnt/host/etc",
-					common.HostVarEnvKey: "/mnt/host/var",
-					common.HostRunEnvKey: "/mnt/host/run",
-					common.HostDevEnvKey: "/mnt/host/dev",
-					common.HostRootEnvKey: "/mnt/host/",
-				},
-			)
+			// ctx = context.WithValue(context.Background(), 
+			// 	common.EnvKey, common.EnvMap {
+			// 		common.HostProcEnvKey: "/mnt/host/proc",
+			// 		common.HostSysEnvKey: "/mnt/host/sys",
+			// 		common.HostEtcEnvKey: "/mnt/host/etc",
+			// 		common.HostVarEnvKey: "/mnt/host/var",
+			// 		common.HostRunEnvKey: "/mnt/host/run",
+			// 		common.HostDevEnvKey: "/mnt/host/dev",
+			// 		common.HostRootEnvKey: "/mnt/host/",
+			// 	},
+			// )
 		}
 	}
 
@@ -128,6 +128,7 @@ func GetSystemMetrics() {
 			Period: time.Second * 30,
 			Label: "Docker CPU " + ds.Name,
 			AggloType: "avg",
+			Scale: 1000,
 		})
 		PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
 			Max: 100,

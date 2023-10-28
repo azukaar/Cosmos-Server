@@ -702,11 +702,21 @@ func StatsAll() ([]ContainerStats, error) {
 
 		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
 		systemDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
+
+		utils.Debug("StatsAll - CPU CPUUsage TotalUsage " + strconv.FormatUint(stats.CPUStats.CPUUsage.TotalUsage, 10))
+		utils.Debug("StatsAll - CPU PreCPUStats TotalUsage " + strconv.FormatUint(stats.PreCPUStats.CPUUsage.TotalUsage, 10))
+		utils.Debug("StatsAll - CPU CPUUsage PercpuUsage " + strconv.Itoa(len(stats.CPUStats.CPUUsage.PercpuUsage)))
+		utils.Debug("StatsAll - CPU CPUUsage SystemUsage " + strconv.FormatUint(stats.CPUStats.SystemUsage, 10))
 		
+		utils.Debug("StatsAll - CPU CPUUsage CPU Delta " + strconv.FormatFloat(cpuDelta, 'f', 6, 64))
+		utils.Debug("StatsAll - CPU CPUUsage System Delta " + strconv.FormatFloat(systemDelta, 'f', 6, 64))
+
 		cpuUsage := 0.0
 
 		if systemDelta > 0 && cpuDelta > 0 {
 			cpuUsage = (cpuDelta / systemDelta) * float64(len(stats.CPUStats.CPUUsage.PercpuUsage)) * 100
+			
+			utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 		} else {
 			utils.Error("StatsAll - Error calculating CPU usage for " + container.Names[0], nil)
 		}
@@ -717,7 +727,7 @@ func StatsAll() ([]ContainerStats, error) {
 
 		containerStats := ContainerStats{
 			Name:      strings.TrimPrefix(container.Names[0], "/"),
-			CPUUsage:  cpuUsage,
+			CPUUsage:  cpuUsage * 1000,
 			MemUsage:  stats.MemoryStats.Usage,
 			MemLimit:  stats.MemoryStats.Limit,
 			NetworkRx: netRx,

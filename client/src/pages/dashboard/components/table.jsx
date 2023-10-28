@@ -31,6 +31,7 @@ import { useTheme } from '@mui/material/styles';
 // third-party
 import ReactApexChart from 'react-apexcharts';
 import { object } from 'prop-types';
+import { FormaterForMetric } from './utils';
 
 function formatDate(now, time) {
   // use as UTC
@@ -70,22 +71,6 @@ function stableSort(array, comparator) {
       return a[1] - b[1];
   });
   return stabilizedThis.map((el) => el[0]);
-}
-
-function formatter(num) {
-  if(!num) return 0;
-  
-  if (Math.abs(num) >= 1e12) {
-    return (num / 1e12).toFixed(1) + 'T'; // Convert to Millions
-  } else if (Math.abs(num) >= 1e9) {
-    return (num / 1e9).toFixed(1) + 'G'; // Convert to Millions
-  } else if (Math.abs(num) >= 1e6) {
-      return (num / 1e6).toFixed(1) + 'M'; // Convert to Millions
-  } else if (Math.abs(num) >= 1e3) {
-      return (num / 1e3).toFixed(1) + 'K'; // Convert to Thousands
-  } else {
-      return num.toString();
-  }
 }
 
 function toUTC(date, time) {
@@ -136,6 +121,8 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
 
       heads[cat] = true;
 
+      let formatter = FormaterForMetric(item); 
+
       if(!fnrows.find((row) => row.name === name)) {
         fnrows.push({
           name,
@@ -145,6 +132,18 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
         fnrows.find((row) => row.name === name)[cat] = formatter(v.Value);
       }
     });
+
+    // remove from fnrows rows where all values are 0
+    fnrows = fnrows.filter((row) => {
+      let flag = false;
+      Object.keys(row).forEach((key) => {
+        if(key !== 'name' && row[key] != 0) {
+          flag = true;
+        }
+      });
+      return flag;
+    }
+    );
 
     let fnhc = [
       {

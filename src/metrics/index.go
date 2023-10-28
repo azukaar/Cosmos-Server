@@ -16,6 +16,7 @@ type DataDef struct {
 	Label string
 	AggloType string
 	SetOperation string
+	Scale int
 }
 
 type DataPush struct {
@@ -27,6 +28,7 @@ type DataPush struct {
 	Label string
 	AvgIndex int
 	AggloType string
+	Scale int
 }
 
 var dataBuffer = map[string]DataPush{}
@@ -81,6 +83,11 @@ func SaveMetrics() {
 			delete(dataBuffer, dpkey)
 			nbData++
 
+			scale := 1
+			if dp.Scale != 0 {
+				scale = dp.Scale
+			}
+
 			filter := bson.M{"Key": dp.Key}
 			update := bson.M{
 					"$push": bson.M{"Values": 
@@ -94,6 +101,7 @@ func SaveMetrics() {
 							"Max": dp.Max,
 							"Label": dp.Label,
 							"AggloType": dp.AggloType,
+							"Scale": scale,
 					},
 			}
 			
@@ -150,6 +158,7 @@ func PushSetMetric(key string, value int, def DataDef) {
 				Max:    def.Max,
 				Label:  def.Label,
 				AggloType: def.AggloType,
+				Scale: def.Scale,
 			}
 		}
 	}()
