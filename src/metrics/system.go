@@ -13,13 +13,40 @@ import (
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/shirou/gopsutil/v3/common"
 )
 
 func GetSystemMetrics() {
 	utils.Debug("Metrics - System")
 
+	ctx := context.Background()
+
+	// redirect docker monitoring
+	if os.Getenv("HOSTNAME") != "" {
+		// check if path /mnt/host exist
+		if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+			utils.Error("Metrics - Cannot start monitoring the server if you don't mount /mnt/host to /. Check the documentation for more information.", nil)
+			return
+		} else {
+			utils.Log("Metrics - Monitoring the server at /mnt/host")
+
+			ctx = context.WithValue(context.Background(), 
+				common.EnvKey, common.EnvMap{
+					common.HostProcEnvKey: "/mnt/host/proc",
+					common.HostSysEnvKey: "/mnt/host/sys",
+					common.HostEtcEnvKey: "/mnt/host/etc",
+					common.HostVarEnvKey: "/mnt/host/var",
+					common.HostRunEnvKey: "/mnt/host/run",
+					common.HostDevEnvKey: "/mnt/host/dev",
+					common.HostRootEnvKey: "/mnt/host/",
+				},
+			)
+		}
+	}
+
+
 	// Get CPU Usage
-	cpuPercent, err := cpu.Percent(0, false)
+	cpuPercent, err := cpu.PercentWithContext(ctx, 0, false)
 	if err != nil {
 		utils.Error("Metrics - Error fetching CPU usage:", err)
 		return
@@ -39,7 +66,7 @@ func GetSystemMetrics() {
 	// cpuPercents, _ := cpu.Percent(0, true)
 
 	// Get RAM Usage
-	memInfo, err := mem.VirtualMemory()
+	memInfo, err := mem.VirtualMemoryWithContext(ctx)
 	if err != nil {
 		utils.Error("Metrics - Error fetching RAM usage:", err)
 		return
@@ -52,7 +79,7 @@ func GetSystemMetrics() {
 	})
 	
 	// Get Network Usage
-	netIO, err := net.IOCounters(false)
+	netIO, err := net.IOCountersWithContext(ctx, false)
 	
 	// netIOTest, _ := net.IOCounters(true)
 	// for _, v := range netIOTest {
@@ -122,7 +149,7 @@ func GetSystemMetrics() {
 	}
 
 	// Get Disk Usage
-  parts, err := disk.Partitions(true)
+  parts, err := disk.PartitionsWithContext(ctx, true)
 	if err != nil {
 		utils.Error("Metrics - Error fetching Disk usage:", err)
 		return

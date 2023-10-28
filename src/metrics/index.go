@@ -159,25 +159,6 @@ func PushSetMetric(key string, value int, def DataDef) {
 func Run() {
 	utils.Debug("Metrics - Run")
 	
-	// redirect docker monitoring
-	if os.Getenv("HOSTNAME") != "" {
-		// check if path /mnt/host exist
-		if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
-			utils.Error("Metrics - Cannot start monitoring the server if you don't mount /mnt/host to /. Check the documentation for more information.", nil)
-			return
-		} else {
-			utils.Log("Metrics - Monitoring the server at /mnt/host")
-
-			os.Setenv("HOST_PROC", "/mnt/host/proc")
-			os.Setenv("HOST_SYS", "/mnt/host/sys")
-			os.Setenv("HOST_ETC", "/mnt/host/etc")
-			os.Setenv("HOST_VAR", "/mnt/host/var")
-			os.Setenv("HOST_RUN", "/mnt/host/run")
-			os.Setenv("HOST_DEV", "/mnt/host/dev")
-			os.Setenv("HOST_ROOT ", "/mnt/host/")
-		}
-	}
-
 	nextTime := ModuloTime(time.Now().Add(time.Second*30), time.Second*30)
 	nextTime = nextTime.Add(time.Second * 2)
 
