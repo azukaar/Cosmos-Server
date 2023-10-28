@@ -195,6 +195,7 @@ type EmailConfig struct {
 	Password   string
 	From       string
 	UseTLS		 bool
+	AllowInsecureTLS		 bool
 }
 
 type OpenIDClient struct {

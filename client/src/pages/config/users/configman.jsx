@@ -104,6 +104,7 @@ const ConfigManagement = () => {
           Email_Password: config.EmailConfig.Password,
           Email_From: config.EmailConfig.From,
           Email_UseTLS : config.EmailConfig.UseTLS,
+          Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
           DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
@@ -155,6 +156,7 @@ const ConfigManagement = () => {
               Password: values.Email_Password,
               From: values.Email_From,
               UseTLS: values.Email_UseTLS,
+              AllowInsecureTLS: values.Email_AllowInsecureTLS,
             },
             DockerConfig: {
               ...config.DockerConfig,
@@ -534,6 +536,15 @@ const ConfigManagement = () => {
                       formik={formik}
                       helperText="SMTP Uses TLS"
                     />
+
+                    {formik.values.Email_UseTLS && (
+                      <CosmosCheckbox
+                        label="Allow Insecure TLS"
+                        name="Email_AllowInsecureTLS"
+                        formik={formik}
+                        helperText="Allow self-signed certificate"
+                      />
+                    )}
                   </>)}
                 </Stack>
               </MainCard>
