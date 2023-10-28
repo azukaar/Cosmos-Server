@@ -13,6 +13,7 @@ import * as dockerDemo from './docker.demo';
 import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
 import * as constellationDemo from './constellation.demo';
+import * as metricsDemo from './metrics.demo';
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -230,6 +231,7 @@ if(isDemo) {
   getDNS = indexDemo.getDNS;
   uploadBackground = indexDemo.uploadBackground;
   constellation = constellationDemo;
+  metrics = metricsDemo;
 }
 
 export {

@@ -1,4 +1,3 @@
-import { resolve } from 'eslint-import-resolver-typescript';
 import configDemo from './demo.config.json';
 
 interface Route {

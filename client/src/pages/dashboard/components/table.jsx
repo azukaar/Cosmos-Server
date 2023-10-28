@@ -73,6 +73,8 @@ function stableSort(array, comparator) {
 }
 
 function formatter(num) {
+  if(!num) return 0;
+  
   if (Math.abs(num) >= 1e12) {
     return (num / 1e12).toFixed(1) + 'T'; // Convert to Millions
   } else if (Math.abs(num) >= 1e9) {
