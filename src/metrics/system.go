@@ -31,17 +31,17 @@ func GetSystemMetrics() {
 		} else {
 			utils.Log("Metrics - Monitoring the server at /mnt/host")
 
-			// ctx = context.WithValue(context.Background(), 
-			// 	common.EnvKey, common.EnvMap {
-			// 		common.HostProcEnvKey: "/mnt/host/proc",
-			// 		common.HostSysEnvKey: "/mnt/host/sys",
-			// 		common.HostEtcEnvKey: "/mnt/host/etc",
-			// 		common.HostVarEnvKey: "/mnt/host/var",
-			// 		common.HostRunEnvKey: "/mnt/host/run",
-			// 		common.HostDevEnvKey: "/mnt/host/dev",
-			// 		common.HostRootEnvKey: "/mnt/host/",
-			// 	},
-			// )
+			ctx = context.WithValue(context.Background(), 
+				common.EnvKey, common.EnvMap {
+					common.HostProcEnvKey: "/mnt/host/proc",
+					common.HostSysEnvKey: "/mnt/host/sys",
+					common.HostEtcEnvKey: "/mnt/host/etc",
+					common.HostVarEnvKey: "/mnt/host/var",
+					common.HostRunEnvKey: "/mnt/host/run",
+					common.HostDevEnvKey: "/mnt/host/dev",
+					common.HostRootEnvKey: "/mnt/host/",
+				},
+			)
 		}
 	}
 
@@ -161,7 +161,7 @@ func GetSystemMetrics() {
 		if strings.HasPrefix(part.Mountpoint, "/dev") || (strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host")) {
 			realMount := part.Mountpoint
 			
-			if os.Getenv("HOSTANME") != "" {
+			if os.Getenv("HOSTNAME") != "" {
 				realMount = "/mnt/host" + part.Mountpoint
 			}
 
