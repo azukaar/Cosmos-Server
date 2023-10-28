@@ -82,7 +82,7 @@ func GetSystemMetrics() {
 	// Get Network Usage
 	netIO, err := net.IOCountersWithContext(ctx, false)
 	
-	netIOTest, _ := net.IOCounters(true)
+	netIOTest, _ := net.IOCountersWithContext(ctx, true)
 	for _, v := range netIOTest {
 		utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
 	}
