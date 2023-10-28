@@ -88,7 +88,7 @@ func SendEmail(recipients []string, subject string, body string) error {
 	auth := smtp.PlainAuth("", config.EmailConfig.Username, config.EmailConfig.Password, config.EmailConfig.Host)
 
 	tlsConfig := &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: config.EmailConfig.AllowInsecureTLS,
 		ServerName:         config.EmailConfig.Host,
 	}
 
