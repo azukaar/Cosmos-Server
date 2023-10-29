@@ -245,7 +245,9 @@ func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {
-		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+		if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
+			CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+		}
 		configFile = CONFIGFOLDER + "cosmos.config.json"
 	}
 
