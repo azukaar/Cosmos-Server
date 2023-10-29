@@ -242,12 +242,15 @@ func SanitizeSafe(s string) string {
 }
 
 func GetConfigFileName() string {
+	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
+		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+	} else if os.Getenv("HOSTNAME") != "" {
+		CONFIGFOLDER = "/config/"
+	}
+	
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {
-		if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
-			CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
-		}
 		configFile = CONFIGFOLDER + "cosmos.config.json"
 	}
 
