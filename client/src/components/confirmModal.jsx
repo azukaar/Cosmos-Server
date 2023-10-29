@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 
-const ConfirmModal = ({ callback, label, content }) => {
+const ConfirmModal = ({ callback, label, content, startIcon }) => {
     const [openModal, setOpenModal] = useState(false);
 
     return <>
@@ -36,6 +36,7 @@ const ConfirmModal = ({ callback, label, content }) => {
           disableElevation
           variant="outlined"
           color="warning"
+          startIcon={startIcon}
           onClick={() => {
               setOpenModal(true);
           }}

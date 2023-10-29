@@ -341,6 +341,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
 
 	srapi.HandleFunc("/api/metrics", metrics.API_GetMetrics)
+	srapi.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)

@@ -19,7 +19,7 @@ import {
   Skeleton,
 } from '@mui/material';
 import RestartModal from './restart';
-import { SyncOutlined } from '@ant-design/icons';
+import { DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
@@ -32,6 +32,7 @@ import { TwitterPicker
  // TODO: Remove circular deps
  import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
 import { useClientInfos } from '../../../utils/hooks';
+import ConfirmModal from '../../../components/confirmModal';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
@@ -68,12 +69,21 @@ const ConfigManagement = () => {
       {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           setOpenRestartModal(true);
       }}>Restart Server</Button>}
+      
+      <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
+          API.metrics.reset().then((res) => {
+            refresh();
+          });
+      }}
+      label={'Purge Metrics Dashboard'} 
+      content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
     </Stack>
     
     {config && <>
       <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
       <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
 
+      
       <Formik
         initialValues={{
           MongoDB: config.MongoDB,

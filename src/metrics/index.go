@@ -185,6 +185,7 @@ func Run() {
 
 func Init() {
 	InitAggl()
-	//GetSystemMetrics()
 	Run()
+
+	go GetSystemMetrics()
 }

@@ -158,8 +158,11 @@ func AggloMetrics() []DataDefDB {
 }
 
 func CommitAggl(metrics []DataDefDB) {
-	utils.Log("Metrics: Agglomeration done. Saving to DB")
+	lock <- true
+	defer func() { <-lock }()
 
+	utils.Log("Metrics: Agglomeration done. Saving to DB")
+	
 	c, errCo := utils.GetCollection(utils.GetRootAppId(), "metrics")
 	if errCo != nil {
 			utils.Error("Metrics - Database Connect", errCo)

@@ -9,6 +9,16 @@ function get() {
   }))
 }
 
+function reset() {
+  return wrap(fetch('/cosmos/api/reset-metrics', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   get,
+  reset,
 };

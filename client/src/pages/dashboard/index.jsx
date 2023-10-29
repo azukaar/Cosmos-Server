@@ -17,7 +17,8 @@ import {
     TextField,
     Typography,
     Alert,
-    LinearProgress
+    LinearProgress,
+    CircularProgress
 } from '@mui/material';
 
 // project import
@@ -102,10 +103,12 @@ const DashboardDefault = () => {
     const refreshMetrics = () => {
         API.metrics.get().then((res) => {
             let finalMetrics = {};
-            res.data.forEach((metric) => {
-                finalMetrics[metric.Key] = metric;
-            });
-            setMetrics(finalMetrics);
+            if(res.data) {
+                res.data.forEach((metric) => {
+                    finalMetrics[metric.Key] = metric;
+                });
+                setMetrics(finalMetrics);
+            }
             setTimeout(refreshMetrics, 10000);
         });
     };
@@ -149,6 +152,19 @@ const DashboardDefault = () => {
         {/* <HomeBackground status={coStatus} />
         <TransparentHeader /> */}
         <IsLoggedIn />
+        {!metrics && <Box style={{
+          width: '100%',
+          height: '100%',
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '150px',
+        }}>
+          <CircularProgress
+            size={100}
+          />
+        </Box>}
         {metrics && <div style={{zIndex:2, position: 'relative'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
