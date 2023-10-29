@@ -32,6 +32,8 @@ import { useTheme } from '@mui/material/styles';
 import ReactApexChart from 'react-apexcharts';
 import { object } from 'prop-types';
 import { FormaterForMetric } from './utils';
+import { set } from 'lodash';
+import { DownOutlined, UpOutlined } from '@ant-design/icons';
 
 function formatDate(now, time) {
   // use as UTC
@@ -79,7 +81,7 @@ function toUTC(date, time) {
   return formatDate(now, time);
 }
 
-function OrderTableHead({ order, orderBy, headCells }) {
+function OrderTableHead({ order, orderBy, headCells, setOrderBy, setOrder }) {
   return (
       <TableHead>
           <TableRow>
@@ -89,8 +91,27 @@ function OrderTableHead({ order, orderBy, headCells }) {
                       align={headCell.align}
                       padding={headCell.disablePadding ? 'none' : 'normal'}
                       sortDirection={orderBy === headCell.id ? order : false}
+                      sx={{
+                        '&:hover': {
+                          cursor: 'pointer',
+                          color: 'primary.main'
+                        }
+                      }}
+                      onClick={() => {
+                          console.log(headCell.id);
+                          if(orderBy === headCell.id) {
+                            setOrder(order === 'asc' ? 'desc' : 'asc');
+                          } else {
+                            setOrder('asc');
+                            setOrderBy(headCell.id);
+                          }
+                      }}
                   >
-                      {headCell.label}
+                      {headCell.label} {orderBy === headCell.id ? (
+                          <Box component="span" sx={{ ...(!headCell.disablePadding && { srOnly: true }) }}>
+                              {order === 'desc' ? <DownOutlined /> : <UpOutlined />}
+                          </Box>
+                      ) : null}
                   </TableCell>
               ))}
           </TableRow>
@@ -103,8 +124,8 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
   const [series, setSeries] = useState([]);
-  const [order] = useState('asc');
-  const [orderBy] = useState('name');
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('name');
   const [headCells, setHeadCells] = useState([]);
   const [rows, setRows] = useState([]);
 
@@ -237,7 +258,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                         }
                     }}
                 >
-                    <OrderTableHead headCells={headCells} order={order} orderBy={orderBy} />
+                    <OrderTableHead headCells={headCells} order={order} orderBy={orderBy} setOrderBy={setOrderBy} setOrder={setOrder} />
                     <TableBody style={{height:'409px', overflow: 'auto'}}>
                         {stableSort(rows, getComparator(order, orderBy)).map((row, index) => {
                             const isItemSelected = false // isSelected(row.trackingNo);
