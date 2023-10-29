@@ -6,8 +6,13 @@ import (
 	"net/url"
 	"strings"
 	"crypto/tls"
+	"os"
+	"io/ioutil"
+	"strconv"
+
 	spa "github.com/roberthodgen/spa-server"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/docker"
 )
 
 
@@ -63,6 +68,20 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		urlQuery := url.RawQuery
 		req.URL.Scheme = url.Scheme
 		req.URL.Host = url.Host
+		
+		if route.Mode == "SERVAPP" && os.Getenv("HOSTNAME") == "" {
+			targetHost := url.Hostname()
+
+			targetIP, err := docker.GetContainerIPByName(targetHost)
+			if err != nil {
+				utils.Error("Create Route", err)
+			}
+			utils.Debug("Dockerless Target IP: " + targetIP)
+			req.URL.Host = targetIP + ":" + url.Port()
+		}
+
+		utils.Debug("Request to backend: " + req.URL.String())
+
 		req.URL.Path, req.URL.RawPath = joinURLPath(url, req.URL)
 		if urlQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = urlQuery + req.URL.RawQuery
@@ -105,8 +124,8 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		}
 		
 		// hide hostname (dangerous)
-		// req.Header.Set("Host", url.Host)
-		// req.Host = url.Host
+		// req.Header.Set("Host", req.URL.Host)
+		// req.Host = req.URL.Host
 
 		req.Header.Set("Host", hostDest)
 		req.Host = hostDest
@@ -143,6 +162,14 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 			resp.Header.Del("X-XSS-Protection")
 		}
 
+		// if 502
+		if resp.StatusCode == 502 {
+			// set body
+			rb := "502 Bad Gateway. This means your container / backend is not reachable by Cosmos."
+			resp.Body = ioutil.NopCloser(strings.NewReader(rb))
+			resp.Header.Set("Content-Length", strconv.Itoa(len(rb)))
+		}
+
 		return nil
 	}
 
@@ -156,7 +183,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	destination := route.Target
 	routeType := route.Mode
 
-	if(routeType == "SERVAPP" || routeType == "PROXY") {
+  if(routeType == "SERVAPP" || routeType == "PROXY") {
 		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin, route)
 		if err != nil {
 				utils.Error("Create Route", err)

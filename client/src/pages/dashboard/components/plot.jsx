@@ -46,12 +46,19 @@ function toUTC(date, time) {
   return formatDate(now, time);
 }
 
-const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
+const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 'latest' }) => {
   const [slot, setSlot] = useState(defaultSlot);
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
   const [series, setSeries] = useState([]);
+  const [selected, setSelected] = useState(withSelector ? data.findIndex((d) => d.Key === withSelector)
+     : 0);
+     
+  const isDark = theme.palette.mode === 'dark';
+
+  const backColor = isDark ? '0,0,0' : '255,255,255';
+  const textColor = isDark ? 'white' : 'dark';
 
   // chart options
   const areaChartOptions = {
@@ -99,8 +106,12 @@ const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
       }
     }
 
+    let toProcess = data;
+    if(withSelector) {
+      toProcess = data.filter((d, id) => id === selected);
+    }
     const dataSeries = [];
-    data.forEach((serie) => {
+    toProcess.forEach((serie) => {
       dataSeries.push({
         name: serie.Label,
         dataAxis: xAxis.map((date) => {
@@ -131,26 +142,27 @@ const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
           : xAxis,
         labels: {
           style: {
-            fontSize: slot === 'latest' ? '0' : '11px',
+            fontSize: (slot === 'latest' || SimpleDesign) ? '0' : '11px',
           }
         },
         axisBorder: {
-          show: true,
+          show: !SimpleDesign,
           color: line
         },
         tickAmount: xAxis.length,
       },
-      yaxis: data.map((thisdata, ida) => ({
+      yaxis: toProcess.map((thisdata, ida) => ({
         opposite: ida === 1, 
         labels: {
           style: {
-            colors: [secondary]
+            colors: [secondary],
+            fontSize: '11px',
           },
           
           formatter: FormaterForMetric(thisdata)
         },
         title: {
-          text: thisdata.Label,
+          text: SimpleDesign ? '' : thisdata.Label,
         }
       })),
       grid: {
@@ -167,16 +179,34 @@ const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
         data: serie.dataAxis
       }
     }));
-  }, [slot, data]);
+  }, [slot, data, selected]);
 
 
-  return <Grid item xs={12} md={7} lg={8}>
+  return <Grid item xs={12} md={7} lg={8} >
     <Grid container alignItems="center" justifyContent="space-between">
       <Grid item>
         <Typography variant="h5">{title}</Typography>
       </Grid>
-      <Grid item>
+      <Grid item >
         <Stack direction="row" alignItems="center" spacing={0}>
+
+          {withSelector && 
+          <div style={{ marginRight: 15 }}>
+          <TextField
+              id="standard-select-currency"
+              size="small"
+              select
+              value={selected}
+              onChange={(e) => setSelected(e.target.value)}
+              sx={{ '& .MuiInputBase-input': { py: 0.5, fontSize: '0.875rem',  } }}
+          >
+              {data.map((option, i) => (
+                  <MenuItem key={i} value={i}>
+                      {option.Label}
+                  </MenuItem>
+              ))}
+          </TextField></div>}
+
           <Button
             size="small"
             onClick={() => setSlot('latest')}
@@ -204,7 +234,7 @@ const PlotComponent = ({ title, data, defaultSlot = 'latest' }) => {
         </Stack>
       </Grid>
     </Grid>
-    <MainCard content={false} sx={{ mt: 1.5 }}>
+    <MainCard content={false} sx={{ mt: 1.5 }} >
       <Box sx={{ pt: 1, pr: 2 }}>
         <ReactApexChart options={options} series={series} type="area" height={450} />
       </Box>

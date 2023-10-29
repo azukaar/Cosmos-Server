@@ -37,7 +37,7 @@ var ReBootstrapContainer func(string) error
 
 var LetsEncryptErrors = []string{}
 
-var CONFIGFOLDER = "/config/"
+var CONFIGFOLDER = "/var/lib/cosmos/"
 
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
@@ -245,6 +245,7 @@ func GetConfigFileName() string {
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {
+		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
 		configFile = CONFIGFOLDER + "cosmos.config.json"
 	}
 

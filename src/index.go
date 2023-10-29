@@ -42,15 +42,25 @@ func main() {
 		utils.Log("Docker API version: " + version.APIVersion)
 	}
 
+	utils.Log("Starting monitoring services...")
+
 	metrics.Init()
+
+	utils.Log("Starting market services...")
 
 	market.Init()
 	
+	utils.Log("Starting OpenID services...")
+
 	authorizationserver.Init()
+
+	utils.Log("Starting constellation services...")
 
 	constellation.InitDNS()
 	
 	constellation.Init()
+
+	utils.Log("Starting server...")
 
 	StartServer()
 }

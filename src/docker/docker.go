@@ -703,18 +703,23 @@ func StatsAll() ([]ContainerStats, error) {
 		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
 		systemDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
 
-		utils.Debug("StatsAll - CPU CPUUsage TotalUsage " + strconv.FormatUint(stats.CPUStats.CPUUsage.TotalUsage, 10))
-		utils.Debug("StatsAll - CPU PreCPUStats TotalUsage " + strconv.FormatUint(stats.PreCPUStats.CPUUsage.TotalUsage, 10))
-		utils.Debug("StatsAll - CPU CPUUsage PercpuUsage " + strconv.Itoa(len(stats.CPUStats.CPUUsage.PercpuUsage)))
-		utils.Debug("StatsAll - CPU CPUUsage SystemUsage " + strconv.FormatUint(stats.CPUStats.SystemUsage, 10))
+		perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
+		if perCore == 0 {
+			perCore = 1
+		}
+
+		// utils.Debug("StatsAll - CPU CPUUsage TotalUsage " + strconv.FormatUint(stats.CPUStats.CPUUsage.TotalUsage, 10))
+		// utils.Debug("StatsAll - CPU PreCPUStats TotalUsage " + strconv.FormatUint(stats.PreCPUStats.CPUUsage.TotalUsage, 10))
+		// utils.Debug("StatsAll - CPU CPUUsage PercpuUsage " + strconv.Itoa(perCore))
+		// utils.Debug("StatsAll - CPU CPUUsage SystemUsage " + strconv.FormatUint(stats.CPUStats.SystemUsage, 10))
 		
-		utils.Debug("StatsAll - CPU CPUUsage CPU Delta " + strconv.FormatFloat(cpuDelta, 'f', 6, 64))
-		utils.Debug("StatsAll - CPU CPUUsage System Delta " + strconv.FormatFloat(systemDelta, 'f', 6, 64))
+		// utils.Debug("StatsAll - CPU CPUUsage CPU Delta " + strconv.FormatFloat(cpuDelta, 'f', 6, 64))
+		// utils.Debug("StatsAll - CPU CPUUsage System Delta " + strconv.FormatFloat(systemDelta, 'f', 6, 64))
 
 		cpuUsage := 0.0
 
 		if systemDelta > 0 && cpuDelta > 0 {
-			cpuUsage = (cpuDelta / systemDelta) * float64(len(stats.CPUStats.CPUUsage.PercpuUsage)) * 100
+			cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
 			
 			utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 		} else {

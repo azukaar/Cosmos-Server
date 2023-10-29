@@ -16,7 +16,8 @@ import {
     Stack,
     TextField,
     Typography,
-    Alert
+    Alert,
+    LinearProgress
 } from '@mui/material';
 
 // project import
@@ -40,6 +41,7 @@ import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';
 import TableComponent from './components/table';
+import { HomeBackground, TransparentHeader } from '../home';
 
 // avatar style
 const avatarSX = {
@@ -108,54 +110,12 @@ const DashboardDefault = () => {
 
     return (
         <>
+        {/* <HomeBackground status={coStatus} />
+        <TransparentHeader /> */}
         <IsLoggedIn />
-        <div>
-            <Stack spacing={1}>
-                {coStatus && !coStatus.database && (
-                    <Alert severity="error">
-                        No Database is setup for Cosmos! User Management and Authentication will not work.<br />
-                        You can either setup the database, or disable user management in the configuration panel.<br />
-                    </Alert>
-                )}
-
-                {coStatus && coStatus.letsencrypt && (
-                    <Alert severity="error">
-                        You have enabled Let's Encrypt for automatic HTTPS Certificate. You need to provide the configuration with an email address to use for Let's Encrypt in the configs.
-                    </Alert>
-                )}
-
-                {coStatus && coStatus.newVersionAvailable && (
-                    <Alert severity="warning">
-                        A new version of Cosmos is available! Please update to the latest version to get the latest features and bug fixes.
-                    </Alert>
-                )}
-
-                {coStatus && coStatus.needsRestart && (
-                    <Alert severity="warning">
-                        You have made changes to the configuration that require a restart to take effect. Please restart Cosmos to apply the changes.
-                    </Alert>
-                )}
-
-                {coStatus && coStatus.domain && (
-                    <Alert severity="error">
-                        You are using localhost or 0.0.0.0 as a hostname in the configuration. It is recommended that you use a domain name instead.
-                    </Alert>
-                )}
-
-                {coStatus && !coStatus.docker && (
-                    <Alert severity="error">
-                        Docker is not connected! Please check your docker connection.<br/>
-                        Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
-                        if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
-                    </Alert>
-                )}
-
-                <Alert severity="info">Dashboard implementation currently in progress! If you want to voice your opinion on where Cosmos is going, please join us on Discord!</Alert>
-            </Stack>
-        </div>
-        {metrics && <div style={{marginTop: '30px'}}>
-            <Grid container rowSpacing={4.5} columnSpacing={2.75}>
-                {/* row 1 */}
+        {metrics && <div style={{marginTop: '30px', zIndex:2, position: 'relative'}}>
+            <Grid container rowSpacing={4.5} columnSpacing={2.75} >
+                {/* 
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h5">Dashboard</Typography>
                 </Grid>
@@ -173,8 +133,8 @@ const DashboardDefault = () => {
                 </Grid>
 
                 <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
-
-                {/* row 2 */}
+                */}
+                
                 
                 <PlotComponent title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
                
@@ -187,8 +147,26 @@ const DashboardDefault = () => {
                 <TableComponent title="Containers - Network" data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])   
                 }/>
-
-                {/* row 3 */}
+                
+                <TableComponent title="Disk Usage" displayMax={true} 
+                render={(metric, value, formattedValue) => {
+                    return <span>
+                        {formattedValue}
+                        <LinearProgress variant="determinate" value={value / metric.Max * 100}  />
+                    </span>
+                }}
+                data={
+                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.disk")).map((key) => metrics[key])   
+                }/>
+ 
+                <PlotComponent 
+                    title={'Temperature'}
+                    withSelector={'cosmos.system.temp.all'}
+                    SimpleDesign
+                    data={Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.temp")).map((key) => metrics[key])}
+                />
+                
+                {/* 
                 <Grid item xs={12} md={7} lg={8}>
                     <Grid container alignItems="center" justifyContent="space-between">
                         <Grid item>
@@ -227,7 +205,6 @@ const DashboardDefault = () => {
                     </MainCard>
                 </Grid>
 
-                {/* row 4 */}
                 <Grid item xs={12} md={7} lg={8}>
                     <Grid container alignItems="center" justifyContent="space-between">
                         <Grid item>
@@ -382,6 +359,7 @@ const DashboardDefault = () => {
                         </Stack>
                     </MainCard>
                 </Grid>
+                 */}
             </Grid>
         </div>}
       </>

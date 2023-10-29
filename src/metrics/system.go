@@ -12,6 +12,7 @@ import (
 	"github.com/shirou/gopsutil/v3/net"
   "github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/common"
+	"github.com/shirou/gopsutil/v3/host"
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
@@ -82,10 +83,10 @@ func GetSystemMetrics() {
 	// Get Network Usage
 	netIO, err := net.IOCountersWithContext(ctx, false)
 	
-	netIOTest, _ := net.IOCountersWithContext(ctx, true)
-	for _, v := range netIOTest {
-		utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
-	}
+	// netIOTest, _ := net.IOCountersWithContext(ctx, true)
+	// for _, v := range netIOTest {
+	// 	utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
+	// }
 
 	PushSetMetric("system.netRx", int(netIO[0].BytesRecv), DataDef{
 		Max: 0,
@@ -159,6 +160,11 @@ func GetSystemMetrics() {
 
   for _, part := range parts {
 		if strings.HasPrefix(part.Mountpoint, "/dev") || (strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host")) {
+			// remove /dev/shm and /dev/pts
+			if part.Mountpoint == "/dev" || strings.HasPrefix(part.Mountpoint, "/dev/shm") || strings.HasPrefix(part.Mountpoint, "/dev/pts") {
+				continue
+			}
+
 			realMount := part.Mountpoint
 			
 			if os.Getenv("HOSTNAME") != "" {
@@ -176,5 +182,32 @@ func GetSystemMetrics() {
 				})
 			}
 		}
+	}
+
+	// Temperature
+	temps, err := host.SensorsTemperatures()
+	avgTemp := 0
+	avgTempCount := 0
+
+	for _, temp := range temps {
+		utils.Debug("Metrics - Temperature " + temp.SensorKey + " : " + strconv.Itoa(int(temp.Temperature)))
+		if temp.Temperature > 0 {
+			avgTemp += int(temp.Temperature)
+			avgTempCount++
+
+			PushSetMetric("system.temp." + temp.SensorKey, int(temp.Temperature), DataDef{
+				Max: 0,
+				Period: time.Second * 30,
+				Label: "Temperature " + temp.SensorKey,
+			})
+		}
+	}
+
+	if avgTempCount > 0 {
+		PushSetMetric("system.temp.all", avgTemp / avgTempCount, DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Temperature",
+		})
 	}
 }

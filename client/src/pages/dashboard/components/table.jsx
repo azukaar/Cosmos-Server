@@ -98,7 +98,7 @@ function OrderTableHead({ order, orderBy, headCells }) {
   );
 }
 
-const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
+const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest' }) => {
   const [slot, setSlot] = useState(defaultSlot);
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
@@ -121,15 +121,17 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
 
       heads[cat] = true;
 
-      let formatter = FormaterForMetric(item); 
+      let formatter = FormaterForMetric(item, displayMax); 
 
       if(!fnrows.find((row) => row.name === name)) {
         fnrows.push({
           name,
-          [cat]: formatter(v.Value)
+          [cat]: render ? render(item, v.Value, formatter(v.Value)) : formatter(v.Value),
+          ["__" + cat]: v.Value
         });
       } else {
-        fnrows.find((row) => row.name === name)[cat] = formatter(v.Value);
+        fnrows.find((row) => row.name === name)[cat] = render ? render(item, v.Value, formatter(v.Value)) : formatter(v.Value)
+        fnrows.find((row) => row.name === name)["__" + cat] = v.Value
       }
     });
 
@@ -137,7 +139,8 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
     fnrows = fnrows.filter((row) => {
       let flag = false;
       Object.keys(row).forEach((key) => {
-        if(key !== 'name' && row[key] != 0) {
+        if(key !== 'name' && row["__" + key]) {
+          console.log(key, row["__" + key])
           flag = true;
         }
       });
@@ -212,7 +215,8 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
                     position: 'relative',
                     display: 'block',
                     maxWidth: '100%',
-                    '& td, & th': { whiteSpace: 'nowrap' }
+                    '& td, & th': { whiteSpace: 'nowrap' },
+                    maxHeight: '474px'
                 }}
             >
                 <Table
@@ -227,7 +231,7 @@ const TableComponent = ({ title, data, defaultSlot = 'latest' }) => {
                     }}
                 >
                     <OrderTableHead headCells={headCells} order={order} orderBy={orderBy} />
-                    <TableBody>
+                    <TableBody style={{height:'409px', overflow: 'auto'}}>
                         {stableSort(rows, getComparator(order, orderBy)).map((row, index) => {
                             const isItemSelected = false // isSelected(row.trackingNo);
                             const labelId = `enhanced-table-checkbox-${index}`;

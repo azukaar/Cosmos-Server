@@ -1,11 +1,5 @@
-export const FormaterForMetric = (metric) => {
-  console.log(metric)
-
-  return (num) => {
+export const simplifyNumber = (num) => {
     if(!num) return 0;
-
-    if(metric.Scale)
-      num /= metric.Scale;
     
     if (Math.abs(num) >= 1e12) {
       return (num / 1e12).toFixed(1) + 'T'; // Convert to Millions
@@ -18,5 +12,23 @@ export const FormaterForMetric = (metric) => {
     } else {
         return num.toString();
     }
+}
+
+export const FormaterForMetric = (metric, displayMax) => {
+  console.log(metric)
+
+  return (num) => {
+    if(!num) return 0;
+
+    if(metric.Scale)
+      num /= metric.Scale;
+    
+    num = simplifyNumber(num);
+
+    if(displayMax && metric.Max) {
+      num += ` / ${simplifyNumber(metric.Max)}`
+    }
+
+    return num;
   }
 }

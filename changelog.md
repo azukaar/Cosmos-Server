@@ -1,6 +1,7 @@
 ## Version 0.12.0
  - New Dashboard
  - New metrics gathering system
+ - Integrated a new docker-less mode of functioning for networking
  - Added Button to force reset HTTPS cert in settings
 
 ## Version 0.11.3
