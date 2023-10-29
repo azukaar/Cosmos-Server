@@ -98,8 +98,7 @@ function OrderTableHead({ order, orderBy, headCells }) {
   );
 }
 
-const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest' }) => {
-  const [slot, setSlot] = useState(defaultSlot);
+const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
@@ -115,7 +114,42 @@ const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest
 
     data.forEach((item) => {
       let k = item.Key.split('.')
-      let v = item.Values.length ? item.Values[item.Values.length - 1] : 0;
+      let v = item.Values.length ? item.Values[item.Values.length - 1].Value : 0;
+      if (slot === 'hourly' || slot === 'daily') {
+        let avgIndex = 0;
+        v = xAxis
+        .filter((date, index) => {
+          if (zoom && zoom.xaxis && zoom.xaxis.min && zoom.xaxis.max) {
+            return index >= zoom.xaxis.min && index <= zoom.xaxis.max;
+          }
+          return true;
+        })
+        .map((date) => {
+          let key = slot === 'hourly' ? "hour_" : "day_";
+          let k = key + toUTC(date, slot === 'hourly');
+          if (k in item.ValuesAggl) {
+            return item.ValuesAggl[k].Value;
+          } else {
+            return 0;
+          }
+        })
+        .reduce((a, b) => {
+          if (!b) {
+            return a;
+          }
+          if (item.AggloType == "min") {
+            return Math.min(a, b);
+          } else if (item.AggloType == "max") {
+            return Math.max(a, b);
+          } else if (item.AggloType == "avg") {
+            avgIndex++;
+            return a + b;
+          }
+        }, 0);
+        if (item.AggloType == "avg") {
+          v = v / avgIndex;
+        }
+      }
       let name = k[k.length - 1];
       let cat = k[k.length - 2];
 
@@ -126,12 +160,12 @@ const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest
       if(!fnrows.find((row) => row.name === name)) {
         fnrows.push({
           name,
-          [cat]: render ? render(item, v.Value, formatter(v.Value)) : formatter(v.Value),
-          ["__" + cat]: v.Value
+          [cat]: render ? render(item, v, formatter(v)) : formatter(v),
+          ["__" + cat]: v
         });
       } else {
-        fnrows.find((row) => row.name === name)[cat] = render ? render(item, v.Value, formatter(v.Value)) : formatter(v.Value)
-        fnrows.find((row) => row.name === name)["__" + cat] = v.Value
+        fnrows.find((row) => row.name === name)[cat] = render ? render(item, v, formatter(v)) : formatter(v)
+        fnrows.find((row) => row.name === name)["__" + cat] = v
       }
     });
 
@@ -140,7 +174,6 @@ const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest
       let flag = false;
       Object.keys(row).forEach((key) => {
         if(key !== 'name' && row["__" + key]) {
-          console.log(key, row["__" + key])
           flag = true;
         }
       });
@@ -169,41 +202,13 @@ const TableComponent = ({ title, data, displayMax, render, defaultSlot = 'latest
     setHeadCells(fnhc);
     setRows(fnrows);
     
-  }, [data, slot]);
+  }, [data, slot, xAxis, zoom]);
 
 
   return <Grid item xs={12} md={5} lg={4}>
     <Grid container alignItems="center" justifyContent="space-between">
       <Grid item>
         <Typography variant="h5">{title}</Typography>
-      </Grid>
-      <Grid item>
-        <Stack direction="row" alignItems="center" spacing={0}>
-          <Button
-            size="small"
-            onClick={() => setSlot('latest')}
-            color={slot === 'latest' ? 'primary' : 'secondary'}
-            variant={slot === 'latest' ? 'outlined' : 'text'}
-          >
-            Latest
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setSlot('hourly')}
-            color={slot === 'hourly' ? 'primary' : 'secondary'}
-            variant={slot === 'hourly' ? 'outlined' : 'text'}
-          >
-            Hourly
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setSlot('daily')}
-            color={slot === 'daily' ? 'primary' : 'secondary'}
-            variant={slot === 'daily' ? 'outlined' : 'text'}
-          >
-            Daily
-          </Button>
-        </Stack>
       </Grid>
     </Grid>
     <MainCard content={false} sx={{ mt: 1.5 }}>

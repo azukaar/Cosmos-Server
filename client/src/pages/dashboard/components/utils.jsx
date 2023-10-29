@@ -15,8 +15,6 @@ export const simplifyNumber = (num) => {
 }
 
 export const FormaterForMetric = (metric, displayMax) => {
-  console.log(metric)
-
   return (num) => {
     if(!num) return 0;
 
@@ -31,4 +29,24 @@ export const FormaterForMetric = (metric, displayMax) => {
 
     return num;
   }
+}
+
+export const formatDate = (now, time) => {
+  // use as UTC
+  // now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return time ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}` : `${year}-${month}-${day}`;
+}
+
+export const toUTC = (date, time) => {
+  let now = new Date(date);
+  now.setMinutes(now.getMinutes() + now.getTimezoneOffset());
+  return formatDate(now, time);
 }

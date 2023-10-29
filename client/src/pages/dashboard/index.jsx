@@ -42,6 +42,7 @@ import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';
 import TableComponent from './components/table';
 import { HomeBackground, TransparentHeader } from '../home';
+import { formatDate } from './components/utils';
 
 // avatar style
 const avatarSX = {
@@ -80,11 +81,23 @@ const status = [
 
 const DashboardDefault = () => {
     const [value, setValue] = useState('today');
-    const [slot, setSlot] = useState('week');
+    const [slot, setSlot] = useState('latest');
+
+    const [zoom, setZoom] = useState({
+        xaxis: {},
+        yaxis: {}
+    });
 
     const [coStatus, setCoStatus] = useState(null);
     const [metrics, setMetrics] = useState(null);
     const [isCreatingDB, setIsCreatingDB] = useState(false);
+
+    const resetZoom = () => {
+        setZoom({
+            xaxis: {},
+            yaxis: {}
+        });
+    }
 
     const refreshMetrics = () => {
         API.metrics.get().then((res) => {
@@ -107,14 +120,80 @@ const DashboardDefault = () => {
         refreshStatus();
         refreshMetrics();
     }, []);
+    
+    let xAxis = [];
+
+    if(slot === 'latest') {
+      for(let i = 0; i < 100; i++) {
+        xAxis.unshift(i);
+      }
+    }
+    else if(slot === 'hourly') {
+      for(let i = 0; i < 48; i++) {
+        let now = new Date();
+        now.setHours(now.getHours() - i);
+        now.setMinutes(0);
+        now.setSeconds(0);
+        xAxis.unshift(formatDate(now, true));
+      }
+    } else if(slot === 'daily') {
+      for(let i = 0; i < 30; i++) {
+        let now = new Date();
+        now.setDate(now.getDate() - i);
+        xAxis.unshift(formatDate(now));
+      }
+    }
 
     return (
         <>
         {/* <HomeBackground status={coStatus} />
         <TransparentHeader /> */}
         <IsLoggedIn />
-        {metrics && <div style={{marginTop: '30px', zIndex:2, position: 'relative'}}>
+        {metrics && <div style={{zIndex:2, position: 'relative'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
+                <Grid item xs={12} sx={{ mb: -2.25 }}>
+                    <Typography variant="h4">Server Monitoring</Typography>
+                    <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
+                        <Button
+                            size="small"
+                            onClick={() => {setSlot('latest'); resetZoom()}}
+                            color={slot === 'latest' ? 'primary' : 'secondary'}
+                            variant={slot === 'latest' ? 'outlined' : 'text'}
+                        >
+                            Latest
+                        </Button>
+                        <Button
+                            size="small"
+                            onClick={() => {setSlot('hourly'); resetZoom()}}
+                            color={slot === 'hourly' ? 'primary' : 'secondary'}
+                            variant={slot === 'hourly' ? 'outlined' : 'text'}
+                        >
+                            Hourly
+                        </Button>
+                        <Button
+                            size="small"
+                            onClick={() => {setSlot('daily'); resetZoom()}}
+                            color={slot === 'daily' ? 'primary' : 'secondary'}
+                            variant={slot === 'daily' ? 'outlined' : 'text'}
+                        >
+                            Daily
+                        </Button>
+
+                        {zoom.xaxis.min && <Button
+                            size="small"
+                            onClick={() => {
+                                setZoom({
+                                    xaxis: {},
+                                    yaxis: {}
+                                });
+                            }}
+                            color={'primary'}
+                            variant={'outlined'}
+                        >
+                            Reset Zoom
+                        </Button>}
+                    </Stack>
+                </Grid>
                 {/* 
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h5">Dashboard</Typography>
@@ -136,19 +215,19 @@ const DashboardDefault = () => {
                 */}
                 
                 
-                <PlotComponent title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
+                <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
                
-                <TableComponent title="Containers - Network" data={
+                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Resources" data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.cpu") || key.startsWith("cosmos.system.docker.ram")).map((key) => metrics[key])   
                 }/>
                
-                <PlotComponent title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
+                <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
                 
-                <TableComponent title="Containers - Network" data={
+                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Network" data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])   
                 }/>
                 
-                <TableComponent title="Disk Usage" displayMax={true} 
+                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Disk Usage" displayMax={true} 
                 render={(metric, value, formattedValue) => {
                     return <span>
                         {formattedValue}
@@ -160,6 +239,9 @@ const DashboardDefault = () => {
                 }/>
  
                 <PlotComponent 
+                    zoom={zoom} setZoom={setZoom} 
+                    xAxis={xAxis} 
+                    slot={slot}
                     title={'Temperature'}
                     withSelector={'cosmos.system.temp.all'}
                     SimpleDesign

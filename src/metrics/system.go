@@ -166,6 +166,7 @@ func GetSystemMetrics() {
 			}
 
 			realMount := part.Mountpoint
+			mountKey := strings.Replace(part.Mountpoint, ".", "_", -1)
 			
 			if os.Getenv("HOSTNAME") != "" {
 				realMount = "/mnt/host" + part.Mountpoint
@@ -175,7 +176,7 @@ func GetSystemMetrics() {
 			if err != nil {
 				utils.Error("Metrics - Error fetching Disk usage for " + realMount + " : ", err)
 			} else {
-				PushSetMetric("system.disk." + part.Mountpoint, int(u.Used), DataDef{
+				PushSetMetric("system.disk." + mountKey, int(u.Used), DataDef{
 					Max: u.Total,
 					Period: time.Second * 120,
 					Label: "Disk " + part.Mountpoint,
@@ -207,7 +208,7 @@ func GetSystemMetrics() {
 		PushSetMetric("system.temp.all", avgTemp / avgTempCount, DataDef{
 			Max: 0,
 			Period: time.Second * 30,
-			Label: "Temperature",
+			Label: "Temperature - All",
 		})
 	}
 }

@@ -38,6 +38,8 @@ var lock = make(chan bool, 1)
 func MergeMetric(SetOperation string, currentValue int, newValue int, avgIndex int) int {
 	if SetOperation == "" {  
 		return newValue    
+	} else if newValue == 0 {
+		return currentValue
 	} else if SetOperation == "max" {
 		if newValue > currentValue {
 			return newValue
@@ -183,6 +185,6 @@ func Run() {
 
 func Init() {
 	InitAggl()
-	GetSystemMetrics()
+	//GetSystemMetrics()
 	Run()
 }

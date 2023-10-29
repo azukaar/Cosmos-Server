@@ -24,30 +24,10 @@ import { useTheme } from '@mui/material/styles';
 
 // third-party
 import ReactApexChart from 'react-apexcharts';
-import { FormaterForMetric } from './utils';
+import { FormaterForMetric, toUTC } from './utils';
 
-function formatDate(now, time) {
-  // use as UTC
-  // now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
 
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-based
-  const day = String(now.getDate()).padStart(2, '0');
-  const hours = String(now.getHours()).padStart(2, '0');
-  const minutes = String(now.getMinutes()).padStart(2, '0');
-  const seconds = String(now.getSeconds()).padStart(2, '0');
-
-  return time ? `${year}-${month}-${day} ${hours}:${minutes}:${seconds}` : `${year}-${month}-${day}`;
-}
-
-function toUTC(date, time) {
-  let now = new Date(date);
-  now.setMinutes(now.getMinutes() + now.getTimezoneOffset());
-  return formatDate(now, time);
-}
-
-const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 'latest' }) => {
-  const [slot, setSlot] = useState(defaultSlot);
+const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, zoom, setZoom }) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
@@ -83,28 +63,6 @@ const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 
   const [options, setOptions] = useState(areaChartOptions);
 
   useEffect(() => {
-    let xAxis = [];
-
-    if(slot === 'latest') {
-      for(let i = 0; i < 100; i++) {
-        xAxis.unshift(i);
-      }
-    }
-    else if(slot === 'hourly') {
-      for(let i = 0; i < 48; i++) {
-        let now = new Date();
-        now.setHours(now.getHours() - i);
-        now.setMinutes(0);
-        now.setSeconds(0);
-        xAxis.unshift(formatDate(now, true));
-      }
-    } else if(slot === 'daily') {
-      for(let i = 0; i < 30; i++) {
-        let now = new Date();
-        now.setDate(now.getDate() - i);
-        xAxis.unshift(formatDate(now));
-      }
-    }
 
     let toProcess = data;
     if(withSelector) {
@@ -150,6 +108,8 @@ const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 
           color: line
         },
         tickAmount: xAxis.length,
+        min: zoom.xaxis && zoom.xaxis.min,
+        max: zoom.xaxis && zoom.xaxis.max,
       },
       yaxis: toProcess.map((thisdata, ida) => ({
         opposite: ida === 1, 
@@ -163,13 +123,28 @@ const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 
         },
         title: {
           text: SimpleDesign ? '' : thisdata.Label,
-        }
+        },
+        min: zoom.yaxis && zoom.yaxis.min,
+        max: zoom.yaxis && zoom.yaxis.max,
       })),
       grid: {
         borderColor: line
       },
       tooltip: {
         theme: theme.palette.mode,
+      },
+      chart: {
+        events: {
+          zoomed: function(chartContext, { xaxis, yaxis }) {
+            // Handle the zoom event here
+            console.log('Zoomed:', xaxis, yaxis);
+            setZoom({ xaxis, yaxis });
+          },
+          selection: function(chartContext, { xaxis, yaxis }) {
+            // Handle the selection event here
+            console.log('Selected:', xaxis, yaxis);
+          },
+        }
       }
     }));
 
@@ -181,17 +156,38 @@ const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 
     }));
   }, [slot, data, selected]);
 
+  useEffect(() => {
+    // if different
+    if(zoom && zoom.xaxis && zoom.yaxis && (!options.xaxis || !options.yaxis || !options.yaxis[0] || (
+        zoom.xaxis.min !== options.xaxis.min ||
+        zoom.xaxis.max !== options.xaxis.max ||
+        zoom.yaxis.min !== options.yaxis[0].min ||
+        zoom.yaxis.max !== options.yaxis[0].max 
+    ))){
+      setOptions((prevState) => ({
+        ...prevState,
+        xaxis: {
+          ...prevState.xaxis,
+          min: zoom.xaxis.min,
+          max: zoom.xaxis.max,
+        },
+        yaxis: prevState.yaxis.map((y, id) => ({
+          ...y,
+          min: zoom.yaxis.min,
+          max: zoom.yaxis.max,
+        }))
+      }));
+    }
+  }, [zoom]);
 
   return <Grid item xs={12} md={7} lg={8} >
-    <Grid container alignItems="center" justifyContent="space-between">
+    <Grid container alignItems="center" >
       <Grid item>
         <Typography variant="h5">{title}</Typography>
       </Grid>
       <Grid item >
-        <Stack direction="row" alignItems="center" spacing={0}>
-
           {withSelector && 
-          <div style={{ marginRight: 15 }}>
+          <div style={{ marginLeft: 15 }}>
           <TextField
               id="standard-select-currency"
               size="small"
@@ -206,32 +202,6 @@ const PlotComponent = ({ title, data, SimpleDesign, withSelector, defaultSlot = 
                   </MenuItem>
               ))}
           </TextField></div>}
-
-          <Button
-            size="small"
-            onClick={() => setSlot('latest')}
-            color={slot === 'latest' ? 'primary' : 'secondary'}
-            variant={slot === 'latest' ? 'outlined' : 'text'}
-          >
-            Latest
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setSlot('hourly')}
-            color={slot === 'hourly' ? 'primary' : 'secondary'}
-            variant={slot === 'hourly' ? 'outlined' : 'text'}
-          >
-            Hourly
-          </Button>
-          <Button
-            size="small"
-            onClick={() => setSlot('daily')}
-            color={slot === 'daily' ? 'primary' : 'secondary'}
-            variant={slot === 'daily' ? 'outlined' : 'text'}
-          >
-            Daily
-          </Button>
-        </Stack>
       </Grid>
     </Grid>
     <MainCard content={false} sx={{ mt: 1.5 }} >
