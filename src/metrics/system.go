@@ -159,8 +159,10 @@ func GetSystemMetrics() {
 	}
 
   for _, part := range parts {
-		if strings.HasPrefix(part.Mountpoint, "/dev") || (strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host")) {
-			// remove /dev/shm and /dev/pts
+		if strings.HasPrefix(part.Mountpoint, "/dev") || 
+			(strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host") ||
+			 part.Mountpoint == "/") {
+				
 			if part.Mountpoint == "/dev" || strings.HasPrefix(part.Mountpoint, "/dev/shm") || strings.HasPrefix(part.Mountpoint, "/dev/pts") {
 				continue
 			}
