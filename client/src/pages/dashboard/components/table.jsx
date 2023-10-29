@@ -144,6 +144,8 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
           } else if (item.AggloType == "avg") {
             avgIndex++;
             return a + b;
+          } else {
+            return b;
           }
         }, 0);
         if (item.AggloType == "avg") {
