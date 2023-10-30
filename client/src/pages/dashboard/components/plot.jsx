@@ -92,7 +92,10 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
     
     setOptions((prevState) => ({
       ...prevState,
-      colors: [theme.palette.primary.main.replace('rgb', 'rgba'), theme.palette.secondary.main.replace('rgb', 'rgba')],
+      colors: [
+        theme.palette.primary.main.replace('rgb(', 'rgba('), 
+        theme.palette.secondary.main.replace('rgb(', 'rgba(')
+      ],
       xaxis: {
         categories: 
         slot === 'hourly'
