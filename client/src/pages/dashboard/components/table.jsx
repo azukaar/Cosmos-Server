@@ -136,7 +136,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
     data.forEach((item) => {
       let k = item.Key.split('.')
       let v = item.Values.length ? item.Values[item.Values.length - 1].Value : 0;
-      if (slot === 'hourly' || slot === 'daily') {
+
         let avgIndex = 0;
         v = xAxis
         .filter((date, index) => {
@@ -146,12 +146,16 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
           return true;
         })
         .map((date) => {
-          let key = slot === 'hourly' ? "hour_" : "day_";
-          let k = key + toUTC(date, slot === 'hourly');
-          if (k in item.ValuesAggl) {
-            return item.ValuesAggl[k].Value;
+          if (slot === 'hourly' || slot === 'daily') {
+            let key = slot === 'hourly' ? "hour_" : "day_";
+            let k = key + toUTC(date, slot === 'hourly');
+            if (k in item.ValuesAggl) {
+              return item.ValuesAggl[k].Value;
+            } else {
+              return 0;
+            }
           } else {
-            return 0;
+            return item.Values[date] ? item.Values[date].Value : 0;
           }
         })
         .reduce((a, b) => {
@@ -169,10 +173,11 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
             return b;
           }
         }, 0);
+
         if (item.AggloType == "avg") {
           v = v / avgIndex;
         }
-      }
+
       let name = k[k.length - 1];
       let cat = k[k.length - 2];
 
@@ -260,7 +265,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                 >
                     <OrderTableHead headCells={headCells} order={order} orderBy={orderBy} setOrderBy={setOrderBy} setOrder={setOrder} />
                     <TableBody style={{height:'409px', overflow: 'auto'}}>
-                        {stableSort(rows, getComparator(order, orderBy)).map((row, index) => {
+                        {stableSort(rows, getComparator(order, "__" + orderBy)).map((row, index) => {
                             const isItemSelected = false // isSelected(row.trackingNo);
                             const labelId = `enhanced-table-checkbox-${index}`;
 

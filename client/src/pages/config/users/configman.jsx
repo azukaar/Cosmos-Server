@@ -25,7 +25,7 @@ import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
 
 import UploadButtons from '../../../components/fileUpload';
-import { TwitterPicker
+import { SliderPicker
  } from 'react-color';
  import { LoadingButton } from '@mui/lab';
 
@@ -322,13 +322,24 @@ const ConfigManagement = () => {
                         }}
                       />
 
-                      <Button
+<Button
                         variant="outlined"
                         onClick={() => {
                           formik.setFieldValue('Background', "");
                         }}
                       >
                         Reset Wallpaper
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => {
+                          formik.setFieldValue('PrimaryColor', "");
+                          SetPrimaryColor("");
+                          formik.setFieldValue('SecondaryColor', "");
+                          SetSecondaryColor("");
+                        }}
+                      >
+                        Reset Colors
                       </Button>
                     </Stack>
                   </Grid>
@@ -344,11 +355,11 @@ const ConfigManagement = () => {
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">Primary Color</InputLabel>
-                      <TwitterPicker
+                      <SliderPicker
                         id="PrimaryColor"
                         color={formik.values.PrimaryColor}
                         onChange={color => {
-                          let colorRGB = `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                          let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
                           formik.setFieldValue('PrimaryColor', colorRGB);
                           SetPrimaryColor(colorRGB);
                         }}
@@ -382,11 +393,11 @@ const ConfigManagement = () => {
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">Secondary Color</InputLabel>
-                      <TwitterPicker
+                      <SliderPicker
                         id="SecondaryColor"
                         color={formik.values.SecondaryColor}
                         onChange={color => {
-                          let colorRGB = `rgb(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                          let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
                           formik.setFieldValue('SecondaryColor', colorRGB);
                           SetSecondaryColor(colorRGB);
                         }}

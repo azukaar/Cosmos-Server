@@ -3,6 +3,7 @@
  - New metrics gathering system
  - Integrated a new docker-less mode of functioning for networking
  - Added Button to force reset HTTPS cert in settings
+ - New color slider with reset buttons
 
 ## Version 0.11.3
  - Fix missing even subscriber on export

@@ -1,5 +1,7 @@
 export const simplifyNumber = (num) => {
     if(!num) return 0;
+
+    num = Math.round(num * 100) / 100;
     
     if (Math.abs(num) >= 1e12) {
       return (num / 1e12).toFixed(1) + 'T'; // Convert to Millions
