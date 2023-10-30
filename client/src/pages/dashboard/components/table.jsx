@@ -159,7 +159,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
           }
         })
         .reduce((a, b) => {
-          if (!b) {
+          if (typeof b === "undefined" || b === null) {
             return a;
           }
           if (item.AggloType == "min") {
@@ -174,7 +174,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
           }
         }, 0);
 
-        if (item.AggloType == "avg") {
+        if (item.AggloType == "avg" && avgIndex) {
           v = v / avgIndex;
         }
 
