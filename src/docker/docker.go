@@ -732,7 +732,7 @@ func StatsAll() ([]ContainerStats, error) {
 
 		containerStats := ContainerStats{
 			Name:      strings.TrimPrefix(container.Names[0], "/"),
-			CPUUsage:  cpuUsage * 1000,
+			CPUUsage:  cpuUsage * 100,
 			MemUsage:  stats.MemoryStats.Usage,
 			MemLimit:  stats.MemoryStats.Limit,
 			NetworkRx: netRx,

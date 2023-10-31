@@ -183,7 +183,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                   "cosmos.system.docker.netRx." + Name.replace('/', ''),
                 ]} labels={{
                   ["cosmos.system.docker.netTx." + Name.replace('/', '')]: "NTX", 
-                  ["cosmos.system.docker.netTx." + Name.replace('/', '')]: "NRX"
+                  ["cosmos.system.docker.netRx." + Name.replace('/', '')]: "NRX"
                 }}/>
               </div>
           </Stack>

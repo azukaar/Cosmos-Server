@@ -124,6 +124,8 @@ const DashboardDefault = () => {
             refreshMetrics();
         }, 10000);
 
+        refreshMetrics();
+
         return () => {
             clearInterval(interval);
         };

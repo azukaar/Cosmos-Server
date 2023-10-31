@@ -63,7 +63,6 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
   const [options, setOptions] = useState(areaChartOptions);
 
   useEffect(() => {
-
     let toProcess = data;
     if(withSelector) {
       toProcess = data.filter((d, id) => id === selected);

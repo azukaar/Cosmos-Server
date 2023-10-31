@@ -172,7 +172,17 @@ const _MiniPlotComponent = ({metrics, labels}) => {
               fontSize: '110%',
               whiteSpace: 'nowrap',
             }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div>
-          <div>{(labels && labels[dataMetric.Key]) || dataMetric.Label}</div>
+          <div>
+            <div style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              backgroundColor: chartOptions.colors[di],
+              marginRight: '5px',
+              borderRadius: '50%',
+            }}></div>
+            {(labels && labels[dataMetric.Key]) || dataMetric.Label}
+          </div>
         </Stack>)}
 
       <div style={{

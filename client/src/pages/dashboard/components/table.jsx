@@ -243,7 +243,6 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
 
 
   return <>
-
   {openModal && <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth={true}>
         <DialogTitle>Detailed History</DialogTitle>
         <DialogContent>
@@ -258,7 +257,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                 })}
                 xAxis={xAxis}
                 slot={slot}
-                zoom={zoom}  
+                zoom={zoom}
                 zoomDisabled={true}
               />
               </DialogContentText>
