@@ -39,6 +39,7 @@ import HostChip from '../../../components/hostChip';
 import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
 import { useNavigate } from 'react-router';
 import NewRouteCreate from '../routes/newRoute';
+import LazyLoad from 'react-lazyload';
 
 const stickyButton = {
   position: 'fixed',
@@ -154,7 +155,9 @@ const ProxyManagement = () => {
         columns={[
           { 
             title: '', 
-            field: (r) => <img className="loading-image" alt="" src={getFaviconURL(r)} width="64px" />,
+            field: (r) => <LazyLoad width={"64px"} height={"64px"}>
+              <img className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
+            </LazyLoad>,
             style: {
               textAlign: 'center',
             },

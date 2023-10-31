@@ -301,7 +301,10 @@ const ServApps = () => {
                 <MiniPlotComponent  metrics={[
                   "cosmos.system.docker.cpu." + app.Names[0].replace('/', ''),
                   "cosmos.system.docker.ram." + app.Names[0].replace('/', ''),
-                ]} labels={["CPU", "RAM"]}/>
+                ]} labels={{
+                  ["cosmos.system.docker.cpu." + app.Names[0].replace('/', '')]: "CPU", 
+                  ["cosmos.system.docker.ram." + app.Names[0].replace('/', '')]: "RAM"
+                }}/>
               </div>
               <div>
                 <Link to={`/cosmos-ui/servapps/containers/${app.Names[0].replace('/', '')}`}>

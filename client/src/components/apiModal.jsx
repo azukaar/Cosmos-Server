@@ -57,7 +57,7 @@ const ApiModal = ({ callback, label }) => {
     }, [openModal]);
 
     return <>
-      <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth={'sm'}>
           <DialogTitle>Refresh Page</DialogTitle>
           <DialogContent>
               <DialogContentText>

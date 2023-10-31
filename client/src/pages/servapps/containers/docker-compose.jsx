@@ -499,9 +499,9 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   }
 
   return <>
-    <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+    <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth={'sm'}>
       <DialogTitle>{installer ? "Installation" : "Import Compose File"}</DialogTitle>
-      <DialogContent style={{ width: '800px', maxWidth: '100%' }}>
+      <DialogContent style={{ width: '100%' }}>
         <DialogContentText>
           {step === 0 && !installer && <><Stack spacing={2}>
 

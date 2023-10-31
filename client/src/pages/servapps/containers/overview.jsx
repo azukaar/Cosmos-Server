@@ -174,11 +174,17 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 <MiniPlotComponent  metrics={[
                   "cosmos.system.docker.cpu." + Name.replace('/', ''),
                   "cosmos.system.docker.ram." + Name.replace('/', ''),
-                ]} labels={["CPU", "RAM"]}/>
+                ]} labels={{
+                  ["cosmos.system.docker.cpu." + Name.replace('/', '')]: "CPU", 
+                  ["cosmos.system.docker.ram." + Name.replace('/', '')]: "RAM"
+                }}/>
                 <MiniPlotComponent  metrics={[
                   "cosmos.system.docker.netTx." + Name.replace('/', ''),
                   "cosmos.system.docker.netRx." + Name.replace('/', ''),
-                ]} labels={["NTX", "NRX"]}/>
+                ]} labels={{
+                  ["cosmos.system.docker.netTx." + Name.replace('/', '')]: "NTX", 
+                  ["cosmos.system.docker.netTx." + Name.replace('/', '')]: "NRX"
+                }}/>
               </div>
           </Stack>
         </Stack>

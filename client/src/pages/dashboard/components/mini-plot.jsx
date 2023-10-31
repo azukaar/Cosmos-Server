@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useMemo  } from 'react';
+import { useInView } from 'react-intersection-observer';
+
 // material-ui
 import {
   Avatar,
@@ -34,8 +36,11 @@ const _MiniPlotComponent = ({metrics, labels}) => {
   const [dataMetrics, setDataMetrics] = useState([]);
   const [series, setSeries] = useState([]);
   const slot = 'hourly';
+  const [ref, inView] = useInView();
 
   useEffect(() => {
+    if(!inView) return;
+    
     let xAxis = [];
 
     if(slot === 'latest') {
@@ -88,7 +93,7 @@ const _MiniPlotComponent = ({metrics, labels}) => {
 
       setSeries(_series);
     });
-  }, [metrics]);
+  }, [metrics, inView]);
 
   const chartOptions = {
     colors: [
@@ -167,13 +172,13 @@ const _MiniPlotComponent = ({metrics, labels}) => {
               fontSize: '110%',
               whiteSpace: 'nowrap',
             }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div>
-          <div>{(labels && labels[di]) || dataMetric.Label}</div>
+          <div>{(labels && labels[dataMetric.Key]) || dataMetric.Label}</div>
         </Stack>)}
 
       <div style={{
         margin: '-10px 0px -20px 10px',
         flexGrow: 1,
-      }}>
+      }} ref={ref}>
         <ReactApexChart options={chartOptions} series={series} type="line" height={90} />
       </div>
     </Stack>
