@@ -12,6 +12,7 @@ import (
 	"strings"
 	"encoding/base64"
 	"encoding/json"
+	"sync"
 	"strconv"
 	"runtime"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -673,38 +674,31 @@ type ContainerStats struct {
 	NetworkTx uint64
 }
 
-func StatsAll() ([]ContainerStats, error) {
-	containers, err := ListContainers()
-	if err != nil {
-		utils.Error("StatsAll", err)
-		return nil, err
-	}
-	
-	var containerStatsList []ContainerStats
-
-	for _, container := range containers {
-		// if running
-		if container.State != "running" {
-			continue
-		}
+func Stats(container types.Container) (ContainerStats, error) {
+		utils.Debug("StatsAll - Getting stats for " + container.Names[0])
+		utils.Debug("Time: " + time.Now().String())
 		
-		statsBody, err := DockerClient.ContainerStatsOneShot(DockerContext, container.ID)
+		statsBody, err := DockerClient.ContainerStats(DockerContext, container.ID, false)
 		if err != nil {
-			return nil, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
+			return ContainerStats{}, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
 		}
 
 		defer statsBody.Body.Close()
 
 		stats := types.StatsJSON{}
 		if err := json.NewDecoder(statsBody.Body).Decode(&stats); err != nil {
-			return nil, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
+			return ContainerStats{}, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
 		}
 
-		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage - stats.PreCPUStats.CPUUsage.TotalUsage)
-		systemDelta := float64(stats.CPUStats.SystemUsage - stats.PreCPUStats.SystemUsage)
+		previousCPU := stats.PreCPUStats.CPUUsage.TotalUsage
+		previousSystem := stats.PreCPUStats.SystemUsage
+
+		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
+		systemDelta := float64(stats.CPUStats.SystemUsage) - float64(previousSystem)
 
 		perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
 		if perCore == 0 {
+			utils.Warn("StatsAll - Docker CPU PercpuUsage is 0")
 			perCore = 1
 		}
 
@@ -721,7 +715,7 @@ func StatsAll() ([]ContainerStats, error) {
 		if systemDelta > 0 && cpuDelta > 0 {
 			cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
 			
-			utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
+			// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 		} else {
 			utils.Error("StatsAll - Error calculating CPU usage for " + container.Names[0], nil)
 		}
@@ -738,7 +732,46 @@ func StatsAll() ([]ContainerStats, error) {
 			NetworkRx: netRx,
 			NetworkTx: netTx,
 		}
-		containerStatsList = append(containerStatsList, containerStats)
+
+		return containerStats, nil
 	}
-	return containerStatsList, nil
-}
+
+	func StatsAll() ([]ContainerStats, error) {
+		containers, err := ListContainers()
+		if err != nil {
+			utils.Error("StatsAll", err)
+			return nil, err
+		}
+	
+		var containerStatsList []ContainerStats
+		var wg sync.WaitGroup
+		semaphore := make(chan struct{}, 2) // A channel with a buffer size of 10 for controlling parallelism.
+	
+		for _, container := range containers {
+			// If not running, skip this container
+			if container.State != "running" {
+				continue
+			}
+	
+			wg.Add(1)
+			semaphore <- struct{}{} // Acquire a semaphore slot, limiting parallelism.
+	
+			go func(container types.Container) {
+				defer func() {
+					<-semaphore // Release the semaphore slot when done.
+					wg.Done()
+				}()
+	
+				stat, err := Stats(container)
+				if err != nil {
+					utils.Error("StatsAll", err)
+					return
+				}
+				containerStatsList = append(containerStatsList, stat)
+			}(container)
+		}
+	
+		wg.Wait() // Wait for all goroutines to finish.
+	
+		return containerStatsList, nil
+	}
