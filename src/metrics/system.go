@@ -202,7 +202,6 @@ func GetSystemMetrics() {
 
 	for _, ds := range dockerStats {
 		PushSetMetric("system.docker.cpu." + ds.Name, int(ds.CPUUsage), DataDef{
-			Max: 10000,
 			Period: time.Second * 30,
 			Label: "Docker CPU " + ds.Name,
 			AggloType: "avg",
