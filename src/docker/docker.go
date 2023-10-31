@@ -670,8 +670,8 @@ type ContainerStats struct {
 	CPUUsage  float64
 	MemUsage  uint64
 	MemLimit	uint64
-	NetworkRx uint64
-	NetworkTx uint64
+	NetworkRx float64
+	NetworkTx float64
 }
 
 func Stats(container types.Container) (ContainerStats, error) {
@@ -715,14 +715,20 @@ func Stats(container types.Container) (ContainerStats, error) {
 		if systemDelta > 0 && cpuDelta > 0 {
 			cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
 			
-			// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
+			utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 		} else {
 			utils.Error("StatsAll - Error calculating CPU usage for " + container.Names[0], nil)
 		}
 
 		// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100
-		netRx := stats.Networks["eth0"].RxBytes
-		netTx := stats.Networks["eth0"].TxBytes
+		
+		netRx := 0.0
+		netTx := 0.0
+		
+		for _, net := range stats.Networks {
+			netRx += float64(net.RxBytes)
+			netTx += float64(net.TxBytes)
+		}
 
 		containerStats := ContainerStats{
 			Name:      strings.TrimPrefix(container.Names[0], "/"),
@@ -745,7 +751,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 	
 		var containerStatsList []ContainerStats
 		var wg sync.WaitGroup
-		semaphore := make(chan struct{}, 2) // A channel with a buffer size of 10 for controlling parallelism.
+		semaphore := make(chan struct{}, 5) // A channel with a buffer size of 5 for controlling parallelism.
 	
 		for _, container := range containers {
 			// If not running, skip this container
