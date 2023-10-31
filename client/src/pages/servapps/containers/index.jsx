@@ -17,6 +17,7 @@ import DockerContainerSetup from './setup';
 import NetworkContainerSetup from './network';
 import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
+import ContainerMetrics from '../../dashboard/containerMetrics';
 
 const ContainerIndex = () => {
   const { containerName } = useParams();
@@ -58,6 +59,10 @@ const ContainerIndex = () => {
         {
           title: 'Logs',
           children: <Logs containerInfo={container} config={config}/>
+        },
+        {
+          title: 'Monitoring',
+          children: <ContainerMetrics containerName={containerName}/>
         },
         {
           title: 'Terminal',

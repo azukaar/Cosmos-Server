@@ -42,7 +42,7 @@ const MainRoutes = {
             element: <HomePage />
         },
         {
-            path: '/cosmos-ui/dashboard',
+            path: '/cosmos-ui/monitoring',
             element: <DashboardDefault />
         },
         {

@@ -20,6 +20,7 @@ import ResponsiveButton from '../../components/responseiveButton';
 import DockerComposeImport from './containers/docker-compose';
 import { ContainerNetworkWarning } from '../../components/containers';
 import { ServAppIcon } from '../../utils/servapp-icon';
+import MiniPlotComponent from '../dashboard/components/mini-plot';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -296,6 +297,12 @@ const ServApps = () => {
                     {/* } */}
                 </Stack>
               </Stack>
+              <div>
+                <MiniPlotComponent  metrics={[
+                  "cosmos.system.docker.cpu." + app.Names[0].replace('/', ''),
+                  "cosmos.system.docker.ram." + app.Names[0].replace('/', ''),
+                ]} labels={["CPU", "RAM"]}/>
+              </div>
               <div>
                 <Link to={`/cosmos-ui/servapps/containers/${app.Names[0].replace('/', '')}`}>
                   <Button variant="outlined" color="primary" fullWidth>Details</Button>

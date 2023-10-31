@@ -1,7 +1,7 @@
 import wrap from './wrap';
 
-function get() {
-  return wrap(fetch('/cosmos/api/metrics', {
+function get(metarr) {
+  return wrap(fetch('/cosmos/api/metrics?metrics=' + metarr.join(','), {
     method: 'GET',
     headers: {
         'Content-Type': 'application/json'

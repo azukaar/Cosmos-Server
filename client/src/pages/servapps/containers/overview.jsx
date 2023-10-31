@@ -9,6 +9,7 @@ import * as API from '../../../api';
 import RestartModal from '../../config/users/restart';
 import GetActions from '../actionBar';
 import { ServAppIcon } from '../../../utils/servapp-icon';
+import MiniPlotComponent from '../../dashboard/components/mini-plot';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -168,6 +169,17 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 }}
               />
             </div>
+            <strong><NodeExpandOutlined /> Monitoring</strong>
+              <div style={{ width: '90%' }}>
+                <MiniPlotComponent  metrics={[
+                  "cosmos.system.docker.cpu." + Name.replace('/', ''),
+                  "cosmos.system.docker.ram." + Name.replace('/', ''),
+                ]} labels={["CPU", "RAM"]}/>
+                <MiniPlotComponent  metrics={[
+                  "cosmos.system.docker.netTx." + Name.replace('/', ''),
+                  "cosmos.system.docker.netRx." + Name.replace('/', ''),
+                ]} labels={["NTX", "NRX"]}/>
+              </div>
           </Stack>
         </Stack>
       </MainCard>

@@ -27,7 +27,7 @@ import ReactApexChart from 'react-apexcharts';
 import { FormaterForMetric, toUTC } from './utils';
 
 
-const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, zoom, setZoom }) => {
+const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, zoom, setZoom, zoomDisabled }) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const line = theme.palette.divider;
@@ -127,8 +127,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         title: {
           text: SimpleDesign ? '' : thisdata.Label,
         },
-        min: zoom.yaxis && zoom.yaxis.min,
-        max: zoom.yaxis && zoom.yaxis.max,
+        max: thisdata.Max ? thisdata.Max : undefined,
       })),
       grid: {
         borderColor: line
@@ -137,16 +136,16 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         theme: theme.palette.mode,
       },
       chart: {
+        zoom: {
+          enabled: !zoomDisabled,
+        },
+        selection: {
+          enabled: !zoomDisabled,
+        },
         events: {
-          zoomed: function(chartContext, { xaxis, yaxis }) {
-            // Handle the zoom event here
-            console.log('Zoomed:', xaxis, yaxis);
-            setZoom({ xaxis, yaxis });
-          },
-          selection: function(chartContext, { xaxis, yaxis }) {
-            // Handle the selection event here
-            console.log('Selected:', xaxis, yaxis);
-          },
+          zoomed: function(chartContext, { xaxis }) {
+            setZoom({ xaxis });
+          }
         }
       }
     }));
@@ -161,11 +160,9 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
 
   useEffect(() => {
     // if different
-    if(zoom && zoom.xaxis && zoom.yaxis && (!options.xaxis || !options.yaxis || !options.yaxis[0] || (
+    if(zoom && zoom.xaxis && (!options.xaxis || (
         zoom.xaxis.min !== options.xaxis.min ||
-        zoom.xaxis.max !== options.xaxis.max ||
-        zoom.yaxis.min !== options.yaxis[0].min ||
-        zoom.yaxis.max !== options.yaxis[0].max 
+        zoom.xaxis.max !== options.xaxis.max
     ))){
       setOptions((prevState) => ({
         ...prevState,
@@ -174,21 +171,16 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
           min: zoom.xaxis.min,
           max: zoom.xaxis.max,
         },
-        yaxis: prevState.yaxis.map((y, id) => ({
-          ...y,
-          min: zoom.yaxis.min,
-          max: zoom.yaxis.max,
-        }))
       }));
     }
   }, [zoom]);
 
-  return <Grid item xs={12} md={7} lg={8} >
-    <Grid container alignItems="center" >
+  return <>
+    <Grid container alignItems="center">
       <Grid item>
         <Typography variant="h5">{title}</Typography>
       </Grid>
-      <Grid item >
+      <Grid item>
           {withSelector && 
           <div style={{ marginLeft: 15 }}>
           <TextField
@@ -208,11 +200,12 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
       </Grid>
     </Grid>
     <MainCard content={false} sx={{ mt: 1.5 }} >
-      <Box sx={{ pt: 1, pr: 2 }}>
+      <Box sx={{ pt: 1, pr: 2}}>
+
         <ReactApexChart options={options} series={series} type="area" height={450} />
       </Box>
     </MainCard>
-  </Grid>
+  </>
 }
 
 export default PlotComponent;

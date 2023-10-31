@@ -2,10 +2,12 @@ package metrics
 
 import (
 	"time"
+	"fmt"
+	"strings"
 
 	"github.com/jasonlvhit/gocron"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -30,13 +32,14 @@ type DataDefDB struct {
 	Key string
 	AggloType string
 	Scale int
+	Unit string
 }
 
-func AggloMetrics() []DataDefDB {
+func AggloMetrics(metricsList []string) []DataDefDB {
 	lock <- true
 	defer func() { <-lock }()
 
-	utils.Log("Metrics: Agglomeration started")
+	utils.Log("Metrics: Agglomeration of metrics")
 
 	utils.Debug("Time: " + time.Now().String())
 
@@ -47,8 +50,30 @@ func AggloMetrics() []DataDefDB {
 	}
 
 	// get all metrics from database
+	findOpts := map[string]interface{}{
+	}
+	
+
+	// If metricsList is not empty, filter by metrics with wildcard matching
+	if len(metricsList) > 0 {
+    // Convert wildcards to regex and store them in an array
+    var regexPatterns []bson.M
+    for _, metric := range metricsList {
+        if strings.Contains(metric, "*") {
+            // Convert wildcard to regex. Replace * with .*
+            regexPattern := "^" + strings.ReplaceAll(metric, "*", ".*")
+            regexPatterns = append(regexPatterns, bson.M{"Key": bson.M{"$regex": regexPattern}})
+        } else {
+            // If there's no wildcard, match the metric directly
+            regexPatterns = append(regexPatterns, bson.M{"Key": metric})
+        }
+    }
+    // Use the $or operator to match any of the patterns
+    findOpts["$or"] = regexPatterns
+	}
+
 	var metrics []DataDefDB
-	cursor, err := c.Find(nil, map[string]interface{}{})
+	cursor, err := c.Find(nil, findOpts)
 	if err != nil {
 		utils.Error("Metrics: Error fetching metrics", err)
 		return []DataDefDB{}
@@ -162,21 +187,36 @@ func CommitAggl(metrics []DataDefDB) {
 	defer func() { <-lock }()
 
 	utils.Log("Metrics: Agglomeration done. Saving to DB")
-	
+
 	c, errCo := utils.GetCollection(utils.GetRootAppId(), "metrics")
 	if errCo != nil {
-			utils.Error("Metrics - Database Connect", errCo)
-			return
+		utils.Error("Metrics - Database Connect", errCo)
+		return
 	}
 
-	// save metrics
-	for _, metric := range metrics {
-		options := options.Update().SetUpsert(true)
+	chunkSize := 100
 
-		_, err := c.UpdateOne(nil, bson.M{"Key": metric.Key}, bson.M{"$set": bson.M{"Values": metric.Values, "ValuesAggl": metric.ValuesAggl}}, options)
+	for i := 0; i < len(metrics); i += chunkSize {
+		end := i + chunkSize
+		if end > len(metrics) {
+			end = len(metrics)
+		}
+
+		chunk := metrics[i:end]
+		models := []mongo.WriteModel{}
+
+		for _, metric := range chunk {
+			update := mongo.NewUpdateOneModel().
+				SetFilter(bson.M{"Key": metric.Key}).
+				SetUpdate(bson.M{"$set": bson.M{"Values": metric.Values, "ValuesAggl": metric.ValuesAggl}}).
+				SetUpsert(true)
+			models = append(models, update)
+		}
+
+		_, err := c.BulkWrite(nil, models)
 
 		if err != nil {
-			utils.Error("Metrics: Error saving metrics", err)
+			utils.Error(fmt.Sprintf("Metrics: Error saving metrics chunk starting at index %d", i), err)
 			return
 		}
 	}
@@ -185,7 +225,11 @@ func CommitAggl(metrics []DataDefDB) {
 }
 
 func AggloAndCommitMetrics() {
-	CommitAggl(AggloMetrics())
+	if utils.GetMainConfig().MonitoringDisabled {
+		return
+	}
+
+	CommitAggl(AggloMetrics([]string{}))
 }
 
 func InitAggl() {

@@ -23,9 +23,9 @@ const dashboard = {
         },
         {
             id: 'dashboard',
-            title: 'Dashboard',
+            title: 'Monitoring',
             type: 'item',
-            url: '/cosmos-ui/dashboard',
+            url: '/cosmos-ui/monitoring',
             icon: DashboardOutlined,
             breadcrumbs: false
         },

@@ -122,6 +122,8 @@ const ConfigManagement = () => {
           Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
           PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
           SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
+        
+          MonitoringEnabled: !config.MonitoringDisabled,
         }}
 
         validationSchema={Yup.object().shape({
@@ -141,6 +143,7 @@ const ConfigManagement = () => {
             // AutoUpdate: values.AutoUpdate,
             BlockedCountries: values.GeoBlocking,
             CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
+            MonitoringDisabled: !values.MonitoringEnabled,
             HTTPConfig: {
               ...config.HTTPConfig,
               Hostname: values.Hostname,
@@ -298,6 +301,12 @@ const ConfigManagement = () => {
                       </TextField>
                     </Stack>
                   </Grid>
+
+                  <CosmosCheckbox
+                    label="Monitoring Enabled"
+                    name="MonitoringEnabled"
+                    formik={formik}
+                  />
                 </Grid>
               </MainCard>
               
@@ -363,29 +372,6 @@ const ConfigManagement = () => {
                           formik.setFieldValue('PrimaryColor', colorRGB);
                           SetPrimaryColor(colorRGB);
                         }}
-                        colors={[
-                          '#ab47bc',
-                          '#4527a0',
-                          '#FF6900',
-                          '#FCB900',
-                          '#7BDCB5',
-                          '#00D084',
-                          '#8ED1FC',
-                          '#0693E3',
-                          '#ABB8C3',
-                          '#EB144C',
-                          '#F78DA7',
-                          '#9900EF',
-                          '#FF0000',
-                          '#FFC0CB',
-                          '#20B2AA',
-                          '#FFFF00',
-                          '#8A2BE2',
-                          '#A52A2A',
-                          '#5F9EA0',
-                          '#7FFF00',
-                          '#D2691E' 
-                        ]}
                       />
                     </Stack>
                   </Grid>
@@ -401,29 +387,6 @@ const ConfigManagement = () => {
                           formik.setFieldValue('SecondaryColor', colorRGB);
                           SetSecondaryColor(colorRGB);
                         }}
-                        colors={[
-                          '#ab47bc',
-                          '#4527a0',
-                          '#FF6900',
-                          '#FCB900',
-                          '#7BDCB5',
-                          '#00D084',
-                          '#8ED1FC',
-                          '#0693E3',
-                          '#ABB8C3',
-                          '#EB144C',
-                          '#F78DA7',
-                          '#9900EF',
-                          '#FF0000',
-                          '#FFC0CB',
-                          '#20B2AA',
-                          '#FFFF00',
-                          '#8A2BE2',
-                          '#A52A2A',
-                          '#5F9EA0',
-                          '#7FFF00',
-                          '#D2691E' 
-                        ]}
                       />
                     </Stack>
                   </Grid>

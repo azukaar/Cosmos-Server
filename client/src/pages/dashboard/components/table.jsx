@@ -21,7 +21,12 @@ import {
   TableCell,
   TableContainer,
   Table,
-  TableBody
+  TableBody,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions
 } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 
@@ -34,6 +39,7 @@ import { object } from 'prop-types';
 import { FormaterForMetric } from './utils';
 import { set } from 'lodash';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
+import PlotComponent from './plot';
 
 function formatDate(now, time) {
   // use as UTC
@@ -128,6 +134,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
   const [orderBy, setOrderBy] = useState('name');
   const [headCells, setHeadCells] = useState([]);
   const [rows, setRows] = useState([]);
+  const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
     let heads = {};
@@ -189,11 +196,13 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
         fnrows.push({
           name,
           [cat]: render ? render(item, v, formatter(v)) : formatter(v),
-          ["__" + cat]: v
+          ["__" + cat]: v,
+          "__key": [item.Key]
         });
       } else {
         fnrows.find((row) => row.name === name)[cat] = render ? render(item, v, formatter(v)) : formatter(v)
         fnrows.find((row) => row.name === name)["__" + cat] = v
+        fnrows.find((row) => row.name === name)["__key"].push(item.Key)
       }
     });
 
@@ -233,12 +242,41 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
   }, [data, slot, xAxis, zoom]);
 
 
-  return <Grid item xs={12} md={5} lg={4}>
+  return <>
+
+  {openModal && <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="md" fullWidth={true}>
+        <DialogTitle>Detailed History</DialogTitle>
+        <DialogContent>
+          <DialogContentText  style={{
+                }}>
+              <PlotComponent 
+                data={data.filter((item) => {
+                  if (!openModal) {
+                    return false;
+                  }
+                  return openModal.includes(item.Key)
+                })}
+                xAxis={xAxis}
+                slot={slot}
+                zoom={zoom}  
+                zoomDisabled={true}
+              />
+              </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+            <Button onClick={() => {
+              setOpenModal(false)
+            }}>Close</Button>
+        </DialogActions>
+    </Dialog>}
+    
+    <Grid item xs={12} md={5} lg={4}>
     <Grid container alignItems="center" justifyContent="space-between">
       <Grid item>
         <Typography variant="h5">{title}</Typography>
       </Grid>
     </Grid>
+
     <MainCard content={false} sx={{ mt: 1.5 }}>
         <Box>
             <TableContainer
@@ -278,6 +316,9 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                                     tabIndex={-1}
                                     key={row.trackingNo}
                                     selected={isItemSelected}
+                                    onClick={() => {
+                                      setOpenModal(row.__key);
+                                    }}
                                 >
                                   {headCells.map((headCell) => {
                                     return <TableCell align={
@@ -293,6 +334,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
         </Box>
     </MainCard>
   </Grid>
+  </>
 }
 
 export default TableComponent;

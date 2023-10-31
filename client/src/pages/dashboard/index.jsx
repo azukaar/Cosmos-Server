@@ -44,6 +44,7 @@ import PlotComponent from './components/plot';
 import TableComponent from './components/table';
 import { HomeBackground, TransparentHeader } from '../home';
 import { formatDate } from './components/utils';
+import MiniPlotComponent from './components/mini-plot';
 
 // avatar style
 const avatarSX = {
@@ -85,8 +86,7 @@ const DashboardDefault = () => {
     const [slot, setSlot] = useState('latest');
 
     const [zoom, setZoom] = useState({
-        xaxis: {},
-        yaxis: {}
+        xaxis: {}
     });
 
     const [coStatus, setCoStatus] = useState(null);
@@ -95,13 +95,12 @@ const DashboardDefault = () => {
 
     const resetZoom = () => {
         setZoom({
-            xaxis: {},
-            yaxis: {}
+            xaxis: {}
         });
     }
 
     const refreshMetrics = () => {
-        API.metrics.get().then((res) => {
+        API.metrics.get(["cosmos.system.*"]).then((res) => {
             let finalMetrics = {};
             if(res.data) {
                 res.data.forEach((metric) => {
@@ -109,7 +108,6 @@ const DashboardDefault = () => {
                 });
                 setMetrics(finalMetrics);
             }
-            setTimeout(refreshMetrics, 10000);
         });
     };
 
@@ -121,7 +119,14 @@ const DashboardDefault = () => {
 
     useEffect(() => {
         refreshStatus();
-        refreshMetrics();
+        
+        let interval = setInterval(() => {
+            refreshMetrics();
+        }, 10000);
+
+        return () => {
+            clearInterval(interval);
+        };
     }, []);
     
     let xAxis = [];
@@ -199,8 +204,7 @@ const DashboardDefault = () => {
                             size="small"
                             onClick={() => {
                                 setZoom({
-                                    xaxis: {},
-                                    yaxis: {}
+                                    xaxis: {}
                                 });
                             }}
                             color={'primary'}
@@ -230,14 +234,17 @@ const DashboardDefault = () => {
                 <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
                 */}
                 
-                
-                <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
+                <Grid item xs={12} md={7} lg={8}>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
+                </Grid>
                
                 <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Resources" data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.cpu") || key.startsWith("cosmos.system.docker.ram")).map((key) => metrics[key])   
                 }/>
                
-                <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
+                <Grid item xs={12} md={7} lg={8}>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
+                </Grid>
                 
                 <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Network" data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])   
@@ -245,25 +252,31 @@ const DashboardDefault = () => {
                 
                 <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Disk Usage" displayMax={true} 
                 render={(metric, value, formattedValue) => {
+                    let percent = value / metric.Max * 100;
                     return <span>
                         {formattedValue}
-                        <LinearProgress variant="determinate" value={value / metric.Max * 100}  />
+                        <LinearProgress 
+                            variant="determinate" 
+                            color={percent > 95 ? 'error' : (percent > 75 ? 'warning' : 'info')}
+                            value={percent}  />
                     </span>
                 }}
                 data={
                     Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.disk")).map((key) => metrics[key])   
                 }/>
  
-                <PlotComponent 
-                    zoom={zoom} setZoom={setZoom} 
-                    xAxis={xAxis} 
-                    slot={slot}
-                    title={'Temperature'}
-                    withSelector={'cosmos.system.temp.all'}
-                    SimpleDesign
-                    data={Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.temp")).map((key) => metrics[key])}
-                />
-                
+                <Grid item xs={12} md={7} lg={8}>
+                    <PlotComponent 
+                        zoom={zoom} setZoom={setZoom} 
+                        xAxis={xAxis} 
+                        slot={slot}
+                        title={'Temperature'}
+                        withSelector={'cosmos.system.temp.all'}
+                        SimpleDesign
+                        data={Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.temp")).map((key) => metrics[key])}
+                    />
+                </Grid>
+
                 {/* 
                 <Grid item xs={12} md={7} lg={8}>
                     <Grid container alignItems="center" justifyContent="space-between">

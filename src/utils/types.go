@@ -91,6 +91,7 @@ type Config struct {
 	HomepageConfig HomepageConfig
 	ThemeConfig ThemeConfig
 	ConstellationConfig ConstellationConfig
+	MonitoringDisabled bool
 }
 
 type HomepageConfig struct {

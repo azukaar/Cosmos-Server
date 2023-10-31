@@ -3,6 +3,7 @@ package metrics
 import (
 	"net/http"
 	"encoding/json"
+	"strings"
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -12,10 +13,23 @@ func API_GetMetrics(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//get query string "metrics"
+	query := req.URL.Query()
+	metrics := query.Get("metrics")
+
+	// split by comma
+	metricsList := []string{}
+	if metrics != "" {
+		metricsList = strings.Split(metrics, ",")
+	}
+
+
 	if(req.Method == "GET") {
+		w.Header().Set("Content-Type", "application/json")
+		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data": AggloMetrics(),
+			"data": AggloMetrics(metricsList),
 		})
 	} else {
 		utils.Error("MetricsGet: Method not allowed" + req.Method, nil)

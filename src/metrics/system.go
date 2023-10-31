@@ -60,6 +60,7 @@ func GetSystemMetrics() {
 				Period: time.Second * 30,
 				Label: "CPU " + strconv.Itoa(i),
 				AggloType: "avg",
+				Unit: "%",
 			})
 		}
 	}
@@ -78,6 +79,7 @@ func GetSystemMetrics() {
 		Period: time.Second * 30,
 		Label: "RAM",
 		AggloType: "avg",
+		Unit: "B",
 	})
 	
 	// Get Network Usage
@@ -92,64 +94,39 @@ func GetSystemMetrics() {
 		Max: 0,
 		Period: time.Second * 30,
 		Label: "Network Received",
-		AggloType: "avg",
+		SetOperation: "max",
+		AggloType: "sum",
+		Decumulate: true,
+		Unit: "B",
 	})
 
 	PushSetMetric("system.netTx", int(netIO[0].BytesSent), DataDef{
 		Max: 0,
 		Period: time.Second * 30,
 		Label: "Network Sent",
-		AggloType: "avg",
+		SetOperation: "max",
+		AggloType: "sum",
+		Decumulate: true,
+		Unit: "B",
 	})
 
 	PushSetMetric("system.netErr", int(netIO[0].Errin + netIO[0].Errout), DataDef{
 		Max: 0,
 		Period: time.Second * 30,
 		Label: "Network Errors",
-		AggloType: "avg",
+		SetOperation: "max",
+		AggloType: "sum",
+		Decumulate: true,
 	})
 
 	PushSetMetric("system.netDrop", int(netIO[0].Dropin + netIO[0].Dropout), DataDef{
 		Max: 0,
 		Period: time.Second * 30,
 		Label: "Network Drops",
-		AggloType: "avg",
+		SetOperation: "max",
+		AggloType: "sum",
+		Decumulate: true,
 	})
-
-	// docker stats
-	dockerStats, err := docker.StatsAll()
-	if err != nil {
-		utils.Error("Metrics - Error fetching Docker stats:", err)
-		return
-	}
-
-	for _, ds := range dockerStats {
-		PushSetMetric("system.docker.cpu." + ds.Name, int(ds.CPUUsage), DataDef{
-			Max: 100,
-			Period: time.Second * 30,
-			Label: "Docker CPU " + ds.Name,
-			AggloType: "avg",
-			Scale: 1000,
-		})
-		PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
-			Max: 100,
-			Period: time.Second * 30,
-			Label: "Docker RAM " + ds.Name,
-			AggloType: "avg",
-		})
-		PushSetMetric("system.docker.netRx." + ds.Name, int(ds.NetworkRx), DataDef{
-			Max: 0,
-			Period: time.Second * 30,
-			Label: "Docker Network Received " + ds.Name,
-			AggloType: "avg",
-		})
-		PushSetMetric("system.docker.netTx." + ds.Name, int(ds.NetworkTx), DataDef{
-			Max: 0,
-			Period: time.Second * 30,
-			Label: "Docker Network Sent " + ds.Name,
-			AggloType: "avg",
-		})
-	}
 
 	// Get Disk Usage
   parts, err := disk.PartitionsWithContext(ctx, true)
@@ -202,6 +179,7 @@ func GetSystemMetrics() {
 				Max: 0,
 				Period: time.Second * 30,
 				Label: "Temperature " + temp.SensorKey,
+				Unit: "°C",
 			})
 		}
 	}
@@ -211,6 +189,50 @@ func GetSystemMetrics() {
 			Max: 0,
 			Period: time.Second * 30,
 			Label: "Temperature - All",
+		})
+	}
+	
+
+	// docker stats
+	dockerStats, err := docker.StatsAll()
+	if err != nil {
+		utils.Error("Metrics - Error fetching Docker stats:", err)
+		return
+	}
+
+	for _, ds := range dockerStats {
+		PushSetMetric("system.docker.cpu." + ds.Name, int(ds.CPUUsage), DataDef{
+			Max: 100,
+			Period: time.Second * 30,
+			Label: "Docker CPU " + ds.Name,
+			AggloType: "avg",
+			Scale: 1000,
+			Unit: "%",
+		})
+		PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Docker RAM " + ds.Name,
+			AggloType: "avg",
+			Unit: "B",
+		})
+		PushSetMetric("system.docker.netRx." + ds.Name, int(ds.NetworkRx), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Docker Network Received " + ds.Name,
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+			Unit: "B",
+		})
+		PushSetMetric("system.docker.netTx." + ds.Name, int(ds.NetworkTx), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Docker Network Sent " + ds.Name,
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+			Unit: "B",
 		})
 	}
 }

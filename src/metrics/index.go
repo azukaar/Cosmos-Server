@@ -17,6 +17,8 @@ type DataDef struct {
 	AggloType string
 	SetOperation string
 	Scale int
+	Unit string
+	Decumulate bool
 }
 
 type DataPush struct {
@@ -29,6 +31,8 @@ type DataPush struct {
 	AvgIndex int
 	AggloType string
 	Scale int
+	Unit string
+	Decumulate bool
 }
 
 var dataBuffer = map[string]DataPush{}
@@ -44,6 +48,8 @@ func MergeMetric(SetOperation string, currentValue int, newValue int, avgIndex i
 		} else {
 			return currentValue
 		}
+	} else if SetOperation == "sum" {
+		return currentValue + newValue
 	} else if SetOperation == "min" {
 		if newValue < currentValue {
 			return newValue
@@ -102,6 +108,7 @@ func SaveMetrics() {
 							"Label": dp.Label,
 							"AggloType": dp.AggloType,
 							"Scale": scale,
+							"Unit": dp.Unit,
 					},
 			}
 			
@@ -132,8 +139,11 @@ func ModuloTime(start time.Time, modulo time.Duration) time.Time {
 	return time.Unix(0, roundedElapsed)
 }
 
+var lastInserted = map[string]int{}
+
 func PushSetMetric(key string, value int, def DataDef) {
 	go func() {
+		originalValue := value
 		key = "cosmos." + key
 		date := ModuloTime(time.Now(), def.Period)
 		cacheKey := key + date.String()
@@ -141,9 +151,20 @@ func PushSetMetric(key string, value int, def DataDef) {
 		lock <- true
 		defer func() { <-lock }()
 
+		if def.Decumulate {
+			if lastInserted[key] != 0 {
+				value = value - lastInserted[key]
+			} else {
+				value = 0
+			}
+		}
+
+
 		if dp, ok := dataBuffer[cacheKey]; ok {
+			value = MergeMetric(def.SetOperation, dp.Value, value, dp.AvgIndex)    
+
 			dp.Max = def.Max
-			dp.Value = MergeMetric(def.SetOperation, dp.Value, value, dp.AvgIndex)    
+			dp.Value = value
 			if def.SetOperation == "avg" {
 				dp.AvgIndex++
 			}
@@ -159,18 +180,29 @@ func PushSetMetric(key string, value int, def DataDef) {
 				Label:  def.Label,
 				AggloType: def.AggloType,
 				Scale: def.Scale,
+				Unit: def.Unit,
 			}
 		}
+
+		lastInserted[key] = originalValue
 	}()
 }
 
 func Run() {
 	utils.Debug("Metrics - Run")
-	
+
 	nextTime := ModuloTime(time.Now().Add(time.Second*30), time.Second*30)
 	nextTime = nextTime.Add(time.Second * 2)
-
 	utils.Debug("Metrics - Next run at " + nextTime.String())
+	
+	if utils.GetMainConfig().MonitoringDisabled {
+		time.AfterFunc(nextTime.Sub(time.Now()), func() {
+			Run()
+		})
+
+		return
+	}
+
 	time.AfterFunc(nextTime.Sub(time.Now()), func() {
 		go func() {
 			GetSystemMetrics()
@@ -182,8 +214,12 @@ func Run() {
 }
 
 func Init() {
+	lastInserted = map[string]int{}
+
 	InitAggl()
 	Run()
 
-	go GetSystemMetrics()
+	if !utils.GetMainConfig().MonitoringDisabled {
+		go GetSystemMetrics()
+	}
 }
