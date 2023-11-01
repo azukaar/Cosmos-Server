@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert, Checkbox, Chip, CircularProgress, Stack, Typography, useMediaQuery } from '@mui/material';
 import MainCard from '../../../components/MainCard';
-import { ContainerOutlined, DesktopOutlined, InfoCircleOutlined, NodeExpandOutlined, PlayCircleOutlined, PlusCircleOutlined, SafetyCertificateOutlined, SettingOutlined } from '@ant-design/icons';
+import { ContainerOutlined, DashboardOutlined, DesktopOutlined, InfoCircleOutlined, NodeExpandOutlined, PlayCircleOutlined, PlusCircleOutlined, SafetyCertificateOutlined, SettingOutlined } from '@ant-design/icons';
 import { getFaviconURL, getContainersRoutes } from '../../../utils/routes';
 import HostChip from '../../../components/hostChip';
 import ExposeModal from '../exposeModal';
@@ -169,8 +169,8 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 }}
               />
             </div>
-            <strong><NodeExpandOutlined /> Monitoring</strong>
-              <div style={{ width: '90%' }}>
+            <strong><DashboardOutlined /> Monitoring</strong>
+              <div style={{ width: '96%' }}>
                 <MiniPlotComponent  metrics={[
                   "cosmos.system.docker.cpu." + Name.replace('/', ''),
                   "cosmos.system.docker.ram." + Name.replace('/', ''),

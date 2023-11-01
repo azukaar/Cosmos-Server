@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"encoding/json"
 	"os"
+	"io/ioutil"
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
@@ -46,6 +47,46 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+func BackupFileApiGet(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		// read file
+		path := utils.CONFIGFOLDER + "backup.cosmos-compose.json"
+
+		file, err := os.Open(path)
+		if err != nil {
+			utils.Error("BackupFileApiGet: Error opening file", err)
+			utils.HTTPError(w, "Error opening file", http.StatusInternalServerError, "HTTP002")
+			return
+		}
+		defer file.Close()
+
+		// read content
+		content, err := ioutil.ReadAll(file)
+		if err != nil {
+			utils.Error("BackupFileApiGet: Error reading file content", err)
+			utils.HTTPError(w, "Error reading file content", http.StatusInternalServerError, "HTTP003")
+			return
+		}
+
+		// set the content type header, so that the client knows it's receiving a JSON file
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(content)
+		if err != nil {
+			utils.Error("BackupFileApiGet: Error writing to response", err)
+		}
+
+	} else {
+		utils.Error("BackupFileApiGet: Method not allowed " + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}

@@ -6,6 +6,10 @@
  - New color slider with reset buttons
  - Fixed blinking modals issues
  - Added lazyloading to URL and Servapp pages images
+ - Added a button in the config page to easily download the docker backup
+ - Improve display or icons [fixes #121]
+ - Refactored Mongo connection code [fixes #111]
+ - Forward simultaneously TCP and UDP [fixes #122]
 
 ## Version 0.11.3
  - Fix missing even subscriber on export

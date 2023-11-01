@@ -7,27 +7,35 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/mongo/writeconcern" 
 )
 
 
 var client *mongo.Client
 
 func DB() error {
-	if(GetBaseMainConfig().DisableUserManagement)	{
+	if(GetMainConfig().DisableUserManagement)	{
 		return errors.New("User Management is disabled")
 	}
 
-	uri := GetBaseMainConfig().MongoDB + "/?retryWrites=true&w=majority"
-
+	mongoURL := GetMainConfig().MongoDB
+	
 	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
 		return nil
 	}
 
 	Log("(Re) Connecting to the database...")
 
+	if mongoURL == "" {
+		return errors.New("MongoDB URL is not set, cannot connect to the database.")
+	}
+
 	var err error
 
-	client, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
+	
+	client, err = mongo.Connect(context.TODO(), opts)
+
 	if err != nil {
 		return err
 	}

@@ -33,6 +33,7 @@ import { SliderPicker
  import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
 import { useClientInfos } from '../../../utils/hooks';
 import ConfirmModal from '../../../components/confirmModal';
+import { DownloadFile } from '../../../api/downloadButton';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
@@ -77,6 +78,13 @@ const ConfigManagement = () => {
       }}
       label={'Purge Metrics Dashboard'} 
       content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
+
+      <DownloadFile
+        filename={'backup.cosmos-compose.json'}
+        label={'Download Docker Backup'}
+        contentGetter={API.config.getBackup}
+      />
+
     </Stack>
     
     {config && <>

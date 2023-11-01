@@ -167,11 +167,12 @@ const _MiniPlotComponent = ({metrics, labels}) => {
         <Stack direction='column' justifyContent={'center'} alignItems={'center'} spacing={0} style={{
           width: '60px',
         }}>
-          <div style={{
+          {dataMetric.Values.length && <div style={{
               fontWeight: 'bold',
               fontSize: '110%',
               whiteSpace: 'nowrap',
             }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div>
+          }
           <div>
             <div style={{
               display: 'inline-block',

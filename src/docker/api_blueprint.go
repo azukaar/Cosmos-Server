@@ -553,12 +553,16 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 			port, protocol := portdef, portStuff[1]
 
+			if protocol == "" {
+				protocol = "tcp"
+			}
+
 			nextPort := strings.Split(port, ":")
 			hostPort, contPort := nextPort[0], nextPort[1]
 
 			contPort = contPort + "/" + protocol
 			
-			if hostPortsBound[hostPort] {
+			if hostPortsBound[hostPort + "/" + protocol] {
 				utils.Warn("Port " + hostPort + " already bound, skipping")
 				continue
 			}
@@ -583,7 +587,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			// Mark the container port as exposed
 			containerConfig.ExposedPorts[nat.Port(contPort)] = struct{}{}
 
-			hostPortsBound[hostPort] = true
+			hostPortsBound[hostPort + "/" + protocol] = true
 		}
 
 		// Create missing folders for bind mounts

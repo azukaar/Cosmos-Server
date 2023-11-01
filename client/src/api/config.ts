@@ -83,6 +83,15 @@ async function addRoute(newRoute: Route): Promise<void> {
   return rawUpdateRoute("", 'add', newRoute);
 }
 
+function getBackup() {
+  return wrap(fetch('/cosmos/api/get-backup', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   get,
   set,
@@ -94,4 +103,5 @@ export {
   deleteRoute,
   addRoute,
   canSendEmail,
+  getBackup,
 };

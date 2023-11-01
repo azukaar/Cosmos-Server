@@ -332,6 +332,8 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/background", UploadBackground)
 	srapi.HandleFunc("/api/background/{ext}", GetBackground)
 
+	srapi.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
+
 	srapi.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
 	srapi.HandleFunc("/api/constellation/restart", constellation.API_Restart)
 	srapi.HandleFunc("/api/constellation/reset", constellation.API_Reset)
