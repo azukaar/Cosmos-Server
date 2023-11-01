@@ -69,7 +69,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
     }
     const dataSeries = [];
     toProcess.forEach((serie) => {
-      dataSeries.push({
+      serie && dataSeries.push({
         name: serie.Label,
         dataAxis: xAxis.map((date) => {
           if(slot === 'latest') {
@@ -93,7 +93,8 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
       ...prevState,
       colors: [
         theme.palette.primary.main.replace('rgb(', 'rgba('), 
-        theme.palette.secondary.main.replace('rgb(', 'rgba(')
+        theme.palette.secondary.main.replace('rgb(', 'rgba('),
+        theme.palette.error.main.replace('rgb(', 'rgba('),
       ],
       xaxis: {
         categories: 
@@ -114,7 +115,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         max: zoom.xaxis && zoom.xaxis.max,
       },
       yaxis: toProcess.map((thisdata, ida) => ({
-        opposite: ida === 1, 
+        opposite: ida === 0, 
         labels: {
           style: {
             colors: [secondary],
@@ -124,9 +125,9 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
           formatter: FormaterForMetric(thisdata)
         },
         title: {
-          text: SimpleDesign ? '' : thisdata.Label,
+          text: thisdata && thisdata.Label,
         },
-        max: thisdata.Max ? thisdata.Max : undefined,
+        max: (thisdata && thisdata.Max) ? thisdata.Max : undefined,
       })),
       grid: {
         borderColor: line

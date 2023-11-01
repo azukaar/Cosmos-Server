@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // material-ui
 import {
@@ -45,6 +45,9 @@ import TableComponent from './components/table';
 import { HomeBackground, TransparentHeader } from '../home';
 import { formatDate } from './components/utils';
 import MiniPlotComponent from './components/mini-plot';
+import ResourceDashboard from './resourceDashboard';
+import PrettyTabbedView from '../../components/tabbedView/tabbedView';
+import ProxyDashboard from './proxyDashboard';
 
 // avatar style
 const avatarSX = {
@@ -84,14 +87,16 @@ const status = [
 const DashboardDefault = () => {
     const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('latest');
+    const [currentTab, setCurrentTab] = useState(0);
+    const currentTabRef = useRef(currentTab);
+    const [coStatus, setCoStatus] = useState(null);
+    const [metrics, setMetrics] = useState(null);
+    const [isCreatingDB, setIsCreatingDB] = useState(false);
 
     const [zoom, setZoom] = useState({
         xaxis: {}
     });
 
-    const [coStatus, setCoStatus] = useState(null);
-    const [metrics, setMetrics] = useState(null);
-    const [isCreatingDB, setIsCreatingDB] = useState(false);
 
     const resetZoom = () => {
         setZoom({
@@ -99,15 +104,25 @@ const DashboardDefault = () => {
         });
     }
 
-    const refreshMetrics = () => {
-        API.metrics.get(["cosmos.system.*"]).then((res) => {
-            let finalMetrics = {};
-            if(res.data) {
-                res.data.forEach((metric) => {
-                    finalMetrics[metric.Key] = metric;
-                });
-                setMetrics(finalMetrics);
-            }
+    const refreshMetrics = (override) => {
+        let todo = [
+            ["cosmos.system.*"],
+            ["cosmos.proxy.*"],
+        ]
+
+        let t = typeof override === 'number' ? override : currentTabRef.current;
+
+        API.metrics.get(todo[t]).then((res) => {
+            setMetrics(prevMetrics => {
+                let finalMetrics = prevMetrics ? { ...prevMetrics } : {};
+                if(res.data) {
+                    res.data.forEach((metric) => {
+                        finalMetrics[metric.Key] = metric;
+                    });
+                    
+                    return finalMetrics;
+                }
+            });
         });
     };
 
@@ -131,6 +146,10 @@ const DashboardDefault = () => {
         };
     }, []);
     
+    useEffect(() => {
+        currentTabRef.current = currentTab;
+    }, [currentTab]);
+
     let xAxis = [];
 
     if(slot === 'latest') {
@@ -216,6 +235,31 @@ const DashboardDefault = () => {
                         </Button>}
                     </Stack>
                 </Grid>
+
+
+                <Grid item xs={12} md={12} lg={12}>
+                    <PrettyTabbedView 
+                        currentTab={currentTab}
+                        setCurrentTab={(tab) => {
+                            setCurrentTab(tab)
+                            refreshMetrics(tab);
+                        }}
+                        fullwidth
+                        isLoading={!metrics}
+                        tabs={[
+                            {
+                            title: 'Resources',
+                            children: <ResourceDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
+                            },
+                            {
+                            title: 'Proxy',
+                            children: <ProxyDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
+                            },
+                        ]}
+                    />
+                </Grid>
+
+
                 {/* 
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h5">Dashboard</Typography>
@@ -235,50 +279,6 @@ const DashboardDefault = () => {
 
                 <Grid item md={8} sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} />
                 */}
-                
-                <Grid item xs={12} md={7} lg={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]}/>
-                </Grid>
-               
-                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Resources" data={
-                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.cpu") || key.startsWith("cosmos.system.docker.ram")).map((key) => metrics[key])   
-                }/>
-               
-                <Grid item xs={12} md={7} lg={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]}/>
-                </Grid>
-                
-                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Network" data={
-                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])   
-                }/>
-                
-                <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Disk Usage" displayMax={true} 
-                render={(metric, value, formattedValue) => {
-                    let percent = value / metric.Max * 100;
-                    return <span>
-                        {formattedValue}
-                        <LinearProgress 
-                            variant="determinate" 
-                            color={percent > 95 ? 'error' : (percent > 75 ? 'warning' : 'info')}
-                            value={percent}  />
-                    </span>
-                }}
-                data={
-                    Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.disk")).map((key) => metrics[key])   
-                }/>
- 
-                <Grid item xs={12} md={7} lg={8}>
-                    <PlotComponent 
-                        zoom={zoom} setZoom={setZoom} 
-                        xAxis={xAxis} 
-                        slot={slot}
-                        title={'Temperature'}
-                        withSelector={'cosmos.system.temp.all'}
-                        SimpleDesign
-                        data={Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.temp")).map((key) => metrics[key])}
-                    />
-                </Grid>
-
                 {/* 
                 <Grid item xs={12} md={7} lg={8}>
                     <Grid container alignItems="center" justifyContent="space-between">

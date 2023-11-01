@@ -8,6 +8,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/user"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/metrics"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/mux"
 )
@@ -144,6 +145,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	if !route.DisableHeaderHardening {
 		destination = utils.SetSecurityHeaders(destination)
 	}
+
+	destination = metrics.MetricsMiddleware(route)(destination)
 
 	destination = tokenMiddleware(route.AuthEnabled, route.AdminOnly)(utils.CORSHeader(originCORS)((destination)))
 

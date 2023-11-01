@@ -159,6 +159,7 @@ func GetSystemMetrics() {
 					Max: u.Total,
 					Period: time.Second * 120,
 					Label: "Disk " + part.Mountpoint,
+					Unit: "B",
 				})
 			}
 		}
