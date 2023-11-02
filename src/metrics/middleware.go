@@ -46,18 +46,18 @@ func PushRequestMetrics(route utils.ProxyRouteConfig, statusCode int, TimeStarte
 		PushSetMetric("proxy.all.time", int(responseTime.Milliseconds()), DataDef{
 			Max: 0,
 			Period: time.Second * 30,
-			Label: "Global Response Time",
-			AggloType: "avg",
-			SetOperation: "max",
+			Label: "Global Request Time",
+			AggloType: "sum",
+			SetOperation: "sum",
 			Unit: "ms",
 		})
 
 		PushSetMetric("proxy.route.time."+route.Name, int(responseTime.Milliseconds()), DataDef{
 			Max: 0,
 			Period: time.Second * 30,
-			Label: "Response Time " + route.Name,
-			AggloType: "avg",
-			SetOperation: "max",
+			Label: "Response Request " + route.Name,
+			AggloType: "sum",
+			SetOperation: "sum",
 			Unit: "ms",
 		})
 
@@ -66,6 +66,7 @@ func PushRequestMetrics(route utils.ProxyRouteConfig, statusCode int, TimeStarte
 			Period: time.Second * 30,
 			Label: "Global Transfered Bytes",
 			AggloType: "sum",
+			SetOperation: "sum",
 			Unit: "B",
 		})
 
@@ -74,6 +75,7 @@ func PushRequestMetrics(route utils.ProxyRouteConfig, statusCode int, TimeStarte
 			Period: time.Second * 30,
 			Label: "Transfered Bytes " + route.Name,
 			AggloType: "sum",
+			SetOperation: "sum",
 			Unit: "B",
 		})
 	}
