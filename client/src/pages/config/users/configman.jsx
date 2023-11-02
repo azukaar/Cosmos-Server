@@ -78,13 +78,6 @@ const ConfigManagement = () => {
       }}
       label={'Purge Metrics Dashboard'} 
       content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
-
-      <DownloadFile
-        filename={'backup.cosmos-compose.json'}
-        label={'Download Docker Backup'}
-        contentGetter={API.config.getBackup}
-      />
-
     </Stack>
     
     {config && <>

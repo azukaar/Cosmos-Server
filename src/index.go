@@ -17,6 +17,7 @@ func main() {
 	utils.Log("Starting...")
 	
 	utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
+	utils.PushShieldMetrics = metrics.PushShieldMetrics
 
 	rand.Seed(time.Now().UnixNano())
 

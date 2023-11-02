@@ -14,6 +14,8 @@ import (
 
 // https://github.com/go-chi/chi/blob/master/middleware/timeout.go
 
+var PushShieldMetrics func(string)
+
 func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -148,6 +150,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 						}
 
 						if blocked {
+							PushShieldMetrics("geo")
 							http.Error(w, "Access denied", http.StatusForbidden)
 							return
 						}
@@ -177,6 +180,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 		if r.Method == "POST" || r.Method == "PUT" || r.Method == "PATCH" || r.Method == "DELETE" {
 			referer := r.Header.Get("Referer")
 			if referer == "" {
+				PushShieldMetrics("referer")
 				Error("Blocked POST request without Referer header", nil)
 				http.Error(w, "Bad Request: Invalid request.", http.StatusBadRequest)
 				return
@@ -213,6 +217,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 		}
 
 		if !isOk {
+			PushShieldMetrics("hostname")
 			Error("Invalid Hostname " + r.Host + " for request. Expecting one of " + fmt.Sprintf("%v", hostnames), nil)
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
@@ -306,11 +311,13 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 		if(RestrictToConstellation) {
 			if(!isInConstellation) {
 				if(!isUsingWhiteList) {
+					PushShieldMetrics("ip-whitelists")
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
 					http.Error(w, "Access denied", http.StatusForbidden)
 					return
 				} else if (!isInWhitelist) {
+					PushShieldMetrics("ip-whitelists")
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
 					http.Error(w, "Access denied", http.StatusForbidden)
@@ -318,6 +325,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 				}
 			}
 		} else if(isUsingWhiteList && !isInWhitelist) {
+			PushShieldMetrics("ip-whitelists")
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
 			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")
 			http.Error(w, "Access denied", http.StatusForbidden)

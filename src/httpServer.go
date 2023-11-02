@@ -153,10 +153,13 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 	}
 	userRouter.Use(proxy.SmartShieldMiddleware(
 		"__COSMOS",
-		utils.SmartShieldPolicy{
-			Enabled: true,
-			PolicyStrictness: 1,
-			PerUserRequestLimit: 5000,
+		utils.ProxyRouteConfig{
+			Name: "_Cosmos",
+			SmartShield: utils.SmartShieldPolicy{
+				Enabled: true,
+				PolicyStrictness: 1,
+				PerUserRequestLimit: 5000,
+			},
 		},
 	))
 	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))

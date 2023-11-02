@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"github.com/azukaar/cosmos-server/src/utils"
 	"sync"
 	"time"
 	"net/http"
@@ -9,6 +8,9 @@ import (
 	"net"
 	"math"
 	"strconv"
+
+	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/metrics"
 )
 
 /*
@@ -267,12 +269,10 @@ func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
 	return role >= policy.PrivilegedGroups
 }
 
-func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func(http.Handler) http.Handler {
-	if policy.Enabled == false {
-		return func(next http.Handler) http.Handler {
-			return next
-		}
-	} else {
+func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(http.Handler) http.Handler {
+	policy := route.SmartShield
+
+	if policy.Enabled {
 		if(policy.PerUserTimeBudget == 0) {
 			policy.PerUserTimeBudget = 2 * 60 * 60 * 1000 // 2 hours
 		}
@@ -298,7 +298,31 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			utils.Log("SmartShield: Request received")
+			clientID := GetClientID(r)
+
+			wrapper := &SmartResponseWriterWrapper {
+				ResponseWriter: w,
+				ThrottleNext:   0,
+				TimeStarted:    time.Now(),
+				ClientID:       clientID,
+				RequestCost:    1,
+				Method: 				r.Method,
+				shield: shield,
+				shieldID: shieldID,
+				policy: policy,
+				isPrivileged: isPrivileged(r, policy),
+			}
+
+			if !policy.Enabled {
+				next.ServeHTTP(wrapper, r)
+				wrapper.TimeEnded = time.Now()
+				wrapper.isOver = true
+
+				go metrics.PushRequestMetrics(route, wrapper.Status, wrapper.TimeStarted, wrapper.Bytes)
+
+				return
+			}
+
 			currentGlobalRequests := shield.GetServerNbReq(shieldID) + 1
 			utils.Debug(fmt.Sprintf("SmartShield: Current global requests: %d", currentGlobalRequests))
 
@@ -307,6 +331,7 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 				wayTooManyReq := currentGlobalRequests > policy.MaxGlobalSimultaneous * 10
 				retries := 50
 				if wayTooManyReq {
+					go metrics.PushShieldMetrics("smart-shield")
 					utils.Log("SmartShield: WAYYYY Too many users on the server. Aborting right away.")
 					http.Error(w, "Too many requests", http.StatusTooManyRequests)
 					return
@@ -317,6 +342,7 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 					tooManyReq = currentGlobalRequests > policy.MaxGlobalSimultaneous
 					retries--
 					if retries <= 0 {
+						go metrics.PushShieldMetrics("smart-shield")
 						utils.Log("SmartShield: Too many users on the server")
 						http.Error(w, "Too many requests", http.StatusTooManyRequests)
 						return
@@ -324,11 +350,11 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 				}
 			}
 
-			clientID := GetClientID(r)
 			userConsumed := shield.GetUserUsedBudgets(shieldID, clientID)
 
 			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(shieldID, policy, userConsumed) {
 				lastBan := shield.GetLastBan(policy, userConsumed)
+				go metrics.PushShieldMetrics("smart-shield")
 				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", lastBan))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return
@@ -337,6 +363,7 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 				if(!isPrivileged(r, policy)) {
 					throttle = shield.computeThrottle(policy, userConsumed)
 				}
+
 				wrapper := &SmartResponseWriterWrapper {
 					ResponseWriter: w,
 					ThrottleNext:   throttle,
@@ -371,6 +398,7 @@ func SmartShieldMiddleware(shieldID string, policy utils.SmartShieldPolicy) func
 					shield.Lock()
 					wrapper.TimeEnded = time.Now()
 					wrapper.isOver = true
+					go metrics.PushRequestMetrics(route, wrapper.Status, wrapper.TimeStarted, wrapper.Bytes)
 					shield.Unlock()
 				})()
 

@@ -21,6 +21,7 @@ import DockerComposeImport from './containers/docker-compose';
 import { ContainerNetworkWarning } from '../../components/containers';
 import { ServAppIcon } from '../../utils/servapp-icon';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
+import { DownloadFile } from '../../api/downloadButton';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -152,6 +153,11 @@ const ServApps = () => {
             >Start ServApp</ResponsiveButton>
         </Link>
         <DockerComposeImport refresh={refreshServApps}/>
+        <DownloadFile
+          filename={'backup.cosmos-compose.json'}
+          label={'Export Docker Backup'}
+          contentGetter={API.config.getBackup}
+        />
       </Stack>
       
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>

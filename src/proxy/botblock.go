@@ -2,6 +2,8 @@ package proxy
 
 import (
 	"net/http"
+
+	"github.com/azukaar/cosmos-server/src/metrics"
 )
 
 var botUserAgents = []string{
@@ -28,12 +30,14 @@ func BotDetectionMiddleware(next http.Handler) http.Handler {
 		userAgent := r.UserAgent()
 		
 		if userAgent == "" {
+			go metrics.PushShieldMetrics("bots")
 			http.Error(w, "Access denied: Bots are not allowed.", http.StatusForbidden)
 			return
 		}
 
 		for _, botUserAgent := range botUserAgents {
 			if userAgent == botUserAgent {
+			go metrics.PushShieldMetrics("bots")
 				http.Error(w, "Access denied: Bots are not allowed.", http.StatusForbidden)
 				return
 			}
