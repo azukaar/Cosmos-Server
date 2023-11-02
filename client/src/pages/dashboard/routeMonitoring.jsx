@@ -21,21 +21,6 @@ import {
     CircularProgress
 } from '@mui/material';
 
-// project import
-import OrdersTable from './OrdersTable';
-import IncomeAreaChart from './IncomeAreaChart';
-import MonthlyBarChart from './MonthlyBarChart';
-import ReportAreaChart from './ReportAreaChart';
-import SalesColumnChart from './SalesColumnChart';
-import MainCard from '../../components/MainCard';
-import AnalyticEcommerce from '../../components/cards/statistics/AnalyticEcommerce';
-
-// assets
-import { GiftOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
-import avatar1 from '../../assets/images/users/avatar-1.png';
-import avatar2 from '../../assets/images/users/avatar-2.png';
-import avatar3 from '../../assets/images/users/avatar-3.png';
-import avatar4 from '../../assets/images/users/avatar-4.png';
 import IsLoggedIn from '../../isLoggedIn';
 
 import * as API from '../../api';
@@ -80,7 +65,7 @@ const status = [
 
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
-const ContainerMetrics = ({containerName}) => {
+const RouteMetrics = ({routeName}) => {
     const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('latest');
 
@@ -99,19 +84,19 @@ const ContainerMetrics = ({containerName}) => {
     }
 
     const metricsKey = {
-      CPU: "cosmos.system.docker.cpu." + containerName,
-      RAM: "cosmos.system.docker.ram." + containerName,
-      NET_RX: "cosmos.system.docker.netRx." + containerName,
-      NET_TX: "cosmos.system.docker.netTx." + containerName,
+      SUCCESS: "cosmos.proxy.route.success." + routeName,
+      ERROR: "cosmos.proxy.route.error." + routeName,
+      TIME: "cosmos.proxy.route.time." + routeName,
+      BYTES: "cosmos.proxy.route.bytes." + routeName,
     };
 
     const refreshMetrics = () => {
         API.metrics.get([
-          "cosmos.system.docker.cpu",
-          "cosmos.system.docker.ram",
-          "cosmos.system.docker.netRx",
-          "cosmos.system.docker.netTx",
-        ].map(c => c + "." + containerName)).then((res) => {
+          "cosmos.proxy.route.success",
+          "cosmos.proxy.route.error",
+          "cosmos.proxy.route.time",
+          "cosmos.proxy.route.bytes",
+        ].map(c => c + "." + routeName)).then((res) => {
             let finalMetrics = {};
             if(res.data) {
                 res.data.forEach((metric) => {
@@ -175,8 +160,8 @@ const ContainerMetrics = ({containerName}) => {
         </Box>}
         {metrics && <div style={{zIndex:2, position: 'relative'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
-                <Grid item xs={12}  xl={8} sx={{ mb: -2.25 }}>
-                    <Typography variant="h4">{containerName} Monitoring</Typography>
+                <Grid item xs={12} xl={8} sx={{ mb: -2.25 }}>
+                    <Typography variant="h4">{routeName} Monitoring</Typography>
                     <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
                         <Button
                             size="small"
@@ -219,11 +204,11 @@ const ContainerMetrics = ({containerName}) => {
                 </Grid>
                 
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Requests'} data={[metrics[metricsKey.SUCCESS], metrics[metricsKey.ERROR]]}/>
                 </Grid>
                
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics[metricsKey.TIME], metrics[metricsKey.BYTES]]}/>
                 </Grid>
             </Grid>
         </div>}
@@ -231,4 +216,4 @@ const ContainerMetrics = ({containerName}) => {
     );
 };
 
-export default ContainerMetrics;
+export default RouteMetrics;

@@ -62,6 +62,9 @@ function descendingComparator(a, b, orderBy) {
   if(orderBy != 'name') {
     a1 = parseFloat(a["__" + orderBy]);
     b1 = parseFloat(b["__" + orderBy]);
+  } else {
+    a1 = a1.toLowerCase();
+    b1 = b1.toLowerCase();
   }
 
   if (b1 < a1) {

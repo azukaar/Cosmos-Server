@@ -8,6 +8,7 @@ import * as API  from "../../api";
 import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
 import IsLoggedIn from "../../isLoggedIn";
+import RouteMetrics from "../dashboard/routeMonitoring";
 
 const RouteConfigPage = () => {
   const { routeName } = useParams();
@@ -62,6 +63,10 @@ const RouteConfigPage = () => {
             routeConfig={currentRoute}
             config={config}
           />
+        },
+        {
+          title: 'Monitoring',
+          children:  <RouteMetrics routeName={routeName} />
         },
       ]}/>}
 
