@@ -40,6 +40,7 @@ import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeC
 import { useNavigate } from 'react-router';
 import NewRouteCreate from '../routes/newRoute';
 import LazyLoad from 'react-lazyload';
+import MiniPlotComponent from '../../dashboard/components/mini-plot';
 
 const stickyButton = {
   position: 'fixed',
@@ -172,6 +173,14 @@ const ProxyManagement = () => {
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
+          },
+          { title: 'Network', screenMin: 'lg', clickable:false, field: (r) => 
+            <div style={{width: '450px', marginLeft: '-60px', marginBottom: '10px'}}>
+              <MiniPlotComponent  metrics={[
+                "cosmos.proxy.route.bytes." + r.Name,
+                "cosmos.proxy.route.time." + r.Name,
+              ]} noLabels noBackground/>
+            </div>
           },
           { title: 'Origin', screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
           { title: 'Target', screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },

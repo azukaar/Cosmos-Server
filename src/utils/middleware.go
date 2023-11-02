@@ -7,6 +7,8 @@ import (
 	"net"
 	"strings"
 	"fmt"
+	"sync"
+	"sync/atomic"
 
 	"github.com/mxk/go-flowrate/flowrate"
 	"github.com/oschwald/geoip2-golang"
@@ -15,6 +17,66 @@ import (
 // https://github.com/go-chi/chi/blob/master/middleware/timeout.go
 
 var PushShieldMetrics func(string)
+
+type safeInt struct {
+	val int64
+}
+
+var BannedIPs = sync.Map{}
+
+// Close connection right away if banned (save resources)
+
+func IncrementIPAbuseCounter(ip string) {
+	// Load or store a new *safeInt
+	actual, _ := BannedIPs.LoadOrStore(ip, &safeInt{})
+	counter := actual.(*safeInt)
+
+	// Increment the counter using atomic for concurrent access
+	atomic.AddInt64(&counter.val, 1)
+}
+
+func getIPAbuseCounter(ip string) int64 {
+	// Load the *safeInt
+	actual, ok := BannedIPs.Load(ip)
+	if !ok {
+			return 0
+	}
+	counter := actual.(*safeInt)
+
+	// Load the value using atomic for concurrent access
+	return atomic.LoadInt64(&counter.val)
+}
+
+func BlockBannedIPs(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        ip, _, err := net.SplitHostPort(r.RemoteAddr)
+        if err != nil {
+					if hj, ok := w.(http.Hijacker); ok {
+							conn, _, err := hj.Hijack()
+							if err == nil {
+									conn.Close()
+							}
+					}
+					return
+        }
+
+				nbAbuse := getIPAbuseCounter(ip)
+
+				// Debug("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s)")
+
+        if nbAbuse > 1000 {
+					if hj, ok := w.(http.Hijacker); ok {
+							conn, _, err := hj.Hijack()
+							if err == nil {
+									conn.Close()
+							}
+					}
+					return
+				}
+
+        next.ServeHTTP(w, r)
+    })
+}
 
 func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -151,6 +213,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 
 						if blocked {
 							PushShieldMetrics("geo")
+							IncrementIPAbuseCounter(ip)
 							http.Error(w, "Access denied", http.StatusForbidden)
 							return
 						}
@@ -183,6 +246,12 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 				PushShieldMetrics("referer")
 				Error("Blocked POST request without Referer header", nil)
 				http.Error(w, "Bad Request: Invalid request.", http.StatusBadRequest)
+
+				ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+				if ip != "" {
+					IncrementIPAbuseCounter(ip)
+				}
+
 				return
 			}
 		}
@@ -221,6 +290,12 @@ func EnsureHostname(next http.Handler) http.Handler {
 			Error("Invalid Hostname " + r.Host + " for request. Expecting one of " + fmt.Sprintf("%v", hostnames), nil)
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
+			
+			ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+			if ip != "" {
+				IncrementIPAbuseCounter(ip)
+			}
+
 			return
 		}
 
@@ -312,12 +387,14 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			if(!isInConstellation) {
 				if(!isUsingWhiteList) {
 					PushShieldMetrics("ip-whitelists")
+					IncrementIPAbuseCounter(ip)
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
 					http.Error(w, "Access denied", http.StatusForbidden)
 					return
 				} else if (!isInWhitelist) {
 					PushShieldMetrics("ip-whitelists")
+					IncrementIPAbuseCounter(ip)
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
 					http.Error(w, "Access denied", http.StatusForbidden)
@@ -326,6 +403,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			}
 		} else if(isUsingWhiteList && !isInWhitelist) {
 			PushShieldMetrics("ip-whitelists")
+			IncrementIPAbuseCounter(ip)
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
 			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")
 			http.Error(w, "Access denied", http.StatusForbidden)

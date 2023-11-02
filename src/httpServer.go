@@ -275,7 +275,8 @@ func InitServer() *mux.Router {
 	utils.Log("Initialising HTTP(S) Router and all routes")
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/logo", SendLogo)
+	
+	router.Use(utils.BlockBannedIPs)
 
 	router.Use(middleware.Logger)
 
@@ -283,6 +284,8 @@ func InitServer() *mux.Router {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries, config.CountryBlacklistIsWhitelist))
 	}
 	
+	router.HandleFunc("/logo", SendLogo)
+
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
 	srapi.HandleFunc("/api/dns", GetDNSRoute)

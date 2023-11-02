@@ -95,6 +95,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         theme.palette.primary.main.replace('rgb(', 'rgba('), 
         theme.palette.secondary.main.replace('rgb(', 'rgba('),
         theme.palette.error.main.replace('rgb(', 'rgba('),
+        theme.palette.warning.main.replace('rgb(', 'rgba('),
       ],
       xaxis: {
         categories: 
@@ -115,7 +116,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         max: zoom.xaxis && zoom.xaxis.max,
       },
       yaxis: toProcess.map((thisdata, ida) => ({
-        opposite: ida === 0, 
+        opposite: ida % 2 === 1, 
         labels: {
           style: {
             colors: [secondary],

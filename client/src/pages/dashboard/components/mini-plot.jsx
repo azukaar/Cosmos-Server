@@ -30,7 +30,7 @@ import { FormaterForMetric, formatDate, toUTC } from './utils';
 
 import * as API from '../../../api';
 
-const _MiniPlotComponent = ({metrics, labels}) => {
+const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground}) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const [dataMetrics, setDataMetrics] = useState([]);
@@ -131,7 +131,7 @@ const _MiniPlotComponent = ({metrics, labels}) => {
         show: false
       }
     },
-    yaxis: dataMetrics.map((data) => ({
+    yaxis: dataMetrics.length ? dataMetrics.map((data) => ({
       labels: {
         show: false
       },
@@ -141,7 +141,17 @@ const _MiniPlotComponent = ({metrics, labels}) => {
       axisTicks: {
         show: false
       }
-    })),
+    })) : {
+      labels: {
+        show: false
+      },
+      axisBorder: {
+        show: false
+      },
+      axisTicks: {
+        show: false
+      }
+    },
     tooltip: {
       enabled: false
     },
@@ -160,18 +170,18 @@ const _MiniPlotComponent = ({metrics, labels}) => {
   const formaters = dataMetrics.map((data) => FormaterForMetric(data));
 
   return <Stack direction='row' spacing={3} 
-                alignItems='center' sx={{padding: '0px 20px', width: '100%', backgroundColor: 'rgba(0,0,0,0.1)'}}
+                alignItems='center' sx={{padding: '0px 20px', width: '100%', backgroundColor: noBackground ? '' : 'rgba(0,0,0,0.1)'}}
                 justifyContent={'space-around'}>
 
-        {dataMetrics && dataMetrics.map((dataMetric, di) => 
+        {!noLabels && dataMetrics && dataMetrics.map((dataMetric, di) => 
         <Stack direction='column' justifyContent={'center'} alignItems={'center'} spacing={0} style={{
           width: '60px',
         }}>
-          {dataMetric.Values.length && <div style={{
+          {dataMetric.Values.length ? <div style={{
               fontWeight: 'bold',
               fontSize: '110%',
               whiteSpace: 'nowrap',
-            }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div>
+            }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div> : formaters[di](0)
           }
           <div>
             <div style={{
@@ -195,8 +205,8 @@ const _MiniPlotComponent = ({metrics, labels}) => {
     </Stack>
 }
 
-const MiniPlotComponent = ({ metrics, labels }) => {
-  const memoizedComponent = useMemo(() => <_MiniPlotComponent metrics={metrics} labels={labels} />, [metrics]);
+const MiniPlotComponent = ({ metrics, labels, noLabels, noBackground }) => {
+  const memoizedComponent = useMemo(() => <_MiniPlotComponent noBackground={noBackground} noLabels={noLabels} metrics={metrics} labels={labels} />, [metrics]);
   return memoizedComponent;
 };
 

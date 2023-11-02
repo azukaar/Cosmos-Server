@@ -6,7 +6,8 @@
  - New color slider with reset buttons
  - Fixed blinking modals issues
  - Added lazyloading to URL and Servapp pages images
- - Added a button in the config page to easily download the docker backup
+ - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
+ - Added a button in the servapp page to easily download the docker backup
  - Improve display or icons [fixes #121]
  - Refactored Mongo connection code [fixes #111]
  - Forward simultaneously TCP and UDP [fixes #122]

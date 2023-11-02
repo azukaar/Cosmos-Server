@@ -63,6 +63,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"CPU": runtime.GOARCH,
 				"AVX": cpu.X86.HasAVX,
 				"LetsEncryptErrors": utils.LetsEncryptErrors,
+				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
 			},
 		})
 	} else {

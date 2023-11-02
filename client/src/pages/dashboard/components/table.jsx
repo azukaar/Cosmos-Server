@@ -56,10 +56,18 @@ function formatDate(now, time) {
 }
 
 function descendingComparator(a, b, orderBy) {
-  if (parseFloat(b[orderBy]) < parseFloat(a[orderBy])) {
+  let a1 = a[orderBy];
+  let b1 = b[orderBy];
+
+  if(orderBy != 'name') {
+    a1 = parseFloat(a["__" + orderBy]);
+    b1 = parseFloat(b["__" + orderBy]);
+  }
+
+  if (b1 < a1) {
       return -1;
   }
-  if (parseFloat(b[orderBy]) > parseFloat(a[orderBy])) {
+  if (b1 > a1) {
       return 1;
   }
   return 0;
@@ -162,7 +170,8 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
               return 0;
             }
           } else {
-            return item.Values[date] ? item.Values[date].Value : 0;
+            let realIndex = item.Values.length - 1 - date
+            return item.Values[realIndex] ? item.Values[realIndex].Value : 0;
           }
         })
         .reduce((a, b) => {
@@ -304,7 +313,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                 >
                     <OrderTableHead headCells={headCells} order={order} orderBy={orderBy} setOrderBy={setOrderBy} setOrder={setOrder} />
                     <TableBody style={{height:'409px', overflow: 'auto'}}>
-                        {stableSort(rows, getComparator(order, "__" + orderBy)).map((row, index) => {
+                        {stableSort(rows, getComparator(order, orderBy)).map((row, index) => {
                             const isItemSelected = false // isSelected(row.trackingNo);
                             const labelId = `enhanced-table-checkbox-${index}`;
 

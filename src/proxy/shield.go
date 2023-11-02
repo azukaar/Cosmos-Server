@@ -165,6 +165,7 @@ func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.
 			banType: PERM,
 			time: time.Now(),
 		})
+
 		utils.Warn("User " + ClientID + " has been banned permanently: "+ fmt.Sprintf("%+v", userConsumed))
 		return false
 	} else if nbStrikes >= 3 {
@@ -355,6 +356,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(shieldID, policy, userConsumed) {
 				lastBan := shield.GetLastBan(policy, userConsumed)
 				go metrics.PushShieldMetrics("smart-shield")
+				utils.IncrementIPAbuseCounter(clientID)
 				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", lastBan))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return

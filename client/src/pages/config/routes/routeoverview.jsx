@@ -6,11 +6,12 @@ import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
-import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
+import { CheckOutlined, ClockCircleOutlined, ContainerOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, InfoCircleFilled, InfoCircleOutlined, LockOutlined, NodeExpandOutlined, SafetyCertificateOutlined, UpOutlined } from "@ant-design/icons";
 import IsLoggedIn from '../../../isLoggedIn';
 import { redirectToLocal } from '../../../utils/indexs';
 import { CosmosCheckbox } from '../users/formShortcuts';
 import { Field } from 'formik';
+import MiniPlotComponent from '../../dashboard/components/mini-plot';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -40,15 +41,32 @@ const RouteOverview = ({ routeConfig }) => {
           <div>
             <img className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
           </div>
-          <Stack spacing={2} >
-            <strong>Description</strong>
+          <Stack spacing={2} style={{ width: '100%' }}>
+            <strong><ContainerOutlined />Description</strong>
             <div style={info}>{routeConfig.Description}</div>
-            <strong>URL</strong>
+            <strong><NodeExpandOutlined /> URL</strong>
             <div><HostChip route={routeConfig} /></div>
-            <strong>Target</strong>
+            <strong><InfoCircleOutlined /> Target</strong>
             <div><RouteMode route={routeConfig} /> <Chip label={routeConfig.Target} /></div>
-            <strong>Security</strong>
+            <strong><SafetyCertificateOutlined/> Security</strong>
             <div><RouteSecurity route={routeConfig} /></div>
+            <strong><DashboardOutlined/> Monitoring</strong>
+            <div>
+              <MiniPlotComponent  metrics={[
+                "cosmos.proxy.route.success." + routeConfig.Name,
+                "cosmos.proxy.route.error." + routeConfig.Name,
+              ]} labels={{
+                ["cosmos.proxy.route.error." + routeConfig.Name]: "Error", 
+                ["cosmos.proxy.route.success." + routeConfig.Name]: "Succ."
+              }}/>
+              <MiniPlotComponent  metrics={[
+                "cosmos.proxy.route.bytes." + routeConfig.Name,
+                "cosmos.proxy.route.time." + routeConfig.Name,
+              ]} labels={{
+                ["cosmos.proxy.route.bytes." + routeConfig.Name]: "Bytes", 
+                ["cosmos.proxy.route.time." + routeConfig.Name]: "Time"
+              }}/>
+            </div>
           </Stack>
         </Stack>
       </MainCard>

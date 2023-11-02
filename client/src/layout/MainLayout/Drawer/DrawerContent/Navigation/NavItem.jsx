@@ -70,6 +70,15 @@ const NavItem = ({ item, level }) => {
         transform: 'translateY(-5px)',
         display: 'inline-block',
     }}>Beta</span></>;
+    
+    if(item.title === "Monitoring")
+    item.title = <>{item.title} <span style={{
+        color: 'gray',
+        fontSize: '11px',
+        textDecoration: 'italic',
+        transform: 'translateY(-5px)',
+        display: 'inline-block',
+    }}>New!</span></>;
 
     return (
         <ListItemButton

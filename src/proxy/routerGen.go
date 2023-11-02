@@ -87,6 +87,14 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	
 	destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
 	
+	if route.BlockCommonBots {
+		destination = BotDetectionMiddleware(destination)
+	}
+
+	if route.BlockAPIAbuse {
+		destination = utils.BlockPostWithoutReferer(destination)
+	}
+
 	destination = SmartShieldMiddleware(route.Name, route)(destination)
 
 	originCORS := route.CORSOrigin
@@ -131,14 +139,6 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 
 	if route.MaxBandwith > 0 {
 		destination = utils.BandwithLimiterMiddleware(route.MaxBandwith)(destination)
-	}
-
-	if route.BlockCommonBots {
-		destination = BotDetectionMiddleware(destination)
-	}
-
-	if route.BlockAPIAbuse {
-		destination = utils.BlockPostWithoutReferer(destination)
 	}
 
 	if !route.DisableHeaderHardening {

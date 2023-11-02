@@ -13,6 +13,7 @@ import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
 import Chart from 'react-apexcharts';
 import { useClientInfos } from "../../utils/hooks";
+import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 
 
 export const HomeBackground = () => {
@@ -90,6 +91,7 @@ const HomePage = () => {
     const isMd = useMediaQuery(theme.breakpoints.up('md'));
     const {role} = useClientInfos();
     const isAdmin = role === "2";
+    const [metrics, setMetrics] = useState(null);
 
     const blockStyle = {
         margin: 0,
@@ -113,6 +115,43 @@ const HomePage = () => {
             setCoStatus(res.data);
         });
     }
+
+    function getMetrics() {
+        API.metrics.get([
+            "cosmos.system.cpu.0",
+            "cosmos.system.ram",
+            "cosmos.system.netTx",
+            "cosmos.system.netRx",
+            "cosmos.proxy.all.success",
+            "cosmos.proxy.all.error",
+        ]).then((res) => {
+            setMetrics(prevMetrics => {
+                let finalMetrics = prevMetrics ? { ...prevMetrics } : {};
+                if(res.data) {
+                    res.data.forEach((metric) => {
+                        finalMetrics[metric.Key] = metric;
+                    });
+                    
+                    return finalMetrics;
+                }
+            });
+        });
+    }
+
+    useEffect(() => {
+        refreshStatus();
+        
+        let interval = setInterval(() => {
+            if(isMd)
+                getMetrics();
+        }, 10000);
+
+        if(isMd) getMetrics();
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
 
     const refreshConfig = () => {
         if(isAdmin) {
@@ -185,11 +224,11 @@ const HomePage = () => {
                     },
                     value: {
                         formatter: function (val) {
-                            return val + "%";
+                            return val + "%"
                         },
                         color: "#111",
-                        offsetY: 9,
-                        fontSize: "24px",
+                        offsetY: 7,
+                        fontSize: "18px",
                         show: true
                     }
                 }
@@ -214,6 +253,39 @@ const HomePage = () => {
         labels: []
     };
 
+    const bigNb = {
+        fontSize: '24px',
+        fontWeight: "bold",
+        textAlign: "center",
+        color: isDark ? "white" : "black",
+        textShadow: "0px 0px 5px #000",
+        lineHeight: "97px",
+    }
+
+    let latestCPU = metrics && metrics["cosmos.system.cpu.0"] && metrics["cosmos.system.cpu.0"].Values[metrics["cosmos.system.cpu.0"].Values.length - 1].Value;
+    
+    let formatRAM = metrics && FormaterForMetric(metrics["cosmos.system.ram"], false);
+    let latestRAMRaw = metrics && metrics["cosmos.system.ram"] && metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value;
+    let latestRAM = metrics && metrics["cosmos.system.ram"] && formatRAM(metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value);
+    let maxRAM = metrics && metrics["cosmos.system.ram"] && formatRAM(metrics["cosmos.system.ram"].Max);
+    let maxRAMRaw = metrics && metrics["cosmos.system.ram"] && metrics["cosmos.system.ram"].Max;
+
+    let now = new Date();
+    now = "day_" + formatDate(now);
+
+    let formatNetwork = metrics && FormaterForMetric(metrics["cosmos.system.netTx"], false);
+    let latestNetworkRawTx = (metrics && metrics["cosmos.system.netTx"] && metrics["cosmos.system.netTx"].ValuesAggl[now].Value) || 0;
+    let latestNetworkTx = metrics && formatNetwork(latestNetworkRawTx);
+    let latestNetworkRawRx = (metrics && metrics["cosmos.system.netRx"] && metrics["cosmos.system.netRx"].ValuesAggl[now].Value) || 0;
+    let latestNetworkRx = metrics && formatNetwork(latestNetworkRawRx);
+    let latestNetworkSum = metrics && formatNetwork(latestNetworkRawTx + latestNetworkRawRx);
+
+    let formatRequests = metrics && FormaterForMetric(metrics["cosmos.proxy.all.success"], false);
+    let latestRequestsRaw = (metrics && metrics["cosmos.proxy.all.success"] && metrics["cosmos.proxy.all.success"].ValuesAggl[now].Value) || 0;
+    let latestRequests = metrics && formatRequests(latestRequestsRaw);
+    let latestRequestsErrorRaw = (metrics && metrics["cosmos.proxy.all.error"] && metrics["cosmos.proxy.all.error"].ValuesAggl[now].Value) || 0;
+    let latestRequestsError = metrics && formatRequests(latestRequestsErrorRaw);
+    let latestRequestSum = metrics && formatRequests(latestRequestsRaw + latestRequestsErrorRaw);
 
     return <Stack spacing={2} >
         <IsLoggedIn />
@@ -276,72 +348,139 @@ const HomePage = () => {
         </Stack>
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
-            {/* {(!isMd || !coStatus || !coStatus.resources || !coStatus.resources.cpu ) && (<>
-                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'000'}>
-                    <Box className='app' style={{ padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
-                        <Stack style={{flexGrow: 1}} spacing={0}>
-                            <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
-                            <div>--</div>
-                            <div>--</div>
-                        </Stack>
-                    </Box>
-                </Grid2>
-                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'001'}>
-                <Box className='app' style={{  padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
-                        <Stack style={{flexGrow: 1}} spacing={0}>
-                        <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
-                            <div>Available: --GB</div>
-                            <div>Used: --GB</div>
-                        </Stack>
-                    </Box>
-                </Grid2>
-            </>)}
-
-            {isMd && coStatus && coStatus.resources.cpu && (<>
-                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'000'}>
-                    <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
-                    <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                        <div style={{width: '110px', height: '97px'}}>
-                            <Chart
-                                options={optionsRadial}
-                                series={[parseInt(coStatus.resources.cpu)]}
-                                type="radialBar"
-                                height={120}
-                                width={120}
-                            />
-                        </div>
-                        <Stack style={{flexGrow: 1}} spacing={0}>
-                            <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
-                            <div>{coStatus.CPU}</div>
-                            <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
-                        </Stack>
-                    </Stack>
-                    </Box>
-                </Grid2>
-                <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={'001'}>
-                    <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
-                    <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                        <div style={{width: '110px', height: '97px'}}>
-                            <Chart
-                                options={optionsRadial}
-                                series={[parseInt(
-                                    coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
-                                )]}
-                                type="radialBar"
-                                height={120}
-                                width={120}
-                            />
-                        </div>
-                        <Stack style={{flexGrow: 1}} spacing={0}>
+            {coStatus && !coStatus.MonitoringDisabled && (<>
+                {isMd && !metrics && (<>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'000'}>
+                        <Box className='app' style={{ padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                                <div>--</div>
+                                <div>--</div>
+                            </Stack>
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                    <Box className='app' style={{  padding: '20px', height: "107px", borderRadius: 5, ...appColor }}>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
                             <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
-                            <div>Available: {Math.ceil((coStatus.resources.ram + coStatus.resources.ramFree) / 1024 / 1024 / 1024)}GB</div>
-                            <div>Used: {Math.ceil(coStatus.resources.ram / 1024 / 1024 / 1024)}GB</div>
+                                <div>Available: -- GB</div>
+                                <div>Used: -- GB</div>
+                            </Stack>
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <div style={bigNb}>
+                                    -
+                                </div>
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>Network</div>
+                                <div>Tx: -</div>
+                                <div>Rx: -</div>
+                            </Stack>
                         </Stack>
-                    </Stack>
-                    </Box>
-                </Grid2>
-            
-            </>)} */}
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <div style={bigNb}>
+                                    -
+                                </div>
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>Requests</div>
+                                <div>Success: -</div>
+                                <div>Error: -</div>
+                            </Stack>
+                        </Stack>
+                        </Box>
+                    </Grid2>
+                </>)}
+
+                {isMd && metrics && (<>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'000'}>
+                        <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <Chart
+                                    options={optionsRadial}
+                                    series={[latestCPU]}
+                                    type="radialBar"
+                                    height={120}
+                                    width={120}
+                                />
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                                <div>{coStatus.CPU}</div>
+                                <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
+                            </Stack>
+                        </Stack>
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <Chart
+                                    options={optionsRadial}
+                                    // series={[parseInt(
+                                    //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
+                                    // )]}
+                                    series={[parseInt(latestRAMRaw / maxRAMRaw * 100)]}
+                                    type="radialBar"
+                                    height={120}
+                                    width={120}
+                                />
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
+                                <div>Available: {maxRAM}</div>
+                                <div>Used: {latestRAM}</div>
+                            </Stack>
+                        </Stack>
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <div style={bigNb}>
+                                    {latestNetworkSum}
+                                </div>
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>Network</div>
+                                <div>Tx: {latestNetworkTx}</div>
+                                <div>Rx: {latestNetworkRx}</div>
+                            </Stack>
+                        </Stack>
+                        </Box>
+                    </Grid2>
+                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
+                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
+                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                            <div style={{width: '110px', height: '97px'}}>
+                                <div style={bigNb}>
+                                    {latestRequestSum}
+                                </div>
+                            </div>
+                            <Stack style={{flexGrow: 1}} spacing={0}>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>Requests</div>
+                                <div>Success: {latestRequests}</div>
+                                <div>Error: {latestRequestsError}</div>
+                            </Stack>
+                        </Stack>
+                        </Box>
+                    </Grid2>
+                
+                </>)}
+            </>)}
             
             {config && servApps && routes.map((route) => {
                 let skip = route.Mode == "REDIRECT";

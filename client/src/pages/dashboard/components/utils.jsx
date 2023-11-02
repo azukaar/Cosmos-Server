@@ -1,5 +1,5 @@
 export const simplifyNumber = (num, unit) => {
-    if(!num) return 0;
+    if(typeof num == 'undefined' || num === null) return 0;
 
     num = Math.round(num * 100) / 100;
     
