@@ -192,6 +192,9 @@ const HomePage = () => {
         // return () => clearInterval(interval);
     }, []);
 
+    const primCol = theme.palette.primary.main.replace('rgb(', 'rgba(')
+    const secCol = theme.palette.secondary.main.replace('rgb(', 'rgba(')
+
     const optionsRadial = {
         plotOptions: {
             radialBar: {
@@ -247,13 +250,14 @@ const HomePage = () => {
             }
         },
         fill: {
+            colors: [primCol],
             type: "gradient",
             gradient: {
                 shade: "dark",
                 type: "horizontal",
                 shadeIntensity: 0.5,
-                gradientToColors: ["#ABE5A1"],
-                inverseColors: true,
+                gradientToColors: [secCol], // A light green color as the end of the gradient.
+                inverseColors: false,
                 opacityFrom: 1,
                 opacityTo: 1,
                 stops: [0, 100]
