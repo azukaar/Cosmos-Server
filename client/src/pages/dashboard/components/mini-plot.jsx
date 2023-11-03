@@ -30,7 +30,7 @@ import { FormaterForMetric, formatDate, toUTC } from './utils';
 
 import * as API from '../../../api';
 
-const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo}) => {
+const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo, title}) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const [dataMetrics, setDataMetrics] = useState([]);
@@ -202,16 +202,17 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo}) =>
                 alignItems='center' sx={{padding: '0px 20px', width: '100%', backgroundColor: noBackground ? '' : 'rgba(0,0,0,0.1)'}}
                 justifyContent={'space-around'}>
 
-        {!noLabels && dataMetrics && dataMetrics.map((dataMetric, di) => 
-        <Stack direction='column' justifyContent={'center'} alignItems={'center'} spacing={0} style={{
-          width: '60px',
+<Stack direction='column' justifyContent={'center'} alignItems={'flex-start'} spacing={0} style={{
+          width: '150px',
         }}>
-          {<div style={{
-              fontWeight: 'bold',
-              fontSize: '110%',
-              whiteSpace: 'nowrap',
-            }}>{getShowValue(agglo, dataMetric, di)}</div>
-          }
+        
+        {title && <div style={{
+          fontWeight: 'bold',
+          fontSize: '18px',
+          whiteSpace: 'nowrap',
+        }}>{title}</div>}
+
+        {!noLabels && dataMetrics && dataMetrics.map((dataMetric, di) => 
           <div>
             <div style={{
               display: 'inline-block',
@@ -221,9 +222,16 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo}) =>
               marginRight: '5px',
               borderRadius: '50%',
             }}></div>
-            {(labels && labels[dataMetric.Key]) || dataMetric.Label}
+
+            {(labels && labels[dataMetric.Key]) || dataMetric.Label} &nbsp;
+
+            <span style={{
+              fontWeight: 'bold',
+              fontSize: '110%',
+              whiteSpace: 'nowrap',
+            }}>{getShowValue(agglo, dataMetric, di)}</span>
           </div>
-        </Stack>)}
+        )}</Stack>
 
       <div style={{
         margin: '-10px 0px -20px 10px',
@@ -234,8 +242,8 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo}) =>
     </Stack>
 }
 
-const MiniPlotComponent = ({ metrics, labels, noLabels, noBackground, agglo }) => {
-  const memoizedComponent = useMemo(() => <_MiniPlotComponent noBackground={noBackground} agglo={agglo} noLabels={noLabels} metrics={metrics} labels={labels} />, [metrics]);
+const MiniPlotComponent = ({ metrics, labels, noLabels, noBackground, agglo, title }) => {
+  const memoizedComponent = useMemo(() => <_MiniPlotComponent noBackground={noBackground} title={title} agglo={agglo} noLabels={noLabels} metrics={metrics} labels={labels} />, [metrics]);
   return memoizedComponent;
 };
 
