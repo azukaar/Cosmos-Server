@@ -78,6 +78,11 @@ export const TransparentHeader = () => {
         font-weight: bold;
     }
 
+    .MuiDrawer-paper {
+        backdrop-filter: blur(15px);
+        background: rgba(${backColor}, 1) !important;
+        border-right-color: rgba(${backColor},0.45) !important;
+    }
 `}
     </style>;
 }
@@ -105,10 +110,15 @@ const HomePage = () => {
 
     const appColor = isDark ? {
         color: 'white',
-        background: 'rgba(5,5,5,0.42)',
+        background: 'rgba(10,10,10,0.42)',
     } : {
         color: 'black',
-        background: 'rgba(250,250,250,0.42)',
+        background: 'rgba(245,245,245,0.42)',
+    }
+
+
+    const appBorder = isDark ? {
+    } : {
     }
 
 
@@ -426,8 +436,8 @@ const HomePage = () => {
                             <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
                                 <Stack style={{paddingLeft: '20px'}} spacing={0}>
                                     <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
-                                    <div>avail.: {maxRAM}</div>
-                                    <div>used: {latestRAM}</div>
+                                    <div>avail.: <strong>{maxRAM}</strong></div>
+                                    <div>used: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
                                     <Chart
@@ -451,8 +461,8 @@ const HomePage = () => {
                                 "cosmos.system.netTx",
                                 "cosmos.system.netRx",
                             ]} labels={{
-                                ["cosmos.system.netTx"]: "trans.", 
-                                ["cosmos.system.netRx"]: "recv."
+                                ["cosmos.system.netTx"]: "trs:", 
+                                ["cosmos.system.netRx"]: "rcv:"
                             }}/>
                         </Stack>
                         </Box>
@@ -464,8 +474,8 @@ const HomePage = () => {
                                 "cosmos.proxy.all.success",
                                 "cosmos.proxy.all.error",
                             ]} labels={{
-                                ["cosmos.proxy.all.success"]: "ok", 
-                                ["cosmos.proxy.all.error"]: "errors"
+                                ["cosmos.proxy.all.success"]: "ok:", 
+                                ["cosmos.proxy.all.error"]: "err:"
                             }}/>
                         </Stack>
                         </Box>
@@ -493,7 +503,7 @@ const HomePage = () => {
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
                 
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
-                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor }}>
+                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="row" spacing={2} alignItems="center">
                                 <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
@@ -508,7 +518,7 @@ const HomePage = () => {
                 </Grid2>
                 :
                 <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
-                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor }}>
+                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="column" spacing={2} alignItems="center">
                                 <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
