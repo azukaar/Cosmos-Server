@@ -171,14 +171,14 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             </div>
             <strong><DashboardOutlined /> Monitoring</strong>
               <div style={{ width: '96%' }}>
-                <MiniPlotComponent  metrics={[
+                <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.cpu." + Name.replace('/', ''),
                   "cosmos.system.docker.ram." + Name.replace('/', ''),
                 ]} labels={{
                   ["cosmos.system.docker.cpu." + Name.replace('/', '')]: "CPU", 
                   ["cosmos.system.docker.ram." + Name.replace('/', '')]: "RAM"
                 }}/>
-                <MiniPlotComponent  metrics={[
+                <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.netTx." + Name.replace('/', ''),
                   "cosmos.system.docker.netRx." + Name.replace('/', ''),
                 ]} labels={{

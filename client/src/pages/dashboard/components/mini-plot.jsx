@@ -30,7 +30,7 @@ import { FormaterForMetric, formatDate, toUTC } from './utils';
 
 import * as API from '../../../api';
 
-const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground}) => {
+const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo}) => {
   const theme = useTheme();
   const { primary, secondary } = theme.palette.text;
   const [dataMetrics, setDataMetrics] = useState([]);
@@ -168,6 +168,35 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground}) => {
   };
 
   const formaters = dataMetrics.map((data) => FormaterForMetric(data));
+  
+  const getShowValue = (agglo, dataMetric, di) => {
+    let showValue;
+
+    if(dataMetric.Values.length) {
+      if(agglo) {
+        let now = new Date();
+        now.setHours(now.getHours());
+        now.setMinutes(0);
+        now.setSeconds(0);
+        let key = "hour_" + toUTC(now, true);
+
+        if(key in dataMetric.ValuesAggl) {
+          showValue = dataMetric.ValuesAggl[key].Value
+        } else {
+          showValue = 0;
+        }
+        
+      } else {
+        showValue = dataMetric.Values[dataMetric.Values.length - 1].Value
+      }
+
+      return formaters[di](showValue);
+    } else {
+      showValue = formaters[di](0)
+    }
+
+    return showValue;
+  }
 
   return <Stack direction='row' spacing={3} 
                 alignItems='center' sx={{padding: '0px 20px', width: '100%', backgroundColor: noBackground ? '' : 'rgba(0,0,0,0.1)'}}
@@ -177,11 +206,11 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground}) => {
         <Stack direction='column' justifyContent={'center'} alignItems={'center'} spacing={0} style={{
           width: '60px',
         }}>
-          {dataMetric.Values.length ? <div style={{
+          {<div style={{
               fontWeight: 'bold',
               fontSize: '110%',
               whiteSpace: 'nowrap',
-            }}>{formaters[di](dataMetric.Values[dataMetric.Values.length - 1].Value)}</div> : formaters[di](0)
+            }}>{getShowValue(agglo, dataMetric, di)}</div>
           }
           <div>
             <div style={{
@@ -205,8 +234,8 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground}) => {
     </Stack>
 }
 
-const MiniPlotComponent = ({ metrics, labels, noLabels, noBackground }) => {
-  const memoizedComponent = useMemo(() => <_MiniPlotComponent noBackground={noBackground} noLabels={noLabels} metrics={metrics} labels={labels} />, [metrics]);
+const MiniPlotComponent = ({ metrics, labels, noLabels, noBackground, agglo }) => {
+  const memoizedComponent = useMemo(() => <_MiniPlotComponent noBackground={noBackground} agglo={agglo} noLabels={noLabels} metrics={metrics} labels={labels} />, [metrics]);
   return memoizedComponent;
 };
 

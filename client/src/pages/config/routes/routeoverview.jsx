@@ -52,14 +52,14 @@ const RouteOverview = ({ routeConfig }) => {
             <div><RouteSecurity route={routeConfig} /></div>
             <strong><DashboardOutlined/> Monitoring</strong>
             <div>
-              <MiniPlotComponent  metrics={[
+              <MiniPlotComponent agglo metrics={[
                 "cosmos.proxy.route.success." + routeConfig.Name,
                 "cosmos.proxy.route.error." + routeConfig.Name,
               ]} labels={{
                 ["cosmos.proxy.route.error." + routeConfig.Name]: "Error", 
                 ["cosmos.proxy.route.success." + routeConfig.Name]: "Succ."
               }}/>
-              <MiniPlotComponent  metrics={[
+              <MiniPlotComponent agglo metrics={[
                 "cosmos.proxy.route.bytes." + routeConfig.Name,
                 "cosmos.proxy.route.time." + routeConfig.Name,
               ]} labels={{

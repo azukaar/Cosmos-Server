@@ -184,6 +184,12 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	destination := route.Target
 	routeType := route.Mode
 
+	if (routeType == "STATIC" || routeType == "SPA") && os.Getenv("HOSTNAME") != "" {
+		if _, err := os.Stat("/mnt/host"); err == nil {
+			destination = "/mnt/host" + destination
+		}
+	}
+
   if(routeType == "SERVAPP" || routeType == "PROXY") {
 		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin, route)
 		if err != nil {

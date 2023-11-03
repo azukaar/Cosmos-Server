@@ -254,7 +254,7 @@ const HomePage = () => {
     };
 
     const bigNb = {
-        fontSize: '24px',
+        fontSize: '23px',
         fontWeight: "bold",
         textAlign: "center",
         color: isDark ? "white" : "black",

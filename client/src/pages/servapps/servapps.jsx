@@ -304,7 +304,7 @@ const ServApps = () => {
                 </Stack>
               </Stack>
               <div>
-                <MiniPlotComponent  metrics={[
+                <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.cpu." + app.Names[0].replace('/', ''),
                   "cosmos.system.docker.ram." + app.Names[0].replace('/', ''),
                 ]} labels={{
