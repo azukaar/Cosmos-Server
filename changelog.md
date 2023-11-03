@@ -9,6 +9,7 @@
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
  - Added a button in the servapp page to easily download the docker backup
  - Redirect static folder to host if possible
+ - New Homescreen look
  - Improve display or icons [fixes #121]
  - Refactored Mongo connection code [fixes #111]
  - Forward simultaneously TCP and UDP [fixes #122]
