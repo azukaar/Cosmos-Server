@@ -115,6 +115,12 @@ func SaveMetrics() {
 					},
 			}
 			
+			CheckAlerts(dp.Key, "latest", utils.AlertMetricTrack{
+				Key: dp.Key,
+				Object: dp.Object,
+				Max: dp.Max,
+			}, dp.Value)
+			
 			// This ensures that if the document doesn't exist, it'll be created
 			options := options.Update().SetUpsert(true)
 
@@ -187,12 +193,6 @@ func PushSetMetric(key string, value int, def DataDef) {
 				Object: def.Object,
 			}
 		}
-
-		CheckAlerts(key, "latest", utils.AlertMetricTrack{
-			Key: key,
-			Object: def.Object,
-			Max: def.Max,
-		}, value)
 
 		lastInserted[key] = originalValue
 	}()

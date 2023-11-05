@@ -39,7 +39,7 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo, tit
   const [ref, inView] = useInView();
 
   useEffect(() => {
-    if(!inView) return;
+    if(!inView || series.length) return;
     
     let xAxis = [];
 
@@ -202,7 +202,7 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo, tit
                 alignItems='center' sx={{padding: '0px 20px', width: '100%', backgroundColor: noBackground ? '' : 'rgba(0,0,0,0.075)'}}
                 justifyContent={'space-around'}>
 
-<Stack direction='column' justifyContent={'center'} alignItems={'flex-start'} spacing={0} style={{
+        <Stack direction='column' justifyContent={'center'} alignItems={'flex-start'} spacing={0} style={{
           width: '160px',
           whiteSpace: 'nowrap',
         }}>

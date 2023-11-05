@@ -64,18 +64,22 @@ const Notification = () => {
     const setAsRead = () => {
         let unread = [];
         
-        let newN = notifications.map((notif) => {
+       notifications.forEach((notif) => {
             if (!notif.Read) {
                 unread.push(notif.ID);
             }
-            notif.Read = true;
-            return notif;
         })
 
         if (unread.length > 0) {
             API.users.readNotifs(unread);
         }
+    }
 
+    const setLocalAsRead = (id) => {
+        let newN = notifications.map((notif) => {
+            notif.Read = true;
+            return notif;
+        })
         setNotifications(newN);
     }
 
@@ -104,6 +108,7 @@ const Notification = () => {
         if (anchorRef.current && anchorRef.current.contains(event.target)) {
             return;
         }
+        setLocalAsRead();
         setOpen(false);
     };
 

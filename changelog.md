@@ -8,6 +8,7 @@
  - Added Button to force reset HTTPS cert in settings
  - New color slider with reset buttons
  - Added a notification when updating a container
+ - Improved icon loading speed, and added proper placeholder
  - Added lazyloading to URL and Servapp pages images
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
  - Added a button in the servapp page to easily download the docker backup

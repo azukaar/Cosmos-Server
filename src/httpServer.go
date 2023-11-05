@@ -284,8 +284,11 @@ func InitServer() *mux.Router {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries, config.CountryBlacklistIsWhitelist))
 	}
 	
-	router.HandleFunc("/logo", SendLogo)
-
+	logoAPI := router.PathPrefix("/logo").Subrouter()
+	SecureAPI(logoAPI, true)
+	logoAPI.HandleFunc("/", SendLogo)
+	
+	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 
 	srapi.HandleFunc("/api/dns", GetDNSRoute)

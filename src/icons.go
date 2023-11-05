@@ -11,6 +11,7 @@ import (
 	"path"
 	"time"
 	"context"
+	"sync"
 
 	"go.deanishe.net/favicon"
 
@@ -69,153 +70,184 @@ func sendFallback(w http.ResponseWriter) {
 }
 
 var IconCacheLock = make(chan bool, 1)
-
+type result struct {
+	IconURL     string
+	CachedImage CachedImage
+	Error       error
+}
 func GetFavicon(w http.ResponseWriter, req *http.Request) {
 	if utils.LoggedInOnly(w, req) != nil {
-		return
+			return
 	}
 
 	// get url from query string
 	escsiteurl := req.URL.Query().Get("q")
-	
+
 	IconCacheLock <- true
 	defer func() { <-IconCacheLock }()
-	
+
 	// URL decode
 	siteurl, err := url.QueryUnescape(escsiteurl)
 	if err != nil {
-		utils.Error("Favicon: URL decode", err)
-		utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "FA002")
-		return
+			utils.Error("Favicon: URL decode", err)
+			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "FA002")
+			return
 	}
 
-	if(req.Method == "GET") { 
-		utils.Log("Fetch favicon for " + siteurl)
+	if req.Method == "GET" {
+			utils.Log("Fetch favicon for " + siteurl)
 
-		// Check if we have the favicon in cache
-		if _, ok := IconCache[siteurl]; ok {
-			utils.Debug("Favicon in cache")
-			resp := IconCache[siteurl]
-			sendImage(w, resp)
-			return
-		}
-
-		var icons []*favicon.Icon
-		var defaultIcons = []*favicon.Icon{
-			&favicon.Icon{URL: "favicon.png", Width: 0},
-			&favicon.Icon{URL: "/favicon.png", Width: 0},
-			&favicon.Icon{URL: "favicon.ico", Width: 0},
-			&favicon.Icon{URL: "/favicon.ico", Width: 0},
-		}
-
-		// follow siteurl and check if any redirect. 
-		
-		respNew, err := httpGetWithTimeout(siteurl)
-
-		if err != nil {
-			utils.Error("FaviconFetch", err)
-			icons = append(icons, defaultIcons...)
-		} else {
-			siteurl = respNew.Request.URL.String()
-			icons, err = favicon.Find(siteurl)
-
-			if err != nil || len(icons) == 0 {
-				icons = append(icons, defaultIcons...)
-			} else {
-				// Check if icons list is missing any default values
-				for _, defaultIcon := range defaultIcons {
-						found := false
-						for _, icon := range icons {
-								if icon.URL == defaultIcon.URL {
-										found = true
-										break
-								}
-						}
-						if !found {
-							icons = append(icons, defaultIcon)
-						}
-				}
+			// Check if we have the favicon in cache
+			if resp, ok := IconCache[siteurl]; ok {
+					utils.Debug("Favicon in cache")
+					sendImage(w, resp)
+					return
 			}
-		}
 
-		for _, icon := range icons {
-			if icon.Width <= 256 {
+			var icons []*favicon.Icon
+			var defaultIcons = []*favicon.Icon{
+					{URL: "/favicon.ico", Width: 0},
+					{URL: "/favicon.png", Width: 0},
+					{URL: "favicon.ico", Width: 0},
+					{URL: "favicon.png", Width: 0},
+			}
 
-				iconURL := icon.URL
-				u, err := url.Parse(siteurl)
-				if err != nil {
-					utils.Debug("FaviconFetch failed to parse " + err.Error())
-					continue
-				}
-				
-				if !strings.HasPrefix(iconURL, "http") {
-					if strings.HasPrefix(iconURL, ".") {
-						// Relative URL starting with "."
-						// Resolve the relative URL based on the base URL
-						baseURL := u.Scheme + "://" + u.Host
-						iconURL = baseURL + iconURL[1:]
-					} else if strings.HasPrefix(iconURL, "/") {
-						// Relative URL starting with "/"
-						// Append the relative URL to the base URL
-						iconURL = u.Scheme + "://" + u.Host + iconURL
+			// follow siteurl and check if any redirect.
+			respNew, err := httpGetWithTimeout(siteurl)
+			if err != nil {
+					utils.Error("FaviconFetch", err)
+					icons = append(icons, defaultIcons...)
+			} else {
+					siteurl = respNew.Request.URL.String()
+					icons, err = favicon.Find(siteurl)
+
+					if err != nil || len(icons) == 0 {
+							icons = append(icons, defaultIcons...)
 					} else {
-						// Relative URL without starting dot or slash
-						// Construct the absolute URL based on the current page's URL path
-						baseURL := u.Scheme + "://" + u.Host
-						baseURLPath := path.Dir(u.Path)
-						iconURL = baseURL + baseURLPath + "/" + iconURL
+							// Check if icons list is missing any default values
+							for _, defaultIcon := range defaultIcons {
+									found := false
+									for _, icon := range icons {
+											if icon.URL == defaultIcon.URL {
+													found = true
+													break
+											}
+									}
+									if !found {
+											icons = append(icons, defaultIcon)
+									}
+							}
 					}
-				}
-				
-				utils.Debug("Favicon Trying to fetch " + iconURL)
+			}
 
-				// Fetch the favicon
-				resp, err := httpGetWithTimeout(iconURL)
-				if err != nil {
-					utils.Debug("FaviconFetch - " + err.Error())
-					continue
-				}
+			// Create a channel to collect favicon fetch results
+			resultsChan := make(chan result)
+			// Create a wait group to wait for all goroutines to finish
+			var wg sync.WaitGroup
 
-				// check if 200 and if image 
-				if resp.StatusCode != 200 {
-					utils.Debug("FaviconFetch - " + iconURL + " - not 200 ")
-					continue
-				} else if !strings.Contains(resp.Header.Get("Content-Type"), "image") && !strings.Contains(resp.Header.Get("Content-Type"), "octet-stream") {
-					utils.Debug("FaviconFetch - " + iconURL + " - not image ")
-					continue
-				} else {
-					utils.Log("Favicon found " + iconURL)
-
-					// Cache the response 
-					body, err := ioutil.ReadAll(resp.Body)
-					if err != nil {
-						utils.Debug("FaviconFetch - cant read " + err.Error())
-						continue
+			// Loop through each icon and start a goroutine to fetch it
+			for _, icon := range icons {
+					if icon.Width <= 256 {
+							wg.Add(1)
+							go func(icon *favicon.Icon) {
+									defer wg.Done()
+									fetchAndCacheIcon(icon, siteurl, resultsChan)
+							}(icon)
 					}
-					
-					finalImage := CachedImage{
-						ContentType: resp.Header.Get("Content-Type"),
-						ETag: resp.Header.Get("ETag"),
-						Body: body,
-					}
+			}
 
-					IconCache[siteurl] = finalImage
+			// Close the results channel when all fetches are done
+			go func() {
+					wg.Wait()
+					close(resultsChan)
+			}()
 
+			// Collect the results
+			for result := range resultsChan {
+					IconCache[siteurl] = result.CachedImage
 					sendImage(w, IconCache[siteurl])
 					return
-				}
 			}
-	} 
-	utils.Log("Favicon final fallback")
-	sendFallback(w)
-	return
-	
+
+			utils.Log("Favicon final fallback")
+			sendFallback(w)
+			return
+
 	} else {
-		utils.Error("Favicon: Method not allowed" + req.Method, nil)
-		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
-		return
+			utils.Error("Favicon: Method not allowed "+req.Method, nil)
+			utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+			return
 	}
 }
+
+// fetchAndCacheIcon is a helper function to fetch and cache the icon
+func fetchAndCacheIcon(icon *favicon.Icon, baseSiteURL string, resultsChan chan<- result) {
+	iconURL := icon.URL
+	u, err := url.Parse(baseSiteURL)
+	if err != nil {
+			utils.Debug("FaviconFetch failed to parse " + err.Error())
+			return
+	}
+
+	if !strings.HasPrefix(iconURL, "http") {
+			// Process the iconURL to make it absolute
+			iconURL = resolveIconURL(iconURL, u)
+	}
+
+	utils.Debug("Favicon Trying to fetch " + iconURL)
+
+	// Fetch the favicon
+	resp, err := httpGetWithTimeout(iconURL)
+	if err != nil {
+			utils.Debug("FaviconFetch - " + err.Error())
+			return
+	}
+	defer resp.Body.Close()
+
+	// Check if response is successful and content type is image
+	if resp.StatusCode != 200 || (!strings.Contains(resp.Header.Get("Content-Type"), "image") && !strings.Contains(resp.Header.Get("Content-Type"), "octet-stream")) {
+			utils.Debug("FaviconFetch - " + iconURL + " - not 200 or not image ")
+			return
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+			utils.Debug("FaviconFetch - can't read " + err.Error())
+			return
+	}
+
+	// Prepare the cached image
+	cachedImage := CachedImage{
+			ContentType: resp.Header.Get("Content-Type"),
+			ETag:        resp.Header.Get("ETag"),
+			Body:        body,
+	}
+
+	// Send the result back via the channel
+	resultsChan <- result{IconURL: iconURL, CachedImage: cachedImage}
+}
+
+// resolveIconURL processes the iconURL to make it an absolute URL if it is relative
+func resolveIconURL(iconURL string, baseURL *url.URL) string {
+	if strings.HasPrefix(iconURL, ".") {
+			// Relative URL starting with "."
+			// Resolve the relative URL based on the base URL
+			return baseURL.Scheme + "://" + baseURL.Host + iconURL[1:]
+	} else if strings.HasPrefix(iconURL, "/") {
+			// Relative URL starting with "/"
+			// Append the relative URL to the base URL
+			return baseURL.Scheme + "://" + baseURL.Host + iconURL
+	} else {
+			// Relative URL without starting dot or slash
+			// Construct the absolute URL based on the current page's URL path
+			baseURLPath := path.Dir(baseURL.Path)
+			if baseURLPath == "." {
+					baseURLPath = ""
+			}
+			return baseURL.Scheme + "://" + baseURL.Host + baseURLPath + "/" + iconURL
+	}
+}
+
 
 func PingURL(w http.ResponseWriter, req *http.Request) {
 	if utils.LoggedInOnly(w, req) != nil {

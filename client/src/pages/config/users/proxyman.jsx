@@ -41,6 +41,7 @@ import { useNavigate } from 'react-router';
 import NewRouteCreate from '../routes/newRoute';
 import LazyLoad from 'react-lazyload';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
+import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 
 const stickyButton = {
   position: 'fixed',
@@ -166,7 +167,7 @@ const ProxyManagement = () => {
           { 
             title: '', 
             field: (r) => <LazyLoad width={"64px"} height={"64px"}>
-              <img className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
+              <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
             </LazyLoad>,
             style: {
               textAlign: 'center',

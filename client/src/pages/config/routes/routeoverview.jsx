@@ -12,6 +12,7 @@ import { redirectToLocal } from '../../../utils/indexs';
 import { CosmosCheckbox } from '../users/formShortcuts';
 import { Field } from 'formik';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
+import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -39,7 +40,7 @@ const RouteOverview = ({ routeConfig }) => {
       </div>}>
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
           <div>
-            <img className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
+            <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
           </div>
           <Stack spacing={2} style={{ width: '100%' }}>
             <strong><ContainerOutlined />Description</strong>
