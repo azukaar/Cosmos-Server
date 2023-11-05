@@ -154,11 +154,11 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 	userRouter.Use(proxy.SmartShieldMiddleware(
 		"__COSMOS",
 		utils.ProxyRouteConfig{
-			Name: "_Cosmos",
+			Name: "Cosmos-Internal",
 			SmartShield: utils.SmartShieldPolicy{
 				Enabled: true,
 				PolicyStrictness: 1,
-				PerUserRequestLimit: 5000,
+				PerUserRequestLimit: 6000,
 			},
 		},
 	))
@@ -350,6 +350,10 @@ func InitServer() *mux.Router {
 
 	srapi.HandleFunc("/api/metrics", metrics.API_GetMetrics)
 	srapi.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
+	srapi.HandleFunc("/api/list-metrics", metrics.ListMetrics)
+
+	srapi.HandleFunc("/api/notifications/read", utils.MarkAsRead)
+	srapi.HandleFunc("/api/notifications", utils.NotifGet)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)

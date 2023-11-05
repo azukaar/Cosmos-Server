@@ -48,6 +48,7 @@ import MiniPlotComponent from './components/mini-plot';
 import ResourceDashboard from './resourceDashboard';
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import ProxyDashboard from './proxyDashboard';
+import AlertPage from './AlertPage';
 
 // avatar style
 const avatarSX = {
@@ -108,22 +109,25 @@ const DashboardDefault = () => {
         let todo = [
             ["cosmos.system.*"],
             ["cosmos.proxy.*"],
+            [],
+            [],
         ]
 
         let t = typeof override === 'number' ? override : currentTabRef.current;
 
-        API.metrics.get(todo[t]).then((res) => {
-            setMetrics(prevMetrics => {
-                let finalMetrics = prevMetrics ? { ...prevMetrics } : {};
-                if(res.data) {
-                    res.data.forEach((metric) => {
-                        finalMetrics[metric.Key] = metric;
-                    });
-                    
-                    return finalMetrics;
-                }
+        if (t < 2)
+            API.metrics.get(todo[t]).then((res) => {
+                setMetrics(prevMetrics => {
+                    let finalMetrics = prevMetrics ? { ...prevMetrics } : {};
+                    if(res.data) {
+                        res.data.forEach((metric) => {
+                            finalMetrics[metric.Key] = metric;
+                        });
+                        
+                        return finalMetrics;
+                    }
+                });
             });
-        });
     };
 
     const refreshStatus = () => {
@@ -195,7 +199,7 @@ const DashboardDefault = () => {
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h4">Server Monitoring</Typography>
-                    <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
+                    {currentTab <= 2 && <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
                         <Button
                             size="small"
                             onClick={() => {setSlot('latest'); resetZoom()}}
@@ -233,7 +237,8 @@ const DashboardDefault = () => {
                         >
                             Reset Zoom
                         </Button>}
-                    </Stack>
+                    </Stack>}
+                    {currentTab > 2 && <div style={{height: 41}}></div>}
                 </Grid>
 
 
@@ -248,12 +253,20 @@ const DashboardDefault = () => {
                         isLoading={!metrics}
                         tabs={[
                             {
-                            title: 'Resources',
-                            children: <ResourceDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
+                                title: 'Resources',
+                                children: <ResourceDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
                             },
                             {
-                            title: 'Proxy',
-                            children: <ProxyDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
+                                title: 'Proxy',
+                                children: <ProxyDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
+                            },
+                            {
+                                title: 'Events',
+                                children: <AlertPage />
+                            },
+                            {
+                                title: 'Alerts',
+                                children: <AlertPage />
                             },
                         ]}
                     />

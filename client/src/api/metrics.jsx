@@ -18,7 +18,17 @@ function reset() {
   }))
 }
 
+function list() {
+  return wrap(fetch('/cosmos/api/list-metrics', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   get,
   reset,
+  list,
 };

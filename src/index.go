@@ -23,6 +23,8 @@ func main() {
 
 	LoadConfig()
 
+	utils.InitDBBuffers()
+	
 	go CRON()
 
 	docker.ExportDocker()

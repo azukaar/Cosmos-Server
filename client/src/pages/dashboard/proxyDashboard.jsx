@@ -9,7 +9,6 @@ import TableComponent from './components/table';
 import { InfoCircleOutlined } from '@ant-design/icons';
 
 const ProxyDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
-  console.log(metrics)
   return (<>
 
     <Grid container rowSpacing={4.5} columnSpacing={2.75} >

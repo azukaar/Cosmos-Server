@@ -92,6 +92,7 @@ type Config struct {
 	ThemeConfig ThemeConfig
 	ConstellationConfig ConstellationConfig
 	MonitoringDisabled bool
+	MonitoringAlerts map[string]Alert
 }
 
 type HomepageConfig struct {
@@ -160,6 +161,7 @@ type AddionalFiltersConfig struct {
 }
 
 type ProxyRouteConfig struct {
+	Disabled bool
 	Name string `validate:"required"`
 	Description string
 	UseHost bool
@@ -322,4 +324,33 @@ type Device struct {
 	PublicKey string `json:"publicKey",omitempty`
 	PrivateKey string `json:"privateKey",omitempty`
 	IP string `json:"ip",validate:"required,ipv4"`
+}
+
+type Alert struct {
+	Name string
+	Enabled bool
+	Period string
+	TrackingMetric string
+	Condition AlertCondition
+	Actions []AlertAction
+	LastTriggered time.Time
+	Throttled bool
+	Severity string
+}
+
+type AlertCondition struct {
+	Operator string
+	Value int
+	Percent bool
+}
+
+type AlertAction struct {
+	Type string
+	Target string
+}
+
+type AlertMetricTrack struct {
+	Key string
+	Object string
+	Max uint64
 }

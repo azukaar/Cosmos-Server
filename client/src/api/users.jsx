@@ -110,6 +110,24 @@ function resetPassword(values) {
   }))
 }
 
+function getNotifs() {
+  return wrap(fetch('/cosmos/api/notifications', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
+function readNotifs(notifs) {
+  return wrap(fetch('/cosmos/api/notifications/read?ids=' + notifs.join(','), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   list,
   create,
@@ -122,4 +140,6 @@ export {
   check2FA,
   reset2FA,
   resetPassword,
+  getNotifs,
+  readNotifs,
 };

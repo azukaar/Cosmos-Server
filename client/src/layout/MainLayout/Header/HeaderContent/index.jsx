@@ -1,5 +1,5 @@
 // material-ui
-import { Box, Chip, IconButton, Link, useMediaQuery } from '@mui/material';
+import { Box, Chip, IconButton, Link, Stack, useMediaQuery } from '@mui/material';
 import { GithubOutlined } from '@ant-design/icons';
 
 // project import
@@ -18,10 +18,13 @@ const HeaderContent = () => {
             {!matchesXs && <Search />}
             {matchesXs && <Box sx={{ width: '100%', ml: 1 }} />}
 
-            <Link href="/cosmos-ui/logout" underline="none">
-                <Chip label="Logout" />
-            </Link>
-            {/* <Notification /> */}
+            <Stack direction="row" spacing={2}>
+                <Notification />
+
+                <Link href="/cosmos-ui/logout" underline="none">
+                    <Chip label="Logout" />
+                </Link>
+            </Stack>
             {/* {!matchesXs && <Profile />}
             {matchesXs && <MobileSection />} */}
         </>

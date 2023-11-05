@@ -6,6 +6,20 @@ function get() {
   });
 }
 
+function reset() {
+  return new Promise((resolve, reject) => {
+    resolve()
+  });
+}
+
+// function list() {
+//   return new Promise((resolve, reject) => {
+//     resolve()
+//   });
+// }
+
 export {
   get,
+  reset,
+  // list,
 };

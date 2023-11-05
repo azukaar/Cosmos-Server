@@ -33,6 +33,7 @@ type DataDefDB struct {
 	AggloType string
 	Scale int
 	Unit string
+	Object string
 }
 
 func AggloMetrics(metricsList []string) []DataDefDB {
@@ -61,7 +62,7 @@ func AggloMetrics(metricsList []string) []DataDefDB {
     for _, metric := range metricsList {
         if strings.Contains(metric, "*") {
             // Convert wildcard to regex. Replace * with .*
-            regexPattern := "^" + strings.ReplaceAll(metric, "*", ".*")
+            regexPattern := "^" + strings.ReplaceAll(metric, "*", ".*?")
             regexPatterns = append(regexPatterns, bson.M{"Key": bson.M{"$regex": regexPattern}})
         } else {
             // If there's no wildcard, match the metric directly
@@ -90,6 +91,9 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 	hourlyPoolTo := ModuloTime(time.Now().Add(1 * time.Hour), time.Hour)
 	dailyPool := ModuloTime(time.Now(), 24 * time.Hour)
 	dailyPoolTo := ModuloTime(time.Now().Add(24 * time.Hour), 24 * time.Hour)
+
+	previousHourlyPool := ModuloTime(time.Now().Add(-1 * time.Hour), time.Hour)
+	previousDailyPool := ModuloTime(time.Now().Add(-24 * time.Hour), 24 * time.Hour)
 	
 	for metInd, metric := range metrics {
 		values := metric.Values
@@ -109,6 +113,15 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 				AggloTo: hourlyPoolTo,
 				AggloExpire: hourlyPoolTo.Add(48 * time.Hour),
 			}
+
+			// check alerts on previous pool
+			if agMet, ok := metric.ValuesAggl["hour_" + previousHourlyPool.UTC().Format("2006-01-02 15:04:05")]; ok {
+				CheckAlerts(metric.Key, "hourly", utils.AlertMetricTrack{
+					Key: metric.Key,
+					Object: metric.Object,
+					Max: metric.Max,
+				}, agMet.Value)
+			}
 		}
 	
 		// if daily pool does not exist, create it
@@ -120,6 +133,15 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 				AvgIndex: 0,
 				AggloTo: dailyPoolTo,
 				AggloExpire: dailyPoolTo.Add(30 * 24 * time.Hour),
+			}
+
+			// check alerts on previous pool
+			if agMet, ok := metric.ValuesAggl["day_" + previousDailyPool.UTC().Format("2006-01-02 15:04:05")]; ok {
+				CheckAlerts(metric.Key, "daily", utils.AlertMetricTrack{
+					Key: metric.Key,
+					Object: metric.Object,
+					Max: metric.Max,
+				}, agMet.Value)
 			}
 		}
 

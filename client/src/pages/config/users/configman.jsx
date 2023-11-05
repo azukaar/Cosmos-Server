@@ -332,7 +332,7 @@ const ConfigManagement = () => {
                         }}
                       />
 
-<Button
+                      <Button
                         variant="outlined"
                         onClick={() => {
                           formik.setFieldValue('Background', "");

@@ -47,6 +47,24 @@ func Error(message string, err error) {
 	}
 }
 
+func MajorError(message string, err error) {
+	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
+	errStr := ""
+	if err != nil {
+		errStr = err.Error()
+	}
+	if ll <= ERROR {
+		log.Println(Red + "[ERROR] " + message + " : " + errStr + Reset)
+	}
+	
+	WriteNotification(Notification{
+		Recipient: "admin",
+		Title: "Server Error",
+		Message: message + " : " + errStr,
+		Level: "error",
+	})
+}
+
 func Fatal(message string, err error) {
 	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
 	errStr := ""

@@ -537,10 +537,18 @@ func CheckUpdatesAvailable() map[string]bool {
 		}
 
 		if needsUpdate && HasAutoUpdateOn(fullContainer) {
-			utils.Log("Downlaoded new update for " + container.Image + " ready to install")
+			utils.WriteNotification(utils.Notification{
+				Recipient: "admin",
+				Title: "Container Update",
+				Message: "Container " + container.Names[0][1:] + " updated to the latest version!",
+				Level: "info",
+				Link: "/cosmos-ui/servapps/containers/" + container.Names[0][1:],
+			})
+
+			utils.Log("Downloaded new update for " + container.Image + " ready to install")
 			_, err := RecreateContainer(container.Names[0], fullContainer)
 			if err != nil {
-				utils.Error("CheckUpdatesAvailable - Failed to update - ", err)
+				utils.MajorError("Container failed to update", err)
 			} else {
 				result[container.Names[0]] = false
 			}
@@ -675,8 +683,8 @@ type ContainerStats struct {
 }
 
 func Stats(container types.Container) (ContainerStats, error) {
-		utils.Debug("StatsAll - Getting stats for " + container.Names[0])
-		utils.Debug("Time: " + time.Now().String())
+		// utils.Debug("StatsAll - Getting stats for " + container.Names[0])
+		// utils.Debug("Time: " + time.Now().String())
 		
 		statsBody, err := DockerClient.ContainerStats(DockerContext, container.ID, false)
 		if err != nil {
@@ -698,7 +706,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 
 		perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
 		if perCore == 0 {
-			utils.Warn("StatsAll - Docker CPU PercpuUsage is 0")
+			utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
 			perCore = 1
 		}
 
@@ -715,9 +723,9 @@ func Stats(container types.Container) (ContainerStats, error) {
 		if systemDelta > 0 && cpuDelta > 0 {
 			cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
 			
-			utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
+			// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 		} else {
-			utils.Error("StatsAll - Error calculating CPU usage for " + container.Names[0], nil)
+			utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
 		}
 
 		// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100
@@ -780,4 +788,12 @@ func Stats(container types.Container) (ContainerStats, error) {
 		wg.Wait() // Wait for all goroutines to finish.
 	
 		return containerStatsList, nil
+	}
+
+	func StopContainer(containerName string) {
+		err := DockerClient.ContainerStop(DockerContext, containerName, container.StopOptions{})
+		if err != nil {
+			utils.Error("StopContainer", err)
+			return
+		}
 	}

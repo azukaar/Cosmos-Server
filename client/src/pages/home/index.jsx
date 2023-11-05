@@ -78,11 +78,6 @@ export const TransparentHeader = () => {
         font-weight: bold;
     }
 
-    .MuiDrawer-paper {
-        backdrop-filter: blur(15px);
-        background: rgba(${backColor}, 1) !important;
-        border-right-color: rgba(${backColor},0.45) !important;
-    }
 `}
     </style>;
 }
@@ -184,12 +179,6 @@ const HomePage = () => {
     useEffect(() => {
         refreshConfig();
         refreshStatus();
-
-        // const interval = setInterval(() => {
-        //     refreshStatus();
-        // }, 5000);
-
-        // return () => clearInterval(interval);
     }, []);
 
     const primCol = theme.palette.primary.main.replace('rgb(', 'rgba(')
@@ -268,42 +257,24 @@ const HomePage = () => {
         },
         labels: []
     };
+    
+    let latestCPU, latestRAM, latestRAMRaw, maxRAM, maxRAMRaw = 0;
 
-    const bigNb = {
-        fontSize: '23px',
-        fontWeight: "bold",
-        textAlign: "center",
-        color: isDark ? "white" : "black",
-        textShadow: "0px 0px 5px #000",
-        lineHeight: "97px",
+    if(metrics) {
+    
+        if(metrics["cosmos.system.cpu.0"] && metrics["cosmos.system.cpu.0"].Values && metrics["cosmos.system.cpu.0"].Values.length > 0)
+            latestCPU = metrics["cosmos.system.cpu.0"].Values[metrics["cosmos.system.cpu.0"].Values.length - 1].Value;
+        
+        if(metrics["cosmos.system.ram"] && metrics["cosmos.system.ram"].Values && metrics["cosmos.system.ram"].Values.length > 0) {
+            let formatRAM = metrics && FormaterForMetric(metrics["cosmos.system.ram"], false);
+            latestRAMRaw = metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value;
+            latestRAM = formatRAM(metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value);
+            maxRAM = formatRAM(metrics["cosmos.system.ram"].Max);
+            maxRAMRaw = metrics["cosmos.system.ram"].Max;
+        }
     }
 
-    let latestCPU = metrics && metrics["cosmos.system.cpu.0"] &&  metrics["cosmos.system.cpu.0"].Values[metrics["cosmos.system.cpu.0"].Values.length - 1].Value;
-    
-    let formatRAM = metrics && FormaterForMetric(metrics["cosmos.system.ram"], false);
-    let latestRAMRaw = metrics && metrics["cosmos.system.ram"] && metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value;
-    let latestRAM = metrics && metrics["cosmos.system.ram"] && formatRAM(metrics["cosmos.system.ram"].Values[metrics["cosmos.system.ram"].Values.length - 1].Value);
-    let maxRAM = metrics && metrics["cosmos.system.ram"] && formatRAM(metrics["cosmos.system.ram"].Max);
-    let maxRAMRaw = metrics && metrics["cosmos.system.ram"] && metrics["cosmos.system.ram"].Max;
-
-    let now = new Date();
-    now = "day_" + formatDate(now);
-
-    let formatNetwork = metrics && FormaterForMetric(metrics["cosmos.system.netTx"], false);
-    let latestNetworkRawTx = (metrics && metrics["cosmos.system.netTx"] && metrics["cosmos.system.netTx"].ValuesAggl[now].Value) || 0;
-    let latestNetworkTx = metrics && formatNetwork(latestNetworkRawTx);
-    let latestNetworkRawRx = (metrics && metrics["cosmos.system.netRx"] && metrics["cosmos.system.netRx"].ValuesAggl[now].Value) || 0;
-    let latestNetworkRx = metrics && formatNetwork(latestNetworkRawRx);
-    let latestNetworkSum = metrics && formatNetwork(latestNetworkRawTx + latestNetworkRawRx);
-
-    let formatRequests = metrics && FormaterForMetric(metrics["cosmos.proxy.all.success"], false);
-    let latestRequestsRaw = (metrics && metrics["cosmos.proxy.all.success"] && metrics["cosmos.proxy.all.success"].ValuesAggl[now].Value) || 0;
-    let latestRequests = metrics && formatRequests(latestRequestsRaw);
-    let latestRequestsErrorRaw = (metrics && metrics["cosmos.proxy.all.error"] && metrics["cosmos.proxy.all.error"].ValuesAggl[now].Value) || 0;
-    let latestRequestsError = metrics && formatRequests(latestRequestsErrorRaw);
-    let latestRequestSum = metrics && formatRequests(latestRequestsRaw + latestRequestsErrorRaw);
-
-    return <Stack spacing={2} style={{maxWidth: '1500px', margin:'auto'}}>
+    return <Stack spacing={2} style={{maxWidth: '1450px', margin:'auto'}}>
         <IsLoggedIn />
         <HomeBackground status={coStatus} />
         <TransparentHeader />
@@ -474,7 +445,7 @@ const HomePage = () => {
                     <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
                         <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
                         <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            <MiniPlotComponent noBackground title='PROXY' agglo metrics={[
+                            <MiniPlotComponent noBackground title='URLS' agglo metrics={[
                                 "cosmos.proxy.all.success",
                                 "cosmos.proxy.all.error",
                             ]} labels={{

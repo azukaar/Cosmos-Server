@@ -160,6 +160,7 @@ func GetSystemMetrics() {
 					Period: time.Second * 120,
 					Label: "Disk " + part.Mountpoint,
 					Unit: "B",
+					Object: "disk@" + part.Mountpoint,
 				})
 			}
 		}
@@ -208,13 +209,15 @@ func GetSystemMetrics() {
 			AggloType: "avg",
 			Scale: 100,
 			Unit: "%",
+			Object: "container@" + ds.Name,
 		})
 		PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
-			Max: 0,
+			Max: memInfo.Total,
 			Period: time.Second * 30,
 			Label: "Docker RAM " + ds.Name,
 			AggloType: "avg",
 			Unit: "B",
+			Object: "container@" + ds.Name,
 		})
 		PushSetMetric("system.docker.netRx." + ds.Name, int(ds.NetworkRx), DataDef{
 			Max: 0,
@@ -224,6 +227,7 @@ func GetSystemMetrics() {
 			AggloType: "sum",
 			Decumulate: true,
 			Unit: "B",
+			Object: "container@" + ds.Name,
 		})
 		PushSetMetric("system.docker.netTx." + ds.Name, int(ds.NetworkTx), DataDef{
 			Max: 0,
@@ -233,6 +237,7 @@ func GetSystemMetrics() {
 			AggloType: "sum",
 			Decumulate: true,
 			Unit: "B",
+			Object: "container@" + ds.Name,
 		})
 	}
 }

@@ -37,7 +37,7 @@ const a11yProps = (index) => {
   };
 };
 
-const PrettyTabbedView = ({ tabs, isLoading, currentTab, setCurrentTab, fullwidth }) => {
+const PrettyTabbedView = ({ tabs, isLoading, currentTab, setCurrentTab }) => {
   const [value, setValue] = useState(0);
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
   
@@ -55,8 +55,8 @@ const PrettyTabbedView = ({ tabs, isLoading, currentTab, setCurrentTab, fullwidt
   };
 
   return (
-    <Box fullwidth={fullwidth} display="flex" height="100%" flexDirection={isMobile ? 'column' : 'row'}>
-      {(isMobile && !currentTab) ? (
+    <Box display="flex" height="100%" flexDirection={isMobile ? 'column' : 'row'}>
+      {(isMobile) ? (
         <Select value={value} onChange={handleSelectChange} sx={{ minWidth: 120, marginBottom: '15px' }}>
           {tabs.map((tab, index) => (
             <MenuItem key={index} value={index}>

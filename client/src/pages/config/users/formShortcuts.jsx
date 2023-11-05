@@ -27,6 +27,19 @@ import { strengthColor, strengthIndicator } from '../../../utils/password-streng
 
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
+export const getNestedValue = (values, path) => {
+  return path.split('.').reduce((current, key) => {
+    if (current && current[key] !== undefined) {
+      return current[key];
+    }
+    if (Array.isArray(current)) {
+      const index = parseInt(key, 10);
+      return current[index];
+    }
+    return undefined;
+  }, values);
+};
+
 export const CosmosInputText = ({ name, style, value, errors, multiline, type, placeholder, onChange, label, formik }) => {
   return <Grid item xs={12}>
     <Stack spacing={1} style={style}>
@@ -146,7 +159,7 @@ export const CosmosSelect = ({ name, onChange, label, formik, disabled, options 
         id={name}
         disabled={disabled}
         select
-        value={formik.values[name]}
+        value={getNestedValue(formik.values, name)}
         onChange={(...ar) => {
           onChange && onChange(...ar);
           formik.handleChange(...ar);

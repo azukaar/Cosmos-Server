@@ -62,9 +62,11 @@ func BlockBannedIPs(next http.Handler) http.Handler {
 
 				nbAbuse := getIPAbuseCounter(ip)
 
-				// Debug("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s)")
+        if nbAbuse > 275 {
+					Warn("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s) and will soon be banned.")
+				}
 
-        if nbAbuse > 1000 {
+        if nbAbuse > 300 {
 					if hj, ok := w.(http.Hijacker); ok {
 							conn, _, err := hj.Hijack()
 							if err == nil {
@@ -76,6 +78,13 @@ func BlockBannedIPs(next http.Handler) http.Handler {
 
         next.ServeHTTP(w, r)
     })
+}
+
+func CleanBannedIPs() {
+	BannedIPs.Range(func(key, value interface{}) bool {
+		BannedIPs.Delete(key)
+		return true
+	})
 }
 
 func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handler {

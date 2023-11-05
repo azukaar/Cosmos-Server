@@ -66,6 +66,15 @@ const ProxyManagement = () => {
   const [submitErrors, setSubmitErrors] = React.useState([]);
   const [needSave, setNeedSave] = React.useState(false);
   const [openNewModal, setOpenNewModal] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  function setRouteEnabled(key) {
+    return (event) => {
+      routes[key].Disabled = !event.target.checked;
+      updateRoutes(routes);
+      setNeedSave(true);
+    }
+  }
   
   function updateRoutes(routes) {
     let con = {
@@ -162,6 +171,14 @@ const ProxyManagement = () => {
             style: {
               textAlign: 'center',
             },
+          },
+          {
+            title: 'Enabled', 
+            clickable:true, 
+            field: (r, k) => <Checkbox disabled={isLoading} size='large' color={!r.Disabled ? 'success' : 'default'}
+              onChange={setRouteEnabled(k)}
+              checked={!r.Disabled}
+            />,
           },
           { title: 'URL',
             search: (r) => r.Name + ' ' + r.Description,

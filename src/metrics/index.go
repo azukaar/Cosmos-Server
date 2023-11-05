@@ -19,6 +19,7 @@ type DataDef struct {
 	Scale int
 	Unit string
 	Decumulate bool
+	Object string
 }
 
 type DataPush struct {
@@ -33,6 +34,7 @@ type DataPush struct {
 	Scale int
 	Unit string
 	Decumulate bool
+	Object string
 }
 
 var dataBuffer = map[string]DataPush{}
@@ -109,6 +111,7 @@ func SaveMetrics() {
 							"AggloType": dp.AggloType,
 							"Scale": scale,
 							"Unit": dp.Unit,
+							"Object": dp.Object,
 					},
 			}
 			
@@ -181,8 +184,15 @@ func PushSetMetric(key string, value int, def DataDef) {
 				AggloType: def.AggloType,
 				Scale: def.Scale,
 				Unit: def.Unit,
+				Object: def.Object,
 			}
 		}
+
+		CheckAlerts(key, "latest", utils.AlertMetricTrack{
+			Key: key,
+			Object: def.Object,
+			Max: def.Max,
+		}, value)
 
 		lastInserted[key] = originalValue
 	}()

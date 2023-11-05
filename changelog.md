@@ -1,15 +1,20 @@
 ## Version 0.12.0
  - New Dashboard
  - New metrics gathering system
+ - New alerts system
+ - New notification center
+ - New events manager
  - Integrated a new docker-less mode of functioning for networking
  - Added Button to force reset HTTPS cert in settings
  - New color slider with reset buttons
- - Fixed blinking modals issues
+ - Added a notification when updating a container
  - Added lazyloading to URL and Servapp pages images
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
  - Added a button in the servapp page to easily download the docker backup
  - Redirect static folder to host if possible
  - New Homescreen look
+ - Added option to disable routes without deleting them
+ - Fixed blinking modals issues
  - Improve display or icons [fixes #121]
  - Refactored Mongo connection code [fixes #111]
  - Forward simultaneously TCP and UDP [fixes #122]
