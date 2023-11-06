@@ -88,12 +88,12 @@ func DockerListenEvents() error {
 						level,
 						object,
 						map[string]interface{}{
-						"Type": msg.Type,
-						"Action": msg.Action,
-						"Actor": msg.Actor,
-						"Status": msg.Status,
-						"From": msg.From,
-						"Scope": msg.Scope,
+						"type": msg.Type,
+						"action": msg.Action,
+						"actor": msg.Actor,
+						"status": msg.Status,
+						"from": msg.From,
+						"scope": msg.Scope,
 					})
 			}
 		}

@@ -332,12 +332,13 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 					level,
 					"route@" + route.Name,
 					map[string]interface{}{
-					"Route": route.Name,
-					"Status": wrapper.Status,
-					"Method": wrapper.Method,
-					"ClientID": wrapper.ClientID,
-					"Time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
-					"Bytes": wrapper.Bytes,
+					"route": route.Name,
+					"status": wrapper.Status,
+					"method": wrapper.Method,
+					"clientID": wrapper.ClientID,
+					"time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
+					"bytes": wrapper.Bytes,
+					"url": r.URL,
 				})
 
 				go metrics.PushRequestMetrics(route, wrapper.Status, wrapper.TimeStarted, wrapper.Bytes)
@@ -428,19 +429,20 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 						statusText = "error"
 						level = "warning"
 					}
-					
+
 					utils.TriggerEvent(
 						"cosmos.proxy.response." + route.Name + "." + statusText,
 						"Proxy Response " + route.Name + " " + statusText,
 						level,
 						"route@" + route.Name,
 						map[string]interface{}{
-						"Route": route.Name,
-						"Status": wrapper.Status,
-						"Method": wrapper.Method,
-						"ClientID": wrapper.ClientID,
-						"Time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
-						"Bytes": wrapper.Bytes,
+						"route": route.Name,
+						"status": wrapper.Status,
+						"method": wrapper.Method,
+						"clientID": wrapper.ClientID,
+						"time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
+						"bytes": wrapper.Bytes,
+						"url": r.URL,
 					})
 
 					go metrics.PushRequestMetrics(route, wrapper.Status, wrapper.TimeStarted, wrapper.Bytes)

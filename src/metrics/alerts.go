@@ -101,6 +101,21 @@ func ExecuteAllActions(alert utils.Alert, actions []utils.AlertAction, metric ut
 func ExecuteAction(alert utils.Alert, action utils.AlertAction, metric utils.AlertMetricTrack) {
 	utils.Log("Executing action " + action.Type + " on " + metric.Key + " " + metric.Object	)
 
+	
+	utils.TriggerEvent(
+		"cosmos.metrics.alert",
+		"Alert triggered",
+		alert.Severity,
+		"",
+		map[string]interface{}{
+			"alert": alert.Name,
+			"metric": metric.Key,
+			"object": metric.Object,
+			"action": action.Type,
+			"severity": alert.Severity,
+			"actions": alert.Actions,
+	})
+
 	if action.Type == "email" {
 		utils.Debug("Sending email to " + action.Target)
 
