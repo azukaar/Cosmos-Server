@@ -143,10 +143,11 @@ func flushAllBuffers() {
 func BufferedDBWrite(collectionName string, object map[string]interface{}) {
 	bufferLock.Lock()
 	writeBuffer[collectionName] = append(writeBuffer[collectionName], object)
+	bufferLock.Unlock()
+	
 	if len(writeBuffer[collectionName]) >= bufferCapacity {
 		flushBuffer(collectionName)
 	}
-	bufferLock.Unlock()
 }
 
 func WriteToDatabase(collection *mongo.Collection, objects []map[string]interface{}) error {
