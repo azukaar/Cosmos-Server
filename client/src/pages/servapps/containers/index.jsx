@@ -18,6 +18,7 @@ import NetworkContainerSetup from './network';
 import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import ContainerMetrics from '../../dashboard/containerMetrics';
+import EventExplorerStandalone from '../../dashboard/eventsExplorerStandalone';
 
 const ContainerIndex = () => {
   const { containerName } = useParams();
@@ -63,6 +64,10 @@ const ContainerIndex = () => {
         {
           title: 'Monitoring',
           children: <ContainerMetrics containerName={containerName}/>
+        },
+        {
+          title: 'Events',
+          children: <EventExplorerStandalone initSearch={`{"object":"container@${containerName}"}`}/>
         },
         {
           title: 'Terminal',

@@ -537,6 +537,15 @@ func CheckUpdatesAvailable() map[string]bool {
 		}
 
 		if needsUpdate && HasAutoUpdateOn(fullContainer) {
+			utils.TriggerEvent(
+				"cosmos.docker.container.update",
+				"Cosmos Container Update",
+				"success",
+				"",
+				map[string]interface{}{
+					"container": container.Names[0][1:],
+			})
+
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
 				Title: "Container Update",
@@ -611,6 +620,16 @@ func SelfRecreate() error {
 	service := DockerServiceCreateRequest{
 		Services: map[string]ContainerCreateRequestContainer {},
 	}
+
+	utils.TriggerEvent(
+		"cosmos.internal.self-updater",
+		"Cosmos Self Updater",
+		"important",
+		"",
+		map[string]interface{}{
+			"action": "recreate",
+			"container": containerName,
+	})
 
 	service.Services["cosmos-self-updater-agent"] = ContainerCreateRequestContainer{
 		Name: "cosmos-self-updater-agent",
@@ -756,7 +775,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 			utils.Error("StatsAll", err)
 			return nil, err
 		}
-	
+
 		var containerStatsList []ContainerStats
 		var wg sync.WaitGroup
 		semaphore := make(chan struct{}, 5) // A channel with a buffer size of 5 for controlling parallelism.

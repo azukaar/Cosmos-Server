@@ -10,7 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
-	"go.mongodb.org/mongo-driver/mongo/writeconcern" 
+	"go.mongodb.org/mongo-driver/mongo/writeconcern"
+	"go.mongodb.org/mongo-driver/bson" 
 )
 
 
@@ -50,6 +51,8 @@ func DB() error {
 		return err
 	}
 
+	initDB()
+
 	Log("Successfully connected to the database.")
 	return nil
 }
@@ -73,7 +76,7 @@ func GetCollection(applicationId string, collection string) (*mongo.Collection, 
 		name = "COSMOS"
 	}
 	
-	Debug("Getting collection " + applicationId + "_" + collection + " from database " + name)
+	// Debug("Getting collection " + applicationId + "_" + collection + " from database " + name)
 	
 	c := client.Database(name).Collection(applicationId + "_" + collection)
 	
@@ -202,4 +205,23 @@ func ListAllUsers(role string) []User {
 	}
 
 	return users
+}
+
+func initDB() {
+	c, errCo := GetCollection(GetRootAppId(), "events")
+	if errCo != nil {
+		Error("Metrics - Database Connect", errCo)
+	} else {
+		// Create a text index on the _search field
+		model := mongo.IndexModel{
+			Keys: bson.M{"_search": "text"}, // Specify the field to index here
+		}
+
+		// Creating the index
+		_, err := c.Indexes().CreateOne(context.Background(), model)
+		if err != nil {
+			Error("Metrics - Create Index", err)
+			return // Handle error appropriately
+		}
+	}
 }

@@ -2,86 +2,21 @@ import { useEffect, useState } from 'react';
 
 // material-ui
 import {
-    Avatar,
-    AvatarGroup,
     Box,
     Button,
     Grid,
-    List,
-    ListItemAvatar,
-    ListItemButton,
-    ListItemSecondaryAction,
-    ListItemText,
-    MenuItem,
     Stack,
-    TextField,
     Typography,
-    Alert,
-    LinearProgress,
     CircularProgress
 } from '@mui/material';
 
-// project import
-import OrdersTable from './OrdersTable';
-import IncomeAreaChart from './IncomeAreaChart';
-import MonthlyBarChart from './MonthlyBarChart';
-import ReportAreaChart from './ReportAreaChart';
-import SalesColumnChart from './SalesColumnChart';
-import MainCard from '../../components/MainCard';
-import AnalyticEcommerce from '../../components/cards/statistics/AnalyticEcommerce';
-
-// assets
-import { GiftOutlined, MessageOutlined, SettingOutlined } from '@ant-design/icons';
-import avatar1 from '../../assets/images/users/avatar-1.png';
-import avatar2 from '../../assets/images/users/avatar-2.png';
-import avatar3 from '../../assets/images/users/avatar-3.png';
-import avatar4 from '../../assets/images/users/avatar-4.png';
 import IsLoggedIn from '../../isLoggedIn';
 
 import * as API from '../../api';
-import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';
-import TableComponent from './components/table';
-import { HomeBackground, TransparentHeader } from '../home';
 import { formatDate } from './components/utils';
 
-// avatar style
-const avatarSX = {
-    width: 36,
-    height: 36,
-    fontSize: '1rem'
-};
-
-// action style
-const actionSX = {
-    mt: 0.75,
-    ml: 1,
-    top: 'auto',
-    right: 'auto',
-    alignSelf: 'flex-start',
-    transform: 'none'
-};
-
-// sales report status
-const status = [
-    {
-        value: 'today',
-        label: 'Today'
-    },
-    {
-        value: 'month',
-        label: 'This Month'
-    },
-    {
-        value: 'year',
-        label: 'This Year'
-    }
-];
-
-// ==============================|| DASHBOARD - DEFAULT ||============================== //
-
 const ContainerMetrics = ({containerName}) => {
-    const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('latest');
 
     const [zoom, setZoom] = useState({
@@ -90,7 +25,6 @@ const ContainerMetrics = ({containerName}) => {
 
     const [coStatus, setCoStatus] = useState(null);
     const [metrics, setMetrics] = useState(null);
-    const [isCreatingDB, setIsCreatingDB] = useState(false);
 
     const resetZoom = () => {
         setZoom({

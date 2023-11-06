@@ -62,7 +62,7 @@ const Palette = (mode, PrimaryColor, SecondaryColor) => {
                 paper: paletteColor.grey[700],
                 default: paletteColor.grey[800]
             }
-        }
+        },
     } : {
         palette: {
             mode,
@@ -84,7 +84,7 @@ const Palette = (mode, PrimaryColor, SecondaryColor) => {
                 paper: paletteColor.grey[0],
                 default: paletteColor.grey.A50
             }
-        }
+        },
     });
 };
 

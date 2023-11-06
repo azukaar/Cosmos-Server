@@ -1,6 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import customParseFormat from 'dayjs/plugin/customParseFormat'; // import this if you need to parse custom formats
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import localizedFormat from 'dayjs/plugin/localizedFormat'; // import this for localized formatting
+import 'dayjs/locale/en-gb';
 
 // scroll bar
 import 'simplebar/src/simplebar.css';
@@ -17,6 +21,13 @@ import './index.css';
 import App from './App';
 import { store } from './store';
 import reportWebVitals from './reportWebVitals';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+
+import dayjs from 'dayjs';
+import 'dayjs/locale/en-gb';
+dayjs.extend(customParseFormat); // if needed
+dayjs.extend(localizedFormat); // if needed
+dayjs.locale('en-gb');
 
 // ==============================|| MAIN - REACT DOM RENDER  ||============================== //
 
@@ -25,8 +36,10 @@ const root = createRoot(container); // createRoot(container!) if you use TypeScr
 root.render(
     <StrictMode>
         <ReduxProvider store={store}>
-            <BrowserRouter basename="/">
-                <App />
+            <BrowserRouter basename="/">    
+                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    <App />
+                </LocalizationProvider>
             </BrowserRouter>
         </ReduxProvider>
     </StrictMode>

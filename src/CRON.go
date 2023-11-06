@@ -109,7 +109,7 @@ func checkCerts() {
 		HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] ||
 		HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		utils.Log("Checking certificates for renewal")
-		if !CertificateIsValid(HTTPConfig.TLSValidUntil) {
+		if !CertificateIsExpiredSoon(HTTPConfig.TLSValidUntil) {
 			utils.Log("Certificates are not valid anymore, renewing")
 			RestartServer()
 		}

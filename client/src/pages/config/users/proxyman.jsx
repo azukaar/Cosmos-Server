@@ -193,7 +193,7 @@ const ProxyManagement = () => {
             </>
           },
           { title: 'Network', screenMin: 'lg', clickable:false, field: (r) => 
-            <div style={{width: '450px', marginLeft: '-60px', marginBottom: '10px'}}>
+            <div style={{width: '400px', marginLeft: '-200px', marginBottom: '10px'}}>
               <MiniPlotComponent  metrics={[
                 "cosmos.proxy.route.bytes." + r.Name,
                 "cosmos.proxy.route.time." + r.Name,

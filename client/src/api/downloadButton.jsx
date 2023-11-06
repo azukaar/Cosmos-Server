@@ -2,7 +2,7 @@ import { ArrowDownOutlined } from "@ant-design/icons";
 import { Button } from "@mui/material";
 import ResponsiveButton from "../components/responseiveButton";
 
-export const DownloadFile = ({ filename, content, contentGetter, label }) => {
+export const DownloadFile = ({ filename, content, contentGetter, label, style }) => {
     const downloadFile = async () => {
         // Get the content
         if (contentGetter) {
@@ -39,6 +39,7 @@ export const DownloadFile = ({ filename, content, contentGetter, label }) => {
         <ResponsiveButton
             color="primary"
             onClick={downloadFile}
+            style={style}
             variant={"outlined"}
             startIcon={<ArrowDownOutlined />}
         >

@@ -27,6 +27,7 @@ type DataPush struct {
 	Key string
 	Value int
 	Max uint64
+	Period time.Duration
 	Expire time.Time
 	Label string
 	AvgIndex int
@@ -112,6 +113,7 @@ func SaveMetrics() {
 							"Scale": scale,
 							"Unit": dp.Unit,
 							"Object": dp.Object,
+							"TimeScale": float64(dp.Period / (time.Second * 30)),
 					},
 			}
 			
@@ -191,6 +193,7 @@ func PushSetMetric(key string, value int, def DataDef) {
 				Scale: def.Scale,
 				Unit: def.Unit,
 				Object: def.Object,
+				Period: def.Period,
 			}
 		}
 
@@ -199,11 +202,10 @@ func PushSetMetric(key string, value int, def DataDef) {
 }
 
 func Run() {
-	utils.Debug("Metrics - Run")
-
 	nextTime := ModuloTime(time.Now().Add(time.Second*30), time.Second*30)
 	nextTime = nextTime.Add(time.Second * 2)
-	utils.Debug("Metrics - Next run at " + nextTime.String())
+
+	utils.Debug("Metrics - Run - Next run at " + nextTime.String())
 	
 	if utils.GetMainConfig().MonitoringDisabled {
 		time.AfterFunc(nextTime.Sub(time.Now()), func() {

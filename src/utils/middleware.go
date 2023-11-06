@@ -203,16 +203,11 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 			countryCode, err := GetIPLocation(ip)
 
 			if err == nil {
-				if countryCode == "" {
-					Debug("Country code is empty")
-				} else {
-					Debug("Country code: " + countryCode)
-				}
-
 				config := GetMainConfig()
 
 				if CountryBlacklistIsWhitelist {
 					if countryCode != "" {
+						Debug("Country code: " + countryCode)
 						blocked := true
 						for _, blockedCountry := range blockedCountries {
 							if config.ServerCountry != countryCode && countryCode == blockedCountry {
@@ -272,8 +267,6 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 
 func EnsureHostname(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		Debug("Ensuring origin for requested resource from : " + r.Host)
-
 		og := GetMainConfig().HTTPConfig.Hostname
 		ni := GetMainConfig().NewInstall
 

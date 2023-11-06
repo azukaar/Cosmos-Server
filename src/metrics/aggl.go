@@ -16,7 +16,6 @@ type DataDefDBEntry struct {
 	Date time.Time
 	Value int
 	Processed bool
-
 	// For agglomeration
 	AvgIndex int
 	AggloTo time.Time
@@ -27,6 +26,7 @@ type DataDefDB struct {
 	Values []DataDefDBEntry
 	ValuesAggl map[string]DataDefDBEntry
 	LastUpdate time.Time
+	TimeScale float64
 	Max uint64
 	Label string
 	Key string

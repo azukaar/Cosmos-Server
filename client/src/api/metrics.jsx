@@ -27,8 +27,18 @@ function list() {
   }))
 }
 
+function events(from, to, search = '', query = '', page = '', logLevel) {
+  return wrap(fetch('/cosmos/api/events?from=' + from + '&to=' + to + '&search=' + search + '&query=' + query + '&page=' + page + '&logLevel=' + logLevel, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   get,
   reset,
   list,
+  events
 };

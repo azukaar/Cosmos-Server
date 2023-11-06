@@ -173,7 +173,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
               return 0;
             }
           } else {
-            let realIndex = item.Values.length - 1 - date
+            let realIndex = item.Values.length - 1 - parseInt(date / item.TimeScale)
             return item.Values[realIndex] ? item.Values[realIndex].Value : 0;
           }
         })

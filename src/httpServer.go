@@ -175,9 +175,26 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 	))
 }
 
-func CertificateIsValid(validUntil time.Time) bool {
+func CertificateIsExpiredSoon(validUntil time.Time) bool {
 	// allow 5 days of leeway
-	isValid := time.Now().Add(5 * 24 * time.Hour).Before(validUntil)
+	isValid := time.Now().Add(45 * 24 * time.Hour).Before(validUntil)
+	if !isValid {
+		utils.TriggerEvent(
+			"cosmos.proxy.certificate",
+			"Cosmos Certificate Expire Soon",
+			"warning",
+			"",
+			map[string]interface{}{
+		})
+
+		utils.Log("Certificate is not valid anymore. Needs refresh")
+	}
+	return isValid
+}
+
+func CertificateIsExpired(validUntil time.Time) bool {
+	// allow 5 days of leeway
+	isValid := time.Now().Before(validUntil)
 	if !isValid {
 		utils.Log("Certificate is not valid anymore. Needs refresh")
 	}
@@ -200,13 +217,13 @@ func InitServer() *mux.Router {
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	falledBack := false
 
-	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
+	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsExpiredSoon(baseMainConfig.HTTPConfig.TLSValidUntil)
 	
 	// If we have a certificate, we can fallback to it if necessary
 	CanFallback := tlsCert != "" && tlsKey != "" && 
 		len(config.HTTPConfig.TLSKeyHostsCached) > 0 && 
 		config.HTTPConfig.TLSKeyHostsCached[0] == config.HTTPConfig.Hostname  &&
-		CertificateIsValid(baseMainConfig.HTTPConfig.TLSValidUntil)
+		CertificateIsExpired(baseMainConfig.HTTPConfig.TLSValidUntil)
 
 	if(NeedsRefresh && config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
 		if(config.HTTPConfig.DNSChallengeProvider != "") {
@@ -237,6 +254,22 @@ func InitServer() *mux.Router {
 			utils.SetBaseMainConfig(baseMainConfig)
 			utils.Log("Saved new LETSENCRYPT TLS certificate")
 	
+			utils.TriggerEvent(
+				"cosmos.proxy.certificate",
+				"Cosmos Certificate Renewed",
+				"important",
+				"",
+				map[string]interface{}{
+					"domains": domains,
+			})
+
+			utils.WriteNotification(utils.Notification{
+				Recipient: "admin",
+				Title: "Cosmos Certificate Renewed",
+				Message: "The TLS certificate for the following domains has been renewed: " + strings.Join(domains, ", "),
+				Level: "info",
+			})
+
 			tlsCert = pub
 			tlsKey = priv
 		}
@@ -255,6 +288,22 @@ func InitServer() *mux.Router {
 
 			utils.SetBaseMainConfig(baseMainConfig)
 			utils.Log("Saved new SELFISGNED TLS certificate")
+
+			utils.TriggerEvent(
+				"cosmos.proxy.certificate",
+				"Cosmos Certificate Renewed",
+				"important",
+				"",
+				map[string]interface{}{
+					"domains": domains,
+			})
+
+			utils.WriteNotification(utils.Notification{
+				Recipient: "admin",
+				Title: "Cosmos Certificate Renewed",
+				Message: "The TLS certificate for the following domains has been renewed: " + strings.Join(domains, ", "),
+				Level: "info",
+			})
 		}
 
 		tlsCert = pub
@@ -350,6 +399,8 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
 	srapi.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapi.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
+
+	srapi.HandleFunc("/api/events", metrics.API_ListEvents)
 
 	srapi.HandleFunc("/api/metrics", metrics.API_GetMetrics)
 	srapi.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)

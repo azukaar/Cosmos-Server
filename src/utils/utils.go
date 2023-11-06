@@ -383,7 +383,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		uniqueHostnames = filteredHostnames
 	}
 
-	Debug("Hostnames are " + strings.Join(uniqueHostnames, ", "))
 	return uniqueHostnames
 }
 

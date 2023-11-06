@@ -148,7 +148,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
   </Grid>
 }
 
-export const CosmosSelect = ({ name, onChange, label, formik, disabled, options }) => {
+export const CosmosSelect = ({ name, onChange, label, formik, disabled, options, style }) => {
   return <Grid item xs={12}>
     <Stack spacing={1}>
       <InputLabel htmlFor={name}>{label}</InputLabel>
@@ -171,6 +171,7 @@ export const CosmosSelect = ({ name, onChange, label, formik, disabled, options 
         helperText={
           formik.touched[name] && formik.errors[name]
         }
+        style={style}
       >
         {options.map((option) => (
           <MenuItem key={option[0]} value={option[0]}>
@@ -212,8 +213,9 @@ export const CosmosCollapse = ({ children, title }) => {
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography variant="h6">
-              {title}</Typography>
+            <Typography variant="h6" style={{width: '100%', marginRight: '20px'}}>
+              {title}
+            </Typography>
           </AccordionSummary>
           <AccordionDetails>
             {children}

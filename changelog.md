@@ -7,7 +7,7 @@
  - Integrated a new docker-less mode of functioning for networking
  - Added Button to force reset HTTPS cert in settings
  - New color slider with reset buttons
- - Added a notification when updating a container
+ - Added a notification when updating a container, renewing certs, etc...
  - Improved icon loading speed, and added proper placeholder
  - Added lazyloading to URL and Servapp pages images
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features

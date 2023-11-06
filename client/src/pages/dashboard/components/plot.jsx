@@ -73,8 +73,13 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
         name: serie.Label,
         dataAxis: xAxis.map((date) => {
           if(slot === 'latest') {
-            return serie.Values[serie.Values.length - 1 - date] ? 
-              serie.Values[serie.Values.length - 1 - date].Value :
+            // let old = serie.Values.length - 1 - date;
+            // let realIndex = parseInt(serie.Values.length / xAxis.length  * date);
+            // let currentIndex = serie.Values.length - 1 - realIndex;
+            let index = serie.Values.length - 1 - parseInt(date / serie.TimeScale)
+            
+            return serie.Values[index] ? 
+              serie.Values[index].Value :
               0;
           } else {
             let key = slot === 'hourly' ? "hour_" : "day_";
@@ -129,6 +134,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
           text: thisdata && thisdata.Label,
         },
         max: (thisdata && thisdata.Max) ? thisdata.Max : undefined,
+        min: (thisdata && thisdata.Max) ? 0 : undefined,
       })),
       grid: {
         borderColor: line

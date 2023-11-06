@@ -64,6 +64,22 @@ const Theme = (colors, darkMode) => {
             darker: green[9],
             contrastText
         },
+        debug: {
+          lighter: grey[0],
+          light: grey[3],
+          main: grey[5],
+          dark: grey[7],
+          darker: grey[9],
+          contrastText
+        },
+        important: {
+          lighter: pink['100'],
+          light: pink['200'],
+          main: pink['400'],
+          dark: pink['700'],
+          darker: pink['800'],
+          contrastText
+        },
         grey: greyColors
     };
 };

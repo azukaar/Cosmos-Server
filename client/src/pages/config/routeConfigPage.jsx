@@ -9,6 +9,7 @@ import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
 import IsLoggedIn from "../../isLoggedIn";
 import RouteMetrics from "../dashboard/routeMonitoring";
+import EventExplorerStandalone from "../dashboard/eventsExplorerStandalone";
 
 const RouteConfigPage = () => {
   const { routeName } = useParams();
@@ -67,6 +68,10 @@ const RouteConfigPage = () => {
         {
           title: 'Monitoring',
           children:  <RouteMetrics routeName={routeName} />
+        },
+        {
+          title: 'Events',
+          children: <EventExplorerStandalone initLevel='info' initSearch={`{"object":"route@${routeName}"}`}/>
         },
       ]}/>}
 
