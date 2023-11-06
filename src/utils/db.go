@@ -107,6 +107,7 @@ func InitDBBuffers() {
 
 func flushBuffer(collectionName string) {
 	bufferLock.Lock()
+	defer bufferLock.Unlock()
 	objects, exists := writeBuffer[collectionName]
 	if exists && len(objects) > 0 {
 		collection, errG := GetCollection(GetRootAppId(), collectionName)
@@ -119,11 +120,11 @@ func flushBuffer(collectionName string) {
 		}
 		writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 	}
-	bufferLock.Unlock()
 }
 
 func flushAllBuffers() {
 	bufferLock.Lock()
+	defer bufferLock.Unlock()
 	for collectionName, objects := range writeBuffer {
 		if len(objects) > 0 {
 			collection, errG := GetCollection(GetRootAppId(), collectionName)
@@ -137,7 +138,6 @@ func flushAllBuffers() {
 			writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 		}
 	}
-	bufferLock.Unlock()
 }
 
 func BufferedDBWrite(collectionName string, object map[string]interface{}) {
@@ -147,6 +147,8 @@ func BufferedDBWrite(collectionName string, object map[string]interface{}) {
 	if len(writeBuffer[collectionName]) >= bufferCapacity {
 		bufferLock.Unlock()
 		flushBuffer(collectionName)
+	} else {
+		bufferLock.Unlock()
 	}
 }
 
