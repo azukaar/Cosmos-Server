@@ -143,9 +143,9 @@ func flushAllBuffers() {
 func BufferedDBWrite(collectionName string, object map[string]interface{}) {
 	bufferLock.Lock()
 	writeBuffer[collectionName] = append(writeBuffer[collectionName], object)
-	bufferLock.Unlock()
 	
 	if len(writeBuffer[collectionName]) >= bufferCapacity {
+		bufferLock.Unlock()
 		flushBuffer(collectionName)
 	}
 }
