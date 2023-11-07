@@ -77,6 +77,7 @@ const MFALoginForm = () => {
             {...formik.getFieldProps('token')}
             error={formik.touched.token && formik.errors.token && true}
             helperText={formik.touched.token && formik.errors.token && formik.errors.token}
+            autoFocus
           />
           {formik.errors.submit && (
               <Grid item xs={12}>
