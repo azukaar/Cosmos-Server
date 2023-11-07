@@ -60,41 +60,43 @@ func DockerListenEvents() error {
 						onNetworkConnect(msg.Actor.ID)
 					}
 
-					level := "info"
-					if msg.Type == "image" {
-						level = "debug"
+					if msg.Action != "exec_create" && msg.Action != "exec_start" && msg.Action != "exec_die" {
+						level := "info"
+						if msg.Type == "image" {
+							level = "debug"
+						}
+						if msg.Action == "destroy" || msg.Action == "delete" || msg.Action == "kill" || msg.Action == "die" {
+							level = "warning"
+						}
+						if msg.Action == "create" || msg.Action == "start" {
+							level = "success"
+						}
+						
+						object := ""
+						if msg.Type == "container" {
+							object = "container@" + msg.Actor.Attributes["name"]
+						} else if msg.Type == "network" {
+							object = "network@" + msg.Actor.Attributes["name"]
+						} else if msg.Type == "image" {
+							object = "image@" + msg.Actor.Attributes["name"]
+						} else if msg.Type == "volume" && msg.Actor.Attributes["name"] != "" {
+							object = "volume@" + msg.Actor.Attributes["name"]
+						}
+						
+						utils.TriggerEvent(
+							"cosmos.docker.event." + msg.Type + "." + msg.Action,
+							"Docker Event " + msg.Type + " " + msg.Action,
+							level,
+							object,
+							map[string]interface{}{
+							"type": msg.Type,
+							"action": msg.Action,
+							"actor": msg.Actor,
+							"status": msg.Status,
+							"from": msg.From,
+							"scope": msg.Scope,
+						})
 					}
-					if msg.Action == "destroy" || msg.Action == "delete" || msg.Action == "kill" || msg.Action == "die" {
-						level = "warning"
-					}
-					if msg.Action == "create" || msg.Action == "start" {
-						level = "success"
-					}
-					
-					object := ""
-					if msg.Type == "container" {
-						object = "container@" + msg.Actor.Attributes["name"]
-					} else if msg.Type == "network" {
-						object = "network@" + msg.Actor.Attributes["name"]
-					} else if msg.Type == "image" {
-						object = "image@" + msg.Actor.Attributes["name"]
-					} else if msg.Type == "volume" && msg.Actor.Attributes["name"] != "" {
-						object = "volume@" + msg.Actor.Attributes["name"]
-					}
-					
-					utils.TriggerEvent(
-						"cosmos.docker.event." + msg.Type + "." + msg.Action,
-						"Docker Event " + msg.Type + " " + msg.Action,
-						level,
-						object,
-						map[string]interface{}{
-						"type": msg.Type,
-						"action": msg.Action,
-						"actor": msg.Actor,
-						"status": msg.Status,
-						"from": msg.From,
-						"scope": msg.Scope,
-					})
 			}
 		}
 	}()

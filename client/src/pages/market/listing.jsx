@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Input, InputAdornment, Stack } from "@mui/material";
+import { Box, CircularProgress, Input, InputAdornment, Stack, Tooltip } from "@mui/material";
 import { HomeBackground, TransparentHeader } from "../home";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
@@ -10,18 +10,42 @@ import { Paper, Button, Chip } from '@mui/material'
 import { Link } from "react-router-dom";
 import { Link as LinkMUI } from '@mui/material'
 import DockerComposeImport from '../servapps/containers/docker-compose';
-import { AppstoreAddOutlined, SearchOutlined } from "@ant-design/icons";
+import { AppstoreAddOutlined, SearchOutlined, WarningOutlined } from "@ant-design/icons";
 import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
+import EditSourcesModal from "./sources";
 
 function Screenshots({ screenshots }) {
+  const aspectRatioContainerStyle = {
+    position: 'relative',
+    overflow: 'hidden',
+    paddingTop: '56.25%', // 9 / 16 = 0.5625 or 56.25%
+    height: 0,
+  };
+
+  // This will position the image correctly within the aspect ratio container
+  const imageStyle = {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover', // This will cover the area without losing the aspect ratio
+  };
+
   return screenshots.length > 1 ? (
     <Carousel animation="slide" navButtonsAlwaysVisible={false} fullHeightHover="true" swipe={false}>
       {
-        screenshots.map((item, i) => <img style={{ maxHeight: '300px', height: '100%', maxWidth: '100%' }} key={i} src={item} />)
+        screenshots.map((item, i) => <div style={{height: "400px"}}>
+          <img style={{ maxHeight: '100%', width: '100%' }} key={i} src={item} />
+        </div>)
       }
     </Carousel>)
-    : <img src={screenshots[0]} style={{ maxHeight: '300px', height: '100%', maxWidth: '100%' }} />
+    : <div style={{height: "400px"}}>
+        <img src={screenshots[0]} style={{ maxHeight: '100%', width: '100%' }} />
+      </div>
 }
 
 function Showcases({ showcase, isDark, isAdmin }) {
@@ -122,17 +146,43 @@ const MarketPage = () => {
     // borderTop: '1px solid rgb(220,220,220)'
   };
 
-  useEffect(() => {
+  const refresh = () => {
     API.market.list().then((res) => {
       setApps(res.data.all);
       setShowcase(res.data.showcase);
     });
+  };
+
+  useEffect(() => {
+    refresh();
   }, []);
 
   let openedApp = null;
   if (appName && Object.keys(apps).length > 0) {
     openedApp = apps[appStore].find((app) => app.name === appName);
+    openedApp.appstore = appStore;
   }
+
+  let appList = apps && Object.keys(apps).reduce((acc, appstore) => {
+    const a = apps[appstore].map((app) => {
+      app.appstore = appstore;
+      return app;
+    });
+
+    return acc.concat(a);
+  }, []);
+
+  appList.sort((a, b) => {
+    if (a.name > b.name) {
+      return 1;
+    }
+
+    if (a.name < b.name) {
+      return -1;
+    }
+
+    return 0;
+  });
 
   return <>
     <HomeBackground />
@@ -186,7 +236,7 @@ const MarketPage = () => {
 
           <Stack direction="row" spacing={2}>
             <img src={openedApp.icon} style={{ width: '36px', height: '36px' }} />
-            <h2>{openedApp.name}</h2>
+            <h2>{openedApp.name} <span style={{color:'grey'}}>{openedApp.appstore != 'cosmos-cloud' ? (' @ '+openedApp.appstore) : ''}</span></h2>
           </Stack>
 
           <div>
@@ -197,6 +247,14 @@ const MarketPage = () => {
             {openedApp.supported_architectures && openedApp.supported_architectures.slice(0, 8).map((tag) => <Chip label={tag} />)}
           </div>
 
+          {openedApp.appstore != 'cosmos-cloud' && <div>
+            <div>
+            <Tooltip title="This app is not hosted on the Cosmos Cloud App Store. It is not officially verified and tested.">
+                <WarningOutlined />
+              </Tooltip> <strong>source:</strong> {openedApp.appstore} 
+            </div>
+          </div>}
+          
           <div>
             <div><strong>repository:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
             <div><strong>image:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
@@ -259,6 +317,7 @@ const MarketPage = () => {
             >Start ServApp</ResponsiveButton>
           </Link>
           <DockerComposeImport refresh={() => { }} />
+          <EditSourcesModal onSave={refresh} />
         </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
@@ -275,8 +334,7 @@ const MarketPage = () => {
         </Box>}
 
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
-          {Object.keys(apps).map(appstore => apps[appstore]
-            .filter((app) => {
+          {appList.filter((app) => {
               if (!search || search.length <= 2) {
                 return true;
               }
@@ -284,17 +342,18 @@ const MarketPage = () => {
                 app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
             })
             .map((app) => {
-              return <Grid2 style={{
+              return <Grid2
+              style={{
                 ...gridAnim,
                 cursor: 'pointer',
-              }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name} item><Link to={"/cosmos-ui/market-listing/" + appstore + "/" + app.name} style={{
+              }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name + app.appstore} item><Link to={"/cosmos-ui/market-listing/" + app.appstore + "/" + app.name} style={{
                 textDecoration: 'none',
               }}>
                   <div key={app.name} style={appCardStyle(theme)}>
                     <Stack spacing={3} direction={'row'} alignItems={'center'} style={{ padding: '0px 15px' }}>
                       <img src={app.icon} style={{ width: 64, height: 64 }} />
                       <Stack spacing={1}>
-                        <div style={{ fontWeight: "bold" }}>{app.name}</div>
+                        <div style={{ fontWeight: "bold" }}>{app.name}<span style={{color:'grey'}}>{app.appstore != 'cosmos-cloud' ? (' @ '+app.appstore) : ''}</span></div>
                         <div style={{
                           height: '40px',
                           overflow: 'hidden',
@@ -317,7 +376,7 @@ const MarketPage = () => {
 
                 </Link>
               </Grid2>
-            }))}
+            })}
         </Grid2>}
       </Stack>
     </Stack>

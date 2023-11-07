@@ -147,5 +147,15 @@ func SendEmail(recipients []string, subject string, body string) error {
 		ServerURL,
 	))
 	
+	TriggerEvent(
+		"cosmos.email.send",
+		"Email sent",
+		"success",
+		"",
+		map[string]interface{}{
+			"recipients": recipients,
+			"subject": subject,
+	})
+
 	return send(hostPort, auth, config.EmailConfig.From, recipients, msg)
 }

@@ -86,6 +86,15 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			utils.TriggerEvent(
+				"cosmos.user.passwordreset",
+				"Password reset sent",
+				"success",
+				"",
+				map[string]interface{}{
+					"nickname": user.Nickname,
+			})
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 			})

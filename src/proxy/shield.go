@@ -38,11 +38,11 @@ type smartShieldState struct {
 }
 
 type userUsedBudget struct {
-	ClientID string
-	Time float64
-	Requests int
-	Bytes int64
-	Simultaneous int
+	ClientID string `json:"clientID"`
+	Time float64 `json:"time"`
+	Requests int `json:"requests"`
+	Bytes int64 `json:"bytes"`
+	Simultaneous int `json:"simultaneous"`
 }
 
 var shield smartShieldState
@@ -379,6 +379,20 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 				lastBan := shield.GetLastBan(policy, userConsumed)
 				go metrics.PushShieldMetrics("smart-shield")
 				utils.IncrementIPAbuseCounter(clientID)
+
+				utils.TriggerEvent(
+					"cosmos.proxy.shield.abuse." + route.Name,
+					"Proxy Shield " + route.Name + " Abuse by " + clientID,
+					"warning",
+					"route@" + route.Name,
+					map[string]interface{}{
+					"route": route.Name,
+					"consumed": userConsumed,
+					"lastBan": lastBan,
+					"clientID": clientID,
+					"url": r.URL,
+				})
+
 				utils.Log("SmartShield: User is blocked due to abuse: " + fmt.Sprintf("%+v", lastBan))
 				http.Error(w, "Too many requests", http.StatusTooManyRequests)
 				return

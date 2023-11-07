@@ -47,7 +47,7 @@ export const CosmosInputText = ({ name, style, value, errors, multiline, type, p
       <OutlinedInput
         id={name}
         type={type ? type : 'text'}
-        value={value || (formik && formik.values[name])}
+        value={value || (formik && getNestedValue(formik.values, name))}
         name={name}
         multiline={multiline}
         onBlur={(...ar) => {
@@ -101,7 +101,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
       <OutlinedInput
         id={name}
         type={showPassword ? 'text' : 'password'}
-        value={formik.values[name]}
+        value={getNestedValue(formik.values, name)}
         name={name}
         autoComplete={autoComplete}
         onBlur={formik.handleBlur}

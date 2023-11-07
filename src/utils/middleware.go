@@ -163,6 +163,15 @@ func CORSHeader(origin string) func(next http.Handler) http.Handler {
 	}
 }
 
+func PublicCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func AcceptHeader(accept string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -218,6 +227,18 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 						if blocked {
 							PushShieldMetrics("geo")
 							IncrementIPAbuseCounter(ip)
+
+							TriggerEvent(
+								"cosmos.proxy.shield.geo",
+								"Proxy Shield  Geo blocked",
+								"warning",
+								"",
+								map[string]interface{}{
+								"clientID": ip,
+								"country": countryCode,
+								"url": r.URL.String(),
+							})
+
 							http.Error(w, "Access denied", http.StatusForbidden)
 							return
 						}
@@ -253,6 +274,16 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 
 				ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 				if ip != "" {
+					TriggerEvent(
+						"cosmos.proxy.shield.referer",
+						"Proxy Shield  Referer blocked",
+						"warning",
+						"",
+						map[string]interface{}{
+						"clientID": ip,
+						"url": r.URL.String(),
+					})
+
 					IncrementIPAbuseCounter(ip)
 				}
 
@@ -295,6 +326,16 @@ func EnsureHostname(next http.Handler) http.Handler {
 			
 			ip, _, _ := net.SplitHostPort(r.RemoteAddr)
 			if ip != "" {
+				TriggerEvent(
+					"cosmos.proxy.shield.hostname",
+					"Proxy Shield hostname blocked",
+					"warning",
+					"",
+					map[string]interface{}{
+					"clientID": ip,
+					"hostname": r.Host,
+					"url": r.URL.String(),
+				})
 				IncrementIPAbuseCounter(ip)
 			}
 
@@ -389,6 +430,17 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			if(!isInConstellation) {
 				if(!isUsingWhiteList) {
 					PushShieldMetrics("ip-whitelists")
+
+					TriggerEvent(
+						"cosmos.proxy.shield.whitelist",
+						"Proxy Shield IP blocked by whitelist",
+						"warning",
+						"",
+						map[string]interface{}{
+						"clientID": ip,
+						"url": r.URL.String(),
+					})
+
 					IncrementIPAbuseCounter(ip)
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
@@ -396,6 +448,17 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 					return
 				} else if (!isInWhitelist) {
 					PushShieldMetrics("ip-whitelists")
+					
+					TriggerEvent(
+						"cosmos.proxy.shield.whitelist",
+						"Proxy Shield IP blocked by whitelist",
+						"warning",
+						"",
+						map[string]interface{}{
+						"clientID": ip,
+						"url": r.URL.String(),
+					})
+
 					IncrementIPAbuseCounter(ip)
 					Error("Request from " + ip + " is blocked because of restrictions", nil)
 					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
@@ -405,6 +468,17 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 			}
 		} else if(isUsingWhiteList && !isInWhitelist) {
 			PushShieldMetrics("ip-whitelists")
+
+			TriggerEvent(
+				"cosmos.proxy.shield.whitelist",
+				"Proxy Shield IP blocked by whitelist",
+				"warning",
+				"",
+				map[string]interface{}{
+				"clientID": ip,
+				"url": r.URL.String(),
+			})
+
 			IncrementIPAbuseCounter(ip)
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
 			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")

@@ -1,27 +1,31 @@
 ## Version 0.12.0
- - New Dashboard
- - New metrics gathering system
- - New alerts system
- - New notification center
- - New events manager
- - Integrated a new docker-less mode of functioning for networking
- - Added Button to force reset HTTPS cert in settings
- - New color slider with reset buttons
+ - New real time persisting andd optimized metrics monitoring system (RAM, CPU, Network, disk, requests, errors, etc...)
+ - New Dashboard with graphs for metrics, including graphs in many screens such as home, routes and servapps
+ - New customizable alerts system based on metrics in real time, with included preset for anti-crypto mining and anti memory leak 
+ - New events manager (improved logs with requests and advanced search)
+ - New notification system
+ - Added Marketplace UI to edit sources, with new display of 3rd party sources
  - Added a notification when updating a container, renewing certs, etc...
+ - Certificates now renew sooner to avoid Let's Encrypt sending emails about expiring certificates
+ - Added option to disable routes without deleting them
  - Improved icon loading speed, and added proper placeholder
- - Added lazyloading to URL and Servapp pages images
+ - Marketplace now fetch faster (removed the domain indirection to directly fetch from github)
+ - Integrated a new docker-less mode of functioning for networking
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
  - Added a button in the servapp page to easily download the docker backup
+ - Added Button to force reset HTTPS cert in settings
+ - Added lazyloading to URL and Servapp pages images
+ - Fixed annoying marketplace screenshot bug (you know what I'm talking about!)
+ - New color slider with reset buttons
  - Redirect static folder to host if possible
  - New Homescreen look
- - Added option to disable routes without deleting them
  - Fixed blinking modals issues
  - Improve display or icons [fixes #121]
  - Refactored Mongo connection code [fixes #111]
  - Forward simultaneously TCP and UDP [fixes #122]
 
 ## Version 0.11.3
- - Fix missing even subscriber on export
+ - Fix missing event subscriber on export
 
 ## Version 0.11.2
  - Improve Docker exports logs

@@ -16,8 +16,7 @@
 
 [![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA) ![CircleCI](https://img.shields.io/circleci/build/github/azukaar/Cosmos-Server?token=6efd010d0f82f97175f04a6acf2dae2bbcc4063c&style=flat-square)
 
-Cosmos is a self-hosted platform for running server applications securely and with built-in privacy features. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
-
+☁️ Cosmos is the most secure and easy way to selfhost a Home Server. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
 
 <p align="center">
   <br/>
@@ -37,7 +36,7 @@ Cosmos is a self-hosted platform for running server applications securely and wi
 
 ![screenshot1](./screenshot1.png)
 
-Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
+Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution torun and secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
 Cosmos is a: 
 
@@ -155,7 +154,7 @@ in this command, `-v /:/mnt/host` is optional and allow to manage folders from C
 
 `--privileged` is also optional, but it is required if you use hardening software like AppArmor or SELinux, as they restrict access to the docker socket. It is also required for Constellation to work. If you don't want to use it, you can add the following capabilities: NET_ADMIN for Constellation.
 
-Once installed, simply go to `http://your-server-ip` and follow the instructions of the setup wizard.
+Once installed, simply go to `http://your-server-ip` and follow the instructions of the setup wizard. **always start the install with the browser in incognito mode** to avoid issues with your browser cache.
 
 Port 4242 is a UDP port used for the Constellation VPN.
 

@@ -61,8 +61,23 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 				continue
 			}
 
+			result.Source = cachedMarket.Url
+			if cachedMarket.Name != "cosmos-cloud" {
+				result.Showcase = []appDefinition{}
+			}
+
 			cachedMarket.Results = result
 			cachedMarket.LastUpdate = time.Now()
+
+			utils.TriggerEvent(
+				"cosmos.market.update",
+				"Market updated",
+				"success",
+				"",
+				map[string]interface{}{
+					"market": cachedMarket.Name,
+					"numberOfApps": len(result.All),
+			})
 
 			utils.Log("MarketUpdate: Updated market " + result.Source + " with " + string(len(result.All)) + " results")
 

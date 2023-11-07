@@ -101,6 +101,15 @@ func RecreateContainer(containerID string, containerConfig types.ContainerJSON) 
 	} else {
 		return EditContainer(containerID, containerConfig, false)
 	}
+	
+	utils.TriggerEvent(
+		"cosmos.docker.recreate",
+		"Cosmos Container Recreate",
+		"success",
+		"container@" + containerID,
+		map[string]interface{}{
+			"container": containerID,
+	})
 
 	return "", nil
 }

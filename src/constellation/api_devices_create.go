@@ -147,6 +147,18 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			utils.TriggerEvent(
+				"cosmos.constellation.device.create",
+				"Device created",
+				"success",
+				"",
+				map[string]interface{}{
+					"deviceName": deviceName,
+					"nickname": nickname,
+					"publicKey": key,
+					"ip": request.IP,
+			})
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{

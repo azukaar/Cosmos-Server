@@ -95,6 +95,14 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 
 	config.HTTPConfig.ProxyConfig.Routes = routes
 	utils.SetBaseMainConfig(config)
+
+	utils.TriggerEvent(
+		"cosmos.settings",
+		"Settings updated",
+		"success",
+		"",
+		map[string]interface{}{
+	})
 	
 	utils.RestartHTTPServer()
 		

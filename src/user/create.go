@@ -77,6 +77,15 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 				return 
 			} 
 			
+			utils.TriggerEvent(
+				"cosmos.user.create",
+				"User created",
+				"success",
+				"",
+				map[string]interface{}{
+					"nickname": nickname,
+			})
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{

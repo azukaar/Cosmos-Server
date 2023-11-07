@@ -49,6 +49,16 @@ func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		utils.TriggerEvent(
+			"cosmos.docker.isolate",
+			"Container network isolation changed",
+			"success",
+			"container@"+containerName,
+			map[string]interface{}{
+				"container": containerName,
+				"status": status,
+		})
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})

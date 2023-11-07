@@ -40,6 +40,14 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		request.NewInstall = config.NewInstall
 
 		utils.SetBaseMainConfig(request)
+		
+		utils.TriggerEvent(
+			"cosmos.settings",
+			"Settings updated",
+			"success",
+			"",
+			map[string]interface{}{
+		})
 
 		utils.DisconnectDB()
 		authorizationserver.Init()

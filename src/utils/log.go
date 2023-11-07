@@ -57,6 +57,16 @@ func MajorError(message string, err error) {
 		log.Println(Red + "[ERROR] " + message + " : " + errStr + Reset)
 	}
 	
+	TriggerEvent(
+		"cosmos.error",
+		"Critical Error",
+		"error",
+		"",
+		map[string]interface{}{
+			"message": message,
+			"error": errStr,
+	})
+
 	WriteNotification(Notification{
 		Recipient: "admin",
 		Title: "Server Error",

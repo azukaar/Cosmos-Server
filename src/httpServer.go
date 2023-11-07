@@ -147,7 +147,7 @@ func tokenMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func SecureAPI(userRouter *mux.Router, public bool) {
+func SecureAPI(userRouter *mux.Router, public bool, publicCors bool) {
 	if(!public) {
 		userRouter.Use(tokenMiddleware)
 	}
@@ -162,9 +162,13 @@ func SecureAPI(userRouter *mux.Router, public bool) {
 			},
 		},
 	))
+
+	if(publicCors || public) {
+		userRouter.Use(utils.PublicCORS)
+	}
+
 	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))
-	userRouter.Use(proxy.BotDetectionMiddleware)
-	userRouter.Use(httprate.Limit(120, 1*time.Minute, 
+	userRouter.Use(httprate.Limit(180, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
     httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			utils.Error("Too many requests. Throttling", nil)
@@ -334,7 +338,7 @@ func InitServer() *mux.Router {
 	}
 	
 	logoAPI := router.PathPrefix("/logo").Subrouter()
-	SecureAPI(logoAPI, true)
+	SecureAPI(logoAPI, true, true)
 	logoAPI.HandleFunc("/", SendLogo)
 	
 	
@@ -413,7 +417,7 @@ func InitServer() *mux.Router {
 		srapi.Use(utils.EnsureHostname)
 	}
 
-	SecureAPI(srapi, false)
+	SecureAPI(srapi, false, false)
 	
 	pwd,_ := os.Getwd()
 	utils.Log("Starting in " + pwd)
@@ -437,13 +441,13 @@ func InitServer() *mux.Router {
 	}))
 
 	userRouter := router.PathPrefix("/oauth2").Subrouter()
-	SecureAPI(userRouter, false)
+	SecureAPI(userRouter, false, true)
 
 	serverRouter := router.PathPrefix("/oauth2").Subrouter()
-	SecureAPI(serverRouter, true)
+	SecureAPI(serverRouter, true, true)
 
 	wellKnownRouter := router.PathPrefix("/").Subrouter()
-	SecureAPI(wellKnownRouter, true)
+	SecureAPI(wellKnownRouter, true, true)
 
 	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
 

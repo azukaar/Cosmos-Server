@@ -966,6 +966,20 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	OnLog("\n")
 	OnLog(utils.DoSuccess("[OPERATION SUCCEEDED]. SERVICE STARTED\n"))
 
+	servicesNames := []string{}
+	for _, service := range serviceRequest.Services {
+		servicesNames = append(servicesNames, service.Name)
+	}
+
+	utils.TriggerEvent(
+		"cosmos.docker.compose.create",
+		"Service created",
+		"success",
+		"",
+		map[string]interface{}{
+			"services": servicesNames,
+	})
+
 	return nil
 }
 
