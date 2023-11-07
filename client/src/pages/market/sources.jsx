@@ -81,7 +81,7 @@ const EditSourcesModal = ({ onSave }) => {
     validate: (values) => {
       const errors = {};
 
-      values.sources.forEach((source, index) => {
+      values.sources && values.sources.forEach((source, index) => {
         if (source.Name === '') {
           errors[`sources.${index}.Name`] = 'Name is required';
         }
@@ -105,7 +105,7 @@ const EditSourcesModal = ({ onSave }) => {
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2}>
-            {formik.values.sources
+            {formik.values.sources && formik.values.sources
             .map((action, index) => {
               return !action.removed && <>
                 <Stack spacing={0} key={index}>
