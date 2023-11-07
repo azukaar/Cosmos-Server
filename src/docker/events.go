@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 	"time"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 
@@ -60,7 +61,7 @@ func DockerListenEvents() error {
 						onNetworkConnect(msg.Actor.ID)
 					}
 
-					if msg.Action != "exec_create" && msg.Action != "exec_start" && msg.Action != "exec_die" {
+					if !strings.HasPrefix(msg.Action, "exec_") {
 						level := "info"
 						if msg.Type == "image" {
 							level = "debug"
