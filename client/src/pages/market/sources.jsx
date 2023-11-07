@@ -55,7 +55,7 @@ const EditSourcesModal = ({ onSave }) => {
 
   const formik = useFormik({
     initialValues: {
-      sources: config ? config.MarketConfig.Sources : [],
+      sources: (config && config.MarketConfig.Sources) ? config.MarketConfig.Sources : [],
     },
     enableReinitialize: true, // This will reinitialize the form when `config` changes
     // validationSchema: AlertValidationSchema,
@@ -82,6 +82,10 @@ const EditSourcesModal = ({ onSave }) => {
       const errors = {};
 
       values.sources && values.sources.forEach((source, index) => {
+        if (source.removed) {
+          return;
+        }
+
         if (source.Name === '') {
           errors[`sources.${index}.Name`] = 'Name is required';
         }
@@ -89,10 +93,12 @@ const EditSourcesModal = ({ onSave }) => {
           errors[`sources.${index}.Url`] = 'URL is required';
         }
 
-        if (source.Name === 'cosmos-cloud' || values.sources.filter((s) => s.Name === source.Name).length > 1) {
+        if (source.Name === 'cosmos-cloud' || values.sources.filter((s) => s.Name === source.Name && !s.removed).length > 1) {
           errors[`sources.${index}.Name`] = 'Name must be unique';
         }
       });
+
+      console.log(errors)
   
       return errors;
     }
