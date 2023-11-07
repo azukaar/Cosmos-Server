@@ -22,7 +22,7 @@
  - Fixed blinking modals issues
  - Add AutoFocus on Token field for 2FA Authentication (thanks @InterN0te)
  - Allow Insecure TLS like self-signed certificate for SMTP server (thanks @InterN0te)
- - Improve display or icons [fixes #121]
+ - Improve display of icons [fixes #121]
  - Refactored Mongo connection code [fixes #111]
  - Forward simultaneously TCP and UDP [fixes #122]
 
