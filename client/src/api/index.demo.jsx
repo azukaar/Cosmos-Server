@@ -3,23 +3,29 @@ export const getStatus = () => {
   return new Promise((resolve, reject) => {
     resolve({
       "data": {
+        "AVX": true,
+        "CPU": "amd64",
         "HTTPSCertificateMode": "LETSENCRYPT",
+        "LetsEncryptErrors": [],
+        "MonitoringDisabled": false,
+        "backup_status": "",
         "database": true,
         "docker": true,
         "domain": false,
-        "letsencrypt": false,
-        "needsRestart": false,
-        "newVersionAvailable": false,
         "homepage": {
-          "Background": "",
+          "Background": "/cosmos/api/background/avif",
           "Widgets": null,
           "Expanded": false
         },
+        "hostname": "yann-server.com",
+        "letsencrypt": false,
+        "needsRestart": false,
+        "newVersionAvailable": false,
+        "resources": {},
         "theme": {
-          "PrimaryColor": "",
+          "PrimaryColor": "rgba(191, 100, 64, 1)",
           "SecondaryColor": ""
-        },
-        "LetsEncryptErrors": [],
+        }
       },
       "status": "OK"
     });

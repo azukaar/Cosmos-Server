@@ -2,8 +2,15 @@ import React from 'react';
 import { useCookies } from 'react-cookie';
 import { logout } from '../api/authentication';
 
+const isDemo = import.meta.env.MODE === 'demo';
+
 function useClientInfos() {
   const [cookies] = useCookies(['client-infos']);
+
+  if(isDemo) return {
+    nickname: "Demo",
+    role: "2" 
+  };
 
   let clientInfos = null;
   
@@ -19,7 +26,7 @@ function useClientInfos() {
     console.error('Error parsing client-infos cookie:', error);
     return {
       nickname: "",
-      role: 2
+      role: "2"
     };
   }
 }

@@ -1,5 +1,5 @@
 ## Version 0.12.0
- - New real time persisting andd optimized metrics monitoring system (RAM, CPU, Network, disk, requests, errors, etc...)
+ - New real time persisting and optimized metrics monitoring system (RAM, CPU, Network, disk, requests, errors, etc...)
  - New Dashboard with graphs for metrics, including graphs in many screens such as home, routes and servapps
  - New customizable alerts system based on metrics in real time, with included preset for anti-crypto mining and anti memory leak 
  - New events manager (improved logs with requests and advanced search)
@@ -12,6 +12,7 @@
  - Marketplace now fetch faster (removed the domain indirection to directly fetch from github)
  - Integrated a new docker-less mode of functioning for networking
  - Added a dangerous IP detector that stops sending HTTP response to IPs that are abusing various shields features
+ - Added CORS headers to openID endpoints
  - Added a button in the servapp page to easily download the docker backup
  - Added Button to force reset HTTPS cert in settings
  - Added lazyloading to URL and Servapp pages images

@@ -46,6 +46,7 @@ Cosmos is a:
  * **Authentication Server** 👦👩 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Container manager** 🐋🔧 To easily manage your containers and their settings, keep them up to date as well as audit their security. Includes docker-compose support!
  * **VPN** 🌐🔒 To securely access your applications from anywhere, without having to open ports on your router.
+ * **Monitoring** 📈📊 Fully persisting and real-time monitoring with customizable alerts and notifications, so you can be notified of any issue.
  * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
  * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies.
 
@@ -65,9 +66,11 @@ And a **lot more planned features** are coming!
 
 Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc...
 
-<p align="center">
-  <img src="./compare.png" />
+<p align="center" style="color:grey">
+  <img src="./compare.png" /><br />
+  * Only containers created with their UI, with no customization, * No alerts
 </p>
+
 
 * **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
 * **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who kows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!

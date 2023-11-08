@@ -21,7 +21,7 @@
 						"Name": "Jellyfin",
 						"Description": "Expose Jellyfin to the internet",
 						"UseHost": true,
-						"Host": "play.cosmos-cloud.io",
+						"Host": "play.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 14400000,
@@ -50,7 +50,7 @@
 						"Name": "Documents Folder",
 						"Description": "Share my Documents",
 						"UseHost": true,
-						"Host": "documents.cosmos-cloud.io",
+						"Host": "documents.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 14400000,
@@ -79,7 +79,7 @@
 						"Name": "Navidrome",
 						"Description": "Expose navidrome to the internet",
 						"UseHost": true,
-						"Host": "navidrome.cosmos-cloud.io",
+						"Host": "navidrome.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 0,
@@ -108,7 +108,7 @@
 						"Name": "Plex",
 						"Description": "Expose Plex to the internet",
 						"UseHost": true,
-						"Host": "plex.cosmos-cloud.io",
+						"Host": "plex.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 0,
@@ -137,7 +137,7 @@
 						"Name": "Radarr",
 						"Description": "Expose Radarr to the internet",
 						"UseHost": true,
-						"Host": "radarr.cosmos-cloud.io",
+						"Host": "radarr.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 30000,
@@ -166,7 +166,7 @@
 						"Name": "Sonarr",
 						"Description": "Expose Sonarr to the internet",
 						"UseHost": true,
-						"Host": "sonarr.cosmos-cloud.io",
+						"Host": "sonarr.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 30000,
@@ -195,7 +195,7 @@
 						"Name": "nzbget",
 						"Description": "Expose nzbget to the internet",
 						"UseHost": true,
-						"Host": "nzbget.cosmos-cloud.io",
+						"Host": "nzbget.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 999999999,
@@ -224,7 +224,7 @@
 						"Name": "photoprism",
 						"Description": "Expose photoprism to the internet",
 						"UseHost": true,
-						"Host": "photoprism.cosmos-cloud.io",
+						"Host": "photoprism.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 45000,
@@ -253,7 +253,7 @@
 						"Name": "Owncloud",
 						"Description": "Expose Owncloud to the internet",
 						"UseHost": true,
-						"Host": "owncloud.cosmos-cloud.io",
+						"Host": "owncloud.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 0,
@@ -282,7 +282,7 @@
 						"Name": "Lidarr",
 						"Description": "Expose Lidarr to the internet",
 						"UseHost": true,
-						"Host": "lidarr.cosmos-cloud.io",
+						"Host": "lidarr.xxxxxxxxxxxxx",
 						"UsePathPrefix": false,
 						"PathPrefix": "",
 						"Timeout": 30000,
@@ -309,8 +309,85 @@
 					}
 				]
 			},
-			"Hostname": "cosmos-cloud.io",
+			"Hostname": "xxxxxxxxxxxxx",
 			"SSLEmail": "myemail@gmail.com"
+		},
+		"MonitoringAlerts": {
+			"Anti Crypto-Miner": {
+				"Name": "Anti Crypto-Miner",
+				"Enabled": true,
+				"Period": "daily",
+				"TrackingMetric": "cosmos.system.docker.cpu.*",
+				"Condition": {
+					"Operator": "gt",
+					"Value": 80
+				},
+				"Actions": [
+					{
+						"Type": "notification",
+						"Target": ""
+					},
+					{
+						"Type": "email",
+						"Target": ""
+					},
+					{
+						"Type": "stop",
+						"Target": ""
+					}
+				],
+				"LastTriggered": "0001-01-01T00:00:00Z",
+				"Throttled": false,
+				"Severity": "warn"
+			},
+			"Anti Memory Leak": {
+				"Name": "Anti Memory Leak",
+				"Enabled": true,
+				"Period": "daily",
+				"TrackingMetric": "cosmos.system.docker.ram.*",
+				"Condition": {
+					"Percent": true,
+					"Operator": "gt",
+					"Value": 80
+				},
+				"Actions": [
+					{
+						"Type": "notification",
+						"Target": ""
+					},
+					{
+						"Type": "email",
+						"Target": ""
+					},
+					{
+						"Type": "stop",
+						"Target": ""
+					}
+				],
+				"LastTriggered": "0001-01-01T00:00:00Z",
+				"Throttled": false,
+				"Severity": "warn"
+			},
+			"Disk Full Notification": {
+				"Name": "Disk Full Notification",
+				"Enabled": true,
+				"Period": "latest",
+				"TrackingMetric": "cosmos.system.disk./",
+				"Condition": {
+					"Percent": true,
+					"Operator": "gt",
+					"Value": 95
+				},
+				"Actions": [
+					{
+						"Type": "notification",
+						"Target": ""
+					}
+				],
+				"LastTriggered": "0001-01-01T00:00:00Z",
+				"Throttled": true,
+				"Severity": "warn"
+			}
 		},
 		"EmailConfig": {
 			"Enabled": true,

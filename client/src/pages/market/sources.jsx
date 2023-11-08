@@ -55,7 +55,7 @@ const EditSourcesModal = ({ onSave }) => {
 
   const formik = useFormik({
     initialValues: {
-      sources: (config && config.MarketConfig.Sources) ? config.MarketConfig.Sources : [],
+      sources: (config && config.MarketConfig && config.MarketConfig.Sources) ? config.MarketConfig.Sources : [],
     },
     enableReinitialize: true, // This will reinitialize the form when `config` changes
     // validationSchema: AlertValidationSchema,
