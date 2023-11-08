@@ -113,12 +113,12 @@ func flushBuffer(collectionName string) {
 		collection, errG := GetCollection(GetRootAppId(), collectionName)
 		if errG != nil {
 			Error("BulkDBWritter: Error getting collection", errG)
+		} else {
+			if err := WriteToDatabase(collection, objects); err != nil {
+				Error("BulkDBWritter: Error writing to database", err)
+			}
+			writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 		}
-
-		if err := WriteToDatabase(collection, objects); err != nil {
-			Error("BulkDBWritter: Error writing to database", err)
-		}
-		writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 	}
 }
 
@@ -130,12 +130,12 @@ func flushAllBuffers() {
 			collection, errG := GetCollection(GetRootAppId(), collectionName)
 			if errG != nil {
 				Error("BulkDBWritter: Error getting collection", errG)
+			} else {
+				if err := WriteToDatabase(collection, objects); err != nil {
+					Error("BulkDBWritter: Error writing to database: ", err)
+				}
+				writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 			}
-
-			if err := WriteToDatabase(collection, objects); err != nil {
-				Error("BulkDBWritter: Error writing to database: ", err)
-			}
-			writeBuffer[collectionName] = make([]map[string]interface{}, 0)
 		}
 	}
 }
