@@ -9,7 +9,6 @@
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/owengraven"><img src="https://avatars.githubusercontent.com/owengraven" style="border-radius:48px" width="48" height="48" alt="Owen" title="Owen" /></a>
-<a href="https://github.com/saltyautomation"><img src="https://avatars.githubusercontent.com/saltyautomation" style="border-radius:48px" width="48" height="48" alt="T Morton" title="T Morton" /></a>
 </p><!-- /sponsors -->
 
 ---
