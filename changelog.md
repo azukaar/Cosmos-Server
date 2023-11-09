@@ -1,3 +1,9 @@
+## Version 0.12.2
+ - Fix XSS vulnerability in the redirect function (thanks @catmandx)
+
+## Version 0.12.1
+ - Fix a crash that would occasionally happen since 0.12 the DB is down
+
 ## Version 0.12.0
  - New real time persisting and optimized metrics monitoring system (RAM, CPU, Network, disk, requests, errors, etc...)
  - New Dashboard with graphs for metrics, including graphs in many screens such as home, routes and servapps
