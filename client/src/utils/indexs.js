@@ -43,7 +43,9 @@ export const redirectTo = (url) => {
 }
 
 export const redirectToLocal = (url) => {
-  if(url.startsWith("http://") || url.startsWith("https://")) {
+  let redirectUrl = new URL(url, window.location.href);
+  let currentLocation = window.location;
+  if (redirectUrl.origin != currentLocation.origin){
     throw new Error("URL must be local");
   }
   window.location.href = url;
