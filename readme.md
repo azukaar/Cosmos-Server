@@ -9,6 +9,8 @@
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/owengraven"><img src="https://avatars.githubusercontent.com/owengraven" style="border-radius:48px" width="48" height="48" alt="Owen" title="Owen" /></a>
+<a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/Dimtar"><img src="https://avatars.githubusercontent.com/Dimtar" style="border-radius:48px" width="48" height="48" alt="Daniel C" title="Daniel C" /></a>
 </p><!-- /sponsors -->
 
 ---
@@ -153,6 +155,8 @@ Installation is simple using Docker:
 ```
 docker run -d -p 80:80 -p 443:443 -p 4242:4242/udp --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
+
+#### DO NOT USE UNRAID TEMPLATES OR PORTAINER STACKS TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY.
 
 in this command, `-v /:/mnt/host` is optional and allow to manage folders from Cosmos, you can remove it if you don't want it but you will have to create your container's bind folders manually.
 
