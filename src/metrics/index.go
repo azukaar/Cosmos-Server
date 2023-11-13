@@ -5,9 +5,10 @@ import (
 	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
-
+	
 	"github.com/azukaar/cosmos-server/src/utils"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type DataDef struct {
@@ -74,23 +75,21 @@ func MergeMetric(SetOperation string, currentValue int, newValue int, avgIndex i
 func SaveMetrics() {
 	utils.Debug("Metrics - Saving data")
 	utils.Debug("Time: " + time.Now().String())
-	nbData := 0
 
 	c, errCo := utils.GetCollection(utils.GetRootAppId(), "metrics")
 	if errCo != nil {
-			utils.Error("Metrics - Database Connect", errCo)
-			return
+		utils.Error("Metrics - Database Connect", errCo)
+		return
 	}
 
 	lock <- true
 	defer func() { <-lock }()
 
+	var operations []mongo.WriteModel
+
 	for dpkey, dp := range dataBuffer {
-		// utils.Debug("Metrics - Saving " + dp.Key + " " + strconv.Itoa(dp.Value) + " " + dp.Date.String() + " " + dp.Expire.String())
-		
 		if dp.Expire.Before(time.Now()) {
 			delete(dataBuffer, dpkey)
-			nbData++
 
 			scale := 1
 			if dp.Scale != 0 {
@@ -99,43 +98,51 @@ func SaveMetrics() {
 
 			filter := bson.M{"Key": dp.Key}
 			update := bson.M{
-					"$push": bson.M{"Values": 
-						bson.M{
-							"Date": dp.Date,
-							"Value": dp.Value,
-						},
+				"$push": bson.M{"Values": 
+					bson.M{
+						"Date": dp.Date,
+						"Value": dp.Value,
 					},
-					"$set": bson.M{
-							"LastUpdate": dp.Date,
-							"Max": dp.Max,
-							"Label": dp.Label,
-							"AggloType": dp.AggloType,
-							"Scale": scale,
-							"Unit": dp.Unit,
-							"Object": dp.Object,
-							"TimeScale": float64(dp.Period / (time.Second * 30)),
-					},
+				},
+				"$set": bson.M{
+					"LastUpdate": dp.Date,
+					"Max": dp.Max,
+					"Label": dp.Label,
+					"AggloType": dp.AggloType,
+					"Scale": scale,
+					"Unit": dp.Unit,
+					"Object": dp.Object,
+					"TimeScale": float64(dp.Period / (time.Second * 30)),
+				},
 			}
-			
+
 			CheckAlerts(dp.Key, "latest", utils.AlertMetricTrack{
 				Key: dp.Key,
 				Object: dp.Object,
 				Max: dp.Max,
 			}, dp.Value)
 			
-			// This ensures that if the document doesn't exist, it'll be created
-			options := options.Update().SetUpsert(true)
-
-			_, err := c.UpdateOne(nil, filter, update, options)
-
-			if err != nil {
-				utils.Error("Metrics - Database Insert", err)
-				return
-			}
+			// Create a new UpdateOneModel
+			operation := mongo.NewUpdateOneModel()
+			operation.SetFilter(filter)
+			operation.SetUpdate(update)
+			operation.SetUpsert(true)
+			
+			// Append to operations
+			operations = append(operations, operation)
 		}
 	}
 
-	utils.Debug("Data - Saved " + strconv.Itoa(nbData) + " entries")
+	if len(operations) > 0 {
+		_, err := c.BulkWrite(nil, operations)
+		if err != nil {
+			utils.Error("Metrics - Bulk Write Error", err)
+		} else {
+			utils.Debug("Data - Bulk Saved " + strconv.Itoa(len(operations)) + " entries")
+		}
+	} else {
+		utils.Debug("No data to save")
+	}
 }
 
 func ModuloTime(start time.Time, modulo time.Duration) time.Time {

@@ -1,3 +1,6 @@
+## Version 0.12.3
+ - Performance update for metrics saving
+
 ## Version 0.12.2
  - Fix XSS vulnerability in the redirect function (thanks @catmandx)
 

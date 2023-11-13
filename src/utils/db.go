@@ -227,4 +227,21 @@ func initDB() {
 			return // Handle error appropriately
 		}
 	}
+
+	c, errCo = GetCollection(GetRootAppId(), "metrics")
+	if errCo != nil {
+		Error("Metrics - Database Connect", errCo)
+	} else {
+		// create search index on metrics key
+		model := mongo.IndexModel{
+			Keys: bson.M{"Key": 1}, // Specify the field to index here
+		}
+
+		// Creating the index
+		_, err := c.Indexes().CreateOne(context.Background(), model)
+		if err != nil {
+			Error("Metrics - Create Index", err)
+			return // Handle error appropriately
+		}
+	}
 }
