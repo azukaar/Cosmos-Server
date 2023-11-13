@@ -90,6 +90,11 @@ func GetSystemMetrics() {
 	// 	utils.Debug("Metrics - Network " + v.Name + " : " + strconv.Itoa(int(v.BytesRecv)) + " / " + strconv.Itoa(int(v.BytesSent)) + " / " + strconv.Itoa(int(v.Errin + v.Errout)) + " / " + strconv.Itoa(int(v.Dropin + v.Dropout)))
 	// }
 
+	if err != nil {
+		utils.Error("Metrics - Error fetching Network usage:", err)
+		return
+	}
+
 	PushSetMetric("system.netRx", int(netIO[0].BytesRecv), DataDef{
 		Max: 0,
 		Period: time.Second * 30,
@@ -168,6 +173,11 @@ func GetSystemMetrics() {
 
 	// Temperature
 	temps, err := host.SensorsTemperatures()
+	if err != nil {
+		utils.Error("Metrics - Error fetching Temperature:", err)
+		return
+	}
+	
 	avgTemp := 0
 	avgTempCount := 0
 

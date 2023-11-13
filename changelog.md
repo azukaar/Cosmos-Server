@@ -1,3 +1,6 @@
+## Version 0.12.4
+ - Fix crash with metrics not seeing any network interface
+
 ## Version 0.12.3
  - Performance update for metrics saving
 
