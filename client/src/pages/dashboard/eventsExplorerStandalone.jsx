@@ -39,7 +39,7 @@ const EventExplorerStandalone = ({initSearch, initLevel}) => {
 
 
               <Grid item xs={12} md={12} lg={12}>
-                <EventsExplorer initLevel={initLevel} initSearch={initSearch} from= {from} to= {to}/>
+                <EventsExplorer initLevel={initLevel} initSearch={initSearch} from={from} to={to}/>
               </Grid>
           </Grid>
       </div>

@@ -217,11 +217,23 @@ func initDB() {
 	} else {
 		// Create a text index on the _search field
 		model := mongo.IndexModel{
-			Keys: bson.M{"_search": "text"}, // Specify the field to index here
+			Keys: bson.M{"_search": "text"},
 		}
 
 		// Creating the index
 		_, err := c.Indexes().CreateOne(context.Background(), model)
+		if err != nil {
+			Error("Metrics - Create Index", err)
+			return // Handle error appropriately
+		}
+		
+		// Create a date index
+		model = mongo.IndexModel{
+			Keys: bson.M{"Date": -1},
+		}
+
+		// Creating the index
+		_, err = c.Indexes().CreateOne(context.Background(), model)
 		if err != nil {
 			Error("Metrics - Create Index", err)
 			return // Handle error appropriately
@@ -234,7 +246,7 @@ func initDB() {
 	} else {
 		// create search index on metrics key
 		model := mongo.IndexModel{
-			Keys: bson.M{"Key": 1}, // Specify the field to index here
+			Keys: bson.M{"Key": 1},
 		}
 
 		// Creating the index

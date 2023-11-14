@@ -1,3 +1,6 @@
+## Version 0.12.5
+ - Added index on event date for faster query
+
 ## Version 0.12.4
  - Fix crash with metrics not seeing any network interface
 
