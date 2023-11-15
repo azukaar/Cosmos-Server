@@ -1,3 +1,6 @@
+## Version 0.12.6
+ - Fix a security issue with cross-domain APIs availability
+
 ## Version 0.12.5
  - Added index on event date for faster query
 
