@@ -74,6 +74,18 @@ func LoggedInWeakOnly(w http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
+func IsLoggedIn(req *http.Request) bool {
+	userNickname := req.Header.Get("x-cosmos-user")
+	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
+	isUserLoggedIn := role > 0
+
+	if !isUserLoggedIn || userNickname == "" {
+		return false
+	}
+
+	return true
+}
+
 func LoggedInOnly(w http.ResponseWriter, req *http.Request) error {
 	userNickname := req.Header.Get("x-cosmos-user")
 	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))

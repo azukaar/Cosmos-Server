@@ -22,6 +22,12 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) {
 		}
 
 		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
+		
+		if utils.IsLoggedIn(req) {
+			utils.Error("UserLogin: User already logged ing", nil)
+			utils.HTTPError(w, "User is already logged in", http.StatusUnauthorized, "UL002")
+			return
+		} 
 
 		var request PasswordResetRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)

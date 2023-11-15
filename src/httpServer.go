@@ -343,6 +343,10 @@ func InitServer() *mux.Router {
 	
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
+	
+	srapi.HandleFunc("/api/login", user.UserLogin)
+	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
+	srapi.HandleFunc("/api/mfa", user.API2FA)
 
 	srapi.HandleFunc("/api/dns", GetDNSRoute)
 	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
@@ -353,13 +357,10 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/favicon", GetFavicon)
 	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
-	srapi.HandleFunc("/api/login", user.UserLogin)
 	srapi.HandleFunc("/api/logout", user.UserLogout)
 	srapi.HandleFunc("/api/register", user.UserRegister)
 	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
 	srapi.HandleFunc("/api/me", user.Me)
-	srapi.HandleFunc("/api/mfa", user.API2FA)
-	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
 	srapi.HandleFunc("/api/config", configapi.ConfigRoute)
 	srapi.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 
@@ -416,6 +417,8 @@ func InitServer() *mux.Router {
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)
 	}
+	
+	srapi.Use(utils.EnsureHostnameCosmosAPI)
 
 	SecureAPI(srapi, false, false)
 	

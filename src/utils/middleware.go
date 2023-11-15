@@ -346,6 +346,51 @@ func EnsureHostname(next http.Handler) http.Handler {
 	})
 }
 
+func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		og := GetMainConfig().HTTPConfig.Hostname
+		ni := GetMainConfig().NewInstall
+
+		isLogin := !strings.HasPrefix(r.URL.Path, "/cosmos/api") ||
+						   strings.HasPrefix(r.URL.Path, "/cosmos/api/login") ||
+							 strings.HasPrefix(r.URL.Path, "/cosmos/api/password-reset") ||
+							 strings.HasPrefix(r.URL.Path, "/cosmos/api/mfa")
+
+		if ni || og == "0.0.0.0" || isLogin {
+			next.ServeHTTP(w, r)
+			return
+		}
+		
+		reqHostNoPort := strings.Split(r.Host, ":")[0]
+
+		if og != reqHostNoPort {
+			PushShieldMetrics("hostname")
+			Error("Invalid Hostname " + r.Host + " for request.", nil)
+			w.WriteHeader(http.StatusBadRequest)
+			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
+			
+			ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+			if ip != "" {
+				TriggerEvent(
+					"cosmos.proxy.shield.hostname",
+					"Proxy Shield hostname blocked",
+					"warning",
+					"",
+					map[string]interface{}{
+					"clientID": ip,
+					"hostname": r.Host,
+					"url": r.URL.String(),
+				})
+				IncrementIPAbuseCounter(ip)
+			}
+
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func IsValidHostname(hostname string) bool {
 	og := GetMainConfig().HTTPConfig.Hostname
 	ni := GetMainConfig().NewInstall

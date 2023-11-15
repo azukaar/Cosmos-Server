@@ -20,6 +20,12 @@ type LoginRequestJSON struct {
 func UserLogin(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
+		
+		if utils.IsLoggedIn(req) {
+			utils.Error("UserLogin: User already logged ing", nil)
+			utils.HTTPError(w, "User is already logged in", http.StatusUnauthorized, "UL002")
+			return
+		} 
 
 		var request LoginRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
