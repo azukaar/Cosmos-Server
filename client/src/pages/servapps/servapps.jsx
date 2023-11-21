@@ -375,7 +375,7 @@ const ServApps = ({stack}) => {
                       checked={app.labels['cosmos-force-network-secured'] === 'true'}
                       disabled={app.type == "stack" || app.state !== 'running'}
                       onChange={(e) => {
-                        const name = app.Names[0].replace('/', '');
+                        const name = app.name.replace('/', '');
                         setIsUpdatingId(name, true);
                         API.docker.secure(name, e.target.checked).then(() => {
                           setTimeout(() => {
@@ -392,10 +392,10 @@ const ServApps = ({stack}) => {
                   <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
                     <Checkbox
                       checked={app.labels['cosmos-auto-update'] === 'true' ||
-                        (selfName && app.Names[0].replace('/', '') == selfName && config.AutoUpdate)}
+                        (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
                       disabled={app.type == "stack" || app.state !== 'running'}
                       onChange={(e) => {
-                        const name = app.Names[0].replace('/', '');
+                        const name = app.name.replace('/', '');
                         setIsUpdatingId(name, true);
                         API.docker.autoUpdate(name, e.target.checked).then(() => {
                           setTimeout(() => {
