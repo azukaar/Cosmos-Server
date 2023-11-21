@@ -145,7 +145,7 @@ const ServApps = ({stack}) => {
           type: 'stack',
           name: stackName,
           state: -1,
-          app: {},
+          app: app,
           apps: [],
           ports: [],
           isUpdating: false,
@@ -159,6 +159,7 @@ const ServApps = ({stack}) => {
           },
         };
       }
+      
       acc[stackName].apps.push(app);
       if(statusPriority.indexOf(app.State) > statusPriority.indexOf(acc[stackName].state)) {
         acc[stackName].state = app.State;
