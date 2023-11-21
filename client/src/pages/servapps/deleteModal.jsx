@@ -52,6 +52,8 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
     return Object.keys(container.NetworkSettings.Networks);
   }).flat().filter((network, index, self) => {
     return self.indexOf(network) === index;
+  }).filter((network) => {
+    return network !== 'bridge' && network !== 'host' && network !== 'none' && network !== 'default';
   });
   
   let volumes = isOpen && containers.map((container) => {
