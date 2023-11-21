@@ -61,8 +61,27 @@ func DeleteNetworkRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// if network is connected to a single container, detach it
+		network, err := DockerClient.NetworkInspect(context.Background(), networkID, types.NetworkInspectOptions{})
+		if err != nil {
+			utils.Error("DeleteNetworkRoute: Error while getting network", err)
+			utils.HTTPError(w, "Network Get Error: "+err.Error(), http.StatusInternalServerError, "DN002")
+			return
+		}
+
+		if len(network.Containers) == 1 {
+			for containerID := range network.Containers {
+				err = DockerClient.NetworkDisconnect(context.Background(), networkID, containerID, true)
+				if err != nil {
+					utils.Error("DeleteNetworkRoute: Error while detaching network", err)
+					utils.HTTPError(w, "Network Detach Error: "+err.Error(), http.StatusInternalServerError, "DN002")
+					return
+				}
+			}
+		}
+
 		// Delete the specified Docker network
-		err := DockerClient.NetworkRemove(context.Background(), networkID)
+		err = DockerClient.NetworkRemove(context.Background(), networkID)
 		if err != nil {
 			utils.Error("DeleteNetworkRoute: Error while deleting network", err)
 			utils.HTTPError(w, "Network Deletion Error: " + err.Error(), http.StatusInternalServerError, "DN002")
