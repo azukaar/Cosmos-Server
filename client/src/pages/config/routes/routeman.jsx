@@ -71,6 +71,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           PathPrefix: routeConfig.PathPrefix,
           StripPathPrefix: routeConfig.StripPathPrefix,
           AuthEnabled: routeConfig.AuthEnabled,
+          HideFromDashboard: routeConfig.HideFromDashboard,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
@@ -273,6 +274,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   <CosmosCollapse title={'Advanced Settings'}>
                     <Stack spacing={2}>
+                      <CosmosCheckbox
+                        name="HideFromDashboard"
+                        label="Hide from Dashboard"
+                        formik={formik}
+                      />
+
+                      <CosmosFormDivider />
                       <Alert severity='info'>These settings are for advanced users only. Please do not change these unless you know what you are doing.</Alert>
                       <CosmosInputText
                         name="OverwriteHostHeader"

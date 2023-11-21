@@ -4,7 +4,6 @@ import { useEffect } from 'react';
 import { redirectToLocal } from './utils/indexs';
 
 const IsLoggedIn = () => useEffect(() => {
-    console.log("CHECK LOGIN")
     const urlSearch = encodeURIComponent(window.location.search);
     const redirectToURL = (window.location.pathname + urlSearch);
 

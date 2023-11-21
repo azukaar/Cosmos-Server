@@ -93,6 +93,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             <Stack spacing={2} direction={'row'} >
               <GetActions 
                 Id={containerInfo.Name}
+                Ids={[containerInfo.Name]}
                 image={Image}
                 state={State.Status}
                 refreshServApps={() => {
@@ -103,6 +104,9 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                   setIsUpdating(true);
                 }}
                 updateAvailable={updatesAvailable && updatesAvailable[Name]}
+                isStack={false}
+                containers={[containerInfo]}
+                config={config}
               />
             </Stack>
             {containerInfo.State.Status !== 'running' && (

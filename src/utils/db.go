@@ -58,6 +58,9 @@ func DB() error {
 }
 
 func DisconnectDB() {
+	if client == nil {
+		return
+	}
 	if err := client.Disconnect(context.TODO()); err != nil {
 		Fatal("DB", err)
 	}

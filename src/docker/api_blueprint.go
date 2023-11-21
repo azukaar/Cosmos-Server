@@ -414,7 +414,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
 			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
-			newNetwork, errNC := CreateCosmosNetwork()
+			newNetwork, errNC := CreateCosmosNetwork(serviceName)
 			if errNC != nil {
 				utils.Error("CreateService: Network", err)
 				OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))

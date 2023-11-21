@@ -44,17 +44,10 @@ const VolumeManagementList = () => {
             </Button>
           </Stack>
 
-            {isLoading && (<div style={{height: '550px'}}>
-                <center>
-                    <br />
-                    <CircularProgress />
-                </center>
-            </div>
-            )}
-
-            {!isLoading && rows && (
+            {rows && (
                 <PrettyTableView
                     data={rows}
+                    isLoading={isLoading}
                     onRowClick={() => {}}
                     getKey={(r) => r.Name}
                     buttons={[

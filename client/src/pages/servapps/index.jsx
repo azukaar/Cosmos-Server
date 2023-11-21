@@ -12,15 +12,18 @@ import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import ServApps from './servapps';
 import VolumeManagementList from './volumes';
 import NetworkManagementList from './networks';
+import { useParams } from 'react-router';
 
 const ServappsIndex = () => {
+  const { stack } = useParams();
+
   return <div>
     <IsLoggedIn />
     
-    <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
+    {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {
           title: 'Containers',
-          children: <ServApps />,
+          children: <ServApps stack={stack} />,
           path: 'containers'
         },
         {
@@ -34,6 +37,9 @@ const ServappsIndex = () => {
           path: 'networks'
         },
       ]}/>
+    }
+
+    {stack && <ServApps stack={stack} />}
 
   </div>;
 }

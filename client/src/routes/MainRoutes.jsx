@@ -54,6 +54,10 @@ const MainRoutes = {
             element: <ServAppsIndex />
         },
         {
+            path: '/cosmos-ui/servapps/stack/:stack',
+            element: <ServAppsIndex />
+        },
+        {
             path: '/cosmos-ui/config-users',
             element: <UserManagement />
         },

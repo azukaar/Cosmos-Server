@@ -64,7 +64,7 @@ func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
 		err := DockerClient.VolumeRemove(context.Background(), volumeName, true)
 		if err != nil {
 			utils.Error("DeleteVolumeRoute: Error while deleting volume", err)
-			utils.HTTPError(w, "Volume Deletion Error", http.StatusInternalServerError, "DV002")
+			utils.HTTPError(w, "Volume Deletion Error " + err.Error(), http.StatusInternalServerError, "DV002")
 			return
 		}
 

@@ -106,7 +106,7 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 	
 	utils.RestartHTTPServer()
 		
-	if updateReq.NewRoute.Mode == "SERVAPP" {
+	if updateReq.NewRoute != nil && updateReq.NewRoute.Mode == "SERVAPP" {
 		utils.Log("RouteSettingsUpdate: Service needs update: "+updateReq.NewRoute.Target)
 
 		target := updateReq.NewRoute.Target

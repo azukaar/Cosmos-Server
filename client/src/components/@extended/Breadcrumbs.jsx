@@ -15,6 +15,15 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
     const location = useLocation();
     const [main, setMain] = useState();
     const [item, setItem] = useState();
+    let subItem = '';
+
+    // extract /servapps/stack/:stack
+    const subPath = location.pathname.split('/')[3];
+    if(subPath && location.pathname.split('/')[4]) {
+        subItem = <Typography variant="subtitle1" color="textPrimary">
+            {location.pathname.split('/')[4]}
+        </Typography>;
+    }
 
     // set active item state
     const getCollapse = (menu) => {
@@ -23,7 +32,7 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
                 if (collapse.type && collapse.type === 'collapse') {
                     getCollapse(collapse);
                 } else if (collapse.type && collapse.type === 'item') {
-                    if (location.pathname === collapse.url) {
+                    if (location.pathname.startsWith(collapse.url)) {
                         setMain(menu);
                         setItem(collapse);
                     }
@@ -82,6 +91,8 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
                                 </Typography>
                                 {mainContent}
                                 {itemContent}
+                                {subPath && <Typography variant="subtitle1" color="textPrimary">{subPath}</Typography>}
+                                {subItem}
                             </MuiBreadcrumbs>
                         </Grid>
                         {title && (

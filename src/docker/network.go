@@ -70,7 +70,7 @@ func findAvailableSubnet() string {
 	return baseSubnet
 }
 
-func CreateCosmosNetwork() (string, error) {
+func CreateCosmosNetwork(name string) (string, error) {
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
 		utils.Error("Docker Network List", err)
@@ -79,7 +79,7 @@ func CreateCosmosNetwork() (string, error) {
 
 	newNeworkName := ""
 	for {
-		newNeworkName = "cosmos-network-" + utils.GenerateRandomString(9)
+		newNeworkName = "cosmos-" + name + "-" + utils.GenerateRandomString(3)
 		exists := false
 		for _, network := range networks {
 			if network.Name == newNeworkName {
@@ -144,7 +144,7 @@ func ConnectToSecureNetwork(containerConfig types.ContainerJSON) (bool, error) {
 	netName := "" 
 
 	if(!HasLabel(containerConfig, "cosmos-network-name")) {
-		newNetwork, errNC := CreateCosmosNetwork()
+		newNetwork, errNC := CreateCosmosNetwork(containerConfig.Name[1:])
 		if errNC != nil {
 			utils.Error("DockerSecureNetworkCreate", errNC)
 			return false, errNC
@@ -239,7 +239,7 @@ func IsConnectedToASecureCosmosNetwork(self types.ContainerJSON, containerConfig
 	if err != nil {
 		utils.Error("Container tries to connect to a non existing Cosmos network, replacing it.", err)
 		
-		newNetwork, errNC := CreateCosmosNetwork()
+		newNetwork, errNC := CreateCosmosNetwork(containerConfig.Name[1:])
 		if errNC != nil {
 			utils.Error("DockerSecureNetworkCreate", errNC)
 			return false, errNC, false

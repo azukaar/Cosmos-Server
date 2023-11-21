@@ -1,21 +1,27 @@
 import React from 'react';
-import { Box, IconButton, LinearProgress, Stack, Tooltip, useMediaQuery } from '@mui/material';
+import { Box, Chip, IconButton, LinearProgress, Stack, Tooltip, useMediaQuery } from '@mui/material';
 import { CheckCircleOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
 import * as API from '../../api';
 import LogsInModal from '../../components/logsInModal';
+import DeleteModal from './deleteModal';
 
 const GetActions = ({
   Id,
+  Ids,
   state,
   image,
   refreshServApps,
   setIsUpdatingId,
-  updateAvailable
+  updateAvailable,
+  isStack,
+  containers,
+  config,
 }) => {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
   const [pullRequest, setPullRequest] = React.useState(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
+
   
   const doTo = (action) => {
     setIsUpdating(true);
@@ -27,20 +33,41 @@ const GetActions = ({
       return;
     }
 
-    setIsUpdatingId(Id, true);
-    return API.docker.manageContainer(Id, action).then((res) => {
-      setIsUpdating(false);
-      refreshServApps();
-    }).catch((err) => {
-      setIsUpdating(false);
-      refreshServApps();
-    });
+    return isStack ?
+    (() => {
+      Promise.all(Ids.map((id) => {
+        setIsUpdatingId(id, true);
+
+        return API.docker.manageContainer(id, action)
+      })).then((res) => {
+        setIsUpdating(false);
+        refreshServApps();
+      }).catch((err) => {
+        setIsUpdating(false);
+        refreshServApps();
+      })
+    })()
+    : 
+    (() => {
+      setIsUpdatingId(Id, true);
+
+      API.docker.manageContainer(Id, action).then((res) => {
+        setIsUpdating(false);
+        refreshServApps();
+      }).catch((err) => {
+        setIsUpdating(false);
+        refreshServApps();
+      });
+    })()
   };
 
   let actions = [
     {
-      t: 'Update Available, Click to Update',
+      t: 'Update Available' + (isStack ? ', go the stack details to update' : ', Click to Update'),
       if: ['update_available'],
+      es:  <IconButton className="shinyButton" style={{cursor: 'not-allowed'}} color='primary' onClick={()=>{}} size={isMiniMobile ? 'medium' : 'large'}>
+      <UpCircleOutlined />
+    </IconButton>,
       e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
@@ -48,6 +75,7 @@ const GetActions = ({
     {
       t: 'No Update Available. Click to Force Pull',
       if: ['update_not_available'],
+      hideStack: true,
       e: <IconButton onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
       </IconButton>
@@ -90,6 +118,7 @@ const GetActions = ({
     {
       t: 'Re-create',
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
+      hideStack: true,
       e: <IconButton onClick={() => doTo('recreate')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <RollbackOutlined />
       </IconButton>
@@ -104,13 +133,7 @@ const GetActions = ({
     {
       t: 'Delete',
       if: ['exited', 'created'],
-      e: <IconButton onClick={() => {
-        if(confirmDelete) doTo('remove')
-        else setConfirmDelete(true);
-      }} color="error" size='large'>
-        {confirmDelete ?  <CheckCircleOutlined />
-        : <DeleteOutlined />}
-      </IconButton>
+      e: <DeleteModal config={config} Ids={Ids} containers={containers} refreshServApps={refreshServApps} setIsUpdatingId={setIsUpdatingId} />
     }
   ];
 
@@ -126,7 +149,7 @@ const GetActions = ({
     {!isUpdating && actions.filter((action) => {
       return action.if.includes(state) || (updateAvailable && action.if.includes('update_available')) || (!updateAvailable && action.if.includes('update_not_available'));
     }).map((action) => {
-      return <Tooltip title={action.t}>{action.e}</Tooltip>
+      return (!isStack || !action.hideStack) && <Tooltip title={action.t}>{isStack ? (action.es ? action.es : action.e) : action.e}</Tooltip>
     })}
 
     {isUpdating && <Stack sx={{

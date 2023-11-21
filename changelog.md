@@ -1,3 +1,10 @@
+## Version 0.13.0
+ - Display containers as stacks
+ - new Delete modal to delete services entirely
+ - cosmos-network now have container names instead for network names
+ - Fix issue where search bar reset when deleting volume/network
+ - Fix breadcrumbs in subpaths
+
 ## Version 0.12.6
  - Fix a security issue with cross-domain APIs availability
 
