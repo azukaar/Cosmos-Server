@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"fmt"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	containerType "github.com/docker/docker/api/types/container"
@@ -82,9 +83,16 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 		if(form.Devices != nil) {
 			container.HostConfig.Devices = []containerType.DeviceMapping{}
 			for _, device := range form.Devices {
+				deviceHost := strings.Split(device, ":")[0]
+				deviceCont := deviceHost
+
+				if strings.Contains(device, ":") {
+					deviceCont = strings.Split(device, ":")[1]
+				}
+
 				container.HostConfig.Devices = append(container.HostConfig.Devices, containerType.DeviceMapping{
-					PathOnHost:        device,
-					PathInContainer:   device,
+					PathOnHost:        deviceHost,
+					PathInContainer:   deviceCont,
 					CgroupPermissions: "rwm",
 				})
 			}
