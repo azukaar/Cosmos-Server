@@ -27,7 +27,8 @@ const dashboard = {
             type: 'item',
             url: '/cosmos-ui/monitoring',
             icon: DashboardOutlined,
-            breadcrumbs: false
+            breadcrumbs: false,
+            adminOnly: true
         },
         {
             id: 'market',

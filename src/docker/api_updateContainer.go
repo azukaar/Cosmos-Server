@@ -15,8 +15,10 @@ import (
 
 type ContainerForm struct {
 	Image          string            `json:"image"`
+	User 				   string            `json:"user"`
 	RestartPolicy  string            `json:"restartPolicy"`
 	Env            []string          `json:"envVars"`
+	Devices        []string `json:"devices"`
 	Labels         map[string]string `json:"labels"`
 	PortBindings   nat.PortMap       `json:"portBindings"`
 	Volumes        []mount.Mount     `json:"Volumes"`
@@ -69,14 +71,29 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.Image = form.Image
 		}
 		if(form.RestartPolicy != "") {
+			// THIS IS HACK BECAUSE USER IS NULLABLE, BETTER SOLUTION TO COME
+			container.Config.User = form.User
 			container.HostConfig.RestartPolicy = containerType.RestartPolicy{Name: form.RestartPolicy}
 		}
 		if(form.Env != nil) {
 			container.Config.Env = form.Env
 		}
+		
+		if(form.Devices != nil) {
+			container.HostConfig.Devices = []containerType.DeviceMapping{}
+			for _, device := range form.Devices {
+				container.HostConfig.Devices = append(container.HostConfig.Devices, containerType.DeviceMapping{
+					PathOnHost:        device,
+					PathInContainer:   device,
+					CgroupPermissions: "rwm",
+				})
+			}
+		}
+
 		if(form.Labels != nil) {
 			container.Config.Labels = form.Labels
 		}
+
 		if(form.PortBindings != nil) {
 			utils.Debug(fmt.Sprintf("UpdateContainer: PortBindings: %v", form.PortBindings))
 			container.HostConfig.PortBindings = form.PortBindings

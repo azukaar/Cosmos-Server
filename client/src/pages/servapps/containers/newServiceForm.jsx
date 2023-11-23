@@ -69,6 +69,9 @@ const NewDockerServiceForm = () => {
         image: containerInfo.Config.Image,
         environment: containerInfo.Config.Env,
         labels: containerInfo.Config.Labels,
+        devices: containerInfo.HostConfig.Devices.map((device) => {
+          return `${device.PathOnHost}:${device.PathInContainer}:`;
+        }),
         expose: containerInfo.Config.ExposedPorts,
         tty: containerInfo.Config.Tty,
         stdin_open: containerInfo.Config.OpenStdin,
@@ -142,9 +145,17 @@ const NewDockerServiceForm = () => {
                 Name: values.name,
                 Env: values.envVars,
                 Labels: values.labels,
+                User: values.user,
               },
               HostConfig: {
                 ...containerInfo.HostConfig,
+                Devices: values.devices.map((device) => {
+                  return {
+                    PathOnHost: device.split(':')[0],
+                    PathInContainer: device.split(':')[1],
+                    CgroupPermissions: 'rwm',
+                  };
+                }),
                 RestartPolicy: {
                   Name: values.restartPolicy,
                 },

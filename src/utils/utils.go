@@ -73,6 +73,84 @@ var DefaultConfig = Config{
       "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts",
 		},
 	},
+  MonitoringAlerts: map[string]Alert{
+    "Anti Crypto-Miner": {
+      Name: "Anti Crypto-Miner",
+      Enabled: false,
+      Period: "daily",
+      TrackingMetric: "cosmos.system.docker.cpu.*",
+			LastTriggered: time.Time{},
+      Condition: AlertCondition {
+        Operator: "gt",
+        Value: 80,
+        Percent: false,
+      },
+      Actions: []AlertAction {
+				AlertAction {
+          Type: "notification",
+          Target: "",
+        },
+        AlertAction {
+          Type: "email",
+          Target: "",
+        },
+        AlertAction {
+          Type: "stop",
+          Target: "",
+        },
+			},
+      Throttled: false,
+      Severity: "warn",
+    },
+    "Anti Memory Leak": {
+      Name: "Anti Memory Leak",
+      Enabled: false,
+      Period: "daily",
+      TrackingMetric: "cosmos.system.docker.ram.*",
+			LastTriggered: time.Time{},
+      Condition: AlertCondition {
+        Operator: "gt",
+        Value: 80,
+        Percent: true,
+      },
+      Actions: []AlertAction {
+        {
+          Type: "notification",
+          Target: "",
+        },
+        {
+          Type: "email",
+          Target: "",
+        },
+        {
+          Type: "stop",
+          Target: "",
+        },
+      },
+      Throttled: false,
+      Severity: "warn",
+    },
+    "Disk Full Notification": {
+      Name: "Disk Full Notification",
+      Enabled: true,
+      Period: "latest",
+      TrackingMetric: "cosmos.system.disk./",
+			LastTriggered: time.Time{},
+      Condition: AlertCondition {
+        Operator: "gt",
+        Value: 95,
+        Percent: true,
+      },
+      Actions: []AlertAction {
+        {
+          Type: "notification",
+          Target: "",
+        },
+			},
+      Throttled: true,
+      Severity: "warn",
+    },
+  },
 }
 
 func FileExists(path string) bool {

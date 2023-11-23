@@ -72,12 +72,12 @@ func CheckPorts() error {
 	finalPorts := []string{}
 
 	for containerPort, hostConfig := range inspect.NetworkSettings.Ports {
-		utils.Debug("Container port: " + containerPort.Port())
+		utils.Debug("Container port: " + containerPort.Port() + "/" + containerPort.Proto())
 		
 		for _, hostPort := range hostConfig {
 			utils.Debug("Host port: " + hostPort.HostPort)
 			ports[hostPort.HostPort] = struct{}{}
-			finalPorts = append(finalPorts, hostPort.HostPort + ":" + containerPort.Port())
+			finalPorts = append(finalPorts, hostPort.HostPort + ":" + containerPort.Port() + "/" + containerPort.Proto())
 		}
 	}
 

@@ -160,6 +160,19 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 					utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
 					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
 				}	
+			} else if action.Action == "restore" {
+				utils.Log(fmt.Sprintf("Restoring container %s...", action.Name))
+
+				// Edit Container
+				_, err := EditContainer("", action.Was, true)
+	
+				if err != nil {
+					utils.Error("Rollback: Container", err)
+					OnLog(utils.DoErr("Rollback: Container %s", err))
+				} else {
+					utils.Log(fmt.Sprintf("Rolled back container %s", action.Name))
+					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
+				}	
 			}
 		case "volume":
 			utils.Log(fmt.Sprintf("Removing volume %s...", action.Name))
@@ -708,15 +721,40 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// check if container exist
 		existingContainer, err := DockerClient.ContainerInspect(DockerContext, container.Name)
-		if err == nil {
+		if err == nil {		
+			
+			// Edit Container
+			oldConfig := doctype.ContainerJSON{}
+			oldConfig.ContainerJSONBase = new(doctype.ContainerJSONBase)
+			oldConfig.Config = existingContainer.Config
+			oldConfig.HostConfig = existingContainer.HostConfig
+			oldConfig.Name = existingContainer.Name
+			oldConfig.NetworkSettings = existingContainer.NetworkSettings
+
 			utils.Warn("CreateService: Container " + container.Name + " already exist, overwriting.")
 			OnLog(utils.DoWarn("Container " + container.Name + " already exist, overwriting.\n"))
 	
-			// Edit Container
-			newConfig := doctype.ContainerJSON{}
-			newConfig.ContainerJSONBase = new(doctype.ContainerJSONBase)
-			newConfig.Config = containerConfig
-			newConfig.HostConfig = hostConfig
+			// stop the container 
+			utils.Log("CreateService: Stopping container: " + container.Name)
+			OnLog("Stopping container: " + container.Name + "\n")
+			err = DockerClient.ContainerStop(DockerContext, container.Name, conttype.StopOptions{})
+			if err != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Container", err)
+				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+
+			// remove the container
+			utils.Log("CreateService: Removing container: " + container.Name)
+			OnLog("Removing container: " + container.Name + "\n")
+			err = DockerClient.ContainerRemove(DockerContext, container.Name, doctype.ContainerRemoveOptions{})
+			if err != nil {
+				utils.Error("CreateService: Rolling back changes because of -- Container", err)
+				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
 
 			// check if there are persistent env var
 			if containerConfig.Labels["cosmos-persistent-env"] != "" {
@@ -741,53 +779,42 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					// if it exist, copy value to new container
 					if exists {
 						wasReplace := false
-						for i, newEnvVar := range newConfig.Config.Env {
+						for i, newEnvVar := range containerConfig.Env {
 							if strings.HasPrefix(newEnvVar, envVar + "=") {
-								newConfig.Config.Env[i] = envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "=")
+								containerConfig.Env[i] = envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "=")
 								wasReplace = true
 								break
 							}
 						}
 						if !wasReplace {
-							newConfig.Config.Env = append(newConfig.Config.Env, envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "="))
+							containerConfig.Env = append(containerConfig.Env, envVar + "=" + strings.TrimPrefix(existingEnvVarValue, envVar + "="))
 						}
 					}
 				}
 			}
 			
-			_, errEdit := EditContainer(container.Name, newConfig, false)
-
-			if errEdit != nil {
-				utils.Error("CreateService: Rolling back changes because of -- Container", err)
-				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
-				Rollback(rollbackActions, OnLog)
-				return err
-			}
-
-			// rollback action
-		
 			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-				Action: "revert",
+				Action: "restore",
 				Type:   "container",
-				Name:   container.Name,
-				Was: existingContainer,
+				Was: oldConfig,
 			})
-		} else {
-			_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
-
-			if err != nil {
-				utils.Error("CreateService: Rolling back changes because of -- Container", err)
-				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
-				Rollback(rollbackActions, OnLog)
-				return err
-			}
+		}
 		
-			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-				Action: "remove",
-				Type:   "container",
-				Name:   container.Name,
-			})
-		}	
+		_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
+
+		if err != nil {
+			utils.Error("CreateService: Rolling back changes because of -- Container", err)
+			OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
+			Rollback(rollbackActions, OnLog)
+			return err
+		}
+	
+		rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+			Action: "remove",
+			Type:   "container",
+			Name:   container.Name,
+		})
+	
 
 		// connect to networks
 		for netName, netConfig := range container.Networks {
@@ -880,7 +907,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		err = DockerClient.ContainerStart(DockerContext, container.Name, doctype.ContainerStartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
-			OnLog(utils.DoErr("Rolling back changes because of -- Container start error: "+err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Container start error" + container.Name + " : "+err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
@@ -986,6 +1013,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]ContainerCreateRequestContainer, error) {
 	startOrder := []ContainerCreateRequestContainer{}
 
+	utils.Debug(fmt.Sprintf("ReOrderServices:  start: %s", serviceMap))
+
 	for len(serviceMap) > 0 {
 		// Keep track of whether we've added any services in this iteration
 		changed := false
@@ -1009,6 +1038,7 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 
 			// If all dependencies are started, we can add this service to startOrder
 			if allDependenciesStarted {
+				utils.Debug(fmt.Sprintf("ReOrderServices:  adding: %s", name))
 				startOrder = append(startOrder, service)
 				delete(serviceMap, name)
 				changed = true

@@ -144,6 +144,8 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	oldContainer := newConfig
 
 	if(oldContainerID != "") {
+		utils.Log("EditContainer - inspecting previous container " + oldContainerID)
+
 		// create missing folders
 		
 		for _, newmount := range newConfig.HostConfig.Mounts {

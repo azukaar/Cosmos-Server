@@ -124,6 +124,8 @@ const HomePage = () => {
     }
 
     function getMetrics() {
+        if(!isAdmin) return;
+        
         API.metrics.get([
             "cosmos.system.cpu.0",
             "cosmos.system.ram",
@@ -260,7 +262,7 @@ const HomePage = () => {
     
     let latestCPU, latestRAM, latestRAMRaw, maxRAM, maxRAMRaw = 0;
 
-    if(metrics) {
+    if(isAdmin && metrics) {
     
         if(metrics["cosmos.system.cpu.0"] && metrics["cosmos.system.cpu.0"].Values && metrics["cosmos.system.cpu.0"].Values.length > 0)
             latestCPU = metrics["cosmos.system.cpu.0"].Values[metrics["cosmos.system.cpu.0"].Values.length - 1].Value;
@@ -336,7 +338,7 @@ const HomePage = () => {
         </Stack>
 
         <Grid2 container spacing={2} style={{ zIndex: 2 }}>
-            {coStatus && !coStatus.MonitoringDisabled && (<>
+            {isAdmin && coStatus && !coStatus.MonitoringDisabled && (<>
                 {isMd && !metrics && (<>
                     <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'000'}>
                         <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>

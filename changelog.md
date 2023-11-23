@@ -1,9 +1,15 @@
 ## Version 0.13.0
  - Display containers as stacks
- - new Delete modal to delete services entirely
- - cosmos-network now have container names instead for network names
+ - New Delete modal to delete services entirely
+ - Cosmos-networks now have specific names instead for a generic names
  - Fix issue where search bar reset when deleting volume/network
  - Fix breadcrumbs in subpaths
+ - Remove graphs from non-admin UI to prevent errors
+ - Rewrite the overwriting container logic to fix race conditions
+ - Edit container user and devices from UI
+ - Fix bug where Cosmos Constellation's UDP ports by a TCP one
+ - Support array command and single device in docker-compose import
+ - Add default alert.. by default
 
 ## Version 0.12.6
  - Fix a security issue with cross-domain APIs availability

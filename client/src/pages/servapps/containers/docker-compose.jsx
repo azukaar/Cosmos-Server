@@ -186,7 +186,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         // convert to the proper format
         if (doc.services) {
           Object.keys(doc.services).forEach((key) => {
-
             // convert volumes
             if (doc.services[key].volumes) {
               if (Array.isArray(doc.services[key].volumes)) {
@@ -270,6 +269,30 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     networks['' + network] = {};
                 });
                 doc.services[key].networks = networks;
+              }
+            }
+
+            // convert devices
+            if (doc.services[key].devices) {
+              console.log(1)
+              if (Array.isArray(doc.services[key].devices)) {
+                console.log(2)
+                let devices = [];
+                doc.services[key].devices.forEach((device) => {
+                  if(device.indexOf(':') === -1) {
+                    devices.push(device + ':' + device);
+                  } else {
+                    devices.push(device);
+                  }
+                });
+                doc.services[key].devices = devices;
+              }
+            }
+
+            // convert command 
+            if (doc.services[key].command) {
+              if (typeof doc.services[key].command !== 'string') {
+                doc.services[key].command = doc.services[key].command.join(' ');
               }
             }
 
@@ -652,9 +675,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                         Config: {
                           Env: value.environment || [],
                           Labels: value.labels || {},
+                          User: value.user || '',
                         },
                         HostConfig: {
                           RestartPolicy: {},
+                          Devices: value.devices || [],
                         }
                       }}
                       OnChange={(containerInfo) => {

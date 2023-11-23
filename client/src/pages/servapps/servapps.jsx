@@ -283,7 +283,15 @@ const ServApps = ({stack}) => {
             <Alert severity="info">Update are available for {Object.keys(updatesAvailable).join(', ')}</Alert>
           </Item>
         </Grid2>}
-        {servApps && Object.values(servAppsStacked).filter(app => search.length < 2 || app.name.toLowerCase().includes(search.toLowerCase())).map((app) => {
+        {servApps && Object.values(servAppsStacked)
+          .filter(app => {
+            if (search.length < 2) return true;
+            if (app.name.toLowerCase().includes(search.toLowerCase())) return true;
+            if (app.app.Image.toLowerCase().includes(search.toLowerCase())) return true;
+            if (app.app.Id.toLowerCase().includes(search.toLowerCase())) return true;
+            if (app.apps.find((app) => app.Names[0].toLowerCase().includes(search.toLowerCase()))) return true;
+          })
+          .map((app) => {
           return <Grid2 sx={{...gridAnim}} xs={12} sm={6} md={6} lg={6} xl={4} key={app.Id} item>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
