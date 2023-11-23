@@ -292,7 +292,7 @@ const ServApps = ({stack}) => {
             if (app.apps.find((app) => app.Names[0].toLowerCase().includes(search.toLowerCase()))) return true;
           })
           .map((app) => {
-          return <Grid2 sx={{...gridAnim}} xs={12} sm={6} md={6} lg={6} xl={4} key={app.Id} item>
+          return <Grid2 sx={{...gridAnim}} xs={12} sm={6} md={6} lg={6} xl={4} key={app.app.Id} item>
             <Item>
             <Stack justifyContent='space-around' direction="column" spacing={2} padding={2} divider={<Divider orientation="horizontal" flexItem />}>
               <Stack direction="column" spacing={0} alignItems="flex-start">
