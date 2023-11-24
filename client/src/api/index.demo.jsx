@@ -78,7 +78,7 @@ export const checkHost = (host) => {
   });
 }
 
-export const uploadBackground = (file) => {
+export const uploadImage = (file) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve({

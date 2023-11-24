@@ -316,10 +316,10 @@ const ConfigManagement = () => {
               <MainCard title="Appearance">
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                      {!uploadingBackground && formik.values.Background && <img src=
-                        {formik.values.Background} alt="preview seems broken. Please re-upload."
-                        width={285} />}
-                      {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
+                    {!uploadingBackground && formik.values.Background && <img src=
+                      {formik.values.Background} alt="preview seems broken. Please re-upload."
+                      width={285} />}
+                    {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
                      <Stack spacing={1} direction="row">
                       <UploadButtons
                         accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
@@ -327,8 +327,8 @@ const ConfigManagement = () => {
                         OnChange={(e) => {
                           setUploadingBackground(true);
                           const file = e.target.files[0];
-                          API.uploadBackground(file).then((data) => {
-                            formik.setFieldValue('Background', "/cosmos/api/background/" + data.data.extension.replace(".", ""));
+                          API.uploadImage(file, "background").then((data) => {
+                            formik.setFieldValue('Background', data.data.path);
                             setUploadingBackground(false);
                           });
                         }}

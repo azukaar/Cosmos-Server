@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"bytes"
+	"gopkg.in/yaml.v2"
+	"os"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/docker/docker/api/types"
@@ -18,12 +20,17 @@ import (
 var ExportError = "" 
 
 func ExportDocker() {
+	config := utils.GetMainConfig()
+	if config.NewInstall {
+		return
+	}
+
 	ExportError = "" 
 	
 	errD := Connect()
 	if errD != nil {
 		ExportError = "Export Docker - cannot connect - " + errD.Error()
-		utils.Error("ExportDocker - connect - ", errD)
+		utils.MajorError("ExportDocker - connect - ", errD)
 		return
 	}
 
@@ -32,7 +39,7 @@ func ExportDocker() {
 	// List containers
 	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
 	if err != nil {
-		utils.Error("ExportDocker - Cannot list containers", err)
+		utils.MajorError("ExportDocker - Cannot list containers", err)
 		ExportError = "Export Docker - Cannot list containers - " + err.Error()
 		return
 	}
@@ -44,7 +51,7 @@ func ExportDocker() {
 		// Fetch detailed info of each container
 		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, container.ID)
 		if err != nil {
-			utils.Error("Export Docker - Cannot inspect container" + container.Names[0], err)
+			utils.MajorError("Export Docker - Cannot inspect container" + container.Names[0], err)
 			ExportError = "Export Docker - Cannot inspect container" + container.Names[0] + " - " + err.Error()
 			return
 		}
@@ -118,11 +125,11 @@ func ExportDocker() {
 			// Networks
 			Networks: func() map[string]ContainerCreateRequestServiceNetwork {
 					networks := make(map[string]ContainerCreateRequestServiceNetwork)
-					for netName, netConfig := range detailedInfo.NetworkSettings.Networks {
+					for netName, _ := range detailedInfo.NetworkSettings.Networks {
 							networks[netName] = ContainerCreateRequestServiceNetwork{
-									Aliases:     netConfig.Aliases,
-									IPV4Address: netConfig.IPAddress,
-									IPV6Address: netConfig.GlobalIPv6Address,
+									// Aliases:     netConfig.Aliases,
+									// IPV4Address: netConfig.IPAddress,
+									// IPV6Address: netConfig.GlobalIPv6Address,
 							}
 					}
 					return networks
@@ -175,7 +182,7 @@ func ExportDocker() {
 	// List networks
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
-		utils.Error("Export Docker - Cannot list networks", err)
+		utils.MajorError("Export Docker - Cannot list networks", err)
 		ExportError = "Export Docker - Cannot list networks - " + err.Error()
 		return
 	}
@@ -191,7 +198,7 @@ func ExportDocker() {
 		// Fetch detailed info of each network
 		detailedInfo, err := DockerClient.NetworkInspect(DockerContext, network.ID, types.NetworkInspectOptions{})
 		if err != nil {
-			utils.Error("Export Docker - Cannot inspect network", err)
+			utils.MajorError("Export Docker - Cannot inspect network", err)
 			ExportError = "Export Docker - Cannot inspect network - " + err.Error()
 			return
 		}
@@ -217,6 +224,47 @@ func ExportDocker() {
 		finalBackup.Networks[detailedInfo.Name] = network
 	}
 
+	// remove cosmos from services
+	if os.Getenv("HOSTNAME") != "" {
+		cosmos := services[os.Getenv("HOSTNAME")]
+		delete(services, os.Getenv("HOSTNAME"))
+
+		// export separately cosmos
+		// Create a buffer to hold the JSON output
+		var buf bytes.Buffer
+
+		// Create a new yaml encoder that writes to the buffer
+		encoder := yaml.NewEncoder(&buf)
+
+		// Set escape HTML to false to avoid escaping special characters
+		// encoder.SetEscapeHTML(false)
+		//format
+		// encoder.SetIndent("", "  ")
+
+		// Use the encoder to write the structured data to the buffer
+		toExport := map[string]map[string]ContainerCreateRequestContainer {
+			"services": map[string]ContainerCreateRequestContainer {
+				os.Getenv("HOSTNAME"): cosmos,
+			},
+		}
+
+		err = encoder.Encode(toExport)
+		if err != nil {
+				utils.MajorError("Export Docker - Cannot marshal docker backup", err)
+				ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
+		}
+
+		// The JSON data is now in buf.Bytes()
+		yamlData := buf.Bytes()
+
+		// Write the JSON data to a file
+		err = ioutil.WriteFile(utils.CONFIGFOLDER + "cosmos.docker-compose.yaml", yamlData, 0644)
+		if err != nil {
+				utils.MajorError("Export Docker - Cannot save docker backup", err)
+				ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
+		}
+	}
+
 	// Convert the services map to your finalBackup struct
 	finalBackup.Services = services
 
@@ -234,7 +282,7 @@ func ExportDocker() {
 	// Use the encoder to write the structured data to the buffer
 	err = encoder.Encode(finalBackup)
 	if err != nil {
-			utils.Error("Export Docker - Cannot marshal docker backup", err)
+			utils.MajorError("Export Docker - Cannot marshal docker backup", err)
 			ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
 	}
 
@@ -244,7 +292,7 @@ func ExportDocker() {
 	// Write the JSON data to a file
 	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0644)
 	if err != nil {
-		utils.Error("Export Docker - Cannot save docker backup", err)
+		utils.MajorError("Export Docker - Cannot save docker backup", err)
 		ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
 	}
 }

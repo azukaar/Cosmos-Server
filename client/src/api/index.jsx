@@ -199,10 +199,10 @@ let getDNS = (host) => {
   });
 }
 
-let uploadBackground = (file) => {
+let uploadImage = (file, name) => {
   const formData = new FormData();
-  formData.append('background', file);
-  return wrap(fetch('/cosmos/api/background', {
+  formData.append('image', file);
+  return wrap(fetch('/cosmos/api/upload/' + name, {
     method: 'POST',
     body: formData
   }));
@@ -229,7 +229,7 @@ if(isDemo) {
   isOnline = indexDemo.isOnline;
   checkHost = indexDemo.checkHost;
   getDNS = indexDemo.getDNS;
-  uploadBackground = indexDemo.uploadBackground;
+  uploadImage = indexDemo.uploadImage;
   constellation = constellationDemo;
   metrics = metricsDemo;
 }
@@ -247,5 +247,5 @@ export {
   checkHost,
   getDNS,
   metrics,
-  uploadBackground
+  uploadImage
 };

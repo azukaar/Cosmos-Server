@@ -392,8 +392,8 @@ func InitServer() *mux.Router {
 	
 	srapi.HandleFunc("/api/markets", market.MarketGet)
 
-	srapi.HandleFunc("/api/background", UploadBackground)
-	srapi.HandleFunc("/api/background/{ext}", GetBackground)
+	srapi.HandleFunc("/api/upload/{name}", UploadImage)
+	srapi.HandleFunc("/api/image/{name}", GetImage)
 
 	srapi.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
 

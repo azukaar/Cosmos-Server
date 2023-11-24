@@ -188,6 +188,7 @@ type ProxyRouteConfig struct {
 	RestrictToConstellation bool
 	OverwriteHostHeader string
 	WhitelistInboundIPs []string
+	Icon string
 }
 
 type EmailConfig struct {

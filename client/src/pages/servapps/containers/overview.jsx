@@ -10,6 +10,7 @@ import RestartModal from '../../config/users/restart';
 import GetActions from '../actionBar';
 import { ServAppIcon } from '../../../utils/servapp-icon';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
+import UploadButtons from '../../../components/fileUpload';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -87,6 +88,25 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                "dead": <Chip label="Dead" color="error" />,
              })[State.Status]}
             </div>
+            <UploadButtons
+              accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
+              label="icon"
+              OnChange={(e) => {
+                const file = e.target.files[0];
+                setIsUpdating(true);
+                API.uploadImage(file, "servapp-" + Name.replace('/', '')).then((data) => {
+                  API.docker.updateContainer(Name.replace('/', ''), {
+                    labels: {
+                      ...Config.Labels,
+                      "cosmos-icon": data.data.path,
+                    }
+                  })
+                  .then(() => {
+                    refreshAll();
+                  });
+                });
+              }}
+            />
           </Stack>
 
           <Stack spacing={2}  style={{ width: '100%' }} >

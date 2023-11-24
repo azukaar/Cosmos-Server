@@ -45,25 +45,30 @@ func main() {
 		utils.Log("Docker API version: " + version.APIVersion)
 	}
 
-	utils.Log("Starting monitoring services...")
+	config := utils.GetMainConfig()
+	if !config.NewInstall {
 
-	metrics.Init()
+		utils.Log("Starting monitoring services...")
 
-	utils.Log("Starting market services...")
+		metrics.Init()
 
-	market.Init()
-	
-	utils.Log("Starting OpenID services...")
+		utils.Log("Starting market services...")
 
-	authorizationserver.Init()
+		market.Init()
+		
+		utils.Log("Starting OpenID services...")
 
-	utils.Log("Starting constellation services...")
+		authorizationserver.Init()
 
-	constellation.InitDNS()
-	
-	constellation.Init()
+		utils.Log("Starting constellation services...")
 
-	utils.Log("Starting server...")
+		constellation.InitDNS()
+		
+		constellation.Init()
+
+		utils.Log("Starting server...")
+
+	}
 
 	StartServer()
 }

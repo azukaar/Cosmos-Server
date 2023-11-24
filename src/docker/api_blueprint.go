@@ -1013,8 +1013,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]ContainerCreateRequestContainer, error) {
 	startOrder := []ContainerCreateRequestContainer{}
 
-	utils.Debug(fmt.Sprintf("ReOrderServices:  start: %s", serviceMap))
-
 	for len(serviceMap) > 0 {
 		// Keep track of whether we've added any services in this iteration
 		changed := false

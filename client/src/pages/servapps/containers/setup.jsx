@@ -71,11 +71,11 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
           labels: Object.keys(containerInfo.Config.Labels).map((key) => {
             return { key, value: containerInfo.Config.Labels[key] };
           }),
-          devices: containerInfo.HostConfig.Devices.map((device) => {
+          devices: containerInfo.HostConfig.Devices ? containerInfo.HostConfig.Devices.map((device) => {
             return (typeof device == "string") ? 
               { key: device.split(":")[0], value: (device.split(":")[1] || device.split(":")[0]) } 
             : { key: device.PathOnHost, value: device.PathInContainer };
-          }),
+          }) : [],
           interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
         }}
         enableReinitialize

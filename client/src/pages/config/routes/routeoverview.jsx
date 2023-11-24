@@ -13,6 +13,7 @@ import { CosmosCheckbox } from '../users/formShortcuts';
 import { Field } from 'formik';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
+import UploadButtons from '../../../components/fileUpload';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',

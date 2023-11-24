@@ -69,9 +69,9 @@ const NewDockerServiceForm = () => {
         image: containerInfo.Config.Image,
         environment: containerInfo.Config.Env,
         labels: containerInfo.Config.Labels,
-        devices: containerInfo.HostConfig.Devices.map((device) => {
+        devices: containerInfo.HostConfig.Devices ? containerInfo.HostConfig.Devices.map((device) => {
           return `${device.PathOnHost}:${device.PathInContainer}:`;
-        }),
+        }) : [],
         expose: containerInfo.Config.ExposedPorts,
         tty: containerInfo.Config.Tty,
         stdin_open: containerInfo.Config.OpenStdin,
