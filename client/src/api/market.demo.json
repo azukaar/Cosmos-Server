@@ -127,6 +127,60 @@
 		"all": {
 			"cosmos-cloud": [
 				{
+					"name": "Actual",
+					"description": "Automated finance tools are great, except when they aren’t. We provide you with tools that are quick to use, but ultimately you are in control. We help you learn, instead of dictating.",
+					"url": "",
+					"longDescription": "<p>Actual Budget is a super fast and privacy-focused app for managing your finances. At its heart is the well proven and much loved Envelope Budgeting methodology. You own your data and can do whatever you want with it.Featuring multi - device sync,optional end - to - end encryption and so much more. < /p>",
+					"tags": [
+						"Automated",
+						"finance",
+						"self-hosted"
+					],
+					"repository": "https://github.com/actualbudget/actual-server/",
+					"image": "https://hub.docker.com/r/actualbudget/actual-server",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Actual-server/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Actual-server/screenshots/2.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Actual-server/screenshots/3.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Actual-server/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Actual-server/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Audacity",
+					"description": "Audacity is a free, open-source, cross-platform audio software for multi-track editing and recording. It offers a comprehensive suite of tools for editing audio, adding effects, and supporting various file formats. With an intuitive interface, it is ideal for both beginners and professionals looking to produce high-quality audio on Windows, MacOS, and Linux.",
+					"url": "",
+					"longDescription": "<p>Audacity is a renowned open-source audio editing and recording software. Known for its versatility and ease of use, it is widely used by professionals and hobbyists alike for a range of audio editing tasks. Audacity supports multi-track editing, a host of audio effects, and extensive file format compatibility.</p><p>Its intuitive user interface allows users to easily record live audio, convert tapes and records into digital recordings or CDs, edit sound files, and more. Audacity also features powerful analysis tools and can be extended with a variety of plug-ins.</p><p>Available on multiple platforms including Windows, MacOS, and Linux, Audacity is the go-to solution for anyone looking to perform high-quality audio editing and recording without the need for expensive software.</p>",
+					"tags": [
+						"audio editing",
+						"recording",
+						"open-source",
+						"audacity",
+						"windows",
+						"linux",
+						"macos",
+						"multi-track",
+						"sound effects",
+						"file conversion",
+						"plug-ins"
+					],
+					"repository": "https://github.com/audacity/audacity",
+					"image": "https://hub.docker.com/r/linuxserver/audacity",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Audacity/screenshots/1.jpg"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Audacity/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Audacity/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
 					"name": "Audiobookshelf",
 					"description": "Audiobookshelf is a self-hosted audiobook and podcast server.",
 					"url": "",
@@ -209,6 +263,70 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Bazarr/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Blender",
+					"description": "Blender is a free and open-source 3D creation suite supporting the entirety of the 3D pipeline—modeling, rigging, animation, simulation, rendering, compositing, and motion tracking. It's versatile and powerful, equipped with a wide range of tools for creative professionals and hobbyists alike. Blender works across various platforms, offering advanced features for 3D graphics, animation, and more.",
+					"url": "",
+					"longDescription": "<p>Blender is a powerful open-source tool for 2D and 3D graphics, full-on animations, sculpting, rendering, compositing, motion tracking, and game creation. It stands out for its incredible versatility and comprehensive feature set. Blender is widely used for its advanced capabilities in modeling, texturing, and animation.</p><p>With a user-friendly interface and an extensive range of tools and features, Blender is suitable for both amateurs and professionals. It supports the entirety of the 3D pipeline and is continuously updated by a global community of contributors.</p><p>Blender is cross-platform, functioning seamlessly on Windows, MacOS, and Linux. It is the go-to tool for artists, designers, and animators who require a robust, flexible, and free tool for their creative endeavors.</p>",
+					"tags": [
+						"3d modeling",
+						"animation",
+						"rendering",
+						"open-source",
+						"blender",
+						"windows",
+						"linux",
+						"macos",
+						"game creation",
+						"motion tracking",
+						"compositing",
+						"visual effects"
+					],
+					"repository": "https://github.com/blender/blender",
+					"image": "https://hub.docker.com/r/linuxserver/blender",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Blender/screenshots/1.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Blender/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Blender/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Cachet",
+					"description": "Cachet, the open-source status page system.",
+					"url": "",
+					"longDescription": "<p>Cachet is an open-source status page system designed to help you keep track of your system status and share it with your user base. It is built to be responsive and works seamlessly across different devices.</p>",
+					"tags": [
+						"technical",
+						"administration",
+						"server",
+						"open-source",
+						"self-hosted",
+						"monitoring",
+						"uptime",
+						"service status",
+						"notifications",
+						"windows",
+						"linux",
+						"macos",
+						"docker"
+					],
+					"repository": "https://github.com/cachethq/cachet/",
+					"image": "https://hub.docker.com/r/vouu/cachet/",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Cachet/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Cachet/screenshots/2.jpeg"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Cachet/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Cachet/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"
@@ -509,10 +627,9 @@
 					"longDescription": "<p>Drupal is distributed with a license usually called open source. It means that in contrast to nearly all other publishing systems of the same magnitude, Drupal is free of charge. There is no fee to download or start using Drupal, and no yearly license payment to continue to use it.</p>",
 					"tags": [
 						"development",
-						"repository management",
+						"cms",
 						"code collaboration",
-						"issue tracking",
-						"self-hosted"
+						"self - hosted "
 					],
 					"repository": "https://github.com/bitnami/containers/",
 					"image": "https://hub.docker.com/r/bitnami/drupal",
@@ -555,6 +672,35 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Duplicati/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "ESPHome",
+					"description": "ESPHome is a system to control your microcontrollers by simple yet powerful configuration files and control them remotely through Home Automation systems.",
+					"url": "",
+					"longDescription": "<p>ESPhome is a platform for creating custom firmware for ESP8266 and ESP32 chips using YAML configuration files. It turns these definitions into C++ firmware for easy integration of various smart devices.</p><p>ESPhome is seamlessly integrated with Home Assistant, an open-source home automation platform. With this integration, devices configured via ESPhome are automatically discovered and added to Home Assistant setups.</p><p>The platform boasts a robust community and extensive documentation. This, along with features like Over-The-Air (OTA) updates, makes ESPhome a favorite among smart home enthusiasts.</p>",
+					"tags": [
+						"development",
+						"open-source",
+						"cross-platform",
+						"ESPHome",
+						"Home Assistant",
+						"windows",
+						"linux",
+						"macos",
+						"docker",
+						"automation"
+					],
+					"repository": "https://github.com/esphome/esphome",
+					"image": "https://github.com/esphome/esphome/pkgs/container/esphome",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/ESPHome/screenshots/1.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/ESPHome/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/ESPHome/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"
@@ -654,6 +800,32 @@
 					]
 				},
 				{
+					"name": "Fasten Health",
+					"description": "An open-source, self-hosted, personal/family electronic medical record aggregator (PHR), designed to integrate with 100,000's of insurances/hospitals & clinics.",
+					"url": "",
+					"longDescription": "<p>Fasten is an open-source, self-hosted, personal/family electronic medical record aggregator, designed to integrate with 100,000's of insurance companies, healthcare providers and laboratories. It securely connects patient healthcare providers together, creating a personal health record that never leaves the patient's hands without their consent.</p><p><b>This project is still in early stages. Expect non-functional features</b></p>",
+					"tags": [
+						"health",
+						"erm",
+						"insurance",
+						"healthcare",
+						"medical records"
+					],
+					"repository": "https://github.com/fastenhealth/fasten-onprem",
+					"image": "ghcr.io/fastenhealth/fasten-onprem",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Fasten/screenshots/fasten_dashboard.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Fasten/screenshots/fasten_main.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Fasten/screenshots/fasten_sources.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Fasten/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Fasten/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
 					"name": "Filebrowser",
 					"description": "Filebrowser is an open-source, self-hosted web application for managing files within your server. It offers features like custom commands, user and permissions management, shareable links, built-in text editor, and media file previews. Filebrowser can be run on any platform that supports Go, including various Linux distributions, Windows, MacOS, and Docker.",
 					"url": "",
@@ -710,6 +882,62 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Firefly-III/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Firefly-III/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Firefox",
+					"description": "Firefox is a feature-rich web browser focusing on user privacy and security. It provides a customizable user interface, a wide range of extensions, sync capabilities, and efficient performance. Firefox is designed for various platforms and is dedicated to promoting an open and accessible internet.",
+					"url": "",
+					"longDescription": "<p>Firefox, developed by Mozilla Foundation, is a leading open-source web browser known for its emphasis on privacy, security, and speed. It offers a user-friendly experience with extensive customization options, including a vast library of add-ons and themes.</p><p>Firefox is designed with advanced security features like Enhanced Tracking Protection to automatically block many trackers, safeguarding user data. Its efficient performance and developer-friendly tools make it a top choice for both general users and web developers. Firefox Sync allows seamless access to bookmarks, history, and tabs across devices.</p><p>Available on multiple platforms, including Windows, MacOS, Linux, Android, and iOS, Firefox is committed to empowering users with a fast, secure, and private browsing experience.</p>",
+					"tags": [
+						"web browser",
+						"privacy",
+						"security",
+						"mozilla",
+						"firefox",
+						"open source",
+						"extensions",
+						"cross-platform",
+						"sync",
+						"user-friendly",
+						"performance",
+						"developer tools"
+					],
+					"repository": "https://github.com/mozilla/firefox",
+					"image": "https://hub.docker.com/r/linuxserver/firefox",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Firefox/screenshots/1.webp"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Firefox/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Firefox/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Flarum",
+					"description": "Flarum is a modern and responsive open-source forum software written in PHP and Laravel.",
+					"url": "",
+					"longDescription": "Flarum is an open-source forum software designed to be simple, fast, and easy to use. It provides a modern and responsive user interface, making discussions and interactions within a community more engaging. Flarum is built using PHP and the Laravel framework, and it uses the Mithril JavaScript framework for its front-end.",
+					"tags": [
+						"forum software",
+						"open-source",
+						"PHP",
+						"community",
+						"laravel"
+					],
+					"repository": "https://github.com/mondediefr/docker-flarum",
+					"image": "https://hub.docker.com/r/mondedie/flarum",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Flarum/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Flarum/screenshots/2.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Flarum/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Flarum/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"
@@ -1091,8 +1319,8 @@
 						"macos",
 						"Immich"
 					],
-					"repository": "https://github.com/imagegenius/docker-immich",
-					"image": "https://github.com/imagegenius/docker-immich/pkgs/container/immich",
+					"repository": "https://github.com/immich-app/immich",
+					"image": "ghcr.io/immich-app/immich-server",
 					"screenshots": [
 						"https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/screenshots/1.png",
 						"https://azukaar.github.io/cosmos-servapps-official/servapps/Immich/screenshots/2.webp",
@@ -1232,6 +1460,33 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellystat/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jellystat/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Jenkins",
+					"description": "Jenkins an open source automation server which enables developers around the world to reliably build, test, and deploy their software.",
+					"url": "",
+					"longDescription": "<p>Jenkins is typically run as a standalone application in its own process. The Jenkins WAR file bundles Winstone, a Jetty servlet container wrapper, and can be started on any operating system or platform with a version of Java supported by Jenkins.</p>",
+					"tags": [
+						"development",
+						"git",
+						"repository management",
+						"code collaboration",
+						"issue tracking",
+						"self-hosted"
+					],
+					"repository": "https://github.com/bitnami/containers/",
+					"image": "https://hub.docker.com/r/bitnami/jenkins",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Jenkins/screenshots/1.jpg",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Jenkins/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Jenkins/screenshots/2.jpg"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jenkins/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Jenkins/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"
@@ -1673,6 +1928,29 @@
 					]
 				},
 				{
+					"name": "N8n",
+					"description": "N8n (pronounced n-eight-n) helps you to connect any app with an API with any other, and manipulate its data with little or no code.",
+					"url": "",
+					"longDescription": "<p>N8n is an extendable workflow automation tool. With a fair-code distribution model, n8n will always have visible source code, be available to self-host, and allow you to add your own custom functions, logic and apps. n8n's node-based approach makes it highly versatile, enabling you to connect anything to everything.</p>",
+					"tags": [
+						"workflow",
+						"automation",
+						"self-hosted"
+					],
+					"repository": "https://github.com/n8n-io/n8n/",
+					"image": "https://docker.n8n.io/n8nio/n8n",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/N8n/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/N8n/screenshots/2.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/N8n/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/N8n/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
 					"name": "NZBGet",
 					"description": "NZBGet is a high-performance Usenet downloader that uses NZB files to fetch content. It is designed to use minimal system resources while offering features such as a web-interface, API, automatic post-processing, and RSS feed support. NZBGet works well on various platforms including low powered devices. Start using NZBGet for your Usenet downloads today!",
 					"url": "",
@@ -1794,7 +2072,7 @@
 				},
 				{
 					"name": "Odoo",
-					"description": "Redmine is a flexible project management web application. Written using the Ruby on Rails framework, it is cross-platform and cross-database.",
+					"description": "Odoo is a suite of open source business apps that cover all your company needs: CRM, eCommerce, accounting, inventory, ...",
 					"url": "",
 					"longDescription": "<p>Odoo is a suite of web based open source business apps. The main Odoo Apps include an Open Source CRM, Website Builder, eCommerce, Warehouse Management.</p>",
 					"tags": [
@@ -1901,6 +2179,27 @@
 					]
 				},
 				{
+					"name": "Openspeedtest",
+					"description": "HTML5 Internet Speed Test. no Flash or Java!",
+					"url": "",
+					"longDescription": "<p>SpeedTest by OpenSpeedTest™ is a Free and Open-Source HTML5 Network Performance Estimation Tool Written in Vanilla Javascript and only uses built-in Web APIs like XMLHttpRequest (XHR), HTML, CSS, JS, & SVG. No Third-Party frameworks or libraries are Required. All we need is a static web server like NGINX. This project was started in 2011 and moved to OpenSpeedTest.com dedicated Project/Domain Name in 2013.</p>",
+					"tags": [
+						"self-hosted",
+						"management"
+					],
+					"repository": "https://github.com/openspeedtest/Speed-Test",
+					"image": "https://hub.docker.com/r/openspeedtest/latest",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Openspeedtest/screenshots/1.gif"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Openspeedtest/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Openspeedtest/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
 					"name": "Overseerr",
 					"description": "Overseerr is a request management and media discovery tool built to work with your existing Plex ecosystem.",
 					"url": "",
@@ -1991,6 +2290,27 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Photoprism/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Photoprism/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Pingvin-share",
+					"description": "file sharing platform that combines lightness and beauty, perfect for seamless and efficient file sharing",
+					"url": "",
+					"longDescription": "<p>Pingvin Share is self-hosted file sharing platform and an alternative for WeTransfer.<br /><br />  ## ✨ Features<br />  <br />  - Share files using a link<br />  - Unlimited file size (restricted only by disk space)<br />  - Set an expiration date for shares<br />  - Secure shares with visitor limits and passwords<br />  - Email recipients<br />  - Integration with ClamAV for security scans</p>",
+					"tags": [
+						"share",
+						"file"
+					],
+					"repository": "https://github.com/stonith404/pingvin-share",
+					"image": "https://hub.docker.com/r/stonith404/pingvin-share",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Pingvin-share/screenshots/1.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Pingvin-share/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Pingvin-share/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"
@@ -2248,6 +2568,61 @@
 					]
 				},
 				{
+					"name": "SABnzbd",
+					"description": "SABnzbd is an advanced Usenet downloader that automates the process of downloading and managing files from Usenet. It features a user-friendly web interface, API support, automatic post-processing, and RSS feed integration. Optimized for performance, SABnzbd runs smoothly on different platforms, including low-powered devices. Experience efficient Usenet downloading with SABnzbd!",
+					"url": "",
+					"longDescription": "<p>SABnzbd is an open-source binary newsreader and Usenet downloader. It simplifies the process of downloading from Usenet by automating the majority of tasks involved. SABnzbd is renowned for its ease of use, high-speed downloading capabilities, and extensive customization options.</p><p>With features like web-interface accessibility, API support, automatic post-processing, and RSS feed integration, SABnzbd stands out as a versatile tool for Usenet downloading. It is optimized to run efficiently on various hardware, including low-powered devices like the Raspberry Pi.</p><p>SABnzbd is cross-platform, available on Windows, MacOS, Linux, and other operating systems, making it accessible to a wide range of users. Embrace the power and simplicity of SABnzbd for your Usenet downloading needs.</p>",
+					"tags": [
+						"usenet",
+						"downloader",
+						"newsreader",
+						"sabnzbd",
+						"windows",
+						"linux",
+						"macos",
+						"raspberry pi",
+						"performance",
+						"rss feed",
+						"post-processing",
+						"open-source"
+					],
+					"repository": "https://github.com/sabnzbd/sabnzbd",
+					"image": "https://hub.docker.com/r/linuxserver/sabnzbd",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Sabnzbd/screenshots/1.webp"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sabnzbd/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Sabnzbd/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "SearXNG",
+					"description": "SearXNG is an open-source metasearch engine focused on privacy and user control.",
+					"url": "",
+					"longDescription": "SearXNG is a privacy-respecting, open-source metasearch engine that aggregates results from various search engines while respecting user privacy. It allows users to search without being tracked and provides customizable search preferences. SearXNG can be self-hosted or used on public instances, giving users control over their search experience.",
+					"tags": [
+						"search engine",
+						"privacy",
+						"open-source",
+						"metasearch"
+					],
+					"repository": "https://github.com/searxng/searxng",
+					"image": "https://hub.docker.com/r/searxng/searxng",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/SearXNG/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/SearXNG/screenshots/2.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/SearXNG/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/SearXNG/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
 					"name": "Sonarqube",
 					"description": "Empower development teams with a code quality, security and static analysis solution that deeply integrates into your enterprise environment.",
 					"url": "",
@@ -2414,6 +2789,100 @@
 					]
 				},
 				{
+					"name": "Tautulli",
+					"description": "Tautulli A Python based monitoring and tracking tool for Plex Media Server.",
+					"url": "",
+					"longDescription": "<p>Tautulli is a 3rd party application that you can run alongside your Plex Media Server to monitor activity and track various statistics. Most importantly, these statistics include what has been watched, who watched it, when and where they watched it, and how it was watched.</p>",
+					"tags": [
+						"media",
+						"movies",
+						"streaming",
+						"tv",
+						"music",
+						"photos",
+						"videos",
+						"audiobooks",
+						"podcasts",
+						"dlna",
+						"chromecast",
+						"android",
+						"ios",
+						"roku",
+						"firetv",
+						"smarttv",
+						"web",
+						"browser",
+						"kodi",
+						"emby",
+						"plex",
+						"media browser",
+						"media server",
+						"media streaming",
+						"media player",
+						"media center",
+						"media management",
+						"media organizer",
+						"media collection",
+						"media library",
+						"media manager",
+						"media sharing",
+						"media transcoding",
+						"media casting",
+						"media casting",
+						"media casting"
+					],
+					"repository": "https://github.com/Tautulli/Tautulli/",
+					"image": "https://hub.docker.com/r/linuxserver/tautulli",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/screenshots/1.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/screenshots/2.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/screenshots/3.png",
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/screenshots/4.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Tautulli/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Threadfin",
+					"description": "M3U Proxy for Plex DVR and Emby/Jellyfin Live TV. Based on xTeVe.",
+					"url": "",
+					"longDescription": "<p>Threadfin is a M3U proxy server for Plex, Emby, Jellyfin and any client and provider which supports the .TS and .M3U8 (HLS) streaming formats.</p><p>Threadfin emulates a SiliconDust HDHomeRun OTA tuner, which allows it to expose IPTV style channels to software, which would not normally support it. This Docker image includes the following packages and features:</p><ul><li>Threadfin (Linux) x86 64 bit ffmpeg Support Runs as unprivileged user</li></ul>",
+					"tags": [
+						"media",
+						"iptv",
+						"tvguide",
+						"open-source",
+						"self-hosted",
+						"web application",
+						"plex",
+						"emby",
+						"jellyfin",
+						"request system",
+						"media content",
+						"windows",
+						"linux",
+						"macos",
+						"docker"
+					],
+					"repository": "https://github.com/Threadfin/Threadfin",
+					"image": "https://hub.docker.com/r/fyb3roptik/threadfin",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Threadfin/screenshots/1.png"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Threadfin/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Threadfin/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64",
+						"arm/v7",
+						"arm/v8"
+					]
+				},
+				{
 					"name": "Transmission",
 					"description": "Transmission is an open-source, cross-platform BitTorrent client. It is widely praised for its minimal resource usage, ease-of-use, and performance. Transmission provides features like built-in encryption, webseed support, peer exchange, automatic port mapping, and individual torrent speed limit settings. It supports Windows, Linux, MacOS, and also offers a web interface for remote control.",
 					"url": "",
@@ -2564,6 +3033,28 @@
 					],
 					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Vaultwarden/icon.png",
 					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Vaultwarden/cosmos-compose.json",
+					"supported_architectures": [
+						"amd64",
+						"arm64"
+					]
+				},
+				{
+					"name": "Webtop",
+					"description": "Webtop - Alpine, Ubuntu, Fedora, and Arch based containers containing full desktop environments in officially supported flavors accessible via any modern web browser",
+					"url": "",
+					"longDescription": "<p>Webtop - Alpine, Ubuntu, Fedora, and Arch based containers containing full desktop environments in officially supported flavors accessible via any modern web browser</p>",
+					"tags": [
+						"Desktop",
+						"VNC",
+						"KASM"
+					],
+					"repository": "https://github.com/kasmtech",
+					"image": "https://hub.docker.com/r/linuxserver/docker-webtop",
+					"screenshots": [
+						"https://azukaar.github.io/cosmos-servapps-official/servapps/Webtop/screenshots/1.jpg"
+					],
+					"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Webtop/icon.png",
+					"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Webtop/cosmos-compose.json",
 					"supported_architectures": [
 						"amd64",
 						"arm64"

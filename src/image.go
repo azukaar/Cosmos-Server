@@ -202,3 +202,33 @@ func imageCleanUp() {
 		}
 	}
 }
+
+func MigratePre013() {
+	// read background from config.json
+	config := utils.ReadConfigFromFile()
+	bg := config.HomepageConfig.Background
+
+	utils.Debug("MigratePre013: background is" + bg)
+
+	// if the background start with /cosmos/api/background/
+	if(strings.HasPrefix(bg, "/cosmos/api/background/")) {
+		// get the background name
+		ext := strings.TrimPrefix(bg, "/cosmos/api/background/")
+		bgPath := utils.CONFIGFOLDER + "/background." + ext
+
+		utils.Debug("MigratePre013: background path is" + bgPath)
+
+		// if the background file exists
+		if _, err := os.Stat(bgPath); err == nil {
+			// move the background file to uploads
+			err := os.Rename(bgPath, utils.CONFIGFOLDER + "/uploads/background." + ext)
+			if err != nil {
+				utils.Error("MigratePre013: Error moving background file", err)
+			}
+
+			// update the background path
+			config.HomepageConfig.Background = "/cosmos/api/image/background." + ext
+			utils.SetBaseMainConfig(config)
+		}
+	}
+}

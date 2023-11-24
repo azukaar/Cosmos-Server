@@ -47,6 +47,7 @@ func main() {
 
 	config := utils.GetMainConfig()
 	if !config.NewInstall {
+		MigratePre013()
 
 		utils.Log("Starting monitoring services...")
 
