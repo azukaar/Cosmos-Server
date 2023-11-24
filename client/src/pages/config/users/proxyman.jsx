@@ -206,10 +206,10 @@ const ProxyManagement = () => {
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) =>  <RouteActions
               route={r}
-              routeKey={k}
-              up={(event) => up(event, k)}
-              down={(event) => down(event, k)}
-              deleteRoute={(event) => deleteRoute(event, k)}
+              routeKey={routes.indexOf(r)}
+              up={(event) => up(event, routes.indexOf(r))}
+              down={(event) => down(event, routes.indexOf(r))}
+              deleteRoute={(event) => deleteRoute(event, routes.indexOf(r))}
             />,
             style: {
               textAlign: 'right',
