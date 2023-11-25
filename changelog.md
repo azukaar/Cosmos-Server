@@ -11,6 +11,7 @@
  - Edit container user and devices from UI
  - Fix bug where Cosmos Constellation's UDP ports by a TCP one
  - Fix a bug with URL screen, where you can't delete a URL when there is a search
+ - Fix issue where negative network rate are reported
  - Support array command and single device in docker-compose import
  - Add default alerts... by default (was missing from the default config)
  - disable few features liks Constellation, Backup and Monitoring when in install mode to reduce logs and prevent issues with the DB
