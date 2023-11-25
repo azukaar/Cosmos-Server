@@ -18,7 +18,7 @@
 [![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA) ![CircleCI](https://img.shields.io/circleci/build/github/azukaar/Cosmos-Server?token=6efd010d0f82f97175f04a6acf2dae2bbcc4063c&style=flat-square) [![Docker Pulls](https://img.shields.io/docker/pulls/azukaar/cosmos-server?style=flat-square)](https://hub.docker.com/r/azukaar/cosmos-server)
 
 
-☁️ Cosmos is the most secure and easy way to selfhost a Home Server. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
+☁️ Cosmos is the most secure and easy way to self-host a Home Server. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
 
 <p align="center">
   <br/>
@@ -38,9 +38,9 @@
 
 ![screenshot1](./screenshot1.png)
 
-Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution torun and secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
+Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to run and secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
-Cosmos is a: 
+Cosmos is: 
 
  * **App Store** 📦📱 To easily install and manage your applications, with simple installers, automatic updates and security checks. This works alongside manual installation methods, such as importing docker-compose files, or the docker CLI
  * **Customizable Homepage** 🏠🖼 To access all your applications from a single place, with a beautiful and customizable UI
@@ -70,14 +70,14 @@ Cosmos has a few key differences with other alternatives such as YunoHost, Unrai
 
 <p align="center" style="color:grey">
   <img src="./compare.png" /><br />
-  * Only containers created with their UI, with no customization, * No alerts
+  * Only containers created with their UI, with no customization, ** No alerts
 </p>
 
 
 * **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
-* **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who kows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
-* **Flexible**: Unlike the alternatives, Cosmos is not exclusively focused around its app-store. Instead, it lets you freely install any application any way you want, and manage them from the UI, from Portainer, or from docker directly. Any of those applications will still be integrated into Cosmos and will also benefit from all the security features, Let's Encrypt, etc...
-* **Learning experience**: If you are new to selfhosting, using a software that hides all the complexity from you can prevent you from learning how to properly manage your server. Cosmos is designed to be easy to use, but also to be a learning experience. It does not hide things away but instead guides you and proposes you to learn more about the tools you are using.
+* **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who knows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
+* **Flexible**: Unlike the alternatives, Cosmos is not exclusively focused around its app-store. Instead, it lets you freely install any application any way you want, and manage them from the UI, from Portainer, or from docker directly. Any of those applications will still be integrated into Cosmos and will also benefit from all the security features, Let's Encrypt, etc..
+* **Learning experience**: If you are new to self-hosting, using a software that hides all the complexity from you can prevent you from learning how to properly manage your server. Cosmos is designed to be easy to use, but also to be a learning experience. It does not hide things away but instead guides you and incentivizes learning more about the tools you are using.
 * **No vendor-locking**: Unlike solution that tightly couple their applications to the containers, Cosmos can manage apps created from anywhere all the same, and converting an existing container to a Cosmos app is as simple as adding a URL in the UI. You can also migrate out of Cosmos at any time, as it only uses vanilla docker containers.
 
 You might also wonder about **cloudflare proxy** and **cloudflare tunnel** when it comes to security. But unlike popular beliefs those are not solutions on their own as:
@@ -123,13 +123,11 @@ Another example:
 
 Additionally, because every new self-hosted applications re-implement **crucial systems** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to being **hacked without too much trouble**. This is very bad because not only Docker containers are not isolated, but they also run as **root** by default, which means it can **easily be used** to offer access to your entire server or even infrastructure.
 
-Most tools currently used to self-host **not specifically designed to be secure for your scenario**. Entreprise tools such as Traefik, NGinx, etc... Are designed for different use-cases that assume that the code you are running behind them is **trustworthy**. But who knows what server apps you might be running? On top of that, a lot of reverse-proxies and security tools lock important security features behind 3 to 4 figures business subscriptions that are not realistic for selfhosting. 
+Most tools currently used to self-host **not specifically designed to be secure for your scenario**. Entreprise tools such as Traefik, NGinx, etc... Are designed for different use-cases that assume that the code you are running behind them is **trustworthy**. But who knows what server apps you might be running? On top of that, a lot of reverse-proxies and security tools lock important security features behind 3 to 4 figures business subscriptions that are not realistic for self-hosting. 
 
 If you have any further questions, feel free to join our [Discord](https://discord.gg/PwMWwsrwHA)!
 
-```
-Disclaimer: Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security.
-```
+**Disclaimer**: _Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security._
 
 # Let's Encrypt
 
@@ -145,7 +143,7 @@ Authentication is very hard (how do you check the password match? What encryptio
 
 Cosmos is using the Apache 2.0 Licence with the Commons Clause 1.0. This is a common clause among open source infrastructure software, such as databases, reverse proxies, etc...
 
-The TL;DR is: You can use it freely. You can also fork it and redistribute it, But you are not allowed to sell it, a derivative or to sell a service based on it (ex. SaaS or PaaS).
+TL;DR: You can use it freely. You can also fork it and redistribute it, But you are not allowed to sell it, a derivative or to sell a service based on it (ex. SaaS or PaaS).
 
 Note that **you are allowed** to use it to host a monetized business website, a blog etc... as long as your business does not involve selling Cosmos or its features.
 
@@ -153,13 +151,13 @@ Note that **you are allowed** to use it to host a monetized business website, a 
 
 Installation is simple using Docker:
 
-```
+```sh
 docker run -d -p 80:80 -p 443:443 -p 4242:4242/udp --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
 
-#### DO NOT USE UNRAID TEMPLATES OR PORTAINER STACKS TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY.
+**DO NOT USE UNRAID TEMPLATES OR PORTAINER STACKS TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY.**
 
-in this command, `-v /:/mnt/host` is optional and allow to manage folders from Cosmos, you can remove it if you don't want it but you will have to create your container's bind folders manually.
+In this command, `-v /:/mnt/host` is optional and allow to manage folders from Cosmos, you can remove it if you don't want it but you will have to create your container's bind folders manually.
 
 `--privileged` is also optional, but it is required if you use hardening software like AppArmor or SELinux, as they restrict access to the docker socket. It is also required for Constellation to work. If you don't want to use it, you can add the following capabilities: NET_ADMIN for Constellation.
 
@@ -167,10 +165,10 @@ Once installed, simply go to `http://your-server-ip` and follow the instructions
 
 Port 4242 is a UDP port used for the Constellation VPN.
 
-make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
+Make sure you expose the right ports (by default 80 / 443). It is best to keep those ports intacts, as Cosmos is meant to run as your reverse proxy. Trying to setup Cosmos behind another reverse proxy is possible but will only create headaches.
 
 You also need to keep the docker socket mounted, as Cosmos needs to be able to manage your containers.
 
 You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://cosmos-cloud.io/doc/9%20Other%20Setups/#env-var).
 
-if you are having issues with the installation, please contact us on [Discord](https://discord.gg/PwMWwsrwHA)!
+If you are having issues with the installation, please contact us on [Discord](https://discord.gg/PwMWwsrwHA)!
