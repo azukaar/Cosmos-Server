@@ -20,6 +20,7 @@ type DataDef struct {
 	Scale int
 	Unit string
 	Decumulate bool
+	DecumulatePos bool
 	Object string
 }
 
@@ -36,6 +37,7 @@ type DataPush struct {
 	Scale int
 	Unit string
 	Decumulate bool
+	DecumulatePos bool
 	Object string
 }
 
@@ -169,13 +171,17 @@ func PushSetMetric(key string, value int, def DataDef) {
 		lock <- true
 		defer func() { <-lock }()
 
-		if def.Decumulate {
+		if def.Decumulate || def.DecumulatePos {
 			if lastInserted[key] != 0 {
 				value = value - lastInserted[key]
+				if def.DecumulatePos && value < 0 {
+					value = 0
+				}
 			} else {
 				value = 0
 			}
 		}
+		
 
 
 		if dp, ok := dataBuffer[cacheKey]; ok {

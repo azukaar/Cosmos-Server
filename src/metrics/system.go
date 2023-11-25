@@ -235,7 +235,7 @@ func GetSystemMetrics() {
 			Label: "Docker Network Received " + ds.Name,
 			SetOperation: "max",
 			AggloType: "sum",
-			Decumulate: true,
+			DecumulatePos: true,
 			Unit: "B",
 			Object: "container@" + ds.Name,
 		})
@@ -245,7 +245,7 @@ func GetSystemMetrics() {
 			Label: "Docker Network Sent " + ds.Name,
 			SetOperation: "max",
 			AggloType: "sum",
-			Decumulate: true,
+			DecumulatePos: true,
 			Unit: "B",
 			Object: "container@" + ds.Name,
 		})
