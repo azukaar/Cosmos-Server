@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/docker/docker/api/types"
 )
 
 type Cache struct {
@@ -49,22 +51,68 @@ func (c *Cache) Set(key string, value string, duration time.Duration) {
 }
 
 func _getContainerIPByName(containerName string) (string, error) {
+	errD := Connect()
+	if errD != nil {
+		return "", errD
+	}
+
 	container, err := DockerClient.ContainerInspect(DockerContext, containerName)
 	if err != nil {
 		return "", err
 	}
 
 	// Prioritize "host"
-	if net, ok := container.NetworkSettings.Networks["host"]; ok && net.IPAddress != "" {
-		return net.IPAddress, nil
-	}
+	// if net, ok := container.NetworkSettings.Networks["host"]; ok && net.IPAddress != "" {
+	// 	return "localhost", nil
+	// }
 
 	// Next, prioritize "bridge"
-	if net, ok := container.NetworkSettings.Networks["bridge"]; ok && net.IPAddress != "" {
-		return net.IPAddress, nil
+	// if net, ok := container.NetworkSettings.Networks["bridge"]; ok && net.IPAddress != "" {
+	// 	return net.IPAddress, nil
+	// }
+
+	// if container is in network mode host
+	if container.HostConfig.NetworkMode == "host" {
+		return "localhost", nil
+	} else if container.HostConfig.NetworkMode == "bridge" || container.HostConfig.NetworkMode == "default" || container.HostConfig.NetworkMode == "" {
+		// if container is in network mode bridge or default or not set
+		
+		for _, net := range container.NetworkSettings.Networks {
+			// if this network is using the bridge driver 
+			if net.IPAddress != "" {
+				return net.IPAddress, nil
+			}
+		}
+	} else if strings.HasPrefix(string(container.HostConfig.NetworkMode), "container:") {
+		// if container is in network mode container:<container_name>
+
+		// get the container name
+		otherContainerName := strings.TrimPrefix(string(container.HostConfig.NetworkMode), "container:")
+		// get the ip of the other container
+		ip, err := _getContainerIPByName(otherContainerName)
+		if err != nil {
+			return "", err
+		}
+		return ip, nil
+	} else {
+		// if container is in network mode <network_name>
+
+		// get the network name
+		networkName := string(container.HostConfig.NetworkMode)
+		// get the network
+		network, err := DockerClient.NetworkInspect(DockerContext, networkName, types.NetworkInspectOptions{})
+		if err != nil {
+			return "", err
+		}
+		// get the ip of the container in the network
+		for _, containerEP := range network.Containers {
+			if containerEP.Name == container.Name {
+				return network.IPAM.Config[0].Gateway, nil
+			}
+		}
 	}
 
-	// Finally, return the IP of the first network we find
+	// Finally, if nothing, return the IP of the first network we find
 	for _, net := range container.NetworkSettings.Networks {
 		if net.IPAddress != "" {
 			return net.IPAddress, nil

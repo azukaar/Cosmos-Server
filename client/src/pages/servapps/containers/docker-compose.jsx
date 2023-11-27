@@ -176,196 +176,196 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       try {
         doc = yaml.load(dockerCompose);
 
-        if (typeof doc === 'object' && doc !== null && Object.keys(doc).length > 0 &&
-          !doc.services && !doc.networks && !doc.volumes) {
-          doc = {
-            services: Object.assign({}, doc)
-          }
-        }
+        // if (typeof doc === 'object' && doc !== null && Object.keys(doc).length > 0 &&
+        //   !doc.services && !doc.networks && !doc.volumes) {
+        //   doc = {
+        //     services: Object.assign({}, doc)
+        //   }
+        // }
 
-        // convert to the proper format
-        if (doc.services) {
-          Object.keys(doc.services).forEach((key) => {
-            // convert volumes
-            if (doc.services[key].volumes) {
-              if (Array.isArray(doc.services[key].volumes)) {
-                let volumes = [];
-                doc.services[key].volumes.forEach((volume) => {
-                  if (typeof volume === 'object') {
-                    volumes.push(volume);
-                  } else {
-                    let volumeSplit = volume.split(':');
-                    let volumeObj = {
-                      source: volumeSplit[0],
-                      target: volumeSplit[1],
-                      type: (volume[0] === '/' || volume[0] === '.') ? 'bind' : 'volume',
-                    };
-                    volumes.push(volumeObj);
-                  }
-                });
-                doc.services[key].volumes = volumes;
-              }
-            }
+        // // convert to the proper format
+        // if (doc.services) {
+        //   Object.keys(doc.services).forEach((key) => {
+        //     // convert volumes
+        //     if (doc.services[key].volumes) {
+        //       if (Array.isArray(doc.services[key].volumes)) {
+        //         let volumes = [];
+        //         doc.services[key].volumes.forEach((volume) => {
+        //           if (typeof volume === 'object') {
+        //             volumes.push(volume);
+        //           } else {
+        //             let volumeSplit = volume.split(':');
+        //             let volumeObj = {
+        //               source: volumeSplit[0],
+        //               target: volumeSplit[1],
+        //               type: (volume[0] === '/' || volume[0] === '.') ? 'bind' : 'volume',
+        //             };
+        //             volumes.push(volumeObj);
+        //           }
+        //         });
+        //         doc.services[key].volumes = volumes;
+        //       }
+        //     }
 
-            if(doc.services[key].volumes)
-              Object.values(doc.services[key].volumes).forEach((volume) => {
-                if (volume.source && volume.source[0] === '.') {
-                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr"
-                  volume.source = defaultPath + volume.source.replace('.', '');
-                }
-              });
+        //     if(doc.services[key].volumes)
+        //       Object.values(doc.services[key].volumes).forEach((volume) => {
+        //         if (volume.source && volume.source[0] === '.') {
+        //           let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr"
+        //           volume.source = defaultPath + volume.source.replace('.', '');
+        //         }
+        //       });
 
-            // convert expose
-            if (doc.services[key].expose) {
-              doc.services[key].expose = doc.services[key].expose.map((port) => {
-                return '' + port;
-              })
-            }
+        //     // convert expose
+        //     if (doc.services[key].expose) {
+        //       doc.services[key].expose = doc.services[key].expose.map((port) => {
+        //         return '' + port;
+        //       })
+        //     }
 
-            //convert user
-            if (doc.services[key].user) {
-              doc.services[key].user = '' + doc.services[key].user;
-            }
+        //     //convert user
+        //     if (doc.services[key].user) {
+        //       doc.services[key].user = '' + doc.services[key].user;
+        //     }
 
-            // convert labels: 
-            if (doc.services[key].labels) {
-              if (Array.isArray(doc.services[key].labels)) {
-                let labels = {};
-                doc.services[key].labels.forEach((label) => {
-                  const [key, value] = label.split(/=(.*)/s);
-                  labels['' + key] = '' + value;
-                });
-                doc.services[key].labels = labels;
-              }
-              if (typeof doc.services[key].labels == 'object') {
-                let labels = {};
-                Object.keys(doc.services[key].labels).forEach((keylabel) => {
-                  labels['' + keylabel] = '' + doc.services[key].labels[keylabel];
-                });
-                doc.services[key].labels = labels;
-              }
-            }
+        //     // convert labels: 
+        //     if (doc.services[key].labels) {
+        //       if (Array.isArray(doc.services[key].labels)) {
+        //         let labels = {};
+        //         doc.services[key].labels.forEach((label) => {
+        //           const [key, value] = label.split(/=(.*)/s);
+        //           labels['' + key] = '' + value;
+        //         });
+        //         doc.services[key].labels = labels;
+        //       }
+        //       if (typeof doc.services[key].labels == 'object') {
+        //         let labels = {};
+        //         Object.keys(doc.services[key].labels).forEach((keylabel) => {
+        //           labels['' + keylabel] = '' + doc.services[key].labels[keylabel];
+        //         });
+        //         doc.services[key].labels = labels;
+        //       }
+        //     }
 
-            // convert environment
-            if (doc.services[key].environment) {
-              if (!Array.isArray(doc.services[key].environment)) {
-                let environment = [];
-                Object.keys(doc.services[key].environment).forEach((keyenv) => {
-                  environment.push(keyenv + '=' + doc.services[key].environment[keyenv]);
-                });
-                doc.services[key].environment = environment;
-              }
-            }
+        //     // convert environment
+        //     if (doc.services[key].environment) {
+        //       if (!Array.isArray(doc.services[key].environment)) {
+        //         let environment = [];
+        //         Object.keys(doc.services[key].environment).forEach((keyenv) => {
+        //           environment.push(keyenv + '=' + doc.services[key].environment[keyenv]);
+        //         });
+        //         doc.services[key].environment = environment;
+        //       }
+        //     }
 
-            // convert network
-            if (doc.services[key].networks) {
-              if (Array.isArray(doc.services[key].networks)) {
-                let networks = {};
-                doc.services[key].networks.forEach((network) => {
-                  if (typeof network === 'object') {
-                    networks['' + network.name] = network;
-                  }
-                  else
-                    networks['' + network] = {};
-                });
-                doc.services[key].networks = networks;
-              }
-            }
+        //     // convert network
+        //     if (doc.services[key].networks) {
+        //       if (Array.isArray(doc.services[key].networks)) {
+        //         let networks = {};
+        //         doc.services[key].networks.forEach((network) => {
+        //           if (typeof network === 'object') {
+        //             networks['' + network.name] = network;
+        //           }
+        //           else
+        //             networks['' + network] = {};
+        //         });
+        //         doc.services[key].networks = networks;
+        //       }
+        //     }
 
-            // convert devices
-            if (doc.services[key].devices) {
-              console.log(1)
-              if (Array.isArray(doc.services[key].devices)) {
-                console.log(2)
-                let devices = [];
-                doc.services[key].devices.forEach((device) => {
-                  if(device.indexOf(':') === -1) {
-                    devices.push(device + ':' + device);
-                  } else {
-                    devices.push(device);
-                  }
-                });
-                doc.services[key].devices = devices;
-              }
-            }
+        //     // convert devices
+        //     if (doc.services[key].devices) {
+        //       console.log(1)
+        //       if (Array.isArray(doc.services[key].devices)) {
+        //         console.log(2)
+        //         let devices = [];
+        //         doc.services[key].devices.forEach((device) => {
+        //           if(device.indexOf(':') === -1) {
+        //             devices.push(device + ':' + device);
+        //           } else {
+        //             devices.push(device);
+        //           }
+        //         });
+        //         doc.services[key].devices = devices;
+        //       }
+        //     }
 
-            // convert command 
-            if (doc.services[key].command) {
-              if (typeof doc.services[key].command !== 'string') {
-                doc.services[key].command = doc.services[key].command.join(' ');
-              }
-            }
+        //     // convert command 
+        //     if (doc.services[key].command) {
+        //       if (typeof doc.services[key].command !== 'string') {
+        //         doc.services[key].command = doc.services[key].command.join(' ');
+        //       }
+        //     }
 
-            // ensure container_name
-            if (!doc.services[key].container_name) {
-              doc.services[key].container_name = key;
-            }
+        //     // ensure container_name
+        //     if (!doc.services[key].container_name) {
+        //       doc.services[key].container_name = key;
+        //     }
 
-            // convert healthcheck
-            if (doc.services[key].healthcheck) {
-              const toConvert = ["timeout", "interval", "start_period"];
-              toConvert.forEach((valT) => {
-                if(typeof doc.services[key].healthcheck[valT] === 'string') {
-                  let original = doc.services[key].healthcheck[valT];
-                  let value = parseInt(original);
-                  if (original.endsWith('m')) {
-                    value = value * 60;
-                  } else if (original.endsWith('h')) {
-                    value = value * 60 * 60;
-                  } else if (original.endsWith('d')) {
-                    value = value * 60 * 60 * 24;
-                  }
-                  doc.services[key].healthcheck[valT] = value;
-                }
-              });
-            }
-          });
-        }
+        //     // convert healthcheck
+        //     if (doc.services[key].healthcheck) {
+        //       const toConvert = ["timeout", "interval", "start_period"];
+        //       toConvert.forEach((valT) => {
+        //         if(typeof doc.services[key].healthcheck[valT] === 'string') {
+        //           let original = doc.services[key].healthcheck[valT];
+        //           let value = parseInt(original);
+        //           if (original.endsWith('m')) {
+        //             value = value * 60;
+        //           } else if (original.endsWith('h')) {
+        //             value = value * 60 * 60;
+        //           } else if (original.endsWith('d')) {
+        //             value = value * 60 * 60 * 24;
+        //           }
+        //           doc.services[key].healthcheck[valT] = value;
+        //         }
+        //       });
+        //     }
+        //   });
+        // }
 
-        // convert networks
-        if (doc.networks) {
-          if (Array.isArray(doc.networks)) {
-            let networks = {};
-            doc.networks.forEach((network) => {
-              if (typeof network === 'object') {
-                networks['' + network.name] = network;
-              }
-              else
-                networks['' + network] = {};
-            });
-            doc.networks = networks;
-          } else {
-            let networks = {};
-            Object.keys(doc.networks).forEach((key) => {
-              networks['' + key] = doc.networks[key] || {};
-            });
-            doc.networks = networks;
-          }
-        }
+        // // convert networks
+        // if (doc.networks) {
+        //   if (Array.isArray(doc.networks)) {
+        //     let networks = {};
+        //     doc.networks.forEach((network) => {
+        //       if (typeof network === 'object') {
+        //         networks['' + network.name] = network;
+        //       }
+        //       else
+        //         networks['' + network] = {};
+        //     });
+        //     doc.networks = networks;
+        //   } else {
+        //     let networks = {};
+        //     Object.keys(doc.networks).forEach((key) => {
+        //       networks['' + key] = doc.networks[key] || {};
+        //     });
+        //     doc.networks = networks;
+        //   }
+        // }
 
-        // convert volumes
-        if (doc.volumes) {
-          if (Array.isArray(doc.volumes)) {
-            let volumes = {};
-            doc.volumes.forEach((volume) => {
-              if (!volume) {
-                volume = {};
-              }
-              if (typeof volume === 'object') {
-                volumes['' + volume.name] = volume;
-              }
-              else
-                volumes['' + volume] = {};
-            });
-            doc.volumes = volumes;
-          } else {
-            let volumes = {};
-            Object.keys(doc.volumes).forEach((key) => {
-              volumes['' + key] = doc.volumes[key] || {};
-            });
-            doc.volumes = volumes;
-          }
-        }
+        // // convert volumes
+        // if (doc.volumes) {
+        //   if (Array.isArray(doc.volumes)) {
+        //     let volumes = {};
+        //     doc.volumes.forEach((volume) => {
+        //       if (!volume) {
+        //         volume = {};
+        //       }
+        //       if (typeof volume === 'object') {
+        //         volumes['' + volume.name] = volume;
+        //       }
+        //       else
+        //         volumes['' + volume] = {};
+        //     });
+        //     doc.volumes = volumes;
+        //   } else {
+        //     let volumes = {};
+        //     Object.keys(doc.volumes).forEach((key) => {
+        //       volumes['' + key] = doc.volumes[key] || {};
+        //     });
+        //     doc.volumes = volumes;
+        //   }
+        // }
 
       } catch (e) {
         setYmlError(e.message);
