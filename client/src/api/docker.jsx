@@ -1,4 +1,5 @@
 import wrap from './wrap';
+import yaml from 'js-yaml';
 
 function list() {
   return wrap(fetch('/cosmos/api/servapps', {
@@ -177,9 +178,9 @@ function createService(serviceData, onProgress) {
   const requestOptions = {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/yaml'
     },
-    body: JSON.stringify(serviceData)
+    body: serviceData
   };
 
   return fetch('/cosmos/api/docker-service', requestOptions)

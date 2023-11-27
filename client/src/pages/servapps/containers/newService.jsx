@@ -21,6 +21,7 @@ import { Link } from 'react-router-dom';
 import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker';
 import { LoadingButton } from '@mui/lab';
 import LogLine from '../../../components/logLine';
+import yaml from 'js-yaml';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -84,7 +85,7 @@ const NewDockerService = ({service, refresh}) => {
     setLog([
       'Creating Service...                              ',
     ])
-    API.docker.createService(service, (newlog) => {
+    API.docker.createService(yaml.dump(service), (newlog) => {
       setLog((old) => smartDockerLogConcat(old, newlog));
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
@@ -118,8 +119,7 @@ const NewDockerService = ({service, refresh}) => {
       <pre style={preStyle} ref={preRef}>
         {!log.length && `
 # You are about to create the following service(s):
-
-${JSON.stringify(service, false ,2)}`
+${yaml.dump(service)}`
         }
         {log.map((l) => {
           return <LogLine message={tryParseProgressLog(l)} docker isMobile={!screenMin} />
