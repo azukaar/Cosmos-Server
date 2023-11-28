@@ -1,3 +1,6 @@
+## Version 0.13.1
+ - Fix a security issue with token (thansk @vncloudsco)
+
 ## Version 0.13.0
  - Display container stacks as a group in the UI
  - New Delete modal to delete services entirely
