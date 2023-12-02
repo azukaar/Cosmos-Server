@@ -14,7 +14,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(ts|tsx|js|jsx|mjs|cjs)$/,
+                test: /\.(ts|tsx|js|jsx|mjs|cjs)$/i,
                 use: {
                     loader: 'babel-loader',
                     options: {
@@ -52,7 +52,15 @@ module.exports = {
             'util': require.resolve('util/'),
         },
         alias: {
-            'bn.js': require.resolve('bn.js')
+            'bn.js': require.resolve('bn.js'),
+            'isarray': require.resolve('isarray'),
+            'level-fix-range': require.resolve('level-fix-range'),
+            'object-keys': require.resolve('object-keys'),
+            'prr': require.resolve('prr'),
+            'react-is': require.resolve('react-is'),
+            'safe-buffer': require.resolve('safe-buffer'),
+            'string_decoder': require.resolve('string_decoder'),
+            'xtend': require.resolve('xtend')
         }
     },
     plugins: [

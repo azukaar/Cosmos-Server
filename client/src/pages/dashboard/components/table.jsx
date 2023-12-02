@@ -35,7 +35,6 @@ import MainCard from '../../../components/MainCard';
 import ReactApexChart from 'react-apexcharts';
 import { object } from 'prop-types';
 import { FormaterForMetric } from './utils';
-import { set } from 'lodash';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
 import PlotComponent from './plot';
 
