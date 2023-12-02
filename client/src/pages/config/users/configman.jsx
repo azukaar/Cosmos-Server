@@ -21,19 +21,18 @@ import {
 import RestartModal from './restart';
 import { DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
-import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
+import CountrySelect from '../../../components/countrySelect';
 
+import { LoadingButton } from '@mui/lab';
 import UploadButtons from '../../../components/fileUpload';
-import { SliderPicker
- } from 'react-color';
- import { LoadingButton } from '@mui/lab';
+import SliderPicker from 'react-color/lib/components/slider/Slider';
 
- // TODO: Remove circular deps
- import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
+// TODO: Remove circular deps
+import {SetPrimaryColor, SetSecondaryColor} from '../../../App';
 import { useClientInfos } from '../../../utils/hooks';
-import ConfirmModal from '../../../components/confirmModal';
 import { DownloadFile } from '../../../api/downloadButton';
+import ConfirmModal from '../../../components/confirmModal';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);

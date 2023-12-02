@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 import Back from "../../components/back";
 import { Alert, Box, CircularProgress, Grid, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy } from "react";
 import * as API from "../../api";
 import wallpaper from '../../assets/images/wallpaper2.jpg';
 import wallpaperLight from '../../assets/images/wallpaper2_light.jpg';
@@ -11,10 +11,10 @@ import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
 import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
-import Chart from 'react-apexcharts';
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 
 
 export const HomeBackground = () => {
@@ -394,7 +394,7 @@ const HomePage = () => {
                                 <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
@@ -417,7 +417,7 @@ const HomePage = () => {
                                     <div>used: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100

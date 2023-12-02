@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo  } from 'react';
+import React, { useEffect, useState, useMemo , lazy } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 // material-ui
@@ -23,7 +23,7 @@ import {
 import MainCard from '../../../components/MainCard';
 
 // third-party
-import ReactApexChart from 'react-apexcharts';
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { FormaterForMetric, formatDate, toUTC } from './utils';
 
 import * as API from '../../../api';

@@ -5,7 +5,6 @@ const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
-const ESLintPlugin = require('eslint-webpack-plugin');
 
 const path = require('path');
 
@@ -47,9 +46,9 @@ module.exports = {
             'stream': require.resolve('stream-browserify'),
             'crypto': require.resolve('crypto-browserify'),
             'path': require.resolve('path-browserify'),
-            'fs': require.resolve('browserify-fs'),
             'buffer': require.resolve('buffer/'),
             'util': require.resolve('util/'),
+            'fs': false
         },
         alias: {
             'bn.js': require.resolve('bn.js'),
@@ -64,7 +63,6 @@ module.exports = {
         }
     },
     plugins: [
-        new ESLintPlugin(),
         new IgnorePlugin({
             resourceRegExp: /[\d\D]*.demo[\d\D]*/
         }),
@@ -75,7 +73,7 @@ module.exports = {
         new BundleAnalyzerPlugin(),
         new DuplicatesPlugin({
             emitErrors: false,
-            verbose: true
+            verbose: false
         })
     ],
     output: {
@@ -90,6 +88,7 @@ module.exports = {
         splitChunks: {
             chunks: 'all',
         },
+        usedExports: true,
         minimizer: [
             new CssMinimizerPlugin(),
             new TerserPlugin({

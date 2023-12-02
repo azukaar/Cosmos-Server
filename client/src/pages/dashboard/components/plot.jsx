@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy } from 'react';
 // material-ui
 import {
   Avatar,
@@ -21,8 +21,8 @@ import {
 import MainCard from '../../../components/MainCard';
 
 // third-party
-import ReactApexChart from 'react-apexcharts';
 import { FormaterForMetric, toUTC } from './utils';
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 
 
 const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, zoom, setZoom, zoomDisabled }) => {

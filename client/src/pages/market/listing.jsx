@@ -1,7 +1,7 @@
 import { Box, CircularProgress, Input, InputAdornment, Stack, Tooltip } from "@mui/material";
 import { HomeBackground, TransparentHeader } from "../home";
 import { useEffect, useState } from "react";
-import * as API from "../../api";
+import { market } from "../../api";
 import { useTheme } from "@emotion/react";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { useParams } from "react-router";
@@ -147,7 +147,7 @@ const MarketPage = () => {
   };
 
   const refresh = () => {
-    API.market.list().then((res) => {
+    market.list().then((res) => {
       setApps(res.data.all);
       setShowcase(res.data.showcase);
     });
