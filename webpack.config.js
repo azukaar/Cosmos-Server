@@ -71,14 +71,22 @@ module.exports = {
             new CssMinimizerPlugin(),
             new TerserPlugin({
                 minify: TerserPlugin.swcMinify,
-                parallel: true,
-                extractComments: "all",
                 terserOptions: {
                     mangle: true,
                     compress: true,
                     sourceMap: false,
                 }
-            })
+            }),
+            new TerserPlugin({
+                minify: TerserPlugin.uglifyJsMinify
+            }),
+            new TerserPlugin({
+                minify: TerserPlugin.esbuildMinify
+            }),
+            new TerserPlugin({
+                minify: TerserPlugin.terserMinify
+            }),
+
         ]
     }
 };
