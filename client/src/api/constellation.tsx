@@ -9,7 +9,7 @@ function list() {
   }))
 }
 
-function addDevice(device) {
+function addDevice(device: any) {
   return wrap(fetch('/cosmos/api/constellation/devices', {
     method: 'POST',
     headers: {
@@ -56,7 +56,7 @@ function getLogs() {
   }))
 }
 
-function connect(file) {
+function connect(file: Blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     
@@ -86,7 +86,7 @@ function connect(file) {
   });
 }
 
-function block(nickname, devicename, block) {
+function block(nickname: any, devicename: any, block: any) {
   return wrap(fetch(`/cosmos/api/constellation/block`, {
     method: 'POST',
     headers: {

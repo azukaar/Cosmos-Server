@@ -14,7 +14,7 @@ function get() {
   }))
 }
 
-function set(values) {
+function set(values: any) {
   return wrap(fetch('/cosmos/api/config', {
     method: 'PUT',
     headers: {

@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "outDir": "client/dist",
+        "noImplicitAny": true,
+        "module": "es6",
+        "target": "es6",
+        "jsx": "react",
+        "allowJs": true,
+        "moduleResolution": "node",
+        "rootDir": "client/src",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "include": ["client/src/**/*"],
+    "exclude": ["client/**/*.demo*"]
+}
