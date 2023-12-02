@@ -1,11 +1,20 @@
 {
     "presets": [
-        "@babel/preset-env",
+        "@babel/env",
+        "@babel/react",
+        "@babel/preset-typescript"
+    ],
+    "plugins": [
+        "@babel/plugin-transform-runtime",
         [
-            "@babel/preset-react",
+            "babel-plugin-direct-import",
             {
-                "runtime": "automatic"
+                "modules": [
+                    "@mui/lab",
+                    "@mui/material",
+                    "@mui/x-date-pickers"
+                ]
             }
         ]
-    ]
+    ],
 }

@@ -1,9 +1,8 @@
-// material-ui
-import { useTheme } from '@mui/material/styles';
 import { fontWeight } from '@mui/system';
-
 import logo from '../../assets/images/icons/cosmos_simple_black.png';
+
 import logoDark from '../../assets/images/icons/cosmos_simple_white.png';
+import { useTheme } from '@mui/material';
 
 // ==============================|| LOGO SVG ||============================== //
 

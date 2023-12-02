@@ -3,8 +3,7 @@ import Routes from './routes';
 import * as React from 'react';
 import ThemeCustomization from './themes';
 import ScrollTop from './components/ScrollTop';
-import Snackbar from '@mui/material/Snackbar';
-import {Alert, Box} from '@mui/material';
+import { Alert, Box, Snackbar } from '@mui/material';
 import logo from './assets/images/icons/cosmos.png';
 
 import * as API from './api';
@@ -26,7 +25,7 @@ export let SetPrimaryColor = () => {};
 export let SetSecondaryColor = () => {};
 export let GlobalPrimaryColor = '';
 export let GlobalSecondaryColor = '';
-  
+
 const App = () => {
     const [open, setOpen] = React.useState(false);
     const [message, setMessage] = React.useState('');

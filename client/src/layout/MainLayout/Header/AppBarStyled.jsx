@@ -1,9 +1,7 @@
-// material-ui
-import { styled } from '@mui/material/styles';
-import AppBar from '@mui/material/AppBar';
-
 // project import
 import { drawerWidth } from '../../../config';
+
+import { styled, AppBar } from '@mui/material';
 
 // ==============================|| HEADER - APP BAR STYLED ||============================== //
 

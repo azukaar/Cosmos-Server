@@ -1,14 +1,21 @@
 import * as React from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import { CircularProgress, Input, InputAdornment, Stack, TextField, useMediaQuery } from '@mui/material';
+import {
+  CircularProgress,
+  Input,
+  InputAdornment,
+  Stack,
+  TextField,
+  useMediaQuery,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  useTheme,
+} from '@mui/material';
 import { SearchOutlined } from '@ant-design/icons';
-import { useTheme } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
 
 const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, linkTo, buttons, fullWidth }) => {

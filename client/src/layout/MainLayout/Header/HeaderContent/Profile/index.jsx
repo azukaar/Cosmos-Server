@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 import { useRef, useState } from 'react';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
 import {
     Avatar,
     Box,
@@ -16,7 +14,8 @@ import {
     Stack,
     Tab,
     Tabs,
-    Typography
+    Typography,
+    useTheme,
 } from '@mui/material';
 
 // project import

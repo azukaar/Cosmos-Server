@@ -1,8 +1,8 @@
 import PropTypes from 'prop-types';
 
 // material-ui
-import { alpha, styled } from '@mui/material/styles';
-import { Box } from '@mui/material';
+import { styled } from '@mui/material/styles';
+import { Box, alpha } from '@mui/material';
 
 // third-party
 import SimpleBar from 'simplebar-react';

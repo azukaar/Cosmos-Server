@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import * as API from '../../../api';
-import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
+import { Alert, Input, Stack, useMediaQuery, useTheme, Button, TextField } from '@mui/material';
 import Terminal from '../../../components/terminal';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';

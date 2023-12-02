@@ -17,12 +17,10 @@ import {
   Stack,
   TextField,
   Typography,
-  Alert
+  Alert,
+  useTheme,
 } from '@mui/material';
 import MainCard from '../../../components/MainCard';
-
-// material-ui
-import { useTheme } from '@mui/material/styles';
 
 // third-party
 import ReactApexChart from 'react-apexcharts';

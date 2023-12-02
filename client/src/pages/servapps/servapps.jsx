@@ -1,11 +1,32 @@
 // material-ui
 import { AlertFilled, AppstoreAddOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOutlined, PlaySquareOutlined, PlusCircleOutlined, ReloadOutlined, RollbackOutlined, SearchOutlined, SettingOutlined, StopOutlined, UpCircleOutlined, UpSquareFilled, WarningFilled } from '@ant-design/icons';
-import { Alert, Badge, Button, Card, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, IconButton, Input, InputAdornment, TextField, Tooltip, Typography } from '@mui/material';
+import {
+  Alert,
+  Badge,
+  Button,
+  Card,
+  Checkbox,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  IconButton,
+  Input,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography,
+  Paper,
+  styled,
+  useTheme,
+} from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Stack } from '@mui/system';
 import { useEffect, useState } from 'react';
-import Paper from '@mui/material/Paper';
-import { styled } from '@mui/material/styles';
 
 import * as API from '../../api';
 import IsLoggedIn from '../../isLoggedIn';
@@ -22,7 +43,6 @@ import { ContainerNetworkWarning } from '../../components/containers';
 import { ServAppIcon } from '../../utils/servapp-icon';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
 import { DownloadFile } from '../../api/downloadButton';
-import { useTheme } from '@mui/material/styles';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',

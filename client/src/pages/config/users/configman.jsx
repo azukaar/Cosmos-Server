@@ -59,668 +59,670 @@ const ConfigManagement = () => {
     refresh();
   }, []);
 
-  return <div style={{maxWidth: '1000px', margin: ''}}>
-    <IsLoggedIn />
+  return (
+    <div style={{maxWidth: '1000px', margin: ''}}>
+      <IsLoggedIn />
 
-    <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
-      <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-          refresh();
-      }}>Refresh</Button>
-
-      {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-          setOpenRestartModal(true);
-      }}>Restart Server</Button>}
-      
-      <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
-          API.metrics.reset().then((res) => {
+      <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
+        <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
             refresh();
-          });
-      }}
-      label={'Purge Metrics Dashboard'} 
-      content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
-    </Stack>
-    
-    {config && <>
-      <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
-      <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
+        }}>Refresh</Button>
 
+        {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+            setOpenRestartModal(true);
+        }}>Restart Server</Button>}
+        
+        <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
+            API.metrics.reset().then((res) => {
+              refresh();
+            });
+        }}
+        label={'Purge Metrics Dashboard'} 
+        content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
+      </Stack>
       
-      <Formik
-        initialValues={{
-          MongoDB: config.MongoDB,
-          LoggingLevel: config.LoggingLevel,
-          RequireMFA: config.RequireMFA,
-          GeoBlocking: config.BlockedCountries,
-          CountryBlacklistIsWhitelist: config.CountryBlacklistIsWhitelist,
-          AutoUpdate: config.AutoUpdate,
+      {config && <>
+        <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
+        <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
 
-          Hostname: config.HTTPConfig.Hostname,
-          GenerateMissingTLSCert: config.HTTPConfig.GenerateMissingTLSCert,
-          GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
-          HTTPPort: config.HTTPConfig.HTTPPort,
-          HTTPSPort: config.HTTPConfig.HTTPSPort,
-          SSLEmail: config.HTTPConfig.SSLEmail,
-          UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
-          HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
-          DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
-          DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
-          ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
-          OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
-          UseForwardedFor: config.HTTPConfig.UseForwardedFor,
-
-          Email_Enabled: config.EmailConfig.Enabled,
-          Email_Host: config.EmailConfig.Host,
-          Email_Port: config.EmailConfig.Port,
-          Email_Username: config.EmailConfig.Username,
-          Email_Password: config.EmailConfig.Password,
-          Email_From: config.EmailConfig.From,
-          Email_UseTLS : config.EmailConfig.UseTLS,
-          Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
-
-          SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
-          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
-
-          Background: config && config.HomepageConfig && config.HomepageConfig.Background,
-          Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
-          PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
-          SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         
-          MonitoringEnabled: !config.MonitoringDisabled,
-        }}
+        <Formik
+          initialValues={{
+            MongoDB: config.MongoDB,
+            LoggingLevel: config.LoggingLevel,
+            RequireMFA: config.RequireMFA,
+            GeoBlocking: config.BlockedCountries,
+            CountryBlacklistIsWhitelist: config.CountryBlacklistIsWhitelist,
+            AutoUpdate: config.AutoUpdate,
 
-        validationSchema={Yup.object().shape({
-          Hostname: Yup.string().max(255).required('Hostname is required'),
-          MongoDB: Yup.string().max(512),
-          LoggingLevel: Yup.string().max(255).required('Logging Level is required'),
-        })}
+            Hostname: config.HTTPConfig.Hostname,
+            GenerateMissingTLSCert: config.HTTPConfig.GenerateMissingTLSCert,
+            GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
+            HTTPPort: config.HTTPConfig.HTTPPort,
+            HTTPSPort: config.HTTPConfig.HTTPSPort,
+            SSLEmail: config.HTTPConfig.SSLEmail,
+            UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
+            HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
+            DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
+            DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
+            ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
+            OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
+            UseForwardedFor: config.HTTPConfig.UseForwardedFor,
 
-        onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-          setSubmitting(true);
-        
-          let toSave = {
-            ...config,
-            MongoDB: values.MongoDB,
-            LoggingLevel: values.LoggingLevel,
-            RequireMFA: values.RequireMFA,
-            // AutoUpdate: values.AutoUpdate,
-            BlockedCountries: values.GeoBlocking,
-            CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
-            MonitoringDisabled: !values.MonitoringEnabled,
-            HTTPConfig: {
-              ...config.HTTPConfig,
-              Hostname: values.Hostname,
-              GenerateMissingAuthCert: values.GenerateMissingAuthCert,
-              HTTPPort: values.HTTPPort,
-              HTTPSPort: values.HTTPSPort,
-              SSLEmail: values.SSLEmail,
-              UseWildcardCertificate: values.UseWildcardCertificate,
-              HTTPSCertificateMode: values.HTTPSCertificateMode,
-              DNSChallengeProvider: values.DNSChallengeProvider,
-              DNSChallengeConfig: values.DNSChallengeConfig,
-              ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
-              OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
-              UseForwardedFor: values.UseForwardedFor,
-            },
-            EmailConfig: {
-              ...config.EmailConfig,
-              Enabled: values.Email_Enabled,
-              Host: values.Email_Host,
-              Port: values.Email_Port,
-              Username: values.Email_Username,
-              Password: values.Email_Password,
-              From: values.Email_From,
-              UseTLS: values.Email_UseTLS,
-              AllowInsecureTLS: values.Email_AllowInsecureTLS,
-            },
-            DockerConfig: {
-              ...config.DockerConfig,
-              SkipPruneNetwork: values.SkipPruneNetwork,
-              DefaultDataPath: values.DefaultDataPath
-            },
-            HomepageConfig: {
-              ...config.HomepageConfig,
-              Background: values.Background,
-              Expanded: values.Expanded
-            },
-            ThemeConfig: {
-              ...config.ThemeConfig,
-              PrimaryColor: values.PrimaryColor,
-              SecondaryColor: values.SecondaryColor
-            },
-          }
+            Email_Enabled: config.EmailConfig.Enabled,
+            Email_Host: config.EmailConfig.Host,
+            Email_Port: config.EmailConfig.Port,
+            Email_Username: config.EmailConfig.Username,
+            Email_Password: config.EmailConfig.Password,
+            Email_From: config.EmailConfig.From,
+            Email_UseTLS : config.EmailConfig.UseTLS,
+            Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
+
+            SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
+            DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
+
+            Background: config && config.HomepageConfig && config.HomepageConfig.Background,
+            Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
+            PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
+            SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
           
-          return API.config.set(toSave).then((data) => {
-            setOpenModal(true);
-            setSaveLabel("Saved!");
-            setTimeout(() => {
-              setSaveLabel("Save");
-            }, 3000);
-          }).catch((err) => {
-            setOpenModal(true);
-            setSaveLabel("Error while saving, try again.");
-            setTimeout(() => {
-              setSaveLabel("Save");
-            }, 3000);
-          });
-        }}
-      >
-        {(formik) => (
-          <form noValidate onSubmit={formik.handleSubmit}>
-            <Stack spacing={3}>
-            {isAdmin && <MainCard>
-                {formik.errors.submit && (
-                  <Grid item xs={12}>
-                    <FormHelperText error>{formik.errors.submit}</FormHelperText>
-                  </Grid>
-                )}
-                <Grid item xs={12}>
-                  <LoadingButton
-                      disableElevation
-                      loading={formik.isSubmitting}
-                      fullWidth
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                    >
-                      {saveLabel}
-                    </LoadingButton>
-                </Grid>
-              </MainCard>}
+            MonitoringEnabled: !config.MonitoringDisabled,
+          }}
 
-              {!isAdmin && <div>
-                <Alert severity="warning">As you are not an admin, you can't edit the configuration.
-                This page is only here for visibility. 
-                </Alert>
-              </div>} 
+          validationSchema={Yup.object().shape({
+            Hostname: Yup.string().max(255).required('Hostname is required'),
+            MongoDB: Yup.string().max(512),
+            LoggingLevel: Yup.string().max(255).required('Logging Level is required'),
+          })}
 
-              <MainCard title="General">
-                <Grid container spacing={3}>
+          onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
+            setSubmitting(true);
+          
+            let toSave = {
+              ...config,
+              MongoDB: values.MongoDB,
+              LoggingLevel: values.LoggingLevel,
+              RequireMFA: values.RequireMFA,
+              // AutoUpdate: values.AutoUpdate,
+              BlockedCountries: values.GeoBlocking,
+              CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
+              MonitoringDisabled: !values.MonitoringEnabled,
+              HTTPConfig: {
+                ...config.HTTPConfig,
+                Hostname: values.Hostname,
+                GenerateMissingAuthCert: values.GenerateMissingAuthCert,
+                HTTPPort: values.HTTPPort,
+                HTTPSPort: values.HTTPSPort,
+                SSLEmail: values.SSLEmail,
+                UseWildcardCertificate: values.UseWildcardCertificate,
+                HTTPSCertificateMode: values.HTTPSCertificateMode,
+                DNSChallengeProvider: values.DNSChallengeProvider,
+                DNSChallengeConfig: values.DNSChallengeConfig,
+                ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
+                OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
+                UseForwardedFor: values.UseForwardedFor,
+              },
+              EmailConfig: {
+                ...config.EmailConfig,
+                Enabled: values.Email_Enabled,
+                Host: values.Email_Host,
+                Port: values.Email_Port,
+                Username: values.Email_Username,
+                Password: values.Email_Password,
+                From: values.Email_From,
+                UseTLS: values.Email_UseTLS,
+                AllowInsecureTLS: values.Email_AllowInsecureTLS,
+              },
+              DockerConfig: {
+                ...config.DockerConfig,
+                SkipPruneNetwork: values.SkipPruneNetwork,
+                DefaultDataPath: values.DefaultDataPath
+              },
+              HomepageConfig: {
+                ...config.HomepageConfig,
+                Background: values.Background,
+                Expanded: values.Expanded
+              },
+              ThemeConfig: {
+                ...config.ThemeConfig,
+                PrimaryColor: values.PrimaryColor,
+                SecondaryColor: values.SecondaryColor
+              },
+            }
+            
+            return API.config.set(toSave).then((data) => {
+              setOpenModal(true);
+              setSaveLabel("Saved!");
+              setTimeout(() => {
+                setSaveLabel("Save");
+              }, 3000);
+            }).catch((err) => {
+              setOpenModal(true);
+              setSaveLabel("Error while saving, try again.");
+              setTimeout(() => {
+                setSaveLabel("Save");
+              }, 3000);
+            });
+          }}
+        >
+          {(formik) => (
+            <form noValidate onSubmit={formik.handleSubmit}>
+              <Stack spacing={3}>
+              {isAdmin && <MainCard>
+                  {formik.errors.submit && (
+                    <Grid item xs={12}>
+                      <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                    </Grid>
+                  )}
                   <Grid item xs={12}>
-                    <Alert severity="info">This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.</Alert>
-                  </Grid>
-                  
-                  <CosmosCheckbox
-                    label="Force Multi-Factor Authentication"
-                    name="RequireMFA"
-                    formik={formik}
-                    helperText="Require MFA for all users"
-                  />
-                  
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="MongoDB-login">MongoDB connection string. It is advised to use Environment variable to store this securely instead. (Optional)</InputLabel>
-                      <OutlinedInput
-                        id="MongoDB-login"
-                        type="password"
-                        autoComplete='new-password'
-                        value={formik.values.MongoDB}
-                        name="MongoDB"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        placeholder="MongoDB"
+                    <LoadingButton
+                        disableElevation
+                        loading={formik.isSubmitting}
                         fullWidth
-                        error={Boolean(formik.touched.MongoDB && formik.errors.MongoDB)}
-                      />
-                      {formik.touched.MongoDB && formik.errors.MongoDB && (
-                        <FormHelperText error id="standard-weight-helper-text-MongoDB-login">
-                          {formik.errors.MongoDB}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="LoggingLevel-login">Level of logging (Default: INFO)</InputLabel>
-                      <TextField
-                        className="px-2 my-2"
-                        variant="outlined"
-                        name="LoggingLevel"
-                        id="LoggingLevel"
-                        select
-                        value={formik.values.LoggingLevel}
-                        onChange={formik.handleChange}
-                        error={
-                          formik.touched.LoggingLevel &&
-                          Boolean(formik.errors.LoggingLevel)
-                        }
-                        helperText={
-                          formik.touched.LoggingLevel && formik.errors.LoggingLevel
-                        }
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        color="primary"
                       >
-                        <MenuItem key={"DEBUG"} value={"DEBUG"}>
-                          DEBUG
-                        </MenuItem>
-                        <MenuItem key={"INFO"} value={"INFO"}>
-                          INFO
-                        </MenuItem>
-                        <MenuItem key={"WARNING"} value={"WARNING"}>
-                          WARNING
-                        </MenuItem>
-                        <MenuItem key={"ERROR"} value={"ERROR"}>
-                          ERROR
-                        </MenuItem>
-                      </TextField>
-                    </Stack>
+                        {saveLabel}
+                      </LoadingButton>
                   </Grid>
+                </MainCard>}
 
-                  <CosmosCheckbox
-                    label="Monitoring Enabled"
-                    name="MonitoringEnabled"
-                    formik={formik}
-                  />
-                </Grid>
-              </MainCard>
-              
-              <MainCard title="Appearance">
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    {!uploadingBackground && formik.values.Background && <img src=
-                      {formik.values.Background} alt="preview seems broken. Please re-upload."
-                      width={285} />}
-                    {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
-                     <Stack spacing={1} direction="row">
-                      <UploadButtons
-                        accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
-                        label="Upload Wallpaper"
-                        OnChange={(e) => {
-                          setUploadingBackground(true);
-                          const file = e.target.files[0];
-                          API.uploadImage(file, "background").then((data) => {
-                            formik.setFieldValue('Background', data.data.path);
-                            setUploadingBackground(false);
-                          });
-                        }}
-                      />
+                {!isAdmin && <div>
+                  <Alert severity="warning">As you are not an admin, you can't edit the configuration.
+                  This page is only here for visibility. 
+                  </Alert>
+                </div>} 
 
-                      <Button
-                        variant="outlined"
-                        onClick={() => {
-                          formik.setFieldValue('Background', "");
-                        }}
-                      >
-                        Reset Wallpaper
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        onClick={() => {
-                          formik.setFieldValue('PrimaryColor', "");
-                          SetPrimaryColor("");
-                          formik.setFieldValue('SecondaryColor', "");
-                          SetSecondaryColor("");
-                        }}
-                      >
-                        Reset Colors
-                      </Button>
-                    </Stack>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <CosmosCheckbox 
-                      label="Show Application Details on Homepage"
-                      name="Expanded"
+                <MainCard title="General">
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Alert severity="info">This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.</Alert>
+                    </Grid>
+                    
+                    <CosmosCheckbox
+                      label="Force Multi-Factor Authentication"
+                      name="RequireMFA"
                       formik={formik}
+                      helperText="Require MFA for all users"
                     />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">Primary Color</InputLabel>
-                      <SliderPicker
-                        id="PrimaryColor"
-                        color={formik.values.PrimaryColor}
-                        onChange={color => {
-                          let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
-                          formik.setFieldValue('PrimaryColor', colorRGB);
-                          SetPrimaryColor(colorRGB);
-                        }}
-                      />
-                    </Stack>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">Secondary Color</InputLabel>
-                      <SliderPicker
-                        id="SecondaryColor"
-                        color={formik.values.SecondaryColor}
-                        onChange={color => {
-                          let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
-                          formik.setFieldValue('SecondaryColor', colorRGB);
-                          SetSecondaryColor(colorRGB);
-                        }}
-                      />
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </MainCard>
+                    
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="MongoDB-login">MongoDB connection string. It is advised to use Environment variable to store this securely instead. (Optional)</InputLabel>
+                        <OutlinedInput
+                          id="MongoDB-login"
+                          type="password"
+                          autoComplete='new-password'
+                          value={formik.values.MongoDB}
+                          name="MongoDB"
+                          onBlur={formik.handleBlur}
+                          onChange={formik.handleChange}
+                          placeholder="MongoDB"
+                          fullWidth
+                          error={Boolean(formik.touched.MongoDB && formik.errors.MongoDB)}
+                        />
+                        {formik.touched.MongoDB && formik.errors.MongoDB && (
+                          <FormHelperText error id="standard-weight-helper-text-MongoDB-login">
+                            {formik.errors.MongoDB}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
 
-              <MainCard title="HTTP">
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="Hostname-login">Hostname: This will be used to restrict access to your Cosmos Server (Your IP, or your domain name)</InputLabel>
-                      <OutlinedInput
-                        id="Hostname-login"
-                        type="text"
-                        value={formik.values.Hostname}
-                        name="Hostname"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        placeholder="Hostname"
-                        fullWidth
-                        error={Boolean(formik.touched.Hostname && formik.errors.Hostname)}
-                      />
-                      {formik.touched.Hostname && formik.errors.Hostname && (
-                        <FormHelperText error id="standard-weight-helper-text-Hostname-login">
-                          {formik.errors.Hostname}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="HTTPPort-login">HTTP Port (Default: 80)</InputLabel>
-                      <OutlinedInput
-                        id="HTTPPort-login"
-                        type="text"
-                        value={formik.values.HTTPPort}
-                        name="HTTPPort"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        placeholder="HTTPPort"
-                        fullWidth
-                        error={Boolean(formik.touched.HTTPPort && formik.errors.HTTPPort)}
-                      />
-                      {formik.touched.HTTPPort && formik.errors.HTTPPort && (
-                        <FormHelperText error id="standard-weight-helper-text-HTTPPort-login">
-                          {formik.errors.HTTPPort}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Stack spacing={1}>
-                      <InputLabel htmlFor="HTTPSPort-login">HTTPS Port (Default: 443)</InputLabel>
-                      <OutlinedInput
-                        id="HTTPSPort-login"
-                        type="text"
-                        value={formik.values.HTTPSPort}
-                        name="HTTPSPort"
-                        onBlur={formik.handleBlur}
-                        onChange={formik.handleChange}
-                        placeholder="HTTPSPort"
-                        fullWidth
-                        error={Boolean(formik.touched.HTTPSPort && formik.errors.HTTPSPort)}
-                      />
-                      {formik.touched.HTTPSPort && formik.errors.HTTPSPort && (
-                        <FormHelperText error id="standard-weight-helper-text-HTTPSPort-login">
-                          {formik.errors.HTTPSPort}
-                        </FormHelperText>
-                      )}
-                    </Stack>
-                  </Grid>
-                  </Grid>
-              </MainCard>
-              
-              <MainCard title="Emails - SMTP">
-                <Stack spacing={2}>
-                  <Alert severity="info">This allow you to setup an SMTP server for Cosmos to send emails such as password reset emails and invites.</Alert>
-
-                  <CosmosCheckbox 
-                    label="Enable SMTP"
-                    name="Email_Enabled"
-                    formik={formik}
-                    helperText="Enable SMTP"
-                  />
-
-                  {formik.values.Email_Enabled && (<>
-                    <CosmosInputText
-                      label="SMTP Host"
-                      name="Email_Host"
-                      formik={formik}
-                      helperText="SMTP Host"
-                    />
-
-                    <CosmosInputText
-                      label="SMTP Port"
-                      name="Email_Port"
-                      formik={formik}
-                      helperText="SMTP Port"
-                    />
-
-                    <CosmosInputText
-                      label="SMTP Username"
-                      name="Email_Username"
-                      formik={formik}
-                      helperText="SMTP Username"
-                    />
-
-                    <CosmosInputPassword
-                      label="SMTP Password"
-                      name="Email_Password"
-                      autoComplete='new-password'
-                      formik={formik}
-                      helperText="SMTP Password"
-                      noStrength
-                    />
-
-                    <CosmosInputText
-                      label="SMTP From"
-                      name="Email_From"
-                      formik={formik}
-                      helperText="SMTP From"
-                    />
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="LoggingLevel-login">Level of logging (Default: INFO)</InputLabel>
+                        <TextField
+                          className="px-2 my-2"
+                          variant="outlined"
+                          name="LoggingLevel"
+                          id="LoggingLevel"
+                          select
+                          value={formik.values.LoggingLevel}
+                          onChange={formik.handleChange}
+                          error={
+                            formik.touched.LoggingLevel &&
+                            Boolean(formik.errors.LoggingLevel)
+                          }
+                          helperText={
+                            formik.touched.LoggingLevel && formik.errors.LoggingLevel
+                          }
+                        >
+                          <MenuItem key={"DEBUG"} value={"DEBUG"}>
+                            DEBUG
+                          </MenuItem>
+                          <MenuItem key={"INFO"} value={"INFO"}>
+                            INFO
+                          </MenuItem>
+                          <MenuItem key={"WARNING"} value={"WARNING"}>
+                            WARNING
+                          </MenuItem>
+                          <MenuItem key={"ERROR"} value={"ERROR"}>
+                            ERROR
+                          </MenuItem>
+                        </TextField>
+                      </Stack>
+                    </Grid>
 
                     <CosmosCheckbox
-                      label="SMTP Uses TLS"
-                      name="Email_UseTLS"
+                      label="Monitoring Enabled"
+                      name="MonitoringEnabled"
                       formik={formik}
-                      helperText="SMTP Uses TLS"
+                    />
+                  </Grid>
+                </MainCard>
+                
+                <MainCard title="Appearance">
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      {!uploadingBackground && formik.values.Background && <img src=
+                        {formik.values.Background} alt="preview seems broken. Please re-upload."
+                        width={285} />}
+                      {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
+                       <Stack spacing={1} direction="row">
+                        <UploadButtons
+                          accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
+                          label="Upload Wallpaper"
+                          OnChange={(e) => {
+                            setUploadingBackground(true);
+                            const file = e.target.files[0];
+                            API.uploadImage(file, "background").then((data) => {
+                              formik.setFieldValue('Background', data.data.path);
+                              setUploadingBackground(false);
+                            });
+                          }}
+                        />
+
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            formik.setFieldValue('Background', "");
+                          }}
+                        >
+                          Reset Wallpaper
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            formik.setFieldValue('PrimaryColor', "");
+                            SetPrimaryColor("");
+                            formik.setFieldValue('SecondaryColor', "");
+                            SetSecondaryColor("");
+                          }}
+                        >
+                          Reset Colors
+                        </Button>
+                      </Stack>
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <CosmosCheckbox 
+                        label="Show Application Details on Homepage"
+                        name="Expanded"
+                        formik={formik}
+                      />
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">Primary Color</InputLabel>
+                        <SliderPicker
+                          id="PrimaryColor"
+                          color={formik.values.PrimaryColor}
+                          onChange={color => {
+                            let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                            formik.setFieldValue('PrimaryColor', colorRGB);
+                            SetPrimaryColor(colorRGB);
+                          }}
+                        />
+                      </Stack>
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">Secondary Color</InputLabel>
+                        <SliderPicker
+                          id="SecondaryColor"
+                          color={formik.values.SecondaryColor}
+                          onChange={color => {
+                            let colorRGB = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`
+                            formik.setFieldValue('SecondaryColor', colorRGB);
+                            SetSecondaryColor(colorRGB);
+                          }}
+                        />
+                      </Stack>
+                    </Grid>
+                  </Grid>
+                </MainCard>
+
+                <MainCard title="HTTP">
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="Hostname-login">Hostname: This will be used to restrict access to your Cosmos Server (Your IP, or your domain name)</InputLabel>
+                        <OutlinedInput
+                          id="Hostname-login"
+                          type="text"
+                          value={formik.values.Hostname}
+                          name="Hostname"
+                          onBlur={formik.handleBlur}
+                          onChange={formik.handleChange}
+                          placeholder="Hostname"
+                          fullWidth
+                          error={Boolean(formik.touched.Hostname && formik.errors.Hostname)}
+                        />
+                        {formik.touched.Hostname && formik.errors.Hostname && (
+                          <FormHelperText error id="standard-weight-helper-text-Hostname-login">
+                            {formik.errors.Hostname}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="HTTPPort-login">HTTP Port (Default: 80)</InputLabel>
+                        <OutlinedInput
+                          id="HTTPPort-login"
+                          type="text"
+                          value={formik.values.HTTPPort}
+                          name="HTTPPort"
+                          onBlur={formik.handleBlur}
+                          onChange={formik.handleChange}
+                          placeholder="HTTPPort"
+                          fullWidth
+                          error={Boolean(formik.touched.HTTPPort && formik.errors.HTTPPort)}
+                        />
+                        {formik.touched.HTTPPort && formik.errors.HTTPPort && (
+                          <FormHelperText error id="standard-weight-helper-text-HTTPPort-login">
+                            {formik.errors.HTTPPort}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Stack spacing={1}>
+                        <InputLabel htmlFor="HTTPSPort-login">HTTPS Port (Default: 443)</InputLabel>
+                        <OutlinedInput
+                          id="HTTPSPort-login"
+                          type="text"
+                          value={formik.values.HTTPSPort}
+                          name="HTTPSPort"
+                          onBlur={formik.handleBlur}
+                          onChange={formik.handleChange}
+                          placeholder="HTTPSPort"
+                          fullWidth
+                          error={Boolean(formik.touched.HTTPSPort && formik.errors.HTTPSPort)}
+                        />
+                        {formik.touched.HTTPSPort && formik.errors.HTTPSPort && (
+                          <FormHelperText error id="standard-weight-helper-text-HTTPSPort-login">
+                            {formik.errors.HTTPSPort}
+                          </FormHelperText>
+                        )}
+                      </Stack>
+                    </Grid>
+                    </Grid>
+                </MainCard>
+                
+                <MainCard title="Emails - SMTP">
+                  <Stack spacing={2}>
+                    <Alert severity="info">This allow you to setup an SMTP server for Cosmos to send emails such as password reset emails and invites.</Alert>
+
+                    <CosmosCheckbox 
+                      label="Enable SMTP"
+                      name="Email_Enabled"
+                      formik={formik}
+                      helperText="Enable SMTP"
                     />
 
-                    {formik.values.Email_UseTLS && (
-                      <CosmosCheckbox
-                        label="Allow Insecure TLS"
-                        name="Email_AllowInsecureTLS"
+                    {formik.values.Email_Enabled && (<>
+                      <CosmosInputText
+                        label="SMTP Host"
+                        name="Email_Host"
                         formik={formik}
-                        helperText="Allow self-signed certificate"
+                        helperText="SMTP Host"
                       />
-                    )}
-                  </>)}
-                </Stack>
-              </MainCard>
 
-              <MainCard title="Docker">
-                <Stack spacing={2}>
-                  <CosmosCheckbox
-                    label="Skip Prune Network"
-                    name="SkipPruneNetwork"
-                    formik={formik}
-                  />
-
-                  <CosmosInputText
-                    label="Default data path for installs"
-                    name="DefaultDataPath"
-                    formik={formik}
-                    placeholder={'/usr'}
-                  />
-                </Stack>
-              </MainCard>
-
-
-              <MainCard title="Security">
-                  <Grid container spacing={3}>
-
-                  {/* <CosmosCheckbox
-                    label={"Read Client IP from X-Forwarded-For header (not recommended)"}
-                    name="UseForwardedFor"
-                    formik={formik}
-                  /> */}
-
-                  <CosmosFormDivider title='Geo-Blocking' />
-
-                  <CosmosCheckbox
-                    label={"Use list as whitelist instead of blacklist"}
-                    name="CountryBlacklistIsWhitelist"
-                    formik={formik}
-                  />
-
-                  <Grid item xs={12}>
-                    <InputLabel htmlFor="GeoBlocking">Geo-Blocking: (Those countries will be 
-                    {formik.values.CountryBlacklistIsWhitelist ? " allowed to access " : " blocked from accessing "}
-                    your server)</InputLabel>
-                  </Grid>
-
-                  <CountrySelect name="GeoBlocking" label="Choose which countries you want to block or allow" formik={formik} />
-
-                  <Grid item xs={12}>
-                    <Button onClick={() => {
-                      formik.setFieldValue("GeoBlocking", ["CN","RU","TR","BR","BD","IN","NP","PK","LK","VN","ID","IR","IQ","EG","AF","RO",])
-                      formik.setFieldValue("CountryBlacklistIsWhitelist", false)
-                    }} variant="outlined">Reset to default (most dangerous countries)</Button>
-                  </Grid>
-
-                  <CosmosFormDivider title='Encryption' />
-
-                  <Grid item xs={12}>
-                    <Alert severity="info">For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.</Alert>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                      <Field
-                        type="checkbox"
-                        name="GenerateMissingAuthCert"
-                        as={FormControlLabel}
-                        control={<Checkbox size="large" />}
-                        label="Generate missing Authentication Certificates automatically (Default: true)"
+                      <CosmosInputText
+                        label="SMTP Port"
+                        name="Email_Port"
+                        formik={formik}
+                        helperText="SMTP Port"
                       />
-                    </Stack>
-                  </Grid>
 
-                  <CosmosSelect
-                    name="HTTPSCertificateMode"
-                    label="HTTPS Certificates"
-                    formik={formik}
-                    onChange={(e) => {
-                      formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
-                    }}
-                    options={[
-                      ["LETSENCRYPT", "Automatically generate certificates using Let's Encrypt (Recommended)"],
-                      ["SELFSIGNED", "Locally self-sign certificates (unsecure)"],
-                      ["PROVIDED", "I have my own certificates"],
-                      ["DISABLED", "Do not use HTTPS (very unsecure)"],
-                    ]}
-                  />
+                      <CosmosInputText
+                        label="SMTP Username"
+                        name="Email_Username"
+                        formik={formik}
+                        helperText="SMTP Username"
+                      />
 
-                  <CosmosCheckbox
-                    label={"Use Wildcard Certificate for the root domain of " + formik.values.Hostname}
-                    onChange={(e) => {
-                      formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
-                    }}
-                    name="UseWildcardCertificate"
-                    formik={formik}
-                  />
+                      <CosmosInputPassword
+                        label="SMTP Password"
+                        name="Email_Password"
+                        autoComplete='new-password'
+                        formik={formik}
+                        helperText="SMTP Password"
+                        noStrength
+                      />
 
-                  {formik.values.UseWildcardCertificate && (
+                      <CosmosInputText
+                        label="SMTP From"
+                        name="Email_From"
+                        formik={formik}
+                        helperText="SMTP From"
+                      />
+
+                      <CosmosCheckbox
+                        label="SMTP Uses TLS"
+                        name="Email_UseTLS"
+                        formik={formik}
+                        helperText="SMTP Uses TLS"
+                      />
+
+                      {formik.values.Email_UseTLS && (
+                        <CosmosCheckbox
+                          label="Allow Insecure TLS"
+                          name="Email_AllowInsecureTLS"
+                          formik={formik}
+                          helperText="Allow self-signed certificate"
+                        />
+                      )}
+                    </>)}
+                  </Stack>
+                </MainCard>
+
+                <MainCard title="Docker">
+                  <Stack spacing={2}>
+                    <CosmosCheckbox
+                      label="Skip Prune Network"
+                      name="SkipPruneNetwork"
+                      formik={formik}
+                    />
+
                     <CosmosInputText
-                      name="OverrideWildcardDomains"
+                      label="Default data path for installs"
+                      name="DefaultDataPath"
+                      formik={formik}
+                      placeholder={'/usr'}
+                    />
+                  </Stack>
+                </MainCard>
+
+
+                <MainCard title="Security">
+                    <Grid container spacing={3}>
+
+                    {/* <CosmosCheckbox
+                      label={"Read Client IP from X-Forwarded-For header (not recommended)"}
+                      name="UseForwardedFor"
+                      formik={formik}
+                    /> */}
+
+                    <CosmosFormDivider title='Geo-Blocking' />
+
+                    <CosmosCheckbox
+                      label={"Use list as whitelist instead of blacklist"}
+                      name="CountryBlacklistIsWhitelist"
+                      formik={formik}
+                    />
+
+                    <Grid item xs={12}>
+                      <InputLabel htmlFor="GeoBlocking">Geo-Blocking: (Those countries will be 
+                      {formik.values.CountryBlacklistIsWhitelist ? " allowed to access " : " blocked from accessing "}
+                      your server)</InputLabel>
+                    </Grid>
+
+                    <CountrySelect name="GeoBlocking" label="Choose which countries you want to block or allow" formik={formik} />
+
+                    <Grid item xs={12}>
+                      <Button onClick={() => {
+                        formik.setFieldValue("GeoBlocking", ["CN","RU","TR","BR","BD","IN","NP","PK","LK","VN","ID","IR","IQ","EG","AF","RO",])
+                        formik.setFieldValue("CountryBlacklistIsWhitelist", false)
+                      }} variant="outlined">Reset to default (most dangerous countries)</Button>
+                    </Grid>
+
+                    <CosmosFormDivider title='Encryption' />
+
+                    <Grid item xs={12}>
+                      <Alert severity="info">For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.</Alert>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                        <Field
+                          type="checkbox"
+                          name="GenerateMissingAuthCert"
+                          as={FormControlLabel}
+                          control={<Checkbox size="large" />}
+                          label="Generate missing Authentication Certificates automatically (Default: true)"
+                        />
+                      </Stack>
+                    </Grid>
+
+                    <CosmosSelect
+                      name="HTTPSCertificateMode"
+                      label="HTTPS Certificates"
+                      formik={formik}
                       onChange={(e) => {
                         formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                       }}
-                      label="(optional, only if you know what you are doing) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
-                      formik={formik}
-                      placeholder={"example.com,*.example.com"}
+                      options={[
+                        ["LETSENCRYPT", "Automatically generate certificates using Let's Encrypt (Recommended)"],
+                        ["SELFSIGNED", "Locally self-sign certificates (unsecure)"],
+                        ["PROVIDED", "I have my own certificates"],
+                        ["DISABLED", "Do not use HTTPS (very unsecure)"],
+                      ]}
                     />
-                  )}
 
-
-                  {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
-                      <CosmosInputText
-                        name="SSLEmail"
-                        onChange={(e) => {
-                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
-                        }}
-                        label="Email address for Let's Encrypt"
-                        formik={formik}
-                      />
-                    )
-                  }
-                  
-                  {
-                    formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
-                      <DnsChallengeComp 
-                        onChange={(e) => {
-                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
-                        }}
-                        label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
-                        name="DNSChallengeProvider"
-                        configName="DNSChallengeConfig"
-                        formik={formik}
-                      />
-                    )
-                  }
-
-                  <Grid item xs={12}>
-                    <h4>Authentication Public Key</h4>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                      <pre className='code'>
-                        {config.HTTPConfig.AuthPublicKey}
-                      </pre>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <h4>Root HTTPS Public Key</h4>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                      <pre className='code'>
-                        {config.HTTPConfig.TLSCert}
-                      </pre>
-                    </Stack>
-                  </Grid>
-
-                  <Grid item xs={12}>
                     <CosmosCheckbox
-                      label={"Force HTTPS Certificate Renewal On Next Save"}
-                      name="ForceHTTPSCertificateRenewal"
+                      label={"Use Wildcard Certificate for the root domain of " + formik.values.Hostname}
+                      onChange={(e) => {
+                        formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                      }}
+                      name="UseWildcardCertificate"
                       formik={formik}
                     />
-                  </Grid>
 
+                    {formik.values.UseWildcardCertificate && (
+                      <CosmosInputText
+                        name="OverrideWildcardDomains"
+                        onChange={(e) => {
+                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                        }}
+                        label="(optional, only if you know what you are doing) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
+                        formik={formik}
+                        placeholder={"example.com,*.example.com"}
+                      />
+                    )}
+
+
+                    {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                        <CosmosInputText
+                          name="SSLEmail"
+                          onChange={(e) => {
+                            formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                          }}
+                          label="Email address for Let's Encrypt"
+                          formik={formik}
+                        />
+                      )
+                    }
                     
-                </Grid>
-              </MainCard>
+                    {
+                      formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                        <DnsChallengeComp 
+                          onChange={(e) => {
+                            formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                          }}
+                          label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
+                          name="DNSChallengeProvider"
+                          configName="DNSChallengeConfig"
+                          formik={formik}
+                        />
+                      )
+                    }
 
-              {isAdmin && <MainCard>
-                {formik.errors.submit && (
-                  <Grid item xs={12}>
-                    <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                    <Grid item xs={12}>
+                      <h4>Authentication Public Key</h4>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                        <pre className='code'>
+                          {config.HTTPConfig.AuthPublicKey}
+                        </pre>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <h4>Root HTTPS Public Key</h4>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                        <pre className='code'>
+                          {config.HTTPConfig.TLSCert}
+                        </pre>
+                      </Stack>
+                    </Grid>
+
+                    <Grid item xs={12}>
+                      <CosmosCheckbox
+                        label={"Force HTTPS Certificate Renewal On Next Save"}
+                        name="ForceHTTPSCertificateRenewal"
+                        formik={formik}
+                      />
+                    </Grid>
+
+                      
                   </Grid>
-                )}
-                <Grid item xs={12}>
-                  <LoadingButton
-                      disableElevation
-                      loading={formik.isSubmitting}
-                      fullWidth
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                    >
-                      {saveLabel}
-                    </LoadingButton>
-                </Grid>
-              </MainCard>}
-            </Stack>
-          </form>
-        )}
-      </Formik>
-    </>}
-  </div>;
+                </MainCard>
+
+                {isAdmin && <MainCard>
+                  {formik.errors.submit && (
+                    <Grid item xs={12}>
+                      <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                    </Grid>
+                  )}
+                  <Grid item xs={12}>
+                    <LoadingButton
+                        disableElevation
+                        loading={formik.isSubmitting}
+                        fullWidth
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                      >
+                        {saveLabel}
+                      </LoadingButton>
+                  </Grid>
+                </MainCard>}
+              </Stack>
+            </form>
+          )}
+        </Formik>
+      </>}
+    </div>
+  );
 }
 
 export default ConfigManagement;

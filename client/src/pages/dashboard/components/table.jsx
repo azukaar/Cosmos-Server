@@ -26,12 +26,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  useTheme,
 } from '@mui/material';
 import MainCard from '../../../components/MainCard';
-
-// material-ui
-import { useTheme } from '@mui/material/styles';
 
 // third-party
 import ReactApexChart from 'react-apexcharts';

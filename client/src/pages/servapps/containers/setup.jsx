@@ -401,7 +401,8 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
           </form>
         )}
       </Formik>
-    </div>);
+    </div>
+  );
 };
 
 export default DockerContainerSetup;

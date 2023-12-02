@@ -1,7 +1,6 @@
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, SafetyOutlined, UpOutlined } from "@ant-design/icons";
-import { Card, Chip, Stack, Tooltip } from "@mui/material";
+import { Card, Chip, Stack, Tooltip, useTheme } from "@mui/material";
 import { useState } from "react";
-import { useTheme } from '@mui/material/styles';
 
 let routeImages = {
   "SERVAPP": {

@@ -2,8 +2,8 @@ import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 
 // material-ui
-import { CssBaseline, StyledEngineProvider } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { CssBaseline, StyledEngineProvider, createTheme } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
 
 // project import
 import Palette from './palette';

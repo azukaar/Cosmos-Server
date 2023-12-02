@@ -66,6 +66,9 @@
     "whiskers.js": "^1.0.0",
     "yup": "^0.32.11"
   },
+  "peerDependencies": {
+    "bn.js": ">= 4.12.0 =< 5.2.1"
+  },
   "overrides": {
     "react-lazyload": {
       "react": "^18.2.0",
@@ -114,14 +117,16 @@
     "@babel/core": "^7.23.5",
     "@babel/eslint-parser": "^7.19.1",
     "@babel/preset-env": "^7.23.5",
+    "@babel/preset-typescript": "^7.23.3",
     "@swc/core": "^1.3.100",
     "babel-loader": "^9.1.3",
+    "babel-plugin-direct-import": "^1.0.0",
     "browserify-fs": "^1.0.0",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^6.8.1",
     "css-minimizer-webpack-plugin": "^5.0.1",
-    "eslint": "^8.23.1",
+    "eslint": "^8.55.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-config-react-app": "7.0.1",
@@ -130,10 +135,12 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-jsx-a11y": "6.6.1",
     "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-react": "^7.31.8",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
+    "eslint-webpack-plugin": "^4.0.1",
     "file-loader": "^6.2.0",
     "html-webpack-plugin": "^5.5.3",
+    "inspectpack": "^4.7.1",
     "mini-css-extract-plugin": "^2.7.6",
     "path-browserify": "^1.0.1",
     "prettier": "2.7.1",

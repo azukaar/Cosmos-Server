@@ -1,6 +1,4 @@
-// material-ui
-import { styled } from '@mui/material/styles';
-import { Box } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
 // ==============================|| DRAWER HEADER - STYLED ||============================== //
 

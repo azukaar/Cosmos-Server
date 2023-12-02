@@ -1,6 +1,4 @@
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { useMediaQuery, Button, Stack } from '@mui/material';
+import { useMediaQuery, Button, Stack, useTheme } from '@mui/material';
 
 // assets
 import Google from '../../../assets/images/icons/google.svg';

@@ -1,6 +1,4 @@
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { Box } from '@mui/material';
+import { Box, useTheme } from '@mui/material';
 
 import logo from '../icons/cosmos.png';
 

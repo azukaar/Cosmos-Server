@@ -1,6 +1,11 @@
 {
     "compilerOptions": {
         "outDir": "client/dist",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
         "noImplicitAny": true,
         "module": "es6",
         "target": "es6",

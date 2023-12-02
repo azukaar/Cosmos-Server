@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 // material-ui
-import { Box, Grid } from '@mui/material';
+import { Box, Grid, useTheme } from '@mui/material';
 
 // project import
 import AuthCard from './AuthCard';
@@ -10,7 +10,6 @@ import AuthFooter from '../../components/cards/AuthFooter';
 
 // assets
 import AuthBackground from '../../assets/images/auth/AuthBackground';
-import { useTheme } from '@mui/material/styles';
 
 // ==============================|| AUTHENTICATION - WRAPPER ||============================== //
 

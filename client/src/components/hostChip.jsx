@@ -1,8 +1,7 @@
 import { SettingOutlined } from "@ant-design/icons";
-import { Chip } from "@mui/material";
+import { Chip, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getOrigin, getFullOrigin } from "../utils/routes";
-import { useTheme } from '@mui/material/styles';
 
 const HostChip = ({route, settings, style}) => {
   const theme = useTheme();
