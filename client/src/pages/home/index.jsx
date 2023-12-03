@@ -14,7 +14,7 @@ import { ServAppIcon } from "../../utils/servapp-icon";
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
-const ReactApexChart = lazy(() => import('react-apexcharts'));
+const Chart = lazy(() => import('react-apexcharts'));
 
 
 export const HomeBackground = () => {
@@ -394,7 +394,7 @@ const HomePage = () => {
                                 <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <ReactApexChart
+                                    <Chart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
@@ -417,7 +417,7 @@ const HomePage = () => {
                                     <div>used: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <ReactApexChart
+                                    <Chart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100

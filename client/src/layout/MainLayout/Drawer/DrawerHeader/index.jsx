@@ -5,7 +5,7 @@ import { Stack, Chip, useTheme } from '@mui/material';
 // project import
 import DrawerHeaderStyled from './DrawerHeaderStyled';
 import Logo from '../../../../components/Logo';
-import {version} from '../../../../../../package.json';
+import packageInfo from '../../../../../../package.json';
 
 // ==============================|| DRAWER HEADER ||============================== //
 
@@ -17,7 +17,7 @@ const DrawerHeader = ({ open }) => {
             <Stack direction="row" spacing={1} alignItems="center">
                 <Logo />
                 <Chip
-                    label={version.replace('unstable', '')}
+                    label={packageInfo.version.replace('unstable', '')}
                     size="small"
                     sx={{ height: 16, '& .MuiChip-label': { fontSize: '0.55rem', py: 0.25 } }}
                     component="a"

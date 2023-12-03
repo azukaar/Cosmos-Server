@@ -14,7 +14,8 @@
         "moduleResolution": "node",
         "rootDir": "client/src",
         "resolveJsonModule": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
     },
     "include": ["client/src/**/*"],
     "exclude": ["client/**/*.demo*"]

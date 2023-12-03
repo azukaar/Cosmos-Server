@@ -30,7 +30,7 @@ import { CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText
 import VolumeContainerSetup from './volumes';
 import DockerContainerSetup from './setup';
 import whiskers from 'whiskers';
-import {version} from '../../../../../package.json';
+import packageInfo from '../../../../../package.json';
 import cmp from 'semver-compare';
 import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
@@ -73,7 +73,7 @@ const preStyle = {
 }
 
 const isNewerVersion = (minver) => {
-  return cmp(version, minver) === -1;
+  return cmp(packageInfo.version, minver) === -1;
 }
 
 const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
