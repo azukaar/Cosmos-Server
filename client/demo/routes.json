@@ -1,0 +1,10 @@
+{
+    "/servapps/:container": "/servapps?data.Id=:container",
+    "/servapps/:container/logs": "/servapps/demo/logs",
+    "/volume/:name": "/volumes?data.Volumes.Name=:name",
+    "/network/:name": "/networks?data.Name=:name",
+    "/servapps/:id/secure/:res": "/servapps/demo/secure",
+    "/servapps/:id/manage/:action": "/servapps/demo/manage",
+    "/servapps/:id/update": "/servapps/:id",
+    "/servapps/:id/networks": "/servapps/:id?_embed=data.NetworkSettings.Networks"
+}

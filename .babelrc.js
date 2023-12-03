@@ -2,11 +2,11 @@ module.exports = {
     compact: false,
     presets: [
         "@babel/env",
-        "@babel/react",
-        "@babel/preset-typescript"
+        "@babel/preset-typescript",
+        ["@babel/react", { "runtime": "automatic" }]
     ],
     plugins: [
-        "@babel/plugin-transform-runtime",
+        ["@babel/plugin-transform-runtime"],
         ["import", {
             libraryName: "redux",
             libraryDirectory: "src",

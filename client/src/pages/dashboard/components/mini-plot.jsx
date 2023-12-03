@@ -24,7 +24,7 @@ import MainCard from '../../../components/MainCard';
 
 // third-party
 import { FormaterForMetric, formatDate, toUTC } from './utils';
-const ReactApexChart = lazy(() => import('react-apexcharts'));
+import ReactApexChart from 'react-apexcharts';
 
 import * as API from '../../../api';
 
