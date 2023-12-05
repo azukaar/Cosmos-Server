@@ -2,10 +2,11 @@ const { DefinePlugin } = require("webpack")
 const { merge } = require("webpack-merge")
 const { resolve } = require("path")
 const webpackCommon = require("./webpack.common.js")
+const webpackProd = require("./webpack.prod.js")
 
-module.exports = merge(webpackCommon, {
+module.exports = merge(process.env.useProduction ? webpackProd : webpackCommon, {
     mode: "development",
-    devtool: "inline-source-map",
+    devtool: !process.env.useProduction ? "inline-source-map" : undefined,
     target: "web",
     devServer: {
         port: 3000,

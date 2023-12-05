@@ -3,6 +3,7 @@ const { DuplicatesPlugin } = require("inspectpack/plugin")
 const { join } = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+
 const withReport = process.env.withReport ? true : false
 const analyzeDeps = process.env.analyzeDeps ? true : false
 

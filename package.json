@@ -51,6 +51,7 @@
     "simplebar": "^5.3.8",
     "simplebar-react": "^2.4.1",
     "timeago.js": "^4.0.2",
+    "traverse": "^0.6.7",
     "web-vitals": "^3.0.2",
     "whiskers": "^0.4.0",
     "yup": "^0.32.11"
@@ -83,9 +84,9 @@
   ],
   "scripts": {
     "client": "vite",
-    "webpack:setup-env": "cross-env withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
+    "webpack:setup-env": "cross-env useProduction=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
     "webpack:build": "npm run webpack:setup-env -- webpack --config webpack.prod.js --progress",
-    "webpack:start": "npm run webpack:setup-env -- webpack serve --open --config webpack.dev.js",
+    "webpack:serve": "npm run webpack:setup-env -- webpack serve --open --config webpack.dev.js",
     "start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
     "build": "sh build.sh",
     "dev": "npm run build && npm run start",
@@ -124,6 +125,7 @@
     "@types/lodash.merge": "^4.6.9",
     "@types/node": "^20.10.2",
     "@types/react-color": "^3.0.10",
+    "@types/traverse": "^0.6.35",
     "@types/webpack-bundle-analyzer": "^4.6.3",
     "babel-loader": "^9.1.3",
     "babel-plugin-direct-import": "^1.0.0",

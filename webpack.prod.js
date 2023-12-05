@@ -28,11 +28,6 @@ const cacheGroups = {
 
 module.exports = merge(webpackCommon, {
     mode: "production",
-    plugins: [
-        new IgnorePlugin({
-            resourceRegExp: /[\d\D]*.demo[\d\D]*/
-        })
-    ],
     optimization: {
         chunkIds: 'total-size',
         moduleIds: 'size',
@@ -53,10 +48,10 @@ module.exports = merge(webpackCommon, {
                 terserOptions: {
                     mangle: true,
                     compress: true,
+                    sourceMap: false,
                     format: {
                         comments: false
-                    },
-                    sourceMap: false
+                    }
                 }
             }),
             new ImageMinimizerPlugin({

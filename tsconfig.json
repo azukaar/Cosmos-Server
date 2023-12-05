@@ -17,6 +17,11 @@
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true
     },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs"
+        }
+    },
     "include": ["client/src/**/*"],
     "exclude": ["client/**/*.demo*"]
 }

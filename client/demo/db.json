@@ -1,1398 +1,1390 @@
 {
-    "GET": {
-        "login": {},
-        "me": {},
-        "logout": {},
-        "config": {},
-        "restart": {},
-        "can-send-email": {
-            "data": {
-                "canSendEmail": true
+    "login": {},
+    "me": {},
+    "logout": {},
+    "config": {},
+    "restart": {},
+    "can-send-email": {
+        "canSendEmail": true
+    },
+    "get-backup": {
+        "_comment": "TODO: Not Implemented"
+    },
+    "constellation": {
+        "devices": [
+            {
+                "nickname": "admin",
+                "deviceName": "phone",
+                "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\naACf/...=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
+                "ip": "192.168.201.4/24",
+                "isLighthouse": false,
+                "isRelay": true,
+                "publicHostname": "",
+                "port": "4242",
+                "blocked": false,
+                "fingerprint": "..."
+            },
+            {
+                "nickname": "admin",
+                "deviceName": "laptop",
+                "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\n78l4nDEB0+.../36YBQk7dkwg+.=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
+                "ip": "192.168.201.5/24",
+                "isLighthouse": false,
+                "isRelay": true,
+                "publicHostname": "",
+                "port": "4242",
+                "blocked": false,
+                "fingerprint": "..."
+            },
+            {
+                "nickname": "Martha",
+                "deviceName": "pink phone",
+                "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\naACf/..=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
+                "ip": "192.168.201.6/24",
+                "isLighthouse": false,
+                "isRelay": true,
+                "publicHostname": "",
+                "port": "4242",
+                "blocked": false,
+                "fingerprint": "..."
             }
-        },
-        "get-backup": {
-            "_comment": "TODO: Not Implemented"
-        },
-        "constellation/devices": {
-            "data": [
-                {
-                    "nickname": "admin",
-                    "deviceName": "phone",
-                    "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\naACf/...=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
-                    "ip": "192.168.201.4/24",
-                    "isLighthouse": false,
-                    "isRelay": true,
-                    "publicHostname": "",
-                    "port": "4242",
-                    "blocked": false,
-                    "fingerprint": "..."
+        ],
+        "restart": {},
+        "reset": {},
+        "config": ["$return", "pki:\n  ca: /config/ca.crt\n  cert: /config/cosmos.crt\n  key: /config/cosmos.key\n  blocklist: []\nstatic_host_map:\n  192.168.201.1:\n  - vpn.domain.com:4242\nlighthouse:\n  am_lighthouse: true\n  interval: 60\n  hosts: []\nlisten:\n  host: 0.0.0.0\n  port: 4242\npunchy:\n  punch: true\n  respond: true\nrelay:\n  am_relay: true\n  use_relays: true\n  relays: []\ntun:\n  disabled: false\n  dev: nebula1\n  drop_local_broadcast: false\n  drop_multicast: false\n  tx_queue: 500\n  mtu: 1300\n  routes: []\n  unsafe_routes: []\nlogging:\n  level: info\n  format: text\nfirewall:\n  outbound_action: drop\n  inbound_action: drop\n  conntrack:\n    tcp_timeout: 12m\n    udp_timeout: 3m\n    default_timeout: 10m\n  outbound:\n  - port: any\n    proto: any\n    host: any\n  inbound:\n  - port: any\n    proto: any\n    host: any\n"],
+        "logs": ["$return", "Some logs..."]
+    },
+    "servapps": {
+        "list": [
+            {
+                "Id": "a03ea9a3408b2831198f2192c628090193e9d5e8e4c4515f2c94d1cc26f6a7f5",
+                "Names": [
+                    "/cosmos"
+                ],
+                "Image": "azukaar/cosmos-server:latest-unstable",
+                "ImageID": "sha256:569f35743de9554b4d3582cd3dd6e02debae945f9c884bf43ada1612856fb353",
+                "Command": "./cosmos",
+                "Created": 1682946886,
+                "Ports": [
+                    {
+                        "IP": "0.0.0.0",
+                        "PrivatePort": 443,
+                        "PublicPort": 443,
+                        "Type": "tcp"
+                    },
+                    {
+                        "IP": "::",
+                        "PrivatePort": 443,
+                        "PublicPort": 443,
+                        "Type": "tcp"
+                    },
+                    {
+                        "IP": "0.0.0.0",
+                        "PrivatePort": 80,
+                        "PublicPort": 80,
+                        "Type": "tcp"
+                    },
+                    {
+                        "IP": "::",
+                        "PrivatePort": 80,
+                        "PublicPort": 80,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {},
+                "State": "running",
+                "Status": "Up 3 hours",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
                 },
-                {
-                    "nickname": "admin",
-                    "deviceName": "laptop",
-                    "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\n78l4nDEB0+.../36YBQk7dkwg+.=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
-                    "ip": "192.168.201.5/24",
-                    "isLighthouse": false,
-                    "isRelay": true,
-                    "publicHostname": "",
-                    "port": "4242",
-                    "blocked": false,
-                    "fingerprint": "..."
+                "NetworkSettings": {
+                    "Networks": {
+                        "bridge": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "20a1948e4a1250da3f01e9b602141e9e24b7eb160c2011a04a3f8bbf90af7615",
+                            "EndpointID": "cea3ee80662e4869b29d2d5e660f72b146e207c3549a886311ddbb9970bfa5fc",
+                            "Gateway": "172.17.0.1",
+                            "IPAddress": "172.17.0.4",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:11:00:04",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-2f8AyRnju": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "b7236826a6a934e39ad7fa510b8530254007497f51b78bcb3b679befe2f028c9",
+                            "EndpointID": "4cce71bd801ee4d36d518c59a85212b8abe8f8b7603979395428cc97385df0f5",
+                            "Gateway": "192.168.64.1",
+                            "IPAddress": "192.168.64.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:40:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-3BFr0qKpI": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "9061c2920a241c38d046fdc152d1b71e82527d1073342fc72f5a36ab35491f50",
+                            "EndpointID": "1bfe1f4715aa74efcdee8bcd1dd034135d561ee090bae78c6a85d8e9222d9c7e",
+                            "Gateway": "172.21.0.1",
+                            "IPAddress": "172.21.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:15:00:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-G3lWOEVud": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "c7b748317fefbf1695a37eb01ad07115bfcfad22b239b37af4c40bcb341cf660",
+                            "EndpointID": "dee434721daed99aa3a49f357a76a4f875707c25b4e83daf8d46735504bb0499",
+                            "Gateway": "192.168.192.1",
+                            "IPAddress": "192.168.192.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:c0:02",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-H861Hn0lr": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "339c35d89784dce8bc18b182eaa03babe4896ec9e3c9b464e18304723296a8ab",
+                            "EndpointID": "cf9ae1f147cb0de9461c0dc9dc94ff94f620b0569bac6d8dc15071c7bb27bf5f",
+                            "Gateway": "192.168.16.1",
+                            "IPAddress": "192.168.16.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:10:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-L39HdhjzN": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "860a2a8b5e726e19f869d0645f75dcad2b9ee7e6802a7bc475fc17d6e06557ca",
+                            "EndpointID": "3c18fb5cb9d948d82dad8db92a11f88fb3bcbabef496565ecdd44747bf6ecd8c",
+                            "Gateway": "192.168.48.1",
+                            "IPAddress": "192.168.48.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:30:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-QbBt2dphy": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "206fd577f4d44d03f16c049e80159cf1670893b664309b3607ceb55e01b625c4",
+                            "EndpointID": "f6145a59bceba4298adf9ab6c239da9dade705fa9a0f6dffaf0daffab47e055b",
+                            "Gateway": "172.24.0.1",
+                            "IPAddress": "172.24.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:18:00:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-Rw5qbTplo": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "d716eb809392efd6df0477f04eb138282263f57e673d717304a2bcfef31fe00a",
+                            "EndpointID": "a86adad502892368c74e5ce5812a1ca36c50890bf599e1ef6e81d42b4c0d4ac0",
+                            "Gateway": "172.20.0.1",
+                            "IPAddress": "172.20.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:14:00:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-TAwc0QAW9": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "20f95e3bd93b8d1022fa175dad2bb7212b67dd41e09fd5f62f403a305e661e71",
+                            "EndpointID": "95d8d55cd20700b42c1aeecb677ea9c6834d8cf76b4292ecbe81ddcf54105acd",
+                            "Gateway": "192.168.32.1",
+                            "IPAddress": "192.168.32.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:20:02",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-Vde9j5nWf": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "ea19163fb4dd4ca9d5028fc829e9442a5235ec7464941215efddf061da5f9d93",
+                            "EndpointID": "2fe1545ca04f856c1906ed2e2699fc07cba1074077ef2b7f5c858050a3285e52",
+                            "Gateway": "192.168.0.1",
+                            "IPAddress": "192.168.0.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:00:02",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-Y9ZhK0rfX": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "542030f67a29ffc8cc20e8e9a40fbcd04f955fe2e5869cdcc7455a0f3ffbaff6",
+                            "EndpointID": "fdf564f5688c2d8dca09b347c6b0cdc01a0f62b564bdfa0b33258f7578c40d40",
+                            "Gateway": "192.168.128.1",
+                            "IPAddress": "192.168.128.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:80:02",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-Z3Q8o4tQQ": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "58324310fbd753b21ed33d448323ffeb1074ba0de0ed38e619926523399728e9",
+                            "EndpointID": "5069cdae50396cff11a5558b4883181f24e26fce2b27c0dcff8931dd7d281968",
+                            "Gateway": "172.18.0.1",
+                            "IPAddress": "172.18.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:12:00:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-dlBxYfmRR": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "16ecdf461bea698470437747b6e72a70fe4492b051c8320bcc8ff76783f5461b",
+                            "EndpointID": "545f7a7e1a5e537268dd70ea7cd6b4dd586ecf12c4adda8c31e2854976cd99d8",
+                            "Gateway": "192.168.160.1",
+                            "IPAddress": "192.168.160.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:a0:02",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-e4PkZF2Ld": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "382467475b8f15be9a96ef93f2270c381274f2252afbdd0a11a58df46cc95c63",
+                            "EndpointID": "1c0e6b566297e456d2782b19bbe647831a9d9207916d440242e0e3e7b5c69186",
+                            "Gateway": "172.31.0.1",
+                            "IPAddress": "172.31.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1f:00:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-uk6625k4P": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "6cfc181a1895a14b9b4196064285d047ee0febfab77837ada98af41de541d390",
+                            "EndpointID": "106263d2085548ea1374833f08f44e33082d0905349cb714ba49c11db981de94",
+                            "Gateway": "192.168.96.1",
+                            "IPAddress": "192.168.96.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:60:03",
+                            "DriverOpts": null
+                        },
+                        "cosmos-network-yK4idDn7M": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "3a5cb7850084f180550f9894fcc81d222409573ae601691e718b4ff64aac6ade",
+                            "EndpointID": "a666ebfc05d98fd20bc2add55298cd706dbc211d1a9e8c1be8eb087c2b5460f2",
+                            "Gateway": "192.168.80.1",
+                            "IPAddress": "192.168.80.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:50:02",
+                            "DriverOpts": null
+                        }
+                    }
                 },
-                {
-                    "nickname": "Martha",
-                    "deviceName": "pink phone",
-                    "publicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\naACf/..=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
-                    "ip": "192.168.201.6/24",
-                    "isLighthouse": false,
-                    "isRelay": true,
-                    "publicHostname": "",
-                    "port": "4242",
-                    "blocked": false,
-                    "fingerprint": "..."
-                }
-            ]
-        },
-        "constellation/restart": {},
-        "constellation/reset": {},
-        "constellation/config": {
-            "data": "pki:\n  ca: /config/ca.crt\n  cert: /config/cosmos.crt\n  key: /config/cosmos.key\n  blocklist: []\nstatic_host_map:\n  192.168.201.1:\n  - vpn.domain.com:4242\nlighthouse:\n  am_lighthouse: true\n  interval: 60\n  hosts: []\nlisten:\n  host: 0.0.0.0\n  port: 4242\npunchy:\n  punch: true\n  respond: true\nrelay:\n  am_relay: true\n  use_relays: true\n  relays: []\ntun:\n  disabled: false\n  dev: nebula1\n  drop_local_broadcast: false\n  drop_multicast: false\n  tx_queue: 500\n  mtu: 1300\n  routes: []\n  unsafe_routes: []\nlogging:\n  level: info\n  format: text\nfirewall:\n  outbound_action: drop\n  inbound_action: drop\n  conntrack:\n    tcp_timeout: 12m\n    udp_timeout: 3m\n    default_timeout: 10m\n  outbound:\n  - port: any\n    proto: any\n    host: any\n  inbound:\n  - port: any\n    proto: any\n    host: any\n"
-        },
-        "constellation/logs": {
-            "data": "Some logs..."
-        },
-        "servapps": {
-            "data": [
-                {
-                    "Id": "a03ea9a3408b2831198f2192c628090193e9d5e8e4c4515f2c94d1cc26f6a7f5",
-                    "Names": [
-                        "/cosmos"
-                    ],
-                    "Image": "azukaar/cosmos-server:latest-unstable",
-                    "ImageID": "sha256:569f35743de9554b4d3582cd3dd6e02debae945f9c884bf43ada1612856fb353",
-                    "Command": "./cosmos",
-                    "Created": 1682946886,
-                    "Ports": [
-                        {
-                            "IP": "0.0.0.0",
-                            "PrivatePort": 443,
-                            "PublicPort": 443,
-                            "Type": "tcp"
-                        },
-                        {
-                            "IP": "::",
-                            "PrivatePort": 443,
-                            "PublicPort": 443,
-                            "Type": "tcp"
-                        },
-                        {
-                            "IP": "0.0.0.0",
-                            "PrivatePort": 80,
-                            "PublicPort": 80,
-                            "Type": "tcp"
-                        },
-                        {
-                            "IP": "::",
-                            "PrivatePort": 80,
-                            "PublicPort": 80,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {},
-                    "State": "running",
-                    "Status": "Up 3 hours",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Roms",
+                        "Destination": "/Roms",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "bridge": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "20a1948e4a1250da3f01e9b602141e9e24b7eb160c2011a04a3f8bbf90af7615",
-                                "EndpointID": "cea3ee80662e4869b29d2d5e660f72b146e207c3549a886311ddbb9970bfa5fc",
-                                "Gateway": "172.17.0.1",
-                                "IPAddress": "172.17.0.4",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:11:00:04",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-2f8AyRnju": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "b7236826a6a934e39ad7fa510b8530254007497f51b78bcb3b679befe2f028c9",
-                                "EndpointID": "4cce71bd801ee4d36d518c59a85212b8abe8f8b7603979395428cc97385df0f5",
-                                "Gateway": "192.168.64.1",
-                                "IPAddress": "192.168.64.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:40:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-3BFr0qKpI": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "9061c2920a241c38d046fdc152d1b71e82527d1073342fc72f5a36ab35491f50",
-                                "EndpointID": "1bfe1f4715aa74efcdee8bcd1dd034135d561ee090bae78c6a85d8e9222d9c7e",
-                                "Gateway": "172.21.0.1",
-                                "IPAddress": "172.21.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:15:00:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-G3lWOEVud": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "c7b748317fefbf1695a37eb01ad07115bfcfad22b239b37af4c40bcb341cf660",
-                                "EndpointID": "dee434721daed99aa3a49f357a76a4f875707c25b4e83daf8d46735504bb0499",
-                                "Gateway": "192.168.192.1",
-                                "IPAddress": "192.168.192.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:c0:02",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-H861Hn0lr": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "339c35d89784dce8bc18b182eaa03babe4896ec9e3c9b464e18304723296a8ab",
-                                "EndpointID": "cf9ae1f147cb0de9461c0dc9dc94ff94f620b0569bac6d8dc15071c7bb27bf5f",
-                                "Gateway": "192.168.16.1",
-                                "IPAddress": "192.168.16.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:10:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-L39HdhjzN": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "860a2a8b5e726e19f869d0645f75dcad2b9ee7e6802a7bc475fc17d6e06557ca",
-                                "EndpointID": "3c18fb5cb9d948d82dad8db92a11f88fb3bcbabef496565ecdd44747bf6ecd8c",
-                                "Gateway": "192.168.48.1",
-                                "IPAddress": "192.168.48.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:30:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-QbBt2dphy": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "206fd577f4d44d03f16c049e80159cf1670893b664309b3607ceb55e01b625c4",
-                                "EndpointID": "f6145a59bceba4298adf9ab6c239da9dade705fa9a0f6dffaf0daffab47e055b",
-                                "Gateway": "172.24.0.1",
-                                "IPAddress": "172.24.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:18:00:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-Rw5qbTplo": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "d716eb809392efd6df0477f04eb138282263f57e673d717304a2bcfef31fe00a",
-                                "EndpointID": "a86adad502892368c74e5ce5812a1ca36c50890bf599e1ef6e81d42b4c0d4ac0",
-                                "Gateway": "172.20.0.1",
-                                "IPAddress": "172.20.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:14:00:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-TAwc0QAW9": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "20f95e3bd93b8d1022fa175dad2bb7212b67dd41e09fd5f62f403a305e661e71",
-                                "EndpointID": "95d8d55cd20700b42c1aeecb677ea9c6834d8cf76b4292ecbe81ddcf54105acd",
-                                "Gateway": "192.168.32.1",
-                                "IPAddress": "192.168.32.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:20:02",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-Vde9j5nWf": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "ea19163fb4dd4ca9d5028fc829e9442a5235ec7464941215efddf061da5f9d93",
-                                "EndpointID": "2fe1545ca04f856c1906ed2e2699fc07cba1074077ef2b7f5c858050a3285e52",
-                                "Gateway": "192.168.0.1",
-                                "IPAddress": "192.168.0.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:00:02",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-Y9ZhK0rfX": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "542030f67a29ffc8cc20e8e9a40fbcd04f955fe2e5869cdcc7455a0f3ffbaff6",
-                                "EndpointID": "fdf564f5688c2d8dca09b347c6b0cdc01a0f62b564bdfa0b33258f7578c40d40",
-                                "Gateway": "192.168.128.1",
-                                "IPAddress": "192.168.128.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:80:02",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-Z3Q8o4tQQ": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "58324310fbd753b21ed33d448323ffeb1074ba0de0ed38e619926523399728e9",
-                                "EndpointID": "5069cdae50396cff11a5558b4883181f24e26fce2b27c0dcff8931dd7d281968",
-                                "Gateway": "172.18.0.1",
-                                "IPAddress": "172.18.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:12:00:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-dlBxYfmRR": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "16ecdf461bea698470437747b6e72a70fe4492b051c8320bcc8ff76783f5461b",
-                                "EndpointID": "545f7a7e1a5e537268dd70ea7cd6b4dd586ecf12c4adda8c31e2854976cd99d8",
-                                "Gateway": "192.168.160.1",
-                                "IPAddress": "192.168.160.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:a0:02",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-e4PkZF2Ld": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "382467475b8f15be9a96ef93f2270c381274f2252afbdd0a11a58df46cc95c63",
-                                "EndpointID": "1c0e6b566297e456d2782b19bbe647831a9d9207916d440242e0e3e7b5c69186",
-                                "Gateway": "172.31.0.1",
-                                "IPAddress": "172.31.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1f:00:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-uk6625k4P": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "6cfc181a1895a14b9b4196064285d047ee0febfab77837ada98af41de541d390",
-                                "EndpointID": "106263d2085548ea1374833f08f44e33082d0905349cb714ba49c11db981de94",
-                                "Gateway": "192.168.96.1",
-                                "IPAddress": "192.168.96.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:60:03",
-                                "DriverOpts": null
-                            },
-                            "cosmos-network-yK4idDn7M": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "3a5cb7850084f180550f9894fcc81d222409573ae601691e718b4ff64aac6ade",
-                                "EndpointID": "a666ebfc05d98fd20bc2add55298cd706dbc211d1a9e8c1be8eb087c2b5460f2",
-                                "Gateway": "192.168.80.1",
-                                "IPAddress": "192.168.80.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:50:02",
-                                "DriverOpts": null
-                            }
-                        }
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/cosmos2",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Roms",
-                            "Destination": "/Roms",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/cosmos2",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/var/run/docker.sock",
-                            "Destination": "/var/run/docker.sock",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    {
+                        "Type": "bind",
+                        "Source": "/var/run/docker.sock",
+                        "Destination": "/var/run/docker.sock",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "ae3bd49a9e624a4dd7d3f3b36762d3c86560e39471786b87e05de48ad0e28b33",
+                "Names": [
+                    "/Sonarr"
+                ],
+                "Image": "linuxserver/sonarr:latest",
+                "ImageID": "sha256:01c381fc68a796deb56e37ca4b61b807596b2587f531145e3ab35140d32c9ceb",
+                "Command": "/init",
+                "Created": 1682791843,
+                "Ports": [
+                    {
+                        "PrivatePort": 8989,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- 3.0.8.1507-ls150 Build-date:- 2022-07-12T16:31:18+02:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-3BFr0qKpI"
                 },
-                {
-                    "Id": "ae3bd49a9e624a4dd7d3f3b36762d3c86560e39471786b87e05de48ad0e28b33",
-                    "Names": [
-                        "/Sonarr"
-                    ],
-                    "Image": "linuxserver/sonarr:latest",
-                    "ImageID": "sha256:01c381fc68a796deb56e37ca4b61b807596b2587f531145e3ab35140d32c9ceb",
-                    "Command": "/init",
-                    "Created": 1682791843,
-                    "Ports": [
-                        {
-                            "PrivatePort": 8989,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- 3.0.8.1507-ls150 Build-date:- 2022-07-12T16:31:18+02:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-3BFr0qKpI"
-                    },
-                    "State": "running",
-                    "Status": "Up 46 hours",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-3BFr0qKpI": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "9061c2920a241c38d046fdc152d1b71e82527d1073342fc72f5a36ab35491f50",
-                                "EndpointID": "883c87484d4071c5eac700384263f94ac5a073fa8ba13ce7393108df58120673",
-                                "Gateway": "172.21.0.1",
-                                "IPAddress": "172.21.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:15:00:02",
-                                "DriverOpts": null
-                            },
-                            "nzbget": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
-                                "EndpointID": "b0a8e97046311c49cf1ae97e859acb9086786b00c9da4656d08a44a028447467",
-                                "Gateway": "172.29.0.1",
-                                "IPAddress": "172.29.0.4",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1d:00:04",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads",
-                            "Destination": "/myvolumes/Downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Series",
-                            "Destination": "/tv",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Backups/Sonarr",
-                            "Destination": "/backups",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Sonarr",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads/completed/Series",
-                            "Destination": "/downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                "State": "running",
+                "Status": "Up 46 hours",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
                 },
-                {
-                    "Id": "e47a8dc02597cbf26e4c157b8df3568adcb2527730bab17891a7cbcd5e155930",
-                    "Names": [
-                        "/Jellyfin"
-                    ],
-                    "Image": "lscr.io/linuxserver/jellyfin:10.8.8",
-                    "ImageID": "sha256:8d7e16a5167fb8500f36c6850e6880eb9c2e85b8eb8401cc18bf0bab0c5b734b",
-                    "Command": "/init",
-                    "Created": 1682791842,
-                    "Ports": [
-                        {
-                            "PrivatePort": 8096,
-                            "Type": "tcp"
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-3BFr0qKpI": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "9061c2920a241c38d046fdc152d1b71e82527d1073342fc72f5a36ab35491f50",
+                            "EndpointID": "883c87484d4071c5eac700384263f94ac5a073fa8ba13ce7393108df58120673",
+                            "Gateway": "172.21.0.1",
+                            "IPAddress": "172.21.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:15:00:02",
+                            "DriverOpts": null
                         },
-                        {
-                            "PrivatePort": 8920,
-                            "Type": "tcp"
+                        "nzbget": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+                            "EndpointID": "b0a8e97046311c49cf1ae97e859acb9086786b00c9da4656d08a44a028447467",
+                            "Gateway": "172.29.0.1",
+                            "IPAddress": "172.29.0.4",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1d:00:04",
+                            "DriverOpts": null
                         }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- 10.7.7-1-ls161 Build-date:- 2022-05-26T05:27:33+02:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-uk6625k4P"
-                    },
-                    "State": "running",
-                    "Status": "Up 46 hours",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-uk6625k4P": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "6cfc181a1895a14b9b4196064285d047ee0febfab77837ada98af41de541d390",
-                                "EndpointID": "4014029dfe14fb0fdc7d8d262b708c04bb1768a9573d7f4745a8651eac09e5ea",
-                                "Gateway": "192.168.96.1",
-                                "IPAddress": "192.168.96.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:60:02",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Movies",
-                            "Destination": "/data/movies",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Series",
-                            "Destination": "/data/tvshows",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Youtube",
-                            "Destination": "/data/youtube",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/jf",
-                            "Destination": "/jf",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Jellyfin188",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    }
                 },
-                {
-                    "Id": "7b0c690d1713e104dbb5173462cfbc755a8bafc826d261c48ccfdaefcefb253d",
-                    "Names": [
-                        "/Radarr"
-                    ],
-                    "Image": "linuxserver/radarr:latest",
-                    "ImageID": "sha256:16b2f6f44d4173371b01c580b3306728be7c98c75426e6f0d9fd75179e6ef3e5",
-                    "Command": "/init",
-                    "Created": 1682705493,
-                    "Ports": [
-                        {
-                            "PrivatePort": 7878,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- 4.1.0.6175-ls147 Build-date:- 2022-07-25T17:59:08+02:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-Rw5qbTplo"
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads",
+                        "Destination": "/myvolumes/Downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "State": "running",
-                    "Status": "Up 20 hours",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Series",
+                        "Destination": "/tv",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-Rw5qbTplo": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "d716eb809392efd6df0477f04eb138282263f57e673d717304a2bcfef31fe00a",
-                                "EndpointID": "7d97a1dc79bc89ddd7b2fd45dbb7516f6916969574c000a3551edeede2e83390",
-                                "Gateway": "172.20.0.1",
-                                "IPAddress": "172.20.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:14:00:02",
-                                "DriverOpts": null
-                            },
-                            "nzbget": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
-                                "EndpointID": "cb274bcc1d37aeb8aac135da45491dcb2d42b06551f2d37f4aef03f2bfe134af",
-                                "Gateway": "172.29.0.1",
-                                "IPAddress": "172.29.0.5",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1d:00:05",
-                                "DriverOpts": null
-                            }
-                        }
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Backups/Sonarr",
+                        "Destination": "/backups",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Backups/Radarr",
-                            "Destination": "/backups",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Radarr",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads/completed/Movies",
-                            "Destination": "/downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads",
-                            "Destination": "/myvolumes/Downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Movies",
-                            "Destination": "/movies",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Sonarr",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads/completed/Series",
+                        "Destination": "/downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "e47a8dc02597cbf26e4c157b8df3568adcb2527730bab17891a7cbcd5e155930",
+                "Names": [
+                    "/Jellyfin"
+                ],
+                "Image": "lscr.io/linuxserver/jellyfin:10.8.8",
+                "ImageID": "sha256:8d7e16a5167fb8500f36c6850e6880eb9c2e85b8eb8401cc18bf0bab0c5b734b",
+                "Command": "/init",
+                "Created": 1682791842,
+                "Ports": [
+                    {
+                        "PrivatePort": 8096,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 8920,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- 10.7.7-1-ls161 Build-date:- 2022-05-26T05:27:33+02:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-uk6625k4P"
                 },
-                {
-                    "Id": "5b891d4c7819b5ed119467f11fa95e7cdddc8b044425379bdd4c1e487a1699ab",
-                    "Names": [
-                        "/Plex"
-                    ],
-                    "Image": "lscr.io/linuxserver/plex:latest",
-                    "ImageID": "sha256:e4cf6f2305344ff05003ebb6f0ac14b9efa748d24b6706c0a25702ea3787d59e",
-                    "Command": "/init",
-                    "Created": 1682705492,
-                    "Ports": [
-                        {
-                            "PrivatePort": 32412,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 5353,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 1900,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 32400,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 32410,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 32413,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 32414,
-                            "Type": "udp"
-                        },
-                        {
-                            "PrivatePort": 32469,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 33400,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 8324,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 3005,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- 1.32.0.6973-a787c5a8e-ls164 Build-date:- 2023-04-20T22:49:29+00:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-QbBt2dphy"
-                    },
-                    "State": "running",
-                    "Status": "Up 2 days",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-QbBt2dphy": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "206fd577f4d44d03f16c049e80159cf1670893b664309b3607ceb55e01b625c4",
-                                "EndpointID": "9e8c67d99c6f82987e08215c3e5a6c09d6d23cfb43e238b88dd9afff7d5b3227",
-                                "Gateway": "172.24.0.1",
-                                "IPAddress": "172.24.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:18:00:02",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/PlexServer",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/jf",
-                            "Destination": "/jf",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Movies",
-                            "Destination": "/movies",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Musics",
-                            "Destination": "/musics",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Series",
-                            "Destination": "/tv",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Youtube",
-                            "Destination": "/youtube",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                "State": "running",
+                "Status": "Up 46 hours",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
                 },
-                {
-                    "Id": "8f8f756448ba8803692f2cbce49e579e8622872682185435fb6bfb68546ef1f8",
-                    "Names": [
-                        "/Lidarr"
-                    ],
-                    "Image": "lscr.io/linuxserver/lidarr:latest",
-                    "ImageID": "sha256:278cc10bca0117fea952d5f12806fb59cc54f8ab4edce439c83a2a58f568dade",
-                    "Command": "/init",
-                    "Created": 1682705492,
-                    "Ports": [
-                        {
-                            "PrivatePort": 8686,
-                            "Type": "tcp"
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-uk6625k4P": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "6cfc181a1895a14b9b4196064285d047ee0febfab77837ada98af41de541d390",
+                            "EndpointID": "4014029dfe14fb0fdc7d8d262b708c04bb1768a9573d7f4745a8651eac09e5ea",
+                            "Gateway": "192.168.96.1",
+                            "IPAddress": "192.168.96.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:60:02",
+                            "DriverOpts": null
                         }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- 1.1.4.3027-ls119 Build-date:- 2023-04-26T04:18:48+02:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-e4PkZF2Ld",
-                        "maintainer": "thelamer"
-                    },
-                    "State": "running",
-                    "Status": "Up 2 days",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-e4PkZF2Ld": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "382467475b8f15be9a96ef93f2270c381274f2252afbdd0a11a58df46cc95c63",
-                                "EndpointID": "40733c27fa8a83496cfdda196357bba86eec0abeac5ed25250a3096da4f1034b",
-                                "Gateway": "172.31.0.1",
-                                "IPAddress": "172.31.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1f:00:02",
-                                "DriverOpts": null
-                            },
-                            "nzbget": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
-                                "EndpointID": "992201e83ebd59e0d38eb46c9cdf6c9c2b61241ac5c20541c4202d1617ac371c",
-                                "Gateway": "172.29.0.1",
-                                "IPAddress": "172.29.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1d:00:02",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Lidarr",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads/completed/Music",
-                            "Destination": "/downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads",
-                            "Destination": "/myvolumes/Downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Musics",
-                            "Destination": "/music",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Backups/Lidarr",
-                            "Destination": "/backups",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    }
                 },
-                {
-                    "Id": "56961ca9e8fdb3013c6cfd9aaf24327f326883b8243509e769883cd5a53abaed",
-                    "Names": [
-                        "/Owncloud"
-                    ],
-                    "Image": "owncloud/server:latest",
-                    "ImageID": "sha256:72a08e89c5c2b334cd95f04f5d7c31259b1f1fe3bef84beeba9bc1efd0c3fa34",
-                    "Command": "/usr/bin/entrypoint /usr/bin/owncloud server",
-                    "Created": 1682705491,
-                    "Ports": [
-                        {
-                            "PrivatePort": 8080,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-L39HdhjzN"
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Movies",
+                        "Destination": "/data/movies",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "State": "running",
-                    "Status": "Up 2 days",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Series",
+                        "Destination": "/data/tvshows",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-L39HdhjzN": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "860a2a8b5e726e19f869d0645f75dcad2b9ee7e6802a7bc475fc17d6e06557ca",
-                                "EndpointID": "d4aea28904300f6e9ee941281825f15b9b8c10647a8525a0fefb4e0cd275cb7b",
-                                "Gateway": "192.168.48.1",
-                                "IPAddress": "192.168.48.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:30:02",
-                                "DriverOpts": null
-                            },
-                            "postgres": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "833e1d80f7bf0d84a05342595ef52d9169209b9c6053701b557dcdc133f57d94",
-                                "EndpointID": "eb850a3ed9127cec0dafa6ddbae9827edfe16f7b576e82d89b30253abe671f6a",
-                                "Gateway": "172.28.0.1",
-                                "IPAddress": "172.28.0.4",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1c:00:04",
-                                "DriverOpts": null
-                            }
-                        }
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Youtube",
+                        "Destination": "/data/youtube",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Owncloud",
-                            "Destination": "/mnt/data",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/mnt/secure",
-                            "Destination": "/mnt/secure",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/jf",
+                        "Destination": "/jf",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Jellyfin188",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "7b0c690d1713e104dbb5173462cfbc755a8bafc826d261c48ccfdaefcefb253d",
+                "Names": [
+                    "/Radarr"
+                ],
+                "Image": "linuxserver/radarr:latest",
+                "ImageID": "sha256:16b2f6f44d4173371b01c580b3306728be7c98c75426e6f0d9fd75179e6ef3e5",
+                "Command": "/init",
+                "Created": 1682705493,
+                "Ports": [
+                    {
+                        "PrivatePort": 7878,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- 4.1.0.6175-ls147 Build-date:- 2022-07-25T17:59:08+02:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-Rw5qbTplo"
                 },
-                {
-                    "Id": "081dd99cba632b2db55dc135a442e93e44ca237a28dbc1e2a42c563d041b656c",
-                    "Names": [
-                        "/Bazaar"
-                    ],
-                    "Image": "lscr.io/linuxserver/bazarr:latest",
-                    "ImageID": "sha256:22d96593bbebf804f18d5c18f069d063bb9ff8c880fe4dc78666c86723d081db",
-                    "Command": "/init",
-                    "Created": 1681945396,
-                    "Ports": [
-                        {
-                            "PrivatePort": 6767,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- v1.1.0-ls160 Build-date:- 2022-07-30T23:57:32-05:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-H861Hn0lr"
-                    },
-                    "State": "running",
-                    "Status": "Up 20 hours",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-H861Hn0lr": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "339c35d89784dce8bc18b182eaa03babe4896ec9e3c9b464e18304723296a8ab",
-                                "EndpointID": "00afa4d928bf4b6c71f86b8ab83b08426b7b40ed0956892bafe038077b176f6a",
-                                "Gateway": "192.168.16.1",
-                                "IPAddress": "192.168.16.2",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:10:02",
-                                "DriverOpts": null
-                            },
-                            "nzbget": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
-                                "EndpointID": "2cb133279c2e2d09209bedc188c612a3d3e8f3c6fda656d7339fdd1016f0a5e2",
-                                "Gateway": "172.29.0.1",
-                                "IPAddress": "172.29.0.6",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1d:00:06",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Series",
-                            "Destination": "/tv",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Backups/Bazarr",
-                            "Destination": "/backups",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Bazaar",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Movies",
-                            "Destination": "/movies",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                "State": "running",
+                "Status": "Up 20 hours",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
                 },
-                {
-                    "Id": "cfd23d4db0bb1f027742928f9b036c6244de59de67da578d0ab357181049b405",
-                    "Names": [
-                        "/portainer"
-                    ],
-                    "Image": "portainer/portainer-ce:latest",
-                    "ImageID": "sha256:f031e549070fabf4c592608d04e512c4e27a58cc843431fc7f214b3207856b58",
-                    "Command": "/portainer",
-                    "Created": 1681837623,
-                    "Ports": [
-                        {
-                            "PrivatePort": 8000,
-                            "Type": "tcp"
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-Rw5qbTplo": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "d716eb809392efd6df0477f04eb138282263f57e673d717304a2bcfef31fe00a",
+                            "EndpointID": "7d97a1dc79bc89ddd7b2fd45dbb7516f6916969574c000a3551edeede2e83390",
+                            "Gateway": "172.20.0.1",
+                            "IPAddress": "172.20.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:14:00:02",
+                            "DriverOpts": null
                         },
-                        {
-                            "PrivatePort": 9000,
-                            "Type": "tcp"
-                        },
-                        {
-                            "IP": "0.0.0.0",
-                            "PrivatePort": 9443,
-                            "PublicPort": 9443,
-                            "Type": "tcp"
-                        },
-                        {
-                            "IP": "::",
-                            "PrivatePort": 9443,
-                            "PublicPort": 9443,
-                            "Type": "tcp"
+                        "nzbget": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+                            "EndpointID": "cb274bcc1d37aeb8aac135da45491dcb2d42b06551f2d37f4aef03f2bfe134af",
+                            "Gateway": "172.29.0.1",
+                            "IPAddress": "172.29.0.5",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1d:00:05",
+                            "DriverOpts": null
                         }
-                    ],
-                    "Labels": {},
-                    "State": "running",
-                    "Status": "Up 12 days",
-                    "HostConfig": {
-                        "NetworkMode": "default"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "bridge": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "20a1948e4a1250da3f01e9b602141e9e24b7eb160c2011a04a3f8bbf90af7615",
-                                "EndpointID": "2ce206f034ae983ce0f21211ba19b7ca73ea8d686ab0a123c925ace1e42e65b4",
-                                "Gateway": "172.17.0.1",
-                                "IPAddress": "172.17.0.8",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:11:00:08",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "volume",
-                            "Name": "portainer_data",
-                            "Source": "/var/lib/docker/volumes/portainer_data/_data",
-                            "Destination": "/data",
-                            "Driver": "local",
-                            "Mode": "z",
-                            "RW": true,
-                            "Propagation": ""
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/var/run/docker.sock",
-                            "Destination": "/var/run/docker.sock",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    }
                 },
-                {
-                    "Id": "1af8265f275bbba12f6bd0132dfc5c951d69fad1cc6d185b06c663d6f06876f9",
-                    "Names": [
-                        "/nzbget"
-                    ],
-                    "Image": "linuxserver/nzbget:latest",
-                    "ImageID": "sha256:147c091336896e0a37115f590269db06912f8f628e496daba300fc87dd3ceed3",
-                    "Command": "/init",
-                    "Created": 1680455121,
-                    "Ports": [
-                        {
-                            "PrivatePort": 6789,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "build_version": "Linuxserver.io version:- v21.1-ls138 Build-date:- 2023-01-19T12:56:46-06:00",
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-Vde9j5nWf"
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Backups/Radarr",
+                        "Destination": "/backups",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "State": "running",
-                    "Status": "Up 4 weeks",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Radarr",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-Vde9j5nWf": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "ea19163fb4dd4ca9d5028fc829e9442a5235ec7464941215efddf061da5f9d93",
-                                "EndpointID": "464b49c94810b5fa2798368950432f0c4f5cfff5fd81842ebecfb50c7d1712f7",
-                                "Gateway": "192.168.0.1",
-                                "IPAddress": "192.168.0.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:00:03",
-                                "DriverOpts": null
-                            },
-                            "nzbget": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
-                                "EndpointID": "8ca2380eadc0078aab7d45de28cd84d5a7c9b99200077dfe55147f881873f359",
-                                "Gateway": "172.29.0.1",
-                                "IPAddress": "172.29.0.3",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1d:00:03",
-                                "DriverOpts": null
-                            }
-                        }
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads/completed/Movies",
+                        "Destination": "/downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/NzbGet",
-                            "Destination": "/config",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Downloads",
-                            "Destination": "/myvolumes/Downloads",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads",
+                        "Destination": "/myvolumes/Downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Movies",
+                        "Destination": "/movies",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "5b891d4c7819b5ed119467f11fa95e7cdddc8b044425379bdd4c1e487a1699ab",
+                "Names": [
+                    "/Plex"
+                ],
+                "Image": "lscr.io/linuxserver/plex:latest",
+                "ImageID": "sha256:e4cf6f2305344ff05003ebb6f0ac14b9efa748d24b6706c0a25702ea3787d59e",
+                "Command": "/init",
+                "Created": 1682705492,
+                "Ports": [
+                    {
+                        "PrivatePort": 32412,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 5353,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 1900,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 32400,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 32410,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 32413,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 32414,
+                        "Type": "udp"
+                    },
+                    {
+                        "PrivatePort": 32469,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 33400,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 8324,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 3005,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- 1.32.0.6973-a787c5a8e-ls164 Build-date:- 2023-04-20T22:49:29+00:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-QbBt2dphy"
                 },
-                {
-                    "Id": "f8099231665bc6d6ddbf8c166d02ccd380cd8cc7638cc6036673e84260dfdf02",
-                    "Names": [
-                        "/photoprism"
-                    ],
-                    "Image": "photoprism/photoprism:latest",
-                    "ImageID": "sha256:e6f531bbf1b0e0ddd9f88e4f5c3608534368fd148c0881ba4618b0f76f42fe51",
-                    "Command": "/scripts/entrypoint.sh /opt/photoprism/bin/photoprism start",
-                    "Created": 1680455120,
-                    "Ports": [
-                        {
-                            "PrivatePort": 2342,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 2442,
-                            "Type": "tcp"
-                        },
-                        {
-                            "PrivatePort": 2443,
-                            "Type": "tcp"
-                        }
-                    ],
-                    "Labels": {
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-TAwc0QAW9"
-                    },
-                    "State": "running",
-                    "Status": "Up 4 weeks",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
-                    },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-TAwc0QAW9": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "20f95e3bd93b8d1022fa175dad2bb7212b67dd41e09fd5f62f403a305e661e71",
-                                "EndpointID": "842ae4d8dde67176b061ce9699558c6fc364236ff69db9d380626f7712146d88",
-                                "Gateway": "192.168.32.1",
-                                "IPAddress": "192.168.32.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:20:03",
-                                "DriverOpts": null
-                            },
-                            "postgres": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "833e1d80f7bf0d84a05342595ef52d9169209b9c6053701b557dcdc133f57d94",
-                                "EndpointID": "77700a6e803cd88c49f376905f9ed2820cae78fd7c959f37fc8a3c89ac6ceb86",
-                                "Gateway": "172.28.0.1",
-                                "IPAddress": "172.28.0.2",
-                                "IPPrefixLen": 16,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:ac:1c:00:02",
-                                "DriverOpts": null
-                            }
-                        }
-                    },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Photoprism",
-                            "Destination": "/photoprism/storage",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/photodrop",
-                            "Destination": "/photoprism/import",
-                            "Mode": "ro",
-                            "RW": false,
-                            "Propagation": "rprivate"
-                        },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Photoprism",
-                            "Destination": "/photoprism/originals",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
-                        }
-                    ]
+                "State": "running",
+                "Status": "Up 2 days",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
                 },
-                {
-                    "Id": "d28b219c6c9e68b3f76f2628db08ee45834c88159099c9ed31a41631b764ea2d",
-                    "Names": [
-                        "/navidrome"
-                    ],
-                    "Image": "deluan/navidrome:latest",
-                    "ImageID": "sha256:589cdcd5bc909d464e63ba9c6206266ae8479a25824f0a870c992e17b8434d5e",
-                    "Command": "/app/navidrome",
-                    "Created": 1680367392,
-                    "Ports": [
-                        {
-                            "PrivatePort": 4533,
-                            "Type": "tcp"
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-QbBt2dphy": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "206fd577f4d44d03f16c049e80159cf1670893b664309b3607ceb55e01b625c4",
+                            "EndpointID": "9e8c67d99c6f82987e08215c3e5a6c09d6d23cfb43e238b88dd9afff7d5b3227",
+                            "Gateway": "172.24.0.1",
+                            "IPAddress": "172.24.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:18:00:02",
+                            "DriverOpts": null
                         }
-                    ],
-                    "Labels": {
-                        "cosmos-force-network-secured": "true",
-                        "cosmos-network-name": "cosmos-network-dlBxYfmRR"
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/PlexServer",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "State": "running",
-                    "Status": "Up 4 weeks (healthy)",
-                    "HostConfig": {
-                        "NetworkMode": "bridge"
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/jf",
+                        "Destination": "/jf",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "NetworkSettings": {
-                        "Networks": {
-                            "cosmos-network-dlBxYfmRR": {
-                                "IPAMConfig": null,
-                                "Links": null,
-                                "Aliases": null,
-                                "NetworkID": "16ecdf461bea698470437747b6e72a70fe4492b051c8320bcc8ff76783f5461b",
-                                "EndpointID": "d4ffec071d68ab861d35d13fbbea52cc8ba2676150ee578115f00bedbcae1384",
-                                "Gateway": "192.168.160.1",
-                                "IPAddress": "192.168.160.3",
-                                "IPPrefixLen": 20,
-                                "IPv6Gateway": "",
-                                "GlobalIPv6Address": "",
-                                "GlobalIPv6PrefixLen": 0,
-                                "MacAddress": "02:42:c0:a8:a0:03",
-                                "DriverOpts": null
-                            }
-                        }
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Movies",
+                        "Destination": "/movies",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
                     },
-                    "Mounts": [
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/AppData/Navidrome",
-                            "Destination": "/data",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Musics",
+                        "Destination": "/musics",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Series",
+                        "Destination": "/tv",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Youtube",
+                        "Destination": "/youtube",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "8f8f756448ba8803692f2cbce49e579e8622872682185435fb6bfb68546ef1f8",
+                "Names": [
+                    "/Lidarr"
+                ],
+                "Image": "lscr.io/linuxserver/lidarr:latest",
+                "ImageID": "sha256:278cc10bca0117fea952d5f12806fb59cc54f8ab4edce439c83a2a58f568dade",
+                "Command": "/init",
+                "Created": 1682705492,
+                "Ports": [
+                    {
+                        "PrivatePort": 8686,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- 1.1.4.3027-ls119 Build-date:- 2023-04-26T04:18:48+02:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-e4PkZF2Ld",
+                    "maintainer": "thelamer"
+                },
+                "State": "running",
+                "Status": "Up 2 days",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-e4PkZF2Ld": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "382467475b8f15be9a96ef93f2270c381274f2252afbdd0a11a58df46cc95c63",
+                            "EndpointID": "40733c27fa8a83496cfdda196357bba86eec0abeac5ed25250a3096da4f1034b",
+                            "Gateway": "172.31.0.1",
+                            "IPAddress": "172.31.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1f:00:02",
+                            "DriverOpts": null
                         },
-                        {
-                            "Type": "bind",
-                            "Source": "/myvolumes/Musics",
-                            "Destination": "/music",
-                            "Mode": "",
-                            "RW": true,
-                            "Propagation": "rprivate"
+                        "nzbget": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+                            "EndpointID": "992201e83ebd59e0d38eb46c9cdf6c9c2b61241ac5c20541c4202d1617ac371c",
+                            "Gateway": "172.29.0.1",
+                            "IPAddress": "172.29.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1d:00:02",
+                            "DriverOpts": null
                         }
-                    ]
-                }
-            ]
-        },
-        "servapps/demo/logs": {
-            "data": [
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Lidarr",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads/completed/Music",
+                        "Destination": "/downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads",
+                        "Destination": "/myvolumes/Downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Musics",
+                        "Destination": "/music",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Backups/Lidarr",
+                        "Destination": "/backups",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "56961ca9e8fdb3013c6cfd9aaf24327f326883b8243509e769883cd5a53abaed",
+                "Names": [
+                    "/Owncloud"
+                ],
+                "Image": "owncloud/server:latest",
+                "ImageID": "sha256:72a08e89c5c2b334cd95f04f5d7c31259b1f1fe3bef84beeba9bc1efd0c3fa34",
+                "Command": "/usr/bin/entrypoint /usr/bin/owncloud server",
+                "Created": 1682705491,
+                "Ports": [
+                    {
+                        "PrivatePort": 8080,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-L39HdhjzN"
+                },
+                "State": "running",
+                "Status": "Up 2 days",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-L39HdhjzN": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "860a2a8b5e726e19f869d0645f75dcad2b9ee7e6802a7bc475fc17d6e06557ca",
+                            "EndpointID": "d4aea28904300f6e9ee941281825f15b9b8c10647a8525a0fefb4e0cd275cb7b",
+                            "Gateway": "192.168.48.1",
+                            "IPAddress": "192.168.48.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:30:02",
+                            "DriverOpts": null
+                        },
+                        "postgres": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "833e1d80f7bf0d84a05342595ef52d9169209b9c6053701b557dcdc133f57d94",
+                            "EndpointID": "eb850a3ed9127cec0dafa6ddbae9827edfe16f7b576e82d89b30253abe671f6a",
+                            "Gateway": "172.28.0.1",
+                            "IPAddress": "172.28.0.4",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1c:00:04",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Owncloud",
+                        "Destination": "/mnt/data",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/mnt/secure",
+                        "Destination": "/mnt/secure",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "081dd99cba632b2db55dc135a442e93e44ca237a28dbc1e2a42c563d041b656c",
+                "Names": [
+                    "/Bazaar"
+                ],
+                "Image": "lscr.io/linuxserver/bazarr:latest",
+                "ImageID": "sha256:22d96593bbebf804f18d5c18f069d063bb9ff8c880fe4dc78666c86723d081db",
+                "Command": "/init",
+                "Created": 1681945396,
+                "Ports": [
+                    {
+                        "PrivatePort": 6767,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- v1.1.0-ls160 Build-date:- 2022-07-30T23:57:32-05:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-H861Hn0lr"
+                },
+                "State": "running",
+                "Status": "Up 20 hours",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-H861Hn0lr": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "339c35d89784dce8bc18b182eaa03babe4896ec9e3c9b464e18304723296a8ab",
+                            "EndpointID": "00afa4d928bf4b6c71f86b8ab83b08426b7b40ed0956892bafe038077b176f6a",
+                            "Gateway": "192.168.16.1",
+                            "IPAddress": "192.168.16.2",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:10:02",
+                            "DriverOpts": null
+                        },
+                        "nzbget": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+                            "EndpointID": "2cb133279c2e2d09209bedc188c612a3d3e8f3c6fda656d7339fdd1016f0a5e2",
+                            "Gateway": "172.29.0.1",
+                            "IPAddress": "172.29.0.6",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1d:00:06",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Series",
+                        "Destination": "/tv",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Backups/Bazarr",
+                        "Destination": "/backups",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Bazaar",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Movies",
+                        "Destination": "/movies",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "cfd23d4db0bb1f027742928f9b036c6244de59de67da578d0ab357181049b405",
+                "Names": [
+                    "/portainer"
+                ],
+                "Image": "portainer/portainer-ce:latest",
+                "ImageID": "sha256:f031e549070fabf4c592608d04e512c4e27a58cc843431fc7f214b3207856b58",
+                "Command": "/portainer",
+                "Created": 1681837623,
+                "Ports": [
+                    {
+                        "PrivatePort": 8000,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 9000,
+                        "Type": "tcp"
+                    },
+                    {
+                        "IP": "0.0.0.0",
+                        "PrivatePort": 9443,
+                        "PublicPort": 9443,
+                        "Type": "tcp"
+                    },
+                    {
+                        "IP": "::",
+                        "PrivatePort": 9443,
+                        "PublicPort": 9443,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {},
+                "State": "running",
+                "Status": "Up 12 days",
+                "HostConfig": {
+                    "NetworkMode": "default"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "bridge": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "20a1948e4a1250da3f01e9b602141e9e24b7eb160c2011a04a3f8bbf90af7615",
+                            "EndpointID": "2ce206f034ae983ce0f21211ba19b7ca73ea8d686ab0a123c925ace1e42e65b4",
+                            "Gateway": "172.17.0.1",
+                            "IPAddress": "172.17.0.8",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:11:00:08",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "volume",
+                        "Name": "portainer_data",
+                        "Source": "/var/lib/docker/volumes/portainer_data/_data",
+                        "Destination": "/data",
+                        "Driver": "local",
+                        "Mode": "z",
+                        "RW": true,
+                        "Propagation": ""
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/var/run/docker.sock",
+                        "Destination": "/var/run/docker.sock",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "1af8265f275bbba12f6bd0132dfc5c951d69fad1cc6d185b06c663d6f06876f9",
+                "Names": [
+                    "/nzbget"
+                ],
+                "Image": "linuxserver/nzbget:latest",
+                "ImageID": "sha256:147c091336896e0a37115f590269db06912f8f628e496daba300fc87dd3ceed3",
+                "Command": "/init",
+                "Created": 1680455121,
+                "Ports": [
+                    {
+                        "PrivatePort": 6789,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "build_version": "Linuxserver.io version:- v21.1-ls138 Build-date:- 2023-01-19T12:56:46-06:00",
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-Vde9j5nWf"
+                },
+                "State": "running",
+                "Status": "Up 4 weeks",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-Vde9j5nWf": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "ea19163fb4dd4ca9d5028fc829e9442a5235ec7464941215efddf061da5f9d93",
+                            "EndpointID": "464b49c94810b5fa2798368950432f0c4f5cfff5fd81842ebecfb50c7d1712f7",
+                            "Gateway": "192.168.0.1",
+                            "IPAddress": "192.168.0.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:00:03",
+                            "DriverOpts": null
+                        },
+                        "nzbget": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+                            "EndpointID": "8ca2380eadc0078aab7d45de28cd84d5a7c9b99200077dfe55147f881873f359",
+                            "Gateway": "172.29.0.1",
+                            "IPAddress": "172.29.0.3",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1d:00:03",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/NzbGet",
+                        "Destination": "/config",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Downloads",
+                        "Destination": "/myvolumes/Downloads",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "f8099231665bc6d6ddbf8c166d02ccd380cd8cc7638cc6036673e84260dfdf02",
+                "Names": [
+                    "/photoprism"
+                ],
+                "Image": "photoprism/photoprism:latest",
+                "ImageID": "sha256:e6f531bbf1b0e0ddd9f88e4f5c3608534368fd148c0881ba4618b0f76f42fe51",
+                "Command": "/scripts/entrypoint.sh /opt/photoprism/bin/photoprism start",
+                "Created": 1680455120,
+                "Ports": [
+                    {
+                        "PrivatePort": 2342,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 2442,
+                        "Type": "tcp"
+                    },
+                    {
+                        "PrivatePort": 2443,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-TAwc0QAW9"
+                },
+                "State": "running",
+                "Status": "Up 4 weeks",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-TAwc0QAW9": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "20f95e3bd93b8d1022fa175dad2bb7212b67dd41e09fd5f62f403a305e661e71",
+                            "EndpointID": "842ae4d8dde67176b061ce9699558c6fc364236ff69db9d380626f7712146d88",
+                            "Gateway": "192.168.32.1",
+                            "IPAddress": "192.168.32.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:20:03",
+                            "DriverOpts": null
+                        },
+                        "postgres": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "833e1d80f7bf0d84a05342595ef52d9169209b9c6053701b557dcdc133f57d94",
+                            "EndpointID": "77700a6e803cd88c49f376905f9ed2820cae78fd7c959f37fc8a3c89ac6ceb86",
+                            "Gateway": "172.28.0.1",
+                            "IPAddress": "172.28.0.2",
+                            "IPPrefixLen": 16,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:ac:1c:00:02",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Photoprism",
+                        "Destination": "/photoprism/storage",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/photodrop",
+                        "Destination": "/photoprism/import",
+                        "Mode": "ro",
+                        "RW": false,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Photoprism",
+                        "Destination": "/photoprism/originals",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            },
+            {
+                "Id": "d28b219c6c9e68b3f76f2628db08ee45834c88159099c9ed31a41631b764ea2d",
+                "Names": [
+                    "/navidrome"
+                ],
+                "Image": "deluan/navidrome:latest",
+                "ImageID": "sha256:589cdcd5bc909d464e63ba9c6206266ae8479a25824f0a870c992e17b8434d5e",
+                "Command": "/app/navidrome",
+                "Created": 1680367392,
+                "Ports": [
+                    {
+                        "PrivatePort": 4533,
+                        "Type": "tcp"
+                    }
+                ],
+                "Labels": {
+                    "cosmos-force-network-secured": "true",
+                    "cosmos-network-name": "cosmos-network-dlBxYfmRR"
+                },
+                "State": "running",
+                "Status": "Up 4 weeks (healthy)",
+                "HostConfig": {
+                    "NetworkMode": "bridge"
+                },
+                "NetworkSettings": {
+                    "Networks": {
+                        "cosmos-network-dlBxYfmRR": {
+                            "IPAMConfig": null,
+                            "Links": null,
+                            "Aliases": null,
+                            "NetworkID": "16ecdf461bea698470437747b6e72a70fe4492b051c8320bcc8ff76783f5461b",
+                            "EndpointID": "d4ffec071d68ab861d35d13fbbea52cc8ba2676150ee578115f00bedbcae1384",
+                            "Gateway": "192.168.160.1",
+                            "IPAddress": "192.168.160.3",
+                            "IPPrefixLen": 20,
+                            "IPv6Gateway": "",
+                            "GlobalIPv6Address": "",
+                            "GlobalIPv6PrefixLen": 0,
+                            "MacAddress": "02:42:c0:a8:a0:03",
+                            "DriverOpts": null
+                        }
+                    }
+                },
+                "Mounts": [
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/AppData/Navidrome",
+                        "Destination": "/data",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    },
+                    {
+                        "Type": "bind",
+                        "Source": "/myvolumes/Musics",
+                        "Destination": "/music",
+                        "Mode": "",
+                        "RW": true,
+                        "Propagation": "rprivate"
+                    }
+                ]
+            }
+        ],
+        "demo": {
+            "logs": [
                 {
                     "streamType": 1,
                     "size": 157,
@@ -3893,359 +3885,335 @@
                     "size": 127,
                     "output": "2023-05-08T15:18:09.061182900Z [15:18:09] [INF] [3] Emby.Server.Implementations.ScheduledTasks.TaskManager: ExecuteQueuedTasks"
                 }
-            ]
-        },
-        "volumes": {
-            "data": {
-                "Volumes": [
-                    {
-                        "CreatedAt": "2023-05-02T13:26:13Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/c4106d6074bc26e4f32858d750b7bac534d4f801396366afdd2df92f32229c21/_data",
-                        "Name": "c4106d6074bc26e4f32858d750b7bac534d4f801396366afdd2df92f32229c21",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-10T19:59:09Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/fb7fd95481d9975953dcd967ea93addc95e6e93d16eb305fe9d4e43882bc4ad2/_data",
-                        "Name": "fb7fd95481d9975953dcd967ea93addc95e6e93d16eb305fe9d4e43882bc4ad2",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-05-07T16:36:48Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/test3/_data",
-                        "Name": "test3",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-03-25T17:00:47Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/1bc3e0f8ea49eb7482f8255a2525b0419d919611e62f0536517f79f3a258d278/_data",
-                        "Name": "1bc3e0f8ea49eb7482f8255a2525b0419d919611e62f0536517f79f3a258d278",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-05-07T13:09:19Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/52573b0b23018e5412182e7ebdf60d684790616ffdfe7424b063acbfdd078bd8/_data",
-                        "Name": "52573b0b23018e5412182e7ebdf60d684790616ffdfe7424b063acbfdd078bd8",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-10T19:33:39Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/740c05e5c53a7e9df5954ed82ab3a9987e666c2b6030cd66e3c5f5320a9d0053/_data",
-                        "Name": "740c05e5c53a7e9df5954ed82ab3a9987e666c2b6030cd66e3c5f5320a9d0053",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-03-29T15:10:38Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/bb92c6cda0dcebe101489e0bd44e8cc2ddb3f2f6706b78ab08b496067e09a7ce/_data",
-                        "Name": "bb92c6cda0dcebe101489e0bd44e8cc2ddb3f2f6706b78ab08b496067e09a7ce",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-05-01T13:28:52Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-data-fxL/_data",
-                        "Name": "cosmos-mongo-data-fxL",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-01T11:42:49Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-config-NkM/_data",
-                        "Name": "cosmos-mongo-config-NkM",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-01T12:26:59Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-config-mPv/_data",
-                        "Name": "cosmos-mongo-config-mPv",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-11T12:56:07Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-data-XNq/_data",
-                        "Name": "cosmos-mongo-data-XNq",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-03-31T14:34:56Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/469dd6e435f069173a7e88565812fbf8f354b966356361594b36fef0b0ae58fb/_data",
-                        "Name": "469dd6e435f069173a7e88565812fbf8f354b966356361594b36fef0b0ae58fb",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-11T13:06:57Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/66689e6835b842df45a0062d7d69986e2876936a4e0c5b984b4b49a0a22247c6/_data",
-                        "Name": "66689e6835b842df45a0062d7d69986e2876936a4e0c5b984b4b49a0a22247c6",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-05-07T16:46:53Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/8399775751b3ded6ba5a6532480b1ba43e85697b8261cf5d1d5f81d4a64fcbec/_data",
-                        "Name": "8399775751b3ded6ba5a6532480b1ba43e85697b8261cf5d1d5f81d4a64fcbec",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-01T16:30:01Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/8715d74238cf3162649cf0bfa582efa6266e025cd45b8b197c897f445ed0c844/_data",
-                        "Name": "8715d74238cf3162649cf0bfa582efa6266e025cd45b8b197c897f445ed0c844",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-04-11T12:36:37Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/a1fb959d8a54919926f703fcd950d4581bc51572a0ec2275ef08a11fde258956/_data",
-                        "Name": "a1fb959d8a54919926f703fcd950d4581bc51572a0ec2275ef08a11fde258956",
-                        "Options": null,
-                        "Scope": "local"
-                    },
-                    {
-                        "CreatedAt": "2023-05-07T16:08:35Z",
-                        "Driver": "local",
-                        "Labels": null,
-                        "Mountpoint": "/var/lib/docker/volumes/MyVolume/_data",
-                        "Name": "MyVolume",
-                        "Options": null,
-                        "Scope": "local"
-                    }
-                ],
-                "Warnings": null
-            }
-        },
-        "networks": {
-            "data": [
-                {
-                    "Name": "test2",
-                    "Id": "6675d361c126d013dbc4cba07c140821879718af3d52f15a07aa94dabbffe124",
-                    "Created": "2023-05-08T11:18:08.4273302Z",
-                    "Scope": "local",
-                    "Driver": "bridge",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": [
-                            {
-                                "Subnet": "172.18.0.0/16",
-                                "Gateway": "172.18.0.1"
-                            }
-                        ]
-                    },
-                    "Internal": false,
-                    "Attachable": false,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {},
-                    "Labels": {}
-                },
-                {
-                    "Name": "bridge",
-                    "Id": "d1d39f3e484527f0a22f72275309a6853ea5e84b64c726d75ab3735e5b316eeb",
-                    "Created": "2023-05-08T11:06:04.195972Z",
-                    "Scope": "local",
-                    "Driver": "bridge",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": [
-                            {
-                                "Subnet": "172.17.0.0/16",
-                                "Gateway": "172.17.0.1"
-                            }
-                        ]
-                    },
-                    "Internal": false,
-                    "Attachable": false,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {
-                        "com.docker.network.bridge.default_bridge": "true",
-                        "com.docker.network.bridge.enable_icc": "true",
-                        "com.docker.network.bridge.enable_ip_masquerade": "true",
-                        "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
-                        "com.docker.network.bridge.name": "docker0",
-                        "com.docker.network.driver.mtu": "1500"
-                    },
-                    "Labels": {}
-                },
-                {
-                    "Name": "Also Test",
-                    "Id": "3128c9c7e83a03b297249a6c8df437d6a9656a405efd0c3f937aee7e7b1d993d",
-                    "Created": "2023-05-07T17:28:12.2844952Z",
-                    "Scope": "local",
-                    "Driver": "bridge",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": [
-                            {
-                                "Subnet": "172.26.0.0/16",
-                                "Gateway": "172.26.0.1"
-                            }
-                        ]
-                    },
-                    "Internal": false,
-                    "Attachable": false,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {},
-                    "Labels": {}
-                },
-                {
-                    "Name": "host",
-                    "Id": "40f43ad5c13390b477d496a57cd3f2eacef3b92262de2429e369e5655d1fe13a",
-                    "Created": "2020-03-15T16:34:57.75505446Z",
-                    "Scope": "local",
-                    "Driver": "host",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": []
-                    },
-                    "Internal": false,
-                    "Attachable": false,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {},
-                    "Labels": {}
-                },
-                {
-                    "Name": "none",
-                    "Id": "d2fd80f8cd33c60a81487eec8b7e663acf539479411c8d38d234b7943403270f",
-                    "Created": "2020-03-15T16:34:57.74630246Z",
-                    "Scope": "local",
-                    "Driver": "null",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": []
-                    },
-                    "Internal": false,
-                    "Attachable": false,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {},
-                    "Labels": {}
-                },
-                {
-                    "Name": "cosmos-network-Y5UKzxkrk",
-                    "Id": "37357fc736ac7510162d036033c4bc3b50955accc484a473bc78b21c9fe860e5",
-                    "Created": "2023-05-08T13:28:43.0766901Z",
-                    "Scope": "local",
-                    "Driver": "bridge",
-                    "EnableIPv6": false,
-                    "IPAM": {
-                        "Driver": "default",
-                        "Options": null,
-                        "Config": [
-                            {
-                                "Subnet": "172.20.0.0/16",
-                                "Gateway": "172.20.0.1"
-                            }
-                        ]
-                    },
-                    "Internal": false,
-                    "Attachable": true,
-                    "Ingress": false,
-                    "ConfigFrom": {
-                        "Network": ""
-                    },
-                    "ConfigOnly": false,
-                    "Containers": {},
-                    "Options": {},
-                    "Labels": {}
-                }
-            ]
-        },
-        "servapps/demo/secure": {},
-        "api/newDB": {},
-        "servapps/demo/manage": {}
+            ],
+            "secure": {},
+            "manage": {}
+        }
     },
-    "POST": {
-        "constellation/devices": {
-            "data": {
-                "CA": "-----BEGIN NEBULA CERTIFICATE-----\\....\n+dfE+ikL8jUh/n+C+....\\....\nZon/Dw==\n-----END NEBULA CERTIFICATE-----\n",
-                "Config": "constellation_api_key: ...\nconstellation_device_name: test\nconstellation_local_dns_overwrite: true\nconstellation_local_dns_overwrite_address: 192.168.201.1\nconstellation_public_hostname: \"\"\nfirewall:\n  conntrack:\n    default_timeout: 10m\n    tcp_timeout: 12m\n    udp_timeout: 3m\n  inbound:\n  - host: any\n    port: any\n    proto: any\n  inbound_action: drop\n  outbound:\n  - host: any\n    port: any\n    proto: any\n  outbound_action: drop\nlighthouse:\n  am_lighthouse: false\n  hosts:\n  - 192.168.201.1\n  interval: 60\nlisten:\n  host: 0.0.0.0\n  port: \"4242\"\nlogging:\n  format: text\n  level: info\npki:\n  blocklist: []\n  ca: |\n    -----BEGIN NEBULA CERTIFICATE-----\n    ...\n    +dfE+ikL8jUh/n+C+...\n    .\n    Zon/Dw==\n    -----END NEBULA CERTIFICATE-----\n  cert: |\n    -----BEGIN NEBULA CERTIFICATE-----\n    CmIKBHRlc3QSCoeSo4UMgP7//..\n    ...+QwZSiBxLdKhjkCH+.../..\n    ./hfL+....\n    ..==\n    -----END NEBULA CERTIFICATE-----\n  key: |\n    -----BEGIN NEBULA X25519 PRIVATE KEY-----\n    nS39dWX7uo1rhTvP2yl2XonGx3fWEkpk+43thNrMu7U=\n    -----END NEBULA X25519 PRIVATE KEY-----\npunchy:\n  punch: true\n  respond: true\nrelay:\n  am_relay: false\n  relays:\n  - 192.168.201.1\n  use_relays: true\nstatic_host_map:\n  192.168.201.1:\n  - vpn.domain.com:4242\ntun:\n  dev: nebula1\n  disabled: false\n  drop_local_broadcast: false\n  drop_multicast: false\n  mtu: 1300\n  routes: []\n  tx_queue: 500\n  unsafe_routes: []\n",
-                "DeviceName": "test",
-                "IP": "192.168.201.7/24",
-                "IsLighthouse": false,
-                "IsRelay": true,
-                "LighthousesList": [],
-                "Nickname": "admin",
-                "Port": "4242",
-                "PrivateKey": "-----BEGIN NEBULA CERTIFICATE-----\\...//w8o3ZaFqQYwhdGFuAY6IGXmYRCr3z932Y....w\\..==\n-----END NEBULA CERTIFICATE-----\n",
-                "PublicHostname": "",
-                "PublicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\nnS39dWX...hTvP......+43thNrMu7U=\n-----END NEBULA X25519 PRIVATE KEY-----\n"
+    "volumes": {
+        "Volumes": [
+            {
+                "CreatedAt": "2023-05-02T13:26:13Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/c4106d6074bc26e4f32858d750b7bac534d4f801396366afdd2df92f32229c21/_data",
+                "Name": "c4106d6074bc26e4f32858d750b7bac534d4f801396366afdd2df92f32229c21",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-10T19:59:09Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/fb7fd95481d9975953dcd967ea93addc95e6e93d16eb305fe9d4e43882bc4ad2/_data",
+                "Name": "fb7fd95481d9975953dcd967ea93addc95e6e93d16eb305fe9d4e43882bc4ad2",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-05-07T16:36:48Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/test3/_data",
+                "Name": "test3",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-03-25T17:00:47Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/1bc3e0f8ea49eb7482f8255a2525b0419d919611e62f0536517f79f3a258d278/_data",
+                "Name": "1bc3e0f8ea49eb7482f8255a2525b0419d919611e62f0536517f79f3a258d278",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-05-07T13:09:19Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/52573b0b23018e5412182e7ebdf60d684790616ffdfe7424b063acbfdd078bd8/_data",
+                "Name": "52573b0b23018e5412182e7ebdf60d684790616ffdfe7424b063acbfdd078bd8",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-10T19:33:39Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/740c05e5c53a7e9df5954ed82ab3a9987e666c2b6030cd66e3c5f5320a9d0053/_data",
+                "Name": "740c05e5c53a7e9df5954ed82ab3a9987e666c2b6030cd66e3c5f5320a9d0053",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-03-29T15:10:38Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/bb92c6cda0dcebe101489e0bd44e8cc2ddb3f2f6706b78ab08b496067e09a7ce/_data",
+                "Name": "bb92c6cda0dcebe101489e0bd44e8cc2ddb3f2f6706b78ab08b496067e09a7ce",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-05-01T13:28:52Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-data-fxL/_data",
+                "Name": "cosmos-mongo-data-fxL",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-01T11:42:49Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-config-NkM/_data",
+                "Name": "cosmos-mongo-config-NkM",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-01T12:26:59Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-config-mPv/_data",
+                "Name": "cosmos-mongo-config-mPv",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-11T12:56:07Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/cosmos-mongo-data-XNq/_data",
+                "Name": "cosmos-mongo-data-XNq",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-03-31T14:34:56Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/469dd6e435f069173a7e88565812fbf8f354b966356361594b36fef0b0ae58fb/_data",
+                "Name": "469dd6e435f069173a7e88565812fbf8f354b966356361594b36fef0b0ae58fb",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-11T13:06:57Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/66689e6835b842df45a0062d7d69986e2876936a4e0c5b984b4b49a0a22247c6/_data",
+                "Name": "66689e6835b842df45a0062d7d69986e2876936a4e0c5b984b4b49a0a22247c6",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-05-07T16:46:53Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/8399775751b3ded6ba5a6532480b1ba43e85697b8261cf5d1d5f81d4a64fcbec/_data",
+                "Name": "8399775751b3ded6ba5a6532480b1ba43e85697b8261cf5d1d5f81d4a64fcbec",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-01T16:30:01Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/8715d74238cf3162649cf0bfa582efa6266e025cd45b8b197c897f445ed0c844/_data",
+                "Name": "8715d74238cf3162649cf0bfa582efa6266e025cd45b8b197c897f445ed0c844",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-04-11T12:36:37Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/a1fb959d8a54919926f703fcd950d4581bc51572a0ec2275ef08a11fde258956/_data",
+                "Name": "a1fb959d8a54919926f703fcd950d4581bc51572a0ec2275ef08a11fde258956",
+                "Options": null,
+                "Scope": "local"
+            },
+            {
+                "CreatedAt": "2023-05-07T16:08:35Z",
+                "Driver": "local",
+                "Labels": null,
+                "Mountpoint": "/var/lib/docker/volumes/MyVolume/_data",
+                "Name": "MyVolume",
+                "Options": null,
+                "Scope": "local"
             }
+        ],
+        "Warnings": null
+    },
+    "networks": [
+        {
+            "Name": "test2",
+            "Id": "6675d361c126d013dbc4cba07c140821879718af3d52f15a07aa94dabbffe124",
+            "Created": "2023-05-08T11:18:08.4273302Z",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": [
+                    {
+                        "Subnet": "172.18.0.0/16",
+                        "Gateway": "172.18.0.1"
+                    }
+                ]
+            },
+            "Internal": false,
+            "Attachable": false,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {},
+            "Labels": {}
         },
-        "constellation/connect": {},
-        "constellation/block": {}
-    }
+        {
+            "Name": "bridge",
+            "Id": "d1d39f3e484527f0a22f72275309a6853ea5e84b64c726d75ab3735e5b316eeb",
+            "Created": "2023-05-08T11:06:04.195972Z",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": [
+                    {
+                        "Subnet": "172.17.0.0/16",
+                        "Gateway": "172.17.0.1"
+                    }
+                ]
+            },
+            "Internal": false,
+            "Attachable": false,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {
+                "com.docker.network.bridge.default_bridge": "true",
+                "com.docker.network.bridge.enable_icc": "true",
+                "com.docker.network.bridge.enable_ip_masquerade": "true",
+                "com.docker.network.bridge.host_binding_ipv4": "0.0.0.0",
+                "com.docker.network.bridge.name": "docker0",
+                "com.docker.network.driver.mtu": "1500"
+            },
+            "Labels": {}
+        },
+        {
+            "Name": "Also Test",
+            "Id": "3128c9c7e83a03b297249a6c8df437d6a9656a405efd0c3f937aee7e7b1d993d",
+            "Created": "2023-05-07T17:28:12.2844952Z",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": [
+                    {
+                        "Subnet": "172.26.0.0/16",
+                        "Gateway": "172.26.0.1"
+                    }
+                ]
+            },
+            "Internal": false,
+            "Attachable": false,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {},
+            "Labels": {}
+        },
+        {
+            "Name": "host",
+            "Id": "40f43ad5c13390b477d496a57cd3f2eacef3b92262de2429e369e5655d1fe13a",
+            "Created": "2020-03-15T16:34:57.75505446Z",
+            "Scope": "local",
+            "Driver": "host",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": []
+            },
+            "Internal": false,
+            "Attachable": false,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {},
+            "Labels": {}
+        },
+        {
+            "Name": "none",
+            "Id": "d2fd80f8cd33c60a81487eec8b7e663acf539479411c8d38d234b7943403270f",
+            "Created": "2020-03-15T16:34:57.74630246Z",
+            "Scope": "local",
+            "Driver": "null",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": []
+            },
+            "Internal": false,
+            "Attachable": false,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {},
+            "Labels": {}
+        },
+        {
+            "Name": "cosmos-network-Y5UKzxkrk",
+            "Id": "37357fc736ac7510162d036033c4bc3b50955accc484a473bc78b21c9fe860e5",
+            "Created": "2023-05-08T13:28:43.0766901Z",
+            "Scope": "local",
+            "Driver": "bridge",
+            "EnableIPv6": false,
+            "IPAM": {
+                "Driver": "default",
+                "Options": null,
+                "Config": [
+                    {
+                        "Subnet": "172.20.0.0/16",
+                        "Gateway": "172.20.0.1"
+                    }
+                ]
+            },
+            "Internal": false,
+            "Attachable": true,
+            "Ingress": false,
+            "ConfigFrom": {
+                "Network": ""
+            },
+            "ConfigOnly": false,
+            "Containers": {},
+            "Options": {},
+            "Labels": {}
+        }
+    ],
+    "newDB": {}
 }
