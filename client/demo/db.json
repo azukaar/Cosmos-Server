@@ -51,11 +51,15 @@
         ],
         "restart": {},
         "reset": {},
-        "config": ["$return", "pki:\n  ca: /config/ca.crt\n  cert: /config/cosmos.crt\n  key: /config/cosmos.key\n  blocklist: []\nstatic_host_map:\n  192.168.201.1:\n  - vpn.domain.com:4242\nlighthouse:\n  am_lighthouse: true\n  interval: 60\n  hosts: []\nlisten:\n  host: 0.0.0.0\n  port: 4242\npunchy:\n  punch: true\n  respond: true\nrelay:\n  am_relay: true\n  use_relays: true\n  relays: []\ntun:\n  disabled: false\n  dev: nebula1\n  drop_local_broadcast: false\n  drop_multicast: false\n  tx_queue: 500\n  mtu: 1300\n  routes: []\n  unsafe_routes: []\nlogging:\n  level: info\n  format: text\nfirewall:\n  outbound_action: drop\n  inbound_action: drop\n  conntrack:\n    tcp_timeout: 12m\n    udp_timeout: 3m\n    default_timeout: 10m\n  outbound:\n  - port: any\n    proto: any\n    host: any\n  inbound:\n  - port: any\n    proto: any\n    host: any\n"],
-        "logs": ["$return", "Some logs..."]
+        "config": {
+            "$return": "pki:\n  ca: /config/ca.crt\n  cert: /config/cosmos.crt\n  key: /config/cosmos.key\n  blocklist: []\nstatic_host_map:\n  192.168.201.1:\n  - vpn.domain.com:4242\nlighthouse:\n  am_lighthouse: true\n  interval: 60\n  hosts: []\nlisten:\n  host: 0.0.0.0\n  port: 4242\npunchy:\n  punch: true\n  respond: true\nrelay:\n  am_relay: true\n  use_relays: true\n  relays: []\ntun:\n  disabled: false\n  dev: nebula1\n  drop_local_broadcast: false\n  drop_multicast: false\n  tx_queue: 500\n  mtu: 1300\n  routes: []\n  unsafe_routes: []\nlogging:\n  level: info\n  format: text\nfirewall:\n  outbound_action: drop\n  inbound_action: drop\n  conntrack:\n    tcp_timeout: 12m\n    udp_timeout: 3m\n    default_timeout: 10m\n  outbound:\n  - port: any\n    proto: any\n    host: any\n  inbound:\n  - port: any\n    proto: any\n    host: any\n"
+        },
+        "logs": {
+            "$return": "Some logs..."
+        }
     },
     "servapps": {
-        "list": [
+        "$return": [
             {
                 "Id": "a03ea9a3408b2831198f2192c628090193e9d5e8e4c4515f2c94d1cc26f6a7f5",
                 "Names": [

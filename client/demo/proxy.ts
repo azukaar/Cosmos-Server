@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
 import { resolve } from "path"
 import { readFileSync } from "fs"
-import { stringify } from "querystring"
+import querystring from "querystring"
 import jsonServer from "json-server"
 import traverse from "traverse"
 
@@ -13,8 +13,6 @@ const definedDB: Record<string, any> = JSON.parse(readFileSync(resolve(__dirname
 
 const autoDB = genDB(definedDB)
 const dbPaths = Object.keys(autoDB)
-
-console.log(dbPaths)
 
 // TODO: Reference types do not work at the ["$return", data] level
 // A possible solution is to replace filter with map and custom behavior for get, post and put
@@ -43,8 +41,8 @@ const router = jsonServer.router(autoDB, {
 router.render = (req: Request, res: Response) => {
     if (typeof res.locals.data["_comment"] === "string" && res.locals.data["_comment"].toLowerCase().includes("todo"))
         return res.sendStatus(404)
-    else if (Array.isArray(res.locals.data.list))
-        res.locals.data = res.locals.data.list;
+    else if ("$return" in res.locals.data)
+        res.locals.data = res.locals.data["$return"];
     else if (res.locals.data[0] === "$return")
         res.locals.data = res.locals.data[1]
 
@@ -57,6 +55,10 @@ router.render = (req: Request, res: Response) => {
             break
     }
 
+    const query = querystring.parse(req.url)
+
+    if (query["_inline"] && Array.isArray(res.locals.result) && res.locals.result.length === 1)
+        res.locals.result = res.locals.result.at(0)
     return res.jsonp({
         data: res.locals.result,
         status: "ok"
@@ -68,7 +70,7 @@ proxyServer.use(middlewares)
 
 proxyServer.use("/api", rewriter)
 proxyServer.use("/api", (req, res, next) => {
-    const query = stringify(req.query as Record<string, any>)
+    const query = querystring.stringify(req.query as Record<string, any>)
     const dbKey = req.path
         .replace("/", "")
         .replace(/\//g, ".")
@@ -91,9 +93,11 @@ function genDB(initialDB: JSONObject, skipRoot: boolean = true): Record<string, 
         .reduce(function (acc: Record<string, any>, node) {
             if (skipRoot && this.isRoot)
                 return acc
-            const currentPath = this.path.join(".")
+            const currentPath = this.path.join(".").replace(/\.\$return/g, "")
 
-            acc[currentPath] = isObject(node) ? node : ["$return", node]
+            acc[currentPath] = isObject(node) ? node : {
+                $return: node
+            }
 
             if (Array.isArray(node)) {
                 node
@@ -107,7 +111,7 @@ function genDB(initialDB: JSONObject, skipRoot: boolean = true): Record<string, 
                             .filter(value => !!value && typeof value === "string" && !value.includes("."))
                             .forEach(value => Object.keys(childNodeDB).forEach(childNodePath =>
                                 acc[`${currentPath}.${value}${childNodePath && "." || ""
-                                }${childNodePath}`.replace(/\//g, ".")] = childNodeDB[childNodePath]
+                                    }${childNodePath}`.replace(/\//g, ".")] = childNodeDB[childNodePath]
                             ))
                     )
             }
