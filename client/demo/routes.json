@@ -1,9 +1,10 @@
 {
     "/servapps/:container/logs": "/servapps/demo/logs",
-    "/volume/:name": "/volumes/Volumes?Volumes.Name=:name",
+    "/volume/:name": "/volumes/Volumes?Name=:name",
     "/network/:name": "/networks?Name=:name",
     "/servapps/:id/secure/:res": "/servapps/demo/secure",
     "/servapps/:id/manage/:action": "/servapps/demo/manage",
-    "/servapps/:id/networks": "/servapps/:id?_embed=NetworkSettings.Networks",
+    "/servapps/:id/networks": "/test/:id/NetworkSettings",
+    "/test/:id": "/servapps?Id=:id",
     "/servapps/:containerId/network/:networkId": "/servapps/:containerId/networks"
 }
