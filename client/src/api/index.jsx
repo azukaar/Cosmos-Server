@@ -6,7 +6,7 @@ import * as _market from './market';
 import * as _constellation from './constellation';
 import * as _metrics from './metrics';
 
-/// #if DEMO
+/// #if ENV == "demo"
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
 import * as configDemo from './config.demo';
@@ -218,7 +218,7 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 
-/// #if DEMO
+/// #if ENV == "demo"
 auth = authDemo;
 users = usersDemo;
 config = configDemo;

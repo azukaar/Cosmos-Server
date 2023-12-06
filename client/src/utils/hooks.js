@@ -4,7 +4,7 @@ import { logout } from '../api/authentication';
 function useClientInfos() {
   const [cookies] = useCookies(['client-infos']);
 
-  /// #if DEMO
+  /// #if ENV == "demo"
   const demoReturn = {
     nickname: "Demo",
     role: "2" 

@@ -78,7 +78,7 @@
     "terser": "npm:@swc/core"
   },
   "scripts": {
-    "webpack:setup-env": "cross-env isDemo=$npm_config_use_demo production=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
+    "webpack:setup-env": "cross-env NODE_ENV=$NODE_ENV production=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
     "webpack:build": "npm run webpack:setup-env -- webpack --config webpack.prod.js --progress",
     "webpack:serve": "npm run webpack:setup-env -- webpack serve --config webpack.dev.js --progress",
     "backend:build": "sh build.sh",

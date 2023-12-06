@@ -4,7 +4,6 @@ const { join } = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
-const isDemo = !!process.env.isDemo
 const withReport = !!process.env.withReport
 const analyzeDeps = !!process.env.analyzeDeps
 
@@ -33,7 +32,7 @@ module.exports = {
                     {
                         loader: "ifdef-loader",
                         options: {
-                            DEMO: isDemo,
+                            ENV: process.env.NODE_ENV,
                             "ifdef-uncomment-prefix": "// #code "
                         }
                     },

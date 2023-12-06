@@ -8,7 +8,7 @@ import { debounce, isDomain } from './indexs';
 import * as API from '../api';
 import { useEffect, useState } from 'react';
 
-/// #if DEMO
+/// #if ENV == "demo"
 import demoicons from './icons.demo.json';
 /// #endif
 
@@ -56,7 +56,7 @@ export const getFullOrigin = (route) => {
 }
 
 export const getFaviconURL = (route) => {
-  /// #if DEMO
+  /// #if ENV == "demo"
   const demoReturn = route.Mode == "STATIC" ? Folder : demoicons[route.Name] || logogray;
 
   if (demoReturn)
