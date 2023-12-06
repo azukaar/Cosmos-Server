@@ -84,7 +84,7 @@
   ],
   "scripts": {
     "client": "vite",
-    "webpack:setup-env": "cross-env useProduction=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
+    "webpack:setup-env": "cross-env isDemo=$npm_config_demo useProduction=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
     "webpack:build": "npm run webpack:setup-env -- webpack --config webpack.prod.js --progress",
     "webpack:serve": "npm run webpack:setup-env -- webpack serve --open --config webpack.dev.js",
     "start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
@@ -162,6 +162,7 @@
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "webpack-merge": "^5.10.0"
+    "webpack-merge": "^5.10.0",
+    "webpack-preprocessor-loader": "^1.3.0"
   }
 }

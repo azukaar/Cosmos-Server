@@ -208,8 +208,6 @@ let uploadImage = (file, name) => {
   }));
 };
 
-const isDemo = import.meta.env.MODE === 'demo';
-
 let auth = _auth;
 let users = _users;
 let config = _config;
@@ -218,21 +216,22 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 
-if(isDemo) {
-  auth = authDemo;
-  users = usersDemo;
-  config = configDemo;
-  docker = dockerDemo;
-  market = marketDemo;
-  getStatus = indexDemo.getStatus;
-  newInstall = indexDemo.newInstall;
-  isOnline = indexDemo.isOnline;
-  checkHost = indexDemo.checkHost;
-  getDNS = indexDemo.getDNS;
-  uploadImage = indexDemo.uploadImage;
-  constellation = constellationDemo;
-  metrics = metricsDemo;
-}
+// #!if demo
+auth = authDemo;
+users = usersDemo;
+config = configDemo;
+docker = dockerDemo;
+market = marketDemo;
+getStatus = indexDemo.getStatus;
+newInstall = indexDemo.newInstall;
+isOnline = indexDemo.isOnline;
+checkHost = indexDemo.checkHost;
+getDNS = indexDemo.getDNS;
+uploadImage = indexDemo.uploadImage;
+constellation = constellationDemo;
+metrics = metricsDemo;
+// #!endif
+
 
 export {
   auth,

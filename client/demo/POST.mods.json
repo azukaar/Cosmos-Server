@@ -1,7 +1,0 @@
-{
-    "POST": {
-        "constellation/devices": {},
-        "constellation/connect": {},
-        "constellation/block": {}
-    }
-}

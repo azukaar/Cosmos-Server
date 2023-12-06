@@ -4,8 +4,9 @@ const { join } = require("path")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
-const withReport = process.env.withReport ? true : false
-const analyzeDeps = process.env.analyzeDeps ? true : false
+const isDemo = !!process.env.isDemo
+const withReport = !!process.env.withReport
+const analyzeDeps = !!process.env.analyzeDeps
 
 module.exports = {
     entry: join(__dirname, "client/src/index"),
@@ -26,9 +27,13 @@ module.exports = {
         rules: [
             {
                 test: /\.(ts|js|mjs|cjs)x?$/i,
-                use: {
-                    loader: "babel-loader",
-                },
+                use: [
+                    "babel-loader",
+                    {
+                        loader: "webpack-preprocessor-loader",
+                        options: { params: { demo: isDemo } }
+                    },
+                ],
                 exclude: /node_modules/,
             },
             {
