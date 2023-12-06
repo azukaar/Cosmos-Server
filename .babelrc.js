@@ -12,6 +12,11 @@ module.exports = {
             libraryDirectory: "src",
             camel2DashComponentName: false,
             transformToDefaultImport: true
-        }, "redux"]
+        }, "redux"],
+        ["import", {
+            libraryName: "@ant-design/icons",
+            libraryDirectory: "es/icons",
+            camel2DashComponentName: false
+        }, "@ant-design/icons"],
     ]
 }

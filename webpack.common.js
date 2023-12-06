@@ -17,6 +17,7 @@ module.exports = {
     plugins: [
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
+            baseUrl: "/cosmos-ui/",
             template: "client/index.html",
             inject: true,
             minify: true
@@ -68,7 +69,7 @@ module.exports = {
             },
             {
                 test: /\.(jpe?g|png|gif|svg)$/i,
-                type: "asset",
+                type: "asset/resource",
             }
         ],
     },

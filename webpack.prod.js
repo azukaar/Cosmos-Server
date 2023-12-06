@@ -15,14 +15,22 @@ const cacheGroups = {
                 "react-intersection-observer",
                 "react-device-detect",
                 "react-apexcharts",
-                "react-copy-to-clipboard"
+                "react-copy-to-clipboard",
+                "react-simplebar",
+                "react-material-ui-carousel"
             ].includes(dependency))
     ),
     highlighter: listNodeModulesRegExp(["react-syntax-highlighter", "react-element-to-jsx-string", "react-copy-to-clipboard"]),
     plot: listNodeModulesRegExp(["react-intersection-observer"]),
-    simpleBar: listNodeModulesRegExp(["react-device-detect"]),
+    simpleBar: listNodeModulesRegExp(["react-device-detect", "react-simplebar", "simplebar"]),
     charts: listNodeModulesRegExp(["react-apexcharts", "apexcharts"]),
-    mui: listNodeModulesRegExp(dependenciesList.filter(dependency => dependency.includes("mui")))
+    mui: listNodeModulesRegExp(dependenciesList
+        .filter(dependency => dependency.includes("mui"))
+        .concat(["@mui/system", "react-material-ui-carousel"])
+    ),
+    yaml: listNodeModulesRegExp(["js-yaml"]),
+    crypto: listNodeModulesRegExp(["crypto-browserify"]),
+    coreJS: listNodeModulesRegExp(["core-js"])
 };
 
 module.exports = merge(webpackCommon, {
