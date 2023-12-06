@@ -6,10 +6,15 @@ const isDemo = process.env.MODE === 'demo';
 function useClientInfos() {
   const [cookies] = useCookies(['client-infos']);
 
-  if(isDemo) return {
+  /// #if DEMO
+  const demoReturn = {
     nickname: "Demo",
     role: "2" 
-  };
+  }
+
+  if (demoReturn)
+    return demoReturn
+  /// #endif
 
   let clientInfos = null;
   
