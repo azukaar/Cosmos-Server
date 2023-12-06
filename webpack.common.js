@@ -30,8 +30,11 @@ module.exports = {
                 use: [
                     "babel-loader",
                     {
-                        loader: "webpack-preprocessor-loader",
-                        options: { params: { demo: isDemo } }
+                        loader: "ifdef-loader",
+                        options: {
+                            DEMO: isDemo,
+                            "ifdef-uncomment-prefix": "// #code "
+                        }
                     },
                 ],
                 exclude: /node_modules/,

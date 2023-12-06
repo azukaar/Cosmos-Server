@@ -3,6 +3,7 @@
   "version": "0.13.0",
   "description": "",
   "main": "test-server.js",
+  "sideEffects": true,
   "bugs": {
     "url": "https://github.com/azukaar/cosmos-server/issues"
   },
@@ -77,24 +78,20 @@
   "resolutions": {
     "terser": "npm:@swc/core"
   },
-  "sideEffects": [
-    "**/*.css",
-    "**/*.scss",
-    "**/*.sass"
-  ],
   "scripts": {
-    "client": "vite",
-    "webpack:setup-env": "cross-env isDemo=$npm_config_demo useProduction=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
+    "webpack:setup-env": "cross-env isDemo=$npm_config_use_demo production=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
     "webpack:build": "npm run webpack:setup-env -- webpack --config webpack.prod.js --progress",
-    "webpack:serve": "npm run webpack:setup-env -- webpack serve --open --config webpack.dev.js",
-    "start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
-    "build": "sh build.sh",
-    "dev": "npm run build && npm run start",
+    "webpack:build:demo": "npm run webpack:build --demo",
+    "webpack:serve": "npm run webpack:setup-env -- webpack serve --config webpack.dev.js --progress",
+    "webpack:serve:demo": "npm run webpack:serve --use-demo",
+    "webpack:serve:prod": "npm run webpack:serve --use-production",
+    "webpack:serve:prod:demo": "npm run webpack:serve:prod --use-demo",
+    "backend:build": "sh build.sh",
+    "backend:start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
+    "backend:dev": "npm run build && npm run start",
     "dockerdevbuild": "docker build -f dockerfile.local --tag cosmos-dev .",
-    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242/udp -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
-    "dockerdev": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun",
-    "demo": "vite build --base=/cosmos-ui/ --mode demo",
-    "devdemo": "vite --mode demo"
+    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242/udp -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
+    "dockerdev": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun"
   },
   "browserslist": {
     "production": [
@@ -140,6 +137,7 @@
     "file-loader": "^6.2.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.3",
+    "ifdef-loader": "^2.3.2",
     "image-minimizer-webpack-plugin": "^3.8.3",
     "imagemin": "^8.0.1",
     "imagemin-gifsicle": "^7.0.0",
@@ -162,7 +160,6 @@
     "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "webpack-merge": "^5.10.0",
-    "webpack-preprocessor-loader": "^1.3.0"
+    "webpack-merge": "^5.10.0"
   }
 }

@@ -4,7 +4,7 @@ const { resolve } = require("path")
 const webpackCommon = require("./webpack.common.js")
 const webpackProd = require("./webpack.prod.js")
 
-module.exports = merge(process.env.useProduction ? webpackProd : webpackCommon, {
+module.exports = merge(process.env.production ? webpackProd : webpackCommon, {
     mode: "development",
     devtool: !process.env.useProduction ? "inline-source-map" : undefined,
     target: "web",

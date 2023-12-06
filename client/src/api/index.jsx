@@ -6,6 +6,7 @@ import * as _market from './market';
 import * as _constellation from './constellation';
 import * as _metrics from './metrics';
 
+/// #if DEMO
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
 import * as configDemo from './config.demo';
@@ -14,6 +15,7 @@ import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
 import * as constellationDemo from './constellation.demo';
 import * as metricsDemo from './metrics.demo';
+/// #endif
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -216,7 +218,7 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 
-// #!if demo
+/// #if DEMO
 auth = authDemo;
 users = usersDemo;
 config = configDemo;
@@ -230,7 +232,7 @@ getDNS = indexDemo.getDNS;
 uploadImage = indexDemo.uploadImage;
 constellation = constellationDemo;
 metrics = metricsDemo;
-// #!endif
+/// #endif
 
 
 export {

@@ -1,5 +1,4 @@
 const { dependencies, peerDependencies } = require("./package.json")
-const { IgnorePlugin } = require("webpack")
 const { merge } = require("webpack-merge")
 const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
@@ -44,6 +43,15 @@ module.exports = merge(webpackCommon, {
         minimizer: [
             new CssMinimizerPlugin(),
             new TerserPlugin({
+                extractComments: {
+                    condition: /^\**!|@preserve|@license|@cc_on/i,
+                    filename: fileData => {
+                        return `${fileData.filename}.LICENSE.txt${fileData.query}`;
+                    },
+                    banner: licenseFile => {
+                        return `License information can be found in ${licenseFile}`;
+                    },
+                },
                 minify: TerserPlugin.swcMinify,
                 terserOptions: {
                     mangle: true,
