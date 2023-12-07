@@ -8,9 +8,7 @@ import { debounce, isDomain } from './indexs';
 import * as API from '../api';
 import { useEffect, useState } from 'react';
 
-/// #if ENV == "demo"
 import demoicons from './icons.demo.json';
-/// #endif
 
 export const sanitizeRoute = (_route) => {
   let route = { ..._route };
@@ -56,12 +54,8 @@ export const getFullOrigin = (route) => {
 }
 
 export const getFaviconURL = (route) => {
-  /// #if ENV == "demo"
-  const demoReturn = route.Mode == "STATIC" ? Folder : demoicons[route.Name] || logogray;
-
-  if (demoReturn)
-    return demoReturn;
-  /// #endif
+  if (process.env.MODE === 'demo')
+    return route.Mode == "STATIC" ? Folder : demoicons[route.Name] || logogray;
 
   if (!route) {
     return logogray;

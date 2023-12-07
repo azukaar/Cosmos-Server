@@ -1,9 +1,11 @@
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 const { DuplicatesPlugin } = require("inspectpack/plugin")
+const { DefinePlugin } = require("webpack")
 const { join } = require("path")
+const StatoscopeWebpackPlugin = require('@statoscope/webpack-plugin').default
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
+const demo = !!process.env.demo
 const withReport = !!process.env.withReport
 const analyzeDeps = !!process.env.analyzeDeps
 
@@ -20,23 +22,17 @@ module.exports = {
             template: "client/index.html",
             inject: true,
             minify: true
+        }),
+        new DefinePlugin({
+            "process.env.MODE": JSON.stringify(demo ? "demo" : "production")
         })
-    ].concat(withReport ? [new BundleAnalyzerPlugin()] : [])
+    ].concat(withReport ? [new StatoscopeWebpackPlugin()] : [])
         .concat(analyzeDeps ? [new DuplicatesPlugin({ emitErrors: true, verbose: true })] : []),
     module: {
         rules: [
             {
                 test: /\.(ts|js|mjs|cjs)x?$/i,
-                use: [
-                    "babel-loader",
-                    {
-                        loader: "ifdef-loader",
-                        options: {
-                            ENV: process.env.NODE_ENV,
-                            "ifdef-uncomment-prefix": "// #code "
-                        }
-                    },
-                ],
+                use: ["babel-loader"],
                 exclude: /node_modules/,
             },
             {

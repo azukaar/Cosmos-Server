@@ -6,7 +6,6 @@ import * as _market from './market';
 import * as _constellation from './constellation';
 import * as _metrics from './metrics';
 
-/// #if ENV == "demo"
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
 import * as configDemo from './config.demo';
@@ -15,7 +14,6 @@ import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
 import * as constellationDemo from './constellation.demo';
 import * as metricsDemo from './metrics.demo';
-/// #endif
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -218,21 +216,21 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 
-/// #if ENV == "demo"
-auth = authDemo;
-users = usersDemo;
-config = configDemo;
-docker = dockerDemo;
-market = marketDemo;
-getStatus = indexDemo.getStatus;
-newInstall = indexDemo.newInstall;
-isOnline = indexDemo.isOnline;
-checkHost = indexDemo.checkHost;
-getDNS = indexDemo.getDNS;
-uploadImage = indexDemo.uploadImage;
-constellation = constellationDemo;
-metrics = metricsDemo;
-/// #endif
+if(process.env.MODE === 'demo') {
+  auth = authDemo;
+  users = usersDemo;
+  config = configDemo;
+  docker = dockerDemo;
+  market = marketDemo;
+  getStatus = indexDemo.getStatus;
+  newInstall = indexDemo.newInstall;
+  isOnline = indexDemo.isOnline;
+  checkHost = indexDemo.checkHost;
+  getDNS = indexDemo.getDNS;
+  uploadImage = indexDemo.uploadImage;
+  constellation = constellationDemo;
+  metrics = metricsDemo;
+}
 
 
 export {

@@ -1,18 +1,15 @@
 import { useCookies } from 'react-cookie';
 import { logout } from '../api/authentication';
 
+const isDemo = process.env.MODE === 'demo';
+
 function useClientInfos() {
   const [cookies] = useCookies(['client-infos']);
 
-  /// #if ENV == "demo"
-  const demoReturn = {
+  if(isDemo) return {
     nickname: "Demo",
     role: "2" 
-  }
-
-  if (demoReturn)
-    return demoReturn
-  /// #endif
+  };
 
   let clientInfos = null;
   

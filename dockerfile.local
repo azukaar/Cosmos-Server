@@ -30,7 +30,7 @@ COPY package-lock.json ./
 RUN npm install
 
 COPY . .
-RUN npm run client-build && \
+RUN npm run webpack:build && \
     chmod +x build.sh && \
     ./build.sh && \
     rm -rf /usr/local/go \

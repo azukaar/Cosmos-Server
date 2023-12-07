@@ -1,4 +1,3 @@
-const { DefinePlugin } = require("webpack")
 const { merge } = require("webpack-merge")
 const { resolve } = require("path")
 const webpackCommon = require("./webpack.common.js")
@@ -28,10 +27,5 @@ module.exports = merge(process.env.production ? webpackProd : webpackCommon, {
                 warnings: true
             }
         }
-    },
-    plugins: [
-        new DefinePlugin({
-            "import.meta.env.MODE": JSON.stringify("demo")
-        })
-    ]
+    }
 })
