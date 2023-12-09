@@ -57,7 +57,7 @@ const Notification = () => {
     const refreshNotifications = () => {
         API.users.getNotifs(from).then((res) => {
             setNotifications(() => res.data);
-        });
+        }, () => []);
     };
 
     const setAsRead = () => {

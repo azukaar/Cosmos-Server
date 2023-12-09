@@ -5,29 +5,31 @@ const StatoscopeWebpackPlugin = require('@statoscope/webpack-plugin').default
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
 
-const demo = !!process.env.demo
-const withReport = !!process.env.withReport
-const analyzeDeps = !!process.env.analyzeDeps
+const IS_DEMO = !!process.env.IS_DEMO
+const WITH_REPORT = !!process.env.WITH_REPORT
+const ANALYZE_DEPS = !!process.env.ANALYZE_DEPS
+const ASSET_PATH = process.env.ASSET_PATH || '/'
 
 module.exports = {
     entry: join(__dirname, "client/src/index"),
     output: {
+        publicPath: ASSET_PATH,
         path: join(__dirname, "static"),
         clean: true
     },
     plugins: [
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
-            baseUrl: "/cosmos-ui/",
+            baseUrl: ASSET_PATH,
             template: "client/index.html",
             inject: true,
             minify: true
         }),
         new DefinePlugin({
-            "process.env.MODE": JSON.stringify(demo ? "demo" : "production")
+            "process.env.MODE": JSON.stringify(IS_DEMO ? "demo" : "production")
         })
-    ].concat(withReport ? [new StatoscopeWebpackPlugin()] : [])
-        .concat(analyzeDeps ? [new DuplicatesPlugin({ emitErrors: true, verbose: true })] : []),
+    ].concat(WITH_REPORT ? [new StatoscopeWebpackPlugin()] : [])
+        .concat(ANALYZE_DEPS ? [new DuplicatesPlugin({ emitErrors: true, verbose: true })] : []),
     module: {
         rules: [
             {

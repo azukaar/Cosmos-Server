@@ -52,6 +52,7 @@
     "simplebar-react": "^2.4.1",
     "timeago.js": "^4.0.2",
     "traverse": "^0.6.7",
+    "use-async-effect": "^2.2.7",
     "web-vitals": "^3.0.2",
     "whiskers": "^0.4.0",
     "yup": "^0.32.11"
@@ -78,15 +79,15 @@
     "terser": "npm:@swc/core"
   },
   "scripts": {
-    "webpack:setup-env": "cross-env NODE_ENV=$NODE_ENV demo=$npm_config_demo production=$npm_config_use_production withReport=$npm_config_with_report analyzeDeps=$npm_config_analyze_deps",
-    "webpack:build": "npm run webpack:setup-env -- webpack --config webpack.prod.js --progress",
+    "webpack:setup-env": "cross-env ASSET_PATH=$npm_config_base NODE_ENV=$NODE_ENV IS_DEMO=$npm_config_demo IS_PRODUCTION=$npm_config_use_production WITH_REPORT=$npm_config_with_report ANALYZE_DEPS=$npm_config_analyze_deps",
+    "webpack:build": "npm run webpack:setup-env --base=/cosmos-ui/ -- webpack --config webpack.prod.js --progress",
     "webpack:serve": "npm run webpack:setup-env -- webpack serve --config webpack.dev.js --progress",
     "backend:build": "sh build.sh",
     "backend:start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
-    "backend:dev": "npm run build && npm run start",
+    "backend:dev": "npm run backend:build && npm run backend:start",
     "docker:build": "docker build -f dockerfile.local --tag cosmos-dev .",
     "docker:start": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242/udp -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
-    "docker:dev": "concurrently 'npm run webpack:build' 'npm run docker:build' && npm run docker:start"
+    "docker:dev": "npm run docker:build && npm run docker:start"
   },
   "browserslist": {
     "production": [

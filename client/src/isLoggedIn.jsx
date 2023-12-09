@@ -2,8 +2,9 @@
 import * as API from './api';
 import { useEffect } from 'react';
 import { redirectToLocal } from './utils/indexs';
+import Loadable from './components/Loadable';
 
-const IsLoggedIn = () => useEffect(() => {
+const IsLoggedIn = Loadable(() => {
     const urlSearch = encodeURIComponent(window.location.search);
     const redirectToURL = (window.location.pathname + urlSearch);
 
@@ -20,6 +21,6 @@ const IsLoggedIn = () => useEffect(() => {
             }
         }
     })
-}, []);
+});
 
 export default IsLoggedIn;
