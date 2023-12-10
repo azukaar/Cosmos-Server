@@ -1,36 +1,39 @@
-# syntax=docker/dockerfile:1
+FROM node:21 AS node-builder
+WORKDIR /usr/src/app
 
-FROM debian:12
+COPY package.json package-lock.json .
+RUN npm install
 
-ARG TARGETPLATFORM
-ARG BINARY_NAME=cosmos
+COPY . .
+RUN npm run webpack:build
 
-# Set BINARY_NAME based on the TARGETPLATFORM
-RUN case "$TARGETPLATFORM" in \
-    "linux/arm64") BINARY_NAME="cosmos-arm64" ;; \
-    *) BINARY_NAME="cosmos" ;; \
-    esac && echo $BINARY_NAME > /binary_name
+RUN mkdir build && \
+    printf '{"version": "%s", "buildDate": "%s", "built from": "%s"}' \
+        $(cat package.json | grep "version" | cut -d'"' -f 4) \
+        $(date "+%F-%H-%M-%S") \
+        $(hostname) > build/meta.json
 
-# This is just to log the platforms (optional)
-RUN echo "I am building for $TARGETPLATFORM" > /log
+FROM golang:1.21.5 AS go-builder
+WORKDIR /usr/src/app
 
-EXPOSE 443 80
+COPY go.mod go.sum .
+RUN go mod download && go mod verify
 
-VOLUME /config
+COPY . .
+RUN go build -o build/cosmos src/*.go
 
-RUN apt-get update \
-    && apt-get install -y ca-certificates openssl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+FROM alpine:3.19.0
+
+RUN apk --no-cache add libc6-compat ca-certificates openssl
 
 WORKDIR /app
 
-# Copy the respective binary based on the BINARY_NAME
-COPY build/cosmos build/cosmos-arm64 ./
+COPY --from=node-builder /usr/src/app/static static
+COPY --from=node-builder /usr/src/app/build .
+COPY --from=node-builder /usr/src/app/client/src/assets/images/icons/cosmos_gray.png .
+COPY --from=go-builder /usr/src/app/build .
 
-# Copy other resources
-COPY build/* ./
-COPY static ./static
+VOLUME /config
 
-# Run the respective binary based on the BINARY_NAME
-CMD ["sh", "-c", "./$(cat /binary_name)"]
+EXPOSE 443 80
+CMD ./cosmos
