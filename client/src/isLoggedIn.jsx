@@ -11,15 +11,18 @@ const IsLoggedIn = Loadable(() => {
     API.auth.me().then((data) => {
         if(data.status != 'OK') {
             if(data.status == 'NEW_INSTALL') {
-                redirectToLocal('/cosmos-ui/newInstall');
+                return '/cosmos-ui/newInstall';
             } else if (data.status == 'error' && data.code == "HTTP004") {
-                redirectToLocal('/cosmos-ui/login?redirect=' + redirectToURL);
+                return '/cosmos-ui/login?redirect=' + redirectToURL;
             } else if (data.status == 'error' && data.code == "HTTP006") {
-                redirectToLocal('/cosmos-ui/loginmfa?redirect=' + redirectToURL);
+                return '/cosmos-ui/loginmfa?redirect=' + redirectToURL;
             } else if (data.status == 'error' && data.code == "HTTP007") {
-                redirectToLocal('/cosmos-ui/newmfa?redirect=' + redirectToURL);
+                return '/cosmos-ui/newmfa?redirect=' + redirectToURL;
             }
         }
+    }).then(redirectPath => {
+        if (window.location.pathname !== redirectPath)
+            return redirectToLocal(redirectPath)
     })
 });
 

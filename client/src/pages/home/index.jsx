@@ -277,7 +277,6 @@ const HomePage = () => {
     }
 
     return <Stack spacing={2} style={{maxWidth: '1450px', margin:'auto'}}>
-        <IsLoggedIn />
         <HomeBackground status={coStatus} />
         <TransparentHeader />
 

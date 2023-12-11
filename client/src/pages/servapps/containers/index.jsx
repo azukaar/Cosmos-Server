@@ -48,7 +48,6 @@ const ContainerIndex = () => {
         <Back />
         <div>{containerName}</div>
       </Stack>
-      <IsLoggedIn />
 
       <PrettyTabbedView 
       isLoading={!container || !config}

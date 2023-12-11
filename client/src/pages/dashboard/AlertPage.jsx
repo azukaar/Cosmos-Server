@@ -400,7 +400,6 @@ const AlertPage = () => {
   }
 
   return <div style={{maxWidth: '1200px', margin: ''}}>
-    <IsLoggedIn />
 
     {openModal && <EditAlertModal open={openModal} onClose={() => setOpenModal(false)} onSave={saveAlert} />}
 

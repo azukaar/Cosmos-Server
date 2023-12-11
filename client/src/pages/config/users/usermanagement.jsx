@@ -67,7 +67,6 @@ const UserManagement = () => {
     }
 
     return <>
-        <IsLoggedIn />
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
             <DialogTitle>Invite User</DialogTitle>
             <DialogContent>

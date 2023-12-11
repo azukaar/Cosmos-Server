@@ -18,7 +18,6 @@ const ServappsIndex = () => {
   const { stack } = useParams();
 
   return <div>
-    <IsLoggedIn />
     
     {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {

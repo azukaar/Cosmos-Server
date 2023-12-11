@@ -5,13 +5,12 @@ COPY package.json package-lock.json .
 RUN npm install
 
 COPY . .
-RUN npm run webpack:build
-
-RUN mkdir build && \
+RUN mkdir -p build && \
     printf '{"version": "%s", "buildDate": "%s", "built from": "%s"}' \
         $(cat package.json | grep "version" | cut -d'"' -f 4) \
         $(date "+%F-%H-%M-%S") \
         $(hostname) > build/meta.json
+RUN npm run webpack:build
 
 FROM golang:1.21.5 AS go-builder
 WORKDIR /usr/src/app

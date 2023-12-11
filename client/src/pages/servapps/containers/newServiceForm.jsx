@@ -125,7 +125,6 @@ const NewDockerServiceForm = () => {
         <Back />
         <div>Start New Servapp</div>
       </Stack>
-      <IsLoggedIn />
 
       {<PrettyTabbedView
       currentTab={currentTab}

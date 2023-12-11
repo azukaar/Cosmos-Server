@@ -18,7 +18,6 @@ const ConstellationIndex = () => {
   const isAdmin = role === "2";
 
   return isAdmin ? <div>
-    <IsLoggedIn />
     
     <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
         {

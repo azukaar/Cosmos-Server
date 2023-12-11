@@ -31,7 +31,6 @@ const RouteConfigPage = () => {
   }, []);
 
   return <div>
-    <IsLoggedIn />
     <h2>
       <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">

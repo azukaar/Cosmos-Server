@@ -15,7 +15,7 @@ module.exports = merge(process.env.IS_PRODUCTION ? webpackProd : webpackCommon, 
         static: resolve(__dirname, "static"),
         proxy: {
             "/cosmos/api": {
-                target: "http://localhost:80",
+                target: "http://localhost",
                 logLevel: "debug",
                 secure: false,
                 ws: true

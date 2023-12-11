@@ -60,7 +60,6 @@ const ConfigManagement = () => {
 
   return (
     <div style={{maxWidth: '1000px', margin: ''}}>
-      <IsLoggedIn />
 
       <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
