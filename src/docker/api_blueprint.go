@@ -149,6 +149,7 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
 				}	
 			} else if action.Action == "revert" {
+				// OUTDATED
 				utils.Log(fmt.Sprintf("Reverting container %s...", action.Name))
 
 				// Edit Container
@@ -291,14 +292,14 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 
 		if err != nil {
 			utils.Error("CreateService - composeup - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS006")
+			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error())
 			flusher.Flush()
 			return
 		}
 
 
 		// Write a response to the client
-		fmt.Fprintf(w, "[OPERATION SUCCESSFUL] Service created successfully", http.StatusOK, "DS007")
+		fmt.Fprintf(w, "[OPERATION SUCCESSFUL] Service created successfully")
 		flusher.Flush()
 	} else {
 		utils.Error("CreateService: Method not allowed" + req.Method, nil)

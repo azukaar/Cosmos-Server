@@ -1,6 +1,6 @@
 import React from 'react';
 import { Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Checkbox, Alert } from '@mui/material';
+import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Checkbox, Alert, ClickAwayListener } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
   from '../../config/users/formShortcuts';
@@ -50,7 +50,7 @@ const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refre
       {children}
     </MainCard>
   };
-
+  
   return (<Stack spacing={2}>
     <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
       <Formik
@@ -59,10 +59,12 @@ const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refre
             ...(containerInfo.HostConfig.Mounts || []),
             ...(containerInfo.HostConfig.Binds || []).map((bind) => {
               const [source, destination, mode] = bind.split(':');
+
               return {
                 Type: 'bind',
                 Source: source,
                 Target: destination,
+                // RW: mode !== 'ro' || !mode
               }
             })
           ])
@@ -85,7 +87,12 @@ const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refre
           if(newContainer) return;
           setSubmitting(true);
           const realvalues = {
-            Volumes: values.volumes
+            Volumes: values.volumes.map((volume) => ({
+              Type: volume.Type,
+              Source: volume.Source,
+              Target: volume.Target,
+              ReadOnly: !volume.RW
+            }))
           };
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)
             .then((res) => {

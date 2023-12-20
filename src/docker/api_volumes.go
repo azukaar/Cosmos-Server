@@ -7,8 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
-	filters "github.com/docker/docker/api/types/filters"
-	volumeTypes"github.com/docker/docker/api/types/volume"
+	volumeTypes "github.com/docker/docker/api/types/volume"
 )
 
 func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
@@ -25,7 +24,7 @@ func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// List Docker volumes
-		volumes, err := DockerClient.VolumeList(context.Background(), filters.Args{})
+		volumes, err := DockerClient.VolumeList(context.Background(), volumeTypes.ListOptions{})
 		if err != nil {
 			utils.Error("ListVolumeRoute: Error while getting volumes", err)
 			utils.HTTPError(w, "Volumes Get Error", http.StatusInternalServerError, "LV002")
@@ -106,7 +105,7 @@ func CreateVolumeRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Create Docker volume with the provided options
-		volumeOptions := volumeTypes.VolumeCreateBody{
+		volumeOptions := volumeTypes.CreateOptions {
 			Name:   payload.Name,
 			Driver: payload.Driver,
 		}

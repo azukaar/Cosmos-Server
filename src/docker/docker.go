@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
+	composeTypes "github.com/compose-spec/compose-go/v2/types"
 	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
@@ -285,7 +286,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			continue
 		}
 		utils.Log("EditContainer - Connecting to network " + networkName)
-		errNet := ConnectToNetworkSync(networkName, createResponse.ID)
+		errNet := ConnectToNetworkLoose(networkName, createResponse.ID, true)
 		if errNet != nil {
 			utils.Error("EditContainer - Failed to connect to network " + networkName, errNet)
 		} else {
@@ -826,4 +827,38 @@ func Stats(container types.Container) (ContainerStats, error) {
 			utils.Error("StopContainer", err)
 			return
 		}
+	}
+
+	func MapEqualToArr(in map[string]string) []string {
+		var out []string
+		for key, value := range in {
+			out = append(out, key + "=" + value)
+		}
+		return out
+	}
+
+	func ArrToMap(in []string) map[string]string {
+		out := make(map[string]string)
+		for _, value := range in {
+			split := strings.Split(value, "=")
+			out[split[0]] = split[1]
+		}
+		return out
+	}
+
+	func MappingToLabel(in composeTypes.MappingWithEquals) composeTypes.Labels {
+		result := composeTypes.Labels{}
+		for key, value := range in {
+			result[key] = *value
+		}
+		return result
+	}
+
+	func LabelsToMapping(in composeTypes.Labels) composeTypes.MappingWithEquals {
+		result := composeTypes.MappingWithEquals{}
+		for key, val := range in {
+			value := val
+			result[key] = &value
+		}
+		return result
 	}

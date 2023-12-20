@@ -12,6 +12,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
+	volumeType "github.com/docker/docker/api/types/volume"
 	
 	"runtime"
 	"golang.org/x/sys/cpu"
@@ -19,7 +20,7 @@ import (
 
 type VolumeMount struct {
 	Destination string
-	Volume   *types.Volume
+	Volume   *volumeType.Volume
 }
 
 func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {

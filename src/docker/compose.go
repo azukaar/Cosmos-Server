@@ -4,8 +4,14 @@ import (
 	"bufio"
 	"io"
 	"os/exec"
+    "os"
+    // "path/filepath"
+    // "context"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+    
+	cli "github.com/compose-spec/compose-go/v2/cli"
+	composeTypes "github.com/compose-spec/compose-go/v2/types"
 )
 
 const (
@@ -55,4 +61,95 @@ func ExecCommand(callback func(message string, outputType int), args ...string) 
 
 func ComposeUp(filePath string, callback func(message string, outputType int)) error {
 	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "up", "--remove-orphans", "-d")
+
+    // ctx := context.Background()
+
+    // // Configure Compose options (adjust these to your needs)
+    // composeFiles := []string{filePath}
+    // projectDir := filepath.Dir(filePath)
+
+    // // Create a new Docker CLI client
+    // dockerCLI, err := compose.NewDockerCli()
+    // if err != nil {
+    //     callback(err.Error(), Stderr)
+    //     return err
+    // }
+
+    // // Create a new Compose project
+    // project, err := compose.NewProject(ctx, composeFiles, compose.WithWorkingDirectory(projectDir))
+    // if err != nil {
+    //     callback(err.Error(), Stderr)
+    //     return err
+    // }
+
+    // // Create a new Compose service
+    // service := project.Service("cosmos")
+
+    // // Start up the services defined in the Docker Compose file
+    // err = service.Up(ctx, api.UpOptions{
+    //     Detach: true,
+    //     RemoveOrphans: true,
+    // })
+
+    // if err != nil {
+    //     callback(err.Error(), Stderr)
+    //     return err
+    // }
+
+    // return nil
+}
+
+func ComposeDown(filePath string, callback func(message string, outputType int)) error {
+	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "down", "--remove-orphans", "-d")
+}
+
+func LoadComposeFromName(containerName string) (*composeTypes.Project, error) {
+    container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+    if err != nil {
+        return nil, err
+    }
+
+	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
+
+	options, err := cli.NewProjectOptions(os.Args[1:],
+		cli.WithWorkingDirectory(dcWorkingDir),
+		cli.WithOsEnv,
+		cli.WithDotEnv,
+		cli.WithConfigFileEnv,
+		cli.WithDefaultConfigPath,
+	)
+	
+	if err != nil {
+        return nil, err
+	}
+
+	project, err := cli.ProjectFromOptions(options)
+	if err != nil {
+        return nil, err
+	}
+
+    return project, nil
+}
+
+func SaveComposeFromName(containerName string, data []byte) error {
+    container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+    if err != nil {
+        return err
+    }
+    
+    dcFile := container.Config.Labels["com.docker.compose.project.config_files"]
+    
+	data = SimplifyCompose(data)
+
+	if err != nil {
+		return err
+	}
+	
+	// write docker compose file
+	err = os.WriteFile(dcFile, data, 0644)
+	if err != nil {
+		return err
+	}
+
+    return nil
 }
