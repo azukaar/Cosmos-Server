@@ -56,7 +56,7 @@ var DefaultConfig = Config{
 		},
 	},
 	DockerConfig: DockerConfig{
-		DefaultDataPath: "/usr",
+		DefaultDataPath: "/root/cosmos-server",
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{
@@ -290,7 +290,7 @@ func LoadBaseMainConfig(config Config) {
 	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
-		MainConfig.DockerConfig.DefaultDataPath = "/usr"
+		MainConfig.DockerConfig.DefaultDataPath = "/root/cosmos-server"
 	}
 	
 	if MainConfig.ConstellationConfig.ConstellationHostname == "" {

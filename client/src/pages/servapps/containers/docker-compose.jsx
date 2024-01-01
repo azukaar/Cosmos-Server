@@ -210,7 +210,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             if(doc.services[key].volumes)
               Object.values(doc.services[key].volumes).forEach((volume) => {
                 if (volume.source && volume.source[0] === '.') {
-                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr"
+                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/root/cosmos-server"
                   volume.source = defaultPath + volume.source.replace('.', '');
                 }
               });
@@ -394,7 +394,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           Passwords: passwords,
           CPU_ARCH: API.CPU_ARCH,
           CPU_AVX: API.CPU_AVX,
-          DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
+          DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/root/cosmos-server",
         });
 
         const jsoned = JSON.parse(rendered);

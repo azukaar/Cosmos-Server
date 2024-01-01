@@ -118,7 +118,7 @@ const ConfigManagement = () => {
           Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
-          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
+          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/root/comos-server",
 
           Background: config && config.HomepageConfig && config.HomepageConfig.Background,
           Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
@@ -546,7 +546,7 @@ const ConfigManagement = () => {
                     label="Default data path for installs"
                     name="DefaultDataPath"
                     formik={formik}
-                    placeholder={'/usr'}
+                    placeholder={'/root/cosmos-server'}
                   />
                 </Stack>
               </MainCard>
