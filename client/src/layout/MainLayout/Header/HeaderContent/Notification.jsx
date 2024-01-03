@@ -56,7 +56,8 @@ const Notification = () => {
 
     const refreshNotifications = () => {
         API.users.getNotifs(from).then((res) => {
-            setNotifications(() => res.data);
+            if (Array.isArray(res.data))
+                setNotifications(() => res.data);
         }, () => []);
     };
 

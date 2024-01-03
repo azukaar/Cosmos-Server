@@ -9,7 +9,6 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
-import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";

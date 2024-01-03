@@ -21,8 +21,6 @@ import {
     CircularProgress
 } from '@mui/material';
 
-import IsLoggedIn from '../../isLoggedIn';
-
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';

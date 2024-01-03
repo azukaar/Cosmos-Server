@@ -23,7 +23,6 @@ import {
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 

@@ -20,7 +20,6 @@ import {
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined, SyncOutlined, UserOutlined, KeyOutlined, ArrowUpOutlined, FileZipOutlined, ArrowDownOutlined, ConsoleSqlOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
 import ResponsiveButton from '../../../components/responseiveButton';
 import UploadButtons from '../../../components/fileUpload';

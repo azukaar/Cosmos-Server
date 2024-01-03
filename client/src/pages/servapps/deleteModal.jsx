@@ -74,8 +74,6 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
     return self.indexOf(route) === index;
   });
 
-  console.log(routes);
-
   const doDelete = () => {
     setIsDeleting(true);
 

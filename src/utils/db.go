@@ -16,7 +16,6 @@ import (
 
 
 var client *mongo.Client
-var IsDBaContainer bool
 
 func DB() error {
 	if(GetMainConfig().DisableUserManagement)	{
@@ -38,19 +37,6 @@ func DB() error {
 	var err error
 
 	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
-
-	IsDBaContainer = false
-
-	if os.Getenv("HOSTNAME") == "" {
-		hostname := opts.Hosts[0]
-		Log("Getting Mongo DB IP from name : " + hostname)
-		ip, _ := GetContainerIPByName(hostname)
-		if ip != "" {
-			IsDBaContainer = true
-			opts.SetHosts([]string{ip + ":27017"})
-			Log("Mongo DB IP : " + ip)
-		}
-	}
 	
 	client, err = mongo.Connect(context.TODO(), opts)
 

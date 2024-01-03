@@ -10,8 +10,6 @@ import {
     CircularProgress
 } from '@mui/material';
 
-import IsLoggedIn from '../../isLoggedIn';
-
 import * as API from '../../api';
 import PlotComponent from './components/plot';
 import { formatDate } from './components/utils';

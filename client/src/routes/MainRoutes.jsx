@@ -1,10 +1,12 @@
-import { lazy } from 'react';
+import { Suspense, lazy } from 'react';
 
 // project import
 import Loadable from '../components/Loadable';
 import MainLayout from '../layout/MainLayout';
 import logo from '../assets/images/icons/cosmos.png';
-import { Navigate } from 'react-router';
+import { Await, Navigate } from 'react-router';
+import isLoggedIn from '../isLoggedIn';
+import PrivateRoute from '../PrivateRoute';
 
 const UserManagement = Loadable(lazy(() => import('../pages/config/users/usermanagement')));
 const ConfigManagement = Loadable(lazy(() => import('../pages/config/users/configman')));
@@ -76,15 +78,15 @@ const MainRoutes = {
         },
         {
             path: '/cosmos-ui/config-url/:routeName',
-            element: <RouteConfigPage />,
+            element: <RouteConfigPage />
         },
         {
             path: '/cosmos-ui/servapps/containers/:containerName',
-            element: <ContainerIndex />,
+            element: <ContainerIndex />
         },
         {
             path: '/cosmos-ui/openid-manage',
-            element: <OpenIdList />,
+            element: <OpenIdList />
         },
         {
             path: '/cosmos-ui/market-listing/',
@@ -94,7 +96,10 @@ const MainRoutes = {
             path: '/cosmos-ui/market-listing/:appStore/:appName',
             element: <MarketPage />
         }
-    ]
+    ].map(children => ({
+        ...children,
+        element: PrivateRoute({ children: children.element })
+    }))
 };
 
 export default MainRoutes;

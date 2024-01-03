@@ -29,7 +29,6 @@ import { Stack } from '@mui/system';
 import { useEffect, useState } from 'react';
 
 import * as API from '../../api';
-import IsLoggedIn from '../../isLoggedIn';
 import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
 import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../utils/routes';

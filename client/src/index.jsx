@@ -25,7 +25,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 
 import dayjs from 'dayjs';
 import 'dayjs/locale/en-gb';
-import IsLoggedIn from './isLoggedIn';
 dayjs.extend(customParseFormat); // if needed
 dayjs.extend(localizedFormat); // if needed
 dayjs.locale('en-gb');
@@ -39,7 +38,6 @@ root.render(
         <ReduxProvider store={store}>
             <BrowserRouter basename="/">    
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <IsLoggedIn />
                     <App />
                 </LocalizationProvider>
             </BrowserRouter>

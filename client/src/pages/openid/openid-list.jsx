@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../isLoggedIn';
 import * as API from '../../api';
 import MainCard from '../../components/MainCard';
 import { Formik, Field } from 'formik';

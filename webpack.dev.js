@@ -5,7 +5,7 @@ const webpackProd = require("./webpack.prod.js")
 
 module.exports = merge(process.env.IS_PRODUCTION ? webpackProd : webpackCommon, {
     mode: "development",
-    devtool: !process.env.useProduction ? "inline-source-map" : undefined,
+    devtool: process.env.useProduction ? undefined : "inline-source-map",
     target: "web",
     devServer: {
         port: 3000,

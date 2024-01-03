@@ -79,9 +79,9 @@
     "terser": "npm:@swc/core"
   },
   "scripts": {
-    "webpack:setup-env": "cross-env ASSET_PATH=$npm_config_base NODE_ENV=$NODE_ENV IS_DEMO=$npm_config_demo IS_PRODUCTION=$npm_config_use_production WITH_REPORT=$npm_config_with_report ANALYZE_DEPS=$npm_config_analyze_deps",
-    "webpack:build": "npm run webpack:setup-env --base=/cosmos-ui/ -- webpack --config webpack.prod.js --progress",
-    "webpack:serve": "npm run webpack:setup-env -- webpack serve --config webpack.dev.js --progress",
+    "webpack:setup-env": "npx --yes cross-env ASSET_PATH=$npm_config_base NODE_ENV=$NODE_ENV IS_DEMO=$npm_config_demo IS_PRODUCTION=$npm_config_use_production WITH_REPORT=$npm_config_with_report ANALYZE_DEPS=$npm_config_analyze_deps",
+    "webpack:build": "npm run webpack:setup-env --base=/cosmos-ui/ -- npx --yes webpack --config webpack.prod.js --progress",
+    "webpack:serve": "npm run webpack:setup-env -- npx --yes webpack serve --config webpack.dev.js --progress",
     "backend:build": "go build -o build/cosmos src/*.go",
     "backend:start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
     "backend:dev": "npm run backend:build && npm run backend:start",

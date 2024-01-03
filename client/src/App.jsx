@@ -10,7 +10,7 @@ import * as API from './api';
 
 import { setSnackit, snackit } from './api/wrap';
 import { DisconnectOutlined } from '@ant-design/icons';
-import IsLoggedIn from './isLoggedIn';
+import isLoggedIn from './isLoggedIn';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
 

@@ -7,7 +7,6 @@ import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
 import { CheckOutlined, ClockCircleOutlined, ContainerOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, InfoCircleFilled, InfoCircleOutlined, LockOutlined, NodeExpandOutlined, SafetyCertificateOutlined, UpOutlined } from "@ant-design/icons";
-import IsLoggedIn from '../../../isLoggedIn';
 import { redirectToLocal } from '../../../utils/indexs';
 import { CosmosCheckbox } from '../users/formShortcuts';
 import { Field } from 'formik';
