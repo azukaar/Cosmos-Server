@@ -1,4 +1,4 @@
-FROM node:21 AS node-builder
+FROM --platform=$BUILDPLATFORM node:21 AS node-builder
 WORKDIR /usr/src/app
 
 COPY package.json package-lock.json .
@@ -12,18 +12,20 @@ RUN mkdir -p build && \
         $(hostname) > build/meta.json
 RUN npm run webpack:build
 
-FROM golang:1.21.5 AS go-builder
+FROM --platform=$BUILDPLATFORM golang:1.21.5-alpine AS go-builder
 WORKDIR /usr/src/app
 
 COPY go.mod go.sum .
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -o build/cosmos src/*.go
+
+ARG TARGETOS TARGETARCH
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o build/cosmos src/*.go
 
 FROM alpine:3.19.0
 
-RUN apk --no-cache add libc6-compat ca-certificates openssl
+RUN apk --no-cache add ca-certificates openssl
 
 WORKDIR /app
 

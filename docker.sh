@@ -14,7 +14,7 @@ echo "Pushing azukaar/cosmos-server:$VERSION and azukaar/cosmos-server:$LATEST"
 
 # Multi-architecture build
 docker buildx build \
-  --platform linux/amd64,linux/arm64 \
+  --platform linux/amd64,linux/arm64,linux/i386,linux/ppc64le,linux/s390x \
   --tag azukaar/cosmos-server:$VERSION \
   --tag azukaar/cosmos-server:$LATEST \
   --push \
