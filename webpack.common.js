@@ -1,9 +1,9 @@
 const { DuplicatesPlugin } = require("inspectpack/plugin")
 const { DefinePlugin } = require("webpack")
 const { join } = require("path")
-const StatoscopeWebpackPlugin = require('@statoscope/webpack-plugin').default
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 const HtmlWebpackPlugin = require("html-webpack-plugin")
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer")
 
 const IS_DEMO = !!process.env.IS_DEMO
 const WITH_REPORT = !!process.env.WITH_REPORT
@@ -28,7 +28,7 @@ module.exports = {
         new DefinePlugin({
             "process.env.MODE": JSON.stringify(IS_DEMO ? "demo" : "production")
         })
-    ].concat(WITH_REPORT ? [new StatoscopeWebpackPlugin()] : [])
+    ].concat(WITH_REPORT ? [new BundleAnalyzerPlugin()] : [])
         .concat(ANALYZE_DEPS ? [new DuplicatesPlugin({ emitErrors: true, verbose: true })] : []),
     module: {
         rules: [
@@ -92,5 +92,9 @@ module.exports = {
             "xtend": require.resolve("xtend"),
             "framer-motion": require.resolve("framer-motion")
         }
+    },
+    performance: {
+        maxEntrypointSize: 1.5 * 1024 * 1000,
+        maxAssetSize: 512 * 1024 * 1000
     }
 }

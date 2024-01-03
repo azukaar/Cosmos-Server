@@ -31,7 +31,6 @@ const App = () => {
     const [open, setOpen] = React.useState(false);
     const [message, setMessage] = React.useState('');
     const [severity, setSeverity] = React.useState('error');
-    const [isAuthenticated, setIsAuthenticated] = React.useState(false)
     const [statusLoaded, setStatusLoaded] = React.useState(false);
     const [PrimaryColor, setPrimaryColor] = React.useState(API.PRIMARY_COLOR);
     const [SecondaryColor, setSecondaryColor] = React.useState(API.SECONDARY_COLOR);

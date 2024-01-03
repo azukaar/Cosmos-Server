@@ -108,7 +108,6 @@
     "@babel/preset-flow": "^7.23.3",
     "@babel/preset-react": "^7.23.3",
     "@babel/preset-typescript": "^7.23.3",
-    "@statoscope/webpack-plugin": "^5.28.2",
     "@swc/core": "^1.3.100",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
@@ -138,6 +137,7 @@
     "terser-webpack-plugin": "^5.3.10",
     "util": "^0.12.5",
     "webpack": "^5.89.0",
+    "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
     "webpack-merge": "^5.10.0"

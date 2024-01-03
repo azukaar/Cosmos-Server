@@ -1,7 +1,8 @@
+import { lazy } from 'react';
 import PropTypes from 'prop-types';
 
 // third-party
-import { motion } from 'framer-motion';
+const { motion } = Loadable(lazy(() => import("framer-motion")));
 
 // ==============================|| ANIMATION BUTTON ||============================== //
 

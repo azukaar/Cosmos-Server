@@ -5,7 +5,7 @@ import { lazy } from 'react';
 import Loadable from '../components/Loadable';
 import MinimalLayout from '../layout/MinimalLayout';
 import Logout from '../pages/authentication/Logoff';
-import NewInstall from '../pages/newInstall/newInstall';
+const NewInstall = Loadable(lazy(() => import('../pages/newInstall/newInstall')))
 
 import {NewMFA, MFALogin} from '../pages/authentication/newMFA';
 import ForgotPassword from '../pages/authentication/forgotPassword';
