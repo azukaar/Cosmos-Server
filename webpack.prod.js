@@ -1,6 +1,5 @@
 const { dependencies, peerDependencies } = require("./package.json")
 const { merge } = require("webpack-merge")
-const ImageMinimizerPlugin = require("image-minimizer-webpack-plugin")
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin")
 const TerserPlugin = require("terser-webpack-plugin")
 const webpackCommon = require("./webpack.common.js")
@@ -67,27 +66,6 @@ module.exports = merge(webpackCommon, {
                     sourceMap: false,
                     format: {
                         comments: false
-                    }
-                }
-            }),
-            new ImageMinimizerPlugin({
-                minimizer: {
-                    implementation: ImageMinimizerPlugin.imageminMinify,
-                    options: {
-                        plugins: [
-                            ["gifsicle", { interlaced: true }],
-                            ["jpegtran", { progressive: true }],
-                            ["optipng", { optimizationLevel: 5 }],
-                            [
-                                "svgo",
-                                {
-                                    multipass: true,
-                                    plugins: [
-                                        "preset-default"
-                                    ],
-                                },
-                            ],
-                        ]
                     }
                 }
             })
