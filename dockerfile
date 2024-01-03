@@ -34,5 +34,5 @@ COPY --from=go-builder /usr/src/app/build .
 
 VOLUME /config
 
-EXPOSE 443 80
+EXPOSE 443 80 4242/udp
 CMD ./cosmos
