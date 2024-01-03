@@ -77,7 +77,7 @@
     "terser": "npm:@swc/core"
   },
   "scripts": {
-    "webpack:setup-env": "npx --yes cross-env ASSET_PATH=$npm_config_base NODE_ENV=$NODE_ENV IS_DEMO=$npm_config_demo IS_PRODUCTION=$npm_config_use_production WITH_REPORT=$npm_config_with_report ANALYZE_DEPS=$npm_config_analyze_deps",
+    "webpack:setup-env": "npx --yes cross-env ASSET_PATH=$npm_config_base NODE_ENV=$NODE_ENV IS_DEMO=$npm_config_use_demo IS_PRODUCTION=$npm_config_use_production WITH_REPORT=$npm_config_with_report ANALYZE_DEPS=$npm_config_analyze_deps",
     "webpack:build": "npm run webpack:setup-env --base=/cosmos-ui/ -- npx --yes webpack --config webpack.prod.js --progress",
     "webpack:serve": "npm run webpack:setup-env -- npx --yes webpack serve --config webpack.dev.js --progress",
     "backend:build": "go build -o build/cosmos src/*.go",

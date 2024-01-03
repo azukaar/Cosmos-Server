@@ -1,12 +1,11 @@
-import { Suspense, lazy } from 'react';
+import { lazy } from 'react';
 
 // project import
 import Loadable from '../components/Loadable';
 import MainLayout from '../layout/MainLayout';
 import logo from '../assets/images/icons/cosmos.png';
-import { Await, Navigate } from 'react-router';
-import isLoggedIn from '../isLoggedIn';
 import PrivateRoute from '../PrivateRoute';
+import { Navigate } from 'react-router';
 
 const UserManagement = Loadable(lazy(() => import('../pages/config/users/usermanagement')));
 const ConfigManagement = Loadable(lazy(() => import('../pages/config/users/configman')));

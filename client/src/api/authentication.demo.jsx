@@ -3,7 +3,7 @@ import wrap from './wrap';
 function login(values) {
   return new Promise((resolve, reject) => {
     resolve({
-      "status": "ok",
+      "status": "OK",
     })
   });
 }
@@ -11,7 +11,7 @@ function login(values) {
 function me() {
   return new Promise((resolve, reject) => {
     resolve({
-      "status": "ok",
+      "status": "OK",
     })
   });
 }
@@ -19,7 +19,7 @@ function me() {
 function logout() {
   return new Promise((resolve, reject) => {
     resolve({
-      "status": "ok",
+      "status": "OK",
     })
   });
 }
