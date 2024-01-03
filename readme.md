@@ -1,4 +1,4 @@
-![banner](./banner.jpg)
+![banner](./docs/images/banner.png)
 
 ---
 
@@ -39,7 +39,7 @@
   <br/>
 </p>
 
-![screenshot1](./screenshot1.png)
+![ui_demo](./docs/images/ui_demo.png)
 
 Whether you have a **server**, a **NAS**, or a **Raspberry Pi** with applications such as **Plex**, **HomeAssistant** or even a blog, Cosmos is the perfect solution to run and secure them all. Simply install Cosmos on your server and connect to your applications through it to enjoy built-in security and robustness for all your services, right out of the box.
 
@@ -72,7 +72,7 @@ And a **lot more planned features** are coming!
 Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc...
 
 <p align="center" style="color:grey">
-  <img src="./compare.png" /><br />
+  <img src="./docs/images/compare.png" /><br />
   * Only containers created with their UI, with no customization, ** No alerts
 </p>
 
@@ -93,7 +93,7 @@ You might also wonder about **cloudflare proxy** and **cloudflare tunnel** when 
 SmartShield is a modern API protection package designed to secure your API by implementing advanced rate-limiting and user restrictions. This helps efficiently allocate and protect your resources without manual adjustment of limits and policies.
 
 <p align="center">
-  <img src="./schema.png" width="70%" />
+  <img src="./docs/images/schema.png" width="70%" />
 </p>
 
 Key Features:
@@ -118,11 +118,11 @@ That is the issue Cosmos Server is trying to solve: by providing a secure and ro
 
 Here's a simple example of how Cosmos can help you:
 
-![diag_SN](./diag_SN2.png)
+![diag_SN](./docs/images/diag_SN2.png)
 
 Another example:
 
-![diag_SN](./diag_SN.png)
+![diag_SN](./docs/images/diag_SN.png)
 
 Additionally, because every new self-hosted applications re-implement **crucial systems** such as authentication **from scratch** everytime, the **large majority** of them are very succeptible to being **hacked without too much trouble**. This is very bad because not only Docker containers are not isolated, but they also run as **root** by default, which means it can **easily be used** to offer access to your entire server or even infrastructure.
 
