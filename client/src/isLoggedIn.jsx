@@ -14,9 +14,11 @@ async function isLoggedIn() {
         return '/cosmos-ui/loginmfa?redirect=' + redirectToURL;
     } else if (data.status == 'error' && data.code == "HTTP007") {
         return '/cosmos-ui/newmfa?redirect=' + redirectToURL;
+    } else if (data.status == 'OK') {
+        return data.status
     } else {
         console.warn(`Status "${data.status}" does not have a navigation handler, will be ignored!`)
-        return "OK"
+        return 'OK'
     }
 };
 
