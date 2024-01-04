@@ -1,6 +1,8 @@
 FROM --platform=$BUILDPLATFORM node:21 AS node-builder
 WORKDIR /usr/src/app
 
+ENV npm_config_cache=/root/.cache/npm
+
 RUN mkdir -p build && \
     printf '{"version": "%s", "buildDate": "%s", "built from": "%s"}' \
         $(cat package.json | grep "version" | cut -d'"' -f 4) \
@@ -8,7 +10,6 @@ RUN mkdir -p build && \
         $(hostname) > build/meta.json
 
 COPY package.json package-lock.json .
-ENV npm_config_cache=/root/.cache/npm
 RUN --mount=type=cache,target="$npm_config_cache" npm install
 
 COPY . .
@@ -17,6 +18,7 @@ RUN --mount=type=cache,target=./node_modules/.cache/webpack npm run webpack:buil
 FROM --platform=$BUILDPLATFORM golang:1.21.5-alpine AS go-builder
 WORKDIR /usr/src/app
 
+ARG TARGETOS TARGETARCH
 ENV GOMODCACHE=/root/.cache/gomod-cache
 ENV GOCACHE=/root/.cache/go-build
 
@@ -24,8 +26,6 @@ COPY go.mod go.sum .
 RUN --mount=type=cache,target="$GOMODCACHE" go mod download
 
 COPY . .
-
-ARG TARGETOS TARGETARCH
 RUN --mount=type=cache,target="$GOCACHE" --mount=type=cache,target="$GOMODCACHE" GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o build/cosmos src/*.go
 
 FROM alpine:3.19.0
