@@ -96,5 +96,8 @@ module.exports = {
     performance: {
         maxEntrypointSize: 1.5 * 1024 * 1000,
         maxAssetSize: 512 * 1024 * 1000
-    }
+    },
+    cache: {
+        type: "filesystem"
+    }    
 }
