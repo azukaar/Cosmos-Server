@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 	"fmt"
+	"errors"
 	"strings"
 	// "io/ioutil"
 
-	yaml "gopkg.in/yaml.v2"
 	"github.com/azukaar/cosmos-server/src/utils"
 	containerType "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types"
@@ -95,12 +95,16 @@ func updateLoseContainer(containerName string, container types.ContainerJSON, fo
 		return
 	}
 
-	return 
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+	})
 }
 
 func updateDCContainer(containerName string, container types.ContainerJSON, form ContainerForm, w http.ResponseWriter, req *http.Request) {
-	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
 	dcServiceName := container.Config.Labels["com.docker.compose.service"]
+	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
+	dcComposeFile := container.Config.Labels["com.docker.compose.project.config_files"]
+	dcProject := container.Config.Labels["com.docker.compose.project"]
 
 	project, err := LoadComposeFromName(containerName)
 	if err != nil {
@@ -162,23 +166,14 @@ func updateDCContainer(containerName string, container types.ContainerJSON, form
 
 			if volume.Type == "volume" {
 				// check ServiceVolumeConfig for actual name
-				volFound := false
 				for name, serviceVolume := range project.Volumes {
 					if serviceVolume.Name == source {
 						source = name
-						volFound = true
 						break
 					}
 				}
-				if !volFound {
-					utils.Log("UpdateContainer: Volume not found: " + source + " - adding as external")
-					project.Volumes[source] = composeTypes.VolumeConfig{
-						Name: source,
-						External: true,
-					}
-				}
 			}
-						
+	
 			service.Volumes = append(service.Volumes, composeTypes.ServiceVolumeConfig{
 				Type: (string)(volume.Type),
 				Source: source,
@@ -189,8 +184,39 @@ func updateDCContainer(containerName string, container types.ContainerJSON, form
 
 	project.Services[dcServiceName] = service
 
+	// generate external volumes
+	if(form.Volumes != nil) {
+		externalVolumes := map[string]bool{}
+		for _, serviceCheck := range project.Services {
+			for _, volume := range serviceCheck.Volumes {
+				if volume.Type == "volume" {
+					externalVolumes[volume.Source] = true
+				}
+			}
+		}
+
+		finalVolumes := map[string]composeTypes.VolumeConfig{}
+		for name, serviceVolume := range project.Volumes {
+			if !serviceVolume.External {
+				finalVolumes[name] = serviceVolume
+				externalVolumes[name] = false
+			}
+		}
+
+		for name, toAdd := range externalVolumes {
+			if toAdd {
+				finalVolumes[name] = composeTypes.VolumeConfig{
+					Name: name,
+					External: true,
+				}
+			}
+		}
+
+		project.Volumes = finalVolumes
+	}
+
 	// Marshal the struct to JSON or yml format.
-	data, err := yaml.Marshal(project)
+	data, err := project.MarshalYAML()
 	if err != nil {
 		utils.Error("UpdateContainer: Marshal", err)
 		utils.HTTPError(w, "Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
@@ -198,15 +224,43 @@ func updateDCContainer(containerName string, container types.ContainerJSON, form
 	}
 
 	// Write the data to the file.
-	err = SaveComposeFromName(containerName, data)
+	// err = SaveComposeFromName(containerName, data)
+	// if err != nil {
+	// 	utils.Error("UpdateContainer: SaveComposeFromName", err)
+	// 	utils.HTTPError(w, "Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
+	// 	return
+	// }
+
+	// ComposeUp(dcWorkingDir, func(message string, outputType int) {
+	// 	utils.Debug(message)
+	// })
+	
+	finalData, err := SimplifyCompose(data)
+
 	if err != nil {
-		utils.Error("UpdateContainer: SaveComposeFromName", err)
-		utils.HTTPError(w, "Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
+		utils.Error("UpdateContainer: SimplifyCompose", err)
+		utils.HTTPError(w, "SimplifyCompose error: "+err.Error(), http.StatusInternalServerError, "DS004")
 		return
 	}
 
-	ComposeUp(dcWorkingDir, func(message string, outputType int) {
-		utils.Debug(message)
+	lastMessage := ""
+	err = SaveAndRunDC(dcProject, dcWorkingDir, dcComposeFile, string(finalData), func(message string, isError bool) {
+		if(isError) {
+			utils.Error("UpdateContainer: SaveAndRunDC", errors.New(lastMessage + "\n" + message))
+			utils.HTTPError(w, "SaveAndRunDC error: "+ lastMessage + "\n" + message, http.StatusInternalServerError, "DS004")
+			return 
+		} else {
+			utils.Debug(message)
+			lastMessage = message
+		}
+	}, true, true)
+	
+	if err != nil {
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
 	})
 }
 
@@ -257,10 +311,6 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			utils.Log("UpdateContainer: Updating lose container")
 			updateLoseContainer(containerName, container, form, w, req)
 		}
-
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status": "OK",
-		})
 	} else {
 		utils.Error("UpdateContainer: Method not allowed " + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

@@ -209,6 +209,91 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 	OnLog("[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
 }
 
+func SaveAndRunDC(ServiceName string, filePath string, dcFilePath string, data string, OnLog func(string, bool), rollbackOnFail bool, start bool) error {
+	utils.Log("SaveAndRunDC: saving to file " + ServiceName)
+
+	// Create the folder if does not exist, and output docker-compose.yml
+	if _, err := os.Stat(utils.CONFIGFOLDER + "compose/"); os.IsNotExist(err) {
+		os.MkdirAll(utils.CONFIGFOLDER + "compose/", 0750)
+	}
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		os.MkdirAll(filePath, 0750)
+	}
+	
+	// if the file exist, read it
+	backup := ""
+	wasRunning := false
+	if rollbackOnFail {
+		if _, err := os.Stat(dcFilePath); !os.IsNotExist(err) {
+			utils.Log("SaveAndRunDC: backing up existing compose")
+			// Read the file
+			dat, err := os.ReadFile(dcFilePath)
+			if err != nil {
+				OnLog(("Failed to backup existing compose: " + err.Error()), true)
+				return err
+			}
+			backup = string(dat)
+	
+			arr, err := DockerComposePs(dcFilePath)
+			if err != nil {
+				OnLog(("Failed to probe existing compose: " + err.Error()), true)
+				utils.Error("SaveAndRunDC: Failed to probe existing compose", err)
+			}
+
+			if len(arr) > 0 {
+				wasRunning = true
+			}
+		}	
+	}
+
+	// create or truncate the file
+	file, err := os.Create(dcFilePath)
+	if err != nil {
+		OnLog(("Failed to create commpose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+	defer file.Close()
+
+	// write to file
+	err = os.WriteFile(dcFilePath, []byte(data), 0750)
+	if err != nil {
+		OnLog(("Failed to write commpose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+
+	// compose up
+
+	if !start {
+		return nil
+	}
+
+	err = ComposeUp(filePath, func(message string, outputType int) {
+		utils.Debug(" --- ComposeUp: " + message)
+		OnLog(message, false)
+	})
+
+	if err != nil {
+		OnLog(("Failed to run compose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			utils.Error("SaveAndRunDC: Rolling back changes to docker-compose stack", err)
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
@@ -231,75 +316,36 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 				return 
 		}
 
-		// decoder := yaml.NewDecoder(req.Body)
-		// var serviceRequest DockerServiceCreateRequest
-		// err := decoder.Decode(&serviceRequest)
-		// if err != nil {
-		// 	utils.Error("CreateService - decode - ", err)
-		// 	fmt.Fprintf(w, "[OPERATION FAILED] Bad request: "+err.Error(), http.StatusBadRequest, "DS003")
-		// 	flusher.Flush()
-		// 	utils.HTTPError(w, "Bad request: " + err.Error(), http.StatusBadRequest, "DS003")
-		// 	return
-		// }
-
-		/*CreateService(serviceRequest, 
-			func (msg string) {
-				fmt.Fprintf(w, msg)
-				flusher.Flush()
-			},
-		)*/
-
-		ServiceName := "test-wesh"
-
-		filePath := utils.CONFIGFOLDER + "compose/" + ServiceName
-
-		// Create the folder if does not exist, and output docker-compose.yml
-		if _, err := os.Stat(utils.CONFIGFOLDER + "compose/"); os.IsNotExist(err) {
-			os.MkdirAll(utils.CONFIGFOLDER + "compose/", 0750)
-		}
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			os.MkdirAll(filePath, 0750)
-		}
-
-		// create or truncate the file
-		file, err := os.Create(filePath + "/docker-compose.yml")
+		// Read the body
+		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			utils.Error("CreateService - create - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
-			flusher.Flush()
-			return
-		}
-		defer file.Close()
-
-		// write to file
-		ymlBody := req.Body
-		writer := bufio.NewWriter(file)
-		_, err = writer.ReadFrom(ymlBody)
-		if err != nil {
-			utils.Error("CreateService - write - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS005")
+			utils.Error("CreateService - read - ", err)
+			fmt.Fprintf(w, "[OPERATION FAILED] Failed to read body: "+err.Error(), http.StatusInternalServerError, "DS003")
 			flusher.Flush()
 			return
 		}
 
-		writer.Flush()
+		// Parse the body
+		serviceName := "test-wesh"
+		folderPath := utils.CONFIGFOLDER + "compose/" + serviceName
+		dcFilePath := folderPath + "/docker-compose.yml"
 
-		// Compose up
-		err = ComposeUp(filePath, func(message string, outputType int) {
-			fmt.Fprintf(w, "%s\n", message)
+		err = SaveAndRunDC(serviceName, folderPath, dcFilePath, string(body), func(message string, isError bool) {
+			if isError {
+				utils.Error("CreateService - run", errors.New(message))
+				fmt.Fprintf(w, "%s\n", utils.DoErr(message))
+			} else {
+				fmt.Fprintf(w, "%s\n", message)
+			}
 			flusher.Flush()
-		})
-
+		}, true, true)
+		
 		if err != nil {
-			utils.Error("CreateService - composeup - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error())
-			flusher.Flush()
 			return
 		}
-
 
 		// Write a response to the client
-		fmt.Fprintf(w, "[OPERATION SUCCESSFUL] Service created successfully")
+		fmt.Fprintf(w, utils.DoSuccess("[OPERATION SUCCESSFUL] Service created successfully"))
 		flusher.Flush()
 	} else {
 		utils.Error("CreateService: Method not allowed" + req.Method, nil)

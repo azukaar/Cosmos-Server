@@ -5,6 +5,7 @@ import (
 	"io"
 	"os/exec"
     "os"
+    "encoding/json"
     // "path/filepath"
     // "context"
 
@@ -19,7 +20,6 @@ const (
     Stderr
 )
 
-
 // readOutput reads from the given reader and uses the callback function to handle the output.
 func readOutput(r io.Reader, callback func(message string, outputType int), outputType int) {
 	scanner := bufio.NewScanner(r)
@@ -31,9 +31,9 @@ func readOutput(r io.Reader, callback func(message string, outputType int), outp
 // ExecCommand runs the specified command and uses a callback function to handle the output.
 func ExecCommand(callback func(message string, outputType int), args ...string) error {
     cmd := exec.Command(args[0], args[1:]...)
-		utils.Debug("Running command: " +  cmd.String())
+    utils.Debug("Running command: " +  cmd.String())
 
-		callback("Running command: " +  cmd.String(), Stdout)
+    callback("$> " +  cmd.String(), Stdout)
 
     // Create pipes for stdout and stderr
     stdoutPipe, err := cmd.StdoutPipe()
@@ -60,7 +60,7 @@ func ExecCommand(callback func(message string, outputType int), args ...string) 
 }
 
 func ComposeUp(filePath string, callback func(message string, outputType int)) error {
-	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "up", "--remove-orphans", "-d")
+	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "up", "-d")
 
     // ctx := context.Background()
 
@@ -100,17 +100,10 @@ func ComposeUp(filePath string, callback func(message string, outputType int)) e
 }
 
 func ComposeDown(filePath string, callback func(message string, outputType int)) error {
-	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "down", "--remove-orphans", "-d")
+	return ExecCommand(callback, "docker", "compose", "--project-directory", filePath, "down")
 }
 
-func LoadComposeFromName(containerName string) (*composeTypes.Project, error) {
-    container, err := DockerClient.ContainerInspect(DockerContext, containerName)
-    if err != nil {
-        return nil, err
-    }
-
-	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
-
+func LoadCompose(dcWorkingDir string) (*composeTypes.Project, error) {
 	options, err := cli.NewProjectOptions(os.Args[1:],
 		cli.WithWorkingDirectory(dcWorkingDir),
 		cli.WithOsEnv,
@@ -131,15 +124,21 @@ func LoadComposeFromName(containerName string) (*composeTypes.Project, error) {
     return project, nil
 }
 
-func SaveComposeFromName(containerName string, data []byte) error {
+func LoadComposeFromName(containerName string) (*composeTypes.Project, error) {
     container, err := DockerClient.ContainerInspect(DockerContext, containerName)
     if err != nil {
-        return err
+        return nil, err
     }
-    
-    dcFile := container.Config.Labels["com.docker.compose.project.config_files"]
-    
-	data = SimplifyCompose(data)
+
+	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
+
+    return LoadCompose(dcWorkingDir)
+}
+
+func SaveCompose(dcFile string, data []byte) error {
+    utils.Log("SaveCompose: saving to file " + dcFile)
+
+	data, err := SimplifyCompose(data)
 
 	if err != nil {
 		return err
@@ -152,4 +151,42 @@ func SaveComposeFromName(containerName string, data []byte) error {
 	}
 
     return nil
+}
+
+func SaveComposeFromName(containerName string, data []byte) error {
+    container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+    if err != nil {
+        return err
+    }
+    
+    dcFile := container.Config.Labels["com.docker.compose.project.config_files"]
+    
+    return SaveCompose(dcFile, data)
+}
+
+type DockerPsOutput struct {
+    Name    string `json:"name"`
+    Command string `json:"command"`
+    State   string `json:"state"`
+    Ports   string `json:"ports"`
+}
+
+func DockerComposePs(filePath string) ([]DockerPsOutput, error) {
+    cmd := exec.Command("docker", "compose", "-f", filePath, "ps", "--format", "json")
+    utils.Debug("Running command: " +  cmd.String())
+    output, err := cmd.CombinedOutput()
+
+    if err != nil {
+        return nil, err
+    }
+
+    var psOutput []DockerPsOutput
+    err = json.Unmarshal(output, &psOutput)
+    if err != nil {
+        return nil, err
+    }
+
+    utils.Debug("DockerComposePs: " + string(output))
+
+    return psOutput, nil
 }

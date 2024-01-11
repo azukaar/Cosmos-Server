@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	yaml "gopkg.in/yaml.v2"
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -42,6 +43,110 @@ func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func DeleteVolumeLoose(volumeName string) error {
+	utils.Log("Deleting volume: " + volumeName)
+	err := DockerClient.VolumeRemove(DockerContext, volumeName, true)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteVolumeCompose(volumeName, composeProjectDir, composeFile string) error {
+	utils.Log("DeleteVolumeCompose: " + volumeName + " - " + composeProjectDir)
+
+	project, err := LoadCompose(composeProjectDir)
+	if err != nil {
+		utils.Error("DeleteVolumeCompose: Error while loading compose file", err)
+		return err
+	}
+
+	deleted := false
+	for key, volume := range project.Volumes {
+		if volume.Name == volumeName {
+			delete(project.Volumes, key)
+			deleted = true
+		}
+	}
+	if !deleted {
+		delete(project.Volumes, volumeName)
+	}
+
+	// Marshal the struct to JSON or yml format.
+	data, err := yaml.Marshal(project)
+	if err != nil {
+		utils.Error("DeleteVolumeCompose: Marshal", err)
+		return err
+	}
+
+	// Write the data to the file.
+	err = SaveCompose(composeFile, data)
+	if err != nil {
+		utils.Error("DeleteVolumeCompose: SaveCompose", err)
+		return err
+	}
+
+	ComposeUp(composeProjectDir, func(message string, outputType int) {
+		utils.Debug(message)
+	})
+
+	return nil
+}
+
+func DeleteVolume(volumeName string) error {
+	utils.Log("DeleteVolume: " + volumeName)
+	volume, err := DockerClient.VolumeInspect(DockerContext, volumeName)
+	if err != nil {
+		return err
+	}
+
+	composeProject := volume.Labels["com.docker.compose.project"]
+	
+	if composeProject != "" {
+		containers, err := ListContainers()
+		if err != nil {
+			return err
+		}
+		
+		// inspect containers until we find the compose file location
+		composeProjectDir := ""
+		composeFile := ""
+
+		for _, container := range containers {
+			utils.Debug("Checking container: " + container.Names[0])
+			containerConfig, err := DockerClient.ContainerInspect(DockerContext, container.Names[0])
+			if err != nil {
+				return err
+			}
+
+			utils.Debug(containerConfig.Config.Labels["com.docker.compose.project"])
+			
+			if containerConfig.Config.Labels["com.docker.compose.project"] == composeProject {
+				composeProjectDir = containerConfig.Config.Labels["com.docker.compose.project.working_dir"]
+				composeFile = containerConfig.Config.Labels["com.docker.compose.project.config_files"]
+				break
+			}
+		}
+
+		if composeProjectDir == "" {
+			return DeleteVolumeLoose(volumeName)
+			// return errors.New("DeleteVolume: Couldn't find docker-compose project directory for volume " + volumeName + ". Aborting to prevent desync.")
+		}
+
+		err = DeleteVolumeCompose(volumeName, composeProjectDir, composeFile)
+		if err != nil {
+			return err
+		} else {
+			return DeleteVolumeLoose(volumeName)
+		}
+	} else {
+		return DeleteVolumeLoose(volumeName)
+	}
+
+	return nil
+}
+
+
 func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
@@ -60,7 +165,7 @@ func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Delete the specified Docker volume
-		err := DockerClient.VolumeRemove(context.Background(), volumeName, true)
+		err := DeleteVolume(volumeName)
 		if err != nil {
 			utils.Error("DeleteVolumeRoute: Error while deleting volume", err)
 			utils.HTTPError(w, "Volume Deletion Error " + err.Error(), http.StatusInternalServerError, "DV002")

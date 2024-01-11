@@ -9,10 +9,9 @@
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/LostPoE"><img src="https://avatars.githubusercontent.com/LostPoE" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/eldergod1800"><img src="https://avatars.githubusercontent.com/eldergod1800" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/fuzmik"><img src="https://avatars.githubusercontent.com/fuzmik" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/Dimtar"><img src="https://avatars.githubusercontent.com/Dimtar" style="border-radius:48px" width="48" height="48" alt="Daniel C" title="Daniel C" /></a>
+<a href="https://github.com/MELVARDEV"><img src="https://avatars.githubusercontent.com/MELVARDEV" style="border-radius:48px" width="48" height="48" alt="MELVAR" title="MELVAR" /></a>
+<a href="https://github.com/Quinnus"><img src="https://avatars.githubusercontent.com/Quinnus" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
 ---

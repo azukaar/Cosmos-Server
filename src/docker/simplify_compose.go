@@ -2,6 +2,8 @@ package docker
 
 import (
 	"strconv"
+	"fmt"
+	"strings"
 
 	yaml "gopkg.in/yaml.v2"
 
@@ -139,9 +141,9 @@ func simplify_volumes(data map[string]interface{}) map[string]interface{} {
 					for _, volume := range volumes {
 						if volumeMap, ok := volume.(map[interface{}]interface{}); ok {
 							// Check if volume has exactly 3 keys: source, target, type
-							if len(volumeMap) == 4 && volumeMap["source"] != nil && volumeMap["target"] != nil && volumeMap["type"] != nil {
+							if len(volumeMap) <= 4 && volumeMap["source"] != nil && volumeMap["target"] != nil && volumeMap["type"] != nil {
 								// Check if the volume options are empty
-								if volumeOptions, ok := volumeMap["volume"].(map[interface{}]interface{}); ok && len(volumeOptions) == 0 {
+								if volumeOptions, _ := volumeMap["volume"].(map[interface{}]interface{}); len(volumeOptions) == 0 {
 									source := volumeMap["source"].(string)
 									target := volumeMap["target"].(string)
 									simplifiedVolume := source + ":" + target
@@ -193,14 +195,49 @@ func simplify_networks(data map[string]interface{}) map[string]interface{} {
 	return data
 }
 
-func SimplifyCompose(data []byte) []byte {
+func fixExtraHosts(data map[string]interface{}) map[string]interface{} {
+	utils.Log("fixExtraHosts")
+	if services, ok := data["services"].(map[interface{}]interface{}); ok {
+		utils.Log("services: " + fmt.Sprintf("%v", services))
+		for _, service := range services {
+			if serviceMap, ok := service.(map[interface{}]interface{}); ok {
+				utils.Log("serviceMap: " + fmt.Sprintf("%v", serviceMap))
+				if extraHosts, ok := serviceMap["extra_hosts"].([]interface{}); ok {
+					utils.Log("extraHosts: " + fmt.Sprintf("%v", extraHosts))
+					// split by =
+					extraHostsFixed := []string{}
+
+					for _, extraHost := range extraHosts {
+						utils.Log("extraHost: " + extraHost.(string))
+						// if contains =
+						if strings.Contains(extraHost.(string), "=") {
+							utils.Log("extraHost 2: " + extraHost.(string))
+							extraHostsSplit := strings.Split(extraHost.(string), "=")
+							hostStr := fmt.Sprintf("%v:%v", extraHostsSplit[0], extraHostsSplit[1])
+							extraHostsFixed = append(extraHostsFixed, hostStr)
+						} else {
+							extraHostsFixed = append(extraHostsFixed, extraHost.(string))
+						}
+					}
+
+					serviceMap["extra_hosts"] = extraHostsFixed
+				}
+			}
+		}
+	}
+	return data
+}
+
+func SimplifyCompose(data []byte) ([]byte, error) {
 	utils.Log("Simplifying docker-compose.yml")
+
+	fmt.Println(string(data))
 
 	var rawData map[string]interface{}
 
 	err := yaml.Unmarshal(data, &rawData)
 	if err != nil {
-		panic(err)
+		return nil, err 
 	}
 
 	rawData = simplify_depends_on(rawData)
@@ -208,11 +245,13 @@ func SimplifyCompose(data []byte) []byte {
 	rawData = simplify_ports(rawData)
 	rawData = simplify_volumes(rawData)
 	rawData = simplify_networks(rawData)
+	
+	rawData = fixExtraHosts(rawData)
 
 	data, err = yaml.Marshal(rawData)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return data
+	return data, nil
 }

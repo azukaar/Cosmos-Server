@@ -54,6 +54,9 @@ func TestSimplifyCompose(t *testing.T) {
       target: /var/www/html
       type: volume
       volume: {}
+    - source: nextcloud
+      target: /var/www/html
+      type: volume
 `,
 			expected: `services:
   service1:
@@ -67,6 +70,7 @@ func TestSimplifyCompose(t *testing.T) {
       - 8080:80
       - 8443:443/udp
     volumes:
+      - nextcloud:/var/www/html
       - nextcloud:/var/www/html
 `,
 		},

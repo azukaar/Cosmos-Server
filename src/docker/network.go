@@ -636,7 +636,7 @@ func NetworkCleanUp() {
 }
 
 func DeleteNetworkLoose(networkName string) error {
-	utils.Log("Deleting network: " + networkName)
+	utils.Log("DeleteNetworkLoose: " + networkName)
 	err := DockerClient.NetworkRemove(DockerContext, networkName)
 	if err != nil {
 		return err
@@ -644,10 +644,10 @@ func DeleteNetworkLoose(networkName string) error {
 	return nil
 }
 
-func DeleteNetworkCompose(networkName, composeProjectDir string) error {
+func DeleteNetworkCompose(networkName, composeProjectDir, composeFile string) error {
 	utils.Log("DeleteNetworkCompose: " + networkName + " - " + composeProjectDir)
 
-	project, err := LoadComposeFromName(composeProjectDir)
+	project, err := LoadCompose(composeProjectDir)
 	if err != nil {
 		return err
 	}
@@ -670,7 +670,7 @@ func DeleteNetworkCompose(networkName, composeProjectDir string) error {
 	}
 
 	// Write the data to the file.
-	err = SaveComposeFromName(composeProjectDir, data)
+	err = SaveCompose(composeFile, data)
 	if err != nil {
 		return err
 	}
@@ -691,14 +691,17 @@ func DeleteNetwork(networkName string) error {
 
 	composeProject := network.Labels["com.docker.compose.project"]
 
+	utils.Debug("DeleteNetwork: from " + composeProject)
+
 	if composeProject != "" {
-		containers := network.Containers
+		containers, err := ListContainers()
 		// inspect containers until we find the compose file location
 		composeProjectDir := ""
+		composeFile := ""
 
 		for _, container := range containers {
-			utils.Debug("Checking container: " + container.Name)
-			containerConfig, err := DockerClient.ContainerInspect(DockerContext, container.Name)
+			utils.Debug("Checking container: " + container.Names[0])
+			containerConfig, err := DockerClient.ContainerInspect(DockerContext, container.Names[0])
 			if err != nil {
 				return err
 			}
@@ -707,16 +710,23 @@ func DeleteNetwork(networkName string) error {
 			
 			if containerConfig.Config.Labels["com.docker.compose.project"] == composeProject {
 				composeProjectDir = containerConfig.Config.Labels["com.docker.compose.project.working_dir"]
+				composeFile = containerConfig.Config.Labels["com.docker.compose.project.config_files"]
+
 				break
 			}
 		}
 
 		if composeProjectDir == "" {
-			// return DeleteNetworkLoose(networkName)
-			return errors.New("DeleteNetwork: Couldn't find docker-compose project directory for network " + networkName + ". Aborting to prevent desync.")
+			return DeleteNetworkLoose(networkName)
+			// return errors.New("DeleteNetwork: Couldn't find docker-compose project directory for network " + networkName + ". Aborting to prevent desync.")
 		}
 
-		return DeleteNetworkCompose(networkName, composeProjectDir)
+		err = DeleteNetworkCompose(networkName, composeProjectDir, composeFile)
+		if err != nil {
+			return err
+		} else {
+			return DeleteNetworkLoose(networkName)
+		}
 	} else {
 		return DeleteNetworkLoose(networkName)
 	}
