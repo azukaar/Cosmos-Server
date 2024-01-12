@@ -5,11 +5,9 @@
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
 <p align="center"><a href="https://github.com/DrMxrcy"><img src="https://avatars.githubusercontent.com/DrMxrcy" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/BakaDalek"><img src="https://avatars.githubusercontent.com/BakaDalek" style="border-radius:48px" width="48" height="48" alt="BakaDalek" title="BakaDalek" /></a>
 <a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/devcircus"><img src="https://avatars.githubusercontent.com/devcircus" style="border-radius:48px" width="48" height="48" alt="Clayton Stone" title="Clayton Stone" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/owengraven"><img src="https://avatars.githubusercontent.com/owengraven" style="border-radius:48px" width="48" height="48" alt="Owen" title="Owen" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/eldergod1800"><img src="https://avatars.githubusercontent.com/eldergod1800" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/MELVARDEV"><img src="https://avatars.githubusercontent.com/MELVARDEV" style="border-radius:48px" width="48" height="48" alt="MELVAR" title="MELVAR" /></a>

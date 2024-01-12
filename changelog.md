@@ -1,5 +1,9 @@
-## Version 0.13.1
- - Fix a security issue with token (thansk @vncloudsco)
+## Version 0.14.0
+ - Cosmos is now fully dockerless
+ - Improved network IP resolution for containers, including supporting any network mode
+ - Integrated MongoDB as container
+ - Removed all sort of container bootstrapping (much faster boot)
+ - Cosmos now keep docker-compose files updated when updating containers, networks, etc...
 
 ## Version 0.13.0
  - Display container stacks as a group in the UI
