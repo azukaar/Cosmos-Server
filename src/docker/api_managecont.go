@@ -7,12 +7,82 @@ import (
 	"bufio"
 	"fmt"
 
+	yaml "gopkg.in/yaml.v2"
+
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
 	"github.com/gorilla/mux"
 	contstuff "github.com/docker/docker/api/types/container"
 	doctype "github.com/docker/docker/api/types"
 )
+
+
+func DeleteContainerLoose(containerName string) error {
+	utils.Log("DeleteContainerLoose: " + containerName)
+	err := DockerClient.ContainerRemove(DockerContext, containerName, doctype.ContainerRemoveOptions{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteContainerCompose(containerName, composeProjectDir, composeFile string) error {
+	utils.Log("DeleteContainerCompose: " + containerName + " - " + composeProjectDir)
+
+	project, err := LoadCompose(composeProjectDir)
+	if err != nil {
+		utils.Error("DeleteContainerCompose: Error while loading compose file", err)
+		return err
+	}
+
+	delete(project.Services, containerName)
+
+	// Marshal the struct to JSON or yml format.
+	data, err := yaml.Marshal(project)
+	if err != nil {
+		utils.Error("DeleteContainerCompose: Marshal", err)
+		return err
+	}
+
+	// Write the data to the file.
+	err = SaveCompose(composeFile, data)
+	if err != nil {
+		utils.Error("DeleteContainerCompose: SaveCompose", err)
+		return err
+	}
+
+	ComposeUp(composeProjectDir, func(message string, outputType int) {
+		utils.Debug(message)
+	})
+
+	return nil
+}
+
+func DeleteContainer(containerName string) error {
+	utils.Log("DeleteContainer: " + containerName)
+	containerConfig, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	if err != nil {
+		return err
+	}
+
+	composeProject := containerConfig.Config.Labels["com.docker.compose.project"]
+	composeProjectDir := containerConfig.Config.Labels["com.docker.compose.project.working_dir"]
+	composeFile := containerConfig.Config.Labels["com.docker.compose.project.config_files"]
+	composeContainerName := containerConfig.Config.Labels["com.docker.compose.service"]
+
+	if composeProject != "" {
+		err = DeleteContainerCompose(composeContainerName, composeProjectDir, composeFile)
+		if err != nil {
+			return err
+		} else {
+			return DeleteContainerLoose(containerName)
+		}
+	} else {
+		return DeleteContainerLoose(containerName)
+	}
+
+	return nil
+}
 
 func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
@@ -62,7 +132,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "kill":
 			err = DockerClient.ContainerKill(DockerContext, container.ID, "")
 		case "remove":
-			err = DockerClient.ContainerRemove(DockerContext, container.ID, doctype.ContainerRemoveOptions{})
+			err = DeleteContainer(containerName)
 		case "pause":
 			err = DockerClient.ContainerPause(DockerContext, container.ID)
 		case "unpause":

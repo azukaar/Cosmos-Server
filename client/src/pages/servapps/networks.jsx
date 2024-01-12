@@ -94,9 +94,9 @@ const NetworkManagementList = () => {
                     color="error"
                     startIcon={<DeleteOutlined />}
                     onClick={() => {
-                      if (tryDelete === r.Id) {
+                      if (tryDelete === r.Name) {
                         setIsLoading(true);
-                        API.docker.networkDelete(r.Id).then(() => {
+                        API.docker.networkDelete(r.Name).then(() => {
                           refresh();
                           setIsLoading(false);
                         }).catch(() => {
@@ -104,11 +104,11 @@ const NetworkManagementList = () => {
                           refresh();
                         });
                       } else {
-                        setTryDelete(r.Id);
+                        setTryDelete(r.Name);
                       }
                     }}
                   >
-                    {tryDelete === r.Id ? "Really?" : "Delete"}
+                    {tryDelete === r.Name ? "Really?" : "Delete"}
                   </Button>
                 </>
               ),

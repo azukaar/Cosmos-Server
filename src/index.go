@@ -16,8 +16,9 @@ import (
 func main() {
 	utils.Log("Starting...")
 	
-	utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
+	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
 	utils.PushShieldMetrics = metrics.PushShieldMetrics
+	utils.GetContainerIPByName = docker.GetContainerIPByName
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -31,7 +32,7 @@ func main() {
 
 	docker.DockerListenEvents()
 
-	docker.BootstrapAllContainersFromTags()
+	// docker.BootstrapAllContainersFromTags()
 
 	docker.RemoveSelfUpdater()
 

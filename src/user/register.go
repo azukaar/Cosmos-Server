@@ -91,7 +91,7 @@ func UserRegister(w http.ResponseWriter, req *http.Request) {
 					"RegisterKeyExp": time.Time{},
 					"RegisteredAt": RegisteredAt,
 					"LastPasswordChangedAt": time.Now(),
-					"PasswordCycle": user.PasswordCycle + 1,
+					"PassowrdCycle": user.PasswordCycle + 1,
 				},
 			})
 

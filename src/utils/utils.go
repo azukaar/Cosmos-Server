@@ -33,7 +33,8 @@ var NeedsRestart = false
 var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer func()
-var ReBootstrapContainer func(string) error
+// var ReBootstrapContainer func(string) error
+var GetContainerIPByName func(string) (string, error)
 
 var LetsEncryptErrors = []string{}
 

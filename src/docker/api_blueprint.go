@@ -1,7 +1,7 @@
 package docker
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os/user"
 	"errors"
+	// "gopkg.in/yaml.v2"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -148,6 +149,7 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 					OnLog(fmt.Sprintf("Rolled back container %s\n", action.Name))
 				}	
 			} else if action.Action == "revert" {
+				// OUTDATED
 				utils.Log(fmt.Sprintf("Reverting container %s...", action.Name))
 
 				// Edit Container
@@ -207,6 +209,91 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 	OnLog("[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
 }
 
+func SaveAndRunDC(ServiceName string, filePath string, dcFilePath string, data string, OnLog func(string, bool), rollbackOnFail bool, start bool) error {
+	utils.Log("SaveAndRunDC: saving to file " + ServiceName)
+
+	// Create the folder if does not exist, and output docker-compose.yml
+	if _, err := os.Stat(utils.CONFIGFOLDER + "compose/"); os.IsNotExist(err) {
+		os.MkdirAll(utils.CONFIGFOLDER + "compose/", 0750)
+	}
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		os.MkdirAll(filePath, 0750)
+	}
+	
+	// if the file exist, read it
+	backup := ""
+	wasRunning := false
+	if rollbackOnFail {
+		if _, err := os.Stat(dcFilePath); !os.IsNotExist(err) {
+			utils.Log("SaveAndRunDC: backing up existing compose")
+			// Read the file
+			dat, err := os.ReadFile(dcFilePath)
+			if err != nil {
+				OnLog(("Failed to backup existing compose: " + err.Error()), true)
+				return err
+			}
+			backup = string(dat)
+	
+			arr, err := DockerComposePs(dcFilePath)
+			if err != nil {
+				OnLog(("Failed to probe existing compose: " + err.Error()), true)
+				utils.Error("SaveAndRunDC: Failed to probe existing compose", err)
+			}
+
+			if len(arr) > 0 {
+				wasRunning = true
+			}
+		}	
+	}
+
+	// create or truncate the file
+	file, err := os.Create(dcFilePath)
+	if err != nil {
+		OnLog(("Failed to create commpose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+	defer file.Close()
+
+	// write to file
+	err = os.WriteFile(dcFilePath, []byte(data), 0750)
+	if err != nil {
+		OnLog(("Failed to write commpose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+
+	// compose up
+
+	if !start {
+		return nil
+	}
+
+	err = ComposeUp(filePath, func(message string, outputType int) {
+		utils.Debug(" --- ComposeUp: " + message)
+		OnLog(message, false)
+	})
+
+	if err != nil {
+		OnLog(("Failed to run compose: " + err.Error()), true)
+		if(rollbackOnFail && backup != "") {
+			utils.Error("SaveAndRunDC: Rolling back changes to docker-compose stack", err)
+			OnLog("Rolling back changes to docker-compose stack \n", false)
+			SaveAndRunDC(ServiceName, filePath, dcFilePath, backup, OnLog, false, wasRunning)
+		}
+		return err
+	}
+
+	return nil
+}
+
 func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
@@ -229,23 +316,37 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 				return 
 		}
 
-		decoder := json.NewDecoder(req.Body)
-		var serviceRequest DockerServiceCreateRequest
-		err := decoder.Decode(&serviceRequest)
+		// Read the body
+		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			utils.Error("CreateService - decode - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Bad request: "+err.Error(), http.StatusBadRequest, "DS003")
+			utils.Error("CreateService - read - ", err)
+			fmt.Fprintf(w, "[OPERATION FAILED] Failed to read body: "+err.Error(), http.StatusInternalServerError, "DS003")
 			flusher.Flush()
-			utils.HTTPError(w, "Bad request: " + err.Error(), http.StatusBadRequest, "DS003")
 			return
 		}
 
-		CreateService(serviceRequest, 
-			func (msg string) {
-				fmt.Fprintf(w, msg)
-				flusher.Flush()
-			},
-		)
+		// Parse the body
+		serviceName := "test-wesh"
+		folderPath := utils.CONFIGFOLDER + "compose/" + serviceName
+		dcFilePath := folderPath + "/docker-compose.yml"
+
+		err = SaveAndRunDC(serviceName, folderPath, dcFilePath, string(body), func(message string, isError bool) {
+			if isError {
+				utils.Error("CreateService - run", errors.New(message))
+				fmt.Fprintf(w, "%s\n", utils.DoErr(message))
+			} else {
+				fmt.Fprintf(w, "%s\n", message)
+			}
+			flusher.Flush()
+		}, true, true)
+		
+		if err != nil {
+			return
+		}
+
+		// Write a response to the client
+		fmt.Fprintf(w, utils.DoSuccess("[OPERATION SUCCESSFUL] Service created successfully"))
+		flusher.Flush()
 	} else {
 		utils.Error("CreateService: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -286,6 +387,21 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	var rollbackActions []DockerServiceCreateRollback
 	var err error
 
+	serviceName := ""
+	for serviceName = range serviceRequest.Services {
+		break
+	}
+
+	// check if serviceRequest.Networks contains service-default, if not, create it
+	if _, ok := serviceRequest.Networks[serviceName + "-default"]; !ok {
+		serviceRequest.Networks[serviceName + "-default"] = ContainerCreateRequestNetwork{
+			Name: serviceName + "-default",
+			Driver: "bridge",
+			Attachable: true,
+			Internal: false,
+		}
+	}
+
 	// Create networks
 	for networkToCreateName, networkToCreate := range serviceRequest.Networks {
 		utils.Log(fmt.Sprintf("Creating network %s...", networkToCreateName))
@@ -296,7 +412,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		if err == nil {
 			if networkToCreate.Driver == "" {
-				networkToCreate.Driver = "bridge"
+				networkToCreate.Driver = serviceName + "-default"
 			}
 
 			if (exNetworkDef.Driver != networkToCreate.Driver) {
@@ -422,7 +538,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
 		// If container request a Cosmos network, create and attach it
-		if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
+		
+		/*if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
 					container.Labels["cosmos-network-name"] == "" {
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
 			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
@@ -465,7 +582,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	
 				AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
 			}
-		}
+		}*/
 
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
 		OnLog(fmt.Sprintf("Creating container %s...\n", container.Name))
@@ -819,6 +936,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		// connect to networks
 		for netName, netConfig := range container.Networks {
 			utils.Log("CreateService: Connecting to network: " + netName)
+			
+			//TODO: THIS IS WRONG https://pkg.go.dev/github.com/docker/docker@v24.0.7+incompatible/api/types/network#EndpointSettings
 			err = DockerClient.NetworkConnect(DockerContext, netName, container.Name, &network.EndpointSettings{
 				Aliases:     netConfig.Aliases,
 				IPAddress:   netConfig.IPV4Address,

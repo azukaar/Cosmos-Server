@@ -10,9 +10,11 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 	
+	yaml "gopkg.in/yaml.v2"
 	"github.com/docker/docker/api/types"
 	network "github.com/docker/docker/api/types/network"
 	natting "github.com/docker/go-connections/nat"
+	composeTypes "github.com/compose-spec/compose-go/v2/types"
 	
 	"encoding/binary"
 )
@@ -177,7 +179,7 @@ func ConnectToSecureNetwork(containerConfig types.ContainerJSON) (bool, error) {
 
 	// at this point network is created and container is not connected to it
 	
-	errCo := ConnectToNetworkSync(netName, containerConfig.ID)
+	errCo := ConnectToNetworkLoose(netName, containerConfig.ID, true)
 	
 	utils.Log("Created and connected to secure network: " + netName)
 
@@ -263,7 +265,7 @@ func IsConnectedToASecureCosmosNetwork(self types.ContainerJSON, containerConfig
 	}
 	if(!connected) {
 		utils.Warn("Container wasn't connected to the network it claimed, connecting it.")
-		err := ConnectToNetworkSync(GetLabel(containerConfig, "cosmos-network-name"), containerConfig.ID)
+		err := ConnectToNetworkLoose(GetLabel(containerConfig, "cosmos-network-name"), containerConfig.ID, true)
 		if err != nil {
 			utils.Error("ReConnectToSecureNetworkConnectFromLabel", err)
 			return false, err, false
@@ -284,17 +286,19 @@ func IsConnectedToASecureCosmosNetwork(self types.ContainerJSON, containerConfig
 	return true, nil, false
 }
 
-func ConnectToNetworkIfNotConnected(containerConfig types.ContainerJSON, networkName string) error {
-	if(IsConnectedToNetwork(containerConfig, networkName)) {
-		return nil
-	}
-	return ConnectToNetworkSync(networkName, containerConfig.ID)
-}
+func ConnectToNetworkLoose(networkName string, containerID string, connect bool) error {
+	utils.Log("ConnectToNetworkLoose: " + networkName + " - " + containerID)
 
-func ConnectToNetworkSync(networkName string, containerID string) error {
-	err := DockerClient.NetworkConnect(DockerContext, networkName, containerID, &network.EndpointSettings{})
+	var err error
+	
+	if connect {
+		err = DockerClient.NetworkConnect(DockerContext, networkName, containerID, &network.EndpointSettings{})
+	} else {
+		err = DockerClient.NetworkDisconnect(DockerContext, networkName, containerID, true)
+	}
+
 	if err != nil {
-		utils.Error("ConnectToNetworkSync", err)
+		utils.Error("ConnectToNetworkLoose", err)
 		return err
 	}
 
@@ -303,17 +307,23 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 	for {
 		newContainer, err := DockerClient.ContainerInspect(DockerContext, containerID)
 		if err != nil {
-			utils.Error("ConnectToNetworkSync", err)
+			utils.Error("ConnectToNetworkLoose", err)
 			return err
 		}
 		
 		if(IsConnectedToNetwork(newContainer, networkName)) {
-			break
+			if connect {
+				break
+			}
+		} else {
+			if !connect {
+				break
+			}
 		}
 
 		retries--
 		if retries == 0 {
-			return errors.New("ConnectToNetworkSync: Timeout")
+			return errors.New("ConnectToNetworkLoose: Timeout")
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -323,6 +333,145 @@ func ConnectToNetworkSync(networkName string, containerID string) error {
 
 	return nil
 }
+
+func ConnectToNetworkCompose(networkName string, containerName string, connect bool) error {
+	utils.Log("ConnectToNetworkCompose: " + networkName + " - " + containerName)
+
+	container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	if err != nil {
+		return err
+	}
+
+	dcWorkingDir := container.Config.Labels["com.docker.compose.project.working_dir"]
+	dcServiceName := container.Config.Labels["com.docker.compose.service"]
+
+	project, err := LoadComposeFromName(containerName)
+	if err != nil {
+		return err
+	}
+
+	if project.Services == nil {
+		return errors.New("ConnectToNetworkCompose: project.Services is nil")
+	}
+	
+	service := project.Services[dcServiceName]
+
+	composeNetworkName := networkName
+	// check if network has a different name in the compose
+	for key, network := range project.Networks {
+		if network.Name == networkName {
+			composeNetworkName = key
+		}
+	}
+
+	// check if already connected 
+	for key, _ := range service.Networks {
+		if key == composeNetworkName {
+			if connect {
+				utils.Log("Already connected "+containerName+" to network: " + composeNetworkName + ". Skipping.")
+				break
+			} else {
+				utils.Log("Disconnecting "+containerName+" from network: " + composeNetworkName)
+				delete(service.Networks, key)
+				break
+			}
+		}
+	}
+
+	if connect {
+		value := composeTypes.ServiceNetworkConfig{}
+		service.Networks[composeNetworkName] = &value
+		
+		// if network does not exist in compose
+		if _, ok := project.Networks[composeNetworkName]; !ok {
+			// add network as external 
+			project.Networks[networkName] = composeTypes.NetworkConfig{
+				External: true,
+			}
+		}
+	} 
+	
+	project.Services[dcServiceName] = service
+
+	if !connect {
+		// check if no services is connected to this network
+		connected := false
+		for _, service := range project.Services {
+			for key, _ := range service.Networks {
+				if key == composeNetworkName {
+					utils.Log("Network still connected to service: " + service.Name)
+					connected = true
+				}
+			}
+		}
+
+		if !connected {
+			// remove network as external 
+			delete(project.Networks, composeNetworkName)
+		}
+	}
+
+	// Marshal the struct to JSON or yml format.
+	data, err := yaml.Marshal(project)
+	if err != nil {
+		return err
+	}
+
+	// Write the data to the file.
+	err = SaveComposeFromName(containerName, data)
+	if err != nil {
+		return err
+	}
+
+	ComposeUp(dcWorkingDir, func(message string, outputType int) {
+		utils.Debug(message)
+	})
+
+	return nil
+}
+
+func ConnectToNetwork(networkName string, containerName string) error {
+	utils.Log("ConnectToNetwork: " + networkName + " - " + containerName)
+
+	container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+
+	if err != nil {
+		return err
+	}
+
+	// if label container docker.compose.project 
+	if container.Config.Labels["com.docker.compose.project"] != "" {
+		utils.Log("UpdateContainer: Updating docker compose container")
+		return ConnectToNetworkCompose(networkName, containerName, true)
+	} else {
+		utils.Log("UpdateContainer: Updating lose container")
+		return ConnectToNetworkLoose(networkName, containerName, true)
+	}
+
+	return nil
+}
+
+func DisconnectToNetwork(networkName string, containerName string) error {
+	utils.Log("DisconnectToNetwork: " + networkName + " - " + containerName)
+
+	container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+
+	if err != nil {
+		return err
+	}
+
+	// if label container docker.compose.project 
+	if container.Config.Labels["com.docker.compose.project"] != "" {
+		utils.Log("UpdateContainer: Updating docker compose container")
+		return ConnectToNetworkCompose(networkName, containerName, false)
+	} else {
+		utils.Log("UpdateContainer: Updating lose container")
+		return ConnectToNetworkLoose(networkName, containerName, false)
+	}
+
+	return nil
+}
+
 
 func _debounceNetworkCleanUp() func(string) {
 	var mu sync.Mutex
@@ -371,15 +520,15 @@ func CreateLinkNetwork(containerName string, container2Name string) error {
 	}
 
 	// connect containers to network
-	err = ConnectToNetworkSync(networkName, containerName)
+	err = ConnectToNetwork(networkName, containerName)
 	if err != nil {
 		return err
 	}
 
-	err = ConnectToNetworkSync(networkName, container2Name)
+	err = ConnectToNetwork(networkName, container2Name)
 	if err != nil {
 		// disconnect first container
-		DockerClient.NetworkDisconnect(DockerContext, networkName, containerName, true)
+		DisconnectToNetwork(networkName, containerName)
 		// destroy network
 		DockerClient.NetworkRemove(DockerContext, networkName)
 		return err
@@ -484,4 +633,103 @@ func NetworkCleanUp() {
 			}
 		}
 	}
+}
+
+func DeleteNetworkLoose(networkName string) error {
+	utils.Log("DeleteNetworkLoose: " + networkName)
+	err := DockerClient.NetworkRemove(DockerContext, networkName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteNetworkCompose(networkName, composeProjectDir, composeFile string) error {
+	utils.Log("DeleteNetworkCompose: " + networkName + " - " + composeProjectDir)
+
+	project, err := LoadCompose(composeProjectDir)
+	if err != nil {
+		return err
+	}
+
+	deleted := false
+	for key, network := range project.Networks {
+		if network.Name == networkName {
+			delete(project.Networks, key)
+			deleted = true
+		}
+	}
+	if !deleted {
+		delete(project.Networks, networkName)
+	}
+
+	// Marshal the struct to JSON or yml format.
+	data, err := yaml.Marshal(project)
+	if err != nil {
+		return err
+	}
+
+	// Write the data to the file.
+	err = SaveCompose(composeFile, data)
+	if err != nil {
+		return err
+	}
+
+	ComposeUp(composeProjectDir, func(message string, outputType int) {
+		utils.Debug(message)
+	})
+
+	return nil
+}
+
+func DeleteNetwork(networkName string) error {
+	utils.Log("DeleteNetwork: " + networkName)
+	network, err := DockerClient.NetworkInspect(DockerContext, networkName, types.NetworkInspectOptions{})
+	if err != nil {
+		return err
+	}
+
+	composeProject := network.Labels["com.docker.compose.project"]
+
+	utils.Debug("DeleteNetwork: from " + composeProject)
+
+	if composeProject != "" {
+		containers, err := ListContainers()
+		// inspect containers until we find the compose file location
+		composeProjectDir := ""
+		composeFile := ""
+
+		for _, container := range containers {
+			utils.Debug("Checking container: " + container.Names[0])
+			containerConfig, err := DockerClient.ContainerInspect(DockerContext, container.Names[0])
+			if err != nil {
+				return err
+			}
+
+			utils.Debug(containerConfig.Config.Labels["com.docker.compose.project"])
+			
+			if containerConfig.Config.Labels["com.docker.compose.project"] == composeProject {
+				composeProjectDir = containerConfig.Config.Labels["com.docker.compose.project.working_dir"]
+				composeFile = containerConfig.Config.Labels["com.docker.compose.project.config_files"]
+
+				break
+			}
+		}
+
+		if composeProjectDir == "" {
+			return DeleteNetworkLoose(networkName)
+			// return errors.New("DeleteNetwork: Couldn't find docker-compose project directory for network " + networkName + ". Aborting to prevent desync.")
+		}
+
+		err = DeleteNetworkCompose(networkName, composeProjectDir, composeFile)
+		if err != nil {
+			return err
+		} else {
+			return DeleteNetworkLoose(networkName)
+		}
+	} else {
+		return DeleteNetworkLoose(networkName)
+	}
+
+	return nil
 }

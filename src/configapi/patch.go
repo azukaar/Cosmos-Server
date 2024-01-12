@@ -115,7 +115,8 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 		
 		utils.Log("RouteSettingsUpdate: Service needs update: "+name)
 
-		utils.ReBootstrapContainer(name)
+		// TODO CACHE BURST IN IP RESOLUTION
+		// utils.ReBootstrapContainer(name)
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

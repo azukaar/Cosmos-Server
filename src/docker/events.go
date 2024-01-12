@@ -140,7 +140,8 @@ func DebouncedExportDocker() {
 
 func onDockerStarted(containerID string) {
 	utils.Debug("onDockerStarted: " + containerID)
-	BootstrapContainerFromTags(containerID)
+	// exportService(containerID)
+	// BootstrapContainerFromTags(containerID)
 	DebouncedExportDocker()
 }
 

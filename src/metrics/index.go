@@ -89,6 +89,8 @@ func SaveMetrics() {
 
 	var operations []mongo.WriteModel
 
+	utils.Debug("Data - Saving " + strconv.Itoa(len(dataBuffer)) + " entries")
+
 	for dpkey, dp := range dataBuffer {
 		if dp.Expire.Before(time.Now()) {
 			delete(dataBuffer, dpkey)
@@ -182,8 +184,6 @@ func PushSetMetric(key string, value int, def DataDef) {
 			}
 		}
 		
-
-
 		if dp, ok := dataBuffer[cacheKey]; ok {
 			value = MergeMetric(def.SetOperation, dp.Value, value, dp.AvgIndex)    
 
