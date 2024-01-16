@@ -12,7 +12,7 @@ function get() {
   });
 }
 
-function set(values) {
+function set(values: any) {
   return new Promise((resolve, reject) => {
     resolve({
       "status": "ok",

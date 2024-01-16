@@ -1,26 +1,28 @@
 // material-ui
 import * as React from 'react';
-import { Button, Typography } from '@mui/material';
+import {
+    Button,
+    Typography,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogContentText,
+    DialogTitle,
+    TextField,
+    CircularProgress,
+    Chip,
+    IconButton,
+} from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
-import CircularProgress from '@mui/material/CircularProgress';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 
@@ -64,7 +66,6 @@ const UserManagement = () => {
     }
 
     return <>
-        <IsLoggedIn />
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
             <DialogTitle>Invite User</DialogTitle>
             <DialogContent>

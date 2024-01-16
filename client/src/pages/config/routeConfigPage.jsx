@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
-import IsLoggedIn from "../../isLoggedIn";
 import RouteMetrics from "../dashboard/routeMonitoring";
 import EventExplorerStandalone from "../dashboard/eventsExplorerStandalone";
 
@@ -31,7 +30,6 @@ const RouteConfigPage = () => {
   }, []);
 
   return <div>
-    <IsLoggedIn />
     <h2>
       <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">

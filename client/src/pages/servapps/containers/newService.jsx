@@ -7,7 +7,6 @@ import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
 import * as API from '../../../api';
 import { AppstoreOutlined, ArrowUpOutlined, BulbTwoTone, CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, PlusCircleOutlined, SyncOutlined, UpOutlined } from "@ant-design/icons";
-import IsLoggedIn from '../../../isLoggedIn';
 import PrettyTabbedView from '../../../components/tabbedView/tabbedView';
 import Back from '../../../components/back';
 import { useParams } from 'react-router';

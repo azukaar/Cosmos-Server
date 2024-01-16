@@ -1,6 +1,6 @@
 // ==============================|| PRESET THEME - THEME SELECTOR ||============================== //
 
-import { purple, pink, deepPurple, blueGrey, lightBlue, lightGreen, orange, teal, indigo } from '@mui/material/colors';
+import { pink, blueGrey, lightGreen, teal, indigo, purple, deepPurple, lightBlue, orange } from '@mui/material/colors';
 
 const Theme = (colors, darkMode) => {
     const { blue, red, gold, cyan, green, grey } = colors;

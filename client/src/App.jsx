@@ -3,14 +3,14 @@ import Routes from './routes';
 import * as React from 'react';
 import ThemeCustomization from './themes';
 import ScrollTop from './components/ScrollTop';
-import Snackbar from '@mui/material/Snackbar';
-import {Alert, Box} from '@mui/material';
+import { Alert, Box, Snackbar } from '@mui/material';
 import logo from './assets/images/icons/cosmos.png';
 
 import * as API from './api';
 
 import { setSnackit, snackit } from './api/wrap';
 import { DisconnectOutlined } from '@ant-design/icons';
+import isLoggedIn from './isLoggedIn';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
 
@@ -26,7 +26,7 @@ export let SetPrimaryColor = () => {};
 export let SetSecondaryColor = () => {};
 export let GlobalPrimaryColor = '';
 export let GlobalSecondaryColor = '';
-  
+
 const App = () => {
     const [open, setOpen] = React.useState(false);
     const [message, setMessage] = React.useState('');

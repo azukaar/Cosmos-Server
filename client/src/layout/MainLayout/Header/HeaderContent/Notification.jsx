@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
 import {
     Avatar,
     Badge,
@@ -17,7 +15,8 @@ import {
     Paper,
     Popper,
     Typography,
-    useMediaQuery
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import * as timeago from 'timeago.js';
 
@@ -57,8 +56,9 @@ const Notification = () => {
 
     const refreshNotifications = () => {
         API.users.getNotifs(from).then((res) => {
-            setNotifications(() => res.data);
-        });
+            if (Array.isArray(res.data))
+                setNotifications(() => res.data);
+        }, () => []);
     };
 
     const setAsRead = () => {

@@ -1,5 +1,4 @@
 import Folder from '../assets/images/icons/folder(1).svg';
-import demoicons from './icons.demo.json';
 import logogray from '../assets/images/icons/cosmos_gray.png';
 
 import * as Yup from 'yup';
@@ -8,6 +7,8 @@ import { debounce, isDomain } from './indexs';
 
 import * as API from '../api';
 import { useEffect, useState } from 'react';
+
+import demoicons from './icons.demo.json';
 
 export const sanitizeRoute = (_route) => {
   let route = { ..._route };
@@ -52,14 +53,9 @@ export const getFullOrigin = (route) => {
   return addProtocol(getOrigin(route));
 }
 
-const isDemo = import.meta.env.MODE === 'demo';
-
 export const getFaviconURL = (route) => {
-  if (isDemo) {
-    if (route.Mode == "STATIC")
-      return Folder;
-    return demoicons[route.Name] || logogray;
-  }
+  if (process.env.MODE === 'demo')
+    return route.Mode == "STATIC" ? Folder : demoicons[route.Name] || logogray;
 
   if (!route) {
     return logogray;

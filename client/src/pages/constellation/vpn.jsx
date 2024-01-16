@@ -5,7 +5,6 @@ import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
 import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, TabletOutlined } from "@ant-design/icons";
-import IsLoggedIn from "../../isLoggedIn";
 import { Alert, Button, CircularProgress, Stack } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -71,8 +70,8 @@ export const ConstellationVPN = () => {
         <Alert severity="info">
           Constellation is a VPN that runs inside your Cosmos network. It automatically
           connects all your devices together, and allows you to access them from anywhere.
-          Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank">documentation</a> for more information.
-          In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank">Constellation App</a>.
+          Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank" rel="noreferrer">documentation</a> for more information.
+          In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank" rel="noreferrer">Constellation App</a>.
           Constellation is currently free to use until the end of the beta, planned January 2024.
         </Alert>
         <MainCard title={"Constellation Setup"} content={config.constellationIP}>

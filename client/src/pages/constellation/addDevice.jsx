@@ -1,10 +1,17 @@
 // material-ui
-import { Alert, Button, InputLabel, OutlinedInput, Stack, TextField } from '@mui/material';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
+import {
+  Alert,
+  Button,
+  InputLabel,
+  OutlinedInput,
+  Stack,
+  TextField,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from '@mui/material';
 import * as React from 'react';
 import { useState } from 'react';
 import ResponsiveButton from '../../components/responseiveButton';

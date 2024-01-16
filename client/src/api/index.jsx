@@ -208,8 +208,6 @@ let uploadImage = (file, name) => {
   }));
 };
 
-const isDemo = import.meta.env.MODE === 'demo';
-
 let auth = _auth;
 let users = _users;
 let config = _config;
@@ -218,7 +216,7 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 
-if(isDemo) {
+if(process.env.MODE === 'demo') {
   auth = authDemo;
   users = usersDemo;
   config = configDemo;
@@ -233,6 +231,7 @@ if(isDemo) {
   constellation = constellationDemo;
   metrics = metricsDemo;
 }
+
 
 export {
   auth,

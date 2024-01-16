@@ -7,7 +7,6 @@ import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL, getHostnameFromName } from '../../../utils/routes';
 import * as API from '../../../api';
 import { ArrowLeftOutlined, ArrowRightOutlined, CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
-import IsLoggedIn from '../../../isLoggedIn';
 import PrettyTabbedView from '../../../components/tabbedView/tabbedView';
 import Back from '../../../components/back';
 import { useParams } from 'react-router';
@@ -125,7 +124,6 @@ const NewDockerServiceForm = () => {
         <Back />
         <div>Start New Servapp</div>
       </Stack>
-      <IsLoggedIn />
 
       {<PrettyTabbedView
       currentTab={currentTab}

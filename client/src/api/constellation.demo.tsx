@@ -46,7 +46,7 @@ function list() {
   });
 }
 
-function addDevice(device) {
+function addDevice(device: any) {
   return new Promise((resolve, reject) => {
     resolve({
       "data": {
@@ -103,7 +103,7 @@ function getLogs() {
   });
 }
 
-function connect(file) {
+function connect(file: any) {
   return new Promise((resolve, reject) => {
     resolve({
       "status": "ok",
@@ -111,7 +111,7 @@ function connect(file) {
   });
 }
 
-function block(nickname, devicename, block) {
+function block(nickname: any, devicename: any, block: any) {
   return new Promise((resolve, reject) => {
     resolve({
       "status": "ok",

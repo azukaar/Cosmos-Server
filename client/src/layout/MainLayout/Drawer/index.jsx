@@ -1,9 +1,7 @@
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { Box, Drawer, useMediaQuery } from '@mui/material';
+import { Box, Drawer, useMediaQuery, useTheme } from '@mui/material';
 
 // project import
 import DrawerHeader from './DrawerHeader';

@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { AppBar, Box, ClickAwayListener, IconButton, Paper, Popper, Toolbar } from '@mui/material';
+import {
+    AppBar,
+    Box,
+    ClickAwayListener,
+    IconButton,
+    Paper,
+    Popper,
+    Toolbar,
+    useTheme,
+} from '@mui/material';
 
 // project import
 import Search from './Search';

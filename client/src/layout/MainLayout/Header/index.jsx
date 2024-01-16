@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { AppBar, IconButton, Toolbar, useMediaQuery } from '@mui/material';
+import { AppBar, IconButton, Toolbar, useMediaQuery, useTheme } from '@mui/material';
 
 // project import
 import AppBarStyled from './AppBarStyled';

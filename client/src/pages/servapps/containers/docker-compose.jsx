@@ -1,26 +1,25 @@
 // material-ui
 import * as React from 'react';
-import { Alert, Button, Checkbox, FormControlLabel, FormLabel, Stack, Typography } from '@mui/material';
+import {
+  Alert,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  FormLabel,
+  Stack,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+  CircularProgress,
+  Chip,
+  IconButton,
+} from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined, SyncOutlined, UserOutlined, KeyOutlined, ArrowUpOutlined, FileZipOutlined, ArrowDownOutlined, ConsoleSqlOutlined } from '@ant-design/icons';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
-import CircularProgress from '@mui/material/CircularProgress';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
 import ResponsiveButton from '../../../components/responseiveButton';
 import UploadButtons from '../../../components/fileUpload';
@@ -30,7 +29,7 @@ import { CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText
 import VolumeContainerSetup from './volumes';
 import DockerContainerSetup from './setup';
 import whiskers from 'whiskers';
-import {version} from '../../../../../package.json';
+import packageInfo from '../../../../../package.json';
 import cmp from 'semver-compare';
 import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
@@ -73,7 +72,7 @@ const preStyle = {
 }
 
 const isNewerVersion = (minver) => {
-  return cmp(version, minver) === -1;
+  return cmp(packageInfo.version, minver) === -1;
 }
 
 const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {

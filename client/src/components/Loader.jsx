@@ -1,8 +1,6 @@
-// material-ui
-import { styled } from '@mui/material/styles';
-import LinearProgress from '@mui/material/LinearProgress';
-
 // loader style
+import { styled, LinearProgress } from '@mui/material';
+
 const LoaderWrapper = styled('div')(({ theme }) => ({
     position: 'fixed',
     top: 0,

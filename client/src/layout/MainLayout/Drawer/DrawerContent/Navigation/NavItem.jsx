@@ -3,9 +3,15 @@ import { forwardRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { Avatar, Chip, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import {
+    Avatar,
+    Chip,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Typography,
+    useTheme,
+} from '@mui/material';
 
 // project import
 import { activeItem } from '../../../../../store/reducers/menu';

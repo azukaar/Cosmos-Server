@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo  } from 'react';
+import React, { useEffect, useState, useMemo , lazy } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 // material-ui
@@ -17,16 +17,14 @@ import {
   Stack,
   TextField,
   Typography,
-  Alert
+  Alert,
+  useTheme,
 } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-
 // third-party
-import ReactApexChart from 'react-apexcharts';
 import { FormaterForMetric, formatDate, toUTC } from './utils';
+import ReactApexChart from 'react-apexcharts';
 
 import * as API from '../../../api';
 

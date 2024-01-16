@@ -1,7 +1,5 @@
-// material-ui
-import { alpha } from '@mui/material/styles';
-
 // ==============================|| DEFAULT THEME - CUSTOM SHADOWS  ||============================== //
+import { alpha } from '@mui/material';
 
 const CustomShadows = (theme) => ({
     button: `0 2px #0000000b`,

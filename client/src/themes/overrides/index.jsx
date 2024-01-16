@@ -1,5 +1,5 @@
 // third-party
-import { merge } from 'lodash';
+import merge from 'lodash.merge';
 
 // project import
 import Badge from './Badge';

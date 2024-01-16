@@ -16,7 +16,8 @@ import {
   Typography,
   Alert,
   TextField,
-  Tooltip
+  Tooltip,
+  useTheme,
 } from '@mui/material';
 
 // project import
@@ -28,7 +29,6 @@ import * as Yup from 'yup';
 import * as API from '../../api';
 
 import QRCode from 'qrcode';
-import { useTheme } from '@mui/material/styles';
 import { Formik } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import { CosmosCollapse } from '../config/users/formShortcuts';

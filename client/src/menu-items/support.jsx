@@ -2,7 +2,7 @@
 import { GithubOutlined, QuestionOutlined, BugOutlined } from '@ant-design/icons';
 import DiscordOutlined from '../assets/images/icons/discord.svg'
 import DiscordOutlinedWhite from '../assets/images/icons/discord_white.svg'
-import { useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material';
 
 // ==============================|| MENU ITEMS - SAMPLE PAGE & DOCUMENTATION ||============================== //
 

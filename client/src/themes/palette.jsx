@@ -1,6 +1,3 @@
-// material-ui
-import { createTheme } from '@mui/material/styles';
-
 // third-party
 import { presetPalettes } from '@ant-design/colors';
 
@@ -8,6 +5,8 @@ import { presetPalettes } from '@ant-design/colors';
 import ThemeOption from './theme';
 
 import * as API from '../api';
+
+import { createTheme } from '@mui/material';
 
 // ==============================|| DEFAULT THEME - PALETTE  ||============================== //
 

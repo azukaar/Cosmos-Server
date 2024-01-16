@@ -1,7 +1,9 @@
+import { lazy } from 'react';
+import Loadable from '../Loadable';
 import PropTypes from 'prop-types';
 
 // third-party
-import { motion } from 'framer-motion';
+import { motion } from "framer-motion";
 
 // ==============================|| ANIMATION BUTTON ||============================== //
 

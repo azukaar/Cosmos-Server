@@ -1,8 +1,6 @@
 import { useState } from 'react';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-import { List, ListItemButton, ListItemIcon, ListItemText } from '@mui/material';
+import { List, ListItemButton, ListItemIcon, ListItemText, useTheme } from '@mui/material';
 
 // assets
 import { CommentOutlined, LockOutlined, QuestionCircleOutlined, UserOutlined, UnorderedListOutlined } from '@ant-design/icons';

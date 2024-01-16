@@ -1,0 +1,27 @@
+{
+    "compilerOptions": {
+        "outDir": "client/dist",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "esnext"
+        ],
+        "noImplicitAny": true,
+        "module": "es6",
+        "target": "es6",
+        "jsx": "react",
+        "allowJs": true,
+        "moduleResolution": "node",
+        "rootDir": "client/src",
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "commonjs"
+        }
+    },
+    "include": ["client/src/**/*"],
+    "exclude": ["client/**/*.demo*"]
+}

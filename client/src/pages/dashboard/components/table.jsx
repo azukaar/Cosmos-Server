@@ -26,18 +26,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  useTheme,
 } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 
-// material-ui
-import { useTheme } from '@mui/material/styles';
-
 // third-party
-import ReactApexChart from 'react-apexcharts';
-import { object } from 'prop-types';
 import { FormaterForMetric } from './utils';
-import { set } from 'lodash';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
 import PlotComponent from './plot';
 
