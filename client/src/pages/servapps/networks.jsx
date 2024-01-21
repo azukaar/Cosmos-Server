@@ -31,12 +31,12 @@ export const NetworksColumns = (theme, isDark) => [
   {
     title: 'IPAM gateway / mask',
     screenMin: 'lg',
-    field: (r) => r.IPAM.Config.map((config, index) => (
+    field: (r) => r.IPAM.Config ? r.IPAM.Config.map((config, index) => (
       <Stack key={index}>
         <div>{config.Gateway}</div>
         <div>{config.Subnet}</div>
       </Stack>
-    )),
+    )) : 'No Ip',
   },
   {
     title: 'Created At',
