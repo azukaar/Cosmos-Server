@@ -178,9 +178,9 @@ function createService(serviceData, onProgress) {
   const requestOptions = {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/yaml'
+      'Content-Type': 'application/json'
     },
-    body: serviceData
+    body: JSON.stringify(serviceData)
   };
 
   return fetch('/cosmos/api/docker-service', requestOptions)

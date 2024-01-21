@@ -118,6 +118,7 @@ const ConfigManagement = () => {
           Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
+          SkipPruneImages: config.DockerConfig.SkipPruneImages,
           DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
 
           Background: config && config.HomepageConfig && config.HomepageConfig.Background,
@@ -175,6 +176,7 @@ const ConfigManagement = () => {
             DockerConfig: {
               ...config.DockerConfig,
               SkipPruneNetwork: values.SkipPruneNetwork,
+              SkipPruneImages: values.SkipPruneImages,
               DefaultDataPath: values.DefaultDataPath
             },
             HomepageConfig: {
@@ -537,8 +539,14 @@ const ConfigManagement = () => {
               <MainCard title="Docker">
                 <Stack spacing={2}>
                   <CosmosCheckbox
-                    label="Skip Prune Network"
+                    label="Do not clean up Network"
                     name="SkipPruneNetwork"
+                    formik={formik}
+                  />
+
+                  <CosmosCheckbox
+                    label="Do not clean up Images"
+                    name="SkipPruneImages"
                     formik={formik}
                   />
 

@@ -1,7 +1,7 @@
 package docker
 
 import (
-	// "encoding/json"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,7 +12,6 @@ import (
 	"io/ioutil"
 	"os/user"
 	"errors"
-	// "gopkg.in/yaml.v2"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
@@ -230,76 +229,23 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 				return 
 		}
 
-		// decoder := yaml.NewDecoder(req.Body)
-		// var serviceRequest DockerServiceCreateRequest
-		// err := decoder.Decode(&serviceRequest)
-		// if err != nil {
-		// 	utils.Error("CreateService - decode - ", err)
-		// 	fmt.Fprintf(w, "[OPERATION FAILED] Bad request: "+err.Error(), http.StatusBadRequest, "DS003")
-		// 	flusher.Flush()
-		// 	utils.HTTPError(w, "Bad request: " + err.Error(), http.StatusBadRequest, "DS003")
-		// 	return
-		// }
+		decoder := json.NewDecoder(req.Body)
+		var serviceRequest DockerServiceCreateRequest
+		err := decoder.Decode(&serviceRequest)
+		if err != nil {
+			utils.Error("CreateService - decode - ", err)
+			fmt.Fprintf(w, "[OPERATION FAILED] Bad request: "+err.Error(), http.StatusBadRequest, "DS003")
+			flusher.Flush()
+			utils.HTTPError(w, "Bad request: " + err.Error(), http.StatusBadRequest, "DS003")
+			return
+		}
 
-		/*CreateService(serviceRequest, 
+		CreateService(serviceRequest, 
 			func (msg string) {
 				fmt.Fprintf(w, msg)
 				flusher.Flush()
 			},
-		)*/
-
-		ServiceName := "test-wesh"
-
-		filePath := utils.CONFIGFOLDER + "compose/" + ServiceName
-
-		// Create the folder if does not exist, and output docker-compose.yml
-		if _, err := os.Stat(utils.CONFIGFOLDER + "compose/"); os.IsNotExist(err) {
-			os.MkdirAll(utils.CONFIGFOLDER + "compose/", 0750)
-		}
-		if _, err := os.Stat(filePath); os.IsNotExist(err) {
-			os.MkdirAll(filePath, 0750)
-		}
-
-		// create or truncate the file
-		file, err := os.Create(filePath + "/docker-compose.yml")
-		if err != nil {
-			utils.Error("CreateService - create - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS004")
-			flusher.Flush()
-			return
-		}
-		defer file.Close()
-
-		// write to file
-		ymlBody := req.Body
-		writer := bufio.NewWriter(file)
-		_, err = writer.ReadFrom(ymlBody)
-		if err != nil {
-			utils.Error("CreateService - write - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS005")
-			flusher.Flush()
-			return
-		}
-
-		writer.Flush()
-
-		// Compose up
-		err = ComposeUp(filePath, func(message string, outputType int) {
-			fmt.Fprintf(w, "%s\n", message)
-			flusher.Flush()
-		})
-
-		if err != nil {
-			utils.Error("CreateService - composeup - ", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Internal server error: "+err.Error(), http.StatusInternalServerError, "DS006")
-			flusher.Flush()
-			return
-		}
-
-
-		// Write a response to the client
-		fmt.Fprintf(w, "[OPERATION SUCCESSFUL] Service created successfully", http.StatusOK, "DS007")
-		flusher.Flush()
+		)
 	} else {
 		utils.Error("CreateService: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -340,21 +286,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	var rollbackActions []DockerServiceCreateRollback
 	var err error
 
-	serviceName := ""
-	for serviceName = range serviceRequest.Services {
-		break
-	}
-
-	// check if serviceRequest.Networks contains service-default, if not, create it
-	if _, ok := serviceRequest.Networks[serviceName + "-default"]; !ok {
-		serviceRequest.Networks[serviceName + "-default"] = ContainerCreateRequestNetwork{
-			Name: serviceName + "-default",
-			Driver: "bridge",
-			Attachable: true,
-			Internal: false,
-		}
-	}
-
 	// Create networks
 	for networkToCreateName, networkToCreate := range serviceRequest.Networks {
 		utils.Log(fmt.Sprintf("Creating network %s...", networkToCreateName))
@@ -365,7 +296,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		if err == nil {
 			if networkToCreate.Driver == "" {
-				networkToCreate.Driver = serviceName + "-default"
+				networkToCreate.Driver = "bridge"
 			}
 
 			if (exNetworkDef.Driver != networkToCreate.Driver) {
@@ -491,51 +422,50 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
 		// If container request a Cosmos network, create and attach it
-		
-		/*if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
-					container.Labels["cosmos-network-name"] == "" {
-			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
-			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
+		// if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
+		// 			container.Labels["cosmos-network-name"] == "" {
+		// 	utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
+		// 	OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
-			newNetwork, errNC := CreateCosmosNetwork(serviceName)
-			if errNC != nil {
-				utils.Error("CreateService: Network", err)
-				OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))
-				Rollback(rollbackActions, OnLog)
-				return err
-			}
+		// 	newNetwork, errNC := CreateCosmosNetwork(serviceName)
+		// 	if errNC != nil {
+		// 		utils.Error("CreateService: Network", err)
+		// 		OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))
+		// 		Rollback(rollbackActions, OnLog)
+		// 		return err
+		// 	}
 
-			container.Labels["cosmos-network-name"] = newNetwork
+		// 	container.Labels["cosmos-network-name"] = newNetwork
 
-			AttachNetworkToCosmos(newNetwork)
+		// 	AttachNetworkToCosmos(newNetwork)
 
-			if container.Networks == nil {
-				container.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
-			}
+		// 	if container.Networks == nil {
+		// 		container.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
+		// 	}
 
-			container.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
+		// 	container.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
 
-			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-				Action: "remove",
-				Type:   "network",
-				Name:   newNetwork,
-			})
+		// 	rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+		// 		Action: "remove",
+		// 		Type:   "network",
+		// 		Name:   newNetwork,
+		// 	})
 			
-			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
-			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
-		} else if container.Labels["cosmos-network-name"] != "" {
-			// Container has a declared a Cosmos network, check if it exists and connect to it
-			utils.Log(fmt.Sprintf("Checking declared network %s...", container.Labels["cosmos-network-name"]))
-			OnLog(fmt.Sprintf("Checking declared network %s...\n", container.Labels["cosmos-network-name"]))
+		// 	utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
+		// 	OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
+		// } else if container.Labels["cosmos-network-name"] != "" {
+		// 	// Container has a declared a Cosmos network, check if it exists and connect to it
+		// 	utils.Log(fmt.Sprintf("Checking declared network %s...", container.Labels["cosmos-network-name"]))
+		// 	OnLog(fmt.Sprintf("Checking declared network %s...\n", container.Labels["cosmos-network-name"]))
 
-			_, err := DockerClient.NetworkInspect(DockerContext, container.Labels["cosmos-network-name"], doctype.NetworkInspectOptions{})
-			if err == nil {
-				utils.Log(fmt.Sprintf("Connecting to declared network %s...", container.Labels["cosmos-network-name"]))
-				OnLog(fmt.Sprintf("Connecting to declared network %s...\n", container.Labels["cosmos-network-name"]))
+		// 	_, err := DockerClient.NetworkInspect(DockerContext, container.Labels["cosmos-network-name"], doctype.NetworkInspectOptions{})
+		// 	if err == nil {
+		// 		utils.Log(fmt.Sprintf("Connecting to declared network %s...", container.Labels["cosmos-network-name"]))
+		// 		OnLog(fmt.Sprintf("Connecting to declared network %s...\n", container.Labels["cosmos-network-name"]))
 	
-				AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
-			}
-		}*/
+		// 		AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
+		// 	}
+		// }
 
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
 		OnLog(fmt.Sprintf("Creating container %s...\n", container.Name))
@@ -889,8 +819,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		// connect to networks
 		for netName, netConfig := range container.Networks {
 			utils.Log("CreateService: Connecting to network: " + netName)
-			
-			//TODO: THIS IS WRONG https://pkg.go.dev/github.com/docker/docker@v24.0.7+incompatible/api/types/network#EndpointSettings
 			err = DockerClient.NetworkConnect(DockerContext, netName, container.Name, &network.EndpointSettings{
 				Aliases:     netConfig.Aliases,
 				IPAddress:   netConfig.IPV4Address,

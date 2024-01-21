@@ -3,6 +3,8 @@
  - Improved network IP resolution for containers, including supporting any network mode
  - Integrated MongoDB as container
  - Removed all sort of container bootstrapping (much faster boot)
+ - Added image clean up
+ - Replaced network clean up by vanilla docker prune
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations

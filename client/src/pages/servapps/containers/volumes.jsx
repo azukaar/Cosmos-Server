@@ -85,7 +85,12 @@ const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refre
           if(newContainer) return;
           setSubmitting(true);
           const realvalues = {
-            Volumes: values.volumes
+            Volumes: values.volumes.map((volume) => ({
+              Type: volume.Type,
+              Source: volume.Source,
+              Target: volume.Target,
+              ReadOnly: !volume.RW
+            }))
           };
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)
             .then((res) => {

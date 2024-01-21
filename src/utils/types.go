@@ -147,6 +147,7 @@ type SmartShieldPolicy struct {
 
 type DockerConfig struct {
 	SkipPruneNetwork bool
+	SkipPruneImages bool
 	DefaultDataPath string
 }
 
