@@ -5,6 +5,7 @@
  - Removed all sort of container bootstrapping (much faster boot)
  - Added image clean up
  - Replaced network clean up by vanilla docker prune
+ - Fixed display issue with container having no IP
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations
