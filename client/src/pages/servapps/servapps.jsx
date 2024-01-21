@@ -136,9 +136,9 @@ const ServApps = ({stack}) => {
 
   const servAppsStacked = servApps && servApps.reduce((acc, app) => {
     // if has label cosmos-stack, add to stack
-    if(!stack && (app.Labels['cosmos-stack'] || app.Labels['com.docker.compose.project'])) {
-      let stackName = app.Labels['cosmos-stack'] || app.Labels['com.docker.compose.project'];
-      let stackMain = app.Labels['cosmos-stack-main'] || (app.Labels['com.docker.compose.container-number'] == '1' && app.Names[0].replace('/', ''));
+    if(!stack && (app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'])) {
+      let stackName = app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'];
+      let stackMain = app.Labels['cosmos-stack-main'] ||  app.Labels['cosmos.stack.main'] || (app.Labels['com.docker.compose.container-number'] == '1' && app.Names[0].replace('/', ''));
       
       if(!acc[stackName]) {
         acc[stackName] = {
@@ -190,7 +190,7 @@ const ServApps = ({stack}) => {
       if(stackMain == app.Names[0].replace('/', '') || !acc[stackName].app) {
         acc[stackName].app = app;
       }
-    } else if (!stack || (stack && (app.Labels['cosmos-stack'] === stack || app.Labels['com.docker.compose.project'] === stack))){
+    } else if (!stack || (stack && (app.Labels['cosmos-stack'] === stack || app.Labels['cosmos.stack'] === stack || app.Labels['com.docker.compose.project'] === stack))){
       // else add to default stack
       acc[app.Names[0]] = {
         type: 'app',
@@ -370,55 +370,6 @@ const ServApps = ({stack}) => {
                   })}
                 </Stack>
               </Stack>
-              {app.isUpdating ? <div>
-                  <CircularProgress color="inherit" />
-                </div>
-              :
-                <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
-                  <Typography  variant="h6" color="text.secondary">
-                    Settings {app.type == "app" && (app.state !== 'running' ? '(Start container to edit)' : '')}
-                  </Typography> 
-                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
-                    <Checkbox
-                      checked={app.labels['cosmos-force-network-secured'] === 'true'}
-                      disabled={app.type == "stack" || app.state !== 'running'}
-                      onChange={(e) => {
-                        const name = app.name.replace('/', '');
-                        setIsUpdatingId(name, true);
-                        API.docker.secure(name, e.target.checked).then(() => {
-                          setTimeout(() => {
-                            setIsUpdatingId(name, false);
-                            refreshServApps();
-                          }, 3000);
-                        }).catch(() => {
-                          setIsUpdatingId(name, false);
-                          refreshServApps();
-                        })
-                      }}
-                    /> Isolate Container Network <ContainerNetworkWarning container={app.app} />
-                  </Stack>
-                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
-                    <Checkbox
-                      checked={app.labels['cosmos-auto-update'] === 'true' ||
-                        (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
-                      disabled={app.type == "stack" || app.state !== 'running'}
-                      onChange={(e) => {
-                        const name = app.name.replace('/', '');
-                        setIsUpdatingId(name, true);
-                        API.docker.autoUpdate(name, e.target.checked).then(() => {
-                          setTimeout(() => {
-                            setIsUpdatingId(name, false);
-                            refreshServApps();
-                          }, 3000);
-                        }).catch(() => {
-                          setIsUpdatingId(name, false);
-                          refreshServApps();
-                        })
-                      }}
-                    /> Auto Update Container
-                  </Stack>
-                </Stack>
-              }
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
                   URLs
@@ -443,6 +394,55 @@ const ServApps = ({stack}) => {
                     {/* } */}
                 </Stack>
               </Stack>
+              {app.isUpdating ? <div>
+                  <CircularProgress color="inherit" />
+                </div>
+              :
+                <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
+                  {/* <Typography  variant="h6" color="text.secondary">
+                    Settings {app.type == "app" && (app.state !== 'running' ? '(Start container to edit)' : '')}
+                  </Typography> 
+                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+                    <Checkbox
+                      checked={app.labels['cosmos-force-network-secured'] === 'true'}
+                      disabled={app.type == "stack" || app.state !== 'running'}
+                      onChange={(e) => {
+                        const name = app.name.replace('/', '');
+                        setIsUpdatingId(name, true);
+                        API.docker.secure(name, e.target.checked).then(() => {
+                          setTimeout(() => {
+                            setIsUpdatingId(name, false);
+                            refreshServApps();
+                          }, 3000);
+                        }).catch(() => {
+                          setIsUpdatingId(name, false);
+                          refreshServApps();
+                        })
+                      }}
+                    /> Isolate Container Network <ContainerNetworkWarning container={app.app} />
+                  </Stack> */}
+                  <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+                    <Checkbox
+                      checked={app.labels['cosmos-auto-update'] === 'true' ||
+                        (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
+                      disabled={app.type == "stack" || app.state !== 'running'}
+                      onChange={(e) => {
+                        const name = app.name.replace('/', '');
+                        setIsUpdatingId(name, true);
+                        API.docker.autoUpdate(name, e.target.checked).then(() => {
+                          setTimeout(() => {
+                            setIsUpdatingId(name, false);
+                            refreshServApps();
+                          }, 3000);
+                        }).catch(() => {
+                          setIsUpdatingId(name, false);
+                          refreshServApps();
+                        })
+                      }}
+                    /> Auto Update Container
+                  </Stack>
+                </Stack>
+              }
               <div>
                 <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.cpu." + app.name.replace('/', ''),
@@ -452,6 +452,7 @@ const ServApps = ({stack}) => {
                   ["cosmos.system.docker.ram." + app.name.replace('/', '')]: "RAM"
                 }}/>
               </div>
+ 
               <div>
                 <Link to={app.type === 'stack' ? 
                   `/cosmos-ui/servapps/stack/${app.name}` : 

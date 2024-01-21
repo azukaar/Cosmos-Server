@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
-	
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types"
 	network "github.com/docker/docker/api/types/network"
 	natting "github.com/docker/go-connections/nat"
@@ -393,95 +393,26 @@ var DebouncedNetworkCleanUp = _debounceNetworkCleanUp()
 func NetworkCleanUp() {
 	config := utils.GetMainConfig()
 	
-	if(config.DockerConfig.SkipPruneNetwork) {
-		return
-	}
-
 	DockerNetworkLock <- true
-	defer func() { <-DockerNetworkLock }()
-
+	defer func() { <-DockerNetworkLock }()	
 	
-	utils.Log("Cleaning up orphan networks...")
+	pruneFilters := filters.NewArgs()
 
-	// list every network
-	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
-	if err != nil {
-		utils.Error("NetworkCleanUpList", err)
-		return
+	if(!config.DockerConfig.SkipPruneNetwork) {
+		report, err := DockerClient.NetworksPrune(DockerContext, pruneFilters)
+    if err != nil {
+        utils.Error("[DOCKER] Error pruning networks", err)
+    }
+
+		utils.Log("Pruned networks: " + fmt.Sprintf("%v", report.NetworksDeleted))
 	}
-
-
-	// check if network is empty or has only self as container
-	for _, networkHollow := range networks {
-		utils.Debug("Checking network: " + networkHollow.Name)
-
-		if(networkHollow.Name == "bridge" || networkHollow.Name == "host" || networkHollow.Name == "none") {
-			continue
-		}
-		
-		// inspect network because the Docker API is a complete mess :)
-		network, err := DockerClient.NetworkInspect(DockerContext, networkHollow.ID, types.NetworkInspectOptions{})
+	
+	if(!config.DockerConfig.SkipPruneImages) {
+		report, err := DockerClient.ImagesPrune(DockerContext, pruneFilters)
 		if err != nil {
-			utils.Error("NetworkCleanUpInspect", err)
-			continue
-		}
-
-		if(len(network.Containers) > 1) {
-			continue
-		}
-
-		utils.Debug("Ready to Check network: " + network.Name)
-		
-		if(len(network.Containers) == 0) {
-			utils.Log("Removing orphan network: " + network.Name)
-			err := DockerClient.NetworkRemove(DockerContext, network.ID)
-			if err != nil {
-				utils.Error("DockerNetworkCleanupRemove", err)
-			}
-			continue
-		}
-
-		self := os.Getenv("HOSTNAME")
-		if self == "" {
-			utils.Warn("Skipping zombie network cleanup because not a docker cosmos container")
-			continue
-		}
-
-		utils.Debug("Checking self name: " + self)
-		utils.Debug("Checking non-empty network: " + network.Name)
-		
-		containsCosmos := false
-		for _, container := range network.Containers {
-			utils.Debug("Checking name: " + container.Name)
-			if(container.Name == self) {
-				containsCosmos = true
-			}
+			utils.Error("[DOCKER] Error pruning images", err)
 		}
 		
-		if(containsCosmos) {
-			// docker inspect self
-			selfContainer, err := DockerClient.ContainerInspect(DockerContext, self)
-			if err != nil {
-				utils.Error("NetworkCleanUpInspectSelf", err)
-				continue
-			}
-
-			// check if self is network_mode to this network
-			if(string(selfContainer.HostConfig.NetworkMode) == network.Name) {
-				utils.Warn("Skipping network cleanup because self is network_mode to this network")
-				continue
-			}
-
-			utils.Log("Disconnecting and removing zombie network: " + network.Name)
-			err = DockerClient.NetworkDisconnect(DockerContext, network.ID, self, true)
-			if err != nil {
-				utils.Error("DockerNetworkCleanupDisconnect", err)
-				continue
-			}
-			err = DockerClient.NetworkRemove(DockerContext, network.ID)
-			if err != nil {
-				utils.Error("DockerNetworkCleanupRemove", err)
-			}
-		}
+		utils.Log("Pruned images: " + fmt.Sprintf("%v", report.ImagesDeleted))
 	}
 }
