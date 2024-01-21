@@ -10,8 +10,8 @@ function decodeUnicode(str) {
 const LogLine = ({ message, docker, isMobile }) => {
   let html = decodeUnicode(message)
     .replace('\u0001\u0000\u0000\u0000\u0000\u0000\u0000', '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     .replace(/(?:\r\n|\r|\n)/g, '<br>')
-    .replace(/ /g, '&nbsp;')
     .replace(/�/g, '')
     .replace(/\x1b\[([0-9]{1,2}(?:;[0-9]{1,2})*)?m/g, (match, p1) => {
       if (!p1) {
