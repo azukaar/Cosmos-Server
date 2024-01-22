@@ -19,6 +19,7 @@ import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import ContainerMetrics from '../../dashboard/containerMetrics';
 import EventExplorerStandalone from '../../dashboard/eventsExplorerStandalone';
+import ContainerComposeEdit from './compose-editor';
 
 const ContainerIndex = () => {
   const { containerName } = useParams();
@@ -72,6 +73,10 @@ const ContainerIndex = () => {
         {
           title: 'Terminal',
           children: <DockerTerminal refresh={refreshContainer} containerInfo={container} config={config}/>
+        },
+        {
+          title: 'Compose',
+          children: <ContainerComposeEdit updatesAvailable={updatesAvailable} selfName={selfName} refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
           title: 'Docker',

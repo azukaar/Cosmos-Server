@@ -1,7 +1,7 @@
 import * as React from 'react';
 import MainCard from '../../../components/MainCard';
 import RestartModal from '../../config/users/restart';
-import { Alert, Button, Chip, Divider, Stack, useMediaQuery } from '@mui/material';
+import { Alert, Button, Chip, Divider, Stack, TextField, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
 import { getFaviconURL } from '../../../utils/routes';
@@ -28,7 +28,7 @@ const preStyle = {
   padding: '10px',
   borderRadius: '5px',
   overflow: 'auto',
-  maxHeight: '500px',
+  maxHeight: '520px',
   maxWidth: '100%',
   width: '100%',
   margin: '0',
@@ -52,7 +52,7 @@ const preStyle = {
   opacity: '1',
 }
 
-const NewDockerService = ({service, refresh}) => {
+const NewDockerService = ({service, refresh, edit}) => {
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -61,6 +61,7 @@ const NewDockerService = ({service, refresh}) => {
   const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
   const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
+  const [dockerCompose, setDockerCompose] = React.useState(JSON.stringify(service, null, 2));
 
   const installer = {...service['cosmos-installer']};
   service = {...service};
@@ -84,7 +85,7 @@ const NewDockerService = ({service, refresh}) => {
     setLog([
       'Creating Service...                              ',
     ])
-    API.docker.createService(service, (newlog) => {
+    API.docker.createService(JSON.parse(dockerCompose), (newlog) => {
       setLog((old) => smartDockerLogConcat(old, newlog));
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
@@ -97,7 +98,7 @@ const NewDockerService = ({service, refresh}) => {
   }
 
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
-    <MainCard title="Create Service">
+    <MainCard title={edit ? "Edit Service" : "Create Service - Preview"}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
@@ -105,25 +106,41 @@ const NewDockerService = ({service, refresh}) => {
         variant="contained"
         color="primary"
         fullWidth
-        className='shinyButton'
+        className={edit ? '' : 'shinyButton'}
         loading={log.length && !isDone}
-        startIcon={<PlusCircleOutlined />}
-      >Create</LoadingButton>}
+        startIcon={edit ? <SyncOutlined /> : <PlusCircleOutlined />}
+      >{edit ? 'Edit': 'Create'}</LoadingButton>}
       {isDone && <Stack spacing={1}>
         <Alert severity="success">Service Created!</Alert>
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
           return <Alert severity={m.type}>{m.label}</Alert>
         })}
       </Stack>}
-      <pre style={preStyle} ref={preRef}>
+      {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>Back</Button> : null}
+      {log.length || !edit ? <pre style={preStyle} ref={preRef}>
         {!log.length && `
-# You are about to create the following service(s):
-${JSON.stringify(service, false ,2)}`
+${dockerCompose}`
         }
         {log.map((l) => {
           return <LogLine message={tryParseProgressLog(l)} docker isMobile={!screenMin} />
         })}
-      </pre>
+      </pre> :
+      
+      <TextField
+      multiline
+      placeholder='Paste your docker-compose.yml / cosmos-compose.json here or use the file upload button.'
+      fullWidth
+      value={dockerCompose}
+      onChange={(e) => setDockerCompose(e.target.value)}
+      sx={{...preStyle,
+      }}
+      InputProps={{
+        sx: {
+          color: '#EEE',
+        },
+      }}
+      ></TextField>
+      }
     </Stack>
   </MainCard>
   </div>;

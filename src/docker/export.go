@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"bytes"
+	"errors"
 	"gopkg.in/yaml.v2"
 	"os"
 
@@ -19,41 +20,12 @@ import (
 
 var ExportError = "" 
 
-func ExportDocker() {
-	config := utils.GetMainConfig()
-	if config.NewInstall {
-		return
-	}
-
-	ExportError = "" 
-	
-	errD := Connect()
-	if errD != nil {
-		ExportError = "Export Docker - cannot connect - " + errD.Error()
-		utils.MajorError("ExportDocker - connect - ", errD)
-		return
-	}
-
-	finalBackup := DockerServiceCreateRequest{}
-	
-	// List containers
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
-	if err != nil {
-		utils.MajorError("ExportDocker - Cannot list containers", err)
-		ExportError = "Export Docker - Cannot list containers - " + err.Error()
-		return
-	}
-
-	
-	// Convert the containers into your custom format
-	var services = make(map[string]ContainerCreateRequestContainer)
-	for _, container := range containers {
+func ExportContainer(containerID string) (ContainerCreateRequestContainer, error)  {
 		// Fetch detailed info of each container
-		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, container.ID)
+		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, containerID)
 		if err != nil {
-			utils.MajorError("Export Docker - Cannot inspect container" + container.Names[0], err)
-			ExportError = "Export Docker - Cannot inspect container" + container.Names[0] + " - " + err.Error()
-			return
+			ExportError = "Export Docker - Cannot inspect container" + containerID + " - " + err.Error()
+			return ContainerCreateRequestContainer{}, errors.New(ExportError)
 		}
 
 		// Map the detailedInfo to your ContainerCreateRequestContainer struct
@@ -105,12 +77,12 @@ func ExportDocker() {
 			Volumes: func() []mount.Mount {
 					mounts := []mount.Mount{}
 					for _, m := range detailedInfo.Mounts {
-						  mount := mount.Mount{
-								Type:        m.Type,
-								Source:      m.Source,
-								Target:      m.Destination,
-								ReadOnly:    !m.RW,
-								// Consistency: mount.Consistency(m.Consistency),
+						mount := mount.Mount{
+							Type:        m.Type,
+							Source:      m.Source,
+							Target:      m.Destination,
+							ReadOnly:    !m.RW,
+							// Consistency: mount.Consistency(m.Consistency),
 						}
 
 						if m.Type == "volume" {
@@ -175,8 +147,47 @@ func ExportDocker() {
 		// for _, port := range detailedInfo.Config.ExposedPorts {
 			
 		// }
-		
-		services[strings.TrimPrefix(detailedInfo.Name, "/")] = service
+
+		return service, nil
+}
+
+func ExportDocker() {
+	config := utils.GetMainConfig()
+	if config.NewInstall {
+		return
+	}
+
+	ExportError = "" 
+	
+	errD := Connect()
+	if errD != nil {
+		ExportError = "Export Docker - cannot connect - " + errD.Error()
+		utils.MajorError("ExportDocker - connect - ", errD)
+		return
+	}
+
+	finalBackup := DockerServiceCreateRequest{}
+	
+	// List containers
+	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
+	if err != nil {
+		utils.MajorError("ExportDocker - Cannot list containers", err)
+		ExportError = "Export Docker - Cannot list containers - " + err.Error()
+		return
+	}
+
+	
+	// Convert the containers into your custom format
+	var services = make(map[string]ContainerCreateRequestContainer)
+
+	for _, container := range containers {	
+		service, err := ExportContainer(container.ID)
+		if err != nil {
+			utils.MajorError("ExportDocker - Cannot export container", err)
+			return
+		}
+
+		services[strings.TrimPrefix(service.Name, "/")] = service
 	}
 
 	// List networks

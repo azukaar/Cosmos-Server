@@ -35,7 +35,7 @@ import cmp from 'semver-compare';
 import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
 import { randomString } from '../../../utils/indexs';
-import { has } from 'lodash';
+import { has, set } from 'lodash';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -53,7 +53,7 @@ const preStyle = {
   padding: '10px',
   borderRadius: '5px',
   overflow: 'auto',
-  maxHeight: '500px',
+  maxHeight: '520px',
   maxWidth: '100%',
   width: '100%',
   margin: '0',
@@ -77,101 +77,7 @@ const isNewerVersion = (minver) => {
   return cmp(version, minver) === -1;
 }
 
-const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
-  const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
-  const [step, setStep] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
-  const [dockerCompose, setDockerCompose] = useState('');
-  const [service, setService] = useState({});
-  const [ymlError, setYmlError] = useState('');
-  const [serviceName, setServiceName] = useState(cleanDefaultName || 'my-service');
-  const [hostnames, setHostnames] = useState({});
-  const [overrides, setOverrides] = useState({});
-  const [context, setContext] = useState({});
-  const [installer, setInstaller] = useState(installerInit);
-  const [config, setConfig] = useState({});
-
-  let hostnameErrors = () => {
-    let broken = false;
-    Object.values(hostnames).forEach((service) => {
-      Object.values(service).forEach((route) => {
-        if(!route.host || route.host.match(/\s/g)) {
-          broken = true;
-        }
-      });
-    });
-    return broken;
-  }
-
-  const [passwords, setPasswords] = useState([
-    randomString(24),
-    randomString(24),
-    randomString(24),
-    randomString(24)
-  ]);
-
-  const resetPassword = () => {
-    setPasswords([
-      randomString(24),
-      randomString(24),
-      randomString(24),
-      randomString(24)
-    ]);
-  }
-
-
-  function refreshConfig() {
-    API.config.get().then((res) => {
-      setConfig(res.data);
-    });
-  }
-
-  React.useEffect(() => {
-    refreshConfig();
-  }, []);
-
-  useEffect(() => {
-    if (!openModal) {
-      return;
-    }
-    if(dockerComposeInit)
-      fetch(dockerComposeInit)
-        .then((res) => res.text())
-        .then((text) => {
-          setDockerCompose(text);
-      });
-  }, [openModal, dockerComposeInit]);
-
-  useEffect(() => {
-    if (!openModal || installer) {
-      return;
-    }
-
-    setYmlError('');
-    if (dockerCompose === '') {
-      return;
-    }
-
-    let isJson = dockerCompose && dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}');
-
-    if (isJson) {
-      if (dockerCompose.trim().match(/{\n*\s*"cosmos-installer"\s*:\s*{/)) {
-        setInstaller(true);
-        return;
-      }
-      try {
-        let doc = JSON.parse(dockerCompose);
-        if(typeof doc['cosmos-installer'] === 'object') {
-          setInstaller(true);
-        }
-        setService(doc);
-      } catch (e) {
-        setYmlError(e.message);
-      }
-    }
-    else {
-      // if Yml
+const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) => {
       let doc;
 
       try {
@@ -408,7 +314,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             Object.keys(doc.services).forEach((key) => {
               if(!hasMain) {
                 if(doc.services[key].labels['cosmos.stack'] == serviceName) {
-                  doc.services[key].labels['cosmos.stack.main'] = true;
+                  doc.services[key].labels['cosmos.stack.main'] = "true";
                   hasMain = true;
                 }
               }
@@ -416,14 +322,101 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           }
         }
 
+        // cosmos features
+        if (doc.services) {
+          Object.keys(doc.services).forEach((key) => {
+            if(doc.services[key]['x-routes']) {
+              doc.services[key].routes = doc.services[key]['x-routes'];
+              delete doc.services[key]['x-routes'];
+            }
+          });
+          
+          if(doc.services['x-post_install']) {
+            doc['cosmos-installer'] = {
+              post_install: doc.services['x-post_install'],
+            }
+            delete doc.services['x-post_install'];
+          }
+        }
+        
+        // enable market features
+        if (doc['x-cosmos-installer']) {
+          doc['cosmos-installer'] = doc['x-cosmos-installer'];
+          delete doc['x-cosmos-installer'];
+        }
+
+        return doc;
       } catch (e) {
         setYmlError(e.message);
         return;
       }
+}
 
-      setService(doc);
+const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
+  const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
+  const [step, setStep] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [dockerCompose, setDockerCompose] = useState('');
+  const [service, setService] = useState({});
+  const [ymlError, setYmlError] = useState('');
+  const [serviceName, setServiceName] = useState(null);
+  const [hostnames, setHostnames] = useState({});
+  const [overrides, setOverrides] = useState({});
+  const [context, setContext] = useState({});
+  const [installer, setInstaller] = useState(installerInit);
+  const [config, setConfig] = useState({});
+
+  let hostnameErrors = () => {
+    let broken = false;
+    Object.values(hostnames).forEach((service) => {
+      Object.values(service).forEach((route) => {
+        if(!route.host || route.host.match(/\s/g)) {
+          broken = true;
+        }
+      });
+    });
+    return broken;
+  }
+
+  const [passwords, setPasswords] = useState([
+    randomString(24),
+    randomString(24),
+    randomString(24),
+    randomString(24)
+  ]);
+
+  const resetPassword = () => {
+    setPasswords([
+      randomString(24),
+      randomString(24),
+      randomString(24),
+      randomString(24)
+    ]);
+  }
+
+
+  function refreshConfig() {
+    API.config.get().then((res) => {
+      setConfig(res.data);
+    });
+  }
+
+  React.useEffect(() => {
+    refreshConfig();
+  }, []);
+
+  useEffect(() => {
+    if (!openModal) {
+      return;
     }
-  }, [openModal, dockerCompose]);
+    if(dockerComposeInit)
+      fetch(dockerComposeInit)
+        .then((res) => res.text())
+        .then((text) => {
+          setDockerCompose(text);
+      });
+  }, [openModal, dockerComposeInit]);
 
   useEffect(() => {
     setOverrides({});
@@ -434,19 +427,43 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       return;
     }
 
-    try {
-      if (installer) {
-        const rendered = whiskers.render(dockerCompose.replace(/{StaticServiceName}/ig, serviceName), {
-          ServiceName: serviceName,
-          Hostnames: hostnames,
-          Context: context,
-          Passwords: passwords,
-          CPU_ARCH: API.CPU_ARCH,
-          CPU_AVX: API.CPU_AVX,
-          DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
-        });
+      setYmlError('');
+      if (dockerCompose === '') {
+        return;
+      }
+    
+    let isJson = dockerCompose && dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}');
 
-        const jsoned = JSON.parse(rendered);
+    try {
+      const rendered = whiskers.render(dockerCompose.replace(/{StaticServiceName}/ig, serviceName), {
+        ServiceName: serviceName,
+        Hostnames: hostnames,
+        Context: context,
+        Passwords: passwords,
+        CPU_ARCH: API.CPU_ARCH,
+        CPU_AVX: API.CPU_AVX,
+        DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
+      });
+
+      let jsoned;
+      if(isJson) {
+        jsoned = JSON.parse(rendered);
+      } else {
+        jsoned = convertDockerCompose(config, serviceName, rendered, setYmlError);
+      }
+
+      if(!serviceName) {
+        if(jsoned['name'] && jsoned['name'].trim() !== '') {
+          setServiceName(jsoned['name']);
+        } else if (jsoned['services'] && Object.keys(jsoned['services']).length > 0) {
+          setServiceName(Object.keys(jsoned['services'])[0]);
+        } else {
+          setServiceName(cleanDefaultName || 'default-name');
+        }
+      }
+
+      if (typeof jsoned['cosmos-installer'] === 'object' || typeof jsoned['x-cosmos-installer'] === 'object') {
+        setInstaller(true);
 
         if (jsoned.services) {
           // GENERATE HOSTNAMES FORM
@@ -549,6 +566,12 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         }
 
         setService(jsoned);
+      } else {
+        if(!isJson) {
+          setService(convertDockerCompose(config, serviceName, dockerCompose, setYmlError));
+        } else {
+          setService(JSON.parse(dockerCompose));
+        }
       }
     } catch (e) {
       setYmlError(e.message);
@@ -566,7 +589,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     setContext({});
     setDockerCompose('');
     setInstaller(installerInit);
-    setServiceName(cleanDefaultName || 'default-name');
+    setServiceName(null);
     resetPassword();
   }
 
@@ -606,7 +629,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                   color: '#EEE',
                 }
               }}
-              rows={20}></TextField>
+              minRows={20}></TextField>
           </Stack></>}
 
           {step === 0 && installer && <><Stack spacing={2}>
@@ -806,7 +829,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           setDockerCompose('');
           setYmlError('');
           setInstaller(false);
-          setServiceName('');
+          setServiceName(null);
           setContext({});
           setHostnames({});
           setOverrides({});

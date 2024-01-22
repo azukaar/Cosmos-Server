@@ -111,6 +111,16 @@ function updateContainer(containerId, values) {
   }))
 }
 
+function exportContainer(containerId, values) {
+  return wrap(fetch('/cosmos/api/servapps/' + containerId + '/export', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
 function listContainerNetworks(containerId) {
   return wrap(fetch('/cosmos/api/servapps/' + containerId + '/networks', {
     method: 'GET',
@@ -349,4 +359,5 @@ export {
   pullImage,
   autoUpdate,
   updateContainerImage,
+  exportContainer,
 };
