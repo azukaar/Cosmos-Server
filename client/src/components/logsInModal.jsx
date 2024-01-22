@@ -16,7 +16,7 @@ const preStyle = {
   padding: '10px',
   borderRadius: '5px',
   overflow: 'auto',
-  maxHeight: '500px',
+  maxHeight: '520px',
   maxWidth: '100%',
   width: '100%',
   margin: '0',

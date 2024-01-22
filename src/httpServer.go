@@ -391,6 +391,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/terminal/{action}", docker.TerminalRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)
+	srapi.HandleFunc("/api/servapps/{containerId}/export", docker.ExportContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
 	srapi.HandleFunc("/api/servapps/{containerId}/network/{networkId}", docker.NetworkContainerRoutes)
 	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)

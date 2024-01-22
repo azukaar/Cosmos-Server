@@ -1,11 +1,12 @@
 ## Version 0.14.0
- - Cosmos is now fully dockerless
+ - Cosmos is now fully functional dockerless
+ - Reworked Cosmos Compose for better compatibility with docker-compose.yml files
+ - Added a "compose" tab to edit containers in text mode
  - Improved network IP resolution for containers, including supporting any network mode
- - Integrated MongoDB as container
+ - Added support for markets and template directly with docker-compose.yml files
  - Removed all sort of container bootstrapping (much faster boot)
  - Added image clean up
  - Replaced network clean up by vanilla docker prune
- - Fixed display issue with container having no IP
 
 ## Version 0.13.0
  - Display container stacks as a group in the UI

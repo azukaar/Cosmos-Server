@@ -145,7 +145,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             </strong>
             <div style={info}>{healthStatus}</div>
             <strong><SettingOutlined /> Settings {State.Status !== 'running' ? '(Start container to edit)' : ''}</strong>
-            <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
+            {/* <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
                 checked={Config.Labels['cosmos-force-network-secured'] === 'true'}
                 disabled={isUpdating}
@@ -158,7 +158,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                   })
                 }}
               /> Isolate Container Network
-            </Stack>
+            </Stack> */}
             <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
                 checked={Config.Labels['cosmos-auto-update'] === 'true'  ||
