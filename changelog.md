@@ -1,3 +1,6 @@
+## Version 0.13.2
+ - Fix display issue with fault network configurations
+
 ## Version 0.13.1
  - Fix a security issue with token (thansk @vncloudsco)
 
