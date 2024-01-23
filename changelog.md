@@ -7,6 +7,7 @@
  - Removed all sort of container bootstrapping (much faster boot)
  - Added image clean up
  - Replaced network clean up by vanilla docker prune
+ - Force low RAM usage on the MongoDB container (we don't need much!)
 
 ## Version 0.13.0
  - Display container stacks as a group in the UI
