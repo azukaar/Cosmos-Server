@@ -422,50 +422,49 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
 		// If container request a Cosmos network, create and attach it
-		// if (container.Labels["cosmos-force-network-secured"] == "true" || strings.ToLower(container.Labels["cosmos-network-name"]) == "auto") &&
-		// 			container.Labels["cosmos-network-name"] == "" {
-		// 	utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
-		// 	OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
+		if strings.ToLower(container.Labels["cosmos-network-name"]) == "auto" {
+			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))
+			OnLog(fmt.Sprintf("Forcing secure %s...\n", serviceName))
 	
-		// 	newNetwork, errNC := CreateCosmosNetwork(serviceName)
-		// 	if errNC != nil {
-		// 		utils.Error("CreateService: Network", err)
-		// 		OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))
-		// 		Rollback(rollbackActions, OnLog)
-		// 		return err
-		// 	}
+			newNetwork, errNC := CreateCosmosNetwork(serviceName)
+			if errNC != nil {
+				utils.Error("CreateService: Network", err)
+				OnLog(utils.DoErr("Network %s cant be created\n", newNetwork))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
 
-		// 	container.Labels["cosmos-network-name"] = newNetwork
+			container.Labels["cosmos-network-name"] = newNetwork
 
-		// 	AttachNetworkToCosmos(newNetwork)
+			AttachNetworkToCosmos(newNetwork)
 
-		// 	if container.Networks == nil {
-		// 		container.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
-		// 	}
+			if container.Networks == nil {
+				container.Networks = make(map[string]ContainerCreateRequestServiceNetwork)
+			}
 
-		// 	container.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
+			container.Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
 
-		// 	rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
-		// 		Action: "remove",
-		// 		Type:   "network",
-		// 		Name:   newNetwork,
-		// 	})
+			rollbackActions = append(rollbackActions, DockerServiceCreateRollback{
+				Action: "remove",
+				Type:   "network",
+				Name:   newNetwork,
+			})
 			
-		// 	utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
-		// 	OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
-		// } else if container.Labels["cosmos-network-name"] != "" {
-		// 	// Container has a declared a Cosmos network, check if it exists and connect to it
-		// 	utils.Log(fmt.Sprintf("Checking declared network %s...", container.Labels["cosmos-network-name"]))
-		// 	OnLog(fmt.Sprintf("Checking declared network %s...\n", container.Labels["cosmos-network-name"]))
+			utils.Log(fmt.Sprintf("Created secure network %s", newNetwork))
+			OnLog(fmt.Sprintf("Created secure network %s\n", newNetwork))
+		} else if container.Labels["cosmos-network-name"] != "" {
+			// Container has a declared a Cosmos network, check if it exists and connect to it
+			utils.Log(fmt.Sprintf("Checking declared network %s...", container.Labels["cosmos-network-name"]))
+			OnLog(fmt.Sprintf("Checking declared network %s...\n", container.Labels["cosmos-network-name"]))
 
-		// 	_, err := DockerClient.NetworkInspect(DockerContext, container.Labels["cosmos-network-name"], doctype.NetworkInspectOptions{})
-		// 	if err == nil {
-		// 		utils.Log(fmt.Sprintf("Connecting to declared network %s...", container.Labels["cosmos-network-name"]))
-		// 		OnLog(fmt.Sprintf("Connecting to declared network %s...\n", container.Labels["cosmos-network-name"]))
+			_, err := DockerClient.NetworkInspect(DockerContext, container.Labels["cosmos-network-name"], doctype.NetworkInspectOptions{})
+			if err == nil {
+				utils.Log(fmt.Sprintf("Connecting to declared network %s...", container.Labels["cosmos-network-name"]))
+				OnLog(fmt.Sprintf("Connecting to declared network %s...\n", container.Labels["cosmos-network-name"]))
 	
-		// 		AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
-		// 	}
-		// }
+				AttachNetworkToCosmos(container.Labels["cosmos-network-name"])
+			}
+		}
 
 		utils.Log(fmt.Sprintf("Creating container %s...", container.Name))
 		OnLog(fmt.Sprintf("Creating container %s...\n", container.Name))

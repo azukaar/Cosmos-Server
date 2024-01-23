@@ -30,11 +30,14 @@ var NewVersionAvailable = false
 
 var NeedsRestart = false
 
+var IsHostNetwork = false
+
 var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer func()
 // var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
+var CheckDockerNetworkMode func() string
 
 var LetsEncryptErrors = []string{}
 
@@ -678,4 +681,8 @@ func IsDomain(domain string) bool {
 		return true
 	}
 	return false
+}
+
+func CheckHostNetwork() {
+  IsHostNetwork =	CheckDockerNetworkMode() == "host"
 }

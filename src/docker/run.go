@@ -40,7 +40,7 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageName := "mongo:latest"
+	imageName := "mongo:6"
 	
 	//if ARM use arm64v8/mongo
 	if runtime.GOARCH == "arm64" {
@@ -56,18 +56,21 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 	service := DockerServiceCreateRequest{
 		Services: map[string]ContainerCreateRequestContainer {},
 	}
+	
 
 	service.Services[monHost] = ContainerCreateRequestContainer{
 		Name: monHost,
 		Image: imageName,
 		RestartPolicy: "always",
+		// Command: "--wiredTigerCacheSizeGB 0.25",
 		Environment: []string{
 			"MONGO_INITDB_ROOT_USERNAME=" + mongoUser,
 			"MONGO_INITDB_ROOT_PASSWORD=" + mongoPass,
 		},
 		Labels: map[string]string{
-			"cosmos-force-network-secured": "true",
+			"cosmos-auto-update": "true",
 		},
+		Networks: map[string]ContainerCreateRequestServiceNetwork{},
 		Volumes: []mount.Mount{
 			{
 				Type:   mount.TypeVolume,
@@ -82,6 +85,21 @@ func NewDB(w http.ResponseWriter, req *http.Request) (string, error) {
 		},
 	};
 
+	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
+		newNetwork, errNC := CreateCosmosNetwork(monHost)
+		if errNC != nil {
+			utils.Error("CreateService: Network", errNC)
+			fmt.Fprintf(w, "CreateService: Network: %s\n", errNC)
+			flusher.Flush()
+			return "", errNC
+		}
+	
+		service.Services[monHost].Labels["cosmos-network-name"] = newNetwork
+		service.Services[monHost].Networks[newNetwork] = ContainerCreateRequestServiceNetwork{}
+ 		
+		AttachNetworkToCosmos(newNetwork)
+	}
+	
 	err := CreateService(service, 
 		func (msg string) {
 			utils.Log(msg)
