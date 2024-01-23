@@ -6,6 +6,7 @@ import (
 	"errors"
 	"sync"
 	"time"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -43,11 +44,21 @@ func DB() error {
 
 	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
 		hostname := opts.Hosts[0]
-		Log("Getting Mongo DB IP from name : " + hostname)
+		// split port
+		hostnameParts := strings.Split(hostname, ":")
+		hostname = hostnameParts[0]
+		port := "27017" 
+
+		if len(hostnameParts) > 1 {
+			port = hostnameParts[1]
+		}
+
+		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
+
 		ip, _ := GetContainerIPByName(hostname)
 		if ip != "" {
 			IsDBaContainer = true
-			opts.SetHosts([]string{ip + ":27017"})
+			opts.SetHosts([]string{ip + ":" + port})
 			Log("Mongo DB IP : " + ip)
 		}
 	}
