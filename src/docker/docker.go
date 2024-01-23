@@ -827,3 +827,20 @@ func Stats(container types.Container) (ContainerStats, error) {
 			return
 		}
 	}
+
+	func CheckDockerNetworkMode() string {
+		if os.Getenv("HOSTNAME") != "" {
+			errD := Connect()
+			if errD != nil {
+				utils.Error("Checking Host Network", errD)
+				return ""
+			}
+
+			container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+			if err != nil {
+				utils.Error("Checking Host Network", err)
+			}
+			return string(container.HostConfig.NetworkMode)
+		}
+		return ""
+	}

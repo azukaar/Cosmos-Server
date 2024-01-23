@@ -451,11 +451,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       } else {
         jsoned = convertDockerCompose(config, serviceName, rendered, setYmlError);
       }
-
-      if(!serviceName) {
+      
+      if(!serviceName && !Object.keys(service).length) {
         if(jsoned['name'] && jsoned['name'].trim() !== '') {
           setServiceName(jsoned['name']);
-        } else if (jsoned['services'] && Object.keys(jsoned['services']).length > 0) {
+        } else if (jsoned['services'] && Object.keys(jsoned['services']).length > 0 && Object.keys(jsoned['services'])[0].trim() !== '') {
           setServiceName(Object.keys(jsoned['services'])[0]);
         } else {
           setServiceName(cleanDefaultName || 'default-name');
@@ -639,7 +639,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
             {!ymlError && (<><FormLabel>Choose your service name</FormLabel>
 
-              <TextField label="Service Name" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
+              <TextField label="" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
 
               {service['cosmos-installer'] && service['cosmos-installer'].form && service['cosmos-installer'].form.map((formElement) => {
                 return formElement.type === 'checkbox' ?

@@ -41,7 +41,7 @@ func DB() error {
 
 	IsDBaContainer = false
 
-	if os.Getenv("HOSTNAME") == "" {
+	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
 		hostname := opts.Hosts[0]
 		Log("Getting Mongo DB IP from name : " + hostname)
 		ip, _ := GetContainerIPByName(hostname)

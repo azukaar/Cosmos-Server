@@ -316,6 +316,13 @@ const HomePage = () => {
                 </Alert>
             )}
 
+            {isAdmin && coStatus && !coStatus.hostmode && (
+                <Alert severity="warning">
+                    Your Cosmos server is not running in the docker host network mode.
+                    This will make your life harder, consider switching the network mode to host mode on the cosmos container.  
+                </Alert>
+            )}
+
             {isAdmin && coStatus && coStatus.needsRestart && (
                 <Alert severity="warning">
                     You have made changes to the configuration that require a restart to take effect. Please restart Cosmos to apply the changes.

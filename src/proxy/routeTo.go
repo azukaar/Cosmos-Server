@@ -70,7 +70,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		req.URL.Scheme = url.Scheme
 		req.URL.Host = url.Host
 		
-		if route.Mode == "SERVAPP" && os.Getenv("HOSTNAME") == "" {
+		if route.Mode == "SERVAPP" && (os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork) {
 			targetHost := url.Hostname()
 
 			targetIP, err := docker.GetContainerIPByName(targetHost)

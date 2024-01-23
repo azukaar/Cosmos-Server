@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"encoding/json"
+	"os"
 	"runtime"
 	"golang.org/x/sys/cpu"
 
@@ -51,6 +52,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 					// "disk": utils.GetDiskUsage(),
 					// "network": utils.GetNetworkUsage(),
 				},
+				"hostmode": utils.IsHostNetwork || os.Getenv("HOSTNAME") == "",
 				"database": databaseStatus,
 				"docker": docker.DockerIsConnected,
 				"backup_status": docker.ExportError,

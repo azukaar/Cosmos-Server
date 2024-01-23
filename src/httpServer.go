@@ -508,6 +508,8 @@ func RestartServer() {
 	utils.Log("Restarting HTTP Server...")
 	LoadConfig()
 
+	docker.BootstrapAllContainersFromTags()
+
 	go func() {
 		if HTTPServer2 != nil {
 			HTTPServer2.Shutdown(context.Background())

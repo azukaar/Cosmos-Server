@@ -19,11 +19,13 @@ func main() {
 	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
 	utils.PushShieldMetrics = metrics.PushShieldMetrics
 	utils.GetContainerIPByName = docker.GetContainerIPByName
+	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 
 	rand.Seed(time.Now().UnixNano())
 
 	LoadConfig()
 
+	utils.CheckHostNetwork()
 	utils.InitDBBuffers()
 	
 	go CRON()
