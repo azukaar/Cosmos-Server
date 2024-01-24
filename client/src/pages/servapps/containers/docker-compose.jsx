@@ -35,7 +35,6 @@ import cmp from 'semver-compare';
 import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
 import { randomString } from '../../../utils/indexs';
-import { has, set } from 'lodash';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {

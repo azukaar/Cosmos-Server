@@ -27,7 +27,6 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
-import { map } from 'lodash';
 import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../utils/routes';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import HostChip from '../../components/hostChip';

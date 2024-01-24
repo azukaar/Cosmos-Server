@@ -18,7 +18,6 @@ import LogsInModal from '../../components/logsInModal';
 import { CosmosCheckbox, CosmosInputPassword, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
-import { pull } from 'lodash';
 import { isDomain, redirectTo, redirectToLocal } from '../../utils/indexs';
 import { DnsChallengeComp } from '../../utils/dns-challenge-comp';
 // ================================|| LOGIN ||================================ //
