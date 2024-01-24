@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
 import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
-import Chart from 'react-apexcharts';
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
@@ -401,7 +401,7 @@ const HomePage = () => {
                                 <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
@@ -424,7 +424,7 @@ const HomePage = () => {
                                     <div>used: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100

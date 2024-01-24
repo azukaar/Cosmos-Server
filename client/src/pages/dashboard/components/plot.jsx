@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, useEffect, useState } from 'react';
 // material-ui
 import {
   Avatar,
@@ -23,7 +23,7 @@ import MainCard from '../../../components/MainCard';
 import { useTheme } from '@mui/material/styles';
 
 // third-party
-import ReactApexChart from 'react-apexcharts';
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { FormaterForMetric, toUTC } from './utils';
 
 

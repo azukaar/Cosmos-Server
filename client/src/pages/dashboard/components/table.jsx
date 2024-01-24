@@ -34,7 +34,6 @@ import MainCard from '../../../components/MainCard';
 import { useTheme } from '@mui/material/styles';
 
 // third-party
-import ReactApexChart from 'react-apexcharts';
 import { object } from 'prop-types';
 import { FormaterForMetric } from './utils';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
