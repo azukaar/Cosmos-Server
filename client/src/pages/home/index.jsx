@@ -9,7 +9,6 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
-import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
 const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { useClientInfos } from "../../utils/hooks";
@@ -277,7 +276,6 @@ const HomePage = () => {
     }
 
     return <Stack spacing={2} style={{maxWidth: '1450px', margin:'auto'}}>
-        <IsLoggedIn />
         <HomeBackground status={coStatus} />
         <TransparentHeader />
 

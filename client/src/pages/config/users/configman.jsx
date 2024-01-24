@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../../isLoggedIn';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
@@ -60,8 +59,6 @@ const ConfigManagement = () => {
   }, []);
 
   return <div style={{maxWidth: '1000px', margin: ''}}>
-    <IsLoggedIn />
-
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();

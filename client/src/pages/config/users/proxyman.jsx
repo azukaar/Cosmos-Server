@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../../isLoggedIn';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
@@ -144,7 +143,6 @@ const ProxyManagement = () => {
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
   return <div style={{   }}>
-    <IsLoggedIn />
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();

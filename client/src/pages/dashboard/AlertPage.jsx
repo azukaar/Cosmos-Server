@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../isLoggedIn';
 import * as API from '../../api';
 import MainCard from '../../components/MainCard';
 import { Formik, Field, useFormik, FormikProvider } from 'formik';
@@ -400,8 +399,6 @@ const AlertPage = () => {
   }
 
   return <div style={{maxWidth: '1200px', margin: ''}}>
-    <IsLoggedIn />
-
     {openModal && <EditAlertModal open={openModal} onClose={() => setOpenModal(false)} onSave={saveAlert} />}
 
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>

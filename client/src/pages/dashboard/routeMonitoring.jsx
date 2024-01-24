@@ -21,8 +21,6 @@ import {
     CircularProgress
 } from '@mui/material';
 
-import IsLoggedIn from '../../isLoggedIn';
-
 import * as API from '../../api';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import PlotComponent from './components/plot';
@@ -144,7 +142,6 @@ const RouteMetrics = ({routeName}) => {
 
     return (
         <>
-        <IsLoggedIn />
         {!metrics && <Box style={{
           width: '100%',
           height: '100%',

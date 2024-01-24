@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 
 // project import
+import PrivateRoute from '../PrivateRoute';
 import Loadable from '../components/Loadable';
 import MainLayout from '../layout/MainLayout';
 import UserManagement from '../pages/config/users/usermanagement';
@@ -16,7 +17,6 @@ import NewDockerServiceForm from '../pages/servapps/containers/newServiceForm';
 import OpenIdList from '../pages/openid/openid-list';
 import MarketPage from '../pages/market/listing';
 import ConstellationIndex  from '../pages/constellation';
-
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -93,7 +93,10 @@ const MainRoutes = {
             path: '/cosmos-ui/market-listing/:appStore/:appName',
             element: <MarketPage />
         }
-    ]
+    ].map(children => ({
+        ...children,
+        element: PrivateRoute({ children: children.element })
+    }))
 };
 
 export default MainRoutes;

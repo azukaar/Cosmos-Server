@@ -6,7 +6,6 @@ import { RouteMode, RouteSecurity } from '../../components/routeComponents';
 import { getFaviconURL } from '../../utils/routes';
 import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
-import IsLoggedIn from '../../isLoggedIn';
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
 
@@ -18,8 +17,6 @@ const ConstellationIndex = () => {
   const isAdmin = role === "2";
 
   return isAdmin ? <div>
-    <IsLoggedIn />
-    
     <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
         {
           title: 'VPN',

@@ -7,7 +7,6 @@ import { Checkbox, Grid, Stack, Typography } from '@mui/material';
 import AuthLogin from './auth-forms/AuthLogin';
 import AuthWrapper from './AuthWrapper';
 import { getFaviconURL } from '../../utils/routes';
-import IsLoggedIn from '../../isLoggedIn';
 import { LoadingButton } from '@mui/lab';
 import { Field, useFormik } from 'formik';
 import { useState } from 'react';
@@ -52,7 +51,6 @@ const OpenID = () => {
   }      
 
   return (<AuthWrapper>
-    <IsLoggedIn />
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Stack spacing={2}>
