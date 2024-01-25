@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 import Back from "../../components/back";
 import { Alert, Box, CircularProgress, Grid, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { lazy, useEffect, useState } from "react";
 import * as API from "../../api";
 import wallpaper from '../../assets/images/wallpaper2.jpg';
 import wallpaperLight from '../../assets/images/wallpaper2_light.jpg';
