@@ -3,6 +3,7 @@ module github.com/azukaar/cosmos-server
 go 1.20
 
 require (
+	github.com/256dpi/lungo v0.3.5
 	github.com/Masterminds/semver v1.5.0
 	github.com/docker/cli v24.0.5+incompatible
 	github.com/docker/docker v23.0.3+incompatible
@@ -25,7 +26,7 @@ require (
 	github.com/roberthodgen/spa-server v0.0.0-20171007154335-bb87b4ff3253
 	github.com/shirou/gopsutil/v3 v3.23.9
 	go.deanishe.net/favicon v0.1.0
-	go.mongodb.org/mongo-driver v1.11.3
+	go.mongodb.org/mongo-driver v1.11.7
 	golang.org/x/crypto v0.10.0
 	golang.org/x/net v0.11.0
 	golang.org/x/sys v0.12.0
@@ -183,6 +184,7 @@ require (
 	github.com/sacloud/packages-go v0.0.9 // indirect
 	github.com/scaleway/scaleway-sdk-go v1.0.0-beta.17 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/smartystreets/go-aws-auth v0.0.0-20180515143844-0c1422d1fdb9 // indirect
 	github.com/softlayer/softlayer-go v1.1.2 // indirect
@@ -197,6 +199,7 @@ require (
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common v1.0.490 // indirect
 	github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod v1.0.490 // indirect
+	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/transip/gotransip/v6 v6.20.0 // indirect

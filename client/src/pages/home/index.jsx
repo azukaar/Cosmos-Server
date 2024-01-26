@@ -284,8 +284,7 @@ const HomePage = () => {
         <Stack style={{ zIndex: 2, padding: '0px 8px'}} spacing={1}>
             {isAdmin && coStatus && !coStatus.database && (
                 <Alert severity="error">
-                    No Database is setup for Cosmos! User Management and Authentication will not work.<br />
-                    You can either setup the database, or disable user management in the configuration panel.<br />
+                    Database cannot connect, this will impact multiple feature of Cosmos. Please fix ASAP!
                 </Alert>
             )}
 

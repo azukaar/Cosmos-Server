@@ -41,7 +41,8 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 
 		utils.Log("ConstellationDeviceBlocking: Blocking Device " + deviceName)
 
-		c, errCo := utils.GetCollection(utils.GetRootAppId(), "devices")
+		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+  defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

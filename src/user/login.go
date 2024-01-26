@@ -35,7 +35,8 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+  defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database Error", http.StatusInternalServerError, "DB001")

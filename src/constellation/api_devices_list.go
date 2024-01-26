@@ -3,6 +3,7 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
+	"fmt"
 
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -22,7 +23,8 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 	isAdmin := utils.IsAdmin(req)
 	
 	// Connect to the collection
-	c, errCo := utils.GetCollection(utils.GetRootAppId(), "devices")
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+  defer closeDb()
 	if errCo != nil {
 		utils.Error("Database Connect", errCo)
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -47,6 +49,8 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL002")
 			return
 		}
+
+		fmt.Println(devices)
 	} else {
 		// If not admin, get user's devices based on their nickname
 		nickname := req.Header.Get("x-cosmos-user")

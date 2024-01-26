@@ -41,7 +41,8 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) {
 
 		utils.Debug("Sending password reset to: " + nickname)
 		
-		c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+  defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
