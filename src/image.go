@@ -9,10 +9,13 @@ import (
 	"encoding/json"
 	"strings"
 	"fmt"
+	"context"
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/azukaar/cosmos-server/src/docker" 
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var validExtensions = map[string]bool{
@@ -230,5 +233,119 @@ func MigratePre013() {
 			config.HomepageConfig.Background = "/cosmos/api/image/background." + ext
 			utils.SetBaseMainConfig(config)
 		}
+	}
+}
+
+func CommitMigrationPre014() {
+	config := utils.ReadConfigFromFile()
+	config.LastMigration = "0.14.0"
+	utils.SetBaseMainConfig(config)
+}
+
+func MigratePre014() {
+	config := utils.ReadConfigFromFile()
+	if config.LastMigration != "" {
+		c, err := utils.CompareSemver(config.LastMigration, "0.14.0")
+		if err != nil {
+			utils.Fatal("Can't read field 'lastMigration' from config", err)
+		}
+		if(c > 0) {
+			return
+		}
+	}
+
+	if _, err := os.Stat(utils.CONFIGFOLDER + "database"); err != nil {
+		utils.Log("MigratePre014: No database found, trying to migrate pre-0.14 data")
+
+		cu2, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+		if errCo != nil {
+			// Assuming we dont need to migrate
+			utils.Log("MigratePre014: No database, assuming we dont need to migrate")
+			utils.Debug(errCo.Error())
+			CommitMigrationPre014()
+			return
+		}
+
+		cd2, errCo := utils.GetCollection(utils.GetRootAppId(), "devices")
+		if errCo != nil {
+			// Assuming we dont need to migrate
+			utils.Log("MigratePre014: No database, assuming we dont need to migrate")
+			utils.Debug(errCo.Error())
+			CommitMigrationPre014()
+			return
+		}
+
+		utils.Log("MigratePre014: Migrating pre-0.14 data")
+
+		cu, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+
+		if errCo != nil {
+			utils.Fatal("Error trying to migrate pre-0.14 data [1]", errCo)
+			return
+		}
+
+		// copy users from cu2 to cu
+		cursor, err := cu2.Find(nil, map[string]interface{}{})
+		if err != nil && err != mongo.ErrNoDocuments {
+			utils.Fatal("Error trying to migrate pre-0.14 data [3]", err)
+			return
+		}
+		defer cursor.Close(nil)
+
+		users := []utils.User{}
+
+		if err = cursor.All(nil, &users); err != nil {
+			utils.Fatal("Error trying to migrate pre-0.14 data [4]", err)
+			return
+		}
+
+		for _, user := range users {
+			_, err := cu.InsertOne(nil, user)
+			if err != nil {
+				utils.Fatal("Error trying to migrate pre-0.14 data [5]", err)
+				return
+			}
+		}
+		
+		closeDb()
+
+		utils.Log("MigratePre014: Migrated " + fmt.Sprint(len(users)) + " users")
+		
+		
+		cd, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+		defer closeDb()
+
+		if errCo != nil {
+			utils.Fatal("Error trying to migrate pre-0.14 data [2]", errCo)
+			return
+		}
+
+		// copy devices from cd2 to cd
+		cursor, err = cd2.Find(nil, map[string]interface{}{})
+		if err != nil && err != mongo.ErrNoDocuments {
+			utils.Fatal("Error trying to migrate pre-0.14 data [6]", err)
+			return
+		}
+
+		defer cursor.Close(nil)
+
+		devices := []utils.ConstellationDevice{}
+
+		if err = cursor.All(context.Background(), &devices); err != nil {
+			utils.Fatal("Error trying to migrate pre-0.14 data [7]", err)
+			return
+		}
+
+		for _, device := range devices {
+			_, err := cd.InsertOne(context.Background(), device)
+			if err != nil {
+				utils.Fatal("Error trying to migrate pre-0.14 data [8]", err)
+				return
+			}
+		}
+		
+		utils.Log("MigratePre014: Migrated " + fmt.Sprint(len(devices)) + " devices")
+
+		CommitMigrationPre014()
 	}
 }

@@ -99,7 +99,8 @@ func ResetNebula() error {
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.key")
 	// remove everything in db
 
-	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+  defer closeDb()
 	if err != nil {
 			return err
 	}
@@ -122,7 +123,8 @@ func ResetNebula() error {
 }
 
 func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
-	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+  defer closeDb()
 	if err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
@@ -143,7 +145,8 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 }
 
 func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
-	c, err := utils.GetCollection(utils.GetRootAppId(), "devices")
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+  defer closeDb()
 	if err != nil {
 		return []utils.ConstellationDevice{}, err
 	}

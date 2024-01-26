@@ -56,21 +56,22 @@ type FileStats struct {
 
 type User struct {
 	ID       primitive.ObjectID `json:"-" bson:"_id,omitempty"`
-	Nickname      string     `validate:"required" json:"nickname"`
-	Password       string    `validate:"required" json:"-"`
-	RegisterKey       string  `json:"registerKey"`
-	RegisterKeyExp       time.Time  `json:"registerKeyExp"`
-	Role       Role    `validate:"required" json:"role"`
-	PasswordCycle			 int    `json:"-"`
-	Link 		 string    `json:"link"`
-	Email string `validate:"email" json:"email"`
-	RegisteredAt time.Time   `json:"registeredAt"`
-	LastPasswordChangedAt time.Time   `json:"lastPasswordChangedAt"`
-	CreatedAt time.Time   `json:"createdAt"`
-	LastLogin time.Time   `json:"lastLogin"`
-	MFAKey string `json:"-"`
-	Was2FAVerified bool `json:"-"`
-	MFAState int `json:"-"` // 0 = done, 1 = needed, 2 = not set
+	Nickname      string     `validate:"required" json:"nickname" bson:"Nickname"`
+	Password       string    `validate:"required" json:"-" bson:"Password"`
+	RegisterKey       string  `json:"registerKey" bson:"RegisterKey"`
+	RegisterKeyExp       time.Time  `json:"registerKeyExp" bson:"RegisterKeyExp"`
+	Role       Role    `validate:"required" json:"role" bson:"Role"`
+	PasswordCycle			 int    `json:"-" bson:"PasswordCycle"`
+	Link 		 string    `json:"link" bson:"-"`
+	Email string `validate:"email" json:"email" bson:"Email"`
+	RegisteredAt time.Time   `json:"registeredAt" bson:"RegisteredAt"`
+	LastPasswordChangedAt time.Time   `json:"lastPasswordChangedAt" bson:"LastPasswordChangedAt"`
+	CreatedAt time.Time   `json:"createdAt" bson:"CreatedAt"`
+	LastLogin time.Time   `json:"lastLogin" bson:"LastLogin"`
+	MFAKey string `json:"-" bson:"MFAKey"`
+	Was2FAVerified bool `json:"-" bson:"Was2FAVerified"`
+	MFAState int `json:"-" bson:"-"` 
+	// 0 = done, 1 = needed, 2 = not set
 }
 
 type Config struct {
@@ -93,6 +94,7 @@ type Config struct {
 	ConstellationConfig ConstellationConfig
 	MonitoringDisabled bool
 	MonitoringAlerts map[string]Alert
+	LastMigration string
 }
 
 type HomepageConfig struct {
@@ -238,17 +240,17 @@ type ConstellationDNSEntry struct {
 	Value string
 }
 type ConstellationDevice struct {
-	Nickname string `json:"nickname"`
-	DeviceName string `json:"deviceName"`
-	PublicKey string `json:"publicKey"`
-	IP string `json:"ip"`
-	IsLighthouse bool `json:"isLighthouse"`
-	IsRelay bool `json:"isRelay"`
-	PublicHostname string `json:"publicHostname"`
-	Port string `json:"port"`
-	Blocked bool `json:"blocked"`
-	Fingerprint string `json:"fingerprint"`
-	APIKey string `json:"-"`
+	Nickname string `json:"nickname" bson:"Nickname"`
+	DeviceName string `json:"deviceName" bson:"DeviceName"`
+	PublicKey string `json:"publicKey" bson:"PublicKey"`
+	IP string `json:"ip" bson:"IP"`
+	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
+	IsRelay bool `json:"isRelay" bson:"IsRelay"`
+	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`
+	Port string `json:"port" bson:"Port"`
+	Blocked bool `json:"blocked" bson:"Blocked"`
+	Fingerprint string `json:"fingerprint" 	bson:"Fingerprint"`
+	APIKey string `json:"-" bson:"APIKey"`
 }
 
 type NebulaFirewallRule struct {
@@ -322,11 +324,11 @@ type NebulaConfig struct {
 }
 
 type Device struct {
-	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
-	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
-	PublicKey string `json:"publicKey",omitempty`
-	PrivateKey string `json:"privateKey",omitempty`
-	IP string `json:"ip",validate:"required,ipv4"`
+	DeviceName string `json:"deviceName"validate:"required,min=3,max=32,alphanum",bson:"DeviceName"`
+	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum",bson:"Nickname"`
+	PublicKey string `json:"publicKey",omitempty,bson:"PublicKey"`
+	PrivateKey string `json:"privateKey",omitempty,bson:"PrivateKey"`
+	IP string `json:"ip",validate:"required,ipv4",bson:"IP"`
 }
 
 type Alert struct {

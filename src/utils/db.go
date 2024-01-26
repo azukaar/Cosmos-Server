@@ -13,6 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"go.mongodb.org/mongo-driver/bson" 
+
+	lungo "github.com/256dpi/lungo"
 )
 
 
@@ -90,6 +92,31 @@ func DisconnectDB() {
 		Fatal("DB", err)
 	}
 	client = nil
+}
+
+func GetEmbeddedCollection(applicationId string, collection string) (lungo.ICollection, func(), error) {
+	opts := lungo.Options{
+		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 700),
+	}
+	
+	name := os.Getenv("MONGODB_NAME"); if name == "" {
+		name = "COSMOS"
+	}
+
+	// open database
+	client, engine, err := lungo.Open(nil, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// ensure engine is closed
+	// defer engine.Close()
+	
+	c := client.Database(name).Collection(applicationId + "_" + collection)
+
+	return c, func() {
+		engine.Close()
+	}, nil
 }
 
 func GetCollection(applicationId string, collection string) (*mongo.Collection, error) {
