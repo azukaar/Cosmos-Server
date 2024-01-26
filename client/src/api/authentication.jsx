@@ -11,7 +11,7 @@ function login(values) {
 }
 
 function me() {
-  return fetch('/cosmos/api/me/', {
+  return fetch('/cosmos/api/me', {
     method: 'GET',
     headers: {
         'Content-Type': 'application/json'
@@ -21,7 +21,7 @@ function me() {
 }
 
 function logout() {
-  return wrap(fetch('/cosmos/api/logout/', {
+  return wrap(fetch('/cosmos/api/logout', {
     method: 'GET',
     headers: {
         'Content-Type': 'application/json'
