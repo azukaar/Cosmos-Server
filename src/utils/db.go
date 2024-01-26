@@ -6,62 +6,117 @@ import (
 	"errors"
 	"sync"
 	"time"
-	"strings"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"go.mongodb.org/mongo-driver/bson" 
+
+	"github.com/FerretDB/FerretDB/ferretdb"
+
 )
 
 
 var client *mongo.Client
 var IsDBaContainer bool
+var closeFerretdb context.CancelFunc
+var MongoCoStr string
+var ferretdbClient *ferretdb.FerretDB
+
+func GetDBClient() (*mongo.Client , error) {
+	if client == nil {
+		errCo := DB()
+		if errCo != nil {
+			return nil, errCo
+		}
+	}
+
+	return client, nil
+}
 
 func DB() error {
 	if(GetMainConfig().DisableUserManagement)	{
 		return errors.New("User Management is disabled")
 	}
-
-	mongoURL := GetMainConfig().MongoDB
+	// mongoURL := GetMainConfig().MongoDB
 	
-	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
-		return nil
-	}
+	// if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
+	// 	return nil
+	// }
 
 	Log("(Re) Connecting to the database...")
 
-	if mongoURL == "" {
-		return errors.New("MongoDB URL is not set, cannot connect to the database.")
-	}
+	// if mongoURL == "" {
+	// 	return errors.New("MongoDB URL is not set, cannot connect to the database.")
+	// }
 
 	var err error
 
-	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
+	if closeFerretdb == nil {
+		// rm /tmp/ferretdb-sock.sock if exist 
+		if _, err := os.Stat("/tmp/ferretdb-sock.sock"); err == nil {
+			os.Remove("/tmp/ferretdb-sock.sock")
+		}
+
+		_ferretdbClient, err := ferretdb.New(&ferretdb.Config{
+			Listener: ferretdb.ListenerConfig{
+					// Unix: "/tmp/ferretdb-sock.sock",
+					TCP: "127.0.0.1:17027",
+			},
+			Handler: "sqlite",
+			SQLiteURL: "file:" + CONFIGFOLDER,
+		})
+		ferretdbClient = _ferretdbClient
+
+		if err != nil {
+			panic(err)
+		}
+
+		Log("Created Bus")
+		
+		go func() {
+			ctx, _closeFerretdb := context.WithCancel(context.Background())
+			closeFerretdb = _closeFerretdb
+
+			err = ferretdbClient.Run(ctx)
+			if err != nil {
+				panic(err)
+			}
+			// close(done)
+		}()
+
+		time.Sleep(1 * time.Second)
+	}
+	
+	// str := ferretdbClient.MongoDBURI() //"mongodb://\\/tmp\\/ferretdb-sock.sock" // f.MongoDBURI()
+
+	Log("Establishing connection to MongoDB")
+
+	opts := options.Client().ApplyURI("mongodb://127.0.0.1:17027").SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 
 	IsDBaContainer = false
 
-	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
-		hostname := opts.Hosts[0]
-		// split port
-		hostnameParts := strings.Split(hostname, ":")
-		hostname = hostnameParts[0]
-		port := "27017" 
+	// if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
+	// 	hostname := opts.Hosts[0]
+	// 	// split port
+	// 	hostnameParts := strings.Split(hostname, ":")
+	// 	hostname = hostnameParts[0]
+	// 	port := "27017" 
 
-		if len(hostnameParts) > 1 {
-			port = hostnameParts[1]
-		}
+	// 	if len(hostnameParts) > 1 {
+	// 		port = hostnameParts[1]
+	// 	}
 
-		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
+	// 	Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
 
-		ip, _ := GetContainerIPByName(hostname)
-		if ip != "" {
-			IsDBaContainer = true
-			opts.SetHosts([]string{ip + ":" + port})
-			Log("Mongo DB IP : " + ip)
-		}
-	}
+	// 	ip, _ := GetContainerIPByName(hostname)
+	// 	if ip != "" {
+	// 		IsDBaContainer = true
+	// 		opts.SetHosts([]string{ip + ":" + port})
+	// 		Log("Mongo DB IP : " + ip)
+	// 	}
+	// }
 	
 	client, err = mongo.Connect(context.TODO(), opts)
 
@@ -83,6 +138,11 @@ func DB() error {
 }
 
 func DisconnectDB() {
+	if closeFerretdb != nil {
+		closeFerretdb()
+		closeFerretdb = nil
+	}
+
 	if client == nil {
 		return
 	}

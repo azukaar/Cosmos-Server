@@ -686,3 +686,7 @@ func IsDomain(domain string) bool {
 func CheckHostNetwork() {
   IsHostNetwork =	CheckDockerNetworkMode() == "host"
 }
+
+func Noop(...interface{}) {
+	// screw you go
+}

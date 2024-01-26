@@ -11,9 +11,17 @@ import (
 	"github.com/azukaar/cosmos-server/src/market"
 	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	
+	"go.uber.org/zap"
+	"os"
+	"log"
 )
 
 func main() {
+	log.SetOutput(os.Stderr)
+	logger := zap.NewExample()
+	defer logger.Sync()
+
 	utils.Log("Starting...")
 	
 	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
@@ -24,8 +32,14 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	LoadConfig()
-
+	
 	utils.CheckHostNetwork()
+
+	config := utils.GetMainConfig()
+	if !config.NewInstall {
+		MigratePre014()
+	}
+
 	utils.InitDBBuffers()
 	
 	go CRON()
@@ -48,7 +62,7 @@ func main() {
 		utils.Log("Docker API version: " + version.APIVersion)
 	}
 
-	config := utils.GetMainConfig()
+	config = utils.GetMainConfig()
 	if !config.NewInstall {
 		MigratePre013()
 

@@ -13,7 +13,7 @@ ENV PATH=$PATH:/usr/local/go/bin
 RUN apt-get update && apt-get install -y ca-certificates openssl && \
     apt-get install -y --no-install-recommends  wget curl && \
     apt-get install -y --no-install-recommends nodejs && \
-    wget https://golang.org/dl/go1.20.2.linux-amd64.tar.gz && \
+    wget https://golang.org/dl/go1.21.6.linux-amd64.tar.gz && \
     tar -C /usr/local -xzf go1.20.2.linux-amd64.tar.gz && \
     rm go1.20.2.linux-amd64.tar.gz && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
