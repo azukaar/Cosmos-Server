@@ -40,9 +40,11 @@ func DB() error {
 	
 	isPuppetMode := config.Database.PuppetMode
 	puppetHostname := config.Database.Hostname
+	username := config.Database.Username
+	password := config.Database.Password
 	
 	if isPuppetMode {
-		mongoURL = "mongodb://" + puppetHostname + ":27017"
+		mongoURL = "mongodb://" + username + ":" + password + "@" + puppetHostname + ":27017"
 		DBContainerName = puppetHostname
 	}
 
