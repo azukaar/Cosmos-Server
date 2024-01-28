@@ -183,7 +183,7 @@ func InitDNS() {
 
 			utils.Log("Starting DNS server on :" + DNSPort)
 			if err := server.ListenAndServe(); err != nil {
-				utils.Fatal("Failed to start server", err)
+				utils.Error("Failed to start DNS server", err)
 			}
 		})()
 	}
