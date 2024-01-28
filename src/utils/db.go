@@ -152,6 +152,8 @@ func GetCollection(applicationId string, collection string) (*mongo.Collection, 
 			return nil, errCo
 		}
 	}
+
+	DBStatus = true
 	
 	name := os.Getenv("MONGODB_NAME"); if name == "" {
 		name = "COSMOS"
