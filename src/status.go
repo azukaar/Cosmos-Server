@@ -11,6 +11,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/docker" 
 )
 
+
 func StatusRoute(w http.ResponseWriter, req *http.Request) {
 	config := utils.GetMainConfig()
 
@@ -20,17 +21,16 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "GET") {
 		utils.Log("API: Status")
-
-		databaseStatus := true
 		
-		if(!config.DisableUserManagement) {
-			err := utils.DB()
-			if err != nil {
-				utils.Error("Status: Database error", err)
-				databaseStatus = false
+		if config.NewInstall {
+			if(!config.DisableUserManagement) {
+				err := utils.DB()
+				if err != nil {
+					utils.Error("Status: Database error", err)
+				}
+			} else {
+				utils.Log("Status: User management is disabled, skipping database check")
 			}
-		} else {
-			utils.Log("Status: User management is disabled, skipping database check")
 		}
 
 		if(!docker.DockerIsConnected) {
@@ -53,7 +53,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 					// "network": utils.GetNetworkUsage(),
 				},
 				"hostmode": utils.IsHostNetwork || os.Getenv("HOSTNAME") == "",
-				"database": databaseStatus,
+				"database": utils.DBStatus,
 				"docker": docker.DockerIsConnected,
 				"backup_status": docker.ExportError,
 				"letsencrypt": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && utils.GetMainConfig().HTTPConfig.SSLEmail == "",
