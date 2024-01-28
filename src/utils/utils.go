@@ -686,7 +686,7 @@ func IsDomain(domain string) bool {
 
 func CheckHostNetwork() {
   IsHostNetwork =	CheckDockerNetworkMode() == "host"
-	utils.Log("Cosmos IsHostNetwork: " + strconv.FormatBool(IsHostNetwork))
+	Log("Cosmos IsHostNetwork: " + strconv.FormatBool(IsHostNetwork))
 }
 
 // compareSemver compares two semantic version strings.
