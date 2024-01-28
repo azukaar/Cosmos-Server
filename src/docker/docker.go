@@ -713,134 +713,160 @@ type ContainerStats struct {
 }
 
 func Stats(container types.Container) (ContainerStats, error) {
-		// utils.Debug("StatsAll - Getting stats for " + container.Names[0])
-		// utils.Debug("Time: " + time.Now().String())
-		
-		statsBody, err := DockerClient.ContainerStats(DockerContext, container.ID, false)
-		if err != nil {
-			return ContainerStats{}, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
-		}
-
-		defer statsBody.Body.Close()
-
-		stats := types.StatsJSON{}
-		if err := json.NewDecoder(statsBody.Body).Decode(&stats); err != nil {
-			return ContainerStats{}, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
-		}
-
-		previousCPU := stats.PreCPUStats.CPUUsage.TotalUsage
-		previousSystem := stats.PreCPUStats.SystemUsage
-
-		cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
-		systemDelta := float64(stats.CPUStats.SystemUsage) - float64(previousSystem)
-
-		perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
-		if perCore == 0 {
-			utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
-			perCore = 1
-		}
-
-		// utils.Debug("StatsAll - CPU CPUUsage TotalUsage " + strconv.FormatUint(stats.CPUStats.CPUUsage.TotalUsage, 10))
-		// utils.Debug("StatsAll - CPU PreCPUStats TotalUsage " + strconv.FormatUint(stats.PreCPUStats.CPUUsage.TotalUsage, 10))
-		// utils.Debug("StatsAll - CPU CPUUsage PercpuUsage " + strconv.Itoa(perCore))
-		// utils.Debug("StatsAll - CPU CPUUsage SystemUsage " + strconv.FormatUint(stats.CPUStats.SystemUsage, 10))
-		
-		// utils.Debug("StatsAll - CPU CPUUsage CPU Delta " + strconv.FormatFloat(cpuDelta, 'f', 6, 64))
-		// utils.Debug("StatsAll - CPU CPUUsage System Delta " + strconv.FormatFloat(systemDelta, 'f', 6, 64))
-
-		cpuUsage := 0.0
-
-		if systemDelta > 0 && cpuDelta > 0 {
-			cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
-			
-			// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
-		} else {
-			utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
-		}
-
-		// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100
-		
-		netRx := 0.0
-		netTx := 0.0
-		
-		for _, net := range stats.Networks {
-			netRx += float64(net.RxBytes)
-			netTx += float64(net.TxBytes)
-		}
-
-		containerStats := ContainerStats{
-			Name:      strings.TrimPrefix(container.Names[0], "/"),
-			CPUUsage:  cpuUsage * 100,
-			MemUsage:  stats.MemoryStats.Usage,
-			MemLimit:  stats.MemoryStats.Limit,
-			NetworkRx: netRx,
-			NetworkTx: netTx,
-		}
-
-		return containerStats, nil
+	// utils.Debug("StatsAll - Getting stats for " + container.Names[0])
+	// utils.Debug("Time: " + time.Now().String())
+	
+	statsBody, err := DockerClient.ContainerStats(DockerContext, container.ID, false)
+	if err != nil {
+		return ContainerStats{}, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
 	}
 
-	func StatsAll() ([]ContainerStats, error) {
-		containers, err := ListContainers()
-		if err != nil {
-			utils.Error("StatsAll", err)
-			return nil, err
-		}
+	defer statsBody.Body.Close()
 
-		var containerStatsList []ContainerStats
-		var wg sync.WaitGroup
-		semaphore := make(chan struct{}, 5) // A channel with a buffer size of 5 for controlling parallelism.
-	
-		for _, container := range containers {
-			// If not running, skip this container
-			if container.State != "running" {
-				continue
-			}
-	
-			wg.Add(1)
-			semaphore <- struct{}{} // Acquire a semaphore slot, limiting parallelism.
-	
-			go func(container types.Container) {
-				defer func() {
-					<-semaphore // Release the semaphore slot when done.
-					wg.Done()
-				}()
-	
-				stat, err := Stats(container)
-				if err != nil {
-					utils.Error("StatsAll", err)
-					return
-				}
-				containerStatsList = append(containerStatsList, stat)
-			}(container)
-		}
-	
-		wg.Wait() // Wait for all goroutines to finish.
-	
-		return containerStatsList, nil
+	stats := types.StatsJSON{}
+	if err := json.NewDecoder(statsBody.Body).Decode(&stats); err != nil {
+		return ContainerStats{}, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
 	}
 
-	func StopContainer(containerName string) {
-		err := DockerClient.ContainerStop(DockerContext, containerName, container.StopOptions{})
-		if err != nil {
-			utils.Error("StopContainer", err)
-			return
-		}
+	previousCPU := stats.PreCPUStats.CPUUsage.TotalUsage
+	previousSystem := stats.PreCPUStats.SystemUsage
+
+	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
+	systemDelta := float64(stats.CPUStats.SystemUsage) - float64(previousSystem)
+
+	perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
+	if perCore == 0 {
+		utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
+		perCore = 1
 	}
 
-	func CheckDockerNetworkMode() string {
-		if os.Getenv("HOSTNAME") != "" {
-			errD := Connect()
-			if errD != nil {
-				utils.Error("Checking Host Network", errD)
-				return ""
-			}
+	// utils.Debug("StatsAll - CPU CPUUsage TotalUsage " + strconv.FormatUint(stats.CPUStats.CPUUsage.TotalUsage, 10))
+	// utils.Debug("StatsAll - CPU PreCPUStats TotalUsage " + strconv.FormatUint(stats.PreCPUStats.CPUUsage.TotalUsage, 10))
+	// utils.Debug("StatsAll - CPU CPUUsage PercpuUsage " + strconv.Itoa(perCore))
+	// utils.Debug("StatsAll - CPU CPUUsage SystemUsage " + strconv.FormatUint(stats.CPUStats.SystemUsage, 10))
+	
+	// utils.Debug("StatsAll - CPU CPUUsage CPU Delta " + strconv.FormatFloat(cpuDelta, 'f', 6, 64))
+	// utils.Debug("StatsAll - CPU CPUUsage System Delta " + strconv.FormatFloat(systemDelta, 'f', 6, 64))
 
-			container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+	cpuUsage := 0.0
+
+	if systemDelta > 0 && cpuDelta > 0 {
+		cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
+		
+		// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
+	} else {
+		utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
+	}
+
+	// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100
+	
+	netRx := 0.0
+	netTx := 0.0
+	
+	for _, net := range stats.Networks {
+		netRx += float64(net.RxBytes)
+		netTx += float64(net.TxBytes)
+	}
+
+	containerStats := ContainerStats{
+		Name:      strings.TrimPrefix(container.Names[0], "/"),
+		CPUUsage:  cpuUsage * 100,
+		MemUsage:  stats.MemoryStats.Usage,
+		MemLimit:  stats.MemoryStats.Limit,
+		NetworkRx: netRx,
+		NetworkTx: netTx,
+	}
+
+	return containerStats, nil
+}
+
+func StatsAll() ([]ContainerStats, error) {
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("StatsAll", err)
+		return nil, err
+	}
+
+	var containerStatsList []ContainerStats
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, 5) // A channel with a buffer size of 5 for controlling parallelism.
+
+	for _, container := range containers {
+		// If not running, skip this container
+		if container.State != "running" {
+			continue
+		}
+
+		wg.Add(1)
+		semaphore <- struct{}{} // Acquire a semaphore slot, limiting parallelism.
+
+		go func(container types.Container) {
+			defer func() {
+				<-semaphore // Release the semaphore slot when done.
+				wg.Done()
+			}()
+
+			stat, err := Stats(container)
 			if err != nil {
-				utils.Error("Checking Host Network", err)
+				utils.Error("StatsAll", err)
+				return
 			}
-			return string(container.HostConfig.NetworkMode)
-		}
-		return ""
+			containerStatsList = append(containerStatsList, stat)
+		}(container)
 	}
+
+	wg.Wait() // Wait for all goroutines to finish.
+
+	return containerStatsList, nil
+}
+
+func StopContainer(containerName string) {
+	err := DockerClient.ContainerStop(DockerContext, containerName, container.StopOptions{})
+	if err != nil {
+		utils.Error("StopContainer", err)
+		return
+	}
+}
+
+func CheckDockerNetworkMode() string {
+	if os.Getenv("HOSTNAME") != "" {
+		errD := Connect()
+		if errD != nil {
+			utils.Error("Checking Host Network", errD)
+			return ""
+		}
+
+		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+		if err != nil {
+			utils.Error("Checking Host Network", err)
+		}
+		return string(container.HostConfig.NetworkMode)
+	}
+	return ""
+}
+
+func InspectContainer(containerName string) (types.ContainerJSON, error) {
+		errD := Connect()
+		if errD != nil {
+			utils.Error("InspectContainer", errD)
+			return types.ContainerJSON{}, errD
+		}
+
+		container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+		if err != nil {
+			utils.Error("InspectContainer", err)
+			return types.ContainerJSON{}, err
+		}
+
+		return container, nil
+}
+
+func GetEnv(env []string, key string) string {
+	for _, kv := range env {
+			parts := strings.SplitN(kv, "=", 2)
+			if len(parts) == 2 && parts[0] == key {
+					return parts[1]
+			}
+	}
+	return ""
+}

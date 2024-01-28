@@ -26,7 +26,6 @@ func main() {
 	LoadConfig()
 
 	utils.CheckHostNetwork()
-	utils.InitDBBuffers()
 	
 	go CRON()
 
@@ -52,6 +51,10 @@ func main() {
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
+
+		docker.CheckPuppetDB()
+
+		utils.InitDBBuffers()
 
 		utils.Log("Starting monitoring services...")
 

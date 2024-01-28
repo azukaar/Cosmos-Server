@@ -77,6 +77,7 @@ type User struct {
 type Config struct {
 	LoggingLevel LoggingLevel `required,validate:"oneof=DEBUG INFO WARNING ERROR"`
 	MongoDB string
+	Database DatabaseConfig `validate:"dive"`
 	DisableUserManagement bool
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
@@ -95,6 +96,16 @@ type Config struct {
 	MonitoringDisabled bool
 	MonitoringAlerts map[string]Alert
 	LastMigration string
+}
+
+type DatabaseConfig struct {
+	PuppetMode bool
+	Hostname string
+	DbVolume string
+	ConfigVolume string
+	Version string
+	Username string
+	Password string
 }
 
 type HomepageConfig struct {

@@ -19,20 +19,32 @@ import (
 
 
 var client *mongo.Client
-var IsDBaContainer bool
+var DBContainerName string
 
 func DB() error {
-	if(GetMainConfig().DisableUserManagement)	{
+	config := GetMainConfig()
+
+	if(config.DisableUserManagement)	{
 		return errors.New("User Management is disabled")
 	}
 
-	mongoURL := GetMainConfig().MongoDB
+	mongoURL := config.MongoDB
 	
 	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
 		return nil
 	}
 
 	Log("(Re) Connecting to the database...")
+	
+	DBContainerName = ""
+	
+	isPuppetMode := config.Database.PuppetMode
+	puppetHostname := config.Database.Hostname
+	
+	if isPuppetMode {
+		mongoURL = "mongodb://" + puppetHostname + ":27017"
+		DBContainerName = puppetHostname
+	}
 
 	if mongoURL == "" {
 		return errors.New("MongoDB URL is not set, cannot connect to the database.")
@@ -42,24 +54,28 @@ func DB() error {
 
 	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 
-	IsDBaContainer = false
-
 	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
-		hostname := opts.Hosts[0]
-		// split port
-		hostnameParts := strings.Split(hostname, ":")
-		hostname = hostnameParts[0]
+		hostname := ""
 		port := "27017" 
 
-		if len(hostnameParts) > 1 {
-			port = hostnameParts[1]
+		if !isPuppetMode {
+			hostname = opts.Hosts[0]
+			// split port
+			hostnameParts := strings.Split(hostname, ":")
+			hostname = hostnameParts[0]
+
+			if len(hostnameParts) > 1 {
+				port = hostnameParts[1]
+			}
+		} else {
+			hostname = puppetHostname
 		}
 
 		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
 
 		ip, _ := GetContainerIPByName(hostname)
 		if ip != "" {
-			IsDBaContainer = true
+			DBContainerName = hostname
 			opts.SetHosts([]string{ip + ":" + port})
 			Log("Mongo DB IP : " + ip)
 		}
