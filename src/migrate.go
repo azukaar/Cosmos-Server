@@ -85,8 +85,6 @@ func MigratePre014() {
 		// connect to MongoDB
 		utils.Log("Connecting to MongoDB...")
 		
-		if false {
-		
 		mongoURL := utils.GetMainConfig().MongoDB
 
 		var err error
@@ -148,7 +146,7 @@ func MigratePre014() {
 		MigratePre014Coll("users", client)
 		MigratePre014Coll("devices", client)
 
-		}
+		
 
 		// Migrate DB to puppet mode
 
