@@ -20,17 +20,20 @@ import (
 
 var client *mongo.Client
 var DBContainerName string
+var DBStatus bool
 
 func DB() error {
 	config := GetMainConfig()
 
 	if(config.DisableUserManagement)	{
+		DBStatus = false
 		return errors.New("User Management is disabled")
 	}
 
 	mongoURL := config.MongoDB
 	
 	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
+		DBStatus = true
 		return nil
 	}
 
@@ -49,6 +52,7 @@ func DB() error {
 	}
 
 	if mongoURL == "" {
+		DBStatus = false
 		return errors.New("MongoDB URL is not set, cannot connect to the database.")
 	}
 
@@ -88,17 +92,19 @@ func DB() error {
 	client, err = mongo.Connect(context.TODO(), opts)
 
 	if err != nil {
+		DBStatus = false
 		return err
 	}
-	defer func() {
-	}()
 
 	// Ping the primary
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		DBStatus = false
 		return err
 	}
 
 	initDB()
+
+	DBStatus = true
 
 	Log("Successfully connected to the database.")
 	return nil
