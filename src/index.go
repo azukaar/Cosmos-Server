@@ -70,9 +70,9 @@ func main() {
 
 		utils.Log("Starting constellation services...")
 
-		constellation.InitDNS()
-		
 		constellation.Init()
+
+		constellation.InitDNS()
 
 		utils.Log("Starting server...")
 
