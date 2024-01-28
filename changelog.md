@@ -2,6 +2,8 @@
  - Cosmos is now fully functional dockerless
  - Reworked Cosmos Compose for better compatibility with docker-compose.yml files
  - Added a "compose" tab to edit containers in text mode
+ - Moved critical data (credentials and VPN) out of the database, to keep Cosmos online in case of incidents
+ - New Database "puppet" mode that allows Cosmos to manage the database for you
  - Improved network IP resolution for containers, including supporting any network mode
  - Added support for markets and template directly with docker-compose.yml files
  - Removed all sort of container bootstrapping (much faster boot)

@@ -12,7 +12,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/docker"
 )
+
 func MigratePre014Coll(collection string, from *mongo.Client) {
 	name := os.Getenv("MONGODB_NAME")
 	if name == "" {
@@ -76,11 +78,14 @@ func MigratePre014Coll(collection string, from *mongo.Client) {
 func MigratePre014() {
 	config := utils.GetMainConfig()
 
+	utils.Log("MigratePre014: Migration of database...")
+
 	// check if COSMOS.db does NOT exist
 	if _, err := os.Stat(utils.CONFIGFOLDER + "database"); err != nil && config.MongoDB != "" {
 		// connect to MongoDB
 		utils.Log("Connecting to MongoDB...")
 		
+		if false {
 		
 		mongoURL := utils.GetMainConfig().MongoDB
 
@@ -142,8 +147,83 @@ func MigratePre014() {
 		
 		MigratePre014Coll("users", client)
 		MigratePre014Coll("devices", client)
-		// MigratePre014Coll("events", client)
-		// MigratePre014Coll("notifications", client)
-		// MigratePre014Coll("metrics", client)
+
+		}
+
+		// Migrate DB to puppet mode
+
+		utils.DB()
+
+		if utils.DBContainerName != "" {
+			utils.Log("Migrating database to puppet mode...")
+
+			mongoContainer, err := docker.InspectContainer(utils.DBContainerName)
+			if err != nil {
+				utils.Fatal("MigratePre014 - Cannot migrate database to puppet mode, container " + utils.DBContainerName + " not found", err)
+				return
+			}
+
+			dbVolume := ""
+			dbConfigVolume := ""
+
+			for _, mount := range mongoContainer.Mounts {
+				if mount.Destination == "/data/db" {
+					dbVolume = mount.Name
+				} else if mount.Destination == "/data/configdb" {
+					dbConfigVolume = mount.Name
+				}
+			}
+
+			if dbVolume == "" || dbConfigVolume == "" {
+				utils.Error("MigratePre014 - Cannot migrate database to puppet mode, volumes not found", nil)
+				MigratePre014_FallBackNoPuppet()
+				return
+			}
+
+			currentVersion := docker.GetEnv(mongoContainer.Config.Env, "MONGO_VERSION")
+			username := docker.GetEnv(mongoContainer.Config.Env, "ME_CONFIG_MONGODB_ADMINUSERNAME")
+			if username == "" {
+				username = docker.GetEnv(mongoContainer.Config.Env, "MONGO_INITDB_ROOT_USERNAME")
+			}
+			password := docker.GetEnv(mongoContainer.Config.Env, "ME_CONFIG_MONGODB_ADMINPASSWORD")
+			if password == "" {
+				password = docker.GetEnv(mongoContainer.Config.Env, "MONGO_INITDB_ROOT_PASSWORD")
+			}
+
+			if currentVersion == "" {
+				utils.Error("MigratePre014 - Cannot migrate database to puppet mode, version not found", nil)
+				MigratePre014_FallBackNoPuppet()
+				return
+			}
+
+			
+			if username == "" || password == "" {
+				utils.Error("MigratePre014 - Cannot migrate database to puppet mode, credentials not found", nil)
+				MigratePre014_FallBackNoPuppet()
+				return
+			}
+
+			dbconfig := utils.DatabaseConfig{
+				PuppetMode: true,
+				Hostname: utils.DBContainerName,
+				DbVolume: dbVolume,
+				ConfigVolume: dbConfigVolume,
+				Version: strings.Split(currentVersion, ".")[0],
+				Username: username,
+				Password: password,
+			}
+			
+			config.Database = dbconfig
+
+			utils.SetBaseMainConfig(config)
+		}
 	}
+}
+
+func MigratePre014_FallBackNoPuppet() {
+	config := utils.ReadConfigFromFile()
+	config.Database = utils.DatabaseConfig{
+		PuppetMode: false,
+	}
+	utils.SetBaseMainConfig(config)
 }

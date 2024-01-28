@@ -107,7 +107,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 					return 
 				}			
 						
-				newConfig.MongoDB = strco
+				newConfig.Database = strco
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)
 				utils.Log("NewInstall: MongoDB created, waiting for it to be ready")

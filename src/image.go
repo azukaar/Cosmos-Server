@@ -9,13 +9,10 @@ import (
 	"encoding/json"
 	"strings"
 	"fmt"
-	"context"
-
+	
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/azukaar/cosmos-server/src/docker" 
-
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var validExtensions = map[string]bool{
