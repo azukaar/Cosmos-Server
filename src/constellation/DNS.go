@@ -180,10 +180,10 @@ func InitDNS() {
 		go (func() {
 			dns.HandleFunc(".", handleDNSRequest)
 			server := &dns.Server{Addr: "192.168.201.1:" + DNSPort, Net: "udp"}
-			
+
 			utils.Log("Starting DNS server on :" + DNSPort)
 			if err := server.ListenAndServe(); err != nil {
-				utils.Fatal("Failed to start server: %s\n", err)
+				utils.Fatal("Failed to start server", err)
 			}
 		})()
 	}
