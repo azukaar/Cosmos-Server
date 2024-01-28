@@ -55,6 +55,8 @@ func DB() error {
 	var err error
 
 	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
+	
+	opts.SetConnectTimeout(5 * time.Second)
 
 	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
 		hostname := ""
