@@ -317,8 +317,7 @@ const HomePage = () => {
 
             {isAdmin && coStatus && !coStatus.hostmode && (
                 <Alert severity="warning">
-                    Your Cosmos server is not running in the docker host network mode.
-                    This will make your life harder, consider switching the network mode to host mode on the cosmos container.  
+                    Your Cosmos server is not running in the docker host network mode. consider switching the network mode of the container to host mode.  
                 </Alert>
             )}
 

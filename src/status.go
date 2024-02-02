@@ -52,7 +52,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 					// "disk": utils.GetDiskUsage(),
 					// "network": utils.GetNetworkUsage(),
 				},
-				"hostmode": utils.IsHostNetwork || os.Getenv("HOSTNAME") == "",
+				"hostmode": utils.IsHostNetwork || os.Getenv("HOSTNAME") == "" || utils.GetMainConfig().DisableHostModeWarning,
 				"database": utils.DBStatus,
 				"docker": docker.DockerIsConnected,
 				"backup_status": docker.ExportError,

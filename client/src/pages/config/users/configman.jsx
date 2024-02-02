@@ -127,6 +127,11 @@ const ConfigManagement = () => {
           SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         
           MonitoringEnabled: !config.MonitoringDisabled,
+
+          BackupOutputDir: config.BackupOutputDir,
+
+          AdminWhitelistIPs: config.AdminWhitelistIPs && config.AdminWhitelistIPs.join(', '),
+          AdminConstellationOnly: config.AdminConstellationOnly,
         }}
 
         validationSchema={Yup.object().shape({
@@ -147,6 +152,10 @@ const ConfigManagement = () => {
             BlockedCountries: values.GeoBlocking,
             CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
             MonitoringDisabled: !values.MonitoringEnabled,
+            BackupOutputDir: values.BackupOutputDir,
+            AdminConstellationOnly: values.AdminConstellationOnly,
+            AdminWhitelistIPs: (values.AdminWhitelistIPs && values.AdminWhitelistIPs != "") ?
+              values.AdminWhitelistIPs.split(',').map((x) => x.trim()) : [],
             HTTPConfig: {
               ...config.HTTPConfig,
               Hostname: values.Hostname,
@@ -241,7 +250,7 @@ const ConfigManagement = () => {
                   <Grid item xs={12}>
                     <Alert severity="info">This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.</Alert>
                   </Grid>
-                  
+
                   <CosmosCheckbox
                     label="Force Multi-Factor Authentication"
                     name="RequireMFA"
@@ -272,6 +281,13 @@ const ConfigManagement = () => {
                     </Stack>
                   </Grid>
 
+                  <CosmosInputText
+                    label="Backup Output Directory (relative to the host server `/`)"
+                    name="BackupOutputDir"
+                    formik={formik}
+                    helperText="Directory where backups will be stored (relative to the host server `/`)"
+                  />
+                  
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel htmlFor="LoggingLevel-login">Level of logging (Default: INFO)</InputLabel>
@@ -591,6 +607,26 @@ const ConfigManagement = () => {
                       formik.setFieldValue("CountryBlacklistIsWhitelist", false)
                     }} variant="outlined">Reset to default (most dangerous countries)</Button>
                   </Grid>
+                  
+                  <CosmosFormDivider title='Admin Restrictions' />
+
+                  <Alert severity="info">
+                    Use those options to restrict access to the admin panel. Be careful, if you lock yourself out, you will need to manually edit the config file.
+                    To restrict the access to your local network, you can use the "Admin Whitelist" with the IP range 192.168.0.0/16 
+                  </Alert>
+                  
+                  <CosmosInputText
+                    label="Admin Whitelist Inbound IPs and/or IP ranges (comma separated)"
+                    name="AdminWhitelistIPs"
+                    formik={formik}
+                    helperText="Comma separated list of IPs that will be allowed to access the admin panel"
+                  />
+
+                  <CosmosCheckbox
+                    label={"Only allow access to the admin panel from the constellation"}
+                    name="AdminConstellationOnly"
+                    formik={formik}
+                  />
 
                   <CosmosFormDivider title='Encryption' />
 

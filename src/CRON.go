@@ -95,6 +95,9 @@ func checkCerts() {
 func CRON() {
 	go func() {
 		s := gocron.NewScheduler()
+		s.Every(2).Hours().Do(func() {
+			go RunBackup()
+		})
 		s.Every(1).Day().At("00:00").Do(checkVersion)
 		s.Every(1).Day().At("01:00").Do(checkCerts)
 		s.Every(6).Hours().Do(checkUpdatesAvailable)

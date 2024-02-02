@@ -4,7 +4,17 @@ export default function wrap(apicall, noError = false) {
   return apicall.then(async (response) => {
     let rep;
     try {
-      rep = await response.json();
+      rep = await response.text();
+
+      try {
+        rep = JSON.parse(rep);
+      } catch (err) {
+        rep = {
+          message: rep,
+          status: response.status,
+          code: response.status
+        };
+      }
     } catch (err) {
       if (!noError) {
         snackit('Server error');
