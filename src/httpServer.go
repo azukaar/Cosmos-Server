@@ -41,7 +41,7 @@ func startHTTPServer(router *mux.Router) error {
 		DisableGeneralOptionsHandler: true,
 	}
 	
-	if os.Getenv("HOSTNAME") != "" {
+	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
 		proxy.InitInternalTCPProxy()
@@ -123,7 +123,7 @@ func startHTTPSServer(router *mux.Router) error {
 	}
 
 	// Redirect ports 
-	if os.Getenv("HOSTNAME") != "" {
+	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
 		proxy.InitInternalTCPProxy()
@@ -355,81 +355,89 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/login", user.UserLogin)
 	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
 	srapi.HandleFunc("/api/mfa", user.API2FA)
-
-	srapi.HandleFunc("/api/dns", GetDNSRoute)
-	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
-	srapi.Use(utils.SetSecurityHeaders)
-	
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
-	srapi.HandleFunc("/api/favicon", GetFavicon)
-	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/logout", user.UserLogout)
 	srapi.HandleFunc("/api/register", user.UserRegister)
-	srapi.HandleFunc("/api/invite", user.UserResendInviteLink)
+	srapi.HandleFunc("/api/dns", GetDNSRoute)
+	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
+	srapi.HandleFunc("/api/favicon", GetFavicon)
+	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/me", user.Me)
-	srapi.HandleFunc("/api/config", configapi.ConfigRoute)
-	srapi.HandleFunc("/api/restart", configapi.ConfigApiRestart)
-
-	srapi.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
-	srapi.HandleFunc("/api/users", user.UsersRoute)
-
-	srapi.HandleFunc("/api/images/pull-if-missing", docker.PullImageIfMissing)
-	srapi.HandleFunc("/api/images/pull", docker.PullImage)
-	srapi.HandleFunc("/api/images", docker.InspectImageRoute)
-
-	srapi.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
-	srapi.HandleFunc("/api/volumes", docker.VolumesRoute)
-
-	srapi.HandleFunc("/api/network/{networkID}", docker.DeleteNetworkRoute)
-	srapi.HandleFunc("/api/networks", docker.NetworkRoutes)
 	
-	srapi.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/auto-update/{status}", docker.AutoUpdateContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/terminal/{action}", docker.TerminalRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/export", docker.ExportContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
-	srapi.HandleFunc("/api/servapps/{containerId}/network/{networkId}", docker.NetworkContainerRoutes)
-	srapi.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
-	srapi.HandleFunc("/api/servapps/{containerId}/check-update", docker.CanUpdateImageRoute)
-	srapi.HandleFunc("/api/servapps", docker.ContainersRoute)
-	srapi.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
+	srapiAdmin := router.PathPrefix("/cosmos").Subrouter()
+
+	srapiAdmin.HandleFunc("/api/config", configapi.ConfigRoute)
+	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 	
-	srapi.HandleFunc("/api/markets", market.MarketGet)
+	srapiAdmin.HandleFunc("/api/invite", user.UserResendInviteLink)
+	srapiAdmin.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
+	srapiAdmin.HandleFunc("/api/users", user.UsersRoute)
 
-	srapi.HandleFunc("/api/upload/{name}", UploadImage)
-	srapi.HandleFunc("/api/image/{name}", GetImage)
+	srapiAdmin.HandleFunc("/api/images/pull-if-missing", docker.PullImageIfMissing)
+	srapiAdmin.HandleFunc("/api/images/pull", docker.PullImage)
+	srapiAdmin.HandleFunc("/api/images", docker.InspectImageRoute)
 
-	srapi.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
+	srapiAdmin.HandleFunc("/api/volume/{volumeName}", docker.DeleteVolumeRoute)
+	srapiAdmin.HandleFunc("/api/volumes", docker.VolumesRoute)
 
-	srapi.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
-	srapi.HandleFunc("/api/constellation/restart", constellation.API_Restart)
-	srapi.HandleFunc("/api/constellation/reset", constellation.API_Reset)
-	srapi.HandleFunc("/api/constellation/connect", constellation.API_ConnectToExisting)
-	srapi.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
-	srapi.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
-	srapi.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
+	srapiAdmin.HandleFunc("/api/network/{networkID}", docker.DeleteNetworkRoute)
+	srapiAdmin.HandleFunc("/api/networks", docker.NetworkRoutes)
+	
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/auto-update/{status}", docker.AutoUpdateContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/terminal/{action}", docker.TerminalRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/export", docker.ExportContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/", docker.GetContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/network/{networkId}", docker.NetworkContainerRoutes)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/networks", docker.NetworkContainerRoutes)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/check-update", docker.CanUpdateImageRoute)
+	srapiAdmin.HandleFunc("/api/servapps", docker.ContainersRoute)
+	srapiAdmin.HandleFunc("/api/docker-service", docker.CreateServiceRoute)
+	
+	srapiAdmin.HandleFunc("/api/markets", market.MarketGet)
 
-	srapi.HandleFunc("/api/events", metrics.API_ListEvents)
+	srapiAdmin.HandleFunc("/api/upload/{name}", UploadImage)
+	srapiAdmin.HandleFunc("/api/image/{name}", GetImage)
 
-	srapi.HandleFunc("/api/metrics", metrics.API_GetMetrics)
-	srapi.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
-	srapi.HandleFunc("/api/list-metrics", metrics.ListMetrics)
+	srapiAdmin.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
 
-	srapi.HandleFunc("/api/notifications/read", utils.MarkAsRead)
-	srapi.HandleFunc("/api/notifications", utils.NotifGet)
+	srapiAdmin.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
+	srapiAdmin.HandleFunc("/api/constellation/restart", constellation.API_Restart)
+	srapiAdmin.HandleFunc("/api/constellation/reset", constellation.API_Reset)
+	srapiAdmin.HandleFunc("/api/constellation/connect", constellation.API_ConnectToExisting)
+	srapiAdmin.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
+	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
+	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
+
+	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
+
+	srapiAdmin.HandleFunc("/api/metrics", metrics.API_GetMetrics)
+	srapiAdmin.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
+	srapiAdmin.HandleFunc("/api/list-metrics", metrics.ListMetrics)
+
+	srapiAdmin.HandleFunc("/api/notifications/read", utils.MarkAsRead)
+	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
+
+	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
+
+	srapi.Use(utils.SetSecurityHeaders)
+	srapiAdmin.Use(utils.SetSecurityHeaders)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)
+		srapiAdmin.Use(utils.EnsureHostname)
 	}
 	
 	srapi.Use(utils.EnsureHostnameCosmosAPI)
+	srapiAdmin.Use(utils.EnsureHostnameCosmosAPI)
 
 	SecureAPI(srapi, false, false)
+	SecureAPI(srapiAdmin, false, false)
 	
 	pwd,_ := os.Getwd()
 	utils.Log("Starting in " + pwd)

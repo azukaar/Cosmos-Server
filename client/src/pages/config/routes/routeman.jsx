@@ -83,8 +83,11 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
             return false;
           } else {
             let commaSepIps = values.WhitelistInboundIPs;
-            if(commaSepIps) {
+            
+            if(commaSepIps && commaSepIps.length) {
               values.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
+            } else {
+              values.WhitelistInboundIPs = [];
             }
 
             let fullValues = {
@@ -116,6 +119,14 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           }
         }}
         validate={(values) => {
+          let commaSepIps = values.WhitelistInboundIPs;
+
+          if(commaSepIps && commaSepIps.length) {
+            values.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
+          } else {
+            values.WhitelistInboundIPs = [];
+          }
+
           let fullValues = {
             ...routeConfig,
             ...values,

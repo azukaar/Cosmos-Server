@@ -75,7 +75,6 @@ func main() {
 		constellation.InitDNS()
 
 		utils.Log("Starting server...")
-
 	}
 
 	StartServer()

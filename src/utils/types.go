@@ -95,7 +95,10 @@ type Config struct {
 	ConstellationConfig ConstellationConfig
 	MonitoringDisabled bool
 	MonitoringAlerts map[string]Alert
-	LastMigration string
+	BackupOutputDir string
+	DisableHostModeWarning bool
+	AdminWhitelistIPs []string
+	AdminConstellationOnly bool
 }
 
 type DatabaseConfig struct {

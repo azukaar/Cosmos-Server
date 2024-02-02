@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.14.0-unstable11",
+  "version": "0.14.0-unstable12",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -34,6 +34,7 @@
     "history": "^5.3.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
+    "prismjs": "^1.29.0",
     "prop-types": "^15.8.1",
     "qrcode": "^1.5.3",
     "react": "^18.2.0",
@@ -53,6 +54,7 @@
     "react-redux": "^8.0.4",
     "react-router": "^6.4.1",
     "react-router-dom": "^6.4.1",
+    "react-simple-code-editor": "^0.13.1",
     "react-syntax-highlighter": "^15.5.0",
     "react-window": "^1.8.7",
     "redux": "^4.2.0",
