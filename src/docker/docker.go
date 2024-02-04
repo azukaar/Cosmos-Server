@@ -655,7 +655,7 @@ func SelfAction(action string) error {
 		},
 		Environment: []string{
 			"CONTAINER_NAME=" + containerName,
-			"ACTION=recreate",
+			"ACTION=" + action,
 			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
 		},
 		Volumes: []mountType.Mount{
