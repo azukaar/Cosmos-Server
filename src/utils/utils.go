@@ -19,6 +19,7 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/net"
 	"golang.org/x/net/publicsuffix"
+	"github.com/Masterminds/semver"
 )
 
 var ConfigLock sync.Mutex
@@ -685,4 +686,27 @@ func IsDomain(domain string) bool {
 
 func CheckHostNetwork() {
   IsHostNetwork =	CheckDockerNetworkMode() == "host"
+	Log("Cosmos IsHostNetwork: " + strconv.FormatBool(IsHostNetwork))
+}
+
+// compareSemver compares two semantic version strings.
+// Returns:
+//   0 if v1 == v2
+//   1 if v1 > v2
+//  -1 if v1 < v2
+//   error if there's a problem parsing either version string
+func CompareSemver(v1, v2 string) (int, error) {
+	ver1, err := semver.NewVersion(v1)
+	if err != nil {
+		Error("compareSemver 1 " + v1, err)
+		return 0, err
+	}
+
+	ver2, err := semver.NewVersion(v2)
+	if err != nil {
+		Error("compareSemver 2 " + v2, err)
+		return 0, err
+	}
+
+	return ver1.Compare(ver2), nil
 }

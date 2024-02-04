@@ -2,12 +2,18 @@
  - Cosmos is now fully functional dockerless
  - Reworked Cosmos Compose for better compatibility with docker-compose.yml files
  - Added a "compose" tab to edit containers in text mode
+ - Moved critical data (credentials and VPN) out of the database, to keep Cosmos online in case of incidents
+ - Added an auto .zip backup mechanism
+ - Added a syntax highlighter to the compose editor
+ - New Database "puppet" mode that allows Cosmos to manage the database for you
  - Improved network IP resolution for containers, including supporting any network mode
  - Added support for markets and template directly with docker-compose.yml files
+ - Add whitelist and constellation restriction options to the admin panel 
+ - Force low RAM usage on the MongoDB container (we don't need much!)
  - Removed all sort of container bootstrapping (much faster boot)
  - Added image clean up
  - Replaced network clean up by vanilla docker prune
- - Force low RAM usage on the MongoDB container (we don't need much!)
+ - Fix issue with removing IP whitelist
 
 ## Version 0.13.0
  - Display container stacks as a group in the UI

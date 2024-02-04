@@ -26,7 +26,6 @@ func main() {
 	LoadConfig()
 
 	utils.CheckHostNetwork()
-	utils.InitDBBuffers()
 	
 	go CRON()
 
@@ -51,6 +50,11 @@ func main() {
 	config := utils.GetMainConfig()
 	if !config.NewInstall {
 		MigratePre013()
+		MigratePre014()
+
+		docker.CheckPuppetDB()
+
+		utils.InitDBBuffers()
 
 		utils.Log("Starting monitoring services...")
 
@@ -66,12 +70,11 @@ func main() {
 
 		utils.Log("Starting constellation services...")
 
-		constellation.InitDNS()
-		
 		constellation.Init()
 
-		utils.Log("Starting server...")
+		constellation.InitDNS()
 
+		utils.Log("Starting server...")
 	}
 
 	StartServer()

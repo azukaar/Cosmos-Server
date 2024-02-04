@@ -561,6 +561,36 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               };
             });
           }
+
+          // CREATE DEFAULT NETWORK
+          if(!jsoned['cosmos-installer'] || !jsoned['cosmos-installer']['skip-default-network']) {
+            let hasDefaultNetwork = false;
+            if (jsoned.services) {
+              Object.keys(jsoned.services).forEach((key) => {
+                if(!jsoned.services[key].network_mode) {
+                  jsoned.services[key].network_mode = 'cosmos-' + serviceName + '-default';
+                  hasDefaultNetwork = true;
+                }
+              });
+            }
+
+            if(hasDefaultNetwork) {
+              if(!jsoned.networks) {
+                jsoned.networks = {}
+              }
+              
+              jsoned.networks['cosmos-' + serviceName + '-default'] = {
+                Labels: {
+                  'cosmos.stack': serviceName,
+                }
+              }
+            }
+          }
+  
+          // REMOIVE COSMOS-INSTALLER
+          if (jsoned['cosmos-installer']) {
+            delete jsoned['cosmos-installer'];
+          }
         }
 
         setService(jsoned);

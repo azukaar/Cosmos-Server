@@ -107,7 +107,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 					return 
 				}			
 						
-				newConfig.MongoDB = strco
+				newConfig.Database = strco
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)
 				utils.Log("NewInstall: MongoDB created, waiting for it to be ready")
@@ -150,7 +150,8 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			}
 
 			// Admin User
-			c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+			c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+  defer closeDb()
 			if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

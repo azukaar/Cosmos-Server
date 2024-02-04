@@ -36,7 +36,8 @@ func New2FA(w http.ResponseWriter, req *http.Request) {
 		"Was2FAVerified": false,
 	}
 
-	c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+  defer closeDb()
 	if errCo != nil {
 		utils.Error("Database Connect", errCo)
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

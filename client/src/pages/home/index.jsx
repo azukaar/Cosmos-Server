@@ -282,8 +282,7 @@ const HomePage = () => {
         <Stack style={{ zIndex: 2, padding: '0px 8px'}} spacing={1}>
             {isAdmin && coStatus && !coStatus.database && (
                 <Alert severity="error">
-                    No Database is setup for Cosmos! User Management and Authentication will not work.<br />
-                    You can either setup the database, or disable user management in the configuration panel.<br />
+                    Database cannot connect, this will impact multiple feature of Cosmos. Please fix ASAP!
                 </Alert>
             )}
 
@@ -316,8 +315,7 @@ const HomePage = () => {
 
             {isAdmin && coStatus && !coStatus.hostmode && (
                 <Alert severity="warning">
-                    Your Cosmos server is not running in the docker host network mode.
-                    This will make your life harder, consider switching the network mode to host mode on the cosmos container.  
+                    Your Cosmos server is not running in the docker host network mode. consider switching the network mode of the container to host mode.  
                 </Alert>
             )}
 

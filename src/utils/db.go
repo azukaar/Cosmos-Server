@@ -13,51 +13,77 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"go.mongodb.org/mongo-driver/bson" 
+
+	lungo "github.com/256dpi/lungo"
 )
 
 
 var client *mongo.Client
-var IsDBaContainer bool
+var DBContainerName string
+var DBStatus bool
 
 func DB() error {
-	if(GetMainConfig().DisableUserManagement)	{
+	config := GetMainConfig()
+
+	if(config.DisableUserManagement)	{
+		DBStatus = false
 		return errors.New("User Management is disabled")
 	}
 
-	mongoURL := GetMainConfig().MongoDB
+	mongoURL := config.MongoDB
 	
 	if(client != nil && client.Ping(context.TODO(), readpref.Primary()) == nil) {
+		DBStatus = true
 		return nil
 	}
 
 	Log("(Re) Connecting to the database...")
+	
+	DBContainerName = ""
+	
+	isPuppetMode := config.Database.PuppetMode
+	puppetHostname := config.Database.Hostname
+	username := config.Database.Username
+	password := config.Database.Password
+	
+	if isPuppetMode {
+		mongoURL = "mongodb://" + username + ":" + password + "@" + puppetHostname + ":27017"
+		DBContainerName = puppetHostname
+	}
 
 	if mongoURL == "" {
+		DBStatus = false
 		return errors.New("MongoDB URL is not set, cannot connect to the database.")
 	}
 
 	var err error
 
 	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
-
-	IsDBaContainer = false
+	
+	opts.SetConnectTimeout(5 * time.Second)
 
 	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
-		hostname := opts.Hosts[0]
-		// split port
-		hostnameParts := strings.Split(hostname, ":")
-		hostname = hostnameParts[0]
+		hostname := ""
 		port := "27017" 
 
-		if len(hostnameParts) > 1 {
-			port = hostnameParts[1]
+		if !isPuppetMode {
+			hostname = opts.Hosts[0]
+			// split port
+			hostnameParts := strings.Split(hostname, ":")
+			hostname = hostnameParts[0]
+
+			if len(hostnameParts) > 1 {
+				port = hostnameParts[1]
+			}
+		} else {
+			hostname = puppetHostname
 		}
 
 		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
 
 		ip, _ := GetContainerIPByName(hostname)
 		if ip != "" {
-			IsDBaContainer = true
+			DBContainerName = hostname
 			opts.SetHosts([]string{ip + ":" + port})
 			Log("Mongo DB IP : " + ip)
 		}
@@ -66,17 +92,19 @@ func DB() error {
 	client, err = mongo.Connect(context.TODO(), opts)
 
 	if err != nil {
+		DBStatus = false
 		return err
 	}
-	defer func() {
-	}()
 
 	// Ping the primary
 	if err := client.Ping(context.TODO(), readpref.Primary()); err != nil {
+		DBStatus = false
 		return err
 	}
 
 	initDB()
+
+	DBStatus = true
 
 	Log("Successfully connected to the database.")
 	return nil
@@ -92,6 +120,31 @@ func DisconnectDB() {
 	client = nil
 }
 
+func GetEmbeddedCollection(applicationId string, collection string) (lungo.ICollection, func(), error) {
+	opts := lungo.Options{
+		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 700),
+	}
+	
+	name := os.Getenv("MONGODB_NAME"); if name == "" {
+		name = "COSMOS"
+	}
+
+	// open database
+	client, engine, err := lungo.Open(nil, opts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// ensure engine is closed
+	// defer engine.Close()
+	
+	c := client.Database(name).Collection(applicationId + "_" + collection)
+
+	return c, func() {
+		engine.Close()
+	}, nil
+}
+
 func GetCollection(applicationId string, collection string) (*mongo.Collection, error) {
 	if client == nil {
 		errCo := DB()
@@ -99,6 +152,8 @@ func GetCollection(applicationId string, collection string) (*mongo.Collection, 
 			return nil, errCo
 		}
 	}
+
+	DBStatus = true
 	
 	name := os.Getenv("MONGODB_NAME"); if name == "" {
 		name = "COSMOS"

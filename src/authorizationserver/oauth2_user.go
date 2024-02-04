@@ -48,7 +48,8 @@ func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {
 
 	nickname := interim["sub"].(string)
 
-	c, errCo := utils.GetCollection(utils.GetRootAppId(), "users")
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+  defer closeDb()
 	if errCo != nil {
 			utils.Error("Database Connect", errCo)
 			utils.HTTPError(rw, "Database", http.StatusInternalServerError, "DB001")

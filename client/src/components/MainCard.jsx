@@ -53,12 +53,6 @@ const MainCard = forwardRef(
                     ':hover': {
                         boxShadow: boxShadow ? shadow || theme.customShadows.z1 : 'inherit'
                     },
-                    '& pre': {
-                        m: 0,
-                        p: '16px !important',
-                        fontFamily: theme.typography.fontFamily,
-                        fontSize: '0.75rem'
-                    }
                 }}
             >
                 {/* card header and action */}

@@ -20,6 +20,13 @@ import { Link } from 'react-router-dom';
 import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker';
 import { LoadingButton } from '@mui/lab';
 import LogLine from '../../../components/logLine';
+import Highlighter from '../../../components/third-party/Highlighter';
+
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs/components/prism-core';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-yaml';
+import 'prismjs/themes/prism-okaidia.css';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -96,6 +103,11 @@ const NewDockerService = ({service, refresh, edit}) => {
     });
   }
 
+  let isJSON = false;
+  if(dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}')) {
+    isJSON = true;
+  }
+
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <MainCard title={edit ? "Edit Service" : "Create Service - Preview"}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
@@ -115,30 +127,31 @@ const NewDockerService = ({service, refresh, edit}) => {
           return <Alert severity={m.type}>{m.label}</Alert>
         })}
       </Stack>}
+      
+
       {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>Back</Button> : null}
-      {log.length || !edit ? <pre style={preStyle} ref={preRef}>
-        {!log.length && `
-${dockerCompose}`
-        }
+
+      {log.length ? <pre style={preStyle} ref={preRef}>
         {log.map((l) => {
           return <LogLine message={tryParseProgressLog(l)} docker isMobile={!screenMin} />
         })}
       </pre> :
-      
-      <TextField
-      multiline
-      placeholder='Paste your docker-compose.yml / cosmos-compose.json here or use the file upload button.'
-      fullWidth
-      value={dockerCompose}
-      onChange={(e) => setDockerCompose(e.target.value)}
-      sx={{...preStyle,
-      }}
-      InputProps={{
-        sx: {
-          color: '#EEE',
-        },
-      }}
-      ></TextField>
+      <div>
+        <Editor
+          value={dockerCompose}
+          placeholder='Paste your docker-compose.yml / cosmos-compose.json here or use the file upload button.'
+          onValueChange={code => setDockerCompose(code)}
+          highlight={code => highlight(code, isJSON ? languages.json : languages.yaml)}
+          padding={10}
+          tabSize={2}
+          insertSpaces={true}
+          style={{
+            fontFamily: '"Fira code", "Fira Mono", monospace',
+            fontSize: 12,
+            backgroundColor: '#000',
+          }}
+        />
+      </div>
       }
     </Stack>
   </MainCard>

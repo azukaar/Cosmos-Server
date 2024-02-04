@@ -10,35 +10,11 @@ import (
 	"encoding/json"
 
 	"github.com/jasonlvhit/gocron"
-	"github.com/Masterminds/semver"
 )
 
 type Version struct {
 	Version string `json:"version"`
 }
-
-// compareSemver compares two semantic version strings.
-// Returns:
-//   0 if v1 == v2
-//   1 if v1 > v2
-//  -1 if v1 < v2
-//   error if there's a problem parsing either version string
-func compareSemver(v1, v2 string) (int, error) {
-	ver1, err := semver.NewVersion(v1)
-	if err != nil {
-		utils.Error("compareSemver 1 " + v1, err)
-		return 0, err
-	}
-
-	ver2, err := semver.NewVersion(v2)
-	if err != nil {
-		utils.Error("compareSemver 2 " + v2, err)
-		return 0, err
-	}
-
-	return ver1.Compare(ver2), nil
-}
-
 
 func checkVersion() {
 	utils.NewVersionAvailable = false
@@ -82,7 +58,7 @@ func checkVersion() {
 		return
 	}
 
-	cp, errc := compareSemver(myVersion, string(body))
+	cp, errc := utils.CompareSemver(myVersion, string(body))
 
 	if errc != nil {
 		utils.Error("checkVersion", errc)
@@ -119,6 +95,9 @@ func checkCerts() {
 func CRON() {
 	go func() {
 		s := gocron.NewScheduler()
+		s.Every(2).Hours().Do(func() {
+			go RunBackup()
+		})
 		s.Every(1).Day().At("00:00").Do(checkVersion)
 		s.Every(1).Day().At("01:00").Do(checkCerts)
 		s.Every(6).Hours().Do(checkUpdatesAvailable)
