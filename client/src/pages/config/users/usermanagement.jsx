@@ -20,7 +20,6 @@ import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
-import IsLoggedIn from '../../../isLoggedIn';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 
@@ -64,7 +63,6 @@ const UserManagement = () => {
     }
 
     return <>
-        <IsLoggedIn />
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
             <DialogTitle>Invite User</DialogTitle>
             <DialogContent>

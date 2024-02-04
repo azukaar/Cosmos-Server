@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../../isLoggedIn';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
@@ -32,7 +31,6 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import RouteManagement from '../routes/routeman';
-import { map } from 'lodash';
 import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
@@ -145,7 +143,6 @@ const ProxyManagement = () => {
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
   return <div style={{   }}>
-    <IsLoggedIn />
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();

@@ -1,12 +1,12 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { lazy, useState } from 'react';
 
 // material-ui
 import { Box, CardActions, Collapse, Divider, IconButton, Tooltip } from '@mui/material';
 
 // third-party
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import reactElementToJSXString from 'react-element-to-jsx-string';
+const reactElementToJSXString = lazy(() => import('react-element-to-jsx-string'));
 
 // project import
 import SyntaxHighlight from '../../utils/SyntaxHighlight';

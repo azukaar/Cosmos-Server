@@ -7,7 +7,6 @@ import { RouteMode, RouteSecurity } from '../../components/routeComponents';
 import { getFaviconURL } from '../../utils/routes';
 import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
-import IsLoggedIn from '../../isLoggedIn';
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import ServApps from './servapps';
 import VolumeManagementList from './volumes';
@@ -18,8 +17,6 @@ const ServappsIndex = () => {
   const { stack } = useParams();
 
   return <div>
-    <IsLoggedIn />
-    
     {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {
           title: 'Containers',

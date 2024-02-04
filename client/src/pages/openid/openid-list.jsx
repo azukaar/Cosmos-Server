@@ -1,5 +1,4 @@
 import * as React from 'react';
-import IsLoggedIn from '../../isLoggedIn';
 import * as API from '../../api';
 import MainCard from '../../components/MainCard';
 import { Formik, Field } from 'formik';
@@ -27,7 +26,6 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
-import { map } from 'lodash';
 import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../utils/routes';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import HostChip from '../../components/hostChip';
@@ -129,7 +127,6 @@ const OpenIdList = () => {
   let clients = config && (config.OpenIDClients || []);
 
   return <div style={{}}>
-    <IsLoggedIn />
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
         refresh();

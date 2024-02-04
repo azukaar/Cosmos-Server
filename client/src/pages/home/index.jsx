@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 import Back from "../../components/back";
 import { Alert, Box, CircularProgress, Grid, Stack, Typography, useMediaQuery, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { lazy, useEffect, useState } from "react";
 import * as API from "../../api";
 import wallpaper from '../../assets/images/wallpaper2.jpg';
 import wallpaperLight from '../../assets/images/wallpaper2_light.jpg';
@@ -9,9 +9,8 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
-import IsLoggedIn from "../../isLoggedIn";
 import { ServAppIcon } from "../../utils/servapp-icon";
-import Chart from 'react-apexcharts';
+const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
@@ -277,7 +276,6 @@ const HomePage = () => {
     }
 
     return <Stack spacing={2} style={{maxWidth: '1450px', margin:'auto'}}>
-        <IsLoggedIn />
         <HomeBackground status={coStatus} />
         <TransparentHeader />
 
@@ -399,7 +397,7 @@ const HomePage = () => {
                                 <div>{coStatus.AVX ? "AVX Supported" : "No AVX Support"}</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
@@ -422,7 +420,7 @@ const HomePage = () => {
                                     <div>used: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
-                                    <Chart
+                                    <ReactApexChart
                                         options={optionsRadial}
                                         // series={[parseInt(
                                         //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
