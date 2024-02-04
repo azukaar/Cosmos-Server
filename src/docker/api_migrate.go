@@ -46,7 +46,14 @@ func MigrateToHostModeRoute(w http.ResponseWriter, req *http.Request) {
 			map[string]interface{}{
 		})
 
-		SelfAction("host")
+		err = SelfAction("host")
+		if err != nil {
+			utils.Error("MigrateToHostMode: Error migrating to host mode", err)
+			utils.HTTPError(w, "Error migrating to host mode: "+err.Error(), http.StatusInternalServerError, "CN003")
+			return
+		}
+		
+		utils.SetBaseMainConfig(config)
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

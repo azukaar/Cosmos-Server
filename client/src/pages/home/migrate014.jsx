@@ -22,6 +22,7 @@ import * as API from '../../api';
 
 const Migrate014 = ({ config }) => {
   const [isOpened, setIsOpened] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const formik = useFormik({
     initialValues: {
@@ -38,9 +39,9 @@ const Migrate014 = ({ config }) => {
       setSubmitting(true);
       return API.docker.migrateHost(values)
         .then((res) => {
+          isSubmitted(true);
           setStatus({ success: true });
           setSubmitting(false);
-          setIsOpened(false);
         }).catch((err) => {
           setStatus({ success: false });
           setErrors({ submit: err.message });
@@ -54,6 +55,15 @@ const Migrate014 = ({ config }) => {
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
           <DialogTitle>Migrate to Host Mode</DialogTitle>
+          {isSubmitted ? 
+          <DialogContent>
+            <DialogContentText>
+              Migration successful! Your Cosmos instance will now restart in Host Mode.
+              Refresh the page to see the changes (it might take a minute!).
+              if you are experiencing issues, please check the logs for more information.
+            </DialogContentText>
+          </DialogContent>
+          : 
           <DialogContent>
             <DialogContentText>
               In order to continue to improve your experience, Cosmos now supports the Host Mode of networking.
@@ -99,8 +109,8 @@ const Migrate014 = ({ config }) => {
                 <FormHelperText error>{formik.errors.submit}</FormHelperText>
               </Grid>
             )}
-          </DialogContent>
-          <DialogActions>
+          </DialogContent>}
+          {!isSubmitted && <DialogActions>
             <Button onClick={() => setIsOpened(false)}>Cancel</Button>
             <LoadingButton
               onClick={formik.handleSubmit}
@@ -108,7 +118,7 @@ const Migrate014 = ({ config }) => {
             >
               Migrate
             </LoadingButton>
-          </DialogActions>
+          </DialogActions>}
         </FormikProvider>
       </Dialog>
       <div style={{ display: 'inline-block'}}>
