@@ -243,7 +243,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 							return
 						}
 					} else {
-						Warn("Missing geolocation information to block IPs")
+						Debug("Missing geolocation information to block IPs")
 					}
 				} else {
 					for _, blockedCountry := range blockedCountries {
@@ -254,7 +254,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 					}
 				}
 			} else {
-				Warn("Missing geolocation information to block IPs")
+				Debug("Missing geolocation information to block IPs")
 			}
 
 			next.ServeHTTP(w, r)
