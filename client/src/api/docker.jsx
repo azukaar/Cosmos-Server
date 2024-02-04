@@ -101,6 +101,16 @@ const manageContainer = (containerId, action) => {
   }))
 }
 
+function migrateHost(values) {
+  return wrap(fetch('/cosmos/api/migrate-host', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values),
+  }))
+}
+
 function updateContainer(containerId, values) {
   return wrap(fetch('/cosmos/api/servapps/' + containerId + '/update', {
     method: 'POST',
@@ -360,4 +370,5 @@ export {
   autoUpdate,
   updateContainerImage,
   exportContainer,
+  migrateHost,
 };

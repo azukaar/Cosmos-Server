@@ -14,6 +14,8 @@
  - Added image clean up
  - Replaced network clean up by vanilla docker prune
  - Fix issue with removing IP whitelist
+ - Add UI to create MCVlan networks
+ - Add a migration script to host mode
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations

@@ -14,6 +14,7 @@ const ReactApexChart = lazy(() => import('react-apexcharts'));
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
+import Migrate014 from "./migrate014";
 
 
 export const HomeBackground = () => {
@@ -313,9 +314,10 @@ const HomePage = () => {
                 </Alert>
             )}
 
-            {isAdmin && coStatus && !coStatus.hostmode && (
+            {isAdmin && coStatus && !coStatus.hostmode && config && (
                 <Alert severity="warning">
-                    Your Cosmos server is not running in the docker host network mode. consider switching the network mode of the container to host mode.  
+                    Your Cosmos server is not running in the docker host network mode. It is recommended that you migrate your install. <br />
+                    <Migrate014 config={config} />
                 </Alert>
             )}
 

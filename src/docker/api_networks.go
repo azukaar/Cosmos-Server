@@ -251,6 +251,7 @@ type createNetworkPayload struct {
 	Name   string `json:"name"`
 	Driver string `json:"driver"`
 	AttachCosmos bool `json:"attachCosmos"`
+	parentInterface string `json:"parentInterface"`
 }
 
 func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
@@ -277,6 +278,9 @@ func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
 		networkCreate := types.NetworkCreate{
 			CheckDuplicate: true,
 			Driver:         payload.Driver,
+			Options: map[string]string{
+				"parent": payload.parentInterface,
+			},
 		}
 
 		resp, err := DockerClient.NetworkCreate(context.Background(), payload.Name, networkCreate)

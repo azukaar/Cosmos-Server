@@ -384,6 +384,8 @@ func InitServer() *mux.Router {
 
 	srapiAdmin.HandleFunc("/api/network/{networkID}", docker.DeleteNetworkRoute)
 	srapiAdmin.HandleFunc("/api/networks", docker.NetworkRoutes)
+
+	srapiAdmin.HandleFunc("/api/migrate-host", docker.MigrateToHostModeRoute)
 	
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)

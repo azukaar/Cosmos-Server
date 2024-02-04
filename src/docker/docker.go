@@ -609,6 +609,10 @@ func RemoveSelfUpdater() error {
 }
 
 func SelfRecreate() error {
+	return SelfAction("recreate")
+}
+
+func SelfAction(action string) error {
 	utils.Log("SelfRecreate - Starting...")
 
 	if os.Getenv("HOSTNAME") == "" {
@@ -638,7 +642,7 @@ func SelfRecreate() error {
 		"important",
 		"",
 		map[string]interface{}{
-			"action": "recreate",
+			"action": action,
 			"container": containerName,
 	})
 

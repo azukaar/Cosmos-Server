@@ -26,7 +26,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
   const formik = useFormik({
     initialValues: {
       name: '',
-      driver: '',
+      driver: 'local',
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Required'),
