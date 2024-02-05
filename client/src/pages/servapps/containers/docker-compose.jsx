@@ -131,9 +131,11 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             if (doc.services[key].ports && Array.isArray(doc.services[key].ports)) {
               let ports = [];
               doc.services[key].ports.forEach((port) => {
-                port.target = '' + port.target;
-                port.published = '' + port.published;
-                ports.push(port);
+                if (typeof port === 'string') {
+                  ports.push(port);
+                  return;
+                }
+                ports.push(`${port.published}:${port.target}/${port.protocol || 'tcp'}`);
               });
               doc.services[key].ports = ports;
             }
