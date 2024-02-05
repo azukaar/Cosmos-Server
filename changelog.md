@@ -16,6 +16,8 @@
  - Fix issue with removing IP whitelist
  - Add UI to create MCVlan networks
  - Add a migration script to host mode
+ - UI optimizations (thanks @Kawanaao)
+ - Add duplicate filter on store listing
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations

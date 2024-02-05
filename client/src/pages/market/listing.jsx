@@ -14,6 +14,7 @@ import { AppstoreAddOutlined, SearchOutlined, WarningOutlined } from "@ant-desig
 import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
+import { PersistentCheckbox } from "../../components/persistentInput";
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -135,6 +136,7 @@ const MarketPage = () => {
   const isDark = theme.palette.mode === 'dark';
   const { appName, appStore } = useParams();
   const [search, setSearch] = useState("");
+  const [filterDups, setFilterDups] = useState(false);
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
@@ -178,6 +180,14 @@ const MarketPage = () => {
     }
 
     if (a.name < b.name) {
+      return -1;
+    }
+
+    if (a.appstore > b.appstore || b.appstore === 'cosmos-cloud') {
+      return 1;
+    }
+
+    if (a.appstore < b.appstore || a.appstore === 'cosmos-cloud') {
       return -1;
     }
 
@@ -318,6 +328,7 @@ const MarketPage = () => {
           </Link>
           <DockerComposeImport refresh={() => { }} />
           <EditSourcesModal onSave={refresh} />
+          <PersistentCheckbox name="filterDups" label="Filter Duplicates" value={filterDups} onChange={setFilterDups} />
         </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
@@ -340,6 +351,17 @@ const MarketPage = () => {
               }
               return app.name.toLowerCase().includes(search.toLowerCase()) ||
                 app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
+            })
+            .filter((app) => {
+              if (!filterDups) {
+                return true;
+              } else if(app.appstore === 'cosmos-cloud') {
+                return true;
+              } else if(appList.filter((a) => a.name === app.name && a.appstore === 'cosmos-cloud').length > 0) {
+                return false;
+              }
+
+              return true;
             })
             .map((app) => {
               return <Grid2

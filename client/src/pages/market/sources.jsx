@@ -106,10 +106,15 @@ const EditSourcesModal = ({ onSave }) => {
   return (<>
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
       <DialogTitle>Edit Sources</DialogTitle>
+        
       {config && <FormikProvider value={formik}>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2}>
+            <Alert severity="info" style={{ margin: '0 20px 20px 20px' }}>
+              This allows you to add additional 3rd party Cosmos app-markets to the market. <br />
+              To find new sources,  <a href="https://github.com/azukaar/awesome-cosmos-cloud" target="_blank">start here</a>
+            </Alert>
             {formik.values.sources && formik.values.sources
             .map((action, index) => {
               return !action.removed && <>

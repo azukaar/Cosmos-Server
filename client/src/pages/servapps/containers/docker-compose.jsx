@@ -127,6 +127,17 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               })
             }
 
+            // convert ports
+            if (doc.services[key].ports && Array.isArray(doc.services[key].ports)) {
+              let ports = [];
+              doc.services[key].ports.forEach((port) => {
+                port.target = '' + port.target;
+                port.published = '' + port.published;
+                ports.push(port);
+              });
+              doc.services[key].ports = ports;
+            }
+
             //convert user
             if (doc.services[key].user) {
               doc.services[key].user = '' + doc.services[key].user;
