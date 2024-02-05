@@ -171,7 +171,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
   const newTarget = formik.values[name];
   React.useEffect(() => {
     if(onTargetChange) {
-      onTargetChange(newTarget, targetResult.container.replace("/", ""), targetResult)
+      onTargetChange(newTarget, targetResult.container !== 'null' ? targetResult.container.replace("/", "") : "", targetResult)
     }
   }, [newTarget])
 

@@ -75,6 +75,13 @@ const isNewerVersion = (minver) => {
   return cmp(version, minver) === -1;
 }
 
+const cleanUpStore = (service) => {
+  let newService = Object.assign({}, service);
+  delete newService['cosmos-installer'];
+  delete newService['x-cosmos-installer'];
+  return newService;
+}
+
 const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) => {
       let doc;
 
@@ -599,11 +606,6 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               }
             }
           }
-  
-          // REMOIVE COSMOS-INSTALLER
-          if (jsoned['cosmos-installer']) {
-            delete jsoned['cosmos-installer'];
-          }
         }
 
         setService(jsoned);
@@ -854,7 +856,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           </Stack>}
 
           {step === 1 && <Stack spacing={2}>
-            <NewDockerService service={service} refresh={refresh} />
+            <NewDockerService service={cleanUpStore(service)} refresh={refresh} />
           </Stack>}
         </DialogContentText>
       </DialogContent>
