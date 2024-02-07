@@ -6,7 +6,14 @@ import (
 	"time"
 )
 
+var NebulaStarted = false
+
 func Init() {
+	ConstellationInitLock.Lock()
+	defer ConstellationInitLock.Unlock()
+	
+	NebulaStarted = false
+
 	var err error
 
 	// if date is > 1st of January 2024

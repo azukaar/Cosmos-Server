@@ -136,6 +136,12 @@ func loadRawBlockList(DNSBlacklistRaw string) {
 }
 
 func InitDNS() {
+	ConstellationInitLock.Lock()
+	defer ConstellationInitLock.Unlock()
+
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
+	
 	config := utils.GetMainConfig()
 	DNSPort := config.ConstellationConfig.DNSPort
 	DNSBlockBlacklist := config.ConstellationConfig.DNSBlockBlacklist
@@ -182,7 +188,17 @@ func InitDNS() {
 			server := &dns.Server{Addr: "192.168.201.1:" + DNSPort, Net: "udp"}
 
 			utils.Log("Starting DNS server on :" + DNSPort)
-			if err := server.ListenAndServe(); err != nil {
+			var err error
+
+			err = server.ListenAndServe();
+			retries := 0
+			for err != nil && retries < 4 {
+				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+				err = server.ListenAndServe();
+				retries++
+				utils.Debug("Retrying to start DNS server")
+			}
+			if err != nil {
 				utils.Error("Failed to start DNS server", err)
 			}
 		})()

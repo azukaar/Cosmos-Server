@@ -33,7 +33,7 @@ func main() {
 
 	docker.DockerListenEvents()
 
-	// docker.BootstrapAllContainersFromTags()
+	docker.BootstrapAllContainersFromTags()
 
 	docker.RemoveSelfUpdater()
 
@@ -72,7 +72,9 @@ func main() {
 
 		constellation.Init()
 
-		constellation.InitDNS()
+		if constellation.NebulaStarted {
+			go constellation.InitDNS()
+		}
 
 		utils.Log("Starting server...")
 	}

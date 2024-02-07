@@ -256,7 +256,8 @@ func WriteToDatabase(collection *mongo.Collection, objects []map[string]interfac
 
 func ListAllUsers(role string) []User { 
 	// list all users
-	c, errCo := GetCollection(GetRootAppId(), "users")
+	c, closeDb, errCo := GetEmbeddedCollection(GetRootAppId(), "users")
+  defer closeDb()
 	if errCo != nil {
 			Error("Database Connect", errCo)
 			return []User{}

@@ -174,7 +174,7 @@ const ProxyManagement = () => {
             title: 'Enabled', 
             clickable:true, 
             field: (r, k) => <Checkbox disabled={isLoading} size='large' color={!r.Disabled ? 'success' : 'default'}
-              onChange={setRouteEnabled(k)}
+              onChange={setRouteEnabled(routes.indexOf(r))}
               checked={!r.Disabled}
             />,
           },

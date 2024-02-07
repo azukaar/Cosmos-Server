@@ -18,6 +18,8 @@
  - Add a migration script to host mode
  - UI optimizations (thanks @Kawanaao)
  - Add duplicate filter on store listing
+ - Fixed an issue where container picker would select 'null' as container
+ - Fix bug where Enabled checkbox was broken after a search
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations

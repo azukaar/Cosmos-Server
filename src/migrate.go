@@ -78,10 +78,10 @@ func MigratePre014Coll(collection string, from *mongo.Client) {
 func MigratePre014() {
 	config := utils.GetMainConfig()
 
-	utils.Log("MigratePre014: Migration of database...")
-
 	// check if COSMOS.db does NOT exist
 	if _, err := os.Stat(utils.CONFIGFOLDER + "database"); err != nil && config.MongoDB != "" {
+		utils.Log("MigratePre014: Migration of database...")
+
 		// connect to MongoDB
 		utils.Log("Connecting to MongoDB...")
 		

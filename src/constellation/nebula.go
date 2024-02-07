@@ -21,7 +21,8 @@ var logBuffer *lumberjack.Logger
 
 var (
 	process    *exec.Cmd
-	processMux sync.Mutex
+	ProcessMux sync.Mutex
+	ConstellationInitLock sync.Mutex
 )
 
 func binaryToRun() string {
@@ -32,8 +33,8 @@ func binaryToRun() string {
 }
 
 func startNebulaInBackground() error {
-	processMux.Lock()
-	defer processMux.Unlock()
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
 
 	if process != nil {
 		return errors.New("nebula is already running")
@@ -64,13 +65,15 @@ func startNebulaInBackground() error {
 		return err
 	}
 
+	NebulaStarted = true
+
 	utils.Log(fmt.Sprintf("%s started with PID %d\n", binaryToRun(), process.Process.Pid))
 	return nil
 }
 
 func stop() error {
-	processMux.Lock()
-	defer processMux.Unlock()
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
 
 	if process == nil {
 		return nil
@@ -363,8 +366,8 @@ func getCApki() (string, error) {
 }
 
 func killAllNebulaInstances() error {
-	processMux.Lock()
-	defer processMux.Unlock()
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
 
 	cmd := exec.Command("ps", "-e", "-o", "pid,command")
 	output, err := cmd.CombinedOutput()
