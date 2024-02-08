@@ -667,13 +667,44 @@ func SelfAction(action string) error {
 		},
 	};
 
+	utils.Log("Creating self-updater service: docker run -d --name cosmos-self-updater-agent -e CONTAINER_NAME=" + containerName + " -e ACTION=" + action + " -e DOCKER_HOST=" + os.Getenv("DOCKER_HOST") + " -v /var/run/docker.sock:/var/run/docker.sock azukaar/docker-self-updater:" + version)
+
 	err := CreateService(service, func (msg string) {})
 
 	if err != nil {
 		return err
 	}
 
+	// attach logs
+	go redirectLogs("cosmos-self-updater-agent", utils.CONFIGFOLDER + "/logs-cosmos-self-updater-agent.log")
+
 	return nil
+}
+
+func redirectLogs(containerName string, logFile string) {
+	// attach logs
+	logs, err := DockerClient.ContainerLogs(DockerContext, containerName, types.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow: true,
+	})
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
+
+	// replace file if exist
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0770)
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
+
+	defer file.Close()
+	defer logs.Close()
+
+	_, err = io.Copy(file, logs)
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
 }
 
 func DockerPullImage(image string) (io.ReadCloser, error) {

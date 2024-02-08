@@ -15,6 +15,7 @@
  - Replaced network clean up by vanilla docker prune
  - Fix issue with removing IP whitelist
  - Add UI to create MCVlan networks
+ - Add a log file in config folder for the selfupdater
  - Add a migration script to host mode
  - UI optimizations (thanks @Kawanaao)
  - Add duplicate filter on store listing
