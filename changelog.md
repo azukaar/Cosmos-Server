@@ -1,4 +1,4 @@
-## Version 0.14.1
+## Version 0.14.2
  - Puppet migration for non-host mode
  - Add config UI for puppet mode
 
