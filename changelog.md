@@ -1,3 +1,6 @@
+## Version 0.14.3
+ - Added app count to the marketplace
+
 ## Version 0.14.2
  - Puppet migration for non-host mode
  - Add config UI for puppet mode
