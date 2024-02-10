@@ -61,24 +61,24 @@ func DB() error {
 	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 	
 	opts.SetConnectTimeout(5 * time.Second)
+	
+	hostname := ""
+	port := "27017" 
+
+	if !isPuppetMode {
+		hostname = opts.Hosts[0]
+		// split port
+		hostnameParts := strings.Split(hostname, ":")
+		hostname = hostnameParts[0]
+
+		if len(hostnameParts) > 1 {
+			port = hostnameParts[1]
+		}
+	} else {
+		hostname = puppetHostname
+	}
 
 	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
-		hostname := ""
-		port := "27017" 
-
-		if !isPuppetMode {
-			hostname = opts.Hosts[0]
-			// split port
-			hostnameParts := strings.Split(hostname, ":")
-			hostname = hostnameParts[0]
-
-			if len(hostnameParts) > 1 {
-				port = hostnameParts[1]
-			}
-		} else {
-			hostname = puppetHostname
-		}
-
 		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
 
 		ip, _ := GetContainerIPByName(hostname)
@@ -86,6 +86,11 @@ func DB() error {
 			DBContainerName = hostname
 			opts.SetHosts([]string{ip + ":" + port})
 			Log("Mongo DB IP : " + ip)
+		}
+	} else {
+		if DoesContainerExist(hostname) {
+			Debug("MongoDB is running in a container")
+			DBContainerName = hostname
 		}
 	}
 	

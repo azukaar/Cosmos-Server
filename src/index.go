@@ -19,6 +19,7 @@ func main() {
 	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
 	utils.PushShieldMetrics = metrics.PushShieldMetrics
 	utils.GetContainerIPByName = docker.GetContainerIPByName
+	utils.DoesContainerExist = docker.DoesContainerExist
 	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 
 	rand.Seed(time.Now().UnixNano())

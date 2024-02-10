@@ -140,3 +140,18 @@ func GetContainerIPByName(containerName string) (ip string, err error) {
 	utils.Debug("Docker - Docker IP " + containerName + " : " + ip)
 	return ip, nil
 }
+
+func DoesContainerExist(containerName string) bool {
+	errD := Connect()
+	if errD != nil {
+		return false
+	}
+
+	_, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	
+	if err != nil {
+		return false
+	}
+
+	return true
+}

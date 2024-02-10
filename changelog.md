@@ -1,3 +1,7 @@
+## Version 0.14.1
+ - Puppet migration for non-host mode
+ - Add config UI for puppet mode
+
 ## Version 0.14.0
  - Cosmos is now fully functional dockerless
  - Reworked Cosmos Compose for better compatibility with docker-compose.yml files

@@ -38,6 +38,7 @@ var UpdateAvailable = map[string]bool{}
 var RestartHTTPServer func()
 // var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
+var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
 
 var LetsEncryptErrors = []string{}

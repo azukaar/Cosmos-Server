@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import RestartModal from './restart';
 import { DeleteOutlined, SyncOutlined } from '@ant-design/icons';
-import { CosmosCheckbox, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
+import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
 
@@ -129,6 +129,14 @@ const ConfigManagement = () => {
 
           AdminWhitelistIPs: config.AdminWhitelistIPs && config.AdminWhitelistIPs.join(', '),
           AdminConstellationOnly: config.AdminConstellationOnly,
+
+          PuppetModeEnabled: config.Database.PuppetMode,
+          PuppetModeHostname: config.Database.Hostname,
+          PuppetModeDbVolume: config.Database.DbVolume,
+          PuppetModeConfigVolume: config.Database.ConfigVolume,
+          PuppetModeVersion: config.Database.Version,
+          PuppetModeUsername: config.Database.Username,
+          PuppetModePassword: config.Database.Password,
         }}
 
         validationSchema={Yup.object().shape({
@@ -143,6 +151,16 @@ const ConfigManagement = () => {
           let toSave = {
             ...config,
             MongoDB: values.MongoDB,
+            Database: {
+              ...config.Database,
+              PuppetMode: values.PuppetModeEnabled,
+              Hostname: values.PuppetModeHostname,
+              DbVolume: values.PuppetModeDbVolume,
+              ConfigVolume: values.PuppetModeConfigVolume,
+              Version: values.PuppetModeVersion,
+              Username: values.PuppetModeUsername,
+              Password: values.PuppetModePassword,
+            },
             LoggingLevel: values.LoggingLevel,
             RequireMFA: values.RequireMFA,
             // AutoUpdate: values.AutoUpdate,
@@ -275,6 +293,72 @@ const ConfigManagement = () => {
                           {formik.errors.MongoDB}
                         </FormHelperText>
                       )}
+                      <CosmosCollapse title="Puppet Mode">
+                        <Grid container spacing={3}>
+                          <Grid item xs={12}>
+                            <CosmosCheckbox
+                              label="Puppet Mode Enabled"
+                              name="PuppetModeEnabled"
+                              formik={formik}
+                              helperText="Enable Puppet Mode"
+                            />
+
+                            {formik.values.PuppetModeEnabled && (
+                              <Grid container spacing={3}>
+                                <Grid item xs={12}>
+                                  <CosmosInputText
+                                    label="Puppet Mode Hostname"
+                                    name="PuppetModeHostname"
+                                    formik={formik}
+                                    helperText="Puppet Mode Hostname"
+                                  />
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                  <CosmosInputText
+                                    label="Puppet Mode Database Volume"
+                                    name="PuppetModeDbVolume"
+                                    formik={formik}
+                                    helperText="Puppet Mode Database Volume"
+                                  />
+
+                                  <CosmosInputText
+                                    label="Puppet Mode Config Volume"
+                                    name="PuppetModeConfigVolume"
+                                    formik={formik}
+                                    helperText="Puppet Mode Config Volume"
+                                  />
+                                  
+                                  <CosmosInputText
+                                    label="Puppet Mode Version"
+                                    name="PuppetModeVersion"
+                                    formik={formik}
+                                    helperText="Puppet Mode Version"
+                                  />
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                  <CosmosInputText
+                                    label="Puppet Mode Username"
+                                    name="PuppetModeUsername"
+                                    formik={formik}
+                                    helperText="Puppet Mode Username"
+                                  />
+
+                                  <CosmosInputPassword
+                                    label="Puppet Mode Password"
+                                    name="PuppetModePassword"
+                                    autoComplete='new-password'
+                                    formik={formik}
+                                    helperText="Puppet Mode Password"
+                                    noStrength
+                                  />
+                                </Grid>
+                              </Grid>
+                            )}
+                          </Grid>
+                        </Grid>
+                      </CosmosCollapse>
                     </Stack>
                   </Grid>
 
