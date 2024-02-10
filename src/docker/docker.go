@@ -588,9 +588,12 @@ func RemoveSelfUpdater() error {
 		return err
 	}
 
+
 	for _, container := range containers {
 		if container.Names[0] == "/cosmos-self-updater-agent" {
-			utils.Log("Found. Removing self updater agent")
+			utils.Log("Found. Copying logs and removing self updater agent")
+			redirectLogs("cosmos-self-updater-agent", utils.CONFIGFOLDER + "/logs-cosmos-self-updater-agent.log")
+
 			err := DockerClient.ContainerKill(DockerContext, container.ID, "SIGKILL")
 			if err != nil {
 				utils.Error("RemoveSelfUpdater", err)
@@ -675,9 +678,6 @@ func SelfAction(action string) error {
 		return err
 	}
 
-	// attach logs
-	go redirectLogs("cosmos-self-updater-agent", utils.CONFIGFOLDER + "/logs-cosmos-self-updater-agent.log")
-
 	return nil
 }
 
@@ -686,7 +686,7 @@ func redirectLogs(containerName string, logFile string) {
 	logs, err := DockerClient.ContainerLogs(DockerContext, containerName, types.ContainerLogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
-		Follow: true,
+		Follow: false,
 	})
 	if err != nil {
 		utils.Error("redirectLogs", err)

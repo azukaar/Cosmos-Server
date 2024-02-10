@@ -21,6 +21,7 @@
  - Add duplicate filter on store listing
  - Fixed an issue where container picker would select 'null' as container
  - Fix bug where Enabled checkbox was broken after a search
+ - remove mac address when switching to host mode
 
 ## Version 0.13.2
  - Fix display issue with fault network configurations

@@ -168,7 +168,5 @@ func UpdatePorts(finalPorts []string) error {
 		return err
 	}
 
-	go redirectLogs("cosmos-self-updater-agent", utils.CONFIGFOLDER + "/logs-cosmos-self-updater-agent.log")
-
 	return nil
 }

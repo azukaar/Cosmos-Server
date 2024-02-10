@@ -120,6 +120,11 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 		}
 		if(form.NetworkMode != "") {
 			container.HostConfig.NetworkMode = containerType.NetworkMode(form.NetworkMode)
+			// if not bridge, remove mac address
+			if form.NetworkMode != "bridge" &&
+				 form.NetworkMode != "default" {
+					container.Config.MacAddress = ""
+			}
 		}
 
 		_, err = EditContainer(container.ID, container, false)
