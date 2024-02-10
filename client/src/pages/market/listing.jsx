@@ -194,6 +194,25 @@ const MarketPage = () => {
     return 0;
   });
 
+  let filteredAppList = appList.filter((app) => {
+    if (!search || search.length <= 2) {
+      return true;
+    }
+    return app.name.toLowerCase().includes(search.toLowerCase()) ||
+      app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
+  })
+  .filter((app) => {
+    if (!filterDups) {
+      return true;
+    } else if(app.appstore === 'cosmos-cloud') {
+      return true;
+    } else if(appList.filter((a) => a.name === app.name && a.appstore === 'cosmos-cloud').length > 0) {
+      return false;
+    }
+
+    return true;
+  });
+
   return <>
     <HomeBackground />
     <TransparentHeader />
@@ -307,7 +326,7 @@ const MarketPage = () => {
       }}>
         <h2>Applications</h2>
         <Stack direction="row" spacing={2}>
-          <Input placeholder="Search"
+          <Input placeholder={"Search " + filteredAppList.length + " applications"}
             value={search}
             style={{ maxWidth: '400px' }}
             startAdornment={
@@ -345,25 +364,7 @@ const MarketPage = () => {
         </Box>}
 
         {apps && Object.keys(apps).length > 0 && <Grid2 container spacing={{ xs: 1, sm: 1, md: 2 }}>
-          {appList.filter((app) => {
-              if (!search || search.length <= 2) {
-                return true;
-              }
-              return app.name.toLowerCase().includes(search.toLowerCase()) ||
-                app.tags.join(' ').toLowerCase().includes(search.toLowerCase());
-            })
-            .filter((app) => {
-              if (!filterDups) {
-                return true;
-              } else if(app.appstore === 'cosmos-cloud') {
-                return true;
-              } else if(appList.filter((a) => a.name === app.name && a.appstore === 'cosmos-cloud').length > 0) {
-                return false;
-              }
-
-              return true;
-            })
-            .map((app) => {
+          {filteredAppList.map((app) => {
               return <Grid2
               style={{
                 ...gridAnim,
