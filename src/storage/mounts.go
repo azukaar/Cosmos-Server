@@ -1,18 +1,26 @@
 package storage
 
 import (
+<<<<<<< HEAD
+=======
+	"io/ioutil"
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	"os/exec"
 	"os"
 	"errors"
 	"k8s.io/utils/mount"
 	"strings"
+<<<<<<< HEAD
 	"bufio"
 	"io"
 	"fmt"
+=======
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+<<<<<<< HEAD
 type MountPoint struct {
 	Path string `json:"path"`
 	Permenant bool `json:"permenant"`
@@ -23,6 +31,10 @@ type MountPoint struct {
 
 // ListMounts lists all the mount points on the system
 func ListMounts() ([]MountPoint, error) {
+=======
+// ListMounts lists all the mount points on the system
+func ListMounts() ([]mount.MountPoint, error) {
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	utils.Log("[STORAGE] Listing all mount points")
 
 	// Create a new mounter
@@ -35,6 +47,7 @@ func ListMounts() ([]MountPoint, error) {
 	}
 
 	// filter out the mount points that are not disks
+<<<<<<< HEAD
 	finalMountPoints := []MountPoint{}
 	for i := 0; i < len(mountPoints); i++ {
 		path := mountPoints[i].Path
@@ -67,6 +80,19 @@ func ListMounts() ([]MountPoint, error) {
 		// 	Path: path,
 		// 	Permenant: isPermenant,
 		// })
+=======
+	finalMountPoints := []mount.MountPoint{}
+	for i := 0; i < len(mountPoints); i++ {
+		// if not proc or sys or dev or run
+		if strings.HasPrefix(mountPoints[i].Path, "/proc") ||
+		   strings.HasPrefix(mountPoints[i].Path, "/sys") ||
+			 strings.HasPrefix(mountPoints[i].Path, "/dev") || 
+			 strings.HasPrefix(mountPoints[i].Path, "/run") ||
+			 mountPoints[i].Type == "tmpfs" {
+			continue
+		}
+		finalMountPoints = append(finalMountPoints, mountPoints[i])
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	}
 
 	// use df -h to get the disk usage
@@ -76,6 +102,7 @@ func ListMounts() ([]MountPoint, error) {
 }
 
 
+<<<<<<< HEAD
 
 // Mount mounts a filesystem located at 'path' to 'mountpoint'.
 func Mount(path, mountpoint string, permanent bool, chown string) error {
@@ -105,10 +132,20 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
 		cmd := exec.Command("chown", chown, mountpoint)
 		if err := cmd.Run(); err != nil {
+=======
+// mount disk
+func MountDisk(diskPath string, mountPath string) error {
+	utils.Log("[STORAGE] Mounting disk " + diskPath + " to " + mountPath)
+
+	// Create the mount point if it doesn't exist
+	if _, err := ioutil.ReadDir(mountPath); os.IsNotExist(err) {
+		if err := os.MkdirAll(mountPath, 0755); err != nil {
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 			return err
 		}
 	}
 
+<<<<<<< HEAD
 	// Execute the mount command
 	cmd := exec.Command("mount", path, mountpoint)
 	if err := cmd.Run(); err != nil {
@@ -143,10 +180,23 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 
 		utils.Log("[STORAGE] Added mountpoint to /etc/fstab")
 	}
+=======
+	// Mount the disk
+	cmd := exec.Command("mount", diskPath, mountPath)
+
+	// Run the command
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return errors.New("Mount: " + string(output) + " " + err.Error())
+	}
+
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 
 	return nil
 }
 
+<<<<<<< HEAD
 
 // Unmount unmounts the filesystem at 'mountpoint'.
 func Unmount(mountpoint string, permanent bool) error {
@@ -171,10 +221,28 @@ func Unmount(mountpoint string, permanent bool) error {
 			return err
 		}
 	}
+=======
+// unmount disk
+func UnmountDisk(mountPath string) error {
+	utils.Log("[STORAGE] Unmounting disk " + mountPath)
+
+	// Unmount the disk
+	cmd := exec.Command("umount", mountPath)
+
+	// Run the command
+	output, err := cmd.CombinedOutput()
+
+	if err != nil {
+		return errors.New("Unmount: " + string(output) + " " + err.Error())
+	}
+
+	
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 
 	return nil
 }
 
+<<<<<<< HEAD
 
 // isMountPointInFstab checks if the given mountpoint is already in /etc/fstab.
 func isMountPointInFstab(mountpoint string) (bool, error) {
@@ -222,6 +290,8 @@ func removeFstabEntry(mountpoint string) error {
 	return os.WriteFile("/etc/fstab", []byte(strings.Join(lines, "\n")), 0644)
 }
 
+=======
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 // check if disk is mounted
 func IsDiskMounted(diskPath string) (bool, error) {
 	utils.Log("[STORAGE] Checking if disk " + diskPath + " is mounted using kubernetes/mount-utils")

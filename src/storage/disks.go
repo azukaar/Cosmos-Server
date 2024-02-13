@@ -50,6 +50,7 @@ func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevi
 			return nil, err
 		}
 
+<<<<<<< HEAD
 		// Retrieve SMART information
 		if device.Type == "disk" {
 			dev, err := smart.Open(device.Name)
@@ -82,6 +83,40 @@ func GetDiskUsage(path string) (perc uint64, err error) {
 
 	// Get the disk usage using the df command
 	cmd := exec.Command("df", "-k", path)
+=======
+		disks = append(disks, DiskInfo{Path: path, Name: name, Size: size, Used: use})
+	}
+
+	return disks, nil
+}
+
+func GetDiskSize(name string) (uint64, error) {
+	utils.Debug("[STORAGE] Getting size of disk " + name)
+
+	// Read the size file in /sys/block/<name>/size
+	content, err := ioutil.ReadFile("/sys/block/" + name + "/size")
+	if err != nil {
+		return 0, err
+	}
+
+	// The size is reported in 512-byte sectors
+	sizeInSectors, err := strconv.ParseUint(strings.TrimSpace(string(content)), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	// Convert size to bytes
+	sizeInBytes := sizeInSectors * 512
+
+	return sizeInBytes, nil
+}
+
+func GetDiskUsage(path string) (uint64, error) {
+	utils.Debug("[STORAGE] Getting usage of disk " + path)
+
+	// Get the disk usage using the du command
+	cmd := exec.Command("du", "-s", path)
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 
 	// Run the command
 	output, err := cmd.CombinedOutput()
@@ -89,6 +124,7 @@ func GetDiskUsage(path string) (perc uint64, err error) {
 		return 0, err
 	}
 
+<<<<<<< HEAD
 	// Split the output into lines
 	lines := strings.Split(string(output), "\n")
 	if len(lines) < 2 {
@@ -104,10 +140,21 @@ func GetDiskUsage(path string) (perc uint64, err error) {
 
 	// Parse the size (1K-blocks)
 	available, err := strconv.ParseUint(parts[3], 10, 64)
+=======
+	// The output is in the format "<size> <path>"
+	parts := strings.Fields(string(output))
+	if len(parts) < 1 {
+		return 0, fmt.Errorf("unexpected output: %s", string(output))
+	}
+
+	// Parse the size
+	size, err := strconv.ParseUint(parts[0], 10, 64)
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	if err != nil {
 		return 0, err
 	}
 
+<<<<<<< HEAD
 	// Parse the used space
 	used, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
@@ -118,6 +165,12 @@ func GetDiskUsage(path string) (perc uint64, err error) {
 }
 
 func FormatDisk(diskPath string, filesystemType string) (io.Reader, error) {
+=======
+	return size, nil
+}
+
+func FormatDisk(diskPath string, filesystemType string) error {
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	utils.Log("[STORAGE] Formatting disk " + diskPath + " with filesystem " + filesystemType)
 
 	// check filesystem type
@@ -130,22 +183,34 @@ func FormatDisk(diskPath string, filesystemType string) (io.Reader, error) {
 		}
 	}
 	if !isSupported {
+<<<<<<< HEAD
 		return nil, errors.New("unsupported filesystem type")
+=======
+		return errors.New("unsupported filesystem type")
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	}
 
 	// check if the disk is mounted
 	mounted, err := IsDiskMounted(diskPath)
 	if err != nil {
+<<<<<<< HEAD
 		return nil, err
 	}
 	if mounted {
 		return nil, errors.New("disk is mounted, please unmount it first")
+=======
+		return err
+	}
+	if mounted {
+		return errors.New("disk is mounted, please unmount it first")
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
 	}
 
 	// Example: mkfs.ext4 /dev/sdx - Make sure the disk path is correct!
 	// WARNING: This will erase all data on the disk!
 	cmd := exec.Command("mkfs", "-t", filesystemType, diskPath)
 
+<<<<<<< HEAD
 	// stream the output of the command
 	out, err := cmd.StdoutPipe()
 	if err != nil {
@@ -191,3 +256,13 @@ func CreateSinglePartition(diskPath string) (io.Reader, error) {
 	
 	return out, nil
 }
+=======
+	// Run the command
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.New("Format: " + string(output) + " " + err.Error())
+	}
+
+	return nil
+}
+>>>>>>> 092a95a ([release] v0.15.0-unstable1)
