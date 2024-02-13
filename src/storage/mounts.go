@@ -27,6 +27,11 @@ func ListMounts() ([]mount.MountPoint, error) {
 	// filter out the mount points that are not disks
 	finalMountPoints := []mount.MountPoint{}
 	for i := 0; i < len(mountPoints); i++ {
+		if strings.HasPrefix(mountPoints[i].Path, "/mnt/host") && os.Getenv("HOSTNAME") != "" {
+			// remove the host path
+			mountPoints[i].Path = strings.Replace(mountPoints[i].Path, "/mnt/host", "", 1)
+		}
+
 		// if not proc or sys or dev or run
 		if strings.HasPrefix(mountPoints[i].Path, "/proc") ||
 		   strings.HasPrefix(mountPoints[i].Path, "/sys") ||
