@@ -11,6 +11,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/market"
 		"github.com/azukaar/cosmos-server/src/constellation"
 		"github.com/azukaar/cosmos-server/src/metrics"
+		"github.com/azukaar/cosmos-server/src/storage"
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
@@ -424,6 +425,9 @@ func InitServer() *mux.Router {
 
 	srapiAdmin.HandleFunc("/api/notifications/read", utils.MarkAsRead)
 	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
+
+	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
+	srapiAdmin.HandleFunc("/api/mounts", storage.ListMountsRoute)
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
 
