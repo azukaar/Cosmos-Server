@@ -87,7 +87,7 @@ const Migrate014 = ({ config }) => {
                 <li>You won't need all the cosmos-network anymore to connect to containers</li>
                 <li>You can see all your server's networking data in the monitoring tab (not just the docker data)</li>
                 <li>Docker-compose imported container will work out-of-the-box</li>
-                <li>Remove the docker overhead (small performance gain) and ensure Docker does not meddle with IP informations</li>
+                <li>Remove the docker overhead (small performance gain) and ensure Docker does not meddle with IP information</li>
                 <li>Faster boot time (no bootstrapping of containers needed)</li>
               </ul>
               Cosmos can automatically migrate to the host mode, but before you do so, please confirm what ports you want to use with Cosmos (default are 80/443).

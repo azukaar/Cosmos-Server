@@ -2,27 +2,15 @@ import React from 'react';
 import { Formik } from 'formik';
 import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, CircularProgress, useTheme, Checkbox, Alert } from '@mui/material';
 import MainCard from '../../../components/MainCard';
-import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
-  from '../../config/users/formShortcuts';
-import { ApiOutlined, CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, PlayCircleOutlined, PlusCircleOutlined } from '@ant-design/icons';
+import { PlusCircleOutlined } from '@ant-design/icons';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
-import { NetworksColumns } from '../networks';
-import NewNetworkButton from '../createNetwork';
 import ResponsiveButton from '../../../components/responseiveButton';
 
 const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refresh, newContainer, OnChange }) => {
-  const restartPolicies = [
-    ['no', 'No Restart'],
-    ['always', 'Always Restart'],
-    ['on-failure', 'Restart On Failure'],
-    ['unless-stopped', 'Restart Unless Stopped'],
-  ];
-
   const [volumes, setVolumes] = React.useState([]);
   const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
 
   React.useEffect(() => {
     API.docker.volumeList().then((res) => {
@@ -89,7 +77,7 @@ const VolumeContainerSetup = ({ noCard, containerInfo, frozenVolumes = [], refre
               Type: volume.Type,
               Source: volume.Source,
               Target: volume.Target,
-              ReadOnly: !volume.RW
+              ReadOnly: false // TODO: add support for this
             }))
           };
           return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)

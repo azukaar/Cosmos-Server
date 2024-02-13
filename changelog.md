@@ -1,3 +1,6 @@
+## Version 0.14.4
+ - Fix issue with the volumes going read only
+
 ## Version 0.14.3
  - Added app count to the marketplace
 
