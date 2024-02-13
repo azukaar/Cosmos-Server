@@ -43,13 +43,13 @@ const disks = {
     }))
   },
 
-  format({disk, format}, onProgress) {
+  format({disk, format, password}, onProgress) {
     const requestOptions = {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({disk, format})
+      body: JSON.stringify({disk, format, password})
     };
   
     return fetch('/cosmos/api/disks/format', requestOptions)

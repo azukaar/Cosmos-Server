@@ -1,3 +1,9 @@
+## Version 0.15.0
+ - Added Disk management (Format, mount, SMART, etc...)
+ - Added Storage management (MergeFS, SnapRAID, RClone, etc...)
+ - Overwrite all docker networks size to prevent Cosmos from running out of IP addresses
+ - Added optional subnet input to the network creation
+
 ## Version 0.14.6
  - Fix custom back-up folder logic
 

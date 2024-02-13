@@ -13,13 +13,18 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"errors"
 	"path/filepath"
+
+
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/net"
 	"golang.org/x/net/publicsuffix"
 	"github.com/Masterminds/semver"
+	"golang.org/x/crypto/bcrypt"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var ConfigLock sync.Mutex
@@ -710,4 +715,40 @@ func CompareSemver(v1, v2 string) (int, error) {
 	}
 
 	return ver1.Compare(ver2), nil
+}
+
+
+func CheckPassword(nickname, password string) error {
+	time.Sleep(time.Duration(rand.Float64()*1)*time.Second)
+	
+	c, closeDb, errCo := GetEmbeddedCollection(GetRootAppId(), "users")
+	defer closeDb()
+	if errCo != nil {
+			return errCo
+	}
+
+	user := User{}
+
+	err3 := c.FindOne(nil, map[string]interface{}{
+		"Nickname": nickname,
+	}).Decode(&user)
+
+	
+	if err3 == mongo.ErrNoDocuments {
+		bcrypt.CompareHashAndPassword([]byte("$2a$14$4nzsVwEnR3.jEbMTME7kqeCo4gMgR/Tuk7ivNExvXjr73nKvLgHka"), []byte("dummyPassword"))
+		return err3
+	} else if err3 != nil {
+		bcrypt.CompareHashAndPassword([]byte("$2a$14$4nzsVwEnR3.jEbMTME7kqeCo4gMgR/Tuk7ivNExvXjr73nKvLgHka"), []byte("dummyPassword"))
+		return err3
+	} else if user.Password == "" {
+		return errors.New("User not registered")
+	} else {
+		err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+		if err2 != nil {
+			return err2
+		}
+
+		return nil
+	}
 }

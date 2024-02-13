@@ -28,7 +28,7 @@ const GetActions = ({
 
     if(action === 'update') {
       setPullRequest(() => ((cb) => {
-        API.docker.updateContainerImage(Id, cb, true)
+        return API.docker.updateContainerImage(Id, cb, true)
       }));
       return;
     }

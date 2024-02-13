@@ -320,16 +320,18 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 		
-		_, err = DockerClient.NetworkCreate(DockerContext, networkToCreateName, doctype.NetworkCreate{
-				Driver:     networkToCreate.Driver,
-				Attachable: networkToCreate.Attachable,
-				Internal:   networkToCreate.Internal,
-				EnableIPv6: networkToCreate.EnableIPv6,
-				IPAM: &network.IPAM{
-						Driver: networkToCreate.IPAM.Driver,
-						Config: ipamConfig,
-				},
-		})
+		networkPayload := doctype.NetworkCreate{
+			Driver:     networkToCreate.Driver,
+			Attachable: networkToCreate.Attachable,
+			Internal:   networkToCreate.Internal,
+			EnableIPv6: networkToCreate.EnableIPv6,
+			IPAM: &network.IPAM{
+					Driver: networkToCreate.IPAM.Driver,
+					Config: ipamConfig,
+			},
+		}
+
+		_, err = CreateReasonableNetwork(networkToCreateName, networkPayload)
 
 		if err != nil {
 			utils.Error("CreateService: Rolling back changes because of -- Network", err)

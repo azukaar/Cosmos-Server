@@ -37,7 +37,7 @@ export const StorageMounts = () => {
       <div>
         {mounts && mounts.map((mount, index) => {
           return <div>
-            <FolderOutlined/> {mount.Device} - {mount.Path} ({mount.Type})
+            <FolderOutlined/> {mount.device} - {mount.path} ({mount.type})
           </div>
         })}
       </div>  

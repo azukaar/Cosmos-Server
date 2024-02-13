@@ -161,7 +161,7 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 
 					metric.ValuesAggl["hour_" + valueHourlyPool] = currentPool
 				} else {
-					utils.Warn("Metrics: Agglomeration - Pool not found : " + "hour_" + valueHourlyPool)
+					utils.Debug("Metrics: Agglomeration - Pool not found : " + "hour_" + valueHourlyPool)
 				}
 
 				if _, ok := metric.ValuesAggl["day_" + valueDailyPool]; ok {
@@ -174,7 +174,7 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 
 					metric.ValuesAggl["day_" + valueDailyPool] = currentPool
 				} else {
-					utils.Warn("Metrics: Agglomeration - Pool not found: " + "day_" + valueDailyPool)
+					utils.Debug("Metrics: Agglomeration - Pool not found: " + "day_" + valueDailyPool)
 				}
 
 				values[valInd].Processed = true

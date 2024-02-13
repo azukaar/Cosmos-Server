@@ -55,19 +55,63 @@ func doesSubnetOverlap(networks []types.NetworkResource, subnet string) bool {
 	return false
 }
 
-func findAvailableSubnet() string {
+func findAvailableSubnets(nb int) ([]string, error) {
+	result := []string{}
 	baseSubnet := "100.0.0.0/29"
 
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
-		panic(err)
+		utils.Error("Docker Network List", err)
+		return []string{}, err
 	}
 
-	for doesSubnetOverlap(networks, baseSubnet) {
-		baseSubnet = getNextSubnet(baseSubnet)
+	for i := 0; i < nb; i++ {
+		for doesSubnetOverlap(networks, baseSubnet) {
+			baseSubnet = getNextSubnet(baseSubnet)
+		}
+		result = append(result, baseSubnet)
 	}
 
-	return baseSubnet
+	if len(result) != nb {
+		return []string{}, errors.New("Not enough subnets available. Try cleaning up networks.")
+	}
+
+	return result, nil
+}
+
+func CreateReasonableNetwork(name string, networkDef types.NetworkCreate) (types.NetworkCreateResponse, error) {
+	// if no subnet
+	if networkDef.IPAM == nil {
+		networkDef.IPAM = &network.IPAM{
+			Driver: "default",
+		}
+	}
+	
+	if len(networkDef.IPAM.Config) == 0 {
+		subnets, err := findAvailableSubnets(1)
+		if err != nil {
+			return types.NetworkCreateResponse{}, err
+		}
+
+		networkDef.IPAM.Config = []network.IPAMConfig{
+			network.IPAMConfig{
+				Subnet: subnets[0],
+			},
+		}
+	} else {
+		subnets, err := findAvailableSubnets(len(networkDef.IPAM.Config))
+		if err != nil {
+			return types.NetworkCreateResponse{}, err
+		}
+
+		for i, config := range networkDef.IPAM.Config {
+			if config.Subnet == "" {
+				config.Subnet = subnets[i]
+			}
+		}
+	}
+
+	return DockerClient.NetworkCreate(DockerContext, name, networkDef)
 }
 
 func CreateCosmosNetwork(name string) (string, error) {
@@ -93,7 +137,11 @@ func CreateCosmosNetwork(name string) (string, error) {
 
 	utils.Log("Creating new secure network: " + newNeworkName)
 	
-	subnet := findAvailableSubnet()
+	subnet, err := findAvailableSubnets(1)
+	if err != nil {
+		utils.Error("Docker Network Create", err)
+		return "", err
+	}
 
 	// create network
 	newNetHan, err := DockerClient.NetworkCreate(DockerContext, newNeworkName, types.NetworkCreate{
@@ -102,7 +150,7 @@ func CreateCosmosNetwork(name string) (string, error) {
 			Driver: "default",
 			Config: []network.IPAMConfig{
 				network.IPAMConfig{
-					Subnet: subnet,
+					Subnet: subnet[0],
 				},
 			},
 		},
@@ -345,11 +393,14 @@ func _debounceNetworkCleanUp() func(string) {
 }
 
 func CreateLinkNetwork(containerName string, container2Name string) error {
-	subnet := findAvailableSubnet()
+	subnet, err := findAvailableSubnets(1)
+	if err != nil {
+		return err
+	}
 
 	// create network
 	networkName := "cosmos-link-" + containerName + "-" + container2Name + "-" + utils.GenerateRandomString(2)
-	_, err := DockerClient.NetworkCreate(DockerContext, networkName, types.NetworkCreate{
+	_, err = DockerClient.NetworkCreate(DockerContext, networkName, types.NetworkCreate{
 		CheckDuplicate: true,
 		Labels: map[string]string{
 			"cosmos-link": "true",
@@ -360,7 +411,7 @@ func CreateLinkNetwork(containerName string, container2Name string) error {
 		IPAM: &network.IPAM{
 			Config: []network.IPAMConfig{
 				network.IPAMConfig{
-					Subnet: subnet,
+					Subnet: subnet[0],
 				},
 			},
 		},

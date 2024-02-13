@@ -25,7 +25,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			utils.Error("UserLogin: User already logged ing", nil)
 			utils.HTTPError(w, "User is already logged in", http.StatusUnauthorized, "UL002")
 			return
-		} 
+		}
 
 		var request LoginRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -36,7 +36,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 		}
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
+  	defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database Error", http.StatusInternalServerError, "DB001")

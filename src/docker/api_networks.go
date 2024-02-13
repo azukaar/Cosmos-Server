@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/docker/docker/api/types"
+	network "github.com/docker/docker/api/types/network"
 )
 
 func ListNetworksRoute(w http.ResponseWriter, req *http.Request) {
@@ -251,7 +252,8 @@ type createNetworkPayload struct {
 	Name   string `json:"name"`
 	Driver string `json:"driver"`
 	AttachCosmos bool `json:"attachCosmos"`
-	parentInterface string `json:"parentInterface"`
+	ParentInterface string `json:"parentInterface"`
+	Subnet string `json:"subnet"`
 }
 
 func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
@@ -279,11 +281,22 @@ func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
 			CheckDuplicate: true,
 			Driver:         payload.Driver,
 			Options: map[string]string{
-				"parent": payload.parentInterface,
+				"parent": payload.ParentInterface,
 			},
 		}
 
-		resp, err := DockerClient.NetworkCreate(context.Background(), payload.Name, networkCreate)
+		if payload.Subnet != "" {
+			networkCreate.IPAM = &network.IPAM{
+				Driver: "default",
+				Config: []network.IPAMConfig{
+					{
+						Subnet: payload.Subnet,
+					},
+				},
+			}
+		}
+
+		resp, err := CreateReasonableNetwork(payload.Name, networkCreate)
 		if err != nil {
 			utils.Error("CreateNetworkRoute: Error while creating network", err)
 			utils.HTTPError(w, "Network Create Error: " + err.Error(), http.StatusInternalServerError, "CN004")

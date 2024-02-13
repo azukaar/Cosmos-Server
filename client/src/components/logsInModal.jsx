@@ -53,24 +53,32 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, OnClose,
 
       if(request === null) return;
 
-      request((newlog) => {
-        setLogs((old) => smartDockerLogConcat(old, newlog));
+      try {
+        request((newlog) => {
+          setLogs((old) => smartDockerLogConcat(old, newlog));
 
-        if(preRef.current)
-          preRef.current.scrollTop = preRef.current.scrollHeight;
-          
-        if (newlog.includes('[OPERATION SUCCEEDED]')) {
-          setDone(true);
-          if(!alwaysShow)
-            close();
-          OnSuccess && OnSuccess();
-        } else if (newlog.includes('[OPERATION FAILED]')) {
-          setDone(true);
-          OnError && OnError(newlog);
-        } else {
-          setOpenModal(true);
-        }
-      });
+          if(preRef.current)
+            preRef.current.scrollTop = preRef.current.scrollHeight;
+            
+          if (newlog.includes('[OPERATION SUCCEEDED]')) {
+            setDone(true);
+            if(!alwaysShow)
+              close();
+            OnSuccess && OnSuccess();
+          } else if (newlog.includes('[OPERATION FAILED]')) {
+            setDone(true);
+            OnError && OnError(newlog);
+          } else {
+            setOpenModal(true);
+          }
+        }).catch((err) => {
+          setLogs((old) => smartDockerLogConcat(old, err.message));
+          OnError && OnError(err);
+        });
+      } catch(err) {
+        setLogs((old) => smartDockerLogConcat(old, err.message));
+        OnError && OnError(err);
+      };
     }, [request]);
 
     return <>

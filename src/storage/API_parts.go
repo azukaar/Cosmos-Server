@@ -13,6 +13,7 @@ import (
 type FormatDiskJSON struct {
 	Disk string `json:"disk"`
 	Format string `json:"format"`
+	Password string `json:"password"`
 }
 
 func isDiskOrPartition(path string) (string, error) {
@@ -43,15 +44,8 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if req.Method == "POST" {
-		var request FormatDiskJSON
-		err := json.NewDecoder(req.Body).Decode(&request)
-		if err != nil {
-			utils.Error("FormatDiskRoute: Invalid User Request", err)
-			utils.HTTPError(w, "FormatDiskRoute Error", http.StatusInternalServerError, "FD001")
-			return
-		}
 
+	if req.Method == "POST" {
 		// Enable streaming of response by setting appropriate headers
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("Transfer-Encoding", "chunked")
@@ -63,10 +57,31 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
         return
     }
 
+		var request FormatDiskJSON
+		err := json.NewDecoder(req.Body).Decode(&request)
+		if err != nil {
+			utils.Error("FormatDiskRoute: Invalid User Request", err)
+			fmt.Fprintf(w, "[OPERATION FAILED] FormatDiskRoute  Syntax Error")
+			http.Error(w, "FormatDiskRoute  Syntax Error", http.StatusBadRequest)
+
+			return
+		}
+			
+		nickname := req.Header.Get("x-cosmos-user")
+
+		errp := utils.CheckPassword(nickname, request.Password)
+		if errp != nil {
+			utils.Error("FormatDiskRoute: Invalid User Request", errp)
+			fmt.Fprintf(w, "[OPERATION FAILED] Wrong password supplied. Try again")
+			http.Error(w, "Wrong password supplied. Try again", http.StatusUnauthorized)
+			return
+		}
+
 		out, err := FormatDisk(request.Disk, request.Format)
 		if err != nil {
 			utils.Error("FormatDiskRoute: Error formatting disk", err)
-			utils.HTTPError(w, "FormatDiskRoute Error", http.StatusInternalServerError, "FD002")
+			fmt.Fprintf(w, "[OPERATION FAILED] Error formatting disk: " + err.Error())
+			http.Error(w, "Error formatting disk", http.StatusInternalServerError)
 			return
 		}
 
@@ -85,7 +100,8 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 			out, err = CreateSinglePartition(request.Disk)
 			if err != nil {
 				utils.Error("FormatDiskRoute: Error creating partition", err)
-				utils.HTTPError(w, "FormatDiskRoute Error", http.StatusInternalServerError, "FD003")
+				fmt.Fprintf(w, "[OPERATION FAILED] Error creating partition: " + err.Error())
+				http.Error(w, "Error creating partition", http.StatusInternalServerError)
 				return
 			}
 	
@@ -99,7 +115,8 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 			out, err = FormatDisk(request.Disk + "1", request.Format)
 			if err != nil {
 				utils.Error("FormatDiskRoute: Error formatting partition", err)
-				utils.HTTPError(w, "FormatDiskRoute Error", http.StatusInternalServerError, "FD002")
+				fmt.Fprintf(w, "[OPERATION FAILED] Error formatting partition: " + err.Error())
+				http.Error(w, "Error formatting partition", http.StatusInternalServerError)
 				return
 			}
 	

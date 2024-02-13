@@ -60,10 +60,10 @@ func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevi
 				if err == nil {
 					devicesF[i].SMART = *smartInfo
 				} else {
-					utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : ", err)
+					utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
 				}
 			} else {
-				utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : ", err)
+				utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
 			}
 		}
 
@@ -78,8 +78,6 @@ func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevi
 }
 
 func GetDiskUsage(path string) (perc uint64, err error) {
-	fmt.Println("[STORAGE] Getting usage of disk " + path)
-
 	// Get the disk usage using the df command
 	cmd := exec.Command("df", "-k", path)
 

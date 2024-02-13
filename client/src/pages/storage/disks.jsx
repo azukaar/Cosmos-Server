@@ -22,6 +22,8 @@ import raidIcon from '../../assets/images/icons/database.svg';
 import { simplifyNumber } from "../dashboard/components/utils";
 import LogsInModal from "../../components/logsInModal";
 import MountDialog from "./mountDialog";
+import PasswordModal from "../../components/passwordModal";
+import FormatModal from "./FormatModal";
 
 const diskStyle = {
   width: "100%",
@@ -44,21 +46,37 @@ const icons = {
 const FormatButton = ({disk, refresh}) => {
   const [formatting, setFormatting] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState(false);
+  const [values, setValues] = useState("");
 
   return <>
     <LoadingButton
       loading={loading}
-      onClick={() => {setFormatting(true); setLoading(true)}}
-      variant="contained"
+      onClick={() => {setPasswordConfirm(true); setLoading(true)}}
+      variant="outlined"
       color="error"
       size="small"
     >Format</LoadingButton>
+    
+    {passwordConfirm && <FormatModal
+      OnClose={() => {
+        setPasswordConfirm(false);
+        setLoading(false);
+      }}
+      textInfos={`Enter your password to confirm you want to format ${disk.name}`}
+      cb={async (values) => {
+        setPasswordConfirm(false);
+        setFormatting(values);
+      }} 
+    />}
+    
     {formatting && <LogsInModal
       request={(cb) => {
-          API.storage.disks.format({
-            disk: disk.name,
-            format: "ext4",
-          }, cb)
+        return API.storage.disks.format({
+          disk: disk.name,
+          format: formatting.format,
+          password: formatting.password,
+        }, cb)
       }}
       initialLogs={[
         "Starting format disk " + disk.name + "..."
@@ -85,92 +103,94 @@ const Disk = ({disk, refresh}) => {
     percent = Math.round((disk.usage / disk.size) * 100);
   }
 
-  return <TreeItem sx={{
-    '&.Mui-selected': {
-      color: 'red !important',
-      backgroundColor: 'red'
-    }
-  }} style={diskStyle} nodeId={disk.name} label={
-    <div style={{
-      width: "100%",
-      padding: "10px",
-      border: "1px solid #eee",
-      borderRadius: "5px",
-      borderColor: darkMode ? "#555" : "#eee",
-      backgroundColor: darkMode ? "#333" : "#fff",
-      color: darkMode ? "#fff" : "#000",
-    }}>
-      <Stack direction="row" justifyContent="space-between" style={{
-          borderLeft: ("4px solid " + (disk.smart.Temperature ? (disk.smart.Temperature > 55 ? (disk.smart.Temperature > 70 ? "red" : "orange") : "green") : "gray")),
-        }}>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{paddingLeft: '5px'}}>
-          <div>
-          {disk.smart.Temperature ? <div style={{
-              position: 'absolute',
-              top: '10px',
-              left: '25px',
-              backgroundColor: 'rgba(0,0,0,0.8)',
-              color: 'white',
-              borderRadius: '5px',
-              padding: '0px 5px',
-            }}>
-              <span style={{fontSize: '80%', opacity: 0.8}}>
-                {disk.smart.Temperature > 55 && <WarningFilled />} {disk.smart.Temperature}°C
-                </span></div> : ""}
-            
-            <Tooltip title={disk.type}>
-              {icons[disk.type] ? <img width="64px" height={"64px"} src={icons[disk.type]} /> : <img width="64px" height={"64px"} src={icons["drive"]} />}
-            </Tooltip>
-          </div>
-          <div>
-          <Stack spacing={1}>
-          <div style={{fontWeight: 'bold'}}>
-            {disk.name.replace("/dev/", "")} 
-            <span style={{opacity: 0.8, fontSize: '80%'}}>
-              {disk.rota ? " (HDD)" : " (SSD)"}
-              {disk.fstype ? ` - ${disk.fstype}` : ""}
-              {disk.model ? ` - ${disk.model}` : ""} {disk.mountpoint ? ` (${disk.mountpoint})` : ""}
-            </span>
-          </div>
-            {disk.usage ? <>
-            <div><LinearProgress
-              variant="determinate"
-              color={percent > 95 ? 'error' : (percent > 75 ? 'warning' : 'info')}
-              value={percent} /></div>
-            <div>{simplifyNumber(disk.usage, 'b')} / {simplifyNumber(disk.size, 'b')} ({percent}%)</div>
-            </>: simplifyNumber(disk.size, 'b')}
+  return <>
+    <TreeItem sx={{
+      '&.Mui-selected': {
+        color: 'red !important',
+        backgroundColor: 'red'
+      }
+    }} style={diskStyle} nodeId={disk.name} label={
+      <div style={{
+        width: "100%",
+        padding: "10px",
+        border: "1px solid #eee",
+        borderRadius: "5px",
+        borderColor: darkMode ? "#555" : "#eee",
+        backgroundColor: darkMode ? "#333" : "#fff",
+        color: darkMode ? "#fff" : "#000",
+      }}>
+        <Stack direction="row" justifyContent="space-between" style={{
+            borderLeft: ("4px solid " + (disk.smart.Temperature ? (disk.smart.Temperature > 55 ? (disk.smart.Temperature > 70 ? "red" : "orange") : "green") : "gray")),
+          }}>
+          <Stack direction="row" spacing={2} alignItems="center" sx={{paddingLeft: '5px'}}>
+            <div>
+            {disk.smart.Temperature ? <div style={{
+                position: 'absolute',
+                top: '10px',
+                left: '25px',
+                backgroundColor: 'rgba(0,0,0,0.8)',
+                color: 'white',
+                borderRadius: '5px',
+                padding: '0px 5px',
+              }}>
+                <span style={{fontSize: '80%', opacity: 0.8}}>
+                  {disk.smart.Temperature > 55 && <WarningFilled />} {disk.smart.Temperature}°C
+                  </span></div> : ""}
+              
+              <Tooltip title={disk.type}>
+                {icons[disk.type] ? <img width="64px" height={"64px"} src={icons[disk.type]} /> : <img width="64px" height={"64px"} src={icons["drive"]} />}
+              </Tooltip>
+            </div>
+            <div>
+            <Stack spacing={1}>
+            <div style={{fontWeight: 'bold'}}>
+              {disk.name.replace("/dev/", "")} 
+              <span style={{opacity: 0.8, fontSize: '80%'}}>
+                {disk.rota ? " (HDD)" : " (SSD)"}
+                {disk.fstype ? ` - ${disk.fstype}` : ""}
+                {disk.model ? ` - ${disk.model}` : ""} {disk.mountpoint ? ` (${disk.mountpoint})` : ""}
+              </span>
+            </div>
+              {disk.usage ? <>
+              <div><LinearProgress
+                variant="determinate"
+                color={percent > 95 ? 'error' : (percent > 75 ? 'warning' : 'info')}
+                value={percent} /></div>
+              <div>{simplifyNumber(disk.usage, 'b')} / {simplifyNumber(disk.size, 'b')} ({percent}%)</div>
+              </>: simplifyNumber(disk.size, 'b')}
 
+              </Stack>
+            </div>
+          </Stack>
+          <Stack direction={"row"} spacing={2} style={{textAlign: 'right'}}>
+            <Stack spacing={0} style={{textAlign: 'right', opacity: 0.8, fontSize: '80%'}}>
+              {Object.keys(disk).filter(key => key !== "name" && key !== "children" && key !== "smart"&& key !== "fstype"&& key !== "mountpoint"&& key !== "model" && key !== "usage" &&key !== "rota" && key !== "type" && key !== "size").map((key, index) => {
+                return <div key={index}>{key}: {
+                  (typeof disk[key] == "object" ? JSON.stringify(disk[key]) : disk[key])
+                }</div>
+              })}
             </Stack>
-          </div>
-        </Stack>
-        <Stack direction={"row"} spacing={2} style={{textAlign: 'right'}}>
-          <Stack spacing={0} style={{textAlign: 'right', opacity: 0.8, fontSize: '80%'}}>
-            {Object.keys(disk).filter(key => key !== "name" && key !== "children" && key !== "smart"&& key !== "fstype"&& key !== "mountpoint"&& key !== "model" && key !== "usage" &&key !== "rota" && key !== "type" && key !== "size").map((key, index) => {
-              return <div key={index}>{key}: {
-                (typeof disk[key] == "object" ? JSON.stringify(disk[key]) : disk[key])
-              }</div>
-            })}
-          </Stack>
-          <Stack spacing={2} direction="column" justifyContent={"center"}>
-            {(disk.type == "disk" || disk.type == "part") ? <FormatButton disk={disk} refresh={refresh}/> : ""}
-            
-            {disk.mountpoint ? <MountDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
-            
-            {(
-              (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
-              disk.fstype &&
-              disk.fstype !== "swap" &&
-              !disk.mountpoint
-             ) ? <MountDialog disk={disk} refresh={refresh} /> : ""}
+            <Stack spacing={2} direction="column" justifyContent={"center"}>
+              {(disk.type == "disk" || disk.type == "part") ? <FormatButton disk={disk} refresh={refresh}/> : ""}
+              
+              {disk.mountpoint ? <MountDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
+              
+              {(
+                (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
+                disk.fstype &&
+                disk.fstype !== "swap" &&
+                !disk.mountpoint
+              ) ? <MountDialog disk={disk} refresh={refresh} /> : ""}
+            </Stack>
           </Stack>
         </Stack>
-      </Stack>
-    </div>
-  }>
-    {disk.children && disk.children.map((child, index) => {
-      return <Disk disk={child} refresh={refresh} />
-    })}
-  </TreeItem>
+      </div>
+    }>
+      {disk.children && disk.children.map((child, index) => {
+        return <Disk disk={child} refresh={refresh} />
+      })}
+    </TreeItem>
+  </>;
 }
 
 export const StorageDisks = () => {
@@ -206,7 +226,6 @@ export const StorageDisks = () => {
       >
         {disks && disks.map((disk, index) => {
           return <Disk disk={disk} refresh={async () => {
-            // wait 1s
             await new Promise(r => setTimeout(r, 1000));
             await refresh()
           }} />

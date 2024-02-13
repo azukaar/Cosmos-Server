@@ -204,7 +204,7 @@ const NewInstall = () => {
                                             setDatabaseEnable(false);
                                         }
                                         pullRequestOnSuccess();
-                                        API.getStatus().then((res) => {
+                                        return API.getStatus().then((res) => {
                                             formik.setSubmitting(false);
                                             formik.setStatus({ success: true });
                                         });

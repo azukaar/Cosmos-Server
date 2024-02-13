@@ -24,6 +24,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
       driver: 'bridge',
       attachCosmos: false,
       parentInterface: '',
+      subnet: '',
     },
     validationSchema: Yup.object({
       name: Yup.string().required('Required'),
@@ -93,6 +94,18 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                       <MenuItem value="mcvlan">MCVLAN</MenuItem>
                     </Select>
                   </FormControl>
+                  
+                  <TextField
+                    fullWidth
+                    id="subnet"
+                    name="subnet"
+                    label="Subnet (optional)"
+                    value={formik.values.subnet}
+                    onChange={formik.handleChange}
+                    error={formik.touched.subnet && Boolean(formik.errors.subnet)}
+                    helperText={formik.touched.subnet && formik.errors.subnet}
+                    style={{ marginBottom: '16px' }}
+                  />
 
                   {formik.values.driver === 'mcvlan' && (
                     <TextField
