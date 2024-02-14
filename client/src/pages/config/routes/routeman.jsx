@@ -73,7 +73,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           AuthEnabled: routeConfig.AuthEnabled,
           HideFromDashboard: routeConfig.HideFromDashboard,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
-          RestrictToConstellation: routeConfig.RestrictToConstellation,
+          RestrictToConstellation: routeConfig.RestrictToConstellation === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
@@ -120,16 +120,16 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
         }}
         validate={(values) => {
           let commaSepIps = values.WhitelistInboundIPs;
-
-          if(commaSepIps && commaSepIps.length) {
-            values.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
-          } else {
-            values.WhitelistInboundIPs = [];
-          }
-
+          
           let fullValues = {
             ...routeConfig,
             ...values,
+          }
+
+          if(commaSepIps && commaSepIps.length) {
+            fullValues.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
+          } else {
+            fullValues.WhitelistInboundIPs = [];
           }
 
           // check name is unique

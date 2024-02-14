@@ -1,3 +1,6 @@
+## Version 0.14.5
+ - Fix an issue with the whitelisting form of URLs
+
 ## Version 0.14.4
  - Fix issue with the volumes going read only
 
