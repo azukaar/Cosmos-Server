@@ -4,7 +4,7 @@ import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
 import { CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, InputLabel, Stack } from "@mui/material";
+import { Alert, Button, CircularProgress, InputLabel, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -14,15 +14,30 @@ import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 
+import diskIcon from '../../assets/images/icons/disk.svg';
+import partIcon from '../../assets/images/icons/part.svg';
+import lockIcon from '../../assets/images/icons/lock.svg';
+import raidIcon from '../../assets/images/icons/database.svg';
+
 const diskStyle = {
   width: "100%",
-  padding: "10px",
+  padding: "12px",
   borderRadius: "5px",
   border: "1px solid #ccc",
   backgroundColor: "#333",
-  marginBottom: "15px",
-  marginLeft: "10px",
+  margin: "10px",
 };
+
+const icons = {
+  disk: diskIcon,
+  part: partIcon,
+  crypt: lockIcon,
+  raid: raidIcon,
+  raid0: raidIcon,
+  raid1: raidIcon,
+  raid5: raidIcon,
+  raid6: raidIcon,
+}
 
 const Disk = ({disk}) => {
   return <TreeItem nodeId={disk.name} label={
@@ -30,7 +45,9 @@ const Disk = ({disk}) => {
       <Stack direction="row" justifyContent="space-between">
         <Stack direction="row" spacing={2} alignItems="center">
           <div>
-            ICON {disk.type}
+            <Tooltip title={disk.type}>
+              {icons[disk.type] ? <img width="64px" height={"64px"} src={icons[disk.type]} /> : <img width="64px" height={"64px"} src={icons["drive"]} />}
+            </Tooltip>
           </div>
           <div>
           <div style={{fontWeight: 'bold'}}>{disk.name}</div>
@@ -76,8 +93,8 @@ export const StorageDisks = () => {
       <div>
       <TreeView
         aria-label="Disks"
-        defaultCollapseIcon={<PlusCircleFilled />}
-        defaultExpandIcon={<MinusCircleFilled />}
+        defaultCollapseIcon={<MinusCircleFilled />}
+        defaultExpandIcon={<PlusCircleFilled />}
       >
         {disks && disks.map((disk, index) => {
           return <Disk disk={disk} />
