@@ -18,6 +18,7 @@ const NewDockerServiceForm = Loadable(lazy(() => import('../pages/servapps/conta
 const OpenIdList = Loadable(lazy(() => import('../pages/openid/openid-list')));
 const MarketPage = Loadable(lazy(() => import('../pages/market/listing')));
 const ConstellationIndex = Loadable(lazy(() => import('../pages/constellation')));
+const StorageIndex = Loadable(lazy(() => import('../pages/storage')));
 
 // render - dashboard
 const DashboardDefault = Loadable(lazy(() => import('../pages/dashboard')));
@@ -45,6 +46,10 @@ const MainRoutes = {
         {
             path: '/cosmos-ui/monitoring',
             element: <DashboardDefault />
+        },
+        {
+            path: '/cosmos-ui/storage',
+            element: <StorageIndex />
         },
         {
             path: '/cosmos-ui/constellation',

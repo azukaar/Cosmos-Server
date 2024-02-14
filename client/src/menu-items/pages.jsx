@@ -1,12 +1,13 @@
 // assets
-import { ProfileOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
+import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
 import ConstellationIcon from '../assets/images/icons/constellation.png'
 
 // icons
 const icons = {
     NodeExpandOutlined,
     ProfileOutlined,
-    SettingOutlined
+    SettingOutlined,
+    FolderOutlined
 };
 // ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
 
@@ -29,6 +30,14 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/config-url',
             icon: icons.NodeExpandOutlined,
+        },
+        {
+            id: 'storage',
+            title: 'Storage',
+            type: 'item',
+            url: '/cosmos-ui/storage',
+            icon: icons.FolderOutlined,
+            
         },
         {
             id: 'constellation',
