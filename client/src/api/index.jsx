@@ -5,6 +5,7 @@ import * as _docker from './docker';
 import * as _market from './market';
 import * as _constellation from './constellation';
 import * as _metrics from './metrics';
+import * as _storage from './storage';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -217,6 +218,7 @@ let docker = _docker;
 let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
+let storage = _storage;
 
 if(isDemo) {
   auth = authDemo;
@@ -247,5 +249,6 @@ export {
   checkHost,
   getDNS,
   metrics,
-  uploadImage
+  uploadImage,
+  storage
 };

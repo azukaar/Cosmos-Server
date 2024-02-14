@@ -2,94 +2,76 @@ package storage
 
 import (
 	"fmt"
-	"io/ioutil"
+	// "io/ioutil"
 	"strings"
 	"strconv"
 	"os/exec"
 	"errors"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/dell/csi-baremetal/pkg/base/linuxutils/lsblk"
+	"github.com/sirupsen/logrus"
 )
 
-func ListDisks() ([]DiskInfo, error) {
-	var disks []DiskInfo
-	listPath := "/sys/block"
+type BlockDevice struct  {
+	lsblk.BlockDevice
+	RealChildren []*BlockDevice
+	Parent *BlockDevice
+}
 
-	// Read the contents of /sys/block to get disk names
-	files, err := ioutil.ReadDir(listPath)
+func ListDisks() ([]lsblk.BlockDevice, error) {
+	// Create a new logrus Logger
+	logger := logrus.New()
+
+	// Initialize lsblk with the logger
+	lsblkExecutor := lsblk.NewLSBLK(logger)
+
+	devices, err := lsblkExecutor.GetBlockDevices("")
 	if err != nil {
 			return nil, err
 	}
-	
-	utils.Debug("[STORAGE] Listing " + strconv.Itoa(len(files)) + " disks")
 
-	for _, f := range files {
-		name := f.Name()
-		path := "/dev/" + name
-
-		// Get the size of the disk
-		size, err := GetDiskSize(name)
-		if err != nil {
-				return nil, err
-		}
-
-		use, err := GetDiskUsage(path)
-		if err != nil {
-			return nil, err
-		}
-
-		disks = append(disks, DiskInfo{Path: path, Name: name, Size: size, Used: use})
-	}
-
-	return disks, nil
+	return devices, nil
 }
 
-func GetDiskSize(name string) (uint64, error) {
-	utils.Debug("[STORAGE] Getting size of disk " + name)
+func GetDiskUsage(path string) (used uint64, size uint64, err error) {
+	fmt.Println("[STORAGE] Getting usage of disk " + path)
 
-	// Read the size file in /sys/block/<name>/size
-	content, err := ioutil.ReadFile("/sys/block/" + name + "/size")
-	if err != nil {
-		return 0, err
-	}
-
-	// The size is reported in 512-byte sectors
-	sizeInSectors, err := strconv.ParseUint(strings.TrimSpace(string(content)), 10, 64)
-	if err != nil {
-		return 0, err
-	}
-
-	// Convert size to bytes
-	sizeInBytes := sizeInSectors * 512
-
-	return sizeInBytes, nil
-}
-
-func GetDiskUsage(path string) (uint64, error) {
-	utils.Debug("[STORAGE] Getting usage of disk " + path)
-
-	// Get the disk usage using the du command
-	cmd := exec.Command("du", "-s", path)
+	// Get the disk usage using the df command
+	cmd := exec.Command("df", "-k", path)
 
 	// Run the command
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	// The output is in the format "<size> <path>"
-	parts := strings.Fields(string(output))
-	if len(parts) < 1 {
-		return 0, fmt.Errorf("unexpected output: %s", string(output))
+	// Split the output into lines
+	lines := strings.Split(string(output), "\n")
+	if len(lines) < 2 {
+		return 0, 0, fmt.Errorf("unexpected output: %s", string(output))
 	}
 
-	// Parse the size
-	size, err := strconv.ParseUint(parts[0], 10, 64)
+	// The output is in the format "Filesystem 1K-blocks Used Available Use% Mounted on"
+	// We are interested in the second line
+	parts := strings.Fields(lines[1])
+	if len(parts) < 5 {
+		return 0, 0, fmt.Errorf("unexpected output: %s", string(output))
+	}
+
+	// Parse the size (1K-blocks)
+	size, err = strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return size, nil
+	// Parse the used space
+	used, err = strconv.ParseUint(parts[2], 10, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return used * 512, size * 512, nil
 }
 
 func FormatDisk(diskPath string, filesystemType string) error {

@@ -27,20 +27,27 @@ func ListMounts() ([]mount.MountPoint, error) {
 	// filter out the mount points that are not disks
 	finalMountPoints := []mount.MountPoint{}
 	for i := 0; i < len(mountPoints); i++ {
-		if strings.HasPrefix(mountPoints[i].Path, "/mnt/host") && os.Getenv("HOSTNAME") != "" {
+		path := mountPoints[i].Path
+		if strings.HasPrefix(path, "/mnt/host") && os.Getenv("HOSTNAME") != "" {
 			// remove the host path
-			mountPoints[i].Path = strings.Replace(mountPoints[i].Path, "/mnt/host", "", 1)
+			path = strings.Replace(path, "/mnt/host", "", 1)
 		}
 
 		// if not proc or sys or dev or run
-		if strings.HasPrefix(mountPoints[i].Path, "/proc") ||
-		   strings.HasPrefix(mountPoints[i].Path, "/sys") ||
-			 strings.HasPrefix(mountPoints[i].Path, "/dev") || 
-			 strings.HasPrefix(mountPoints[i].Path, "/run") ||
+		if strings.HasPrefix(path, "/proc") ||
+		   strings.HasPrefix(path, "/sys") ||
+			 strings.HasPrefix(path, "/dev") || 
+			 strings.HasPrefix(path, "/run") ||
 			 mountPoints[i].Type == "tmpfs" {
 			continue
 		}
-		finalMountPoints = append(finalMountPoints, mountPoints[i])
+		
+		finalMountPoints = append(finalMountPoints, mount.MountPoint{
+			Device: mountPoints[i].Device,
+			Path: path,
+			Type: mountPoints[i].Type,
+			Opts: mountPoints[i].Opts,
+		})
 	}
 
 	// use df -h to get the disk usage
