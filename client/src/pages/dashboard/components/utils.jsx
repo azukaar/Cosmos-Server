@@ -6,27 +6,27 @@ export const simplifyNumber = (num, unit) => {
 
     if(unit.toLowerCase() === "b") {
       if (Math.abs(num) >= 1e12) {
-        return (num / 1e12).toFixed(1) + ' TB'; // Convert to Millions
+        return parseFloat((num / 1e12).toFixed(1)) + ' TB'; // Convert to Millions
       } else if (Math.abs(num) >= 1e9) {
-        return (num / 1e9).toFixed(1) + ' GB'; // Convert to Millions
+        return parseFloat((num / 1e9).toFixed(1)) + ' GB'; // Convert to Millions
       } else if (Math.abs(num) >= 1e6) {
-          return (num / 1e6).toFixed(1) + ' MB'; // Convert to Millions
+          return parseFloat((num / 1e6).toFixed(1)) + ' MB'; // Convert to Millions
       } else if (Math.abs(num) >= 1e3) {
-          return (num / 1e3).toFixed(1) + ' KB'; // Convert to Thousands
+          return parseFloat((num / 1e3).toFixed(1)) + ' KB'; // Convert to Thousands
       } else {
           return num.toString();
       }
     } else if (unit.toLowerCase() === "ms") {
       if (Math.abs(num) >= 1e3) {
-          return (num / 1e3).toFixed(1) + ' s'; // Convert to Seconds
+          return parseFloat((num / 1e3).toFixed(1)) + ' s'; // Convert to Seconds
       } else {
           return num.toString() + ' ms';
       }
     } else {
       if (Math.abs(num) >= 1e6) {
-          return (num / 1e6).toFixed(1) + ' M' + unit; // Convert to Millions
+          return parseFloat((num / 1e6).toFixed(1)) + ' M' + unit; // Convert to Millions
       } else if (Math.abs(num) >= 1e3) {
-          return (num / 1e3).toFixed(1) + ' K' + unit; // Convert to Thousands
+          return parseFloat((num / 1e3).toFixed(1)) + ' K' + unit; // Convert to Thousands
       } else {
           return num.toString() + ' ' + unit;
       }

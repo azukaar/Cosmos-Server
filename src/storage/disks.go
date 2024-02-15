@@ -11,15 +11,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/dell/csi-baremetal/pkg/base/linuxutils/lsblk"
 	"github.com/sirupsen/logrus"
+	"github.com/anatol/smart.go"
 )
 
-type BlockDevice struct  {
+
+type BlockDevice struct {
 	lsblk.BlockDevice
-	RealChildren []*BlockDevice
-	Parent *BlockDevice
+	Children []BlockDevice `json:"children"`
+	Usage uint64 `json:"usage"`
+	SMART smart.GenericAttributes `json:"smart"` // Add SMART data field
 }
 
-func ListDisks() ([]lsblk.BlockDevice, error) {
+func ListDisks() ([]BlockDevice, error) {
 	// Create a new logrus Logger
 	logger := logrus.New()
 
@@ -31,9 +34,50 @@ func ListDisks() ([]lsblk.BlockDevice, error) {
 			return nil, err
 	}
 
-	return devices, nil
+	return GetRecursiveDiskUsageAndSMARTInfo(devices)
 }
 
+func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevice, error) {
+	devicesF := make([]BlockDevice, len(devices))
+	for i, device := range devices {
+		used, _, err := GetDiskUsage(device.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		// Retrieve SMART information
+		if device.Type == "disk" {
+			dev, err := smart.Open(device.Name)
+			if err != nil {
+				return nil, err
+			}
+
+			defer dev.Close()
+
+			smartInfo, err := dev.ReadGenericAttributes()
+			if err != nil {
+				return nil, err
+			}
+
+			devicesF[i].SMART = *smartInfo
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		devicesF[i].BlockDevice = device
+		devicesF[i].Usage = used
+
+		// Get usage and SMART info for children
+		devicesF[i].Children, err = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return devicesF, nil
+}
 func GetDiskUsage(path string) (used uint64, size uint64, err error) {
 	fmt.Println("[STORAGE] Getting usage of disk " + path)
 
