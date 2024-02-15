@@ -21,11 +21,9 @@ import raidIcon from '../../assets/images/icons/database.svg';
 
 const diskStyle = {
   width: "100%",
-  padding: "12px",
-  borderRadius: "5px",
-  border: "1px solid #ccc",
-  backgroundColor: "#333",
-  margin: "10px",
+  padding: "20px",
+  borderLeft: "1px solid #ccc",
+  margin: "20px",
 };
 
 const icons = {
@@ -40,8 +38,15 @@ const icons = {
 }
 
 const Disk = ({disk}) => {
-  return <TreeItem nodeId={disk.name} label={
-    <div style={diskStyle}>
+  return <TreeItem style={diskStyle} nodeId={disk.name} label={
+    <div style={{
+      width: "100%",
+      padding: "10px",
+      border: "2px solid #eee",
+      borderLeft: "2px solid green",
+      backgroundColor: "white",
+      color: 'black',
+    }}>
       <Stack direction="row" justifyContent="space-between">
         <Stack direction="row" spacing={2} alignItems="center">
           <div>
