@@ -1,3 +1,6 @@
+## Version 0.14.6
+ - Fix custom back-up folder logic
+
 ## Version 0.14.5
  - Fix an issue with the whitelisting form of URLs
 
