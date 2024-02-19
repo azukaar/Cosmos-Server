@@ -171,3 +171,7 @@ You also need to keep the docker socket mounted, as Cosmos needs to be able to m
 You can tweak the config file accordingly. Some settings can be changed before end with env var. [see here](https://cosmos-cloud.io/doc/9%20Other%20Setups/#env-var).
 
 If you are having issues with the installation, please contact us on [Discord](https://discord.gg/PwMWwsrwHA)!
+
+# Contribute
+
+[Contribute.md](./CONTRIBUTE.md)
