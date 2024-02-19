@@ -69,6 +69,10 @@ You can build a test docker image with `npm run dockerdevbuild` (or `npm run doc
 
 There is a demo system integrated that builds a FE with mocked API calls. You can test it with `npm run devdemo` or build it with `npm run demo`
 
+### Branches
+
+The main code is on master, the unstable (aka testing version) is on the unstable branch. Any PR should be made against the  relevant  branch (new features on unstable, hotfixes only on master directly) 
+
 ### Other considerations
 
 Try to communicate with the rest of the team **before** you make changes to make sure that it is inline with the vision, and you dont end up doing something we can't merge in. Keep the PR simple, break them into multiple PRs if required.
