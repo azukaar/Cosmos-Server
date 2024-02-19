@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, SettingFilled, TabletOutlined, WarningFilled } from "@ant-design/icons";
+import { CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button, CircularProgress, InputLabel, LinearProgress, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -20,6 +20,8 @@ import partIcon from '../../assets/images/icons/part.svg';
 import lockIcon from '../../assets/images/icons/lock.svg';
 import raidIcon from '../../assets/images/icons/database.svg';
 import { simplifyNumber } from "../dashboard/components/utils";
+import LogsInModal from "../../components/logsInModal";
+import MountDialog from "./mountDialog";
 
 const diskStyle = {
   width: "100%",
@@ -39,7 +41,42 @@ const icons = {
   raid6: raidIcon,
 }
 
-const Disk = ({disk}) => {
+const FormatButton = ({disk, refresh}) => {
+  const [formatting, setFormatting] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  return <>
+    <LoadingButton
+      loading={loading}
+      onClick={() => {setFormatting(true); setLoading(true)}}
+      variant="contained"
+      color="error"
+      size="small"
+    >Format</LoadingButton>
+    {formatting && <LogsInModal
+      request={(cb) => {
+          API.storage.disks.format({
+            disk: disk.name,
+            format: "ext4",
+          }, cb)
+      }}
+      initialLogs={[
+        "Starting format disk " + disk.name + "..."
+      ]}
+      alwaysShow={true}
+      OnSuccess={() => {
+        setLoading(false);
+      }}
+      OnClose={() => {
+        setFormatting(false);
+        refresh && refresh();
+      }}
+      title="Formatting..."
+    />}
+  </>
+}
+
+const Disk = ({disk, refresh}) => {
   const theme = useTheme();
   const darkMode = theme.palette.mode === 'dark';
 
@@ -114,15 +151,24 @@ const Disk = ({disk}) => {
               }</div>
             })}
           </Stack>
-          <div>
-            <MenuOutlined />
-          </div>
+          <Stack spacing={2} direction="column" justifyContent={"center"}>
+            {(disk.type == "disk" || disk.type == "part") ? <FormatButton disk={disk} refresh={refresh}/> : ""}
+            
+            {disk.mountpoint ? <MountDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
+            
+            {(
+              (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
+              disk.fstype &&
+              disk.fstype !== "swap" &&
+              !disk.mountpoint
+             ) ? <MountDialog disk={disk} refresh={refresh} /> : ""}
+          </Stack>
         </Stack>
       </Stack>
     </div>
   }>
     {disk.children && disk.children.map((child, index) => {
-      return <Disk disk={child} />
+      return <Disk disk={child} refresh={refresh} />
     })}
   </TreeItem>
 }
@@ -148,6 +194,9 @@ export const StorageDisks = () => {
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
+        <Button variant="contained" color="primary" onClick={refresh}>Refresh</Button>
+      </div>
+      <div>
       <TreeView
         selected={[""]}
         style={{userSelect: 'none' }}
@@ -156,7 +205,11 @@ export const StorageDisks = () => {
         defaultExpandIcon={<PlusCircleFilled />}
       >
         {disks && disks.map((disk, index) => {
-          return <Disk disk={disk} />
+          return <Disk disk={disk} refresh={async () => {
+            // wait 1s
+            await new Promise(r => setTimeout(r, 1000));
+            await refresh()
+          }} />
         })}
 
       </TreeView>
