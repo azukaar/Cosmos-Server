@@ -36,11 +36,16 @@ const preStyle = {
   marginRight: '0',
 }
 
-const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, initialLogs = [], }) => {
-    const [openModal, setOpenModal] = useState(false);
+const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, OnClose, initialLogs = [], alwaysShow = false }) => {
+    const [openModal, setOpenModal] = useState(alwaysShow);
     const [logs, setLogs] = useState(initialLogs);
     const [done, setDone] = useState(closeAnytime);
     const preRef = React.useRef(null);
+
+    const close = () => {
+      OnClose && OnClose();
+      setOpenModal(false);
+    }
 
     useEffect(() => {
       setLogs(initialLogs);
@@ -56,7 +61,8 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, initialL
           
         if (newlog.includes('[OPERATION SUCCEEDED]')) {
           setDone(true);
-          setOpenModal(false);
+          if(!alwaysShow)
+            close();
           OnSuccess && OnSuccess();
         } else if (newlog.includes('[OPERATION FAILED]')) {
           setDone(true);
@@ -68,7 +74,7 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, initialL
     }, [request]);
 
     return <>
-        <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+        <Dialog open={openModal} onClose={() => close()}>
             <DialogTitle>{title}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
@@ -80,6 +86,9 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, initialL
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
+                {alwaysShow && <Button onClick={() => close()} disabled={!done} color="primary">
+                    Close
+                </Button>}
             </DialogActions>
         </Dialog>
     </>;

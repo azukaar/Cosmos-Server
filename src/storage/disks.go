@@ -6,6 +6,7 @@ import (
 	"strings"
 	"strconv"
 	"os/exec"
+	"io"
 	"errors"
 
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -40,7 +41,11 @@ func ListDisks() ([]BlockDevice, error) {
 func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevice, error) {
 	devicesF := make([]BlockDevice, len(devices))
 	for i, device := range devices {
-		used, _, err := GetDiskUsage(device.Name)
+		used, err := GetDiskUsage(device.Name)
+		if err != nil {
+			utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching Disk usage for " + device.Name + " : ", err)
+		}
+
 		if err != nil {
 			return nil, err
 		}
@@ -48,37 +53,31 @@ func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevi
 		// Retrieve SMART information
 		if device.Type == "disk" {
 			dev, err := smart.Open(device.Name)
-			if err != nil {
-				return nil, err
-			}
+			if err == nil {
+				defer dev.Close()
 
-			defer dev.Close()
-
-			smartInfo, err := dev.ReadGenericAttributes()
-			if err != nil {
-				return nil, err
-			}
-
-			devicesF[i].SMART = *smartInfo
-
-			if err != nil {
-				return nil, err
+				smartInfo, err := dev.ReadGenericAttributes()
+				if err == nil {
+					devicesF[i].SMART = *smartInfo
+				} else {
+					utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : ", err)
+				}
+			} else {
+				utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : ", err)
 			}
 		}
 
 		devicesF[i].BlockDevice = device
-		devicesF[i].Usage = used
+		devicesF[i].Usage = used * uint64(devicesF[i].Size.Int64) / 100
 
 		// Get usage and SMART info for children
-		devicesF[i].Children, err = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
-		if err != nil {
-			return nil, err
-		}
+		devicesF[i].Children, _ = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
 	}
 
 	return devicesF, nil
 }
-func GetDiskUsage(path string) (used uint64, size uint64, err error) {
+
+func GetDiskUsage(path string) (perc uint64, err error) {
 	fmt.Println("[STORAGE] Getting usage of disk " + path)
 
 	// Get the disk usage using the df command
@@ -87,38 +86,38 @@ func GetDiskUsage(path string) (used uint64, size uint64, err error) {
 	// Run the command
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
 
 	// Split the output into lines
 	lines := strings.Split(string(output), "\n")
 	if len(lines) < 2 {
-		return 0, 0, fmt.Errorf("unexpected output: %s", string(output))
+		return 0, fmt.Errorf("unexpected output: %s", string(output))
 	}
 
 	// The output is in the format "Filesystem 1K-blocks Used Available Use% Mounted on"
 	// We are interested in the second line
 	parts := strings.Fields(lines[1])
 	if len(parts) < 5 {
-		return 0, 0, fmt.Errorf("unexpected output: %s", string(output))
+		return 0, fmt.Errorf("unexpected output: %s", string(output))
 	}
 
 	// Parse the size (1K-blocks)
-	size, err = strconv.ParseUint(parts[1], 10, 64)
+	available, err := strconv.ParseUint(parts[3], 10, 64)
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
 
 	// Parse the used space
-	used, err = strconv.ParseUint(parts[2], 10, 64)
+	used, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
-		return 0, 0, err
+		return 0, err
 	}
 
-	return used * 512, size * 512, nil
+	return (used * 100) / (used+available), nil
 }
 
-func FormatDisk(diskPath string, filesystemType string) error {
+func FormatDisk(diskPath string, filesystemType string) (io.Reader, error) {
 	utils.Log("[STORAGE] Formatting disk " + diskPath + " with filesystem " + filesystemType)
 
 	// check filesystem type
@@ -131,27 +130,64 @@ func FormatDisk(diskPath string, filesystemType string) error {
 		}
 	}
 	if !isSupported {
-		return errors.New("unsupported filesystem type")
+		return nil, errors.New("unsupported filesystem type")
 	}
 
 	// check if the disk is mounted
 	mounted, err := IsDiskMounted(diskPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if mounted {
-		return errors.New("disk is mounted, please unmount it first")
+		return nil, errors.New("disk is mounted, please unmount it first")
 	}
 
 	// Example: mkfs.ext4 /dev/sdx - Make sure the disk path is correct!
 	// WARNING: This will erase all data on the disk!
 	cmd := exec.Command("mkfs", "-t", filesystemType, diskPath)
 
-	// Run the command
-	output, err := cmd.CombinedOutput()
+	// stream the output of the command
+	out, err := cmd.StdoutPipe()
 	if err != nil {
-		return errors.New("Format: " + string(output) + " " + err.Error())
+		return nil, err
+	}
+	cmd.Stderr = cmd.Stdout
+
+	// Start the command
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	
+	return out, nil
+}
+
+func CreateSinglePartition(diskPath string) (io.Reader, error) {
+	utils.Log("[STORAGE] Creating single partion for " + diskPath)
+
+	// check if the disk is mounted
+	mounted, err := IsDiskMounted(diskPath)
+	if err != nil {
+		return nil, err
+	}
+	if mounted {
+		return nil, errors.New("disk is mounted, please unmount it first")
 	}
 
-	return nil
+	cmd := exec.Command("sh", "-c", "echo 'type=83' | sudo sfdisk " + diskPath)
+
+	// stream the output of the command
+	out, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, err
+	}
+	cmd.Stderr = cmd.Stdout
+
+	// Start the command
+	err = cmd.Start()
+	if err != nil {
+		return nil, err
+	}
+	
+	return out, nil
 }

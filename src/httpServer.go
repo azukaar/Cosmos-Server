@@ -427,7 +427,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
 
 	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
+	srapiAdmin.HandleFunc("/api/disks/format", storage.FormatDiskRoute)
 	srapiAdmin.HandleFunc("/api/mounts", storage.ListMountsRoute)
+	srapiAdmin.HandleFunc("/api/mount", storage.MountRoute)
+	srapiAdmin.HandleFunc("/api/unmount", storage.UnmountRoute)
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
 
