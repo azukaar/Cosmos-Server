@@ -80,7 +80,7 @@
   "scripts": {
     "client": "vite",
     "client-build": "vite build --base=/cosmos-ui/",
-    "start": "env COSMOS_CONFIG_FOLDER=/mnt/e/work/Cosmos-Server/zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
+    "start": "env COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
     "build": "sh build.sh",
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "docker build -f dockerfile.local --tag cosmos-dev .",
