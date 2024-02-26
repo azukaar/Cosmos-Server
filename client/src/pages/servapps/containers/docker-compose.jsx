@@ -308,11 +308,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             doc.networks = {}
           }
           
-          doc.networks['cosmos-' + serviceName + '-default'] = {
-            Labels: {
-              'cosmos.stack': serviceName,
-            }
-          }
+          doc.networks['cosmos-' + serviceName + '-default'] = {}
         }
 
         // stack up

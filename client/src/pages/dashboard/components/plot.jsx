@@ -23,7 +23,7 @@ import MainCard from '../../../components/MainCard';
 import { useTheme } from '@mui/material/styles';
 
 // third-party
-const ReactApexChart = lazy(() => import('react-apexcharts'));
+import Chart from 'react-apexcharts';
 import { FormaterForMetric, toUTC } from './utils';
 
 
@@ -209,7 +209,7 @@ const PlotComponent = ({ title, slot, data, SimpleDesign, withSelector, xAxis, z
     <MainCard content={false} sx={{ mt: 1.5 }} >
       <Box sx={{ pt: 1, pr: 2}}>
 
-        <ReactApexChart options={options} series={series} type="area" height={450} />
+        <Chart options={options} series={series} type="area" height={450} />
       </Box>
     </MainCard>
   </>

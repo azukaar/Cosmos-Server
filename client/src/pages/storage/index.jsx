@@ -10,6 +10,7 @@ import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
 import { StorageMounts } from './mounts';
 import { StorageDisks } from './disks';
+import { StorageMerges } from './merges';
 
 const StorageIndex = () => {
   const {role} = useClientInfos();
@@ -18,14 +19,39 @@ const StorageIndex = () => {
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
         {
-          title: 'Files',
-          children: <StorageMounts />,
-          path: 'files'
-        },
-        {
           title: 'Disks',
           children: <StorageDisks />,
           path: 'disks'
+        },
+        {
+          title: 'Mounts',
+          children: <StorageMounts />,
+          path: 'mounts'
+        },
+        {
+          title: 'External Storages',
+          children: <StorageMounts />,
+          path: 'external'
+        },
+        {
+          title: 'Shares',
+          children: <StorageMounts />,
+          path: 'shares'
+        },
+        {
+          title: 'Merge Disks',
+          children: <StorageMerges />,
+          path: 'mergerfs'
+        },
+        {
+          title: 'Parity',
+          children: <StorageMounts />,
+          path: 'parity'
+        },
+        {
+          title: 'RAID',
+          children: <StorageMounts />,
+          path: 'raid'
         },
       ]}/>
   </div>;

@@ -28,7 +28,17 @@ const mounts = {
       },
       body: JSON.stringify({mountPoint, permanent})
     }))
-  }
+  },
+
+  merge: (args) => {
+    return wrap(fetch('/cosmos/api/merge', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args)
+    }))
+  },
 };
 
 

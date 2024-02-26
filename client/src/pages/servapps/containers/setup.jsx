@@ -129,14 +129,17 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
-            <LogsInModal
+            {pullRequest && <LogsInModal
               request={pullRequest}
               title="Pulling New Image..."
               OnSuccess={() => {
                 setPullRequest(null);
                 setLatestImage(formik.values.image);
               }}
-            />
+              OnClose={() => {
+                setPullRequest(null);
+              }}
+            />}
             <Stack spacing={2}>
               {wrapCard(<>
                 {containerInfo.State && containerInfo.State.Status !== 'running' && (

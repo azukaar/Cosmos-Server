@@ -25,7 +25,7 @@ import MainCard from '../../../components/MainCard';
 import { useTheme } from '@mui/material/styles';
 
 // third-party
-const ReactApexChart = lazy(() => import('react-apexcharts'));
+import Chart from 'react-apexcharts';
 import { FormaterForMetric, formatDate, toUTC } from './utils';
 
 import * as API from '../../../api';
@@ -238,7 +238,7 @@ const _MiniPlotComponent = ({metrics, labels, noLabels, noBackground, agglo, tit
         margin: '-10px 0px -20px 10px',
         flexGrow: 1,
       }} ref={ref}>
-        <ReactApexChart options={chartOptions} series={series} type="line" height={90} />
+        <Chart options={chartOptions} series={series} type="line" height={90} />
       </div>
     </Stack>
 }

@@ -196,7 +196,7 @@ const NewInstall = () => {
                         }}>
                         {(formik) => (
                             <form noValidate onSubmit={formik.handleSubmit}>
-                                <LogsInModal
+                                {pullRequest && <LogsInModal
                                     request={pullRequest}
                                     title="Installing Database..."
                                     OnSuccess={() => {
@@ -215,7 +215,10 @@ const NewInstall = () => {
                                         formik.setSubmitting(false);
                                         pullRequestOnSuccess();
                                     }}
-                                />
+                                    OnClose={() => {
+                                        setPullRequest(null);
+                                    }}
+                                />}
                                 <Stack item xs={12} spacing={2}>
                                 <CosmosSelect
                                     name="DBMode"

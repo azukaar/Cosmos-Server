@@ -13,8 +13,9 @@ import ApiModal from "../../components/apiModal";
 import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
+import MergerDialog from "./mergerDialog";
 
-export const StorageMounts = () => {
+export const StorageMerges = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
@@ -35,7 +36,12 @@ export const StorageMounts = () => {
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
-        {mounts && mounts.map((mount, index) => {
+        <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>
+      </div>
+      <div>
+        {mounts && mounts
+        .filter((mount) => mount.type === 'fuse.mergerfs')
+        .map((mount, index) => {
           return <div>
             <FolderOutlined/> {mount.device} - {mount.path} ({mount.type}) ({JSON.stringify(mount.opts)})
           </div>

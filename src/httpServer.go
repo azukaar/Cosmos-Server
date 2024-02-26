@@ -431,6 +431,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/mounts", storage.ListMountsRoute)
 	srapiAdmin.HandleFunc("/api/mount", storage.MountRoute)
 	srapiAdmin.HandleFunc("/api/unmount", storage.UnmountRoute)
+	srapiAdmin.HandleFunc("/api/merge", storage.MergeRoute)
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
 

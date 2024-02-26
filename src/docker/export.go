@@ -57,7 +57,6 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			Isolation:        string(detailedInfo.HostConfig.Isolation),
 			CapAdd:           detailedInfo.HostConfig.CapAdd,
 			CapDrop:          detailedInfo.HostConfig.CapDrop,
-			SysctlsMap:       detailedInfo.HostConfig.Sysctls,
 			Privileged:       detailedInfo.HostConfig.Privileged,
 			
 			// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),

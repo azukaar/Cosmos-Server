@@ -47,7 +47,6 @@ const FormatButton = ({disk, refresh}) => {
   const [formatting, setFormatting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
-  const [values, setValues] = useState("");
 
   return <>
     <LoadingButton
@@ -197,13 +196,16 @@ export const StorageDisks = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [disks, setDisks] = useState([]);
+  const [containerized, setContainerized] = useState(false);
 
   const refresh = async () => {
     let disksData = await API.storage.disks.list();
     let configAsync = await API.config.get();
+    let status = await API.getStatus();
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setDisks(disksData.data);
+    setContainerized(status.data.containerized);
   };
 
   useEffect(() => {
@@ -213,6 +215,7 @@ export const StorageDisks = () => {
   return <>
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      {containerized && <Alert severity="warning">You are running Cosmos inside a Docker container. As such, it will only have limited access to your disks and their informations.</Alert>}
       <div>
         <Button variant="contained" color="primary" onClick={refresh}>Refresh</Button>
       </div>

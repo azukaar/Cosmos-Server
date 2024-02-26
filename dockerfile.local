@@ -10,7 +10,7 @@ WORKDIR /app
 
 ENV PATH=$PATH:/usr/local/go/bin
 
-RUN apt-get update && apt-get install -y ca-certificates openssl fdisk && \
+RUN apt-get update && apt-get install -y ca-certificates openssl fdisk mergerfs && \
     apt-get install -y --no-install-recommends  wget curl && \
     apt-get install -y --no-install-recommends nodejs && \
     wget https://golang.org/dl/go1.20.2.linux-amd64.tar.gz && \

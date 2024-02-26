@@ -79,7 +79,7 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, OnClose,
         setLogs((old) => smartDockerLogConcat(old, err.message));
         OnError && OnError(err);
       };
-    }, [request]);
+    }, []);
 
     return <>
         <Dialog open={openModal} onClose={() => close()}>

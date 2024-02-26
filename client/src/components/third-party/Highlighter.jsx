@@ -6,7 +6,7 @@ import { Box, CardActions, Collapse, Divider, IconButton, Tooltip } from '@mui/m
 
 // third-party
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-const reactElementToJSXString = lazy(() => import('react-element-to-jsx-string'));
+// const reactElementToJSXString = ('react-element-to-jsx-string'));
 
 // project import
 import SyntaxHighlight from '../../utils/SyntaxHighlight';
@@ -23,13 +23,13 @@ const Highlighter = ({ children }) => {
         <Box sx={{ position: 'relative' }}>
             <CardActions sx={{ justifyContent: 'flex-end', p: 1, mb: highlight ? 1 : 0 }}>
                 <Box sx={{ display: 'flex', position: 'inherit', right: 0, top: 6 }}>
-                    <CopyToClipboard text={reactElementToJSXString(children, { showFunctions: true, maxInlineAttributesLineLength: 100 })}>
+                    {/* <CopyToClipboard text={reactElementToJSXString(children, { showFunctions: true, maxInlineAttributesLineLength: 100 })}>
                         <Tooltip title="Copy the source" placement="top-end">
                             <IconButton color="secondary" size="small" sx={{ fontSize: '0.875rem' }}>
                                 <CopyOutlined />
                             </IconButton>
                         </Tooltip>
-                    </CopyToClipboard>
+                    </CopyToClipboard> */}
                     <Divider orientation="vertical" variant="middle" flexItem sx={{ mx: 1 }} />
                     <Tooltip title="Show the source" placement="top-end">
                         <IconButton
@@ -46,11 +46,11 @@ const Highlighter = ({ children }) => {
             <Collapse in={highlight}>
                 {highlight && (
                     <SyntaxHighlight>
-                        {reactElementToJSXString(children, {
+                        {/* {reactElementToJSXString(children, {
                             showFunctions: true,
                             showDefaultProps: false,
                             maxInlineAttributesLineLength: 100
-                        })}
+                        })} */}
                     </SyntaxHighlight>
                 )}
             </Collapse>

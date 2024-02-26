@@ -138,13 +138,17 @@ const GetActions = ({
   ];
 
   return <>
-    <LogsInModal
+    {pullRequest && <LogsInModal
       request={pullRequest}
       title="Updating ServApp..."
       OnSuccess={() => {
         refreshServApps();
+        setPullRequest(null);
       }}
-    />
+      OnClose={() => {
+        setPullRequest(null);
+      }}
+    />}
     
     {!isUpdating && actions.filter((action) => {
       return action.if.includes(state) || (updateAvailable && action.if.includes('update_available')) || (!updateAvailable && action.if.includes('update_not_available'));

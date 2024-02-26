@@ -80,7 +80,6 @@ type ContainerCreateRequestContainer struct {
 
 	CapAdd []string `json:"cap_add,omitempty"`
 	CapDrop []string `json:"cap_drop,omitempty"`
-	SysctlsMap map[string]string `json:"sysctls,omitempty"`
 
 	PostInstall []string `json:"post_install,omitempty"`	 
 }
@@ -485,6 +484,10 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			StopTimeout:  &container.StopGracePeriod,
 			Tty:          container.Tty,
 			OpenStdin:    container.StdinOpen,
+		}
+
+		if container.StopGracePeriod == 0 {
+			containerConfig.StopTimeout = nil
 		}
 
 		// check if there's an empty TZ env, if so, replace it with the host's TZ

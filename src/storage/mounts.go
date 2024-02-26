@@ -43,8 +43,10 @@ func ListMounts() ([]MountPoint, error) {
 			path = strings.Replace(path, "/mnt/host", "", 1)
 		}
 
+		utils.Debug("[STORAGE] Checking if " + path + " is a disk")
+
 		// if not proc or sys or dev or run
-		if !strings.HasPrefix(path, "/mnt") ||
+		if !strings.HasPrefix(path, "/mnt") &&
 			 !strings.HasPrefix(path, "/var/mnt") {
 			continue
 		}
@@ -244,3 +246,4 @@ func IsDiskMounted(diskPath string) (bool, error) {
 
 	return false, nil
 }
+
