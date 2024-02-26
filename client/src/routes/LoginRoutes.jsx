@@ -11,8 +11,8 @@ import NewInstall from '../pages/newInstall/newInstall';
 import ForgotPassword from '../pages/authentication/forgotPassword';
 import OpenID from '../pages/authentication/openid';
 
-import AuthLogin from '../pages/authentication/login';
-import AuthRegister from '../pages/authentication/register';
+import AuthLogin from '../pages/authentication/Login';
+import AuthRegister from '../pages/authentication/Register';
 
 // ==============================|| AUTH ROUTING ||============================== //
 
