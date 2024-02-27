@@ -446,19 +446,53 @@ func NetworkCleanUp() {
 	
 	DockerNetworkLock <- true
 	defer func() { <-DockerNetworkLock }()	
-	
-	pruneFilters := filters.NewArgs()
 
 	if(!config.DockerConfig.SkipPruneNetwork) {
-		report, err := DockerClient.NetworksPrune(DockerContext, pruneFilters)
-    if err != nil {
-        utils.Error("[DOCKER] Error pruning networks", err)
-    }
+		// list all networks
+		networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
+		if err != nil {
+			utils.Error("[DOCKER] Cleanup: Error listing networks", err)
+		}
 
-		utils.Log("Pruned networks: " + fmt.Sprintf("%v", report.NetworksDeleted))
+		// list all containers including exited ones
+		containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{All: true})
+		if err != nil {
+			utils.Error("[DOCKER] Cleanup: Error listing containers", err)
+		}
+
+		// remove all non-attached networks
+		for _, network := range networks {
+			if network.Name == "bridge" || network.Name == "host" || network.Name == "none" {
+				continue
+			}
+
+			delete := true
+			for _, container := range containers {
+				if container.HostConfig.NetworkMode == network.Name {
+					delete = false
+					break
+				}
+
+				if _, ok := container.NetworkSettings.Networks[network.Name]; ok {
+					delete = false
+					break
+				}
+			}
+
+			if delete {
+				utils.Log("Removing non-attached network: " + network.Name)
+				
+				err := DockerClient.NetworkRemove(DockerContext, network.ID)
+
+				if err != nil {
+					utils.Error("[DOCKER] Cleanup: Error removing network", err)
+				}
+			}
+		}
 	}
 	
 	if(!config.DockerConfig.SkipPruneImages) {
+		pruneFilters := filters.NewArgs()
 		report, err := DockerClient.ImagesPrune(DockerContext, pruneFilters)
 		if err != nil {
 			utils.Error("[DOCKER] Error pruning images", err)

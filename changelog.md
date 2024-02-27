@@ -4,6 +4,8 @@
  - Overwrite all docker networks size to prevent Cosmos from running out of IP addresses
  - Added optional subnet input to the network creation
  - Fix issue with Sysctl not being applied
+ - Rewrite network pruning to prevent Docker from deleting networks attached to stopped containers
+ - Restore static bundle loading to fix issue with some browsers
 
 ## Version 0.14.6
  - Fix custom back-up folder logic

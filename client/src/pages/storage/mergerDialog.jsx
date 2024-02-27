@@ -6,6 +6,7 @@ import { Formik, FormikProvider, useFormik } from "formik";
 import * as yup from "yup";
 
 import * as API from '../../api';
+import { MountPicker } from "./mountPicker";
 
 const MergerDialog = ({ refresh }) => {
   const [open, setOpen] = useState(false);
@@ -15,6 +16,7 @@ const MergerDialog = ({ refresh }) => {
     initialValues: {
       path: '/mnt/storage',
       permanent: false,
+      branches: [],
     },
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
@@ -23,7 +25,7 @@ const MergerDialog = ({ refresh }) => {
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
       return API.storage.mounts.merge({
-        branches: ['/mnt/sda1'],
+        branches: values.branches,
         mountPoint: values.path,
         chown: '',
         permanent: values.permanent,
@@ -56,6 +58,7 @@ const MergerDialog = ({ refresh }) => {
                           It will not affect the data on the disks, but will make the content available to be viewed in the file explorer as a single disk.
                         </Alert>
                       </div>
+                      <MountPicker onChange={(value) => formik.setFieldValue('branches', value)} />
                       <TextField
                         fullWidth
                         id="path"
