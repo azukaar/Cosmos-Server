@@ -7,14 +7,12 @@ import * as yup from "yup";
 
 import * as API from '../../api';
 
-const MountDialog = ({disk, unmount, refresh }) => {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
+const MountDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {  
   const formik = useFormik({
     initialValues: {
       path: '/mnt/' + disk.name.replace('/dev/', ''),
       permanent: false,
+      chown: '1000:1000',
     },
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
@@ -24,12 +22,12 @@ const MountDialog = ({disk, unmount, refresh }) => {
       setSubmitting(true);
       return (unmount ? API.storage.mounts.unmount({
         mountPoint: disk.mountpoint,
-        chown: '',
+        chown: values.chown,
         permanent: values.permanent,
       }) : API.storage.mounts.mount({
         path: disk.name,
         mountPoint: values.path,
-        chown: '',
+        chown: values.chown,
         permanent: values.permanent,
       })).then((res) => {
         setStatus({ success: true });
@@ -49,7 +47,6 @@ const MountDialog = ({disk, unmount, refresh }) => {
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
             <DialogTitle>{unmount ? 'Unmount' : 'Mount'} Disk</DialogTitle>
-              {open && <>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
@@ -88,31 +85,39 @@ const MountDialog = ({disk, unmount, refresh }) => {
                           onChange={formik.handleChange}
                         /> Permanent {unmount ? 'Unmount' : 'Mount'}
                       </div>
+                      {formik.errors.submit && (
+                        <Grid item xs={12}>
+                          <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                        </Grid>
+                      )}
                     </Stack>
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  {formik.errors.submit && (
-                    <Grid item xs={12}>
-                      <FormHelperText error>{formik.errors.submit}</FormHelperText>
-                    </Grid>
-                  )}
                   <Button onClick={() => setOpen(false)}>Cancel</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
                   }}>{unmount ? 'Unmount' : 'Mount'}</LoadingButton>
                 </DialogActions>
-              </>}
             </form>
         </FormikProvider>
     </Dialog>
-    <LoadingButton
-      loading={loading}
+  </>
+}
+
+const MountDialog = ({ disk, unmount, refresh }) => {
+  const [open, setOpen] = useState(false);
+
+  return <>
+    {open && <MountDialogInternal disk={disk} unmount={unmount} refresh={refresh} open={open} setOpen={setOpen}/>}
+    
+    <Button
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
-    >{unmount ? 'Unmount' : 'Mount'}</LoadingButton>
+    >{unmount ? 'Unmount' : 'Mount'}</Button>
   </>
 }
+
 
 export default MountDialog;

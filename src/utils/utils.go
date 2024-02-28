@@ -15,7 +15,7 @@ import (
 	"time"
 	"errors"
 	"path/filepath"
-
+	"os/exec"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
@@ -751,4 +751,22 @@ func CheckPassword(nickname, password string) error {
 
 		return nil
 	}
+}
+
+func Values[M ~map[K]V, K comparable, V any](m M) []V {
+	r := make([]V, 0, len(m))
+	for _, v := range m {
+			r = append(r, v)
+	}
+	return r
+}
+
+func Exec(cmd string, args ...string) (string, error) {
+	out, err := exec.Command(cmd, args...).CombinedOutput()
+	Debug("Executing command: " + cmd + " " + strings.Join(args, " "))
+	errF := err
+	if err != nil {
+		errF = errors.New(err.Error() + ": " + string(out))
+	}
+	return string(out), errF
 }

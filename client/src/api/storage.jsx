@@ -101,8 +101,20 @@ const disks = {
   }
 };
 
+const snapRAID = {
+  create: (args) => {
+    return wrap(fetch('/cosmos/api/snapraid', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args)
+    }))
+  },
+};
 
 export {
   mounts,
-  disks
+  disks,
+  snapRAID,
 };

@@ -169,3 +169,35 @@ func MergeRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+// CreateSNAPRaidRoute creates a SnapRAID configuration
+func CreateSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "POST" {
+		var request utils.SnapRAIDConfig
+		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+			utils.Error("CreateSNAPRaidRoute: Invalid request", err)
+			utils.HTTPError(w, "Invalid request: " + err.Error(), http.StatusBadRequest, "M001")
+			return
+		}
+
+		if err := CreateSnapRAID(request); err != nil {
+			utils.Error("CreateSNAPRaidRoute: Error merging", err)
+			utils.HTTPError(w, "Error merging filesystem:" + err.Error(), http.StatusInternalServerError, "M002")
+			return
+		}
+
+		utils.Log(fmt.Sprintf("Created SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")))
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"message": fmt.Sprintf("Created SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")),
+		})
+	} else {
+		utils.Error("CreateSNAPRaidRoute: Method not allowed " + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}

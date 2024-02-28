@@ -13,6 +13,7 @@ import ApiModal from "../../components/apiModal";
 import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
+import SnapRAIDDialog from "./snapRaidDialog";
 
 export const StorageMounts = () => {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -34,6 +35,7 @@ export const StorageMounts = () => {
   return <>
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      <SnapRAIDDialog refresh={refresh} />
       <div>
         {mounts && mounts.map((mount, index) => {
           return <div>

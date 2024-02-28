@@ -100,7 +100,7 @@ func CRON() {
 		})
 		s.Every(1).Day().At("00:00").Do(checkVersion)
 		s.Every(1).Day().At("01:00").Do(checkCerts)
-		s.Every(6).Hours().Do(checkUpdatesAvailable)
+		s.Every(1).Day().At("02:00").Do(checkUpdatesAvailable)
 		s.Every(1).Hours().Do(utils.CleanBannedIPs)
 		s.Every(1).Day().At("00:00").Do(func() {
 			utils.CleanupByDate("notifications")

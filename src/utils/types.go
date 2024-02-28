@@ -99,6 +99,21 @@ type Config struct {
 	DisableHostModeWarning bool
 	AdminWhitelistIPs []string
 	AdminConstellationOnly bool
+	Storage StorageConfig
+}
+
+type StorageConfig struct {
+	SnapRAIDs []SnapRAIDConfig
+}
+
+type SnapRAIDConfig struct {
+	Name string
+	Enabled bool
+	Data []string
+	Parity []string
+	SyncInterval time.Duration
+	ScrubInterval time.Duration
+	CheckOnFix bool
 }
 
 type DatabaseConfig struct {

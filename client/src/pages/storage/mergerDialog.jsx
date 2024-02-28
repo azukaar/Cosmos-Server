@@ -8,18 +8,19 @@ import * as yup from "yup";
 import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
 
-const MergerDialog = ({ refresh }) => {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  
+const MergerDialogInternal = ({ refresh, open, setOpen }) => {  
   const formik = useFormik({
     initialValues: {
       path: '/mnt/storage',
       permanent: false,
       branches: [],
+      chown: '1000:1000',
+      opts: '',
     },
+    validateOnChange: false,
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
+      branches: yup.array().min(2, 'Select at least 2 disks'),
       path: yup.string().required('Required').matches(/^\/(mnt|var\/mnt)\/.{1,}$/, 'Path should start with /mnt/ or /var/mnt'),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
@@ -27,9 +28,9 @@ const MergerDialog = ({ refresh }) => {
       return API.storage.mounts.merge({
         branches: values.branches,
         mountPoint: values.path,
-        chown: '',
+        chown: values.chown,
         permanent: values.permanent,
-        opts: '',
+        opts: values.opts,
       }).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);
@@ -48,7 +49,6 @@ const MergerDialog = ({ refresh }) => {
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
             <DialogTitle>Merge Disks</DialogTitle>
-              {open && <>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
@@ -59,6 +59,12 @@ const MergerDialog = ({ refresh }) => {
                         </Alert>
                       </div>
                       <MountPicker onChange={(value) => formik.setFieldValue('branches', value)} />
+                      {formik.errors.branches && (
+                          <Grid item xs={12}>
+                              <FormHelperText error>{formik.errors.branches}</FormHelperText>
+                          </Grid>
+                      )}
+
                       <TextField
                         fullWidth
                         id="path"
@@ -79,6 +85,16 @@ const MergerDialog = ({ refresh }) => {
                         error={formik.touched.chown && Boolean(formik.errors.chown)}
                         helperText={formik.touched.chown && formik.errors.chown}
                       />
+                      <TextField
+                        fullWidth
+                        id="opts"
+                        name="opts"
+                        label="Addional mergerFS options (optional, comma separated)"
+                        value={formik.values.opts}
+                        onChange={formik.handleChange}
+                        error={formik.touched.opts && Boolean(formik.errors.opts)}
+                        helperText={formik.touched.opts && formik.errors.opts}
+                      />
                       <div>
                         <Checkbox
                           name="permanent"
@@ -86,30 +102,37 @@ const MergerDialog = ({ refresh }) => {
                           onChange={formik.handleChange}
                         /> Permanent {'Mount'}
                       </div>
+                      {formik.errors.submit && (
+                        <Grid item xs={12}>
+                          <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                        </Grid>
+                      )}
                     </Stack>
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  {formik.errors.submit && (
-                    <Grid item xs={12}>
-                      <FormHelperText error>{formik.errors.submit}</FormHelperText>
-                    </Grid>
-                  )}
                   <Button onClick={() => setOpen(false)}>Cancel</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
                   }}>Merge</LoadingButton>
                 </DialogActions>
-              </>}
             </form>
         </FormikProvider>
     </Dialog>
-    <LoadingButton
-      loading={loading}
+  </>
+}
+
+const MergerDialog = ({ refresh }) => {
+  const [open, setOpen] = useState(false);
+
+  return <>
+    {open && <MergerDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
+    
+    <Button
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
-    >Create Merge</LoadingButton>
+    >Create Merge</Button>
   </>
 }
 

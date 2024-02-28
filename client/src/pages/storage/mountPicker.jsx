@@ -21,17 +21,9 @@ export const MountPicker = ({diskMode, multiselect, onChange}) => {
   const theme = useTheme();
   const darkMode = theme.palette.mode === 'dark';
 
-  const handleChangeMultiple = (event) => {
-    const { options } = event.target;
-    const value = [];
-    for (let i = 0, l = options.length; i < l; i += 1) {
-      if (options[i].selected) {
-        value.push(options[i].value);
-      }
-    }
-    setSelectedMounts(value);
-    onChange && onChange(value);
-  };
+  useEffect(() => {
+    onChange && onChange(selectedMounts);
+  }, [selectedMounts]);
 
   const handleClick = (e, path) => {
     e.preventDefault();
@@ -79,9 +71,6 @@ export const MountPicker = ({diskMode, multiselect, onChange}) => {
           native
           className={'native-multiselect'}
           value={selectedMounts}
-          // @ts-ignore Typings are not considering `native`
-          // onChange={handleChangeMultiple}
-          // onChange={() => {}}
           label="Select Targets"
           inputProps={{
             id: 'select-multiple-native',

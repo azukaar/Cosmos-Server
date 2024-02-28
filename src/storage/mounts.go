@@ -1,13 +1,11 @@
 package storage
 
 import (
-	"os/exec"
 	"os"
 	"errors"
 	"k8s.io/utils/mount"
 	"strings"
 	"bufio"
-	"io"
 	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -34,8 +32,8 @@ func ListMounts() ([]MountPoint, error) {
 		return nil, err
 	}
 
-	// filter out the mount points that are not disks
-	finalMountPoints := []MountPoint{}
+	// filter out the mount points that are not disks in a Set
+	finalMountPoints := map[string]MountPoint{}
 	for i := 0; i < len(mountPoints); i++ {
 		path := mountPoints[i].Path
 		if strings.HasPrefix(path, "/mnt/host") && os.Getenv("HOSTNAME") != "" {
@@ -56,13 +54,13 @@ func ListMounts() ([]MountPoint, error) {
 			return nil, err
 		}
 		
-		finalMountPoints = append(finalMountPoints, MountPoint{
+		finalMountPoints[path] = MountPoint{
 			Device: mountPoints[i].Device,
 			Path: path,
 			Type: mountPoints[i].Type,
 			Opts: mountPoints[i].Opts,
 			Permenant: isPermenant,
-		})
+		}
 
 		// finalMountPoints = append(finalMountPoints, MountPoint{
 		// 	MountPoint: mountPoints[i],
@@ -74,7 +72,7 @@ func ListMounts() ([]MountPoint, error) {
 	// use df -h to get the disk usage
 	// TODO
 
-	return finalMountPoints, nil
+	return utils.Values(finalMountPoints), nil
 }
 
 
@@ -96,24 +94,23 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		dir, _ := os.Open(mountpoint)
 		defer dir.Close()
 
-		_, err := dir.Readdirnames(1) // Or use Readdir to get FileInfo
-		if err != io.EOF {
+		files, _ := dir.Readdirnames(1) // Or use Readdir to get FileInfo
+		if len(files) > 0 {
 			return errors.New("mountpoint is not empty")
 		}
 	}
 
-	// chown the mountpoint
 	if chown != "" {
 		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
-		cmd := exec.Command("chown", chown, mountpoint)
-		if err := cmd.Run(); err != nil {
+		_, err := utils.Exec("chown", chown, mountpoint)
+		if err != nil {
 			return err
 		}
 	}
 
 	// Execute the mount command
-	cmd := exec.Command("mount", path, mountpoint)
-	if err := cmd.Run(); err != nil {
+	_, err := utils.Exec("mount", path, mountpoint)
+	if err != nil {
 		return err
 	}
 
@@ -155,18 +152,22 @@ func Unmount(mountpoint string, permanent bool) error {
 	utils.Log("[STORAGE] Unmounting " + mountpoint)
 
 	// Execute the umount command
-	cmd := exec.Command("umount", mountpoint)
-	if err := cmd.Run(); err != nil {
+	_, err := utils.Exec("umount", mountpoint)
+	if err != nil {
 		return err
 	}
 
-	if permanent {
-		utils.Log("[STORAGE] Removing mountpoint from /etc/fstab")
-
+	isPermanent, _ := isMountPointInFstab(mountpoint)
+	if !isPermanent || permanent {
+		utils.Log("[STORAGE] Mountpoint is not in /etc/fstab or unmount is permanent, removing mountpoint")
 		// Remove the mountpoint
 		if err := os.Remove(mountpoint); err != nil {
 			return err
 		}
+	}
+
+	if permanent {
+		utils.Log("[STORAGE] Removing mountpoint from /etc/fstab")
 
 		// Remove entry from /etc/fstab if it exists
 		if err := removeFstabEntry(mountpoint); err != nil {

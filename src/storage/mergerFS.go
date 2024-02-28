@@ -1,11 +1,9 @@
 package storage 
 
 import (
-	"os/exec"
 	"os"
 	"errors"
 	"strings"
-	"io"
 	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -28,8 +26,8 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 		dir, _ := os.Open(mountpoint)
 		defer dir.Close()
 
-		_, err := dir.Readdirnames(1) // Or use Readdir to get FileInfo
-		if err != io.EOF {
+		files, _ := dir.Readdirnames(1) // Or use Readdir to get FileInfo
+		if len(files) > 0 {
 			return errors.New("mountpoint is not empty")
 		}
 	}
@@ -37,8 +35,8 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 	// chown the mountpoint
 	if chown != "" {
 		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
-		cmd := exec.Command("chown", chown, mountpoint)
-		if err := cmd.Run(); err != nil {
+		_, err := utils.Exec("chown", chown, mountpoint)
+		if err != nil {
 			return err
 		}
 	}
@@ -48,8 +46,8 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 	}
 
 	// Execute the mount command
-	cmd := exec.Command("mergerfs", "-o", "use_ino,cache.files=partial,dropcacheonclose=true,allow_other,category.create=mfs" + opts, strings.Join(paths, ":"), mountpoint)
-	if err := cmd.Run(); err != nil {
+	_, err := utils.Exec("mergerfs", "-o", "use_ino,cache.files=partial,dropcacheonclose=true,allow_other,category.create=mfs" + opts, strings.Join(paths, ":"), mountpoint)
+	if err != nil {
 		return err
 	}
 
