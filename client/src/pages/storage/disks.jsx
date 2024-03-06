@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, InputLabel, LinearProgress, Stack, Tooltip } from "@mui/material";
+import { CloudOutlined, CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
+import { Alert, Button, CircularProgress, InputLabel, LinearProgress, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -24,6 +24,7 @@ import LogsInModal from "../../components/logsInModal";
 import MountDialog from "./mountDialog";
 import PasswordModal from "../../components/passwordModal";
 import FormatModal from "./FormatModal";
+import MenuButton from "../../components/MenuButton";
 
 const diskStyle = {
   width: "100%",

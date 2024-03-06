@@ -7,6 +7,8 @@ import * as yup from "yup";
 
 import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
+import ResponsiveButton from "../../components/responseiveButton";
+import { PlusCircleOutlined } from "@ant-design/icons";
 
 const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {  
   const formik = useFormik({
@@ -14,6 +16,8 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
       name: 'Storage Parity',
       parity: [],
       data: [],
+      syncCronTab: '* 0 2 * * *',
+      scrubCronTab: '* 0 4 * * */2',
     },
     validateOnChange: false,
     validationSchema: yup.object({
@@ -28,6 +32,8 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
         name: values.name,
         parity: values.parity,
         data: values.data,
+        syncCronTab: values.syncCronTab,
+        scrubCronTab: values.scrubCronTab,
       }).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);
@@ -115,11 +121,14 @@ const SnapRAIDDialog = ({ refresh }) => {
   return <>
     {open && <SnapRAIDDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
     
-    <Button
-      onClick={() => {setOpen(true);}}
-      variant="outlined"
-      size="small"
-    >Create Parity Disks</Button>
+    <div>
+      <ResponsiveButton
+        onClick={() => {setOpen(true);}}
+        variant="contained"
+        size="small"
+        startIcon={<PlusCircleOutlined />}
+      >New Parity Disks</ResponsiveButton>
+    </div>
   </>
 }
 

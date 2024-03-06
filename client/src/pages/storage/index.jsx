@@ -11,6 +11,7 @@ import { useClientInfos } from '../../utils/hooks';
 import { StorageMounts } from './mounts';
 import { StorageDisks } from './disks';
 import { StorageMerges } from './merges';
+import { Parity } from './parity';
 
 const StorageIndex = () => {
   const {role} = useClientInfos();
@@ -45,7 +46,7 @@ const StorageIndex = () => {
         },
         {
           title: 'Parity',
-          children: <StorageMounts />,
+          children: <Parity />,
           path: 'parity'
         },
         {

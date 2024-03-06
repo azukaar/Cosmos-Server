@@ -17,7 +17,8 @@ import {
     Paper,
     Popper,
     Typography,
-    useMediaQuery
+    useMediaQuery,
+    Button
 } from '@mui/material';
 import * as timeago from 'timeago.js';
 
@@ -25,10 +26,11 @@ import * as timeago from 'timeago.js';
 import MainCard from '../../../../components/MainCard';
 import Transitions from '../../../../components/@extended/Transitions';
 // assets
-import { BellOutlined, CloseOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, MessageOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
+import { BellOutlined, ClockCircleOutlined, CloseOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, MessageOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 
 import * as API from '../../../../api';
 import { redirectToLocal } from '../../../../utils/indexs';
+import { useClientInfos } from '../../../../utils/hooks';
 
 // sx styles
 const avatarSX = {
@@ -48,46 +50,40 @@ const actionSX = {
 };
 
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
-
-const Notification = () => {
+const getStatus = (job) => {
+    if (job.Running) return 'running';
+    if (job.LastRunSuccess) return 'success';
+    if (job.LastRun === "0001-01-01T00:00:00Z") return 'never';
+    return 'error';
+}
+const Jobs = () => {
+    const clientInfos = useClientInfos();
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
-    const [notifications, setNotifications] = useState([]);
+    const [jobs, setJobs] = useState([]);
     const [from, setFrom] = useState('');
+    
+    const statusColor = (job) => {
+        return {
+            running: theme.palette.info.main,
+            success: theme.palette.success.main,
+            never: theme.palette.grey[500],
+            error: theme.palette.error.main
+        }[getStatus(job)]
+    }
 
-    const refreshNotifications = () => {
-        API.users.getNotifs(from).then((res) => {
-            setNotifications(() => res.data);
+
+    const refreshJobs = () => {
+        API.cron.list().then((res) => {
+            setJobs(() => res.data);
         });
     };
 
-    const setAsRead = () => {
-        let unread = [];
-        
-       notifications.forEach((notif) => {
-            if (!notif.Read) {
-                unread.push(notif.ID);
-            }
-        })
-
-        if (unread.length > 0) {
-            API.users.readNotifs(unread);
-        }
-    }
-
-    const setLocalAsRead = (id) => {
-        let newN = notifications.map((notif) => {
-            notif.Read = true;
-            return notif;
-        })
-        setNotifications(newN);
-    }
-
     useEffect(() => {
-        refreshNotifications();
+        refreshJobs();
 
         const interval = setInterval(() => {
-            refreshNotifications();
+            refreshJobs();
         }, 10000);
 
         return () => clearInterval(interval);
@@ -97,10 +93,6 @@ const Notification = () => {
     const [open, setOpen] = useState(false);
     
     const handleToggle = () => {
-        if (!open) {
-            setAsRead();
-        }
-
         setOpen((prevOpen) => !prevOpen);
     };
 
@@ -108,47 +100,22 @@ const Notification = () => {
         if (anchorRef.current && anchorRef.current.contains(event.target)) {
             return;
         }
-        setLocalAsRead();
         setOpen(false);
-    };
-
-    const getNotifIcon = (notification) => {
-        switch (notification.Level) {
-            case 'warn':
-                return <Avatar
-                    sx={{
-                        color: 'warning.main',
-                        bgcolor: 'warning.lighter'
-                    }}
-                >
-                    <WarningOutlined />
-                </Avatar>
-            case 'error':
-                return <Avatar
-                    sx={{
-                        color: 'error.main',
-                        bgcolor: 'error.lighter'
-                    }}
-                >
-                    <ExclamationCircleOutlined />
-                </Avatar>
-            default:
-                
-            return <Avatar
-                sx={{
-                    color: 'info.main',
-                    bgcolor: 'info.lighter'
-                }}
-            >
-                <InfoCircleOutlined />
-            </Avatar>
-        }
     };
 
     const iconBackColor = theme.palette.mode === 'dark' ? 'grey.700' : 'grey.100';
     const iconBackColorOpen = theme.palette.mode === 'dark' ? 'grey.800' : 'grey.200';
 
-    const nbUnread = notifications.filter((notif) => !notif.Read).length;
+    const nbRunning = 0
+
+    let flatList = [];
+    jobs && Object.values(jobs).forEach((list) => list && Object.values(list).forEach(job => flatList.push(job)));
+    flatList.sort((a, b) => {
+        if (a.Running && !b.Running) return -1;
+        if (!a.Running && b.Running) return 1;
+        if (a.Running && b.Running) return a.LastStarted - b.LastStarted;
+        return a.LastRun - b.LastRun;
+    });
 
     return (
         <Box sx={{ flexShrink: 0, ml: 0.75 }}>
@@ -162,8 +129,8 @@ const Notification = () => {
                 aria-haspopup="true"
                 onClick={handleToggle}
             >
-                <Badge badgeContent={nbUnread} color="error">
-                    <BellOutlined />
+                <Badge badgeContent={nbRunning} color="error">
+                    <ClockCircleOutlined />
                 </Badge>
             </IconButton>
             <Popper
@@ -190,8 +157,8 @@ const Notification = () => {
                             sx={{
                                 boxShadow: theme.customShadows.z1,
                                 width: '100%',
-                                minWidth: 285,
-                                maxWidth: 420,
+                                minWidth: 350,
+                                maxWidth: 400,
                                 [theme.breakpoints.down('md')]: {
                                     maxWidth: 285
                                 }
@@ -199,7 +166,7 @@ const Notification = () => {
                         >
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MainCard
-                                    title="Notification"
+                                    title="Jobs"
                                     elevation={0}
                                     border={false}
                                     content={false}
@@ -222,39 +189,49 @@ const Notification = () => {
                                             }
                                         }}
                                     >
-                                        {notifications && notifications.map(notification => (<>
+                                        {flatList && flatList.map(job => (<>
                                             <ListItemButton onClick={() => {
-                                                notification.Link && redirectToLocal(notification.Link);
+                                                job.Link && redirectToLocal(job.Link);
                                             }}
                                             style={{
-                                                borderLeft: notification.Read ? 'none' : `4px solid ${notification.Level === 'warn' ? theme.palette.warning.main : notification.Level === 'error' ? theme.palette.error.main : theme.palette.info.main}`,
-                                                paddingLeft: notification.Read ? '14px' : '10px',
+                                                borderLeft: job.Read ? 'none' : `4px solid ${statusColor(job)}`,
+                                                paddingLeft: job.Read ? '14px' : '10px',
                                             }}>
                                             
-                                                <ListItemAvatar>
-                                                    {getNotifIcon(notification)}
-                                                </ListItemAvatar>
-                                                <ListItemText
-                                                    primary={<>
-                                                        <Typography variant={notification.Read ? 'body' : 'h6'} noWrap>
-                                                            {notification.Title}
-                                                        </Typography>
-                                                        <div style={{ 
-                                                            overflow: 'hidden',
-                                                            maxHeight: '48px',
-                                                            borderLeft: '1px solid grey',
-                                                            paddingLeft: '8px',
-                                                            margin: '2px'
-                                                        }}>
-                                                            {notification.Message}
-                                                        </div></>
-                                                    }
-                                                />
+                                            <ListItemText
+                                                primary={<>
+                                                    <Typography variant={job.Read ? 'body' : 'h6'} noWrap>
+                                                        {job.Name}
+                                                    </Typography>
+                                                    <div style={{ 
+                                                        overflow: 'hidden',
+                                                        maxHeight: '48px',
+                                                        borderLeft: '1px solid grey',
+                                                        paddingLeft: '8px',
+                                                        margin: '2px'
+                                                    }}>
+                                                        {job.Message}
+                                                    </div></>
+                                                }
+                                            />
                                                 <ListItemSecondaryAction>
                                                     <Typography variant="caption" noWrap>
-                                                        {timeago.format(notification.Date)}
+                                                        {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
+                                                            job.Running ? `Running since ${timeago.format(job.LastStarted)}` : `Last run ${timeago.format(job.LastRun)}`
+                                                        )}
                                                     </Typography>
                                                 </ListItemSecondaryAction>
+                                            </ListItemButton>
+                                            <ListItemButton
+                                            style={{
+                                                borderLeft: job.Read ? 'none' : `4px solid  ${statusColor(job)}`,
+                                                paddingLeft: job.Read ? '14px' : '10px',
+                                            }}>
+                                                {job.Running ? <Button variant="outlined" color="error" onClick={() => {
+                                                    API.cron.stop(job.Name).then(() => {
+                                                        refreshJobs();
+                                                    });
+                                                }}>Cancel</Button> : ''}
                                             </ListItemButton>
                                         <Divider /></>))}
                                     </List>
@@ -268,4 +245,4 @@ const Notification = () => {
     );
 };
 
-export default Notification;
+export default Jobs;

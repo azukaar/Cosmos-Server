@@ -218,15 +218,16 @@ func Run() {
 	nextTime := ModuloTime(time.Now().Add(time.Second*30), time.Second*30)
 	nextTime = nextTime.Add(time.Second * 2)
 
-	utils.Debug("Metrics - Run - Next run at " + nextTime.String())
 	
 	if utils.GetMainConfig().MonitoringDisabled {
 		time.AfterFunc(nextTime.Sub(time.Now()), func() {
 			Run()
 		})
-
+		
 		return
 	}
+	
+	utils.Debug("Metrics - Run - Next run at " + nextTime.String())
 
 	time.AfterFunc(nextTime.Sub(time.Now()), func() {
 		go func() {

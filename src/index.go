@@ -11,6 +11,8 @@ import (
 	"github.com/azukaar/cosmos-server/src/market"
 	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/azukaar/cosmos-server/src/storage"
+	"github.com/azukaar/cosmos-server/src/cron"
 )
 
 func main() {
@@ -76,6 +78,20 @@ func main() {
 		if constellation.NebulaStarted {
 			go constellation.InitDNS()
 		}
+		
+		// TODO: Remove
+		// cron.RegisterJob(cron.ConfigJob{
+		// 	Scheduler: "Test",
+		// 	Name: "Test Job",
+		// 	Crontab: "*/8 * * * * *",
+		// 	Cancellable: true,
+		// 	Job: cron.JobFromCommand("sh", "-c", "echo 123 && sleep 5 && echo 456"),
+		// })
+
+		storage.InitSnapRAIDConfig()
+		
+		// Has to be done last, so scheduler does not re-init
+		cron.Init()
 
 		utils.Log("Starting server...")
 	}

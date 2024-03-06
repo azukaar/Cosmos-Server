@@ -100,6 +100,14 @@ type Config struct {
 	AdminWhitelistIPs []string
 	AdminConstellationOnly bool
 	Storage StorageConfig
+	CRON map[string]CRONConfig
+}
+
+type CRONConfig struct {
+	Enabled bool
+	Name string
+	Crontab string
+	Command string
 }
 
 type StorageConfig struct {
@@ -111,8 +119,8 @@ type SnapRAIDConfig struct {
 	Enabled bool
 	Data []string
 	Parity []string
-	SyncInterval time.Duration
-	ScrubInterval time.Duration
+	SyncCrontab string
+	ScrubCrontab string
 	CheckOnFix bool
 }
 

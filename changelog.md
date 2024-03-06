@@ -1,6 +1,9 @@
 ## Version 0.15.0
  - Added Disk management (Format, mount, SMART, etc...)
- - Added Storage management (MergeFS, SnapRAID, RClone, etc...)
+ - Added MergerFS support and configurator
+ - Added SnapRAID support and configurator
+ - Rewrote the internal CRON scheduler to be more robust
+ - Added support for custom CRON jobs
  - Overwrite all docker networks size to prevent Cosmos from running out of IP addresses
  - Added optional subnet input to the network creation
  - Fix issue with Sysctl not being applied

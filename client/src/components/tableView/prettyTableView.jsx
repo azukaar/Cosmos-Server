@@ -23,6 +23,14 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
     xl: useMediaQuery((theme) => theme.breakpoints.up('xl')),
     xxl: useMediaQuery((theme) => theme.breakpoints.up('xxl')),
   }
+  const screenMax = {
+    xs: useMediaQuery((theme) => theme.breakpoints.down('xs')),
+    sm: useMediaQuery((theme) => theme.breakpoints.down('sm')),
+    md: useMediaQuery((theme) => theme.breakpoints.down('md')),
+    lg: useMediaQuery((theme) => theme.breakpoints.down('lg')),
+    xl: useMediaQuery((theme) => theme.breakpoints.down('xl')),
+    xxl: useMediaQuery((theme) => theme.breakpoints.down('xxl')),
+  }
 
   return (
     <Stack direction="column" spacing={2} style={{width: fullWidth ? '100%': ''}}>
@@ -58,7 +66,9 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                (!column.screenMin || screenMin[column.screenMin]) && <TableCell>{column.title}</TableCell>
+                ((!column.screenMin || screenMin[column.screenMin]) && 
+                (!column.screenMax || screenMax[column.screenMax]) && 
+                <TableCell>{column.title}</TableCell>)
               ))}
             </TableRow>
           </TableHead>
@@ -96,7 +106,9 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
                 >
                   {columns.map((column) => (
                 
-                    (!column.screenMin || screenMin[column.screenMin]) && <TableCell 
+                    ((!column.screenMin || screenMin[column.screenMin]) && 
+                    (!column.screenMax || screenMax[column.screenMax]) &&
+                    <TableCell 
                       component={(linkTo && !column.clickable) ? Link : 'td'}
                       onClick={() => !column.clickable && onRowClick && onRowClick(row, key)}
                       to={linkTo && linkTo(row, key)}
@@ -106,7 +118,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
                         ...column.style,
                       }}>
                         {column.field(row, key)}
-                    </TableCell>
+                    </TableCell>)
                   ))}
                 </TableRow>
               ))}

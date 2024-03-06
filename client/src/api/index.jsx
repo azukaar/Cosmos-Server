@@ -6,6 +6,7 @@ import * as _market from './market';
 import * as _constellation from './constellation';
 import * as _metrics from './metrics';
 import * as _storage from './storage';
+import * as _cron from './cron';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -219,6 +220,7 @@ let market = _market;
 let constellation = _constellation;
 let metrics = _metrics;
 let storage = _storage;
+let cron = _cron;
 
 if(isDemo) {
   auth = authDemo;
@@ -250,5 +252,6 @@ export {
   getDNS,
   metrics,
   uploadImage,
-  storage
+  storage,
+  cron
 };

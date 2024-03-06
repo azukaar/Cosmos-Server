@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/docker"
 	"os"
 	"path/filepath"
@@ -92,21 +93,38 @@ func checkCerts() {
 	}
 }
 
+func runSnapRAIDSync(snap utils.SnapRAIDConfig) {
+	err := storage.RunSnapRAIDSync(snap)
+	if err != nil {
+		utils.Error("runSnapRAIDSync", err)
+	}
+}
+
+func runSnapRAIDScrub(snap utils.SnapRAIDConfig) {
+	err := storage.RunSnapRAIDScrub(snap)
+	if err != nil {
+		utils.Error("runSnapRAIDScrub", err)
+	}
+}
+
 func CRON() {
 	go func() {
+		// TODO: change to new CRON executor, wth customizable maintenance schedules
+		
 		s := gocron.NewScheduler()
 		s.Every(2).Hours().Do(func() {
 			go RunBackup()
 		})
-		s.Every(1).Day().At("00:00").Do(checkVersion)
-		s.Every(1).Day().At("01:00").Do(checkCerts)
-		s.Every(1).Day().At("02:00").Do(checkUpdatesAvailable)
 		s.Every(1).Hours().Do(utils.CleanBannedIPs)
-		s.Every(1).Day().At("00:00").Do(func() {
+		s.Every(1).Day().At("2:00").Do(func() {
+			checkVersion()
 			utils.CleanupByDate("notifications")
 			utils.CleanupByDate("events")
 			imageCleanUp()
+			checkCerts()
+			checkUpdatesAvailable()
 		})
+
 		s.Start()
 	}()
 }

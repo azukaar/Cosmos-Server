@@ -35,7 +35,6 @@ export const StorageMounts = () => {
   return <>
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
-      <SnapRAIDDialog refresh={refresh} />
       <div>
         {mounts && mounts.map((mount, index) => {
           return <div>

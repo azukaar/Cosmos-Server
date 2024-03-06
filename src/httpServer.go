@@ -11,6 +11,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/market"
 		"github.com/azukaar/cosmos-server/src/constellation"
 		"github.com/azukaar/cosmos-server/src/metrics"
+		"github.com/azukaar/cosmos-server/src/cron"
 		"github.com/azukaar/cosmos-server/src/storage"
 		"github.com/gorilla/mux"
 		"strconv"
@@ -352,6 +353,7 @@ func InitServer() *mux.Router {
 	
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
+	srapi.Use(utils.ContentTypeMiddleware("application/json"))
 	
 	srapi.HandleFunc("/api/login", user.UserLogin)
 	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
@@ -368,6 +370,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/me", user.Me)
 	
 	srapiAdmin := router.PathPrefix("/cosmos").Subrouter()
+	srapiAdmin.Use(utils.ContentTypeMiddleware("application/json"))
 
 	srapiAdmin.HandleFunc("/api/config", configapi.ConfigRoute)
 	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
@@ -426,13 +429,17 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/notifications/read", utils.MarkAsRead)
 	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
 
+	srapiAdmin.HandleFunc("/api/listen=jobs", cron.ListJobs)
+	srapiAdmin.HandleFunc("/api/jobs", cron.ListJobs)
+
 	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
 	srapiAdmin.HandleFunc("/api/disks/format", storage.FormatDiskRoute)
 	srapiAdmin.HandleFunc("/api/mounts", storage.ListMountsRoute)
 	srapiAdmin.HandleFunc("/api/mount", storage.MountRoute)
 	srapiAdmin.HandleFunc("/api/unmount", storage.UnmountRoute)
 	srapiAdmin.HandleFunc("/api/merge", storage.MergeRoute)
-	srapiAdmin.HandleFunc("/api/snapraid", storage.CreateSNAPRaidRoute)
+	srapiAdmin.HandleFunc("/api/snapraid", storage.SNAPRaidCRUDRoute)
+	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
 
