@@ -20,7 +20,7 @@ type SmartResponseWriterWrapper struct {
 	TimeEnded time.Time
 	RequestCost int
 	Method string
-	shield smartShieldState
+	shield *smartShieldState
 	policy utils.SmartShieldPolicy
 	isOver bool
 	hasBeenInterrupted bool
