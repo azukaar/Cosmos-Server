@@ -299,14 +299,13 @@ func ListAllUsers(role string) []User {
 	}
 
 	cursor, err := c.Find(nil, condition)
+	defer cursor.Close(nil)
 
 	if err != nil {
 		Error("Database: Error while getting users", err)
 		return []User{}
 	}
 	
-	defer cursor.Close(nil)
-
 	if err = cursor.All(nil, &users); err != nil {
 		Error("Database: Error while decoding users", err)
 		return []User{}

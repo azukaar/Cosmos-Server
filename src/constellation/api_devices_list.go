@@ -37,12 +37,12 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 	if isAdmin {
 		// If admin, get all devices
 		cursor, err := c.Find(nil, map[string]interface{}{})
+		defer cursor.Close(nil)
 		if err != nil {
 			utils.Error("DeviceList: Error fetching devices", err)
 			utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DL001")
 			return
 		}
-		defer cursor.Close(nil)
 		
 		if err = cursor.All(nil, &devices); err != nil {
 			utils.Error("DeviceList: Error decoding devices", err)
@@ -55,12 +55,12 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		// If not admin, get user's devices based on their nickname
 		nickname := req.Header.Get("x-cosmos-user")
 		cursor, err := c.Find(nil, map[string]interface{}{"Nickname": nickname})
+		defer cursor.Close(nil)
 		if err != nil {
 			utils.Error("DeviceList: Error fetching devices", err)
 			utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DL003")
 			return
 		}
-		defer cursor.Close(nil)
 		
 		if err = cursor.All(nil, &devices); err != nil {
 			utils.Error("DeviceList: Error decoding devices", err)

@@ -53,6 +53,7 @@ func UserList(w http.ResponseWriter, req *http.Request) {
 			},
 			&fOpt,
 		)
+		defer cursor.Close(nil)
 
 		if errDB != nil {
 			utils.Error("UserList: Error while getting user", errDB)

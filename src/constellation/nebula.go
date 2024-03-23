@@ -138,6 +138,7 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 		"IsLighthouse": true,
 		"Blocked": false,
 	})
+	defer cursor.Close(nil)
 	cursor.All(nil, &devices)
 
 	if err != nil {
@@ -159,6 +160,7 @@ func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
 	cursor, err := c.Find(nil, map[string]interface{}{
 		"Blocked": true,
 	})
+	defer cursor.Close(nil)
 	cursor.All(nil, &devices)
 
 	if err != nil {

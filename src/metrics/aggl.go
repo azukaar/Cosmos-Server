@@ -75,11 +75,11 @@ func AggloMetrics(metricsList []string) []DataDefDB {
 
 	var metrics []DataDefDB
 	cursor, err := c.Find(nil, findOpts)
+	defer cursor.Close(nil)
 	if err != nil {
 		utils.Error("Metrics: Error fetching metrics", err)
 		return []DataDefDB{}
 	}
-	defer cursor.Close(nil)
 	
 	if err = cursor.All(nil, &metrics); err != nil {
 		utils.Error("Metrics: Error decoding metrics", err)

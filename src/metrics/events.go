@@ -115,14 +115,13 @@ func API_ListEvents(w http.ResponseWriter, req *http.Request) {
 		// .SetProjection(bson.D{{"_id", 1}, {"eventId", 1}, {"date", 1}, {"level", 1}, {"data", 1}})
 
 		cursor, err := c.Find(nil, dbQueryBson, opts)
+		defer cursor.Close(nil)
 
 		if err != nil {
 			utils.Error("events: Error while getting events", err)
 			utils.HTTPError(w, "events Get Error", http.StatusInternalServerError, "UD001")
 			return
 		}
-
-		defer cursor.Close(nil)
 
 		if err = cursor.All(nil, &events); err != nil {
 			utils.Error("events: Error while decoding events", err)

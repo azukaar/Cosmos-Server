@@ -75,6 +75,7 @@ func NotifGet(w http.ResponseWriter, req *http.Request) {
 			},
 			Limit: &limit,
 		})
+		defer cursor.Close(nil)
 
 		if err != nil {
 			Error("Notifications: Error while getting notifications", err)
@@ -82,7 +83,6 @@ func NotifGet(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		defer cursor.Close(nil)
 		
 		if err = cursor.All(nil, &notifications); err != nil {
 			Error("Notifications: Error while decoding notifications", err)

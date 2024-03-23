@@ -108,14 +108,13 @@ func ListMetrics(w http.ResponseWriter, req *http.Request) {
 		metrics := []MetricList{}
 
 		cursor, err := c.Find(nil, map[string]interface{}{}, options.Find().SetProjection(bson.M{"Key": 1, "Label":1, "_id": 0}))
+		defer cursor.Close(nil)
 
 		if err != nil {
 			utils.Error("metrics: Error while getting metrics", err)
 			utils.HTTPError(w, "metrics Get Error", http.StatusInternalServerError, "UD001")
 			return
 		}
-
-		defer cursor.Close(nil)
 
 		if err = cursor.All(nil, &metrics); err != nil {
 			utils.Error("metrics: Error while decoding metrics", err)
