@@ -31,12 +31,20 @@ const StorageIndex = () => {
         },
         {
           title: 'External Storages',
-          children: <StorageMounts />,
+          children: <div>
+            <Alert severity="info">
+              Coming soon. This feature will allow you to mount external cloud (Dropbox, Onedrive, ...) to your server.
+            </Alert>
+          </div>,
           path: 'external'
         },
         {
           title: 'Shares',
-          children: <StorageMounts />,
+          children:  <div>
+          <Alert severity="info">
+            Coming soon. This feature will allow you to share folders with different protocols (SMB, FTP, ...)
+          </Alert>
+        </div>,
           path: 'shares'
         },
         {
@@ -51,7 +59,11 @@ const StorageIndex = () => {
         },
         {
           title: 'RAID',
-          children: <StorageMounts />,
+          children:  <div>
+          <Alert severity="info">
+            Coming soon. This feature will allow you to create RAID arrays with your disks.
+          </Alert>
+        </div>,
           path: 'raid'
         },
       ]}/>
