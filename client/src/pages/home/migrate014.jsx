@@ -80,7 +80,7 @@ const Migrate014 = ({ config }) => {
           <DialogContent>
             <DialogContentText>
               In order to continue to improve your experience, Cosmos now supports the Host Mode of networking.
-              It will be the recommended way to run your Cosmos container from now on. <strong>If you are using Windows do not do this, it's not compatible</strong> (you can disable this warning in the config file).
+              It will be the recommended way to run your Cosmos container from now on. <strong>If you are using Windows or MacOS do not do this, it's not compatible</strong> (you can disable this warning in the config file).
               <br />Example of how it makes your life easier:
               <ul>
                 <li>You will be able to connect to other services using localhost</li>

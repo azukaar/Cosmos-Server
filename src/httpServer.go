@@ -373,6 +373,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.Use(utils.ContentTypeMiddleware("application/json"))
 
 	srapiAdmin.HandleFunc("/api/config", configapi.ConfigRoute)
+	srapiAdmin.HandleFunc("/api/_memory", MemStatusRoute)
 	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 	
 	srapiAdmin.HandleFunc("/api/invite", user.UserResendInviteLink)
@@ -431,6 +432,8 @@ func InitServer() *mux.Router {
 
 	srapiAdmin.HandleFunc("/api/listen=jobs", cron.ListJobs)
 	srapiAdmin.HandleFunc("/api/jobs", cron.ListJobs)
+	srapiAdmin.HandleFunc("/api/jobs/stop", cron.StopJobRoute)
+	srapiAdmin.HandleFunc("/api/jobs/run", cron.RunJobRoute)
 
 	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
 	srapiAdmin.HandleFunc("/api/disks/format", storage.FormatDiskRoute)
@@ -439,6 +442,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/unmount", storage.UnmountRoute)
 	srapiAdmin.HandleFunc("/api/merge", storage.MergeRoute)
 	srapiAdmin.HandleFunc("/api/snapraid", storage.SNAPRaidCRUDRoute)
+	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))

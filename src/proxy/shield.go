@@ -47,6 +47,36 @@ type userUsedBudget struct {
 
 var shield smartShieldState
 
+func GetShield() int {
+	return len(shield.requests) + len(shield.bans)
+}
+
+func CleanUp() {
+	shield.Lock()
+	defer shield.Unlock()
+
+	shieldSize := len(shield.requests) + len(shield.bans)
+
+	for i := len(shield.requests) - 1; i >= 0; i-- {
+		request := shield.requests[i]
+		if(request.IsOld()) {
+			shield.requests = append(shield.requests[:i], shield.requests[i+1:]...)
+		}
+	}
+
+	for i := len(shield.bans) - 1; i >= 0; i-- {
+		ban := shield.bans[i]
+		if(ban.banType == TEMP && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
+			shield.bans = append(shield.bans[:i], shield.bans[i+1:]...)
+		}
+		if(ban.banType == STRIKE && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
+			shield.bans = append(shield.bans[:i], shield.bans[i+1:]...)
+		}
+	}
+
+	utils.Log("SmartShield: Cleaned up " + fmt.Sprintf("%d", shieldSize - (len(shield.requests) + len(shield.bans))) + " items")
+}
+
 func (shield *smartShieldState) GetServerNbReq(shieldID string) int {
 	shield.Lock()
 	defer shield.Unlock()

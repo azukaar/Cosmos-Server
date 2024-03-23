@@ -25,7 +25,7 @@ func findParent(disks []BlockDevice, path string) (BlockDevice, error) {
 }
 
 // Create a SnapRAID configuration
-func CreateSnapRAID(raidOptions utils.SnapRAIDConfig) error {
+func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 	data := raidOptions.Data
 	parity := raidOptions.Parity
 	
@@ -84,6 +84,8 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig) error {
 		}
 	}
 
+	// TODO: Check if exisrt
+
 	// TODO: Check if partiy is the biggest disk
 
 	// TODO: Check if file already exist / config already exist
@@ -92,6 +94,16 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig) error {
 
 	// save to config 
 	config := utils.ReadConfigFromFile()
+	// remove the old one
+	if editRaid != "" {
+		for i, r := range config.Storage.SnapRAIDs {
+			if r.Name == editRaid {
+				config.Storage.SnapRAIDs = append(config.Storage.SnapRAIDs[:i], config.Storage.SnapRAIDs[i+1:]...)
+				break
+			}
+		}
+	}
+	// add the new one
 	config.Storage.SnapRAIDs = append(config.Storage.SnapRAIDs, raidOptions)
 	utils.SetBaseMainConfig(config)
 	
@@ -109,6 +121,19 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig) error {
 	// TODO: plan a sync
 
 	return nil
+}
+
+func DeleteSnapRAID(name string) error {
+	config := utils.ReadConfigFromFile()
+	for i, r := range config.Storage.SnapRAIDs {
+		if r.Name == name {
+			config.Storage.SnapRAIDs = append(config.Storage.SnapRAIDs[:i], config.Storage.SnapRAIDs[i+1:]...)
+			utils.SetBaseMainConfig(config)
+			utils.Log("Deleted SnapRAID " + name)
+			return nil
+		}
+	}
+	return errors.New("SnapRAID not found")
 }
 
 func InitSnapRAIDConfig() {

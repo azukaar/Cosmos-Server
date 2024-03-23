@@ -9,15 +9,16 @@ import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import { crontabToText } from "../../utils/indexs";
 
-const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {  
+const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {  
   const formik = useFormik({
     initialValues: {
-      name: 'Storage Parity',
-      parity: [],
-      data: [],
-      syncCronTab: '* 0 2 * * *',
-      scrubCronTab: '* 0 4 * * */2',
+      name: data.Name || 'Storage Parity',
+      parity: data.Parity || [],
+      data: data.Data || [],
+      syncCronTab: data.SyncCrontab || '* 0 2 * * *',
+      scrubCronTab: data.ScrubCrontab || '* 0 4 */2 * *',
     },
     validateOnChange: false,
     validationSchema: yup.object({
@@ -27,14 +28,21 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
-      return API.storage.snapRAID.create({
+      (data.Name ? API.storage.snapRAID.update(data.Name, {
         enabled: true,
         name: values.name,
         parity: values.parity,
         data: values.data,
         syncCronTab: values.syncCronTab,
         scrubCronTab: values.scrubCronTab,
-      }).then((res) => {
+      }) : API.storage.snapRAID.create({
+        enabled: true,
+        name: values.name,
+        parity: values.parity,
+        data: values.data,
+        syncCronTab: values.syncCronTab,
+        scrubCronTab: values.scrubCronTab,
+      })).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);
         setOpen(false);
@@ -51,7 +59,9 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
     <Dialog open={open} onClose={() => setOpen(false)}>
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>Create Parity Disks</DialogTitle>
+            <DialogTitle>
+              {data.Name ? ('Edit ' + data.Name) : 'Create Parity Disks'}
+            </DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
@@ -77,7 +87,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
                         Remember that those disks will be used only for parity, and will not be available for data storage.
                         Parity disks must be at least as large as the largest data disk, and should be empty.
                       </FormLabel>
-                      <MountPicker onChange={(value) => formik.setFieldValue('parity', value)} />
+                      <MountPicker onChange={(value) => formik.setFieldValue('parity', value)} value={formik.values.parity} />
                       {formik.errors.parity && (
                           <Grid item xs={12}>
                               <FormHelperText error>{formik.errors.parity}</FormHelperText>
@@ -86,7 +96,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
                       <FormLabel>
                         <strong>Step 2</strong>: Select the data disks you want to protect with the parity disk(s).
                       </FormLabel>
-                      <MountPicker onChange={(value) => formik.setFieldValue('data', value)} />
+                      <MountPicker onChange={(value) => formik.setFieldValue('data', value)} value={formik.values.data} />
                       {formik.errors.data && (
                           <Grid item xs={12}>
                               <FormHelperText error>{formik.errors.data}</FormHelperText>
@@ -97,9 +107,37 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
                           <FormHelperText error>{formik.errors.submit}</FormHelperText>
                         </Grid>
                       )}
-                      <div>
-                        <Checkbox /> Automatically map a mergerfs pool to the data disks (allows you to access the data disks as a single folder)
-                      </div>
+                      <Stack spacing={2}>
+                        <FormLabel>
+                          <strong>Step 3</strong>: Set the sync and scrub intervals. The sync interval is the time at which parity is updated. The scrub interval is the time at which the parity is checked for errors. This is using the CRONTAB syntax with seconds.
+                        </FormLabel>
+                        <TextField
+                          fullWidth
+                          id="syncCronTab"
+                          name="syncCronTab"
+                          label="Sync Interval"
+                          value={formik.values.syncCronTab}
+                          onChange={formik.handleChange}
+                          error={formik.touched.syncCronTab && Boolean(formik.errors.syncCronTab)}
+                          helperText={formik.touched.syncCronTab && formik.errors.syncCronTab}
+                        />
+                        <FormLabel>
+                          {crontabToText(formik.values.syncCronTab)}
+                        </FormLabel>
+                        <TextField
+                          fullWidth
+                          id="scrubCronTab"
+                          name="scrubCronTab"
+                          label="Scrub Interval"
+                          value={formik.values.scrubCronTab}
+                          onChange={formik.handleChange}
+                          error={formik.touched.scrubCronTab && Boolean(formik.errors.scrubCronTab)}
+                          helperText={formik.touched.scrubCronTab && formik.errors.scrubCronTab}
+                        />
+                        <FormLabel>
+                          {crontabToText(formik.values.scrubCronTab)}
+                        </FormLabel>
+                      </Stack>
                     </Stack>
                   </DialogContentText>
                 </DialogContent>
@@ -107,7 +145,9 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
                   <Button onClick={() => setOpen(false)}>Cancel</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
-                  }}>Create</LoadingButton>
+                  }}>
+                    {data.Name ? 'Update' : 'Create'}
+                  </LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>
@@ -115,19 +155,20 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen }) => {
   </>
 }
 
-const SnapRAIDDialog = ({ refresh }) => {
+const SnapRAIDDialog = ({ refresh, data }) => {
   const [open, setOpen] = useState(false);
 
   return <>
-    {open && <SnapRAIDDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
+    {open && <SnapRAIDDialogInternal refresh={refresh} open={open} setOpen={setOpen} data={data} />}
     
     <div>
-      <ResponsiveButton
+      {!data ? <ResponsiveButton
         onClick={() => {setOpen(true);}}
         variant="contained"
         size="small"
         startIcon={<PlusCircleOutlined />}
-      >New Parity Disks</ResponsiveButton>
+      >New Parity Disks</ResponsiveButton> :
+      <div onClick={() => setOpen(true)}>Edit</div>}
     </div>
   </>
 }

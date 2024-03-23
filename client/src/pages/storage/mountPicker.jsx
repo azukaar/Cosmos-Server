@@ -15,9 +15,9 @@ import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
 
-export const MountPicker = ({diskMode, multiselect, onChange}) => {
+export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
   const [mounts, setMounts] = useState([]);
-  const [selectedMounts, setSelectedMounts] = useState([]);
+  const [selectedMounts, setSelectedMounts] = useState(value || []);
   const theme = useTheme();
   const darkMode = theme.palette.mode === 'dark';
 

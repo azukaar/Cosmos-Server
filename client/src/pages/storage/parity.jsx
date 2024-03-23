@@ -3,18 +3,20 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { AlertFilled, CheckCircleOutlined, CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, ExclamationCircleOutlined, FolderOutlined, LaptopOutlined, MobileOutlined, TabletOutlined, WarningOutlined } from "@ant-design/icons";
+import { AlertFilled, CheckCircleOutlined, CloudOutlined, CloudServerOutlined, CompassOutlined, DeleteOutlined, DesktopOutlined, EditOutlined, ExclamationCircleOutlined, FolderOutlined, LaptopOutlined, MobileOutlined, ReloadOutlined, TabletOutlined, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button, Checkbox, CircularProgress, InputLabel, ListItemIcon, ListItemText, Menu, MenuItem, MenuList, Paper, Stack, Typography } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
 import { LoadingButton } from "@mui/lab";
 import ApiModal from "../../components/apiModal";
-import ConfirmModal from "../../components/confirmModal";
-import { isDomain } from "../../utils/indexs";
+import ConfirmModal, { ConfirmModalDirect } from "../../components/confirmModal";
+import { crontabToText, isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 import SnapRAIDDialog from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
+import diskIcon from '../../assets/images/icons/disk.svg';
+import ResponsiveButton from "../../components/responseiveButton";
 
 const getStatus = (status) => {
   if (!status) {
@@ -58,6 +60,7 @@ export const Parity = () => {
   const [config, setConfig] = useState(null);
   const [parities, setParities] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deleteRaid, setDeleteRaid] = useState(null);
   
   const setEnabled = () => {}
   const refresh = async () => {
@@ -67,6 +70,18 @@ export const Parity = () => {
     setIsAdmin(configAsync.isAdmin);
     setParities(paritiesData.data);
   };
+  
+  const apiDeleteRaid = async (name) => {
+    setLoading(true);
+    let response = await API.storage.snapRAID.delete(name);
+    setLoading(false);
+    setDeleteRaid(null);
+    refresh();
+  }
+
+  const tryDeleteRaid = async (name) => {
+    setDeleteRaid(name);
+  }
 
   const sync = async (name) => {
     setLoading(true);
@@ -86,13 +101,33 @@ export const Parity = () => {
 
   return <>
     {(config) ? <>
+      {deleteRaid && <ConfirmModalDirect
+        title="Delete Parity"
+        content="Are you sure you want to delete this parity?"
+        callback={() => apiDeleteRaid(deleteRaid)}
+        onClose={() => setDeleteRaid(null)}
+      />}
       <Stack spacing={2}>
-      <SnapRAIDDialog refresh={refresh} />
+        <Stack direction="row" spacing={2} justifyContent="flex-start">  
+          <SnapRAIDDialog refresh={refresh} />
+          <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
+            refresh();
+          }}>Refresh</ResponsiveButton>
+        </Stack>
+
       <div>
       {parities && <PrettyTableView 
         data={parities}
         getKey={(r) => r.Name}
         columns={[
+          { 
+            title: '', 
+            field: (r) => <img width="64px" height={"64px"} src={diskIcon} />,
+            style: {
+              textAlign: 'right',
+              width: '64px',
+            },
+          },
           { 
             title: '', 
             field: (r) => r.Name,
@@ -119,7 +154,7 @@ export const Parity = () => {
           {
             title: 'Sync/Scrub Intervals',
             screenMin: 'sm',
-            field: (r) => r.SyncInterval + 'h / ' +   r.ScrubInterval + 'h'
+            field: (r) => <div>Sync: {crontabToText(r.SyncCrontab)}<br/>Scrub: {crontabToText(r.ScrubCrontab)}</div>
           },
           {
             title: 'Status',
@@ -148,6 +183,14 @@ export const Parity = () => {
                 <MenuButton>
                   <MenuItem>
                     <ListItemIcon>
+                      <EditOutlined fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText disabled={loading}>
+                      <SnapRAIDDialog refresh={refresh} data={r} />
+                    </ListItemText>
+                  </MenuItem>
+                  <MenuItem>
+                    <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText disabled={loading} onClick={() => sync(r.Name)}>Sync</ListItemText>
@@ -157,6 +200,12 @@ export const Parity = () => {
                       <CompassOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText disabled={loading} onClick={() => scrub(r.Name)}>Scrub</ListItemText>
+                  </MenuItem>
+                  <MenuItem>
+                    <ListItemIcon>
+                      <DeleteOutlined fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>Delete</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gorilla/mux"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -179,7 +181,7 @@ func createSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := CreateSnapRAID(request); err != nil {
+	if err := CreateSnapRAID(request, ""); err != nil {
 		utils.Error("CreateSNAPRaidRoute: Error merging", err)
 		utils.HTTPError(w, "Error merging filesystem:" + err.Error(), http.StatusInternalServerError, "M002")
 		return
@@ -192,6 +194,65 @@ func createSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// SnapRAIDEditRoute creates a SnapRAID configuration
+func snapRAIDEditRoute(w http.ResponseWriter, req *http.Request) {	
+	vars := mux.Vars(req)
+	name := vars["name"]
+
+	var request utils.SnapRAIDConfig
+	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+		utils.Error("SnapRAIDEditRoute: Invalid request", err)
+		utils.HTTPError(w, "Invalid request: " + err.Error(), http.StatusBadRequest, "M001")
+		return
+	}
+
+	if err := CreateSnapRAID(request, name); err != nil {
+		utils.Error("SnapRAIDEditRoute: Error merging", err)
+		utils.HTTPError(w, "Error merging filesystem:" + err.Error(), http.StatusInternalServerError, "M002")
+		return
+	}
+
+	utils.Log(fmt.Sprintf("Updated SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+		"message": fmt.Sprintf("Updated SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")),
+	})
+}
+
+func snapRAIDDeleteRoute(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	name := vars["name"]
+
+	if err := DeleteSnapRAID(name); err != nil {
+		utils.Error("SnapRAIDDeleteRoute: Error deleting", err)
+		utils.HTTPError(w, "Error deleting SnapRAID:" + err.Error(), http.StatusInternalServerError, "M002")
+		return
+	}
+
+	utils.Log(fmt.Sprintf("Deleted SnapRAID %s", name))
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+		"message": fmt.Sprintf("Deleted SnapRAID %s", name),
+	})
+}
+
+func SnapRAIDEditRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "POST" {
+		snapRAIDEditRoute(w, req)
+		return
+	} else if req.Method == "DELETE" {
+		snapRAIDDeleteRoute(w, req)
+		return
+	} else {
+		utils.Error("SnapRAIDEditRoute: Method not allowed " + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
 
 type SnapRAIDStatus struct {
 	utils.SnapRAIDConfig

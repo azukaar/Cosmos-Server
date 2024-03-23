@@ -111,6 +111,23 @@ const snapRAID = {
       body: JSON.stringify(args)
     }))
   },
+  update: (name, args) => {
+    return wrap(fetch('/cosmos/api/snapraid/' + name, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(args)
+    }))
+  },
+  delete: (name) => {
+    return wrap(fetch('/cosmos/api/snapraid/' + name, {
+      method: 'DELETE',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  },
   list: (args) => {
     return wrap(fetch('/cosmos/api/snapraid', {
       method: 'GET',

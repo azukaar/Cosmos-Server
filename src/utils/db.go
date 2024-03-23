@@ -182,6 +182,22 @@ var (
 	bufferCapacity = 100
 )
 
+func GetWriteBuffer() map[string][]map[string]interface{} {
+	return writeBuffer
+}
+
+func GetWriteBufferLength() int {
+	result := 0
+	for _, objects := range writeBuffer {
+		buflen := 0
+		for _, _ = range objects {
+			buflen++
+		}
+		result += len(objects)
+	}
+	return result
+}
+
 func InitDBBuffers() {
 	go func() {
 		for {

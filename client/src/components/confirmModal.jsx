@@ -46,4 +46,36 @@ const ConfirmModal = ({ callback, label, content, startIcon }) => {
     </>
 };
 
+
+const ConfirmModalDirect = ({ callback, content, onClose }) => {
+    const [openModal, setOpenModal] = useState(true);
+
+    return <>
+      <Dialog open={openModal} onClose={() => {
+        onClose && onClose();
+        setOpenModal(false);
+      }}>
+          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogContent>
+              <DialogContentText>
+                  {content}
+              </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+              <Button onClick={() => {
+                  setOpenModal(false);    
+                  onClose && onClose();
+              }}>Cancel</Button>
+              <LoadingButton
+              onClick={() => {   
+                  callback();     
+                  setOpenModal(false);    
+                  onClose && onClose();
+              }}>Confirm</LoadingButton>
+          </DialogActions>
+      </Dialog>
+    </>
+};
+
 export default ConfirmModal;
+export { ConfirmModalDirect };

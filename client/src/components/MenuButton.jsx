@@ -74,7 +74,7 @@ export default function MenuButton({children}) {
         onClick={handleClick}
         size='large'
         sx={{
-          height: '40px',
+          height: '60px',
           width: '40px',
         }}
       >

@@ -26,7 +26,7 @@ import * as timeago from 'timeago.js';
 import MainCard from '../../../../components/MainCard';
 import Transitions from '../../../../components/@extended/Transitions';
 // assets
-import { BellOutlined, ClockCircleOutlined, CloseOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, MessageOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
+import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, MessageOutlined, PlaySquareOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 
 import * as API from '../../../../api';
 import { redirectToLocal } from '../../../../utils/indexs';
@@ -84,7 +84,7 @@ const Jobs = () => {
 
         const interval = setInterval(() => {
             refreshJobs();
-        }, 10000);
+        }, 15000);
 
         return () => clearInterval(interval);
     }, []);
@@ -215,23 +215,36 @@ const Jobs = () => {
                                                 }
                                             />
                                                 <ListItemSecondaryAction>
-                                                    <Typography variant="caption" noWrap>
-                                                        {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
-                                                            job.Running ? `Running since ${timeago.format(job.LastStarted)}` : `Last run ${timeago.format(job.LastRun)}`
-                                                        )}
-                                                    </Typography>
+                                                    
+                                                {(job.Running) ? <IconButton disabled={!job.Cancellable} variant="outlined" color="error" onClick={() => {
+                                                    API.cron.stop(job.Scheduler, job.Name).then(() => {
+                                                        refreshJobs();
+                                                    });
+                                                }}>
+                                                    <CloseSquareOutlined />
+                                                </IconButton> : ''}
+                                                {(!job.Running) ? <IconButton variant="outlined" color="primary" onClick={() => {
+                                                    API.cron.run(job.Scheduler, job.Name).then(() => {
+                                                        refreshJobs();
+                                                    });
+                                                }}>
+                                                    <PlaySquareOutlined />
+                                                </IconButton> : ''}
                                                 </ListItemSecondaryAction>
                                             </ListItemButton>
                                             <ListItemButton
                                             style={{
                                                 borderLeft: job.Read ? 'none' : `4px solid  ${statusColor(job)}`,
                                                 paddingLeft: job.Read ? '14px' : '10px',
+                                                display: 'flex',
+                                                justifyContent: 'flex-end',
+                                                alignItems: 'center',
                                             }}>
-                                                {job.Running ? <Button variant="outlined" color="error" onClick={() => {
-                                                    API.cron.stop(job.Name).then(() => {
-                                                        refreshJobs();
-                                                    });
-                                                }}>Cancel</Button> : ''}
+                                            <Typography variant="caption" noWrap >
+                                                {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
+                                                    job.Running ? `Running since ${timeago.format(job.LastStarted)}` : `Last run ${timeago.format(job.LastRun)}`
+                                                )}
+                                            </Typography>
                                             </ListItemButton>
                                         <Divider /></>))}
                                     </List>

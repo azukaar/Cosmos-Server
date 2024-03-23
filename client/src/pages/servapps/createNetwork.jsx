@@ -30,8 +30,8 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
       name: Yup.string().required('Required'),
       driver: Yup.string().required('Required'),
       parentInterface: Yup.string().when('driver', {
-        is: 'mcvlan',
-        then: Yup.string().required('Parent interface is required for MCVLAN')
+        is: 'macvlan',
+        then: Yup.string().required('Parent interface is required for MACVLAN')
       }),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
@@ -91,7 +91,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                       <MenuItem value="bridge">Bridge</MenuItem>
                       <MenuItem value="host">Host</MenuItem>
                       <MenuItem value="overlay">Overlay</MenuItem>
-                      <MenuItem value="mcvlan">MCVLAN</MenuItem>
+                      <MenuItem value="macvlan">MACVLAN</MenuItem>
                     </Select>
                   </FormControl>
                   
@@ -107,7 +107,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     style={{ marginBottom: '16px' }}
                   />
 
-                  {formik.values.driver === 'mcvlan' && (
+                  {formik.values.driver === 'macvlan' && (
                     <TextField
                       fullWidth
                       id="parentInterface"

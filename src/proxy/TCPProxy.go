@@ -14,6 +14,10 @@ var (
     proxiesLock   sync.Mutex
 )
 
+func GetActiveProxies() map[string]chan bool {
+    return activeProxies
+}
+
 func handleClient(client net.Conn, server net.Conn, stop chan bool) {
     defer client.Close()
     defer server.Close()

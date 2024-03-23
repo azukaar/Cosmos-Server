@@ -51,17 +51,17 @@ func GetSystemMetrics() {
 	cpuPercent, err := cpu.PercentWithContext(ctx, 0, false)
 	if err != nil {
 		utils.Error("Metrics - Error fetching CPU usage:", err)
-		return
-	}
-	if len(cpuPercent) > 0 {
-		for i, v := range cpuPercent {
-			PushSetMetric("system.cpu." + strconv.Itoa(i), int(v), DataDef{
-				Max: 100,
-				Period: time.Second * 30,
-				Label: "CPU " + strconv.Itoa(i),
-				AggloType: "avg",
-				Unit: "%",
-			})
+	} else {
+		if len(cpuPercent) > 0 {
+			for i, v := range cpuPercent {
+				PushSetMetric("system.cpu." + strconv.Itoa(i), int(v), DataDef{
+					Max: 100,
+					Period: time.Second * 30,
+					Label: "CPU " + strconv.Itoa(i),
+					AggloType: "avg",
+					Unit: "%",
+				})
+			}
 		}
 	}
 
@@ -72,15 +72,15 @@ func GetSystemMetrics() {
 	memInfo, err := mem.VirtualMemoryWithContext(ctx)
 	if err != nil {
 		utils.Error("Metrics - Error fetching RAM usage:", err)
-		return
+	} else {
+		PushSetMetric("system.ram", int(memInfo.Used), DataDef{
+			Max: memInfo.Total,
+			Period: time.Second * 30,
+			Label: "RAM",
+			AggloType: "avg",
+			Unit: "B",
+		})
 	}
-	PushSetMetric("system.ram", int(memInfo.Used), DataDef{
-		Max: memInfo.Total,
-		Period: time.Second * 30,
-		Label: "RAM",
-		AggloType: "avg",
-		Unit: "B",
-	})
 	
 	// Get Network Usage
 	netIO, err := net.IOCountersWithContext(ctx, false)
@@ -92,81 +92,80 @@ func GetSystemMetrics() {
 
 	if err != nil {
 		utils.Error("Metrics - Error fetching Network usage:", err)
-		return
+	} else {
+		PushSetMetric("system.netRx", int(netIO[0].BytesRecv), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Network Received",
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+			Unit: "B",
+		})
+	
+		PushSetMetric("system.netTx", int(netIO[0].BytesSent), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Network Sent",
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+			Unit: "B",
+		})
+	
+		PushSetMetric("system.netErr", int(netIO[0].Errin + netIO[0].Errout), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Network Errors",
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+		})
+	
+		PushSetMetric("system.netDrop", int(netIO[0].Dropin + netIO[0].Dropout), DataDef{
+			Max: 0,
+			Period: time.Second * 30,
+			Label: "Network Drops",
+			SetOperation: "max",
+			AggloType: "sum",
+			Decumulate: true,
+		})
 	}
 
-	PushSetMetric("system.netRx", int(netIO[0].BytesRecv), DataDef{
-		Max: 0,
-		Period: time.Second * 30,
-		Label: "Network Received",
-		SetOperation: "max",
-		AggloType: "sum",
-		Decumulate: true,
-		Unit: "B",
-	})
-
-	PushSetMetric("system.netTx", int(netIO[0].BytesSent), DataDef{
-		Max: 0,
-		Period: time.Second * 30,
-		Label: "Network Sent",
-		SetOperation: "max",
-		AggloType: "sum",
-		Decumulate: true,
-		Unit: "B",
-	})
-
-	PushSetMetric("system.netErr", int(netIO[0].Errin + netIO[0].Errout), DataDef{
-		Max: 0,
-		Period: time.Second * 30,
-		Label: "Network Errors",
-		SetOperation: "max",
-		AggloType: "sum",
-		Decumulate: true,
-	})
-
-	PushSetMetric("system.netDrop", int(netIO[0].Dropin + netIO[0].Dropout), DataDef{
-		Max: 0,
-		Period: time.Second * 30,
-		Label: "Network Drops",
-		SetOperation: "max",
-		AggloType: "sum",
-		Decumulate: true,
-	})
 
 	// Get Disk Usage
   parts, err := disk.PartitionsWithContext(ctx, true)
 	if err != nil {
 		utils.Error("Metrics - Error fetching Disk usage:", err)
-		return
-	}
-
-  for _, part := range parts {
-		if strings.HasPrefix(part.Mountpoint, "/dev") || 
-			(strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host") ||
-			 part.Mountpoint == "/") {
+	} else {
+		for _, part := range parts {
+			if strings.HasPrefix(part.Mountpoint, "/dev") || 
+				(strings.HasPrefix(part.Mountpoint, "/mnt") && !strings.HasPrefix(part.Mountpoint, "/mnt/host") ||
+				 part.Mountpoint == "/") {
+					
+				if part.Mountpoint == "/dev" || strings.HasPrefix(part.Mountpoint, "/dev/shm") || strings.HasPrefix(part.Mountpoint, "/dev/pts") {
+					continue
+				}
+	
+				realMount := part.Mountpoint
+				mountKey := strings.Replace(part.Mountpoint, ".", "_", -1)
 				
-			if part.Mountpoint == "/dev" || strings.HasPrefix(part.Mountpoint, "/dev/shm") || strings.HasPrefix(part.Mountpoint, "/dev/pts") {
-				continue
-			}
-
-			realMount := part.Mountpoint
-			mountKey := strings.Replace(part.Mountpoint, ".", "_", -1)
-			
-			if os.Getenv("HOSTNAME") != "" {
-				realMount = "/mnt/host" + part.Mountpoint
-			}
-
-			u, err := disk.Usage(realMount)
-			if err != nil {
-				utils.Error("Metrics - Error fetching Disk usage for " + realMount + " : ", err)
-			} else {
-				PushSetMetric("system.disk." + mountKey, int(u.Used), DataDef{
-					Max: u.Total,
-					Period: time.Second * 120,
-					Label: "Disk " + part.Mountpoint,
-					Unit: "B",
-					Object: "disk@" + part.Mountpoint,
-				})
+				if os.Getenv("HOSTNAME") != "" {
+					realMount = "/mnt/host" + part.Mountpoint
+				}
+	
+				u, err := disk.Usage(realMount)
+				if err != nil {
+					utils.Error("Metrics - Error fetching Disk usage for " + realMount + " : ", err)
+				} else {
+					PushSetMetric("system.disk." + mountKey, int(u.Used), DataDef{
+						Max: u.Total,
+						Period: time.Second * 120,
+						Label: "Disk " + part.Mountpoint,
+						Unit: "B",
+						Object: "disk@" + part.Mountpoint,
+					})
+				}
 			}
 		}
 	}
@@ -175,33 +174,32 @@ func GetSystemMetrics() {
 	temps, err := host.SensorsTemperatures()
 	if err != nil {
 		utils.Error("Metrics - Error fetching Temperature:", err)
-		return
-	}
+	} else {
+		avgTemp := 0
+		avgTempCount := 0
 	
-	avgTemp := 0
-	avgTempCount := 0
-
-	for _, temp := range temps {
-		utils.Debug("Metrics - Temperature " + temp.SensorKey + " : " + strconv.Itoa(int(temp.Temperature)))
-		if temp.Temperature > 0 {
-			avgTemp += int(temp.Temperature)
-			avgTempCount++
-
-			PushSetMetric("system.temp." + temp.SensorKey, int(temp.Temperature), DataDef{
+		for _, temp := range temps {
+			utils.Debug("Metrics - Temperature " + temp.SensorKey + " : " + strconv.Itoa(int(temp.Temperature)))
+			if temp.Temperature > 0 {
+				avgTemp += int(temp.Temperature)
+				avgTempCount++
+	
+				PushSetMetric("system.temp." + temp.SensorKey, int(temp.Temperature), DataDef{
+					Max: 0,
+					Period: time.Second * 30,
+					Label: "Temperature " + temp.SensorKey,
+					Unit: "°C",
+				})
+			}
+		}
+	
+		if avgTempCount > 0 {
+			PushSetMetric("system.temp.all", avgTemp / avgTempCount, DataDef{
 				Max: 0,
 				Period: time.Second * 30,
-				Label: "Temperature " + temp.SensorKey,
-				Unit: "°C",
+				Label: "Temperature - All",
 			})
 		}
-	}
-
-	if avgTempCount > 0 {
-		PushSetMetric("system.temp.all", avgTemp / avgTempCount, DataDef{
-			Max: 0,
-			Period: time.Second * 30,
-			Label: "Temperature - All",
-		})
 	}
 	
 
@@ -209,45 +207,45 @@ func GetSystemMetrics() {
 	dockerStats, err := docker.StatsAll()
 	if err != nil {
 		utils.Error("Metrics - Error fetching Docker stats:", err)
-		return
+	} else {
+		for _, ds := range dockerStats {
+			PushSetMetric("system.docker.cpu." + ds.Name, int(ds.CPUUsage), DataDef{
+				Period: time.Second * 30,
+				Label: "Docker CPU " + ds.Name,
+				AggloType: "avg",
+				Scale: 100,
+				Unit: "%",
+				Object: "container@" + ds.Name,
+			})
+			PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
+				Max: memInfo.Total,
+				Period: time.Second * 30,
+				Label: "Docker RAM " + ds.Name,
+				AggloType: "avg",
+				Unit: "B",
+				Object: "container@" + ds.Name,
+			})
+			PushSetMetric("system.docker.netRx." + ds.Name, int(ds.NetworkRx), DataDef{
+				Max: 0,
+				Period: time.Second * 30,
+				Label: "Docker Network Received " + ds.Name,
+				SetOperation: "max",
+				AggloType: "sum",
+				DecumulatePos: true,
+				Unit: "B",
+				Object: "container@" + ds.Name,
+			})
+			PushSetMetric("system.docker.netTx." + ds.Name, int(ds.NetworkTx), DataDef{
+				Max: 0,
+				Period: time.Second * 30,
+				Label: "Docker Network Sent " + ds.Name,
+				SetOperation: "max",
+				AggloType: "sum",
+				DecumulatePos: true,
+				Unit: "B",
+				Object: "container@" + ds.Name,
+			})
+		}
 	}
 
-	for _, ds := range dockerStats {
-		PushSetMetric("system.docker.cpu." + ds.Name, int(ds.CPUUsage), DataDef{
-			Period: time.Second * 30,
-			Label: "Docker CPU " + ds.Name,
-			AggloType: "avg",
-			Scale: 100,
-			Unit: "%",
-			Object: "container@" + ds.Name,
-		})
-		PushSetMetric("system.docker.ram." + ds.Name, int(ds.MemUsage), DataDef{
-			Max: memInfo.Total,
-			Period: time.Second * 30,
-			Label: "Docker RAM " + ds.Name,
-			AggloType: "avg",
-			Unit: "B",
-			Object: "container@" + ds.Name,
-		})
-		PushSetMetric("system.docker.netRx." + ds.Name, int(ds.NetworkRx), DataDef{
-			Max: 0,
-			Period: time.Second * 30,
-			Label: "Docker Network Received " + ds.Name,
-			SetOperation: "max",
-			AggloType: "sum",
-			DecumulatePos: true,
-			Unit: "B",
-			Object: "container@" + ds.Name,
-		})
-		PushSetMetric("system.docker.netTx." + ds.Name, int(ds.NetworkTx), DataDef{
-			Max: 0,
-			Period: time.Second * 30,
-			Label: "Docker Network Sent " + ds.Name,
-			SetOperation: "max",
-			AggloType: "sum",
-			DecumulatePos: true,
-			Unit: "B",
-			Object: "container@" + ds.Name,
-		})
-	}
 }

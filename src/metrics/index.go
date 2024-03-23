@@ -45,6 +45,10 @@ var dataBuffer = map[string]DataPush{}
 
 var lock = make(chan bool, 1)
 
+func GetDataBuffer() map[string]DataPush {
+	return dataBuffer
+}
+
 func MergeMetric(SetOperation string, currentValue int, newValue int, avgIndex int) int {
 	if SetOperation == "" {  
 		return newValue    

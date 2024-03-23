@@ -17,8 +17,35 @@ function list() {
   }))
 }
 
+function run(scheduler, name) {
+  return wrap(fetch('/cosmos/api/jobs/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduler: scheduler,
+      name: name
+    })
+  }))
+}
+
+function stop(scheduler, name) {
+  return wrap(fetch('/cosmos/api/jobs/stop', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduler: scheduler,
+      name: name
+    })
+  }))
+}
 
 export {
   listen,
-  list
+  list,
+  run,
+  stop,
 }

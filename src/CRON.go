@@ -6,6 +6,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/proxy"
 	"os"
 	"path/filepath"
 	"encoding/json"
@@ -116,6 +117,7 @@ func CRON() {
 			go RunBackup()
 		})
 		s.Every(1).Hours().Do(utils.CleanBannedIPs)
+		s.Every(1).Hours().Do(proxy.CleanUp)
 		s.Every(1).Day().At("2:00").Do(func() {
 			checkVersion()
 			utils.CleanupByDate("notifications")

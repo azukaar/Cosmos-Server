@@ -5,7 +5,6 @@
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
 <p align="center"><a href="https://github.com/DrMxrcy"><img src="https://avatars.githubusercontent.com/DrMxrcy" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/CupofDalek"><img src="https://avatars.githubusercontent.com/CupofDalek" style="border-radius:48px" width="48" height="48" alt="CupofDalek" title="CupofDalek" /></a>
 <a href="https://github.com/Serph91P"><img src="https://avatars.githubusercontent.com/Serph91P" style="border-radius:48px" width="48" height="48" alt="Seraph91P" title="Seraph91P" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
@@ -14,6 +13,8 @@
 <a href="https://github.com/Gordi90"><img src="https://avatars.githubusercontent.com/Gordi90" style="border-radius:48px" width="48" height="48" alt="Dér Kristóf Gordon" title="Dér Kristóf Gordon" /></a>
 <a href="https://github.com/lilkidsuave"><img src="https://avatars.githubusercontent.com/lilkidsuave" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/phobes"><img src="https://avatars.githubusercontent.com/phobes" style="border-radius:48px" width="48" height="48" alt="Phobes" title="Phobes" /></a>
+<a href="https://github.com/AstroMando"><img src="https://avatars.githubusercontent.com/AstroMando" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/lebenitza"><img src="https://avatars.githubusercontent.com/lebenitza" style="border-radius:48px" width="48" height="48" alt="Mihai A." title="Mihai A." /></a>
 </p><!-- /sponsors -->
 
 ---
@@ -154,11 +155,13 @@ Note that **you are allowed** to use it to host a monetized business website, a 
 
 Installation is simple using Docker:
 
-```sh
-docker run -d -p 80:80 -p 443:443 -p 4242:4242/udp --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
+```
+docker run -d --network host  --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
 
-### DO NOT USE UNRAID TEMPLATES OR PORTAINER STACKS TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY.
+**DO NOT USE <span style="color:red">DOCKER-COMPOSE</span>, <span style="color:red">UNRAID TEMPLATES</span>, <span style="color:red">CASAOS</span> OR <span style="color:red">PORTAINER STACKS</span> TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY. JUST RUN THE `DOCKER RUN` COMMAND!**
+
+**IF YOU ARE USING <span style="color:red">WINDOWS</span> OR <span style="color:red">MAC OS</span> YOU CANNOT USE THE HOST MODE OF DOCKER. Please replace `--network host` with `-p 80:80 -p 443:443 -p 4242:4242/udp`**
 
 In this command, `-v /:/mnt/host` is optional and allow to manage folders from Cosmos, you can remove it if you don't want it but you will have to create your container's bind folders manually.
 

@@ -22,6 +22,7 @@ const ResponsiveButton = ({ children, startIcon, endIcon, size, style, ...props 
       {(isMobile) ? endIcon : (
         endIcon ? children : null
       )}
+      {!startIcon && !endIcon ? children : null}
     </Button>
   );
 }

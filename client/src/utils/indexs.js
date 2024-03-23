@@ -50,3 +50,104 @@ export const redirectToLocal = (url) => {
   }
   window.location.href = url;
 }
+
+export const crontabToText = (crontab) => {
+  const parts = crontab.split(' ');
+  if (parts.length !== 6) {
+      return 'Invalid CRONTAB format';
+  }
+
+  const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+
+  const parseField = (field, unit = "", date=false) => {
+    const count = (nb) => {
+      if(date) {
+        if(nb === 1) {
+          return `${nb}st `
+        }
+        if(nb === 2) {
+          return `${nb}nd `
+        }
+        if(nb === 3) {
+          return `${nb}rd `
+        }
+        return `${nb}th `
+      }
+      return " "
+    }
+    
+    const plur = (field, force=false) => {
+      if (!force && date) {
+        return '';
+      }
+      if (field === '1' || field === '0') {
+        return '';
+      } else {
+        return 's';
+      }
+    }
+
+    if (field === '*') {
+        return `every ${unit}s`;
+    } else if (field.includes('-')) {
+        const [start, end] = field.split('-');
+        return `from ${start}${count(start)}${unit}${plur(field)} to ${end}${count(end)}${unit}${plur(field)}`;
+    } else if (field.includes(',')) {
+        return `${field.split(',')
+        .join(', ')}`;
+    } else if (field.includes('/')) {
+        const [start, step] = field.split('/');
+        return `every ${step} ${unit}${plur(step, true)}, starting at ${unit} ${start}`;
+    } else {
+        return `${field}${count(field)}${unit}${plur(field)}`;
+    }
+  };
+
+  let text = '';
+  let timeText = '';
+  let timeTextArray = [];
+  let dateText = '';
+  let dateTextArray = [];
+
+  // Handle date fields
+  if (dayOfMonth !== '*') {
+      const dayOfMonthText = parseField(dayOfMonth, "day", true);
+      dateTextArray.push(`${dayOfMonthText} of the month`)
+  }
+
+  if (month !== '*') {
+      const monthText = parseField(month, "month", true);
+      dateTextArray.push(`${monthText}`);
+  }
+
+  if (dayOfWeek !== '*') {
+      const dayOfWeekText = parseField(dayOfWeek, "day", true);
+      dateTextArray.push(`${dayOfWeekText} of the week`);
+  }
+  
+  if (hour !== '*') {
+    timeTextArray.push(parseField(hour, "hour"));
+  }
+  if (minute !== '*') {
+    timeTextArray.push(`${parseField(minute, "min")}`);
+  }
+  if (second !== '*') {
+    timeTextArray.push(`${parseField(second, "sec")}`);
+  }
+
+
+  if (dateTextArray.length > 0) {
+    dateText = `${dateTextArray.join(' and ')}`;
+    if(!dateText.startsWith("from")) {
+      dateText = "On " + dateText
+    }
+  }
+  if (timeTextArray.length > 0) {
+    timeText = ` at ${timeTextArray.join(' and ')}`;
+    if(dateText == "") {
+      timeText = "Every day " + timeText
+    }
+  }
+
+  return text + dateText + timeText;
+}

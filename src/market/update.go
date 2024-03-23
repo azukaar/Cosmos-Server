@@ -36,6 +36,10 @@ type marketCacheObject struct {
 
 var currentMarketcache []marketCacheObject
 
+func GetCachedMarket() []marketCacheObject {
+	return currentMarketcache
+}
+
 func updateCache(w http.ResponseWriter, req *http.Request) error {
 	for index, cachedMarket := range currentMarketcache {
 		if cachedMarket.LastUpdate.Add(time.Hour * 12).Before(time.Now()) {

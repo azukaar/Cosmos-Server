@@ -36,6 +36,10 @@ type ConfigJob struct {
 var jobsList = map[string]map[string]ConfigJob{}
 var wasInit = false
 
+func GetJobsList() map[string]map[string]ConfigJob {
+	return getJobsList()
+}
+
 func Init() {
 	utils.Log("Initializing CRON...")
 
@@ -180,6 +184,8 @@ func jobRunner(schedulerName, jobName string) func(OnLog func(string), OnFail fu
 			<-CRONLock
 		}
 	}
+
+	return nil
 }
 func jobRunner_OnLog(schedulerName, jobName string) func(log string) {
 	return func(log string) {
@@ -271,19 +277,26 @@ func InitScheduler() {
 	}()
 }
 
-func cancelJob(scheduler string, jobName string) {
+func cancelJob(scheduler string, jobName string) error {
 	if job, ok := jobsList[scheduler][jobName]; ok {
-			job.CancelFunc()
+		if !job.Running {
+			return errors.New("Job is not running")
+		}
+		if !job.Cancellable {
+			return errors.New("Job is not cancellable")
+		}
+		job.CancelFunc()
 	}
+	return nil
 }
 
-func CancelJob(scheduler string, jobName string) {
+func CancelJob(scheduler string, jobName string) error {
 	CRONLock <- true
 	defer func() { <-CRONLock }()
 
 	utils.Log("Canceling CRON job: " + jobName)
 	
-	cancelJob(scheduler, jobName)
+	return cancelJob(scheduler, jobName)
 }
 
 func registerJob(job ConfigJob) {
@@ -298,9 +311,11 @@ func registerJob(job ConfigJob) {
 }
 func RegisterJob(job ConfigJob) {
 	CRONLock <- true
-	defer func() { <-CRONLock }()
 	
 	registerJob(job)
+
+	<-CRONLock
+
 	InitScheduler()
 }
 
@@ -311,24 +326,27 @@ func resetScheduler(scheduler string) {
 }
 func ResetScheduler(scheduler string) {
 	CRONLock <- true
-	defer func() { <-CRONLock }()
 	
 	resetScheduler(scheduler)
+
+	<-CRONLock
 
 	InitScheduler()
 }
 
 func DeregisterJob(scheduler string, name string) {
 	CRONLock <- true
-	defer func() { <-CRONLock }()
 
 	utils.Log("Deregistering CRON job: " + name)
 
 	delete(jobsList[scheduler], name)
+
+	<-CRONLock
+
 	InitScheduler()
 }
 
-func ManualRunJob(scheduler string, name string) {
+func ManualRunJob(scheduler string, name string) error {
 	CRONLock <- true
 
 	if job, ok := jobsList[scheduler][name]; ok {
@@ -339,7 +357,10 @@ func ManualRunJob(scheduler string, name string) {
 	} else {
 		<-CRONLock
 		utils.Error("CRON job " + name + " not found", nil)
+		return errors.New("CRON job not found")
 	}
+	
+	return nil
 }
 
 func AddJobConfig(job utils.CRONConfig) {
