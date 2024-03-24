@@ -446,17 +446,20 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 
-	
-	router.HandleFunc("/debug/pprof/", pprof.Index)
-	router.HandleFunc("/debug/pprof/allocs", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
-	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
-	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
-	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
-	router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
-	router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
-	router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
-	router.Handle("/debug/pprof/block", pprof.Handler("block"))
+	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
+		debugRouter := srapiAdmin.PathPrefix("/debug").Subrouter()
+		debugRouter.Use(utils.AdminOnlyMiddleware)
+		debugRouter.HandleFunc("/pprof/", pprof.Index)
+		debugRouter.HandleFunc("/pprof/allocs", pprof.Cmdline)
+		debugRouter.HandleFunc("/pprof/cmdline", pprof.Cmdline)
+		debugRouter.HandleFunc("/pprof/profile", pprof.Profile)
+		debugRouter.HandleFunc("/pprof/symbol", pprof.Symbol)
+		debugRouter.HandleFunc("/pprof/trace", pprof.Trace)
+		debugRouter.Handle("/pprof/goroutine", pprof.Handler("goroutine"))
+		debugRouter.Handle("/pprof/heap", pprof.Handler("heap"))
+		debugRouter.Handle("/pprof/threadcreate", pprof.Handler("threadcreate"))
+		debugRouter.Handle("/pprof/block", pprof.Handler("block"))
+	}
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
 

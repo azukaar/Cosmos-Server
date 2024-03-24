@@ -12,6 +12,7 @@
  - Restore static bundle loading to fix issue with some browsers
  - Fix issue on Macvlan creation
  - Make monitoring more reliant in case of issue
+ - Added a memory profiler when debug mode is on (/cosmos/debug/pprof)
 
 ## Version 0.14.6
  - Fix custom back-up folder logic

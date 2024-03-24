@@ -149,7 +149,9 @@ export const Parity = () => {
           },
           {
             title: 'Data Disks',
-            field: (r) => r.Parity ? r.Data.map(d => <div>{d}</div>) : '-'
+            field: (r) => r.Parity ? Object.keys(r.Data).map(d => <div>
+              {d}: {r.Data[d]}
+            </div>) : '-'
           },
           {
             title: 'Sync/Scrub Intervals',

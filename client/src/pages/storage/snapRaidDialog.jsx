@@ -10,13 +10,15 @@ import { MountPicker } from "./mountPicker";
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { crontabToText } from "../../utils/indexs";
+import { MountPickerEntry } from "./mountPickerEntry";
+import { json } from "react-router";
 
 const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {  
   const formik = useFormik({
     initialValues: {
       name: data.Name || 'Storage Parity',
       parity: data.Parity || [],
-      data: data.Data || [],
+      data: data.Data || {},
       syncCronTab: data.SyncCrontab || '* 0 2 * * *',
       scrubCronTab: data.ScrubCrontab || '* 0 4 */2 * *',
     },
@@ -24,7 +26,9 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
     validationSchema: yup.object({
       name: yup.string().required('Required').min(3, 'Name should be at least 3 characters').matches(/^[a-zA-Z0-9_ ]+$/, 'Name should be alphanumeric'),
       parity: yup.array().min(1, 'Select at least 1 parity disk'),
-      data: yup.array().min(2, 'Select at least 2 data disks'),
+      data: yup.object().test('data', 'Select at least 2 data disk', (value) => {
+        return Object.keys(value).length >= 2;
+      })
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
@@ -96,7 +100,37 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                       <FormLabel>
                         <strong>Step 2</strong>: Select the data disks you want to protect with the parity disk(s).
                       </FormLabel>
-                      <MountPicker onChange={(value) => formik.setFieldValue('data', value)} value={formik.values.data} />
+                      
+
+                      {Object.keys(formik.values.data).map((dataName) => {
+                        const dataDisk = formik.values.data[dataName];
+                        
+                        return <MountPickerEntry
+                            id={`data.${dataName}`}
+                            name={`data.${dataName}`}
+                            label={`${dataName}`}
+                            value={dataDisk}
+                            onChange={formik.handleChange}
+                            formik={formik}
+                            touched={formik.touched.data && formik.touched.data[dataName]}
+                            error={formik.touched.data && formik.touched.data[dataName] && Boolean(formik.errors.data)}
+                            helperText={formik.touched.data && formik.touched.data[dataName] && formik.errors.data}
+                          />
+                      })}
+                      
+                      <Stack direction="row" spacing={2}>
+                        <Button onClick={() => {
+                          const data = formik.values.data;
+                          data[`disk${Object.keys(data).length}`] = '';
+                          formik.setFieldValue('data', data);
+                        }}>Add Data Disk</Button>
+                        <Button onClick={() => {
+                          const data = formik.values.data;
+                          delete data[Object.keys(data).pop()];
+                          formik.setFieldValue('data', data);
+                        }}>Remove Data Disk</Button>
+                      </Stack>
+
                       {formik.errors.data && (
                           <Grid item xs={12}>
                               <FormHelperText error>{formik.errors.data}</FormHelperText>

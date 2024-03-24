@@ -187,10 +187,10 @@ func createSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	utils.Log(fmt.Sprintf("Created SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")))
+	utils.Log(fmt.Sprintf("Created SnapRAID %v with %s", request.Data, strings.Join(request.Parity, ":")))
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",
-		"message": fmt.Sprintf("Created SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")),
+		"message": fmt.Sprintf("Created SnapRAID %v with %s", request.Data, strings.Join(request.Parity, ":")),
 	})
 }
 
@@ -212,10 +212,10 @@ func snapRAIDEditRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	utils.Log(fmt.Sprintf("Updated SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")))
+	utils.Log(fmt.Sprintf("Updated SnapRAID %v with %s", request.Data, strings.Join(request.Parity, ":")))
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",
-		"message": fmt.Sprintf("Updated SnapRAID %s with %s", strings.Join(request.Data, ":"), strings.Join(request.Parity, ":")),
+		"message": fmt.Sprintf("Updated SnapRAID %v with %s", request.Data, strings.Join(request.Parity, ":")),
 	})
 }
 

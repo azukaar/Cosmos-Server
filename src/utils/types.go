@@ -117,7 +117,7 @@ type StorageConfig struct {
 type SnapRAIDConfig struct {
 	Name string
 	Enabled bool
-	Data []string
+	Data map[string]string
 	Parity []string
 	SyncCrontab string
 	ScrubCrontab string

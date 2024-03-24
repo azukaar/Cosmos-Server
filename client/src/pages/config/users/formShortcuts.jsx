@@ -165,11 +165,12 @@ export const CosmosSelect = ({ name, onChange, label, formik, disabled, options,
           formik.handleChange(...ar);
         }}
         error={
-          formik.touched[name] &&
-          Boolean(formik.errors[name])
+          getNestedValue(formik.touched, name) &&
+          Boolean(getNestedValue(formik.errors, name))
         }
         helperText={
-          formik.touched[name] && formik.errors[name]
+          getNestedValue(formik.touched, name) &&
+          getNestedValue(formik.errors, name)
         }
         style={style}
       >

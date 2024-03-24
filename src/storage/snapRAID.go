@@ -4,7 +4,6 @@ import (
 	"os"
 	"errors"
 	"strings"
-	"strconv"
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/cron"
@@ -29,7 +28,7 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 	data := raidOptions.Data
 	parity := raidOptions.Parity
 	
-	utils.Log("[STORAGE] Create SnapRAID " + strings.Join(data, ":") + " with " + strings.Join(data, ":"))
+	// utils.Log("[STORAGE] Create SnapRAID " + strings.Join(data, ":") + " with " + strings.Join(data, ":"))
 	
 	// make sure name is at least 3 characters and contains only letters and numbers
 	if len(raidOptions.Name) < 3 || strings.ContainsAny(raidOptions.Name, "./!?@#$%^&*()_+=-{}[]|\\:;\"'<>,") {
@@ -37,9 +36,10 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 	}
 
 	// check config
-	if len(data) <= 1 {
-		return errors.New("At least 2 data disks are required")
-	}
+	// TODO redo for map
+	// if len(data) <= 1 {
+	// 	return errors.New("At least 2 data disks are required")
+	// }
 
 	if len(parity) == 0 {
 		return errors.New("At least 1 parity disk is required")
@@ -84,7 +84,7 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 		}
 	}
 
-	// TODO: Check if exisrt
+	// TODO: Check if exist
 
 	// TODO: Check if partiy is the biggest disk
 
@@ -166,9 +166,9 @@ func InitSnapRAIDConfig() {
 
 		// file.WriteString("content " + utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf\n")
 		
-		for i, d := range raidOptions.Data {
+		for name, d := range raidOptions.Data {
 			file.WriteString("content " + d + "/snapraid.content\n")
-			file.WriteString("data disk" + strconv.Itoa(i) + " " + d + "\n")
+			file.WriteString("data " + name + " " + d + "\n")
 		}
 		
 		// Init scheduler
