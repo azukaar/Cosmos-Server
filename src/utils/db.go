@@ -125,6 +125,9 @@ func DisconnectDB() {
 	client = nil
 }
 
+var embeddedClient lungo.IClient
+var embeddedClientClose func()
+
 func GetEmbeddedCollection(applicationId string, collection string) (lungo.ICollection, func(), error) {
 	opts := lungo.Options{
 		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 700),
@@ -132,6 +135,13 @@ func GetEmbeddedCollection(applicationId string, collection string) (lungo.IColl
 	
 	name := os.Getenv("MONGODB_NAME"); if name == "" {
 		name = "COSMOS"
+	}
+
+	if embeddedClient != nil {
+		c := embeddedClient.Database(name).Collection(applicationId + "_" + collection)
+		return c, func() {
+			//engine.Close()
+		}, nil
 	}
 
 	// open database
@@ -145,8 +155,11 @@ func GetEmbeddedCollection(applicationId string, collection string) (lungo.IColl
 	
 	c := client.Database(name).Collection(applicationId + "_" + collection)
 
+	embeddedClient = client
+	embeddedClientClose = engine.Close
+
 	return c, func() {
-		engine.Close()
+		//engine.Close()
 	}, nil
 }
 
