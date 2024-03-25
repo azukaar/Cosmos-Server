@@ -7,6 +7,7 @@ import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
 
 import { Terminal, ITerminalOptions, ITerminalAddon } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css'
 
 const DockerTerminal = ({containerInfo, refresh}) => {
@@ -43,42 +44,6 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   ]);
   const ws = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
-
-  const handleKeyDown = (e) => {
-    // if (e.key === 'Enter') {
-    //   // shift + enter for new line
-    //   if (e.shiftKey) {
-    //     return;
-    //   }
-    //   e.preventDefault();
-    //   sendMessage();
-    // }
-    // if (e.key === 'ArrowUp') {
-    //   e.preventDefault();
-    //   if (historyCursor > 0) {
-    //     setHistoryCursor(historyCursor - 1);
-    //     setMessage(history[historyCursor - 1]);
-    //   }
-    // }
-    // if (e.key === 'ArrowDown') {
-    //   e.preventDefault();
-    //   if (historyCursor < history.length - 1) {
-    //     setHistoryCursor(historyCursor + 1);
-    //     setMessage(history[historyCursor + 1]);
-    //   } else {
-    //     setHistoryCursor(history.length);
-    //     setMessage('');
-    //   }
-    // }
-
-    console.log('e.target')
-
-    // if terminal is focues 
-    if (e.target === xtermRef.current) {
-      // send char code to terminal with ws.current.send(charCode);
-      ws.current.send(e.charCode);
-    }
-  };
 
   const makeInteractive = () => {
     API.docker.updateContainer(Name.slice(1), {interactive: 2})
@@ -120,7 +85,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       let terminalReset = '\x1b[0m';
       terminal.write(terminalBoldGreen + 'Connected to ' + (newProc ? 'bash' : 'main process TTY') + '\r\n' + terminalReset);
       // focus terminal
-      xtermRef.current.focus();
+      terminal.focus();
     };
 
     return () => {
@@ -135,6 +100,10 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     xtermRef.current.innerHTML = '';
     terminal.open(xtermRef.current);
 
+    // const fitAddon = new FitAddon();
+    // terminal.loadAddon(fitAddon);
+    // fitAddon.fit();
+
     if (navigator.clipboard) {
       navigator.permissions.query({ name: "clipboard-read" })
       navigator.permissions.query({ name: "clipboard-write" })
@@ -142,6 +111,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       console.error('Clipboard API not available');
       return;
     }
+
 
     // remove all listener from xtermRef
     const contextMenuListener = async (e) => {
@@ -156,9 +126,15 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       return false;
     }
 
+    const onFocus = () => {
+      terminal.focus();
+    }
+
     xtermRef.current.removeEventListener('contextmenu', contextMenuListener);
+    xtermRef.current.removeEventListener('touchstart', onFocus);
 
     xtermRef.current.addEventListener('contextmenu', contextMenuListener);
+    xtermRef.current.addEventListener('touchstart', onFocus);
 
     terminal.onSelectionChange((e) => {
       let sel = terminal.getSelection();
@@ -169,12 +145,6 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     });
 
     terminal.attachCustomKeyEventHandler((e) => {
-      // only keys!!
-      // if touch, bring up keyboard
-      // if (e.type === 'touchstart') {
-      //   xtermRef.current.focus();
-      // }
-
       const codes = {
         'Enter': '\r',
         'Backspace': '\x7f',
@@ -229,7 +199,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   }, []);
 
   return (
-    <div className="terminal-container" onKeyDown={handleKeyDown}>
+    <div className="terminal-container">
       {(!isInteractive) && (
         <Alert severity="warning">
           This container is not interactive. 
@@ -238,7 +208,9 @@ const DockerTerminal = ({containerInfo, refresh}) => {
         </Alert>
       )}
       
-      <div ref={xtermRef}></div>
+      <div style={{width: '100%', maxWidth: '750px', overflowX: 'auto', overflowY: 'hidden', background: '#000'}}>
+        <div ref={xtermRef}></div>
+        <br/>
 
       <Stack 
         direction="column"
@@ -278,6 +250,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       </Stack>
 
       </Stack>
+      </div>
     </div>
   );
 };

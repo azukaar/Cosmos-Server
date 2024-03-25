@@ -4,6 +4,7 @@
  - Added SnapRAID support and configurator
  - Rewrote the internal CRON scheduler to be more robust
  - Added support for custom CRON jobs
+ - Added new Terminal (with full bash support, including things like VIM)
  - Overwrite all docker networks size to prevent Cosmos from running out of IP addresses
  - Added optional subnet input to the network creation
  - Fix issue with Sysctl not being applied
