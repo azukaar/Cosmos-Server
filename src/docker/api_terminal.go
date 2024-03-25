@@ -6,8 +6,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"strings"
-	"encoding/json"
+	// "strings"
+	// "encoding/json"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -17,29 +17,50 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func splitIntoChunks(input string, chunkSize int) [][]LogOutput {
-	lines := strings.Split(input, "\n")
-	var chunks [][]LogOutput
+// func splitIntoChunks(input string, chunkSize int) [][]LogOutput {
+// 	lines := strings.Split(input, "\n")
+// 	var chunks [][]LogOutput
 
-	for i := 0; i < len(lines); i += chunkSize {
-			end := i + chunkSize
+// 	for i := 0; i < len(lines); i += chunkSize {
+// 			end := i + chunkSize
 
-			// Avoid going over the end of the array
-			if end > len(lines) {
-					end = len(lines)
-			}
+// 			// Avoid going over the end of the array
+// 			if end > len(lines) {
+// 					end = len(lines)
+// 			}
 
-			var chunk []LogOutput
-			for j := i; j < end; j++ {
-				chunk = append(chunk, ParseDockerLogHeader(([]byte)(
-					lines[j],
-				)))
-			}
-			chunks = append(chunks, chunk)
+// 			var chunk []LogOutput
+// 			for j := i; j < end; j++ {
+// 				chunk = append(chunk, ParseDockerLogHeader(([]byte)(
+// 					lines[j],
+// 				)))
+// 			}
+// 			chunks = append(chunks, chunk)
+// 	}
+
+// 	return chunks
+// }
+
+func splitIntoChunks(input string) []string {
+	// split every 512 characters
+	chunkSize := 512
+	var chunks []string
+
+	for i := 0; i < len(input); i += chunkSize {
+		end := i + chunkSize
+
+		// Avoid going over the end of the array
+		if end > len(input) {
+			end = len(input)
+		}
+		
+		chunks = append(chunks, input[i:end])
 	}
 
 	return chunks
 }
+
+// TODO destroy websocket properly
 
 func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 	if utils.AdminOnly(w, r) != nil {
@@ -86,7 +107,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			AttachStdin: true,
 			AttachStdout: true,
 			AttachStderr: true,
-			Cmd: []string{"/bin/sh"},
+			Cmd: []string{"bash"},
 		}
 
 		execStart := types.ExecStartCheck{
@@ -134,61 +155,84 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 	var DockerChan = make(chan []byte, 1024*1024*4)
 
 	// Start a goroutine to read from our websocket and write to the container
-	go (func() {
-		for {
-			utils.Debug("Waiting for message from websocket")
-			_, message, err := ws.ReadMessage()
-			utils.Debug("Got message from websocket")
-			if err != nil {
-				utils.Error("Failed to read from websocket: ", err)
-				break
+	go func(ctx context.Context) {
+			defer close(WSChan) // Ensure channel is closed when goroutine exits
+			for {
+					select {
+					case <-ctx.Done(): // Context cancellation
+							return
+					default:
+							_, message, err := ws.ReadMessage()
+							if err != nil {
+									if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+											return
+									}
+									utils.Error("Failed to read from websocket: ", err)
+									return
+							}
+							WSChan <- message
+					}
 			}
-			WSChan <- []byte((string)(message) + "\n")
-		}
-	})()
+	}(ctx) // Pass the context
+
 
 	// Start a goroutine to read from the container and write to our websocket
-	go (func() {
+	go func(ctx context.Context) {
+		defer close(DockerChan) // Ensure the channel is closed when the goroutine exits
+	
 		for {
-			buf := make([]byte, 1024*1024*4)
-			utils.Debug("Waiting for message from container")
-			n, err := resp.Reader.Read(buf)
-			utils.Debug("Got message from container")
-			if err != nil {
-				utils.Error("Failed to read from container: ", err)
-				break
+			select {
+			case <-ctx.Done(): // Check if the context is cancelled
+				utils.Debug("Context cancelled, stopping read from container")
+				return
+			default:
+				buf := make([]byte, 1024*1024*4)
+				utils.Debug("Waiting for message from container")
+				n, err := resp.Reader.Read(buf)
+				utils.Debug("Got message from container")
+	
+				if err != nil {
+					utils.Error("Failed to read from container: ", err)
+					return
+				}
+	
+				DockerChan <- buf[:n]
 			}
-			DockerChan <- buf[:n]
 		}
-	})()
+	}(ctx) // Pass the context to the goroutine
 
 	for {
 		select {
-		case message := <-WSChan:
-			utils.Debug("Writing message to container")
+		case message, ok := <-WSChan:
+			if !ok { // WSChan is closed
+				utils.Debug("WSChan is closed, stopping writes to container")
+				return
+			}
+			utils.Debug("Writing message to container " + string(message))
 			_, err := resp.Conn.Write(message)
 			if err != nil {
 				utils.Error("Failed to write to container: ", err)
 				return
 			}
 			utils.Debug("Wrote message to container")
-		case message := <-DockerChan:
-			utils.Debug("Writing message to websocket")
+	
+		case message, ok := <-DockerChan:
+			if !ok { // DockerChan is closed
+				utils.Debug("DockerChan is closed, stopping writes to websocket")
+				return
+			}
+			utils.Debug("Writing message to websocket " + string(message))
 			
-			messages := splitIntoChunks(string(message), 5)
+			messages := splitIntoChunks(string(message))
+			
 			for _, messageSplit := range messages {
-				messageJSON, err := json.Marshal(messageSplit)
-				if err != nil {
-					utils.Error("Failed to marshal message: ", err)
-					return
-				}
-				err = ws.WriteMessage(websocket.TextMessage, messageJSON)
+				err = ws.WriteMessage(websocket.TextMessage, []byte(messageSplit))
 				if err != nil {
 					utils.Error("Failed to write to websocket: ", err)
 					return
 				}
 			}
-			utils.Debug("Wrote message to websocket")
 		}
 	}
+	
 }

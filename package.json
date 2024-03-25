@@ -69,6 +69,7 @@
     "web-vitals": "^3.0.2",
     "whiskers": "^0.4.0",
     "whiskers.js": "^1.0.0",
+    "xterm-for-react": "^1.0.4",
     "yup": "^0.32.11"
   },
   "overrides": {

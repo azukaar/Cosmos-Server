@@ -3,9 +3,11 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import * as API from '../../../api';
 import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
-import Terminal from '../../../components/terminal';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
+
+import { Terminal, ITerminalOptions, ITerminalAddon } from 'xterm'
+import 'xterm/css/xterm.css'
 
 const DockerTerminal = ({containerInfo, refresh}) => {
   const { Name, Config, NetworkSettings, State } = containerInfo;
@@ -14,6 +16,23 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'))
   const [history, setHistory] = useState([]);
   const [historyCursor, setHistoryCursor] = useState(0);
+
+  const [terminal] = useState(new Terminal({
+    cursorBlink: true,
+    cursorStyle: 'block',
+    disableStdin: false,
+    fontFamily: 'monospace',
+    fontSize: 14,
+    fontWeight: 'normal',
+    letterSpacing: 0,
+    lineHeight: 1,
+    logLevel: 'info',
+    screenReaderMode: false,
+    scrollback: 1000,
+    tabStopWidth: 8,
+  }));
+
+  const xtermRef = useRef(null);
 
   const [message, setMessage] = useState('');
   const [output, setOutput] = useState([
@@ -26,30 +45,38 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const [isConnected, setIsConnected] = useState(false);
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      // shift + enter for new line
-      if (e.shiftKey) {
-        return;
-      }
-      e.preventDefault();
-      sendMessage();
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      if (historyCursor > 0) {
-        setHistoryCursor(historyCursor - 1);
-        setMessage(history[historyCursor - 1]);
-      }
-    }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (historyCursor < history.length - 1) {
-        setHistoryCursor(historyCursor + 1);
-        setMessage(history[historyCursor + 1]);
-      } else {
-        setHistoryCursor(history.length);
-        setMessage('');
-      }
+    // if (e.key === 'Enter') {
+    //   // shift + enter for new line
+    //   if (e.shiftKey) {
+    //     return;
+    //   }
+    //   e.preventDefault();
+    //   sendMessage();
+    // }
+    // if (e.key === 'ArrowUp') {
+    //   e.preventDefault();
+    //   if (historyCursor > 0) {
+    //     setHistoryCursor(historyCursor - 1);
+    //     setMessage(history[historyCursor - 1]);
+    //   }
+    // }
+    // if (e.key === 'ArrowDown') {
+    //   e.preventDefault();
+    //   if (historyCursor < history.length - 1) {
+    //     setHistoryCursor(historyCursor + 1);
+    //     setMessage(history[historyCursor + 1]);
+    //   } else {
+    //     setHistoryCursor(history.length);
+    //     setMessage('');
+    //   }
+    // }
+
+    console.log('e.target')
+
+    // if terminal is focues 
+    if (e.target === xtermRef.current) {
+      // send char code to terminal with ws.current.send(charCode);
+      ws.current.send(e.charCode);
     }
   };
 
@@ -74,8 +101,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
 
     ws.current.onmessage = (event) => {
       try {
-        let data = JSON.parse(event.data);
-        setOutput((prevOutput) => [...prevOutput, ...data]);
+        terminal.write(event.data);
       } catch (e) {
         console.error("error", e);
       }
@@ -84,15 +110,17 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     ws.current.onclose = () => {
       setIsConnected(false);
       let terminalBoldRed = '\x1b[1;31m';
-      setOutput((prevOutput) => [...prevOutput,
-        {output: terminalBoldRed + 'Disconnected from ' + (newProc ? 'bash' : 'main process TTY'), type: 'stdout'}]);
+      let terminalReset = '\x1b[0m';
+      terminal.write(terminalBoldRed + 'Disconnected from ' + (newProc ? 'bash' : 'main process TTY') + '\r\n' + terminalReset);
     };
     
     ws.current.onopen = () => {
       setIsConnected(true);
       let terminalBoldGreen = '\x1b[1;32m';
-      setOutput((prevOutput) => [...prevOutput, 
-        {output: terminalBoldGreen + 'Connected to ' + (newProc ? 'bash' : 'main process TTY'), type: 'stdout'}]);
+      let terminalReset = '\x1b[0m';
+      terminal.write(terminalBoldGreen + 'Connected to ' + (newProc ? 'bash' : 'main process TTY') + '\r\n' + terminalReset);
+      // focus terminal
+      xtermRef.current.focus();
     };
 
     return () => {
@@ -101,18 +129,104 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     };
   };
 
-  useEffect(() => {
-  }, []);
-  
+  const [SelectedText, setSelectedText] = useState('');
 
-  const sendMessage = () => {
-    if (ws.current) {
-      ws.current.send(message);
-      setHistoryCursor(history.length + 1);
-      setMessage('');
-      setHistory((prevHistory) => [...prevHistory, message]);
+  useEffect(() => {
+    xtermRef.current.innerHTML = '';
+    terminal.open(xtermRef.current);
+
+    if (navigator.clipboard) {
+      navigator.permissions.query({ name: "clipboard-read" })
+      navigator.permissions.query({ name: "clipboard-write" })
+    } else {
+      console.error('Clipboard API not available');
+      return;
     }
-  };
+
+    // remove all listener from xtermRef
+    const contextMenuListener = async (e) => {
+      e.preventDefault();
+      console.log('context menu', SelectedText)
+      if(SelectedText && SelectedText.length > 0 && SelectedText != "<empty string>") {
+        await navigator.clipboard.writeText(SelectedText);
+      } else {
+        const toWrite = await navigator.clipboard.readText();
+        ws.current.send(toWrite);
+      }
+      return false;
+    }
+
+    xtermRef.current.removeEventListener('contextmenu', contextMenuListener);
+
+    xtermRef.current.addEventListener('contextmenu', contextMenuListener);
+
+    terminal.onSelectionChange((e) => {
+      let sel = terminal.getSelection();
+      if (typeof sel === 'string') {
+        console.log(sel);
+        setSelectedText(sel);
+      }
+    });
+
+    terminal.attachCustomKeyEventHandler((e) => {
+      // only keys!!
+      // if touch, bring up keyboard
+      // if (e.type === 'touchstart') {
+      //   xtermRef.current.focus();
+      // }
+
+      const codes = {
+        'Enter': '\r',
+        'Backspace': '\x7f',
+        'ArrowUp': '\x1b[A',
+        'ArrowDown': '\x1b[B',
+        'ArrowRight': '\x1b[C',
+        'ArrowLeft': '\x1b[D',
+        'Escape': '\x1b',
+        'Home': '\x1b[H',
+        'End': '\x1b[F',
+        'Tab': '\t',
+        'PageUp': '\x1b[5~',
+        'PageDown': '\x1b[6~',
+      };
+
+      const cancelKeys = [
+        'Shift',
+        'Meta',
+        'Alt',
+        'Control',
+        'CapsLock',
+        'NumLock',
+        'ScrollLock',
+        'Pause',
+      ]
+
+      const codesCtrl = {
+        'c': '\x03',
+        'd': '\x04',
+        'l': '\x0c',
+        'z': '\x1a',
+        'Backspace': '\x08',
+      };
+            
+      if (e.type === 'keydown') {
+        if (codesCtrl[e.key] && e.ctrlKey) {
+          ws.current.send(codesCtrl[e.key]);
+        } else if (codes[e.key]) {
+          ws.current.send(codes[e.key]);
+        } else if (cancelKeys.includes(e.key)) {
+          return false;
+        } else {
+          ws.current.send(e.key);
+        }
+      } else if (e.type === 'keyup') {
+      }
+
+      return true;
+    });
+
+    
+  }, []);
 
   return (
     <div className="terminal-container" onKeyDown={handleKeyDown}>
@@ -124,16 +238,13 @@ const DockerTerminal = ({containerInfo, refresh}) => {
         </Alert>
       )}
       
-      <Terminal
-        logs={output}
-        setLogs={setOutput}
-        docker
-      />
+      <div ref={xtermRef}></div>
 
       <Stack 
         direction="column"
         spacing={1}
       >
+
       <Stack 
         direction="row"
         spacing={1}
@@ -142,50 +253,28 @@ const DockerTerminal = ({containerInfo, refresh}) => {
           color: '#fff',
           padding: '10px',
         }}
+        alignItems="center"
       >
-      <div style={{
-        fontSize: '125%',
-        padding: '10px 0',
-      }}>
-        {
-          isConnected ? (
-            <ApiOutlined style={{color: '#00ff00'}} />
-          ) : (
-            <ApiOutlined style={{color: '#ff0000'}} />
-          )
-        }
-      </div>
-      <Input
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        multiline
-        fullWidth
-        placeholder={isMobile ? "Enter command" : "Enter command (CTRL+Enter to send)"}
-        style={{
-          fontSize: '125%',
-          padding: '10px 10px',
-          background: 'rgba(0,0,0,0.1)',
-        }}
-        disableUnderline
-        disabled={!isConnected}
-      />
+      <div>{
+        isConnected ? (
+          <ApiOutlined style={{color: '#00ff00', margin: '0px 5px', fontSize: '20px'}} />
+        ) : (
+          <ApiOutlined style={{color: '#ff0000', margin: '0px 5px', fontSize: '20px'}} />
+        )
+      }</div>
       
-      <ResponsiveButton variant="outlined" disabled={!isConnected} onClick={sendMessage} endIcon={
-        <SendOutlined />
-      }>Send</ResponsiveButton>
-      </Stack>
-
-
-      <Stack 
-        direction="row"
-        spacing={1}
-      >
-      <Button variant="outlined"
-       onClick={() => connect(false)}>Connect</Button>
-      <Button variant="outlined" onClick={() => connect(true)}>New Shell</Button>
-      {isConnected && (
-        <Button  variant="outlined" onClick={() => ws.current.close()}>Disconnect</Button>
-      )}
+      {isConnected ? (<>
+        <Button  variant="contained" onClick={() => ws.current.close()}>Disconnect</Button>
+        <Button  variant="outlined" onClick={() => ws.current.send('\t')}>TAB</Button>
+        <Button  variant="outlined" onClick={() => ws.current.send('\x03')}>Ctrl+C</Button>
+      </>
+      ) :
+        <>  
+          <Button variant="contained"
+          onClick={() => connect(false)}>Connect</Button>
+          <Button variant="contained" onClick={() => connect(true)}>New Shell</Button>
+        </>
+      }
       </Stack>
 
       </Stack>

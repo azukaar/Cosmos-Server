@@ -145,6 +145,22 @@ const snapRAID = {
       },
     }))
   },
+  fix: (name) => {
+    return wrap(fetch(`/cosmos/api/snapraid/${name}/fix`, {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  },
+  enable: (name, enable) => {
+    return wrap(fetch(`/cosmos/api/snapraid/${name}/` + (enable ? 'enable' : 'disable'), {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  },
   scrub: (name) => {
     return wrap(fetch(`/cosmos/api/snapraid/${name}/scrub`, {
       method: 'GET',

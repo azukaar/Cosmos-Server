@@ -28,6 +28,7 @@ import (
 )
 
 var ConfigLock sync.Mutex
+var ConfigLockInternal sync.Mutex
 
 var BaseMainConfig Config
 var MainConfig Config
@@ -217,6 +218,9 @@ func SetBaseMainConfig(config Config) {
 }
 
 func ReadConfigFromFile() Config {
+	ConfigLockInternal.Lock()
+	defer ConfigLockInternal.Unlock()
+
 	configFile := GetConfigFileName()
 	Log("Using config file: " + configFile)
 	if CreateDefaultConfigFileIfNecessary() {
@@ -376,6 +380,9 @@ func CreateDefaultConfigFileIfNecessary() bool {
 }
 
 func SaveConfigTofile(config Config) {
+	ConfigLockInternal.Lock()
+	defer ConfigLockInternal.Unlock()
+
 	configFile := GetConfigFileName()
 	CreateDefaultConfigFileIfNecessary()
 

@@ -62,7 +62,6 @@ export const Parity = () => {
   const [loading, setLoading] = useState(false);
   const [deleteRaid, setDeleteRaid] = useState(null);
   
-  const setEnabled = () => {}
   const refresh = async () => {
     let paritiesData = await API.storage.snapRAID.list();
     let configAsync = await API.config.get();
@@ -87,6 +86,19 @@ export const Parity = () => {
     setLoading(true);
     let response = await API.storage.snapRAID.sync(name);
     setLoading(false);
+  };
+
+  const fix = async (name) => {
+    setLoading(true);
+    let response = await API.storage.snapRAID.fix(name);
+    setLoading(false);
+  };
+
+  const setEnabled = async (name, enable) => {
+    setLoading(true);
+    let response = await API.storage.snapRAID.enable(name, enable);
+    setLoading(false);
+    await refresh();
   };
 
   const scrub =async (name) => {
@@ -139,8 +151,8 @@ export const Parity = () => {
             title: 'Enabled', 
             clickable:true, 
             field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
-              onChange={setEnabled(parities.indexOf(r))}
-              checked={!r.Disabled}
+              onChange={() => setEnabled(r.Name, !r.Enabled)}
+              checked={r.Enabled}
             />,
           },
           {
@@ -202,6 +214,12 @@ export const Parity = () => {
                       <CompassOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText disabled={loading} onClick={() => scrub(r.Name)}>Scrub</ListItemText>
+                  </MenuItem>
+                  <MenuItem>
+                    <ListItemIcon>
+                      <CloudOutlined fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText disabled={loading} onClick={() => fix(r.Name)}>Fix</ListItemText>
                   </MenuItem>
                   <MenuItem>
                     <ListItemIcon>

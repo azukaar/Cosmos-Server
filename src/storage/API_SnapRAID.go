@@ -35,7 +35,25 @@ func SnapRAIDRunRoute(w http.ResponseWriter, req *http.Request) {
 						"status": "OK",
 					})
 					return
-				} else {
+				} else if action == "fix" {
+					RunSnapRAIDFix(snap)
+					json.NewEncoder(w).Encode(map[string]interface{}{
+						"status": "OK",
+					})
+					return
+				}	else if action == "enable" {
+					ToggleSnapRAID(snap.Name, true)
+					json.NewEncoder(w).Encode(map[string]interface{}{
+						"status": "OK",
+					})
+					return
+				}	else if action == "disable" {
+					ToggleSnapRAID(snap.Name, false)
+					json.NewEncoder(w).Encode(map[string]interface{}{
+						"status": "OK",
+					})
+					return
+				}	else {
 					utils.Error("SnapRAIDRun: Invalid action " + action, nil)
 					utils.HTTPError(w, "Invalid action", http.StatusBadRequest, "SNP001")
 					return

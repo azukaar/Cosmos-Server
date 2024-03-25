@@ -93,6 +93,7 @@ const Jobs = () => {
     const [open, setOpen] = useState(false);
     
     const handleToggle = () => {
+        refreshJobs();
         setOpen((prevOpen) => !prevOpen);
     };
 

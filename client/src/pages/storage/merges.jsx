@@ -39,13 +39,30 @@ export const StorageMerges = () => {
         <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>
       </div>
       <div>
-        {mounts && mounts
-        .filter((mount) => mount.type === 'fuse.mergerfs')
-        .map((mount, index) => {
-          return <div>
-            <FolderOutlined/> {mount.device} - {mount.path} ({mount.type}) ({JSON.stringify(mount.opts)})
-          </div>
-        })}
+
+        <PrettyTableView 
+          data={mounts.filter((mount) => mount.type === 'fuse.mergerfs')}
+          getKey={(r) => `${r.device} - ${refresh.path}`}
+          columns={[
+            {
+              title: 'Device',
+              field: (r) => r.device,
+            },
+            { 
+              title: 'Path',
+              field: (r) => r.path,
+            },
+            { 
+              title: 'Type',
+              field: (r) => r.type,
+            },
+            { 
+              title: 'Options',
+              field: (r) => JSON.stringify(r.opts),
+            },
+          ]}
+        />
+
       </div>  
       </Stack>
     </> : <center>

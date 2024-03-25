@@ -363,6 +363,28 @@ func ManualRunJob(scheduler string, name string) error {
 	return nil
 }
 
+
+func RunOneTimeJob(job ConfigJob) {
+	CRONLock <- true
+
+	job.Scheduler = "__OT__" + job.Scheduler
+	job.Name = job.Name + " #" + strconv.FormatInt(time.Now().Unix(), 10)
+	
+	// create scheduler if not exists
+	if _, ok := jobsList[job.Scheduler]; !ok {
+		jobsList[job.Scheduler] = map[string]ConfigJob{}
+	}
+
+	utils.Log("Registering one time CRON job: " + job.Name)
+
+	jobsList[job.Scheduler][job.Name] = job
+
+	<-CRONLock
+
+	// Execute the job
+	jobRunner(job.Scheduler, job.Name)(jobRunner_OnLog(job.Scheduler, job.Name), jobRunner_OnFail(job.Scheduler, job.Name), jobRunner_OnSuccess(job.Scheduler, job.Name))
+}
+
 func AddJobConfig(job utils.CRONConfig) {
 	utils.Log("Adding CRON job to config...")
 

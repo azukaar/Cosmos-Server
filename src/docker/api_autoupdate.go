@@ -14,6 +14,9 @@ func AutoUpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
 	}
+	
+	utils.ConfigLock.Lock()
+	defer utils.ConfigLock.Unlock()
 
 	vars := mux.Vars(req)
 	containerName := utils.SanitizeSafe(vars["containerId"])
