@@ -6,9 +6,9 @@ import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
 
-import { Terminal, ITerminalOptions, ITerminalAddon } from 'xterm'
-import { FitAddon } from 'xterm-addon-fit';
-import 'xterm/css/xterm.css'
+import { Terminal } from '@xterm/xterm'
+import '@xterm/xterm/css/xterm.css'
+import { FitAddon } from '@xterm/addon-fit';
 
 const DockerTerminal = ({containerInfo, refresh}) => {
   const { Name, Config, NetworkSettings, State } = containerInfo;
@@ -76,14 +76,14 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       setIsConnected(false);
       let terminalBoldRed = '\x1b[1;31m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldRed + 'Disconnected from ' + (newProc ? 'bash' : 'main process TTY') + '\r\n' + terminalReset);
+      terminal.write(terminalBoldRed + 'Disconnected from ' + (newProc ? 'shell' : 'main process TTY') + '\r\n' + terminalReset);
     };
     
     ws.current.onopen = () => {
       setIsConnected(true);
       let terminalBoldGreen = '\x1b[1;32m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldGreen + 'Connected to ' + (newProc ? 'bash' : 'main process TTY') + '\r\n' + terminalReset);
+      terminal.write(terminalBoldGreen + 'Connected to ' + (newProc ? 'shell' : 'main process TTY') + '\r\n' + terminalReset);
       // focus terminal
       terminal.focus();
     };
@@ -97,44 +97,20 @@ const DockerTerminal = ({containerInfo, refresh}) => {
   const [SelectedText, setSelectedText] = useState('');
 
   useEffect(() => {
-    xtermRef.current.innerHTML = '';
+    // xtermRef.current.innerHTML = '';
     terminal.open(xtermRef.current);
 
     // const fitAddon = new FitAddon();
     // terminal.loadAddon(fitAddon);
     // fitAddon.fit();
 
-    if (navigator.clipboard) {
-      navigator.permissions.query({ name: "clipboard-read" })
-      navigator.permissions.query({ name: "clipboard-write" })
-    } else {
-      console.error('Clipboard API not available');
-      return;
-    }
+    // const onFocus = () => {
+    //   terminal.focus();
+    // }
 
+    // xtermRef.current.removeEventListener('touchstart', onFocus);
 
-    // remove all listener from xtermRef
-    const contextMenuListener = async (e) => {
-      e.preventDefault();
-      console.log('context menu', SelectedText)
-      if(SelectedText && SelectedText.length > 0 && SelectedText != "<empty string>") {
-        await navigator.clipboard.writeText(SelectedText);
-      } else {
-        const toWrite = await navigator.clipboard.readText();
-        ws.current.send(toWrite);
-      }
-      return false;
-    }
-
-    const onFocus = () => {
-      terminal.focus();
-    }
-
-    xtermRef.current.removeEventListener('contextmenu', contextMenuListener);
-    xtermRef.current.removeEventListener('touchstart', onFocus);
-
-    xtermRef.current.addEventListener('contextmenu', contextMenuListener);
-    xtermRef.current.addEventListener('touchstart', onFocus);
+    // xtermRef.current.addEventListener('touchstart', onFocus);
 
     terminal.onSelectionChange((e) => {
       let sel = terminal.getSelection();
@@ -143,6 +119,12 @@ const DockerTerminal = ({containerInfo, refresh}) => {
         setSelectedText(sel);
       }
     });
+
+    terminal.onData((data) => {
+      if (data.startsWith("\x1b[200~") && data.endsWith("\x1b[201~")) {
+        ws.current.send(data);
+      }
+    });    
 
     terminal.attachCustomKeyEventHandler((e) => {
       const codes = {
@@ -193,13 +175,16 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       }
 
       return true;
-    });
-
-    
+    });   
   }, []);
 
   return (
-    <div className="terminal-container">
+    <div className="terminal-container" style={{
+      background: '#000',
+      width: '100%', 
+      maxWidth: '900px', 
+      position:'relative'
+    }}>
       {(!isInteractive) && (
         <Alert severity="warning">
           This container is not interactive. 
@@ -207,25 +192,25 @@ const DockerTerminal = ({containerInfo, refresh}) => {
           <Button onClick={() => makeInteractive()}>Enable TTY</Button>
         </Alert>
       )}
-      
-      <div style={{width: '100%', maxWidth: '750px', overflowX: 'auto', overflowY: 'hidden', background: '#000'}}>
+      <div style={{
+        overflowX: 'auto',
+        width: '100%', 
+        maxWidth: '900px', 
+      }}>
         <div ref={xtermRef}></div>
         <br/>
-
-      <Stack 
-        direction="column"
-        spacing={1}
-      >
+      </div>
 
       <Stack 
         direction="row"
         spacing={1}
+        alignItems="center"
         sx={{
           background: '#272d36',
           color: '#fff',
           padding: '10px',
+          width: '100%',
         }}
-        alignItems="center"
       >
       <div>{
         isConnected ? (
@@ -248,9 +233,6 @@ const DockerTerminal = ({containerInfo, refresh}) => {
         </>
       }
       </Stack>
-
-      </Stack>
-      </div>
     </div>
   );
 };

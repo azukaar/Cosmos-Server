@@ -208,3 +208,4 @@ const SnapRAIDDialog = ({ refresh, data }) => {
 }
 
 export default SnapRAIDDialog;
+export { SnapRAIDDialog, SnapRAIDDialogInternal };

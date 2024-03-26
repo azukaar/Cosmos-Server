@@ -16,7 +16,9 @@ import (
 )
 
 func main() {
-	utils.Log("Starting...")
+	utils.Log("------------------------------------------")
+	utils.Log("Starting Cosmos-Server version " + GetCosmosVersion())
+	utils.Log("------------------------------------------")
 	
 	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
 	utils.PushShieldMetrics = metrics.PushShieldMetrics

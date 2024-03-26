@@ -18,9 +18,7 @@ type Version struct {
 	Version string `json:"version"`
 }
 
-func checkVersion() {
-	utils.NewVersionAvailable = false
-
+func GetCosmosVersion() string {
 	ex, err := os.Executable()
 	if err != nil {
 			panic(err)
@@ -30,7 +28,7 @@ func checkVersion() {
 	pjs, errPR := os.Open(exPath + "/meta.json")
 	if errPR != nil {
 		utils.Error("checkVersion", errPR)
-		return
+		return ""
 	}
 
 	packageJson, _ := ioutil.ReadAll(pjs)
@@ -41,10 +39,21 @@ func checkVersion() {
 	errJ := json.Unmarshal(packageJson, &version)
 	if errJ != nil {
 		utils.Error("checkVersion", errJ)
-		return
+		return ""
 	}
 
-	myVersion := version.Version
+	return version.Version
+
+}
+
+func checkVersion() {
+	utils.NewVersionAvailable = false
+
+	myVersion := GetCosmosVersion()
+	if myVersion == "" {
+		utils.Error("checkVersion - Could not get version", nil)
+		return
+	}
 	
 	response, err := http.Get("https://cosmos-cloud.io/versions/" + myVersion)
 	if err != nil {

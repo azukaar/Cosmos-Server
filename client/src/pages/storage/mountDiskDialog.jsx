@@ -7,37 +7,25 @@ import * as yup from "yup";
 
 import * as API from '../../api';
 
-const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {  
+const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {  
   const formik = useFormik({
     initialValues: {
-      device: data ? data.device : '',
-      path: data ? data.path : '',
+      path: '/mnt/' + disk.name.replace('/dev/', ''),
       permanent: false,
       chown: '1000:1000',
     },
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
-      device: yup.string().required('Required'),
       path: yup.string().required('Required').matches(/^\/(mnt|var\/mnt)\/.{1,}$/, 'Path should start with /mnt/ or /var/mnt'),
     }),
-    onSubmit: async (values, { setErrors, setStatus, setSubmitting }) => {
+    onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
-      if(data && !unmount) {
-        try {
-          await API.storage.mounts.unmount({
-            mountPoint: data.path,
-            permanent: true,
-          });
-        } catch (err) {
-          console.error(err);
-        }
-      }
       return (unmount ? API.storage.mounts.unmount({
-        mountPoint: values.path,
+        mountPoint: disk.mountpoint,
         chown: values.chown,
         permanent: values.permanent,
       }) : API.storage.mounts.mount({
-        path: values.device,
+        path: disk.name,
         mountPoint: values.path,
         chown: values.chown,
         permanent: values.permanent,
@@ -64,21 +52,11 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
                         <Alert severity="info">
-                          You are about to {unmount ? 'unmount' : 'mount'} a folder {data && data.mountpoint && (<> mounted at <strong>{data && data.mountpoint}</strong></>)}. This will make the content {unmount ? 'unavailable' : 'available'} to be viewed in the file explorer.
+                          You are about to {unmount ? 'unmount' : 'mount'} the disk <strong>{disk.name}</strong>{disk.mountpoint && (<> mounted at <strong>{disk.mountpoint}</strong></>)}. This will make the content {unmount ? 'unavailable' : 'available'} to be viewed in the file explorer.
                           Permanent {unmount ? 'unmount' : 'mount'} will persist after reboot.
                         </Alert>
                       </div>
                       {unmount ? '' : <>
-                        <TextField
-                          fullWidth
-                          id="device"
-                          name="device"
-                          label="What to mount"
-                          value={formik.values.device}
-                          onChange={formik.handleChange}
-                          error={formik.touched.device && Boolean(formik.errors.device)}
-                          helperText={formik.touched.device && formik.errors.device}
-                        />
                         <TextField
                           fullWidth
                           id="path"
@@ -127,11 +105,11 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
   </>
 }
 
-const MountDialog = ({ disk, unmount, refresh }) => {
+const MountDiskDialog = ({ disk, unmount, refresh }) => {
   const [open, setOpen] = useState(false);
 
   return <>
-    {open && <MountDialogInternal disk={disk} unmount={unmount} refresh={refresh} open={open} setOpen={setOpen}/>}
+    {open && <MountDiskDialogInternal disk={disk} unmount={unmount} refresh={refresh} open={open} setOpen={setOpen}/>}
     
     <Button
       onClick={() => {setOpen(true);}}
@@ -142,5 +120,4 @@ const MountDialog = ({ disk, unmount, refresh }) => {
 }
 
 
-export default MountDialog;
-export { MountDialogInternal };
+export default MountDiskDialog;

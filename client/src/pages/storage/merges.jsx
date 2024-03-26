@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, FolderOutlined, LaptopOutlined, MobileOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, InputLabel, Stack } from "@mui/material";
+import { CloudOutlined, CloudServerOutlined, CompassOutlined, DeleteOutlined, DesktopOutlined, EditOutlined, FolderOutlined, LaptopOutlined, MobileOutlined, ReloadOutlined, TabletOutlined } from "@ant-design/icons";
+import { Alert, Button, CircularProgress, InputLabel, ListItemIcon, ListItemText, MenuItem, Stack } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -13,19 +13,25 @@ import ApiModal from "../../components/apiModal";
 import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
-import MergerDialog from "./mergerDialog";
+import MergerDialog, { MergerDialogInternal } from "./mergerDialog";
+import ResponsiveButton from "../../components/responseiveButton";
+import MenuButton from "../../components/MenuButton";
 
 export const StorageMerges = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
+  const [mergeDialog, setMergeDialog] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const refresh = async () => {
+    setLoading(true);
     let mountsData = await API.storage.mounts.list();
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setMounts(mountsData.data);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -34,15 +40,18 @@ export const StorageMerges = () => {
 
   return <>
     {(config) ? <>
-      <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      {mergeDialog && <MergerDialogInternal data={mergeDialog.data} refresh={refresh} unmount={mergeDialog.unmount} open={mergeDialog} setOpen={setMergeDialog} />}
+      <Stack spacing={2}>
       <div>
-        <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>
-      </div>
-      <div>
-
         <PrettyTableView 
           data={mounts.filter((mount) => mount.type === 'fuse.mergerfs')}
           getKey={(r) => `${r.device} - ${refresh.path}`}
+          buttons={[
+            <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>,
+            <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
+              refresh();
+            }}>Refresh</ResponsiveButton>
+          ]}
           columns={[
             {
               title: 'Device',
@@ -58,7 +67,20 @@ export const StorageMerges = () => {
             },
             { 
               title: 'Options',
+              screenMin: 'md',
               field: (r) => JSON.stringify(r.opts),
+
+            },
+            {
+              title: '',
+              clickable:true, 
+              field: (r) => <>
+                <ResponsiveButton color={'error'} variant="outlined" startIcon={<DeleteOutlined />} onClick={() => {
+                  API.storage.mounts.unmount({ mountPoint: r.path, permanent: true }).then(() => {
+                    refresh();
+                  });
+                }}>Delete</ResponsiveButton>
+              </>
             },
           ]}
         />

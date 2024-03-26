@@ -7,15 +7,17 @@ import * as yup from "yup";
 
 import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
+import ResponsiveButton from "../../components/responseiveButton";
+import { PlusCircleOutlined } from "@ant-design/icons";
 
-const MergerDialogInternal = ({ refresh, open, setOpen }) => {  
+const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {  
   const formik = useFormik({
     initialValues: {
-      path: '/mnt/storage',
-      permanent: false,
+      path: data ? data.path : '/mnt/storage',
+      permanent: data ? data.permanent :  false,
       branches: [],
-      chown: '1000:1000',
-      opts: '',
+      chown: data ? data.chown : '1000:1000',
+      opts: data ? data.opts.join(',') : '',
     },
     validateOnChange: false,
     validationSchema: yup.object({
@@ -128,12 +130,14 @@ const MergerDialog = ({ refresh }) => {
   return <>
     {open && <MergerDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
     
-    <Button
+    <ResponsiveButton
       onClick={() => {setOpen(true);}}
-      variant="outlined"
+      variant="contained"
+      startIcon={<PlusCircleOutlined />}
       size="small"
-    >Create Merge</Button>
+    >Create Merge</ResponsiveButton>
   </>
 }
 
 export default MergerDialog;
+export { MergerDialogInternal };

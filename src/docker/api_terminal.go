@@ -2,6 +2,8 @@ package docker
 
 import (
 	"context"
+	"time"
+
 	"github.com/gorilla/mux"
 	"github.com/docker/docker/api/types"
 	"github.com/gorilla/websocket"
@@ -11,6 +13,8 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
+
+const timeoutDuration = 2 * time.Minute
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -78,6 +82,9 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ws.Close()
 
+	ws.SetReadDeadline(time.Now().Add(timeoutDuration))
+	ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
+
 	ctx := context.Background()
 	errD := Connect()
 	if errD != nil {
@@ -107,7 +114,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			AttachStdin: true,
 			AttachStdout: true,
 			AttachStderr: true,
-			Cmd: []string{"bash"},
+			Cmd: []string{"/bin/sh"},
 		}
 
 		execStart := types.ExecStartCheck{
@@ -127,6 +134,9 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "ContainerExecAttach failed: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		// Start bash if it exists
+		resp.Conn.Write([]byte("bash\n")) 
 	
 		utils.Log("Created new shell and attached to it in container " + containerID)
 	} else {
@@ -153,6 +163,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 
 	var WSChan = make(chan []byte, 1024*1024*4)
 	var DockerChan = make(chan []byte, 1024*1024*4)
+	
 
 	// Start a goroutine to read from our websocket and write to the container
 	go func(ctx context.Context) {
@@ -162,6 +173,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 					case <-ctx.Done(): // Context cancellation
 							return
 					default:
+							ws.SetReadDeadline(time.Now().Add(timeoutDuration))
 							_, message, err := ws.ReadMessage()
 							if err != nil {
 									if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
@@ -224,6 +236,8 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			utils.Debug("Writing message to websocket " + string(message))
 			
 			messages := splitIntoChunks(string(message))
+
+			ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
 			
 			for _, messageSplit := range messages {
 				err = ws.WriteMessage(websocket.TextMessage, []byte(messageSplit))

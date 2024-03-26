@@ -13,7 +13,7 @@ import ApiModal from "../../components/apiModal";
 import ConfirmModal, { ConfirmModalDirect } from "../../components/confirmModal";
 import { crontabToText, isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
-import SnapRAIDDialog from "./snapRaidDialog";
+import SnapRAIDDialog, { SnapRAIDDialogInternal } from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
 import diskIcon from '../../assets/images/icons/disk.svg';
 import ResponsiveButton from "../../components/responseiveButton";
@@ -61,13 +61,16 @@ export const Parity = () => {
   const [parities, setParities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deleteRaid, setDeleteRaid] = useState(null);
+  const [editOpened, setEditOpened] = useState(null);
   
   const refresh = async () => {
+    setLoading(true);
     let paritiesData = await API.storage.snapRAID.list();
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setParities(paritiesData.data);
+    setLoading(false);
   };
   
   const apiDeleteRaid = async (name) => {
@@ -126,8 +129,8 @@ export const Parity = () => {
             refresh();
           }}>Refresh</ResponsiveButton>
         </Stack>
-
       <div>
+      {editOpened && <SnapRAIDDialogInternal refresh={refresh} open={editOpened} setOpen={setEditOpened} data={editOpened} />}
       {parities && <PrettyTableView 
         data={parities}
         getKey={(r) => r.Name}
@@ -195,37 +198,35 @@ export const Parity = () => {
             field: (r) => {
               return <div style={{position: 'relative'}}>
                 <MenuButton>
-                  <MenuItem>
+                  <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText disabled={loading}>
-                      <SnapRAIDDialog refresh={refresh} data={r} />
-                    </ListItemText>
+                    <ListItemText>Edit</ListItemText>
                   </MenuItem>
-                  <MenuItem>
+                  <MenuItem disabled={loading} onClick={() => sync(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText disabled={loading} onClick={() => sync(r.Name)}>Sync</ListItemText>
+                    <ListItemText>Sync</ListItemText>
                   </MenuItem>
-                  <MenuItem>
+                  <MenuItem disabled={loading} onClick={() => scrub(r.Name)}>
                     <ListItemIcon>
                       <CompassOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText disabled={loading} onClick={() => scrub(r.Name)}>Scrub</ListItemText>
+                    <ListItemText>Scrub</ListItemText>
                   </MenuItem>
-                  <MenuItem>
+                  <MenuItem disabled={loading} onClick={() => fix(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText disabled={loading} onClick={() => fix(r.Name)}>Fix</ListItemText>
+                    <ListItemText>Fix</ListItemText>
                   </MenuItem>
                   <MenuItem>
-                    <ListItemIcon>
+                    <ListItemIcon disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>Delete</ListItemText>
+                    <ListItemText>Delete</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

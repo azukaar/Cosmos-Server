@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
+import { CloudOutlined, CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, ReloadOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button, CircularProgress, InputLabel, LinearProgress, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -21,10 +21,11 @@ import lockIcon from '../../assets/images/icons/lock.svg';
 import raidIcon from '../../assets/images/icons/database.svg';
 import { simplifyNumber } from "../dashboard/components/utils";
 import LogsInModal from "../../components/logsInModal";
-import MountDialog from "./mountDialog";
+import MountDiskDialog from "./mountDiskDialog";
 import PasswordModal from "../../components/passwordModal";
 import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
+import ResponsiveButton from "../../components/responseiveButton";
 
 const diskStyle = {
   width: "100%",
@@ -173,14 +174,14 @@ const Disk = ({disk, refresh}) => {
             <Stack spacing={2} direction="column" justifyContent={"center"}>
               {(disk.type == "disk" || disk.type == "part") ? <FormatButton disk={disk} refresh={refresh}/> : ""}
               
-              {disk.mountpoint ? <MountDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
+              {disk.mountpoint ? <MountDiskDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
               
               {(
                 (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
                 disk.fstype &&
                 disk.fstype !== "swap" &&
                 !disk.mountpoint
-              ) ? <MountDialog disk={disk} refresh={refresh} /> : ""}
+              ) ? <MountDiskDialog disk={disk} refresh={refresh} /> : ""}
             </Stack>
           </Stack>
         </Stack>
@@ -218,7 +219,9 @@ export const StorageDisks = () => {
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       {containerized && <Alert severity="warning">You are running Cosmos inside a Docker container. As such, it will only have limited access to your disks and their informations.</Alert>}
       <div>
-        <Button variant="contained" color="primary" onClick={refresh}>Refresh</Button>
+        <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
+            refresh();
+        }}>Refresh</ResponsiveButton>
       </div>
       <div>
       <TreeView
