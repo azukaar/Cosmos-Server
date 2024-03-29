@@ -23,6 +23,7 @@
  - Added optionals vars to DNS challenge setup (like timeout)
  - Added a check on hostname to prevent protocols
  - Added hint to TCP proxying
+ - Fix issue with favicon retrieval post-migration to host mode
 
 ## Version 0.14.6
  - Fix custom back-up folder logic

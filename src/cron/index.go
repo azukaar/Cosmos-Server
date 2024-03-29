@@ -8,10 +8,14 @@ import (
 	"io"
 	"bufio"
 	"os/exec"
+	"fmt"
 
 	"github.com/go-co-op/gocron/v2"
 
+	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
+
+	"github.com/docker/docker/api/types"
 )
 
 var scheduler gocron.Scheduler
@@ -32,6 +36,7 @@ type ConfigJob struct {
 	Logs []string
 	Ctx context.Context `json:"-"`
 	CancelFunc context.CancelFunc `json:"-"`
+	Container string
 }
 
 var jobsList = map[string]map[string]ConfigJob{}
@@ -108,6 +113,75 @@ func JobFromCommand(command string, args ...string) func(OnLog func(string), OnF
 	}
 }
 
+func JobFromContainerCommand(containerID string, command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+	return func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+			// Connect to Docker
+			err := docker.Connect()
+			if err != nil {
+					OnFail(err)
+					return
+			}
+
+			// Check if the container is running
+			containerJSON, err := docker.DockerClient.ContainerInspect(ctx, containerID)
+			if err != nil {
+					OnFail(err)
+					return
+			}
+
+			if !containerJSON.State.Running {
+					OnFail(fmt.Errorf("Container %s is not running", containerID))
+					return
+			}
+
+			// Create exec configuration
+			execConfig := types.ExecConfig{
+					Cmd:          append([]string{command}, args...),
+					AttachStdout: true,
+					AttachStderr: true,
+			}
+
+			// Create exec instance
+			execID, err := docker.DockerClient.ContainerExecCreate(ctx, containerID, execConfig)
+			if err != nil {
+					OnFail(err)
+					return
+			}
+
+			// Attach to exec instance
+			execAttach, err := docker.DockerClient.ContainerExecAttach(ctx, execID.ID, types.ExecStartCheck{})
+			if err != nil {
+					OnFail(err)
+					return
+			}
+			defer execAttach.Close()
+
+			// Stream logs from exec
+			go streamLogs(execAttach.Reader, OnLog)
+
+			// Inspect exec process to wait for completion
+			for {
+					execInspect, err := docker.DockerClient.ContainerExecInspect(ctx, execID.ID)
+					if err != nil {
+							OnFail(err)
+							return
+					}
+
+					if !execInspect.Running {
+							if execInspect.ExitCode == 0 {
+									OnSuccess()
+							} else {
+									OnFail(fmt.Errorf("exec process exited with code %d", execInspect.ExitCode))
+							}
+							break
+					}
+
+					// Don't spam the API
+					time.Sleep(500 * time.Millisecond)
+			}
+	}
+}
+
 func InitJobs() {
 	CRONLock <- true
 	defer func() { <-CRONLock }()
@@ -122,8 +196,9 @@ func InitJobs() {
 
 	for _, job := range configJobsList {
 		cmd := JobFromCommand("sh", "-c", job.Command)
+
 		if job.Container != "" {
-			cmd = JobFromCommand("docker", "exec", job.Container, "sh", "-c", job.Command)
+			cmd = JobFromContainerCommand(job.Container, "sh", "-c", job.Command)
 		}
 
 		if job.Enabled {
@@ -143,6 +218,7 @@ func InitJobs() {
 			LastStarted: time.Time{},
 			Logs: []string{},
 			Disabled: !job.Enabled,
+			Container: job.Container,
 		}
 
 		if CustomScheduler, ok := jobsList["Custom"]; ok {

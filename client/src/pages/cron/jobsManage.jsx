@@ -128,7 +128,7 @@ export const CronManager = () => {
                 field: (r) => {
                   return <div style={{maxWidth: '400px'}} >{{
                     'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>Running since {r.LastStarted}</Alert>,
-                    'success': <Alert severity={'success'} color={'success'}>Last run finished on {r.LastRun}</Alert>,
+                    'success': <Alert severity={'success'} color={'success'}>Last run finished on {r.LastRun}, duration {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
                     'error': <Alert severity={'error'} color={'error'}>Last run exited with an error on {r.LastRun}</Alert>,
                     'never': <Alert severity={'info'} color={'info'}>Never ran</Alert>
                     
