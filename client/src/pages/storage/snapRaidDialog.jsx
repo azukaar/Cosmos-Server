@@ -19,8 +19,8 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
       name: data.Name || 'Storage Parity',
       parity: data.Parity || [],
       data: data.Data || {},
-      syncCronTab: data.SyncCrontab || '* 0 2 * * *',
-      scrubCronTab: data.ScrubCrontab || '* 0 4 */2 * *',
+      syncCronTab: data.SyncCrontab || '0 0 2 * * *',
+      scrubCronTab: data.ScrubCrontab || '0 0 4 */2 * *',
     },
     validateOnChange: false,
     validationSchema: yup.object({

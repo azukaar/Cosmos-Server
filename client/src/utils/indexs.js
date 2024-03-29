@@ -53,8 +53,9 @@ export const redirectToLocal = (url) => {
 
 export const crontabToText = (crontab) => {
   const parts = crontab.split(' ');
+
   if (parts.length !== 6) {
-      return 'Invalid CRONTAB format';
+      return 'Invalid CRONTAB format (use 6 parts)';
   }
 
   const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts;
@@ -149,7 +150,23 @@ export const crontabToText = (crontab) => {
     }
   }
 
-  return text + dateText + timeText;
+  let intro = '';
+  // get first * field
+  if (second === '*') {
+    intro = 'Every second, ';
+  } else if (minute === '*') {
+    intro = 'Every minute , ';
+  } else if (hour === '*') {
+    intro = 'Every hour, ';
+  } else if (dayOfMonth === '*') {
+    intro = 'Every day, ';
+  } else if (month === '*') {
+    intro = 'Every month, ';
+  } else if (dayOfWeek === '*') {
+    intro = 'Every day, ';
+  }
+
+  return intro + text + dateText + timeText;
 }
 
 export const PascalToSnake = (str) => {

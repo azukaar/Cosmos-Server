@@ -343,6 +343,7 @@ func InitScheduler() {
 			if job.Disabled {
 				continue
 			}
+
 			_, err := scheduler.NewJob(
 				gocron.CronJob(job.Crontab, true),
 				gocron.NewTask(
