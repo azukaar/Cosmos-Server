@@ -25,6 +25,7 @@ func ListJobs(w http.ResponseWriter, req *http.Request) {
 		for _, job := range sched {
 
 			newJobs[job.Scheduler][job.Name] = ConfigJob{
+				Disabled: job.Disabled,
 				Scheduler: job.Scheduler,
 				Cancellable: job.Cancellable,
 				Name: job.Name,

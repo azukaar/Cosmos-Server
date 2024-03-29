@@ -4,7 +4,7 @@ import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton, DeleteIconButton } from "../../components/delete";
 import { CloudOutlined, CloudServerOutlined, CompassOutlined, DeleteOutlined, DesktopOutlined, EditOutlined, FolderOutlined, LaptopOutlined, LoadingOutlined, MobileOutlined, PlayCircleOutlined, PlusOutlined, ReloadOutlined, SearchOutlined, StopOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, IconButton, InputLabel, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
+import { Alert, Button, Checkbox, CircularProgress, IconButton, InputLabel, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -49,6 +49,21 @@ export const CronManager = () => {
     });
   };
 
+  const setEnabled = async (name, enabled) => {
+    let config = (await API.config.get()).data;
+    if(!config.CRON) {
+      config.CRON = {};
+    }
+
+    config.CRON[name].Enabled = enabled;
+
+    return API.config.set(config).then((res) => {
+      refresh && refresh();
+    }).catch((err) => {
+      refresh && refresh();
+    });
+  }
+
   const refresh = async () => {
     setLoading(true);
     let _cronJobs = await API.cron.list();
@@ -92,6 +107,14 @@ export const CronManager = () => {
               // <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>,
             ]}
             columns={[
+              (scheduler == "Custom" && {
+                title: 'Enabled',
+                clickable:true, 
+                field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
+                  onChange={() => setEnabled(r.Name, r.Disabled)}
+                  checked={!r.Disabled}
+                />,
+              }),
               {
                 title: 'Name',
                 field: (r) => r.Name,

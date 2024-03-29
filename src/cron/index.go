@@ -19,6 +19,7 @@ var CRONLock = make(chan bool, 1)
 var RunningLock = make(chan bool, 1)
 
 type ConfigJob struct {
+	Disabled bool
 	Scheduler string
 	Name string
 	Cancellable bool
@@ -125,6 +126,12 @@ func InitJobs() {
 			cmd = JobFromCommand("docker", "exec", job.Container, "sh", "-c", job.Command)
 		}
 
+		if job.Enabled {
+			utils.Log("Adding CRON job: " + job.Name)
+		} else {
+			utils.Log("Adding CRON job: " + job.Name + " (disabled)")
+		}
+
 		j := ConfigJob{
 			Scheduler: "Custom",
 			Name: job.Name,
@@ -135,6 +142,7 @@ func InitJobs() {
 			LastRun: time.Time{},
 			LastStarted: time.Time{},
 			Logs: []string{},
+			Disabled: !job.Enabled,
 		}
 
 		if CustomScheduler, ok := jobsList["Custom"]; ok {
@@ -256,6 +264,9 @@ func InitScheduler() {
 	count := 0
 	for _, schedulerList := range jobsList {
 		for _, job := range schedulerList {
+			if job.Disabled {
+				continue
+			}
 			_, err := scheduler.NewJob(
 				gocron.CronJob(job.Crontab, true),
 				gocron.NewTask(

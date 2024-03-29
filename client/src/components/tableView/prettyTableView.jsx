@@ -65,7 +65,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
         <Table aria-label="simple table">
           <TableHead>
             <TableRow>
-              {columns.map((column) => (
+              {columns.filter(c=>c).map((column) => (
                 ((!column.screenMin || screenMin[column.screenMin]) && 
                 (!column.screenMax || screenMax[column.screenMax]) && 
                 <TableCell>{column.title}</TableCell>)
@@ -77,7 +77,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
               .filter((row) => {
                 if (!search || search.length <= 2) return true;
                 let found = false;
-                columns.forEach((column) => {
+                columns.filter(c=>c).forEach((column) => {
                   if (column.search && column.search(row).toLowerCase().includes(search.toLowerCase())) {
                     found = true;
                   }
@@ -104,7 +104,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
                     },
                   }}
                 >
-                  {columns.map((column) => (
+                  {columns.filter(c=>c).map((column) => (
                 
                     ((!column.screenMin || screenMin[column.screenMin]) && 
                     (!column.screenMax || screenMax[column.screenMax]) &&

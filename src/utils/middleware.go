@@ -557,16 +557,18 @@ func ContentTypeMiddleware(contentType string) func(next http.Handler) http.Hand
 	}
 }
 
-func SPAHandler(fs http.Handler, indexFile string) http.Handler {
-	pwd,_ := os.Getwd()
+func SPAHandler(targetFolder string) http.Handler {
+	// pwd,_ := os.Getwd()
+	fs := http.FileServer(http.Dir(targetFolder))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		Debug("Serving SPA from " + targetFolder + r.URL.Path)
 		// if file does not exist or is a directory, serve index.html
-		if r.URL.Path == "/" || r.URL.Path == "" {
-			http.ServeFile(w, r, pwd + indexFile)
-		}	else if stat, err := os.Stat(pwd + "/static" + r.URL.Path); os.IsNotExist(err) || stat.IsDir() {
-			http.ServeFile(w, r, pwd + indexFile)
+		if stat, err := os.Stat(targetFolder + r.URL.Path); os.IsNotExist(err) || stat.IsDir() {
+			Debug("Serving SPA index.html")
+			http.ServeFile(w, r, targetFolder + "/index.html")
 		} else {
+			Debug("Serving SPA from " + targetFolder + r.URL.Path)
 			fs.ServeHTTP(w, r)
 		}
 	})

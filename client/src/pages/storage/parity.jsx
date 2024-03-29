@@ -153,7 +153,7 @@ export const Parity = () => {
           {
             title: 'Enabled', 
             clickable:true, 
-            field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
+            field: (r, k) => <Checkbox disabled={loading} size='large' color={r.Enabled ? 'success' : 'default'}
               onChange={() => setEnabled(r.Name, !r.Enabled)}
               checked={r.Enabled}
             />,

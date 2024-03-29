@@ -491,11 +491,11 @@ func InitServer() *mux.Router {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)
 	}
 
-	fs := http.FileServer(http.Dir(pwd + "/static"))
+	// fs := http.FileServer(http.Dir(pwd + "/static"))
 	uirouter := router.PathPrefix("/cosmos-ui").Subrouter()
 	uirouter.Use(utils.SetSecurityHeaders)
 	SecureAPI(uirouter, true, true)
-	uirouter.PathPrefix("/").Handler(http.StripPrefix("/cosmos-ui", utils.SPAHandler(fs, "/static/index.html")))
+	uirouter.PathPrefix("/").Handler(http.StripPrefix("/cosmos-ui", utils.SPAHandler(pwd + "/static")))
 	
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		uirouter.Use(utils.EnsureHostname)
@@ -504,7 +504,10 @@ func InitServer() *mux.Router {
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/cosmos-ui", http.StatusTemporaryRedirect)
+    http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
+	}))
+	router.HandleFunc("/cosmos-ui", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
 	}))
 
 	userRouter := router.PathPrefix("/oauth2").Subrouter()

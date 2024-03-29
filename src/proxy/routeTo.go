@@ -199,8 +199,8 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	}  else if (routeType == "STATIC") {
 		return http.FileServer(http.Dir(destination))
 	}  else if (routeType == "SPA") {
-		fs := http.FileServer(http.Dir(destination))
-		return utils.SPAHandler(fs, "index.html")
+		// fs := http.FileServer(http.Dir(destination))
+		return utils.SPAHandler(destination)
 	} else if(routeType == "REDIRECT") {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, destination, 302)
