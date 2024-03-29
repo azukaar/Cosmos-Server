@@ -12,8 +12,6 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
-
-	spa "github.com/roberthodgen/spa-server"
 )
 
 
@@ -201,7 +199,8 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	}  else if (routeType == "STATIC") {
 		return http.FileServer(http.Dir(destination))
 	}  else if (routeType == "SPA") {
-		return spa.SpaHandler(destination, "index.html")	
+		fs := http.FileServer(http.Dir(destination))
+		return utils.SPAHandler(fs, "index.html")
 	} else if(routeType == "REDIRECT") {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, destination, 302)

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"encoding/binary"
 
-	"github.com/docker/docker/api/types"
+	conttype "github.com/docker/docker/api/types/container"
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -111,7 +111,7 @@ func GetContainerLogsRoute(w http.ResponseWriter, req *http.Request) {
 			errorOnly, _ = strconv.ParseBool(query.Get("errorOnly"))
 		}
 
-		options := types.ContainerLogsOptions{
+		options := conttype.LogsOptions{
 			ShowStdout: !errorOnly,
 			ShowStderr: true,
 			Timestamps: true,

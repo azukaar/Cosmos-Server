@@ -5,6 +5,7 @@ import (
     "net"
     "sync"
     "strings"
+    "strconv"
 
     "github.com/azukaar/cosmos-server/src/utils"
 )
@@ -129,7 +130,10 @@ func InitInternalTCPProxy() {
 		if route.UseHost && strings.Contains(route.Host, ":") {
 			hostname := route.Host
 			port := strings.Split(hostname, ":")[1]
-			expectedPorts = append(expectedPorts, port)
+            // if port is a number
+            if _, err := strconv.Atoi(port); err == nil {
+    			expectedPorts = append(expectedPorts, port)
+            }
 		}
 	}
 

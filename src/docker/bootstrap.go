@@ -6,6 +6,8 @@ import (
 	"os"
 	"fmt"
 	"regexp"
+	
+	conttype "github.com/docker/docker/api/types/container"
 )
 
 func BootstrapAllContainersFromTags() []error {
@@ -21,7 +23,7 @@ func BootstrapAllContainersFromTags() []error {
 
 	errors := []error{}
 	
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
+	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{})
 	if err != nil {
 		utils.Error("Docker Container List", err)
 		return []error{err}

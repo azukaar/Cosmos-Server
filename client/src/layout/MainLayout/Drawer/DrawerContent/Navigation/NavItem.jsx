@@ -71,7 +71,7 @@ const NavItem = ({ item, level }) => {
         display: 'inline-block',
     }}>Beta</span></>;
 
-    if(item.title === "Storage")
+    if(item.title === "Storage" || item.title === "Scheduler")
     item.title = <>{item.title} <span style={{
         color: 'gray',
         fontSize: '11px',

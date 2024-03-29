@@ -248,7 +248,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         </FormHelperText>}
       
 
-      <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure)</InputLabel>
+      <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure, or tcp for non-http proxying)</InputLabel>
       <TextField
         type="text"
         name={name + "-protocol"}

@@ -142,6 +142,26 @@ var DefaultConfig = Config{
       Throttled: false,
       Severity: "warn",
     },
+    "Disk Health": {
+      Name: "Disk Health",
+      Enabled: true,
+      Period: "latest",
+      TrackingMetric: "system.disk-health.temperature.*",
+			LastTriggered: time.Time{},
+      Condition: AlertCondition {
+        Operator: "gt",
+        Value: 50,
+        Percent: false,
+      },
+      Actions: []AlertAction {
+        {
+          Type: "notification",
+          Target: "",
+        },
+      },
+      Throttled: true,
+      Severity: "warn",
+    },
     "Disk Full Notification": {
       Name: "Disk Full Notification",
       Enabled: true,

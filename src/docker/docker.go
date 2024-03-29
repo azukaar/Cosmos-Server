@@ -21,6 +21,7 @@ import (
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
+	conttype "github.com/docker/docker/api/types/container"
 	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
@@ -30,7 +31,7 @@ var DockerContext context.Context
 var DockerNetworkName = "cosmos-network"
 
 func getIdFromName(name string) (string, error) {
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
+	containers, err := DockerClient.ContainerList(DockerContext, container.ListOptions{})
 	if err != nil {
 		utils.Error("Docker Container List", err)
 		return "", err
@@ -228,7 +229,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			return "", stopError
 		}
 
-		removeError := DockerClient.ContainerRemove(DockerContext, oldContainerID, types.ContainerRemoveOptions{})
+		removeError := DockerClient.ContainerRemove(DockerContext, oldContainerID, container.RemoveOptions{})
 		if removeError != nil {
 			return "", removeError
 		}
@@ -295,7 +296,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	
 	utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
 
-	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, types.ContainerStartOptions{})
+	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, container.StartOptions{})
 
 	if runError != nil {
 		utils.Error("EditContainer - Failed to run container", runError)
@@ -320,8 +321,8 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			DockerClient.ContainerKill(DockerContext, oldContainerID, "")
 			DockerClient.ContainerKill(DockerContext, createResponse.ID, "")
 			// attempt remove in case created state
-			DockerClient.ContainerRemove(DockerContext, oldContainerID, types.ContainerRemoveOptions{})
-			DockerClient.ContainerRemove(DockerContext, createResponse.ID, types.ContainerRemoveOptions{})
+			DockerClient.ContainerRemove(DockerContext, oldContainerID, container.RemoveOptions{})
+			DockerClient.ContainerRemove(DockerContext, createResponse.ID, container.RemoveOptions{})
 		}
 
 		utils.Log("EditContainer - Reverting...")
@@ -397,7 +398,7 @@ func ListContainers() ([]types.Container, error) {
 		return nil, errD
 	}
 
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{
+	containers, err := DockerClient.ContainerList(DockerContext, container.ListOptions{
 		All: true,
 	})
 	if err != nil {
@@ -598,7 +599,7 @@ func RemoveSelfUpdater() error {
 			if err != nil {
 				utils.Error("RemoveSelfUpdater", err)
 			}
-			err = DockerClient.ContainerRemove(DockerContext, container.ID, types.ContainerRemoveOptions{
+			err = DockerClient.ContainerRemove(DockerContext, container.ID, conttype.RemoveOptions{
 				Force: true,
 			})
 			if err != nil {
@@ -683,7 +684,7 @@ func SelfAction(action string) error {
 
 func redirectLogs(containerName string, logFile string) {
 	// attach logs
-	logs, err := DockerClient.ContainerLogs(DockerContext, containerName, types.ContainerLogsOptions{
+	logs, err := DockerClient.ContainerLogs(DockerContext, containerName, conttype.LogsOptions{
 		ShowStdout: true,
 		ShowStderr: true,
 		Follow: false,
@@ -859,6 +860,14 @@ func StopContainer(containerName string) {
 	err := DockerClient.ContainerStop(DockerContext, containerName, container.StopOptions{})
 	if err != nil {
 		utils.Error("StopContainer", err)
+		return
+	}
+}
+
+func RestartContainer(containerName string) {
+	err := DockerClient.ContainerRestart(DockerContext, containerName, container.StopOptions{})
+	if err != nil {
+		utils.Error("RestartContainer", err)
 		return
 	}
 }

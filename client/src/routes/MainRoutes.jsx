@@ -15,6 +15,7 @@ import MarketPage from '../pages/market/listing';
 import ConstellationIndex  from '../pages/constellation';
 import StorageIndex from '../pages/storage';
 import DashboardDefault from '../pages/dashboard';
+import { CronManager } from '../pages/cron/jobsManage';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -91,6 +92,10 @@ const MainRoutes = {
         {
             path: '/cosmos-ui/market-listing/:appStore/:appName',
             element: <MarketPage />
+        },
+        {
+            path: '/cosmos-ui/cron',
+            element: <CronManager />
         }
     ]
 };

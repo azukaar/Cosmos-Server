@@ -36,7 +36,7 @@ func DockerListenEvents() error {
 					msgs, errs = DockerClient.Events(context.Background(), types.EventsOptions{})
 
 				case msg := <-msgs:
-					utils.Debug("Docker Event: " + msg.Type + " " + msg.Action + " " + msg.Actor.Attributes["name"])
+					utils.Debug("Docker Event: " + (string)(msg.Type) + " " + (string)(msg.Action) + " " + msg.Actor.Attributes["name"])
 					if msg.Type == "container" && msg.Action == "start" {
 						onDockerStarted(msg.Actor.ID)
 					}
@@ -61,7 +61,7 @@ func DockerListenEvents() error {
 						onNetworkConnect(msg.Actor.ID)
 					}
 
-					if !strings.HasPrefix(msg.Action, "exec_") {
+					if !strings.HasPrefix((string)(msg.Action), "exec_") {
 						level := "info"
 						if msg.Type == "image" {
 							level = "debug"
@@ -85,13 +85,13 @@ func DockerListenEvents() error {
 						}
 						
 						utils.TriggerEvent(
-							"cosmos.docker.event." + msg.Type + "." + msg.Action,
-							"Docker Event " + msg.Type + " " + msg.Action,
+							"cosmos.docker.event." + (string)(msg.Type) + "." + (string)(msg.Action),
+							"Docker Event " + (string)(msg.Type) + " " + (string)(msg.Action),
 							level,
 							object,
 							map[string]interface{}{
-							"type": msg.Type,
-							"action": msg.Action,
+							"type": (string)(msg.Type),
+							"action": (string)(msg.Action),
 							"actor": msg.Actor,
 							"status": msg.Status,
 							"from": msg.From,

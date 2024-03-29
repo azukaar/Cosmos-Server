@@ -14,8 +14,8 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/docker/docker/api/types"
 
+	conttype "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
-
 )
 
 var ExportError = "" 
@@ -168,7 +168,7 @@ func ExportDocker() {
 	finalBackup := DockerServiceCreateRequest{}
 	
 	// List containers
-	containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{})
+	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{})
 	if err != nil {
 		utils.MajorError("ExportDocker - Cannot list containers", err)
 		ExportError = "Export Docker - Cannot list containers - " + err.Error()

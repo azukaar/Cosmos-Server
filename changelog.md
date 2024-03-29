@@ -4,6 +4,7 @@
  - Added SnapRAID support and configurator
  - Rewrote the internal CRON scheduler to be more robust
  - Added support for custom CRON jobs
+ - Added job scheduler management, with manual run, logs, cancellation, ...
  - Added new Terminal (with full bash support, including things like VIM)
  - Overwrite all docker networks size to prevent Cosmos from running out of IP addresses
  - Added optional subnet input to the network creation
@@ -12,8 +13,16 @@
  - Rewrite network pruning to prevent Docker from deleting networks attached to stopped containers
  - Restore static bundle loading to fix issue with some browsers
  - Fix issue on Macvlan creation
+ - Rewrite SPA handler for more robustness
+ - Added Robots.txt
+ - Added "restart" as action for alerts
  - Make monitoring more reliant in case of issue
  - Added a memory profiler when debug mode is on (/cosmos/debug/pprof)
+ - Fix a crash when adding a protocol to a host
+ - Update Docker and LEGO (with a dozen new DNS providers supported)
+ - Added optionals vars to DNS challenge setup (like timeout)
+ - Added a check on hostname to prevent protocols
+ - Added hint to TCP proxying
 
 ## Version 0.14.6
  - Fix custom back-up folder logic

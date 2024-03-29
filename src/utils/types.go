@@ -108,6 +108,7 @@ type CRONConfig struct {
 	Name string
 	Crontab string
 	Command string
+	Container string
 }
 
 type StorageConfig struct {

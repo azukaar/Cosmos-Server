@@ -151,3 +151,9 @@ export const crontabToText = (crontab) => {
 
   return text + dateText + timeText;
 }
+
+export const PascalToSnake = (str) => {
+  return str.replace(/[\w]([A-Z])/g, function(m) {
+    return m[0] + "_" + m[1];
+  }).toLowerCase();
+}

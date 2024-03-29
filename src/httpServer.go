@@ -21,7 +21,6 @@ import (
 		"github.com/go-chi/chi/middleware"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
-		spa "github.com/roberthodgen/spa-server"
 		"github.com/foomo/tlsconfig"
 		"context"
     "net/http/pprof"
@@ -347,6 +346,12 @@ func InitServer() *mux.Router {
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries, config.CountryBlacklistIsWhitelist))
 	}
+
+	// robots.txt
+	router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("User-agent: *\nDisallow: /"))
+	})
 	
 	logoAPI := router.PathPrefix("/logo").Subrouter()
 	SecureAPI(logoAPI, true, true)
@@ -435,7 +440,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/jobs", cron.ListJobs)
 	srapiAdmin.HandleFunc("/api/jobs/stop", cron.StopJobRoute)
 	srapiAdmin.HandleFunc("/api/jobs/run", cron.RunJobRoute)
+	srapiAdmin.HandleFunc("/api/jobs/get", cron.GetJobRoute)
+	srapiAdmin.HandleFunc("/api/jobs/delete", cron.DeleteJobRoute)
 
+	srapiAdmin.HandleFunc("/api/smart-def", storage.ListSmartDef)
 	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
 	srapiAdmin.HandleFunc("/api/disks/format", storage.FormatDiskRoute)
 	srapiAdmin.HandleFunc("/api/mounts", storage.ListMountsRoute)
@@ -469,10 +477,10 @@ func InitServer() *mux.Router {
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)
 		srapiAdmin.Use(utils.EnsureHostname)
-	}
 	
-	srapi.Use(utils.EnsureHostnameCosmosAPI)
-	srapiAdmin.Use(utils.EnsureHostnameCosmosAPI)
+		srapi.Use(utils.EnsureHostnameCosmosAPI)
+		srapiAdmin.Use(utils.EnsureHostnameCosmosAPI)
+	}
 
 	SecureAPI(srapi, false, false)
 	SecureAPI(srapiAdmin, false, false)
@@ -483,14 +491,15 @@ func InitServer() *mux.Router {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)
 	}
 
-
-	fs  := spa.SpaHandler(pwd + "/static", "index.html")
+	fs := http.FileServer(http.Dir(pwd + "/static"))
+	uirouter := router.PathPrefix("/cosmos-ui").Subrouter()
+	uirouter.Use(utils.SetSecurityHeaders)
+	SecureAPI(uirouter, true, true)
+	uirouter.PathPrefix("/").Handler(http.StripPrefix("/cosmos-ui", utils.SPAHandler(fs, "/static/index.html")))
 	
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
-		fs = utils.EnsureHostname(fs)
+		uirouter.Use(utils.EnsureHostname)
 	}
-
-	router.PathPrefix("/cosmos-ui").Handler(http.StripPrefix("/cosmos-ui", fs))
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	

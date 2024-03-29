@@ -6,6 +6,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/azukaar/cosmos-server/src/authorizationserver"
 	"github.com/azukaar/cosmos-server/src/constellation"
+	"github.com/azukaar/cosmos-server/src/cron"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
@@ -53,6 +54,10 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		authorizationserver.Init()
 		utils.RestartHTTPServer()
 		constellation.RestartNebula()
+		go (func() {
+			cron.InitJobs()
+			cron.InitScheduler()
+		})()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

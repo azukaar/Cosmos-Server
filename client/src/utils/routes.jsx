@@ -91,8 +91,12 @@ export const ValidateRouteSchema = Yup.object().shape({
 
   Host: Yup.string().when('UseHost', {
     is: true,
-    then: Yup.string().required('Host is required')
+    then: Yup.string()
+      .required('Host is required')
       .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP (IPs won\'t work with Let\'s Encrypt!)')
+      .test('is-protocol', 'Do not add the protocol here!', (value) => {
+        return !value.match(/\:.*?[a-zA-Z]+/);
+      })
   }),
 
   PathPrefix: Yup.string().when('UsePathPrefix', {
@@ -125,6 +129,12 @@ export const getContainersRoutes = (config, containerName) => {
   return (config && config.HTTPConfig && config.HTTPConfig.ProxyConfig.Routes && config.HTTPConfig.ProxyConfig.Routes.filter((route) => {
     let reg = new RegExp(`^(([a-z]+):\/\/)?${containerName}(:?[0-9]+)?$`, 'i');
     return route.Mode == "SERVAPP" && reg.test(route.Target)
+  })) || [];
+}
+
+export const getContaienrsJobs = (config, containerName) => {
+  return (config && config.CRON && Object.values(config.CRON).filter((job) => {
+    return job.Container == containerName || job.Container == containerName.replace(/^\/+/, '');
   })) || [];
 }
 

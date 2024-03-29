@@ -139,8 +139,8 @@ more information.<br />`, alert.Severity, metric.Key))
 	} else if action.Type == "webhook" {
 		utils.Debug("Calling webhook " + action.Target)
 
-	} else if action.Type == "stop" {
-		utils.Debug("Stopping application")
+	} else if action.Type == "stop" || action.Type == "restart" {
+		utils.Debug("Stopping/reestarting application")
 
 		parts := strings.Split(metric.Object, "@")
 
@@ -149,7 +149,11 @@ more information.<br />`, alert.Severity, metric.Key))
 			objectName := strings.Join(parts[1:], "@")
 
 			if object == "container" {
-				docker.StopContainer(objectName)
+				if action.Type == "restart" {
+					docker.RestartContainer(objectName)
+				} else {
+					docker.StopContainer(objectName)
+				}
 			} else if object == "route" {
 				config := utils.ReadConfigFromFile()
 

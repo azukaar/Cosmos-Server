@@ -15,12 +15,18 @@ import (
 	"github.com/anatol/smart.go"
 )
 
+type SMARTData struct {
+	smart.GenericAttributes
+
+	AdditionalData interface{}
+	Thresholds interface{}
+}
 
 type BlockDevice struct {
 	lsblk.BlockDevice
 	Children []BlockDevice `json:"children"`
 	Usage uint64 `json:"usage"`
-	SMART smart.GenericAttributes `json:"smart"` // Add SMART data field
+	SMART SMARTData `json:"smart"` // Add SMART data field
 }
 
 func ListDisks() ([]BlockDevice, error) {
@@ -38,40 +44,67 @@ func ListDisks() ([]BlockDevice, error) {
 	return GetRecursiveDiskUsageAndSMARTInfo(devices)
 }
 
+// Function to get recursive disk usage and SMART information
 func GetRecursiveDiskUsageAndSMARTInfo(devices []lsblk.BlockDevice) ([]BlockDevice, error) {
 	devicesF := make([]BlockDevice, len(devices))
+
 	for i, device := range devices {
-		used, err := GetDiskUsage(device.Name)
-		if err != nil {
-			utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching Disk usage for " + device.Name + " : ", err)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		// Retrieve SMART information
-		if device.Type == "disk" {
-			dev, err := smart.Open(device.Name)
-			if err == nil {
-				defer dev.Close()
-
-				smartInfo, err := dev.ReadGenericAttributes()
-				if err == nil {
-					devicesF[i].SMART = *smartInfo
-				} else {
-					utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
-				}
-			} else {
-				utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
+			used, err := GetDiskUsage(device.Name)
+			if err != nil {
+					utils.Error("GetRecursiveDiskUsageAndSMARTInfo - Error fetching Disk usage for " + device.Name + " : ", err)
+					return nil, err
 			}
-		}
 
-		devicesF[i].BlockDevice = device
-		devicesF[i].Usage = used * uint64(devicesF[i].Size.Int64) / 100
+			devicesF[i].BlockDevice = device
+			devicesF[i].Usage = used * uint64(devicesF[i].Size.Int64) / 100
 
-		// Get usage and SMART info for children
-		devicesF[i].Children, _ = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
+			// SMART information retrieval for NVMe and SATA
+			if device.Type == "disk" {
+        	dev, err := smart.Open(device.Name)
+					if err != nil {
+						devicesF[i].Children, _ = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
+						continue
+					}
+					defer dev.Close()
+
+					GenericAttributes, err := dev.ReadGenericAttributes()
+					if err != nil {
+						utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
+						devicesF[i].Children, _ = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
+						continue
+					}
+
+					smartData := SMARTData{
+						GenericAttributes: *GenericAttributes,
+						AdditionalData: map[string]string{},
+					}
+
+					switch sm := dev.(type) {
+						case *smart.SataDevice:
+							data, err := sm.ReadSMARTData()
+							t, err := sm.ReadSMARTThresholds()
+							if err != nil {
+								utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
+							} else {
+								smartData.AdditionalData = data
+								devicesF[i].SMART = smartData
+								devicesF[i].SMART.Thresholds = *t
+							}
+						case *smart.NVMeDevice:
+							data, err := sm.ReadSMART()
+							t, _, err := sm.Identify()
+							if err != nil {
+								utils.Warn("GetRecursiveDiskUsageAndSMARTInfo - Error fetching SMART info for " + device.Name + " : " + err.Error())
+							} else {
+								smartData.AdditionalData = data
+								smartData.Thresholds = *t
+								devicesF[i].SMART = smartData
+							}
+					}
+			}
+
+			// Get usage and SMART info for children
+			devicesF[i].Children, _ = GetRecursiveDiskUsageAndSMARTInfo(device.Children)
 	}
 
 	return devicesF, nil

@@ -152,6 +152,10 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                     <Alert severity="info">Stop action will attempt to stop/disable any resources (ex. Containers, routes, etc... ) attachted to the metric.
                     This will only have an effect on metrics specific to a resources (ex. CPU of a specific container). It will not do anything on global metric such as global used CPU</Alert>
                   }
+                  {action.Type === 'restart' &&
+                    <Alert severity="info">Restart action will attempt to restart any Containers attachted to the metric.
+                    This will only have an effect on metrics specific to a resources (ex. CPU of a specific container). It will not do anything on global metric such as global used CPU</Alert>
+                  }
                   <Stack direction="row" spacing={2} key={index}>
                     <Box style={{
                       width: '100%',
@@ -163,7 +167,8 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                         options={[
                           ['notification', 'Send a notification'],
                           ['email', 'Send an email'],
-                          ['stop', 'Stop resources causing the alert'],
+                          ['stop', 'Stop/Disable resources causing the alert'],
+                          ['restart', 'Restart container causing the alert'],
                         ]}
                       />
                     </Box>

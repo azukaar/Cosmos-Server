@@ -120,10 +120,15 @@ func InitJobs() {
 	configJobsList := config.CRON
 
 	for _, job := range configJobsList {
+		cmd := JobFromCommand("sh", "-c", job.Command)
+		if job.Container != "" {
+			cmd = JobFromCommand("docker", "exec", job.Container, "sh", "-c", job.Command)
+		}
+
 		j := ConfigJob{
 			Scheduler: "Custom",
 			Name: job.Name,
-			Job: JobFromCommand("sh", "-c", job.Command),
+			Job: cmd,
 			Crontab: job.Crontab,
 			Running: false,
 			Cancellable: true,
@@ -353,7 +358,9 @@ func ManualRunJob(scheduler string, name string) error {
 		utils.Log("Manually start CRON job: " + name)
 		<-CRONLock
 		// Execute the job
-		jobRunner(job.Scheduler, job.Name)(jobRunner_OnLog(job.Scheduler, job.Name), jobRunner_OnFail(job.Scheduler, job.Name), jobRunner_OnSuccess(job.Scheduler, job.Name))
+		go (func() {
+			jobRunner(job.Scheduler, job.Name)(jobRunner_OnLog(job.Scheduler, job.Name), jobRunner_OnFail(job.Scheduler, job.Name), jobRunner_OnSuccess(job.Scheduler, job.Name))
+		})()
 	} else {
 		<-CRONLock
 		utils.Error("CRON job " + name + " not found", nil)

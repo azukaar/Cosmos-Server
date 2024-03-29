@@ -120,7 +120,7 @@ func DisconnectDB() {
 		return
 	}
 	if err := client.Disconnect(context.TODO()); err != nil {
-		Fatal("DB", err)
+		Error("DB", err)
 	}
 	client = nil
 }

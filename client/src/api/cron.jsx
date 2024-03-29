@@ -30,6 +30,19 @@ function run(scheduler, name) {
   }))
 }
 
+function get(scheduler, name) {
+  return wrap(fetch('/cosmos/api/jobs/get', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduler: scheduler,
+      name: name
+    })
+  }))
+}
+
 function stop(scheduler, name) {
   return wrap(fetch('/cosmos/api/jobs/stop', {
     method: 'POST',
@@ -43,9 +56,23 @@ function stop(scheduler, name) {
   }))
 }
 
+function deleteJob(name) {
+  return wrap(fetch('/cosmos/api/jobs/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      name: name
+    })
+  }))
+}
+
 export {
   listen,
   list,
   run,
   stop,
+  get,
+  deleteJob,
 }

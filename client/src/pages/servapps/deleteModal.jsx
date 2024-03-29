@@ -1,11 +1,11 @@
 import React from 'react';
 import { Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, LinearProgress, Stack, Tooltip, useMediaQuery } from '@mui/material';
-import { ApiOutlined, CheckCircleOutlined, CloseSquareOutlined, ContainerOutlined, DatabaseOutlined, DeleteOutlined, LinkOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
+import { ApiOutlined, CheckCircleOutlined, ClockCircleOutlined, CloseSquareOutlined, ContainerOutlined, DatabaseOutlined, DeleteOutlined, LinkOutlined, PauseCircleOutlined, PlaySquareOutlined, ReloadOutlined, RollbackOutlined, StopOutlined, UpCircleOutlined } from '@ant-design/icons';
 import * as API from '../../api';
 import LogsInModal from '../../components/logsInModal';
 import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
-import { getContainersRoutes } from '../../utils/routes';
+import { getContaienrsJobs, getContainersRoutes } from '../../utils/routes';
 
 const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}) => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -74,7 +74,15 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
     return self.indexOf(route) === index;
   });
 
-  console.log(routes);
+  let cronJobs = isOpen && containers.map((container) => {
+    return getContaienrsJobs(config, container.Name.replace('/', ''));
+  }).flat().map((job) => {
+    return job.Name;
+  }).filter((job, index, self) => {
+    return self.indexOf(job) === index;
+  });
+
+  console.log(cronJobs)
 
   const doDelete = () => {
     setIsDeleting(true);
@@ -175,6 +183,26 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
         })
       );
 
+      promises2.concat(
+        cronJobs.map((job) => {
+          let key = job + '-job';
+          if (ignored.includes(key)) return;
+  
+          return API.cron.deleteJob(job)
+          .then(() => {
+            setDeleted((prev) => {
+              if(!prev) return [key];
+              else return [...prev, key];
+            });
+          })
+          .catch((err) => {
+            setFailed((prev) => {
+              if(!prev) return [key];
+              else return [...prev, key];
+            });
+          });
+        })
+      );
 
       return Promise.all(promises2);
     })
@@ -213,6 +241,11 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
                     {routes.map((route) => {
                       return  (!isDeleting || (!ignored.includes(route + "-route"))) && <div key={route + "-route"}> 
                         <ShowAction item={route + "-route"} /> <LinkOutlined /> Route {route}
+                      </div>
+                    })}
+                    {cronJobs.map((job) => {
+                      return  (!isDeleting || (!ignored.includes(job + "-job"))) && <div key={job + "-job"}> 
+                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> Cron Job {job}
                       </div>
                     })}
                   </Stack>

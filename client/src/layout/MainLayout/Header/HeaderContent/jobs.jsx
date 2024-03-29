@@ -26,7 +26,7 @@ import * as timeago from 'timeago.js';
 import MainCard from '../../../../components/MainCard';
 import Transitions from '../../../../components/@extended/Transitions';
 // assets
-import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, MessageOutlined, PlaySquareOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
+import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, LoadingOutlined, MessageOutlined, PlaySquareOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 
 import * as API from '../../../../api';
 import { redirectToLocal } from '../../../../utils/indexs';
@@ -243,7 +243,7 @@ const Jobs = () => {
                                             }}>
                                             <Typography variant="caption" noWrap >
                                                 {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
-                                                    job.Running ? `Running since ${timeago.format(job.LastStarted)}` : `Last run ${timeago.format(job.LastRun)}`
+                                                    job.Running ? <span><LoadingOutlined />{` Running - Started ${timeago.format(job.LastStarted)}`}</span> : `Last run ${timeago.format(job.LastRun)}`
                                                 )}
                                             </Typography>
                                             </ListItemButton>

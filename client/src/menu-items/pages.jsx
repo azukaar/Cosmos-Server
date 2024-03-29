@@ -1,5 +1,5 @@
 // assets
-import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined} from '@ant-design/icons';
+import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined} from '@ant-design/icons';
 import ConstellationIcon from '../assets/images/icons/constellation.png'
 
 // icons
@@ -62,6 +62,13 @@ const pages = {
             url: '/cosmos-ui/openid-manage',
             icon: PicLeftOutlined,
             adminOnly: true
+        },
+        {
+            id: 'cron',
+            title: 'Scheduler',
+            type: 'item',
+            url: '/cosmos-ui/cron',
+            icon: ClockCircleOutlined,
         },
         {
             id: 'config',

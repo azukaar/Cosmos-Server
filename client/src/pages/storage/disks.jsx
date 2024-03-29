@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, ReloadOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
+import { CloseCircleOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExpandOutlined, LaptopOutlined, MenuFoldOutlined, MenuOutlined, MinusCircleFilled, MobileOutlined, NodeCollapseOutlined, PlusCircleFilled, PlusCircleOutlined, ReloadOutlined, SettingFilled, TabletOutlined, WarningFilled, WarningOutlined } from "@ant-design/icons";
 import { Alert, Button, CircularProgress, InputLabel, LinearProgress, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -26,6 +26,7 @@ import PasswordModal from "../../components/passwordModal";
 import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
+import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
 
 const diskStyle = {
   width: "100%",
@@ -57,6 +58,7 @@ const FormatButton = ({disk, refresh}) => {
       variant="outlined"
       color="error"
       size="small"
+      startIcon={<CloseCircleOutlined />}
     >Format</LoadingButton>
     
     {passwordConfirm && <FormatModal
@@ -95,7 +97,7 @@ const FormatButton = ({disk, refresh}) => {
   </>
 }
 
-const Disk = ({disk, refresh}) => {
+const Disk = ({disk, refresh, SetSMARTDialogOpened}) => {
   const theme = useTheme();
   const darkMode = theme.palette.mode === 'dark';
 
@@ -121,22 +123,23 @@ const Disk = ({disk, refresh}) => {
         color: darkMode ? "#fff" : "#000",
       }}>
         <Stack direction="row" justifyContent="space-between" style={{
-            borderLeft: ("4px solid " + (disk.smart.Temperature ? (disk.smart.Temperature > 55 ? (disk.smart.Temperature > 70 ? "red" : "orange") : "green") : "gray")),
+            borderLeft: "4px solid " + (disk.smart ? diskColor(disk) : "gray")
           }}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{paddingLeft: '5px'}}>
             <div>
-            {disk.smart.Temperature ? <div style={{
-                position: 'absolute',
-                top: '10px',
-                left: '25px',
-                backgroundColor: 'rgba(0,0,0,0.8)',
-                color: 'white',
-                borderRadius: '5px',
-                padding: '0px 5px',
-              }}>
+              {(disk.smart && disk.smart.Temperature) ? <div style={{
+                  position: 'absolute',
+                  top: '10px',
+                  left: '25px',
+                  backgroundColor: 'rgba(0,0,0,0.8)',
+                  color: 'white',
+                  borderRadius: '5px',
+                  padding: '0px 5px',
+                }}>
                 <span style={{fontSize: '80%', opacity: 0.8}}>
-                  {disk.smart.Temperature > 55 && <WarningFilled />} {disk.smart.Temperature}°C
-                  </span></div> : ""}
+                  {(disk.smart ? diskChip(disk) : "⚪")} {disk.smart.Temperature}°C
+                </span></div> : ""}
+
               
               <Tooltip title={disk.type}>
                 {icons[disk.type] ? <img width="64px" height={"64px"} src={icons[disk.type]} /> : <img width="64px" height={"64px"} src={icons["drive"]} />}
@@ -180,15 +183,17 @@ const Disk = ({disk, refresh}) => {
                 (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
                 disk.fstype &&
                 disk.fstype !== "swap" &&
+                disk.fstype !== "linux_raid_member" &&
                 !disk.mountpoint
               ) ? <MountDiskDialog disk={disk} refresh={refresh} /> : ""}
+              {disk.type == "disk" ? <Button onClick={() => SetSMARTDialogOpened(disk)} variant="outlined" size="small" startIcon={<CompassOutlined />}>S.M.A.R.T.</Button> : ""}
             </Stack>
           </Stack>
         </Stack>
       </div>
     }>
       {disk.children && disk.children.map((child, index) => {
-        return <Disk disk={child} refresh={refresh} />
+        return <Disk disk={child} refresh={refresh} SetSMARTDialogOpened={SetSMARTDialogOpened}/>
       })}
     </TreeItem>
   </>;
@@ -199,23 +204,34 @@ export const StorageDisks = () => {
   const [config, setConfig] = useState(null);
   const [disks, setDisks] = useState([]);
   const [containerized, setContainerized] = useState(false);
+  const [SMARTDialogOpened, SetSMARTDialogOpened] = useState(false);
 
   const refresh = async () => {
     let disksData = await API.storage.disks.list();
     let configAsync = await API.config.get();
     let status = await API.getStatus();
+
+    disksData = disksData.data.map((disk) => {
+      return CompleteDataSMARTDisk(disk);
+    });
+
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
-    setDisks(disksData.data);
+    setDisks(disksData);
     setContainerized(status.data.containerized);
   };
 
   useEffect(() => {
-    refresh();
+    (async () => {
+      await getSMARTDef();
+      refresh();
+    })();
   }, []);
 
   return <>
     {(config) ? <>
+      <SMARTDialog disk={SMARTDialogOpened} OnClose={() => SetSMARTDialogOpened(false)} />
+
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       {containerized && <Alert severity="warning">You are running Cosmos inside a Docker container. As such, it will only have limited access to your disks and their informations.</Alert>}
       <div>
@@ -232,7 +248,7 @@ export const StorageDisks = () => {
         defaultExpandIcon={<PlusCircleFilled />}
       >
         {disks && disks.map((disk, index) => {
-          return <Disk disk={disk} refresh={async () => {
+          return <Disk SetSMARTDialogOpened={SetSMARTDialogOpened} disk={disk} refresh={async () => {
             await new Promise(r => setTimeout(r, 1000));
             await refresh()
           }} />

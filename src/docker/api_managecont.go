@@ -11,7 +11,6 @@ import (
 	
 	"github.com/gorilla/mux"
 	contstuff "github.com/docker/docker/api/types/container"
-	doctype "github.com/docker/docker/api/types"
 )
 
 func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
@@ -56,13 +55,13 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "stop":
 			err = DockerClient.ContainerStop(DockerContext, container.ID, contstuff.StopOptions{})
 		case "start":
-			err = DockerClient.ContainerStart(DockerContext, container.ID, doctype.ContainerStartOptions{})
+			err = DockerClient.ContainerStart(DockerContext, container.ID, contstuff.StartOptions{})
 		case "restart":
 			err = DockerClient.ContainerRestart(DockerContext, container.ID, contstuff.StopOptions{})
 		case "kill":
 			err = DockerClient.ContainerKill(DockerContext, container.ID, "")
 		case "remove":
-			err = DockerClient.ContainerRemove(DockerContext, container.ID, doctype.ContainerRemoveOptions{})
+			err = DockerClient.ContainerRemove(DockerContext, container.ID, contstuff.RemoveOptions{})
 		case "pause":
 			err = DockerClient.ContainerPause(DockerContext, container.ID)
 		case "unpause":

@@ -6,6 +6,7 @@ import { Formik, FormikProvider, useFormik } from "formik";
 import * as yup from "yup";
 
 import * as API from '../../api';
+import { DownCircleOutlined, UpCircleOutlined } from "@ant-design/icons";
 
 const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {  
   const formik = useFormik({
@@ -115,6 +116,7 @@ const MountDiskDialog = ({ disk, unmount, refresh }) => {
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
+      startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
     >{unmount ? 'Unmount' : 'Mount'}</Button>
   </>
 }

@@ -137,7 +137,7 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 				utils.Log(fmt.Sprintf("Removing container %s...", action.Name))
 
 				DockerClient.ContainerKill(DockerContext, action.Name, "SIGKILL")
-				err := DockerClient.ContainerRemove(DockerContext, action.Name, doctype.ContainerRemoveOptions{})
+				err := DockerClient.ContainerRemove(DockerContext, action.Name, conttype.RemoveOptions{})
 		
 				if err != nil {
 					utils.Error("Rollback: Container", err)
@@ -679,7 +679,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			PortBindings: PortBindings,
 			Mounts:       container.Volumes,
 			RestartPolicy: conttype.RestartPolicy{
-				Name: container.RestartPolicy,
+				Name: conttype.RestartPolicyMode(container.RestartPolicy),
 			},
 			Privileged:   container.Privileged,
 			NetworkMode:  conttype.NetworkMode(container.NetworkMode),
@@ -752,7 +752,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			// remove the container
 			utils.Log("CreateService: Removing container: " + container.Name)
 			OnLog("Removing container: " + container.Name + "\n")
-			err = DockerClient.ContainerRemove(DockerContext, container.Name, doctype.ContainerRemoveOptions{})
+			err = DockerClient.ContainerRemove(DockerContext, container.Name, conttype.RemoveOptions{})
 			if err != nil {
 				utils.Error("CreateService: Rolling back changes because of -- Container", err)
 				OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
@@ -908,7 +908,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 	// Start all the newly created containers
 	for _, container := range startOrder {
-		err = DockerClient.ContainerStart(DockerContext, container.Name, doctype.ContainerStartOptions{})
+		err = DockerClient.ContainerStart(DockerContext, container.Name, conttype.StartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
 			OnLog(utils.DoErr("Rolling back changes because of -- Container start error" + container.Name + " : "+err.Error()))

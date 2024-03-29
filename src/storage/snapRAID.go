@@ -35,11 +35,16 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 		return errors.New("Name must be at least 3 characters and contain only letters and numbers")
 	}
 
-	// check config
-	// TODO redo for map
-	// if len(data) <= 1 {
-	// 	return errors.New("At least 2 data disks are required")
-	// }
+	// Check config
+	count := 0
+	for _, d := range data {
+		if d != "" {
+			count++
+		}
+	}
+	if count <= 1 {
+		return errors.New("At least 2 data disks are required")
+	}
 
 	if len(parity) == 0 {
 		return errors.New("At least 1 parity disk is required")
@@ -84,13 +89,35 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 		}
 	}
 
-	// TODO: Check if exist
+	// Check if already exist
+	if editRaid == "" {
+		for _, r := range utils.GetMainConfig().Storage.SnapRAIDs {
+			if r.Name == raidOptions.Name {
+				return errors.New("Name already exist")
+			}
+		}
+	}
 
-	// TODO: Check if partiy is the biggest disk
-
-	// TODO: Check if file already exist / config already exist
-
-	// TODO: Check if parity is not in data
+	// Check if partiy is the biggest disk
+	// Check if parity is not in data
+	for _, p := range parity {
+		for _, d := range data {
+			if p == d {
+				return errors.New("Parity disk cannot be a data disk")
+			}
+			pd, err := findParent(disks, p)
+			if err != nil {
+				return errors.New("Parity disk must be a disk")
+			}
+			dd, err := findParent(disks, d)
+			if err != nil {
+				return errors.New("Data disk must be a disk")
+			}
+			if dd.Size.Int64 > pd.Size.Int64 {
+				return errors.New("Parity disk must be the biggest disk")
+			}
+		}
+	}
 
 	// save to config 
 	config := utils.ReadConfigFromFile()
@@ -103,6 +130,7 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 			}
 		}
 	}
+
 	// add the new one
 	config.Storage.SnapRAIDs = append(config.Storage.SnapRAIDs, raidOptions)
 	utils.SetBaseMainConfig(config)
@@ -117,8 +145,6 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 	})
 
 	InitSnapRAIDConfig()
-
-	// TODO: plan a sync
 
 	return nil
 }

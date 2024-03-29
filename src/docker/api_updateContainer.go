@@ -74,7 +74,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 		if(form.RestartPolicy != "") {
 			// THIS IS HACK BECAUSE USER IS NULLABLE, BETTER SOLUTION TO COME
 			container.Config.User = form.User
-			container.HostConfig.RestartPolicy = containerType.RestartPolicy{Name: form.RestartPolicy}
+			container.HostConfig.RestartPolicy = containerType.RestartPolicy{Name: containerType.RestartPolicyMode(form.RestartPolicy)}
 		}
 		if(form.Env != nil) {
 			container.Config.Env = form.Env

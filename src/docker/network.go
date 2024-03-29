@@ -11,6 +11,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types"
+	conttype "github.com/docker/docker/api/types/container"
 	network "github.com/docker/docker/api/types/network"
 	natting "github.com/docker/go-connections/nat"
 	
@@ -455,7 +456,7 @@ func NetworkCleanUp() {
 		}
 
 		// list all containers including exited ones
-		containers, err := DockerClient.ContainerList(DockerContext, types.ContainerListOptions{All: true})
+		containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{All: true})
 		if err != nil {
 			utils.Error("[DOCKER] Cleanup: Error listing containers", err)
 		}

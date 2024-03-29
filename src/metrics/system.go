@@ -16,6 +16,7 @@ import (
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/storage"
 )
 
 func GetSystemMetrics() {
@@ -248,4 +249,19 @@ func GetSystemMetrics() {
 		}
 	}
 
+	// Disk health
+	disks, err := storage.ListDisks()
+	if err != nil {
+		utils.Error("Metrics - Error fetching Disk health:", err)
+	} else {
+		for _, disk := range disks {
+			PushSetMetric("system.disk-health.temperature." + disk.Name, int(disk.SMART.Temperature), DataDef{
+				Period: time.Second * 60,
+				Label: "Disk Temperature " + disk.Name,
+				AggloType: "avg",
+				Unit: "°C",
+				Object: "disk@" + disk.Name,
+			})
+		}
+	}
 }

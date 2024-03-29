@@ -8,6 +8,7 @@ import (
 	"strings"
 	"fmt"
 	"sync"
+	"os"
 	"sync/atomic"
 
 	"github.com/mxk/go-flowrate/flowrate"
@@ -376,7 +377,7 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 
 		if og != reqHostNoPort {
 			PushShieldMetrics("hostname")
-			Error("Invalid Hostname " + r.Host + " for request.", nil)
+			Error("Invalid Hostname " + r.Host + " for request", nil)
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
 			
@@ -554,4 +555,19 @@ func ContentTypeMiddleware(contentType string) func(next http.Handler) http.Hand
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func SPAHandler(fs http.Handler, indexFile string) http.Handler {
+	pwd,_ := os.Getwd()
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// if file does not exist or is a directory, serve index.html
+		if r.URL.Path == "/" || r.URL.Path == "" {
+			http.ServeFile(w, r, pwd + indexFile)
+		}	else if stat, err := os.Stat(pwd + "/static" + r.URL.Path); os.IsNotExist(err) || stat.IsDir() {
+			http.ServeFile(w, r, pwd + indexFile)
+		} else {
+			fs.ServeHTTP(w, r)
+		}
+	})
 }

@@ -11,6 +11,7 @@ import (
 	// "strings"
 	// "encoding/json"
 
+	conttype "github.com/docker/docker/api/types/container"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -63,8 +64,6 @@ func splitIntoChunks(input string) []string {
 
 	return chunks
 }
-
-// TODO destroy websocket properly
 
 func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 	if utils.AdminOnly(w, r) != nil {
@@ -140,7 +139,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 	
 		utils.Log("Created new shell and attached to it in container " + containerID)
 	} else {
-		options := types.ContainerAttachOptions{
+		options := conttype.AttachOptions{
 			Stream: true,
 			Stdin:  true,
 			Stdout: true,
