@@ -75,6 +75,7 @@ type result struct {
 	CachedImage CachedImage
 	Error       error
 }
+
 func GetFavicon(w http.ResponseWriter, req *http.Request) {
 	if utils.LoggedInOnly(w, req) != nil {
 			return
@@ -82,6 +83,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 
 	// get url from query string
 	escsiteurl := req.URL.Query().Get("q")
+	isServappMode := req.URL.Query().Get("servapp")
 
 	IconCacheLock <- true
 	defer func() { <-IconCacheLock }()
@@ -93,6 +95,23 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "FA002")
 			return
 	}
+	
+	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork && isServappMode != "" {
+		parsedURL, err := url.Parse(siteurl)
+		if err != nil {
+			utils.Error("Favicon: URL parse", err)
+			utils.HTTPError(w, "URL parse", http.StatusInternalServerError, "FA001")
+			return
+		}
+
+		hostname := parsedURL.Hostname()
+
+		ip, _ := utils.GetContainerIPByName(hostname)
+		if ip != "" {
+			siteurl = strings.Replace(siteurl, hostname, ip, 1)
+		}
+	}
+
 
 	if req.Method == "GET" {
 			utils.Log("Fetch favicon for " + siteurl)
@@ -256,6 +275,7 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 
 	// get url from query string
 	escsiteurl := req.URL.Query().Get("q")
+	isServappMode := req.URL.Query().Get("servapp")
 	
 	// URL decode
 	siteurl, err := url.QueryUnescape(escsiteurl)
@@ -264,8 +284,23 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Ping URL decode", http.StatusInternalServerError, "FA002")
 		return
 	}
-
 	
+	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork && isServappMode != "" {
+		parsedURL, err := url.Parse(siteurl)
+		if err != nil {
+			utils.Error("Favicon: URL parse", err)
+			utils.HTTPError(w, "URL parse", http.StatusInternalServerError, "FA001")
+			return
+		}
+
+		hostname := parsedURL.Hostname()
+
+		ip, _ := utils.GetContainerIPByName(hostname)
+		if ip != "" {
+			siteurl = strings.Replace(siteurl, hostname, ip, 1)
+		}
+	}
+
 	if(req.Method == "GET") { 
 		utils.Log("Ping for " + siteurl)
 

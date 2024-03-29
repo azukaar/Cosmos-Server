@@ -65,12 +65,12 @@ export const getFaviconURL = (route) => {
     return logogray;
   }
 
-  const addRemote = (url) => {
-    return '/cosmos/api/favicon?q=' + encodeURIComponent(url)
+  const addRemote = (url, servapp) => {
+    return '/cosmos/api/favicon?q=' + encodeURIComponent(url) + (servapp ? '&servapp=true' : '');
   }
 
   if (route.Mode == "SERVAPP" || route.Mode == "PROXY") {
-    return addRemote(route.Target)
+    return addRemote(route.Target, route.Mode == "SERVAPP")
   } else if (route.Mode == "STATIC") {
     return Folder;
   } else {
