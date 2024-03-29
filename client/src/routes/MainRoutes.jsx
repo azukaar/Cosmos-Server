@@ -16,6 +16,7 @@ import ConstellationIndex  from '../pages/constellation';
 import StorageIndex from '../pages/storage';
 import DashboardDefault from '../pages/dashboard';
 import { CronManager } from '../pages/cron/jobsManage';
+import PrivateRoute from '../PrivateRoute';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -26,14 +27,14 @@ const MainRoutes = {
         {
             path: '/',
             // redirect to /cosmos-ui
-            element: <Navigate to="/cosmos-ui" />
+            element: <Navigate to="/cosmos-ui/" />
         },
         {
             path: '/cosmos-ui/logo',
             // redirect to /cosmos-ui
             element: <Navigate to={logo} />
         },
-        {
+        [{
             path: '/cosmos-ui',
             element: <HomePage />
         },
@@ -96,8 +97,11 @@ const MainRoutes = {
         {
             path: '/cosmos-ui/cron',
             element: <CronManager />
-        }
-    ]
+        }].map(children => ({
+            ...children,
+            element: PrivateRoute({ children: children.element })
+        }))
+    ].flat()
 };
 
 export default MainRoutes;
