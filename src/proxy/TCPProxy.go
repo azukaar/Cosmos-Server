@@ -46,6 +46,7 @@ func startProxy(listenAddr string, target string, stop chan bool) {
     listener, err := net.Listen("tcp", listenAddr)
     if err != nil {
         utils.Error("Failed to listen on " + listenAddr, err)
+        return
     }
     defer listener.Close()
 

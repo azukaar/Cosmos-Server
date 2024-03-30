@@ -105,9 +105,9 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 		if route.Host != "" && route.UseHost {
 			hostname = route.Host
 		}
-		if route.UsePathPrefix {
-			hostname = hostname + route.PathPrefix
-		}
+		// if route.UsePathPrefix {
+		// 	hostname = hostname + route.PathPrefix
+		// }
 
 		hostDest := hostname
 		hostPort := ""
@@ -199,7 +199,6 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	}  else if (routeType == "STATIC") {
 		return http.FileServer(http.Dir(destination))
 	}  else if (routeType == "SPA") {
-		// fs := http.FileServer(http.Dir(destination))
 		return utils.SPAHandler(destination)
 	} else if(routeType == "REDIRECT") {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

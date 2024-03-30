@@ -503,9 +503,10 @@ func InitServer() *mux.Router {
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
-	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
-	}))
+	// router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  //   http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
+	// }))
+
 	router.HandleFunc("/cosmos-ui", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
 	}))
