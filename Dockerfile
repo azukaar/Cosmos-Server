@@ -14,7 +14,8 @@ ENV npm_config_cache=$CACHE_DIR/npm
 RUN --mount=type=cache,target=$npm_config_cache \
   npm ci && npm audit fix && npm cache clean --force
 
-COPY . .
+COPY vite.config.js .
+COPY client client
 RUN --mount=type=cache,target=./node_modules/.vite \
   npm run client-build
 
@@ -28,7 +29,7 @@ COPY go.mod go.sum .
 RUN --mount=type=cache,target=$GOMODCACHE \
   go mod download && go mod verify
 
-COPY . .
+COPY src src
 ENV GOOS=$TARGETOS GOARCH=$TARGETARCH GOCACHE=$CACHE_DIR/go-build
 RUN --mount=type=cache,target=$GOCACHE --mount=type=cache,target=$GOMODCACHE \
   go build -o build/cosmos src/*.go
