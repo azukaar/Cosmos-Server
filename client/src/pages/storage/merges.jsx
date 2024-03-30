@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import * as API  from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
-import { DeleteButton } from "../../components/delete";
+import { DeleteButton, DeleteIconButton } from "../../components/delete";
 import { CloudOutlined, CloudServerOutlined, CompassOutlined, DeleteOutlined, DesktopOutlined, EditOutlined, FolderOutlined, LaptopOutlined, MobileOutlined, ReloadOutlined, TabletOutlined } from "@ant-design/icons";
 import { Alert, Button, CircularProgress, InputLabel, ListItemIcon, ListItemText, MenuItem, Stack } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
@@ -75,11 +75,11 @@ export const StorageMerges = () => {
               title: '',
               clickable:true, 
               field: (r) => <>
-                <ResponsiveButton color={'error'} variant="outlined" startIcon={<DeleteOutlined />} onClick={() => {
+                <DeleteIconButton onDelete={() => {
                   API.storage.mounts.unmount({ mountPoint: r.path, permanent: true }).then(() => {
                     refresh();
                   });
-                }}>Delete</ResponsiveButton>
+                }} />
               </>
             },
           ]}
