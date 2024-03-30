@@ -222,8 +222,8 @@ export const Parity = () => {
                     </ListItemIcon>
                     <ListItemText>Fix</ListItemText>
                   </MenuItem>
-                  <MenuItem>
-                    <ListItemIcon disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>
+                  <MenuItem disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>
+                    <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>Delete</ListItemText>

@@ -152,10 +152,21 @@ func CreateSnapRAID(raidOptions utils.SnapRAIDConfig, editRaid string) error {
 func DeleteSnapRAID(name string) error {
 	utils.ConfigLock.Lock()
 	defer utils.ConfigLock.Unlock()
+
+	os.Remove(utils.CONFIGFOLDER + "snapraid/" + name + ".conf")
+	
 	
 	config := utils.ReadConfigFromFile()
 	for i, r := range config.Storage.SnapRAIDs {
 		if r.Name == name {
+			// remove the snapraid.content and snapraid.parity files, and lock fiels
+			for _, d := range r.Data {
+				os.Remove(d + "/snapraid.content")
+				os.Remove(d + "/snapraid.parity")
+				os.Remove(d + "/snapraid.content.lock")
+				os.Remove(d + "/snapraid.parity.lock")
+			}
+
 			config.Storage.SnapRAIDs = append(config.Storage.SnapRAIDs[:i], config.Storage.SnapRAIDs[i+1:]...)
 			utils.SetBaseMainConfig(config)
 			utils.Log("Deleted SnapRAID " + name)

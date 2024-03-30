@@ -100,18 +100,20 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		}
 	}
 
+	// Execute the mount command
+	out, err := utils.Exec("mount", path, mountpoint)
+	utils.Debug(out)
+	if err != nil {
+		return err
+	}
+	
 	if chown != "" {
 		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
-		_, err := utils.Exec("chown", chown, mountpoint)
+		out, err := utils.Exec("chown", chown, mountpoint)
+		utils.Debug(out)
 		if err != nil {
 			return err
 		}
-	}
-
-	// Execute the mount command
-	_, err := utils.Exec("mount", path, mountpoint)
-	if err != nil {
-		return err
 	}
 
 	if permanent {

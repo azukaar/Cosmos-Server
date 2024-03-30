@@ -32,15 +32,6 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 		}
 	}
 
-	// chown the mountpoint
-	if chown != "" {
-		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
-		_, err := utils.Exec("chown", chown, mountpoint)
-		if err != nil {
-			return err
-		}
-	}
-
 	if len(opts) > 0 && opts[0] != ',' {
 		opts = "," + opts
 	}
@@ -52,6 +43,16 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 	}
 
 	utils.Log("[STORAGE] command: mergerfs -o use_ino,cache.files=partial,dropcacheonclose=true,allow_other,category.create=mfs" + opts + " " + strings.Join(paths, ":") + " " + mountpoint)
+
+	// chown the mountpoint
+	if chown != "" {
+		utils.Log("[STORAGE] Chowning " + mountpoint + " to " + chown)
+		out, err := utils.Exec("chown", chown, mountpoint)
+		utils.Debug(out)
+		if err != nil {
+			return err
+		}
+	}
 
 	if permanent {
 		utils.Log("[STORAGE] Adding mountpoint to /etc/fstab")

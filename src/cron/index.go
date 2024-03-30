@@ -201,12 +201,6 @@ func InitJobs() {
 			cmd = JobFromContainerCommand(job.Container, "sh", "-c", job.Command)
 		}
 
-		if job.Enabled {
-			utils.Log("Adding CRON job: " + job.Name)
-		} else {
-			utils.Log("Adding CRON job: " + job.Name + " (disabled)")
-		}
-
 		j := ConfigJob{
 			Scheduler: "Custom",
 			Name: job.Name,

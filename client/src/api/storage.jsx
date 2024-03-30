@@ -10,23 +10,23 @@ const mounts = {
     }))
   },
 
-  mount: ({path, mountPoint, permanent}) => {
+  mount: ({path, mountPoint, permanent, chown}) => {
     return wrap(fetch('/cosmos/api/mount', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({path, mountPoint, permanent})
+      body: JSON.stringify({path, mountPoint, permanent, chown})
     }))
   },
 
-  unmount: ({mountPoint, permanent}) => {
+  unmount: ({mountPoint, permanent, chown}) => {
     return wrap(fetch('/cosmos/api/unmount', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({mountPoint, permanent})
+      body: JSON.stringify({mountPoint, permanent, chown})
     }))
   },
 
