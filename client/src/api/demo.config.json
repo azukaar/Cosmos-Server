@@ -312,6 +312,18 @@
 			"Hostname": "xxxxxxxxxxxxx",
 			"SSLEmail": "myemail@gmail.com"
 		},
+		"MarketConfig": {
+			"Sources": [
+				{
+					"Name": "CasaOS",
+					"Url": "https://azukaar.github.io/cosmos-casaos-store/index.json"
+				},
+				{
+					"Name": "TinyActive",
+					"Url": "https://cosmos.manhtuong.net"
+				}
+			]
+		},
 		"MonitoringAlerts": {
 			"Anti Crypto-Miner": {
 				"Name": "Anti Crypto-Miner",
@@ -505,6 +517,40 @@
 				}
 			},
 			"ConstellationHostname": "vpn.domain.com"
+		},
+		"Storage": {
+			"SnapRAIDs": [
+				{
+					"Name": "Storage Parity",
+					"Enabled": true,
+					"Data": {
+						"disk0": "/var/mnt/sdc1",
+						"disk1": "/var/mnt/sdd1"
+					},
+					"Parity": [
+						"/var/mnt/sda1"
+					],
+					"SyncCrontab": "* 0 2 * * *",
+					"ScrubCrontab": "* 0 4 */2 * *",
+					"CheckOnFix": false
+				}
+			]
+		},
+		"CRON": {
+			"Long Job": {
+				"Enabled": true,
+				"Name": "Long Job",
+				"Crontab": "0 1/2 * * * *",
+				"Command": "sleep 5 \u0026\u0026 echo \"hello world 2\"",
+				"Container": ""
+			},
+			"Short job": {
+				"Enabled": true,
+				"Name": "Short job",
+				"Crontab": "0 1 * * * *",
+				"Command": "ls",
+				"Container": "memos"
+			}
 		}
 	},
 	"updates": {

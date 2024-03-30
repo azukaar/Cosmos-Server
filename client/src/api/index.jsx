@@ -16,6 +16,8 @@ import * as indexDemo from './index.demo';
 import * as marketDemo from './market.demo';
 import * as constellationDemo from './constellation.demo';
 import * as metricsDemo from './metrics.demo';
+import * as storageDemo from './storage.demo';
+import * as cronDemo from './cron.demo';
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -236,6 +238,8 @@ if(isDemo) {
   uploadImage = indexDemo.uploadImage;
   constellation = constellationDemo;
   metrics = metricsDemo;
+  storage = storageDemo;
+  cron = cronDemo;
 }
 
 export {
