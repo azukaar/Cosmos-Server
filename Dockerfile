@@ -12,7 +12,7 @@ WORKDIR $APP_BUILD_DIR
 COPY package.json package-lock.json .
 ENV npm_config_cache=$CACHE_DIR/npm
 RUN --mount=type=cache,target=$npm_config_cache \
-  npm ci && npm cache clean --force
+  npm ci && npm audit fix && npm cache clean --force
 
 COPY . .
 RUN --mount=type=cache,target=./node_modules/.vite \
