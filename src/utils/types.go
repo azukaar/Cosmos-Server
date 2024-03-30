@@ -167,6 +167,7 @@ type HTTPConfig struct {
 	AcceptAllInsecureHostname bool
 	DNSChallengeConfig map[string]string `json:"DNSChallengeConfig,omitempty"`
 	UseForwardedFor bool
+	AllowSearchEngine bool
 } 
 
 const (

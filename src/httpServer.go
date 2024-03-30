@@ -348,10 +348,12 @@ func InitServer() *mux.Router {
 	}
 
 	// robots.txt
-	router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("User-agent: *\nDisallow: /"))
-	})
+	if !config.HTTPConfig.AllowSearchEngine {
+		router.HandleFunc("/robots.txt", func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte("User-agent: *\nDisallow: /"))
+		})
+	}
 	
 	logoAPI := router.PathPrefix("/logo").Subrouter()
 	SecureAPI(logoAPI, true, true)

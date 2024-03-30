@@ -104,6 +104,7 @@ const ConfigManagement = () => {
           ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
           OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
           UseForwardedFor: config.HTTPConfig.UseForwardedFor,
+          AllowSearchEngine: config.HTTPConfig.AllowSearchEngine,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -185,6 +186,7 @@ const ConfigManagement = () => {
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
               UseForwardedFor: values.UseForwardedFor,
+              AllowSearchEngine: values.AllowSearchEngine,
             },
             EmailConfig: {
               ...config.EmailConfig,
@@ -561,6 +563,13 @@ const ConfigManagement = () => {
                         </FormHelperText>
                       )}
                     </Stack>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <CosmosCheckbox 
+                      label="Allow search engines to index your server"
+                      name="AllowSearchEngine"
+                      formik={formik}
+                    />
                   </Grid>
                   </Grid>
               </MainCard>
