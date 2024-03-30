@@ -1,3 +1,8 @@
+## Version 0.15.1
+ - Add a toggle for search engine indexing
+ - Fix an issue with the TCP proxy and ports already bound
+ - Improve subpath handling
+
 ## Version 0.15.0
  - Added Disk management (Format, mount, SMART, etc...)
  - Added MergerFS support and configurator
