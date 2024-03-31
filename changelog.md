@@ -1,3 +1,6 @@
+## Version 0.15.2
+ - Fix an issue with DB creations
+
 ## Version 0.15.1
  - Add a toggle for search engine indexing
  - Fix an issue with the TCP proxy and ports already bound
