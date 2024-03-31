@@ -136,8 +136,6 @@ Most tools currently used to self-host **not specifically designed to be secure 
 
 If you have any further questions, feel free to join our [Discord](https://discord.gg/PwMWwsrwHA)!
 
-**Disclaimer**: _Cosmos is still in early Alpha stage, please be careful when you use it. It is not (yet, at least ;p) a replacement for proper control and mindfulness of your own security._
-
 # Let's Encrypt
 
 Cosmos Server can automatically generate and renews HTTPS certificates for your applications using Let's Encrypt. It is compatible with wildcard certificates, using the DNS challenge. In order to do it, you need to add `DNSChallengeProvider` to the `HTTPConfig` in your config (or in the UI). And then add the proper API token via environment variables. To know what providers are supported and what environment variable they need, please refer to [this page](https://go-acme.github.io/lego/dns/#dns-providers).
@@ -164,7 +162,7 @@ Installation is simple using Docker:
 docker run -d --network host  --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
 ```
 
-**DO NOT USE <span style="color:red">DOCKER-COMPOSE</span>, <span style="color:red">UNRAID TEMPLATES</span>, <span style="color:red">CASAOS</span> OR <span style="color:red">PORTAINER STACKS</span> TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY. JUST RUN THE `DOCKER RUN` COMMAND!**
+**DO NOT USE <span style="color:red">UNRAID TEMPLATES</span>, <span style="color:red">CASAOS</span> OR <span style="color:red">PORTAINER STACKS</span> TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY. JUST RUN THE `DOCKER RUN` COMMAND!**. You can use Docker-Compose but if you are on mac or windows (so no host mode) without a domain, that will prevent Cosmos from binding ports to itself! (preventing ip:port from working properly)
 
 **IF YOU ARE USING <span style="color:red">WINDOWS</span> OR <span style="color:red">MAC OS</span> YOU CANNOT USE THE HOST MODE OF DOCKER. Please replace `--network host` with `-p 80:80 -p 443:443 -p 4242:4242/udp`**
 

@@ -185,7 +185,7 @@ const NewInstall = () => {
                             setSubmitting(true);
                             
                             setPullRequest(() => ((cb) => {
-                                API.newInstall({
+                                return API.newInstall({
                                     step: "2",
                                     MongoDBMode: values.DBMode,
                                     MongoDB: values.MongoDB,
@@ -213,6 +213,7 @@ const NewInstall = () => {
                                         formik.setStatus({ success: false });
                                         formik.setErrors({ submit: error.message });
                                         formik.setSubmitting(false);
+                                        console.error(error)
                                         pullRequestOnSuccess();
                                     }}
                                     OnClose={() => {
