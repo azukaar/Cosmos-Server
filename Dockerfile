@@ -46,6 +46,8 @@ COPY --from=app-builder $APP_BUILD_DIR/build .
 
 VOLUME /config
 
+ENV APP_BIN=$APP_TARGET_DIR/cosmos
+
 EXPOSE 443 80 4242/udp
-ENTRYPOINT "/app/cosmos"
+ENTRYPOINT $APP_BIN
 CMD []
