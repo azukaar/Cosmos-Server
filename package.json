@@ -80,16 +80,16 @@
     }
   },
   "scripts": {
-    "client": "vite",
-    "client-build": "vite build --base=/cosmos-ui/",
-    "start": "env COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
-    "build": "sh build.sh",
-    "dev": "npm run build && npm run start",
-    "dockerdevbuild": "docker build -f dockerfile.local --tag cosmos-dev .",
-    "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242/udp -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
-    "dockerdev": "npm run client-build && npm run dockerdevbuild && npm run dockerdevrun",
-    "demo": "vite build --base=/cosmos-ui/ --mode demo",
-    "devdemo": "vite --mode demo"
+    "setup:env": "cross-env VITE_IS_DEMO=$npm_config_demo",
+    "start": "if-env npm_config_docker=true && ! npm run start:docker || npm run start:native",
+    "start:native": "concurrently -kp '{{name}}>' -n 'VITE,SERV' -c 'bgYellow.bold,bgMagenta.bold' 'npm:start:client' 'npm:start:backend'",
+    "start:client": "npm run setup:env vite",
+    "start:backend": "COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true COSMOS_HTTP_PORT=8443 go run src/*.go",
+    "prestart:docker": "npm run build:docker && docker rm -f cosmos-dev && if-env npm_config_clean=true && rm -rf /var/lib/cosmos || true",
+    "start:docker": "docker run -it --rm --cap-add NET_ADMIN -p 7200:443 -p 80:8443 -p 443:443 -p 4242:4242/udp --privileged -v /var/run/docker.sock:/var/run/docker.sock -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host -h cosmos-dev -v /var/lib/cosmos:/config --name cosmos-dev cosmos-dev",
+    "build:client": "npm run setup:env vite build --base=/cosmos-ui/",
+    "build:backend": "go build -o build/cosmos src/*.go",
+    "build:docker": "docker build --tag cosmos-dev ."
   },
   "eslintConfig": {
     "extends": [
@@ -120,6 +120,8 @@
     "@types/lodash.map": "^4.6.13",
     "@types/lodash.merge": "^4.6.9",
     "@types/lodash.pull": "^4.1.9",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "eslint": "^8.23.1",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
@@ -131,6 +133,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.8",
     "eslint-plugin-react-hooks": "4.6.0",
+    "if-env": "^1.0.4",
     "prettier": "2.7.1"
   }
 }

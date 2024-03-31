@@ -32,16 +32,16 @@ Make sure you have the binary set in the root of your workspace like  this:
 
 The Front-end is compiled using Vite, a nodejs app that bundles frontend. It is written in React.
 First, install dependencies with `npm install`.
-Once node is installed, you can simply start the frontend's code with: `npm run client`. This will start the client dev server on :5173
+Once node is installed, you can simply start the frontend's code with: `npm run start:client`. This will start the client dev server on :5173
 
 ### Building the Client
 
-One you are done developing, you can build the client locally with `npm run client-build`
+One you are done developing, you can build the client locally with `npm run build:client`
 
 ### Setting up the dev server
 
-Server is a bit more tricky. Once Go is installed, first use `npm run build` to build the server. it will be built in the build/ folder.
-Make sure you build the client at least once (previous section) as the build script simply copy paste the output of the `client-build` script.
+Server is a bit more tricky. Once Go is installed, first use `npm run build:backend` to build the server. it will be built in the build/ folder.
+Make sure you build the client at least once (previous section) as the build script simply copy paste the output of the `build:client` script.
 
 The server can be started with `npm run start` this will run Cosmos with a bunch of arguments. The most importants are
 

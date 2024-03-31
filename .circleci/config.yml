@@ -74,7 +74,7 @@ jobs:
 
       - run:
           name: Build UI
-          command: npm run client-build
+          command: npm run build:client
 
       - run:
           name: Build and publish dockerfiles
@@ -133,7 +133,7 @@ jobs:
 
       - run:
           name: Build UI
-          command: npm run client-build
+          command: npm run build:client
 
       - run:
           name: Build and publish dockerfiles

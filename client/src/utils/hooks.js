@@ -2,7 +2,7 @@ import React from 'react';
 import { useCookies } from 'react-cookie';
 import { logout } from '../api/authentication';
 
-const isDemo = import.meta.env.MODE === 'demo';
+const isDemo = import.meta.env.VITE_IS_DEMO === 'true';
 
 function useClientInfos() {
   const [cookies] = useCookies(['client-infos']);

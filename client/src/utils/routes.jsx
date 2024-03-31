@@ -52,7 +52,7 @@ export const getFullOrigin = (route) => {
   return addProtocol(getOrigin(route));
 }
 
-const isDemo = import.meta.env.MODE === 'demo';
+const isDemo = import.meta.env.VITE_IS_DEMO === 'true';
 
 export const getFaviconURL = (route) => {
   if (isDemo) {

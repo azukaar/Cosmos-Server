@@ -12,12 +12,12 @@ WORKDIR $APP_BUILD_DIR
 COPY package.json package-lock.json .
 ENV npm_config_cache=$CACHE_DIR/npm
 RUN --mount=type=cache,target=$npm_config_cache \
-  npm ci && npm audit fix && npm cache clean --force
+  npm ci || (npm cache clean --force && npm ci)
 
 COPY vite.config.js .
 COPY client client
 RUN --mount=type=cache,target=./node_modules/.vite \
-  npm run client-build
+  npm run build:client
 
 FROM --platform=$BUILDPLATFORM $GO_IMAGE AS app-builder
 ARG APP_BUILD_DIR TARGETOS TARGETARCH CACHE_DIR
@@ -47,5 +47,5 @@ COPY --from=app-builder $APP_BUILD_DIR/build .
 VOLUME /config
 
 EXPOSE 443 80 4242/udp
-ENTRYPOINT [$APP_TARGET_DIR/cosmos]
+ENTRYPOINT "/app/cosmos"
 CMD []
