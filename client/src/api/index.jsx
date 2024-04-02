@@ -210,7 +210,7 @@ let uploadImage = (file, name) => {
   }));
 };
 
-const isDemo = import.meta.env.VITE_IS_DEMO === 'true';
+const isDemo = import.meta.env.FARM_IS_DEMO === 'true';
 
 let auth = _auth;
 let users = _users;

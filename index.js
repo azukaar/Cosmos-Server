@@ -1,1 +1,0 @@
-console.log(process.env.VITE_IS_DEMO)

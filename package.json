@@ -21,7 +21,6 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
-    "@vitejs/plugin-react": "^3.1.0",
     "@xterm/addon-fit": "^0.9.0",
     "@xterm/xterm": "^5.4.0",
     "apexcharts": "^3.35.5",
@@ -67,7 +66,6 @@
     "simplebar-react": "^2.4.1",
     "timeago.js": "^4.0.2",
     "typescript": "4.8.3",
-    "vite": "^4.2.0",
     "web-vitals": "^3.0.2",
     "whiskers": "^0.4.0",
     "xterm-addon-fit": "^0.8.0",
@@ -80,26 +78,23 @@
     }
   },
   "scripts": {
-    "setup:env": "cross-env VITE_IS_DEMO=$npm_config_demo",
-    "start": "if-env npm_config_docker=true && ! npm run start:docker || npm run start:native",
-    "start:native": "concurrently -kp '{{name}}>' -n 'VITE,SERV' -c 'bgYellow.bold,bgMagenta.bold' 'npm:start:client' 'npm:start:backend'",
-    "start:client": "npm run setup:env vite",
+    "setup:env": "cross-env FARM_IS_DEMO=$npm_config_demo",
+    "start": "if if-env npm_config_docker=true; then npm run start:docker; else npm run start:native; fi",
+    "start:native": "concurrently -kp '{{name}}>' -n 'FARM,SERV' -c 'bgYellow.bold,bgMagenta.bold' 'npm:start:client' 'npm:start:backend'",
+    "start:client": "npm run setup:env farm",
     "start:backend": "COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true COSMOS_HTTP_PORT=8443 go run src/*.go",
-    "prestart:docker": "npm run build:docker && docker rm -f cosmos-dev && if-env npm_config_clean=true && rm -rf /var/lib/cosmos || true",
-    "start:docker": "docker run -it --rm --cap-add NET_ADMIN -p 7200:443 -p 80:8443 -p 443:443 -p 4242:4242/udp --privileged -v /var/run/docker.sock:/var/run/docker.sock -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host -h cosmos-dev -v /var/lib/cosmos:/config --name cosmos-dev cosmos-dev",
-    "build:client": "npm run setup:env vite build --base=/cosmos-ui/",
-    "build:backend": "go build -o build/cosmos src/*.go",
-    "build:docker": "docker build --tag cosmos-dev ."
+    "prestart:docker": "docker rm -f cosmos-dev 2> /dev/null && if-env npm_config_clean=true && rm -rf /var/lib/cosmos || true",
+    "start:docker": "npm run build:docker && docker run -it --rm --cap-add NET_ADMIN -p 7200:443 -p 8443:80 -p 443:443 -p 4242:4242/udp --privileged -v /var/run/docker.sock:/var/run/docker.sock -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host -h cosmos-dev -v /var/lib/cosmos:/config --name cosmos-dev cosmos-dev",
+    "build": "if if-env npm_config_docker=true; then npm run build:docker; else npm run build:native; fi",
+    "build:docker": "docker build --build-arg npm_config_demo=$npm_config_demo --tag cosmos-dev .",
+    "build:native": "concurrently -kp '{{name}}>' -n 'FARM,SERV' -c 'bgYellow.bold,bgMagenta.bold' 'npm:build:client' 'npm:build:backend'",
+    "build:client": "npm run setup:env farm build",
+    "build:backend": "go build -o build/cosmos src/*.go"
   },
   "eslintConfig": {
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "@babel/preset-react"
     ]
   },
   "browserslist": {
@@ -117,6 +112,9 @@
   "devDependencies": {
     "@babel/core": "^7.19.1",
     "@babel/eslint-parser": "^7.19.1",
+    "@farmfe/cli": "^1.0.0",
+    "@farmfe/core": "^1.0.11",
+    "@farmfe/plugin-react": "^1.0.1",
     "@types/lodash.map": "^4.6.13",
     "@types/lodash.merge": "^4.6.9",
     "@types/lodash.pull": "^4.1.9",
@@ -134,6 +132,7 @@
     "eslint-plugin-react": "^7.31.8",
     "eslint-plugin-react-hooks": "4.6.0",
     "if-env": "^1.0.4",
-    "prettier": "2.7.1"
+    "prettier": "2.7.1",
+    "react-refresh": "^0.14.0"
   }
 }

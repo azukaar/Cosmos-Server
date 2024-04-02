@@ -6,7 +6,7 @@ ARG APP_BUILD_DIR=/usr/src/app
 ARG APP_TARGET_DIR=/usr
 
 FROM --platform=$BUILDPLATFORM $NODEJS_IMAGE AS node-builder
-ARG APP_BUILD_DIR NODE_ENV CACHE_DIR
+ARG APP_BUILD_DIR NODE_ENV CACHE_DIR npm_config_demo
 WORKDIR $APP_BUILD_DIR
 
 COPY package.json package-lock.json .
@@ -14,10 +14,10 @@ ENV npm_config_cache=$CACHE_DIR/npm
 RUN --mount=type=cache,target=$npm_config_cache \
   npm ci || (npm cache clean --force && npm ci)
 
-COPY vite.config.js .
+COPY farm.config.ts .
 COPY client client
-RUN --mount=type=cache,target=./node_modules/.vite \
-  npm run build:client
+RUN --mount=type=cache,target=./node_modules/.farm \
+  npm_config_demo=$npm_config_demo npm run build:client
 
 FROM --platform=$BUILDPLATFORM $GO_IMAGE AS app-builder
 ARG APP_BUILD_DIR TARGETOS TARGETARCH CACHE_DIR

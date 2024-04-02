@@ -1,10 +1,8 @@
 node_modules
 build
-.vite
 static
 .bin
 client/dist
-client/.vite
 config_dev.json
 config_dev.old.json
 tests
