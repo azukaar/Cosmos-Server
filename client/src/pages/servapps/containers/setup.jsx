@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Field, Formik } from "formik";
 import {
   Button,
@@ -53,6 +53,13 @@ const containerInfoFrom = (values) => {
   return realvalues;
 };
 
+const restartPolicies = [
+  ["no", "No Restart"],
+  ["always", "Always Restart"],
+  ["on-failure", "Restart On Failure"],
+  ["unless-stopped", "Restart Unless Stopped"],
+];
+
 const DockerContainerSetup = ({
   noCard,
   containerInfo,
@@ -62,24 +69,111 @@ const DockerContainerSetup = ({
   newContainer,
   OnForceSecure,
 }) => {
-  const restartPolicies = [
-    ["no", "No Restart"],
-    ["always", "Always Restart"],
-    ["on-failure", "Restart On Failure"],
-    ["unless-stopped", "Restart Unless Stopped"],
-  ];
-  const [pullRequest, setPullRequest] = React.useState(null);
+  const [pullRequest, setPullRequest] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const padding = isMobile ? "6px 4px" : "12px 10px";
-  const [latestImage, setLatestImage] = React.useState(
-    containerInfo.Config.Image
-  );
+  const [latestImage, setLatestImage] = useState(containerInfo.Config.Image);
 
   const wrapCard = (children) => {
     if (noCard) return children;
     return <MainCard title="Docker Container Setup">{children}</MainCard>;
   };
+
+  const initialValues = useMemo(() => {
+    return {
+      name: containerInfo.Name.replace("/", ""),
+      image: containerInfo.Config.Image,
+      restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
+      user: containerInfo.Config.User,
+      envVars: containerInfo.Config.Env.map((envVar) => {
+        const [key, value] = envVar.split(/=(.*)/s);
+        return { key, value };
+      }),
+      labels: Object.keys(containerInfo.Config.Labels).map((key) => {
+        return { key, value: containerInfo.Config.Labels[key] };
+      }),
+      devices: containerInfo.HostConfig.Devices
+        ? containerInfo.HostConfig.Devices.map((device) => {
+            return typeof device == "string"
+              ? {
+                  key: device.split(":")[0],
+                  value: device.split(":")[1] || device.split(":")[0],
+                }
+              : { key: device.PathOnHost, value: device.PathInContainer };
+          })
+        : [],
+      interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
+    };
+  }, [
+    containerInfo.Config.Env,
+    containerInfo.Config.Image,
+    containerInfo.Config.Labels,
+    containerInfo.Config.OpenStdin,
+    containerInfo.Config.Tty,
+    containerInfo.Config.User,
+    containerInfo.HostConfig.Devices,
+    containerInfo.HostConfig.RestartPolicy.Name,
+    containerInfo.Name,
+  ]);
+
+  const onValidate = useCallback(
+    (values) => {
+      const errors = {};
+      if (!values.image) {
+        errors.image = "Required";
+      }
+      if (!values.name && newContainer) {
+        errors.name = "Required";
+      }
+      // env keys and labels key mustbe unique
+      const envKeys = values.envVars.map((envVar) => envVar.key);
+      const labelKeys = values.labels.map((label) => label.key);
+      const uniqueEnvKeysKeys = [...new Set(envKeys)];
+      const uniqueLabelKeys = [...new Set(labelKeys)];
+      if (uniqueEnvKeysKeys.length !== envKeys.length) {
+        errors.submit = "Environment Variables must be unique";
+      }
+      if (uniqueLabelKeys.length !== labelKeys.length) {
+        errors.submit = "Labels must be unique";
+      }
+      OnChange && OnChange(containerInfoFrom(values));
+      return errors;
+    },
+    [OnChange, newContainer]
+  );
+
+  const onSubmit = useCallback(
+    async (values, { setErrors, setStatus, setSubmitting }) => {
+      if (values.image !== latestImage) {
+        setPullRequest(
+          () => (cb) => API.docker.pullImage(values.image, cb, true)
+        );
+        return;
+      }
+
+      if (newContainer) return false;
+      delete values.name;
+
+      setSubmitting(true);
+
+      let realvalues = containerInfoFrom(values);
+
+      return API.docker
+        .updateContainer(containerInfo.Name.replace("/", ""), realvalues)
+        .then((res) => {
+          setStatus({ success: true });
+          setSubmitting(false);
+          refresh && refresh();
+        })
+        .catch((err) => {
+          setStatus({ success: false });
+          setErrors({ submit: err.message });
+          setSubmitting(false);
+        });
+    },
+    [containerInfo.Name, latestImage, newContainer, refresh]
+  );
 
   return (
     <div
@@ -91,82 +185,10 @@ const DockerContainerSetup = ({
       }}
     >
       <Formik
-        initialValues={{
-          name: containerInfo.Name.replace("/", ""),
-          image: containerInfo.Config.Image,
-          restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
-          user: containerInfo.Config.User,
-          envVars: containerInfo.Config.Env.map((envVar) => {
-            const [key, value] = envVar.split(/=(.*)/s);
-            return { key, value };
-          }),
-          labels: Object.keys(containerInfo.Config.Labels).map((key) => {
-            return { key, value: containerInfo.Config.Labels[key] };
-          }),
-          devices: containerInfo.HostConfig.Devices
-            ? containerInfo.HostConfig.Devices.map((device) => {
-                return typeof device == "string"
-                  ? {
-                      key: device.split(":")[0],
-                      value: device.split(":")[1] || device.split(":")[0],
-                    }
-                  : { key: device.PathOnHost, value: device.PathInContainer };
-              })
-            : [],
-          interactive:
-            containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
-        }}
+        initialValues={initialValues}
         enableReinitialize
-        validate={(values) => {
-          const errors = {};
-          if (!values.image) {
-            errors.image = "Required";
-          }
-          if (!values.name && newContainer) {
-            errors.name = "Required";
-          }
-          // env keys and labels key mustbe unique
-          const envKeys = values.envVars.map((envVar) => envVar.key);
-          const labelKeys = values.labels.map((label) => label.key);
-          const uniqueEnvKeysKeys = [...new Set(envKeys)];
-          const uniqueLabelKeys = [...new Set(labelKeys)];
-          if (uniqueEnvKeysKeys.length !== envKeys.length) {
-            errors.submit = "Environment Variables must be unique";
-          }
-          if (uniqueLabelKeys.length !== labelKeys.length) {
-            errors.submit = "Labels must be unique";
-          }
-          OnChange && OnChange(containerInfoFrom(values));
-          return errors;
-        }}
-        onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-          if (values.image !== latestImage) {
-            setPullRequest(
-              () => (cb) => API.docker.pullImage(values.image, cb, true)
-            );
-            return;
-          }
-
-          if (newContainer) return false;
-          delete values.name;
-
-          setSubmitting(true);
-
-          let realvalues = containerInfoFrom(values);
-
-          return API.docker
-            .updateContainer(containerInfo.Name.replace("/", ""), realvalues)
-            .then((res) => {
-              setStatus({ success: true });
-              setSubmitting(false);
-              refresh && refresh();
-            })
-            .catch((err) => {
-              setStatus({ success: false });
-              setErrors({ submit: err.message });
-              setSubmitting(false);
-            });
-        }}
+        validate={onValidate}
+        onSubmit={onSubmit}
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
@@ -261,26 +283,20 @@ const DockerContainerSetup = ({
                         <Grid container key={idx}>
                           <Grid item xs={5} style={{ padding }}>
                             <TextField
+                              name={`envVars.${idx}.key`}
+                              onChange={formik.handleChange}
                               label="Key"
                               fullWidth
                               value={envVar.key}
-                              onChange={(e) => {
-                                const newEnvVars = [...formik.values.envVars];
-                                newEnvVars[idx].key = e.target.value;
-                                formik.setFieldValue("envVars", newEnvVars);
-                              }}
                             />
                           </Grid>
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
+                              name={`envVars.${idx}.value`}
+                              onChange={formik.handleChange}
                               fullWidth
                               label="Value"
                               value={envVar.value}
-                              onChange={(e) => {
-                                const newEnvVars = [...formik.values.envVars];
-                                newEnvVars[idx].value = e.target.value;
-                                formik.setFieldValue("envVars", newEnvVars);
-                              }}
                             />
                           </Grid>
                           <Grid item xs={1} style={{ padding }}>
@@ -299,6 +315,7 @@ const DockerContainerSetup = ({
                           </Grid>
                         </Grid>
                       ))}
+
                       <ResponsiveButton
                         variant="outlined"
                         color="primary"
@@ -320,26 +337,20 @@ const DockerContainerSetup = ({
                         <Grid container key={idx}>
                           <Grid item xs={5} style={{ padding }}>
                             <TextField
+                              name={`labels.${idx}.key`}
                               fullWidth
                               label="Key"
                               value={label.key}
-                              onChange={(e) => {
-                                const newLabels = [...formik.values.labels];
-                                newLabels[idx].key = e.target.value;
-                                formik.setFieldValue("labels", newLabels);
-                              }}
+                              onChange={formik.handleChange}
                             />
                           </Grid>
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
+                              name={`labels.${idx}.value`}
                               label="Value"
                               fullWidth
                               value={label.value}
-                              onChange={(e) => {
-                                const newLabels = [...formik.values.labels];
-                                newLabels[idx].value = e.target.value;
-                                formik.setFieldValue("labels", newLabels);
-                              }}
+                              onChange={formik.handleChange}
                             />
                           </Grid>
                           <Grid item xs={1} style={{ padding }}>
@@ -379,26 +390,20 @@ const DockerContainerSetup = ({
                         <Grid container key={idx}>
                           <Grid item xs={5} style={{ padding }}>
                             <TextField
+                              name={`devices.${idx}.key`}
                               fullWidth
                               label="Host Path"
                               value={device.key}
-                              onChange={(e) => {
-                                const newDevices = [...formik.values.devices];
-                                newDevices[idx].key = e.target.value;
-                                formik.setFieldValue("devices", newDevices);
-                              }}
+                              onChange={formik.handleChange}
                             />
                           </Grid>
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
+                              name={`devices.${idx}.value`}
                               label="Container Path"
                               fullWidth
                               value={device.value}
-                              onChange={(e) => {
-                                const newDevices = [...formik.values.devices];
-                                newDevices[idx].value = e.target.value;
-                                formik.setFieldValue("devices", newDevices);
-                              }}
+                              onChange={formik.handleChange}
                             />
                           </Grid>
                           <Grid item xs={1} style={{ padding }}>

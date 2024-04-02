@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { Formik } from "formik";
 import {
   Button,
@@ -31,7 +31,7 @@ const VolumeContainerSetup = ({
   const [volumes, setVolumes] = React.useState([]);
   const theme = useTheme();
 
-  React.useEffect(() => {
+  useEffect(() => {
     API.docker.volumeList().then((res) => {
       setVolumes(res.data.Volumes);
     });
@@ -56,6 +56,68 @@ const VolumeContainerSetup = ({
     return <MainCard title="Volume Mounts">{children}</MainCard>;
   };
 
+  const initialValues = useMemo(() => {
+    return {
+      volumes: [
+        ...(containerInfo.HostConfig.Mounts || []),
+        ...(containerInfo.HostConfig.Binds || []).map((bind) => {
+          const [source, destination, mode] = bind.split(":");
+          return {
+            Type: "bind",
+            Source: source,
+            Target: destination,
+          };
+        }),
+      ],
+    };
+  }, [containerInfo.HostConfig.Binds, containerInfo.HostConfig.Mounts]);
+
+  const onValidate = useCallback(
+    (values) => {
+      const errors = {};
+      // check unique
+      const volumes = values.volumes.map((volume) => {
+        return `${volume.Target}`;
+      });
+      const unique = [...new Set(volumes)];
+      if (unique.length !== volumes.length) {
+        errors.submit = "Mounts must have unique targets";
+      }
+      OnChange && OnChange(values, volumes);
+      return errors;
+    },
+    [OnChange]
+  );
+
+  const onSubmit = useCallback(
+    async (values, { setErrors, setStatus, setSubmitting }) => {
+      if (newContainer) return;
+      setSubmitting(true);
+      const realvalues = {
+        Volumes: values.volumes.map((volume) => ({
+          Type: volume.Type,
+          Source: volume.Source,
+          Target: volume.Target,
+          ReadOnly: false, // TODO: add support for this
+        })),
+      };
+      return API.docker
+        .updateContainer(containerInfo.Name.replace("/", ""), realvalues)
+        .then((res) => {
+          setStatus({ success: true });
+          setSubmitting(false);
+          refresh && refresh();
+        })
+        .catch((err) => {
+          setStatus({ success: false });
+          setErrors({ submit: err.message });
+          setSubmitting(false);
+          refresh && refresh();
+        });
+    },
+    [containerInfo.Name, newContainer, refresh]
+  );
+
   return (
     <Stack spacing={2}>
       <div
@@ -67,58 +129,10 @@ const VolumeContainerSetup = ({
         }}
       >
         <Formik
-          initialValues={{
-            volumes: [
-              ...(containerInfo.HostConfig.Mounts || []),
-              ...(containerInfo.HostConfig.Binds || []).map((bind) => {
-                const [source, destination, mode] = bind.split(":");
-                return {
-                  Type: "bind",
-                  Source: source,
-                  Target: destination,
-                };
-              }),
-            ],
-          }}
+          initialValues={initialValues}
           enableReinitialize
-          validate={(values) => {
-            const errors = {};
-            // check unique
-            const volumes = values.volumes.map((volume) => {
-              return `${volume.Target}`;
-            });
-            const unique = [...new Set(volumes)];
-            if (unique.length !== volumes.length) {
-              errors.submit = "Mounts must have unique targets";
-            }
-            OnChange && OnChange(values, volumes);
-            return errors;
-          }}
-          onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-            if (newContainer) return;
-            setSubmitting(true);
-            const realvalues = {
-              Volumes: values.volumes.map((volume) => ({
-                Type: volume.Type,
-                Source: volume.Source,
-                Target: volume.Target,
-                ReadOnly: false, // TODO: add support for this
-              })),
-            };
-            return API.docker
-              .updateContainer(containerInfo.Name.replace("/", ""), realvalues)
-              .then((res) => {
-                setStatus({ success: true });
-                setSubmitting(false);
-                refresh && refresh();
-              })
-              .catch((err) => {
-                setStatus({ success: false });
-                setErrors({ submit: err.message });
-                setSubmitting(false);
-                refresh && refresh();
-              });
-          }}
+          validate={onValidate}
+          onSubmit={onSubmit}
         >
           {(formik) => (
             <form noValidate onSubmit={formik.handleSubmit}>
@@ -182,20 +196,11 @@ const VolumeContainerSetup = ({
                                     className="px-2 my-2"
                                     disabled={frozenVolumes.includes(r.Source)}
                                     variant="outlined"
-                                    name="Type"
                                     id="Type"
                                     select
                                     value={r.Type}
-                                    onChange={(e) => {
-                                      const newVolumes = [
-                                        ...formik.values.volumes,
-                                      ];
-                                      newVolumes[k].Type = e.target.value;
-                                      formik.setFieldValue(
-                                        "volumes",
-                                        newVolumes
-                                      );
-                                    }}
+                                    name={`volumes[${k}].Type`}
+                                    onChange={formik.handleChange}
                                   >
                                     <MenuItem value="bind">Bind</MenuItem>
                                     <MenuItem value="volume">Volume</MenuItem>
@@ -219,29 +224,20 @@ const VolumeContainerSetup = ({
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
-                                      name="Source"
+                                      name={`volumes[${k}].Source`}
                                       id="Source"
                                       disabled={frozenVolumes.includes(
                                         r.Source
                                       )}
                                       style={{ minWidth: "200px" }}
                                       value={r.Source}
-                                      onChange={(e) => {
-                                        const newVolumes = [
-                                          ...formik.values.volumes,
-                                        ];
-                                        newVolumes[k].Source = e.target.value;
-                                        formik.setFieldValue(
-                                          "volumes",
-                                          newVolumes
-                                        );
-                                      }}
+                                      onChange={formik.handleChange}
                                     />
                                   ) : (
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
-                                      name="Source"
+                                      name={`volumes[${k}].Source`}
                                       id="Source"
                                       disabled={frozenVolumes.includes(
                                         r.Source
@@ -249,16 +245,7 @@ const VolumeContainerSetup = ({
                                       select
                                       style={{ minWidth: "200px" }}
                                       value={r.Source}
-                                      onChange={(e) => {
-                                        const newVolumes = [
-                                          ...formik.values.volumes,
-                                        ];
-                                        newVolumes[k].Source = e.target.value;
-                                        formik.setFieldValue(
-                                          "volumes",
-                                          newVolumes
-                                        );
-                                      }}
+                                      onChange={formik.handleChange}
                                     >
                                       {[...volumes, r].map((volume) => (
                                         <MenuItem
@@ -288,21 +275,12 @@ const VolumeContainerSetup = ({
                                   <TextField
                                     className="px-2 my-2"
                                     variant="outlined"
-                                    name="Target"
+                                    name={`volumes[${k}].Target`}
                                     id="Target"
                                     disabled={frozenVolumes.includes(r.Source)}
                                     style={{ minWidth: "200px" }}
                                     value={r.Target}
-                                    onChange={(e) => {
-                                      const newVolumes = [
-                                        ...formik.values.volumes,
-                                      ];
-                                      newVolumes[k].Target = e.target.value;
-                                      formik.setFieldValue(
-                                        "volumes",
-                                        newVolumes
-                                      );
-                                    }}
+                                    onChange={formik.handleChange}
                                   />
                                 </div>
                               ),
