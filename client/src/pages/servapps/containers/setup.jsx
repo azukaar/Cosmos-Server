@@ -1,14 +1,31 @@
-import React from 'react';
-import { Field, Formik } from 'formik';
-import { Button, Stack, Grid, MenuItem, TextField, IconButton, FormHelperText, useMediaQuery, useTheme, Alert, FormControlLabel, Checkbox } from '@mui/material';
-import MainCard from '../../../components/MainCard';
-import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect }
-  from '../../config/users/formShortcuts';
-import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import * as API from '../../../api';
-import { LoadingButton } from '@mui/lab';
-import LogsInModal from '../../../components/logsInModal';
-import ResponsiveButton from '../../../components/responseiveButton';
+import React from "react";
+import { Field, Formik } from "formik";
+import {
+  Button,
+  Stack,
+  Grid,
+  MenuItem,
+  TextField,
+  IconButton,
+  FormHelperText,
+  useMediaQuery,
+  useTheme,
+  Alert,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
+import MainCard from "../../../components/MainCard";
+import {
+  CosmosCheckbox,
+  CosmosFormDivider,
+  CosmosInputText,
+  CosmosSelect,
+} from "../../config/users/formShortcuts";
+import { DeleteOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import * as API from "../../../api";
+import { LoadingButton } from "@mui/lab";
+import LogsInModal from "../../../components/logsInModal";
+import ResponsiveButton from "../../../components/responseiveButton";
 
 const containerInfoFrom = (values) => {
   const labels = {};
@@ -23,7 +40,7 @@ const containerInfoFrom = (values) => {
   const envVars = values.envVars.map((envVar) => {
     return `${envVar.key}=${envVar.value}`;
   });
-  
+
   const realvalues = {
     ...values,
     envVars: envVars,
@@ -34,33 +51,48 @@ const containerInfoFrom = (values) => {
   realvalues.interactive = realvalues.interactive ? 2 : 1;
 
   return realvalues;
-}
+};
 
-const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refresh, newContainer, OnForceSecure }) => {
+const DockerContainerSetup = ({
+  noCard,
+  containerInfo,
+  installer,
+  OnChange,
+  refresh,
+  newContainer,
+  OnForceSecure,
+}) => {
   const restartPolicies = [
-    ['no', 'No Restart'],
-    ['always', 'Always Restart'],
-    ['on-failure', 'Restart On Failure'],
-    ['unless-stopped', 'Restart Unless Stopped'],
+    ["no", "No Restart"],
+    ["always", "Always Restart"],
+    ["on-failure", "Restart On Failure"],
+    ["unless-stopped", "Restart Unless Stopped"],
   ];
   const [pullRequest, setPullRequest] = React.useState(null);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const padding = isMobile ? '6px 4px' : '12px 10px';
-  const [latestImage, setLatestImage] = React.useState(containerInfo.Config.Image);
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const padding = isMobile ? "6px 4px" : "12px 10px";
+  const [latestImage, setLatestImage] = React.useState(
+    containerInfo.Config.Image
+  );
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title="Docker Container Setup">
-      {children}
-    </MainCard>;
+    return <MainCard title="Docker Container Setup">{children}</MainCard>;
   };
 
   return (
-    <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+    <div
+      style={{
+        maxWidth: "1000px",
+        width: "100%",
+        margin: "",
+        position: "relative",
+      }}
+    >
       <Formik
         initialValues={{
-          name: containerInfo.Name.replace('/', ''),
+          name: containerInfo.Name.replace("/", ""),
           image: containerInfo.Config.Image,
           restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
           user: containerInfo.Config.User,
@@ -71,21 +103,27 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
           labels: Object.keys(containerInfo.Config.Labels).map((key) => {
             return { key, value: containerInfo.Config.Labels[key] };
           }),
-          devices: containerInfo.HostConfig.Devices ? containerInfo.HostConfig.Devices.map((device) => {
-            return (typeof device == "string") ? 
-              { key: device.split(":")[0], value: (device.split(":")[1] || device.split(":")[0]) } 
-            : { key: device.PathOnHost, value: device.PathInContainer };
-          }) : [],
-          interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
+          devices: containerInfo.HostConfig.Devices
+            ? containerInfo.HostConfig.Devices.map((device) => {
+                return typeof device == "string"
+                  ? {
+                      key: device.split(":")[0],
+                      value: device.split(":")[1] || device.split(":")[0],
+                    }
+                  : { key: device.PathOnHost, value: device.PathInContainer };
+              })
+            : [],
+          interactive:
+            containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
         }}
         enableReinitialize
         validate={(values) => {
           const errors = {};
           if (!values.image) {
-            errors.image = 'Required';
+            errors.image = "Required";
           }
           if (!values.name && newContainer) {
-            errors.name = 'Required';
+            errors.name = "Required";
           }
           // env keys and labels key mustbe unique
           const envKeys = values.envVars.map((envVar) => envVar.key);
@@ -93,17 +131,19 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
           const uniqueEnvKeysKeys = [...new Set(envKeys)];
           const uniqueLabelKeys = [...new Set(labelKeys)];
           if (uniqueEnvKeysKeys.length !== envKeys.length) {
-            errors.submit = 'Environment Variables must be unique';
+            errors.submit = "Environment Variables must be unique";
           }
           if (uniqueLabelKeys.length !== labelKeys.length) {
-            errors.submit = 'Labels must be unique';
+            errors.submit = "Labels must be unique";
           }
           OnChange && OnChange(containerInfoFrom(values));
           return errors;
         }}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           if (values.image !== latestImage) {
-            setPullRequest(() => ((cb) => API.docker.pullImage(values.image, cb, true)));
+            setPullRequest(
+              () => (cb) => API.docker.pullImage(values.image, cb, true)
+            );
             return;
           }
 
@@ -114,13 +154,14 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
 
           let realvalues = containerInfoFrom(values);
 
-          return API.docker.updateContainer(containerInfo.Name.replace('/', ''), realvalues)
+          return API.docker
+            .updateContainer(containerInfo.Name.replace("/", ""), realvalues)
             .then((res) => {
               setStatus({ success: true });
               setSubmitting(false);
               refresh && refresh();
-            }
-            ).catch((err) => {
+            })
+            .catch((err) => {
               setStatus({ success: false });
               setErrors({ submit: err.message });
               setSubmitting(false);
@@ -129,282 +170,313 @@ const DockerContainerSetup = ({ noCard, containerInfo, installer, OnChange, refr
       >
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
-            {pullRequest && <LogsInModal
-              request={pullRequest}
-              title="Pulling New Image..."
-              OnSuccess={() => {
-                setPullRequest(null);
-                setLatestImage(formik.values.image);
-              }}
-              OnClose={() => {
-                setPullRequest(null);
-              }}
-            />}
+            {pullRequest && (
+              <LogsInModal
+                request={pullRequest}
+                title="Pulling New Image..."
+                OnSuccess={() => {
+                  setPullRequest(null);
+                  setLatestImage(formik.values.image);
+                }}
+                OnClose={() => {
+                  setPullRequest(null);
+                }}
+              />
+            )}
             <Stack spacing={2}>
-              {wrapCard(<>
-                {containerInfo.State && containerInfo.State.Status !== 'running' && (
-                  <Alert severity="warning" style={{ marginBottom: '15px' }}>
-                    This container is not running. Editing any settings will cause the container to start again.
-                  </Alert>
-                )}
-                <Grid container spacing={4}>
-                  {!installer && <>
-                    {newContainer && <CosmosInputText
-                      name="name"
-                      label="Name"
-                      placeholder="Name"
-                      formik={formik}
-                    />}
-                    <CosmosInputText
-                      name="image"
-                      label="Image"
-                      placeholder="Image"
-                      formik={formik}
-                    />
-                    <CosmosSelect
-                      name="restartPolicy"
-                      label="Restart Policy"
-                      placeholder="Restart Policy"
-                      options={restartPolicies}
-                      formik={formik}
-                    />
-                    <CosmosInputText
-                      name="user"
-                      label="User"
-                      placeholder="User"
-                      formik={formik}
-                    />
-                    <CosmosCheckbox
-                      name="interactive"
-                      label="Interactive Mode"
-                      formik={formik}
-                    />
-                    {OnForceSecure && <Grid item xs={12}>
-                      <Checkbox
-                        type="checkbox"
-                        as={FormControlLabel}
-                        control={<Checkbox size="large" />}
-                        label={'Force secure container'}
-                        checked={
-                          containerInfo.Config.Labels.hasOwnProperty('cosmos-force-network-secured') &&
-                          containerInfo.Config.Labels['cosmos-force-network-secured'] === 'true'
-                        }
-                        onChange={(e) => {
-                          OnForceSecure(e.target.checked);
-                        }}
-                      />
-                    </Grid>}
-                  </>}
+              {wrapCard(
+                <>
+                  {containerInfo.State &&
+                    containerInfo.State.Status !== "running" && (
+                      <Alert
+                        severity="warning"
+                        style={{ marginBottom: "15px" }}
+                      >
+                        This container is not running. Editing any settings will
+                        cause the container to start again.
+                      </Alert>
+                    )}
+                  <Grid container spacing={4}>
+                    {!installer && (
+                      <>
+                        {newContainer && (
+                          <CosmosInputText
+                            name="name"
+                            label="Name"
+                            placeholder="Name"
+                            formik={formik}
+                          />
+                        )}
+                        <CosmosInputText
+                          name="image"
+                          label="Image"
+                          placeholder="Image"
+                          formik={formik}
+                        />
+                        <CosmosSelect
+                          name="restartPolicy"
+                          label="Restart Policy"
+                          placeholder="Restart Policy"
+                          options={restartPolicies}
+                          formik={formik}
+                        />
+                        <CosmosInputText
+                          name="user"
+                          label="User"
+                          placeholder="User"
+                          formik={formik}
+                        />
+                        <CosmosCheckbox
+                          name="interactive"
+                          label="Interactive Mode"
+                          formik={formik}
+                        />
+                        {OnForceSecure && (
+                          <Grid item xs={12}>
+                            <Checkbox
+                              type="checkbox"
+                              as={FormControlLabel}
+                              control={<Checkbox size="large" />}
+                              label={"Force secure container"}
+                              checked={
+                                containerInfo.Config.Labels.hasOwnProperty(
+                                  "cosmos-force-network-secured"
+                                ) &&
+                                containerInfo.Config.Labels[
+                                  "cosmos-force-network-secured"
+                                ] === "true"
+                              }
+                              onChange={(e) => {
+                                OnForceSecure(e.target.checked);
+                              }}
+                            />
+                          </Grid>
+                        )}
+                      </>
+                    )}
 
-                  <CosmosFormDivider title={'Environment Variables'} />
-                  <Grid item xs={12}>
-                    {formik.values.envVars.map((envVar, idx) => (
-                      <Grid container key={idx}>
-                        <Grid item xs={5} style={{ padding }}>
-                          <TextField
-                            label="Key"
-                            fullWidth
-                            value={envVar.key}
-                            onChange={(e) => {
-                              const newEnvVars = [...formik.values.envVars];
-                              newEnvVars[idx].key = e.target.value;
-                              formik.setFieldValue('envVars', newEnvVars);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={6} style={{ padding }}>
-                          <TextField
-                            fullWidth
-                            label="Value"
-                            value={envVar.value}
-                            onChange={(e) => {
-                              const newEnvVars = [...formik.values.envVars];
-                              newEnvVars[idx].value = e.target.value;
-                              formik.setFieldValue('envVars', newEnvVars);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={1} style={{ padding }}>
-                          <IconButton
-                            fullWidth
-                            variant="outlined"
-                            color="error"
-                            onClick={() => {
-                              const newEnvVars = [...formik.values.envVars];
-                              newEnvVars.splice(idx, 1);
-                              formik.setFieldValue('envVars', newEnvVars);
-                            }}
-                          >
-                            <DeleteOutlined />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <ResponsiveButton
-                      variant="outlined"
-                      color="primary"
-                      size='large'
-                      onClick={() => {
-                        const newEnvVars = [...formik.values.envVars];
-                        newEnvVars.push({ key: '', value: '' });
-                        formik.setFieldValue('envVars', newEnvVars);
-                      }}
-                      startIcon={<PlusCircleOutlined />}
-                    >
-                      Add
-                    </ResponsiveButton>
-                  </Grid>
-
-                  <CosmosFormDivider title={'Labels'} />
-                  <Grid item xs={12}>
-                    {formik.values.labels.map((label, idx) => (
-                      <Grid container key={idx}>
-                        <Grid item xs={5} style={{ padding }}>
-                          <TextField
-                            fullWidth
-                            label="Key"
-                            value={label.key}
-                            onChange={(e) => {
-                              const newLabels = [...formik.values.labels];
-                              newLabels[idx].key = e.target.value;
-                              formik.setFieldValue('labels', newLabels);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={6} style={{ padding }}>
-                          <TextField
-                            label="Value"
-                            fullWidth
-                            value={label.value}
-                            onChange={(e) => {
-                              const newLabels = [...formik.values.labels];
-                              newLabels[idx].value = e.target.value;
-                              formik.setFieldValue('labels', newLabels);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={1} style={{ padding }}>
-                          <IconButton
-                            fullWidth
-                            variant="outlined"
-                            color="error"
-                            onClick={() => {
-                              const newLabels = [...formik.values.labels];
-                              newLabels.splice(idx, 1);
-                              formik.setFieldValue('labels', newLabels);
-                            }}
-                          >
-                            <DeleteOutlined />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <ResponsiveButton
-                      variant="outlined"
-                      color="primary"
-                      size='large'
-                      onClick={() => {
-                        const newLabels = [...formik.values.labels];
-                        newLabels.push({ key: '', value: '' });
-                        formik.setFieldValue('labels', newLabels);
-                      }}
-                      startIcon={<PlusCircleOutlined />}
-                    >
-                      Add
-                    </ResponsiveButton>
-                  </Grid>
-
-                  <CosmosFormDivider title={'Devices'} />
-                  <Grid item xs={12}>
-                    {formik.values.devices.map((device, idx) => (
-                      <Grid container key={idx}>
-                        <Grid item xs={5} style={{ padding }}>
-                          <TextField
-                            fullWidth
-                            label="Host Path"
-                            value={device.key}
-                            onChange={(e) => {
-                              const newDevices = [...formik.values.devices];
-                              newDevices[idx].key = e.target.value;
-                              formik.setFieldValue('devices', newDevices);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={6} style={{ padding }}>
-                          <TextField
-                            label="Container Path"
-                            fullWidth
-                            value={device.value}
-                            onChange={(e) => {
-                              const newDevices = [...formik.values.devices];
-                              newDevices[idx].value = e.target.value;
-                              formik.setFieldValue('devices', newDevices);
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={1} style={{ padding }}>
-                          <IconButton
-                            fullWidth
-                            variant="outlined"
-                            color="error"
-                            onClick={() => {
-                              const newDevices = [...formik.values.devices];
-                              newDevices.splice(idx, 1);
-                              formik.setFieldValue('devices', newDevices);
-                            }}
-                          >
-                            <DeleteOutlined />
-                          </IconButton>
-                        </Grid>
-                      </Grid>
-                    ))}
-                    <ResponsiveButton
-                      variant="outlined"
-                      color="primary"
-                      size='large'
-                      onClick={() => {
-                        const newDevices = [...formik.values.devices];
-                        newDevices.push({ key: '', value: '' });
-                        formik.setFieldValue('devices', newDevices);
-                      }}
-                      startIcon={<PlusCircleOutlined />}
-                    >
-                      Add
-                    </ResponsiveButton>
-                  </Grid>
-
-
-                </Grid>
-              </>)}
-              {!newContainer && <MainCard>
-                <Stack direction="column" spacing={2}>
-                  {formik.errors.submit && (
+                    <CosmosFormDivider title={"Environment Variables"} />
                     <Grid item xs={12}>
-                      <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                      {formik.values.envVars.map((envVar, idx) => (
+                        <Grid container key={idx}>
+                          <Grid item xs={5} style={{ padding }}>
+                            <TextField
+                              label="Key"
+                              fullWidth
+                              value={envVar.key}
+                              onChange={(e) => {
+                                const newEnvVars = [...formik.values.envVars];
+                                newEnvVars[idx].key = e.target.value;
+                                formik.setFieldValue("envVars", newEnvVars);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6} style={{ padding }}>
+                            <TextField
+                              fullWidth
+                              label="Value"
+                              value={envVar.value}
+                              onChange={(e) => {
+                                const newEnvVars = [...formik.values.envVars];
+                                newEnvVars[idx].value = e.target.value;
+                                formik.setFieldValue("envVars", newEnvVars);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={1} style={{ padding }}>
+                            <IconButton
+                              fullWidth
+                              variant="outlined"
+                              color="error"
+                              onClick={() => {
+                                const newEnvVars = [...formik.values.envVars];
+                                newEnvVars.splice(idx, 1);
+                                formik.setFieldValue("envVars", newEnvVars);
+                              }}
+                            >
+                              <DeleteOutlined />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      ))}
+                      <ResponsiveButton
+                        variant="outlined"
+                        color="primary"
+                        size="large"
+                        onClick={() => {
+                          const newEnvVars = [...formik.values.envVars];
+                          newEnvVars.push({ key: "", value: "" });
+                          formik.setFieldValue("envVars", newEnvVars);
+                        }}
+                        startIcon={<PlusCircleOutlined />}
+                      >
+                        Add
+                      </ResponsiveButton>
                     </Grid>
-                  )}
-                  {formik.values.image !== latestImage && <Alert severity="warning" style={{ marginBottom: '15px' }}>
-                    You have updated the image. Clicking the button below will pull the new image, and then only can you update the container.
-                  </Alert>}
-                  <LoadingButton
-                    fullWidth
-                    disableElevation
-                    disabled={formik.errors.submit}
-                    loading={formik.isSubmitting}
-                    size="large"
-                    type="submit"
-                    variant="contained"
-                    color="primary"
-                  >
-                    {formik.values.image !== latestImage ? 'Pull New Image' : 'Update Container'}
-                  </LoadingButton>
-                </Stack>
-              </MainCard>}
+
+                    <CosmosFormDivider title={"Labels"} />
+                    <Grid item xs={12}>
+                      {formik.values.labels.map((label, idx) => (
+                        <Grid container key={idx}>
+                          <Grid item xs={5} style={{ padding }}>
+                            <TextField
+                              fullWidth
+                              label="Key"
+                              value={label.key}
+                              onChange={(e) => {
+                                const newLabels = [...formik.values.labels];
+                                newLabels[idx].key = e.target.value;
+                                formik.setFieldValue("labels", newLabels);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6} style={{ padding }}>
+                            <TextField
+                              label="Value"
+                              fullWidth
+                              value={label.value}
+                              onChange={(e) => {
+                                const newLabels = [...formik.values.labels];
+                                newLabels[idx].value = e.target.value;
+                                formik.setFieldValue("labels", newLabels);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={1} style={{ padding }}>
+                            <IconButton
+                              fullWidth
+                              variant="outlined"
+                              color="error"
+                              onClick={() => {
+                                const newLabels = [...formik.values.labels];
+                                newLabels.splice(idx, 1);
+                                formik.setFieldValue("labels", newLabels);
+                              }}
+                            >
+                              <DeleteOutlined />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      ))}
+                      <ResponsiveButton
+                        variant="outlined"
+                        color="primary"
+                        size="large"
+                        onClick={() => {
+                          const newLabels = [...formik.values.labels];
+                          newLabels.push({ key: "", value: "" });
+                          formik.setFieldValue("labels", newLabels);
+                        }}
+                        startIcon={<PlusCircleOutlined />}
+                      >
+                        Add
+                      </ResponsiveButton>
+                    </Grid>
+
+                    <CosmosFormDivider title={"Devices"} />
+                    <Grid item xs={12}>
+                      {formik.values.devices.map((device, idx) => (
+                        <Grid container key={idx}>
+                          <Grid item xs={5} style={{ padding }}>
+                            <TextField
+                              fullWidth
+                              label="Host Path"
+                              value={device.key}
+                              onChange={(e) => {
+                                const newDevices = [...formik.values.devices];
+                                newDevices[idx].key = e.target.value;
+                                formik.setFieldValue("devices", newDevices);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6} style={{ padding }}>
+                            <TextField
+                              label="Container Path"
+                              fullWidth
+                              value={device.value}
+                              onChange={(e) => {
+                                const newDevices = [...formik.values.devices];
+                                newDevices[idx].value = e.target.value;
+                                formik.setFieldValue("devices", newDevices);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={1} style={{ padding }}>
+                            <IconButton
+                              fullWidth
+                              variant="outlined"
+                              color="error"
+                              onClick={() => {
+                                const newDevices = [...formik.values.devices];
+                                newDevices.splice(idx, 1);
+                                formik.setFieldValue("devices", newDevices);
+                              }}
+                            >
+                              <DeleteOutlined />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      ))}
+                      <ResponsiveButton
+                        variant="outlined"
+                        color="primary"
+                        size="large"
+                        onClick={() => {
+                          const newDevices = [...formik.values.devices];
+                          newDevices.push({ key: "", value: "" });
+                          formik.setFieldValue("devices", newDevices);
+                        }}
+                        startIcon={<PlusCircleOutlined />}
+                      >
+                        Add
+                      </ResponsiveButton>
+                    </Grid>
+                  </Grid>
+                </>
+              )}
+              {!newContainer && (
+                <MainCard>
+                  <Stack direction="column" spacing={2}>
+                    {formik.errors.submit && (
+                      <Grid item xs={12}>
+                        <FormHelperText error>
+                          {formik.errors.submit}
+                        </FormHelperText>
+                      </Grid>
+                    )}
+                    {formik.values.image !== latestImage && (
+                      <Alert
+                        severity="warning"
+                        style={{ marginBottom: "15px" }}
+                      >
+                        You have updated the image. Clicking the button below
+                        will pull the new image, and then only can you update
+                        the container.
+                      </Alert>
+                    )}
+                    <LoadingButton
+                      fullWidth
+                      disableElevation
+                      disabled={formik.errors.submit}
+                      loading={formik.isSubmitting}
+                      size="large"
+                      type="submit"
+                      variant="contained"
+                      color="primary"
+                    >
+                      {formik.values.image !== latestImage
+                        ? "Pull New Image"
+                        : "Update Container"}
+                    </LoadingButton>
+                  </Stack>
+                </MainCard>
+              )}
             </Stack>
           </form>
         )}
       </Formik>
-    </div>);
+    </div>
+  );
 };
 
 export default DockerContainerSetup;
