@@ -130,7 +130,7 @@ var embeddedClientClose func()
 
 func GetEmbeddedCollection(applicationId string, collection string) (lungo.ICollection, func(), error) {
 	opts := lungo.Options{
-		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 700),
+		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 0700),
 	}
 	
 	name := os.Getenv("MONGODB_NAME"); if name == "" {
