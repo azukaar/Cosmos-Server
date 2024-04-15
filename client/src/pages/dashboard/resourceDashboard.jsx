@@ -38,7 +38,7 @@ const ResourceDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
           </span>
         }}
         data={
-          Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.disk")).map((key) => metrics[key])
+          Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.disk.")).map((key) => metrics[key])
         } />
 
       <Grid item xs={12} md={7} lg={8}>

@@ -182,6 +182,17 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
+            // convert Sysctls array to map
+            if (doc.services[key].sysctls) {
+              if (Array.isArray(doc.services[key].sysctls)) {
+                let sysctls = {};
+                doc.services[key].sysctls.forEach((sysctl) => {
+                  sysctls['' + sysctl] = '';
+                });
+                doc.services[key].sysctls = sysctls;
+              }
+            }
+
             // convert network
             if (doc.services[key].networks) {
               if (Array.isArray(doc.services[key].networks)) {
