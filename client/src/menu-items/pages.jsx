@@ -37,7 +37,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/storage',
             icon: icons.FolderOutlined,
-            
+            adminOnly: true            
         },
         {
             id: 'constellation',
@@ -69,6 +69,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/cron',
             icon: ClockCircleOutlined,
+            adminOnly: true
         },
         {
             id: 'config',

@@ -56,8 +56,10 @@ const getStatus = (job) => {
     if (job.LastRun === "0001-01-01T00:00:00Z") return 'never';
     return 'error';
 }
+
 const Jobs = () => {
-    const clientInfos = useClientInfos();
+    const {role} = useClientInfos();
+    const isAdmin = role === "2";
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
     const [jobs, setJobs] = useState([]);
@@ -72,7 +74,6 @@ const Jobs = () => {
         }[getStatus(job)]
     }
 
-
     const refreshJobs = () => {
         API.cron.list().then((res) => {
             setJobs(() => res.data);
@@ -80,6 +81,8 @@ const Jobs = () => {
     };
 
     useEffect(() => {
+        if (!isAdmin) return;
+
         refreshJobs();
 
         const interval = setInterval(() => {
@@ -117,6 +120,8 @@ const Jobs = () => {
         if (a.Running && b.Running) return a.LastStarted - b.LastStarted;
         return a.LastRun - b.LastRun;
     });
+
+    if (!isAdmin) return null;
 
     return (
         <Box sx={{ flexShrink: 0, ml: 0.75 }}>

@@ -811,6 +811,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                             ...overrides[value.container_name],
                             environment: containerInfo.envVars,
                             labels: containerInfo.labels,
+                            devices: containerInfo.devices,
                           }
                         })
                       }}

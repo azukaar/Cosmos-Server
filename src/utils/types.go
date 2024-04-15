@@ -225,7 +225,7 @@ type ProxyRouteConfig struct {
 	AcceptInsecureHTTPSTarget bool
 	HideFromDashboard bool
 	DisableHeaderHardening bool
-	VerboseForwardHeader bool
+	SpoofHostname bool
 	AddionalFilters []AddionalFiltersConfig
 	RestrictToConstellation bool
 	OverwriteHostHeader string

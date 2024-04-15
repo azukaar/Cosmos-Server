@@ -1,3 +1,15 @@
+## Version 0.15.4
+ - Added SpoofHostname to hack apps who hate reverse proxies
+ - Fix forward headers once and for all
+ - Fix inverted port setup in the create Servapp form (#232)
+ - Fix the device field in the setup screen (#237)
+ - Fix the device field in the create Servapp form
+ - Fix bug where non-admin users try to show the cron job widget
+ - Hide the scheduler/storage tab from non-admin users
+ - Hide DNS provider env var from non-admin users
+ - Fixed DB file permission issue (Thanks @george-radu-cs)
+ - Improved setup screen performance (Thanks @davis4acca)
+
 ## Version 0.15.3
  - Add support for sysctls as array
  - Fix temperature appearing in the disk usage widget

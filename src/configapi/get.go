@@ -29,6 +29,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			config.EmailConfig.Host = "***"
 			config.Database.Password = "***"
 			config.Database.Username = "***"
+			config.HTTPConfig.DNSChallengeConfig = map[string]string{}
 
 			// filter admin only routes
 			filteredRoutes := make([]utils.ProxyRouteConfig, 0)

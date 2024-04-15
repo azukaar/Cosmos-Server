@@ -69,7 +69,7 @@ const NewDockerServiceForm = () => {
         environment: containerInfo.Config.Env,
         labels: containerInfo.Config.Labels,
         devices: containerInfo.HostConfig.Devices ? containerInfo.HostConfig.Devices.map((device) => {
-          return `${device.PathOnHost}:${device.PathInContainer}:`;
+          return `${device.PathOnHost}:${device.PathInContainer}`;
         }) : [],
         expose: containerInfo.Config.ExposedPorts,
         tty: containerInfo.Config.Tty,
@@ -242,7 +242,7 @@ const NewDockerServiceForm = () => {
               HostConfig: {
                 ...containerInfo.HostConfig,
                 PortBindings: values.ports.map((port) => {
-                  return `${port.port}:${port.hostPort}/${port.protocol}`;
+                  return `${port.hostPort}:${port.port}/${port.protocol}`;
                 }),
               },
               NetworkSettings: {

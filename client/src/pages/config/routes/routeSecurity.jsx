@@ -31,7 +31,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
           BlockAPIAbuse: routeConfig.BlockAPIAbuse,
           BlockCommonBots: routeConfig.BlockCommonBots,
           AdminOnly: routeConfig.AdminOnly,
-          VerboseForwardHeader: routeConfig.VerboseForwardHeader,
+          SpoofHostname: routeConfig.SpoofHostname,
           DisableHeaderHardening: routeConfig.DisableHeaderHardening,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           _SmartShield_PolicyStrictness: (routeConfig.SmartShield ? routeConfig.SmartShield.PolicyStrictness : 0),
@@ -105,8 +105,8 @@ const RouteSecurity = ({ routeConfig, config }) => {
                     <CosmosFormDivider title={'Headers'} />
 
                     <CosmosCheckbox
-                      name="VerboseForwardHeader"
-                      label="Forward IP and Host Headers to target"
+                      name="SpoofHostname"
+                      label="Spoof Hostname (hack for stubborn applications)"
                       formik={formik}
                     />
 

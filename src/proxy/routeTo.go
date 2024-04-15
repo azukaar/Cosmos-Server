@@ -50,7 +50,7 @@ func joinURLPath(a, b *url.URL) (path, rawpath string) {
 
 
 // NewProxy takes target host and creates a reverse proxy
-func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardHeader bool, DisableHeaderHardening bool, CORSOrigin string, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
+func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHardening bool, CORSOrigin string, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
 	url, err := url.Parse(targetHost)
 	if err != nil {
 			return nil, err
@@ -94,17 +94,14 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 			req.Header.Set("X-Forwarded-Ssl", "on")
 		}
 
-		req.Header.Del("X-Origin-Host")
+		req.Header.Del("X-Forwarded-Port")
 		req.Header.Del("X-Forwarded-Host")
-		req.Header.Del("X-Forwarded-For")
-		req.Header.Del("X-Real-Ip")
-		// hide hostname (dangerous)
-		// req.Header.Del("Host")
 
 		hostname := utils.GetMainConfig().HTTPConfig.Hostname
 		if route.Host != "" && route.UseHost {
 			hostname = route.Host
 		}
+
 		// if route.UsePathPrefix {
 		// 	hostname = hostname + route.PathPrefix
 		// }
@@ -117,26 +114,31 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, VerboseForwardH
 
 		// split port
 		hostDestSplit := strings.Split(hostDest, ":")
+		hostDestNoPort := hostDest
 		if len(hostDestSplit) > 1 {
-			hostDest = hostDestSplit[0]
+			hostDestNoPort = hostDestSplit[0]
 			hostPort = hostDestSplit[1]
 		}
+
+		// req.Header.Set("Host", hostDest)
+		// req.Host = hostDest
+
+		req.Header.Set("X-Forwarded-Host", hostDestNoPort)
 		
-		// hide hostname (dangerous)
-		// req.Header.Set("Host", req.URL.Host)
-		// req.Host = req.URL.Host
+		if hostPort != "" {
+			req.Header.Set("X-Forwarded-Port", hostPort)
+		}
 
-		req.Header.Set("Host", hostDest)
-		req.Host = hostDest
-
-		if VerboseForwardHeader {
-			req.Header.Set("X-Forwarded-Host", hostDest)
-			if hostPort != "" {
-				req.Header.Set("X-Forwarded-Port", hostPort)
-			}
-			req.Header.Set("X-Forwarded-For", utils.GetClientIP(req))
-			req.Header.Set("X-Real-IP", utils.GetClientIP(req))
-		} 
+		
+		// spoof hostname
+		if route.SpoofHostname {
+			req.Header.Del("X-Forwarded-Port")
+			req.Header.Del("X-Forwarded-Host")
+			req.Header.Del("host")
+			
+			req.Header.Set("Host", req.URL.Host)
+			req.Host = req.URL.Host
+		}
 	}
 
 	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
@@ -189,7 +191,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	}
 
   if(routeType == "SERVAPP" || routeType == "PROXY") {
-		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.VerboseForwardHeader, route.DisableHeaderHardening, route.CORSOrigin, route)
+		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route.CORSOrigin, route)
 		if err != nil {
 				utils.Error("Create Route", err)
 		}
