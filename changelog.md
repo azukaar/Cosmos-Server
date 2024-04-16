@@ -1,3 +1,6 @@
+## Version 0.15.5
+ - Use a different IP scheme for containers
+
 ## Version 0.15.4
  - Added SpoofHostname to hack apps who hate reverse proxies
  - Fix forward headers once and for all
