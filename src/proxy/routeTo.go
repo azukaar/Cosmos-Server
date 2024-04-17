@@ -141,7 +141,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		}
 	}
 
-	if AcceptInsecureHTTPSTarget && url.Scheme == "https" {
+	if AcceptInsecureHTTPSTarget {
 		proxy.Transport = &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 		}

@@ -1,3 +1,6 @@
+## Version 0.15.6
+ - accept any insecure TLS when option is on
+
 ## Version 0.15.5
  - Use a different IP scheme for containers
 
