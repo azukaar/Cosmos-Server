@@ -136,6 +136,24 @@ const ProxyManagement = () => {
     return false;
   }
 
+  function duplicateRoute(event, key) {
+    event.stopPropagation();
+    let newRoute = JSON.parse(JSON.stringify(routes[key]));
+    let suffix = '';
+
+    // if exist, increment the copy number
+    do {
+      suffix += ' - Copy';
+    } while (routes.filter((r) => r.Name === newRoute.Name + suffix).length > 0);
+
+    newRoute.Name = newRoute.Name + suffix;
+    
+    routes.unshift(newRoute);
+    updateRoutes(routes);
+    setNeedSave(true);
+    return false;
+  }
+
   React.useEffect(() => {
     refresh();
   }, []);
@@ -207,6 +225,7 @@ const ProxyManagement = () => {
               up={(event) => up(event, routes.indexOf(r))}
               down={(event) => down(event, routes.indexOf(r))}
               deleteRoute={(event) => deleteRoute(event, routes.indexOf(r))}
+              duplicateRoute={(event) => duplicateRoute(event, routes.indexOf(r))}
             />,
             style: {
               textAlign: 'right',

@@ -75,7 +75,12 @@ func startProxy(listenAddr string, target string, stop chan bool) {
     }
 }
 
-func initInternalPortProxy(ports []string, destination string) {
+type PortsPair struct {
+    From string
+    To string
+}
+
+func initInternalPortProxy(ports []PortsPair, destination string) {
     proxiesLock.Lock()
     defer proxiesLock.Unlock()
 
@@ -86,7 +91,14 @@ func initInternalPortProxy(ports []string, destination string) {
 
     // Stop any existing proxies that are not in the new list
     for port, stop := range activeProxies {
-        if !contains(ports, port) {
+        found := false
+        for _, p := range ports {
+            if p.From == port {
+                found = true
+                break
+            }
+        }
+        if !found {
             close(stop)
             delete(activeProxies, port)
         }
@@ -94,11 +106,11 @@ func initInternalPortProxy(ports []string, destination string) {
 
     // Start new proxies for ports in the list that aren't already running
     for _, port := range ports {
-        if _, exists := activeProxies[port]; !exists {
-            utils.Log("Network Starting internal proxy for port " + port)
+        if _, exists := activeProxies[port.From]; !exists {
+            utils.Log("Network Starting internal proxy for port " + port.From)
             stop := make(chan bool)
-            activeProxies[port] = stop
-            go startProxy(":"+port, destination, stop)
+            activeProxies[port.From] = stop
+            go startProxy(":"+port.From, destination+":"+port.To, stop)
         }
     }
 }
@@ -117,12 +129,15 @@ func InitInternalTCPProxy() {
     utils.Log("Network: Initializing internal TCP proxy")
     
     config := utils.GetMainConfig()
-    expectedPorts := []string{}
+    expectedPorts := []PortsPair{}
 	isHTTPS := utils.IsHTTPS
 	HTTPPort := config.HTTPConfig.HTTPPort
 	HTTPSPort := config.HTTPConfig.HTTPSPort
 	routes := config.HTTPConfig.ProxyConfig.Routes
 	targetPort := HTTPPort
+
+    allowHTTPLocal := config.HTTPConfig.AllowHTTPLocalIPAccess
+
 	if isHTTPS {
 		targetPort = HTTPSPort
 	}
@@ -133,19 +148,25 @@ func InitInternalTCPProxy() {
 			port := strings.Split(hostname, ":")[1]
             // if port is a number
             if _, err := strconv.Atoi(port); err == nil {
-    			expectedPorts = append(expectedPorts, port)
+                portpair := PortsPair{port, targetPort}
+                if allowHTTPLocal && utils.IsLocalIP(route.Host) {
+                    portpair.To = HTTPPort
+                }
+    			expectedPorts = append(expectedPorts, portpair)
             }
 		}
 	}
 
-	// append hostname port 
+	// append hostname port (if it's not the same as the HTTP/HTTPS port?)
+    // Should this be removed?
 	hostname := config.HTTPConfig.Hostname
 	if strings.Contains(hostname, ":") {
 		hostnameport := strings.Split(hostname, ":")[1]
         if hostnameport != targetPort {
-    		expectedPorts = append(expectedPorts, hostnameport)
+            portpair := PortsPair{hostnameport, targetPort}
+    		expectedPorts = append(expectedPorts, portpair)
         }
 	}
 
-    initInternalPortProxy(expectedPorts, "localhost:"+targetPort)
+    initInternalPortProxy(expectedPorts, "localhost")
 }

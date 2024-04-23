@@ -310,15 +310,22 @@ func EnsureHostname(next http.Handler) http.Handler {
 		hostnames := GetAllHostnames(false, false)
 
 		reqHostNoPort := strings.Split(r.Host, ":")[0]
-
+		
 		isOk := false
+
 		for _, hostname := range hostnames {
 			hostnameNoPort := strings.Split(hostname, ":")[0]
 			if reqHostNoPort == hostnameNoPort {
 				isOk = true
 			}
 		}
-
+		
+		if(GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) {
+			if(IsLocalIP(reqHostNoPort)) {
+				isOk = true
+			}
+		}
+		
 		if !isOk {
 			PushShieldMetrics("hostname")
 			Error("Invalid Hostname " + r.Host + " for request. Expecting one of " + fmt.Sprintf("%v", hostnames), nil)
@@ -374,6 +381,13 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 		}
 		
 		reqHostNoPort := strings.Split(r.Host, ":")[0]
+		
+		if(GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) {
+			if(IsLocalIP(reqHostNoPort)) {
+				next.ServeHTTP(w, r)
+				return
+			}
+		}
 
 		if og != reqHostNoPort {
 			PushShieldMetrics("hostname")
@@ -407,38 +421,31 @@ func IsValidHostname(hostname string) bool {
 	og := GetMainConfig().HTTPConfig.Hostname
 	ni := GetMainConfig().NewInstall
 
-	if ni || og == "0.0.0.0" {
+	if ni || og == "0.0.0.0" || GetMainConfig().HTTPConfig.AcceptAllInsecureHostname {
 		return true
 	}
+
 
 	hostnames := GetAllHostnames(false, false)
 
 	reqHostNoPort := strings.Split(hostname, ":")[0]
-
-	reqHostNoPortNoSubdomain := ""
-
-	if parts := strings.Split(reqHostNoPort, "."); len(parts) < 2 {
-		reqHostNoPortNoSubdomain = reqHostNoPort
-	} else {
-		reqHostNoPortNoSubdomain = parts[len(parts)-2] + "." + parts[len(parts)-1]
-	}
+	
+	isOk := false
 
 	for _, hostname := range hostnames {
 		hostnameNoPort := strings.Split(hostname, ":")[0]
-		hostnameNoPortNoSubdomain := ""
-
-		if parts := strings.Split(hostnameNoPort, "."); len(parts) < 2 {
-			hostnameNoPortNoSubdomain = hostnameNoPort
-		} else {
-			hostnameNoPortNoSubdomain = parts[len(parts)-2] + "." + parts[len(parts)-1]
-		}
-
-		if reqHostNoPortNoSubdomain == hostnameNoPortNoSubdomain {
-			return true
+		if reqHostNoPort == hostnameNoPort {
+			isOk = true
 		}
 	}
-
-	return false
+	
+	if(GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) {
+		if(IsLocalIP(reqHostNoPort)) {
+			isOk = true
+		}
+	}
+		
+	return isOk
 }
 
 func IPInRange(ipStr, cidrStr string) (bool, error) {

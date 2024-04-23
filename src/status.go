@@ -69,6 +69,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"needsRestart": utils.NeedsRestart,
 				"newVersionAvailable": utils.NewVersionAvailable,
 				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,
+				"allolocalip": utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess,
 				"CPU": runtime.GOARCH,
 				"AVX": cpu.X86.HasAVX,
 				"LetsEncryptErrors": utils.LetsEncryptErrors,

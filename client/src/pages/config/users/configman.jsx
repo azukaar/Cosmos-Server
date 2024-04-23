@@ -16,9 +16,10 @@ import {
   TextField,
   MenuItem,
   Skeleton,
+  Tooltip,
 } from '@mui/material';
 import RestartModal from './restart';
-import { DeleteOutlined, SyncOutlined } from '@ant-design/icons';
+import { DeleteOutlined, QuestionCircleOutlined, SyncOutlined, WarningFilled } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
@@ -33,6 +34,7 @@ import { SliderPicker
 import { useClientInfos } from '../../../utils/hooks';
 import ConfirmModal from '../../../components/confirmModal';
 import { DownloadFile } from '../../../api/downloadButton';
+import { isDomain } from '../../../utils/indexs';
 
 const ConfigManagement = () => {
   const [config, setConfig] = React.useState(null);
@@ -105,6 +107,7 @@ const ConfigManagement = () => {
           OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
           UseForwardedFor: config.HTTPConfig.UseForwardedFor,
           AllowSearchEngine: config.HTTPConfig.AllowSearchEngine,
+          AllowHTTPLocalIPAccess: config.HTTPConfig.AllowHTTPLocalIPAccess,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -187,6 +190,7 @@ const ConfigManagement = () => {
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
               UseForwardedFor: values.UseForwardedFor,
               AllowSearchEngine: values.AllowSearchEngine,
+              AllowHTTPLocalIPAccess: values.AllowHTTPLocalIPAccess,
             },
             EmailConfig: {
               ...config.EmailConfig,
@@ -521,6 +525,26 @@ const ConfigManagement = () => {
                     </Stack>
                   </Grid>
 
+                  {(formik.values.HTTPSCertificateMode != "DISABLED" || isDomain(formik.values.Hostname)) ? (
+                  <Grid item xs={12}>
+                      <CosmosCheckbox 
+                        label={<span>Allow insecure access via local IP &nbsp;
+                          <Tooltip title={<span style={{fontSize:'110%'}}>
+                            When HTTPS is used along side a domain, depending on your networking configuration, it is possible that your server is not receiving direct local connections. <br />
+                            This option allows you to also access your server using your local IP address, like ip:port. <br />
+                            It also allows you to create ip:port URLs for your apps, <strong>which are going to be HTTP-only</strong>.</span>}>
+                              <QuestionCircleOutlined size={'large'} />
+                          </Tooltip></span>}
+                        name="AllowHTTPLocalIPAccess"
+                        formik={formik}
+                      />
+                    {formik.values.AllowHTTPLocalIPAccess && <Alert severity="warning">
+                      This option is not recommended as it exposes your server to security risks on your local network. <br />
+                      Your local network is safer than the internet, but not safe, as devices like IoTs, smart-TVs, smartphones or even your router can be compromised. <br />
+                      <strong>If you want to have a secure offline / local-only access to a server that uses a domain name and HTTPS, use Constellation instead.</strong>
+                    </Alert>}
+                  </Grid>) : ""}
+
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel htmlFor="HTTPPort-login">HTTP Port (Default: 80)</InputLabel>
@@ -565,6 +589,9 @@ const ConfigManagement = () => {
                     </Stack>
                   </Grid>
                   <Grid item xs={12}>
+                    <Alert severity="info">
+                      Enable this option if you have a public site and want to allow search engines to find it, so it appears on search results. <br />
+                    </Alert>
                     <CosmosCheckbox 
                       label="Allow search engines to index your server"
                       name="AllowSearchEngine"

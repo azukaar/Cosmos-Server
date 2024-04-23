@@ -797,3 +797,7 @@ func Exec(cmd string, args ...string) (string, error) {
 	}
 	return string(out), errF
 }
+
+func IsLocalIP(ip string) bool {
+	return (strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "172.") || strings.HasPrefix(ip, "127.0.0.1") || strings.HasPrefix(ip, "localhost:") || ip == "localhost")
+}

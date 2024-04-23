@@ -35,6 +35,7 @@ type NewInstallJSON struct {
 	UseWildcardCertificate bool `json:"useWildcardCertificate",validate:"omitempty"`
 	DNSChallengeProvider string `json:"dnsChallengeProvider",validate:"omitempty"`
 	DNSChallengeConfig map[string]string
+	AllowHTTPLocalIPAccess bool `json:"allowHTTPLocalIPAccess",validate:"omitempty"`
 }
 
 type AdminJSON struct {
@@ -130,6 +131,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			newConfig.HTTPConfig.DNSChallengeConfig = request.DNSChallengeConfig
 			newConfig.HTTPConfig.TLSCert = request.TLSCert
 			newConfig.HTTPConfig.TLSKey = request.TLSKey
+			newConfig.HTTPConfig.AllowHTTPLocalIPAccess = request.AllowHTTPLocalIPAccess
 
 			// Hostname
 			newConfig.HTTPConfig.Hostname = request.Hostname

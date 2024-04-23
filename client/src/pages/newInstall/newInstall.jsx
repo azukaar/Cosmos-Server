@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import * as Yup from 'yup';
 
 // material-ui
-import { Alert, Button, Checkbox, CircularProgress, FormControl, FormHelperText, Grid, Stack, Typography } from '@mui/material';
+import { Alert, Button, Checkbox, CircularProgress, FormControl, FormHelperText, Grid, Stack, Tooltip, Typography } from '@mui/material';
 
 // ant-ui icons
 import { CheckCircleOutlined, LeftOutlined, QuestionCircleFilled, QuestionCircleOutlined, RightOutlined } from '@ant-design/icons';
@@ -297,6 +297,7 @@ const NewInstall = () => {
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
                     DNSChallengeConfig: {},
+                    allowHTTPLocalIPAccess: false,
                     __success: false,
                 }}
                 validationSchema={Yup.object().shape({
@@ -332,6 +333,7 @@ const NewInstall = () => {
                             Hostname: values.Hostname,
                             DNSChallengeProvider: values.DNSChallengeProvider,
                             DNSChallengeConfig: values.DNSChallengeConfig,
+                            allowHTTPLocalIPAccess: values.allowHTTPLocalIPAccess,
                         });
                         if(res.status == "OK") {
                             setStatus({ success: true });
@@ -350,7 +352,7 @@ const NewInstall = () => {
                         <Stack item xs={12} spacing={2}>
                         <CosmosInputText
                             name="Hostname"
-                            label="Hostname (Domain required for Let's Encrypt)"
+                            label="Hostname (How would you like to access Cosmos?)"
                             placeholder="yourdomain.com, your ip, or localhost"
                             formik={formik}
                             onChange={(e) => {
@@ -441,6 +443,27 @@ const NewInstall = () => {
                             name="UseWildcardCertificate"
                             formik={formik}
                         />)}
+                        
+                        
+                        {formik.values.HTTPSCertificateMode != "" && (formik.values.HTTPSCertificateMode != "DISABLED" || isDomain(formik.values.Hostname)) ? (
+                        <Grid item xs={12}>
+                        <CosmosCheckbox 
+                            label={<span>Allow insecure access via local IP &nbsp;
+                            <Tooltip title={<span style={{fontSize:'110%'}}>
+                                When HTTPS is used along side a domain, depending on your networking configuration, it is possible that your server is not receiving direct local connections. <br />
+                                This option allows you to also access your server using your local IP address, like ip:port. <br />
+                                It also allows you to create ip:port URLs for your apps, <strong>which are going to be HTTP-only</strong>.</span>}>
+                                <QuestionCircleOutlined size={'large'} />
+                            </Tooltip></span>}
+                            name="allowHTTPLocalIPAccess"
+                            formik={formik}
+                        />
+                        {formik.values.allowHTTPLocalIPAccess && <Alert severity="warning">
+                        This option is not recommended as it exposes your server to security risks on your local network. <br />
+                        Your local network is safer than the internet, but not safe, as devices like IoTs, smart-TVs, smartphones or even your router can be compromised. <br />
+                        <strong>If you want to have a secure offline / local-only access to a server that uses a domain name and HTTPS, use Constellation instead.</strong>
+                        </Alert>}
+                        </Grid>) : ""}
 
                         {formik.errors.submit && (
                           <Grid item xs={12}>

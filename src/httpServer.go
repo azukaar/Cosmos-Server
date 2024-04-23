@@ -64,16 +64,23 @@ func startHTTPSServer(router *mux.Router) error {
 		httpRouter := mux.NewRouter()
 
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// change port in host
-			if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
-				if serverPortHTTPS != "443" {
-					r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
-					} else {
-					r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
+			// if AllowHTTPLocalIPAccess is on, allow local IP access via HTTP
+			utils.Debug("SERVING LOCAL IP ACCESS VIA HTTP?? " + r.RemoteAddr + " " + strconv.FormatBool(utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) + " " + strconv.FormatBool(utils.IsLocalIP(r.RemoteAddr)))
+			if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
+				// use router 
+				router.ServeHTTP(w, r)
+			} else {
+				// change port in host
+				if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
+					if serverPortHTTPS != "443" {
+						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
+						} else {
+						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
+					}
 				}
+
+				http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 			}
-			
-			http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 		})
 
 		HTTPServer2 = &http.Server{

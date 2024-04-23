@@ -18,7 +18,8 @@
 <a href="https://github.com/l33xu"><img src="https://avatars.githubusercontent.com/l33xu" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/keyxmakerx"><img src="https://avatars.githubusercontent.com/keyxmakerx" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/lebenitza"><img src="https://avatars.githubusercontent.com/lebenitza" style="border-radius:48px" width="48" height="48" alt="Mihai A." title="Mihai A." /></a>
+<a href="https://github.com/Sudo-Ivan"><img src="https://avatars.githubusercontent.com/Sudo-Ivan" style="border-radius:48px" width="48" height="48" alt="Ivan" title="Ivan" /></a>
+<a href="https://github.com/jeep4meeee"><img src="https://avatars.githubusercontent.com/jeep4meeee" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
 ---
