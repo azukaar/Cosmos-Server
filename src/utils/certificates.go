@@ -208,10 +208,10 @@ func DoLetsEncrypt() (string, string) {
 
 	domainsDirty := GetAllHostnames(true, true)
 	domains := []string{}
-	
+
 	// remove ips
-	for i := 0; i < len(domains); i++ {
-		if !IsIP(domains[i]) {
+	for i := 0; i < len(domainsDirty); i++ {
+		if IsDomain(domains[i]) {
 			domains = append(domains, domains[i])
 		}
 	}
