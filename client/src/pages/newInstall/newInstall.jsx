@@ -451,8 +451,8 @@ const NewInstall = () => {
                             label={<span>Allow insecure access via local IP &nbsp;
                             <Tooltip title={<span style={{fontSize:'110%'}}>
                                 When HTTPS is used along side a domain, depending on your networking configuration, it is possible that your server is not receiving direct local connections. <br />
-                                This option allows you to also access your server using your local IP address, like ip:port. <br />
-                                It also allows you to create ip:port URLs for your apps, <strong>which are going to be HTTP-only</strong>.</span>}>
+                                This option allows you to also access your Cosmos admin using your local IP address, like ip:port. <br />
+                                You can already create ip:port URLs for your apps, <strong>but this will make them HTTP-only</strong>.</span>}>
                                 <QuestionCircleOutlined size={'large'} />
                             </Tooltip></span>}
                             name="allowHTTPLocalIPAccess"

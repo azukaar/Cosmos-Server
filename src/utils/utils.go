@@ -428,15 +428,16 @@ func RestartServer() {
 }
 
 func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
-	wrongPattern := `^(localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}|.*\.local)$`
+	wrongPattern := `^(localhost(:\d+)?|(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d+)?|.*\.local(:\d+)?)$`
+	
 	re, _ := regexp.Compile(wrongPattern)
 
 	var validDomains []string
 	for _, domain := range hostnames {
-		if !re.MatchString(domain) && (acceptWildcard || !strings.Contains(domain, "*")) && !strings.Contains(domain, " ") && !strings.Contains(domain, ",") {
+		if !re.MatchString(domain) && (acceptWildcard || !strings.Contains(domain, "*")) && !strings.Contains(domain, " ")  && !strings.Contains(domain, "::") && !strings.Contains(domain, ",") {
 			validDomains = append(validDomains, domain)
 		} else {
-			Error("Invalid domain found in URLs: " + domain + " it was removed from the certificate to not break Let's Encrypt", nil)
+			Warn("Invalid domain found in URLs: " + domain + " it was removed from the certificate to not break Let's Encrypt")
 		}
 	}
 
@@ -799,5 +800,17 @@ func Exec(cmd string, args ...string) (string, error) {
 }
 
 func IsLocalIP(ip string) bool {
-	return (strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "172.") || strings.HasPrefix(ip, "127.0.0.1") || strings.HasPrefix(ip, "localhost:") || ip == "localhost")
+	// IPv4 specific local addresses
+	if strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "172.") || ip == "127.0.0.1" || ip == "localhost" {
+		return true
+	}
+	// IPv6 specific local addresses
+	if strings.HasPrefix(ip, "fe80:") || strings.HasPrefix(ip, "fc00:") || strings.HasPrefix(ip, "fd00:") || ip == "::1" {
+		return true
+	}
+	// Handling cases where IPv6 might be enclosed in brackets
+	if strings.HasPrefix(ip, "[fe80:") || strings.HasPrefix(ip, "[fc00:") || strings.HasPrefix(ip, "[fd00:") || ip == "[::1]" {
+		return true
+	}
+	return false
 }

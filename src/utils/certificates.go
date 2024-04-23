@@ -206,15 +206,7 @@ func DoLetsEncrypt() (string, string) {
 	}
 	myUser.Registration = reg
 
-	domainsDirty := GetAllHostnames(true, true)
-	domains := []string{}
-
-	// remove ips
-	for i := 0; i < len(domainsDirty); i++ {
-		if IsDomain(domains[i]) {
-			domains = append(domains, domains[i])
-		}
-	}
+	domains := GetAllHostnames(true, true)
 
 	request := certificate.ObtainRequest{
 		Domains: LetsEncryptValidOnly(domains, config.HTTPConfig.DNSChallengeProvider != ""),
