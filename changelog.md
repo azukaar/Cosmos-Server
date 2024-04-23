@@ -1,5 +1,6 @@
 ## Version 0.15.7
  - Added "Allow insecure local connection" for HTTP ip:port access in the same network
+ - Fix issue where Cosmos request IP based certs to LE if setup
 
 ## Version 0.15.6
  - accept any insecure TLS when option is on

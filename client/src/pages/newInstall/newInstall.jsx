@@ -104,7 +104,7 @@ const NewInstall = () => {
                 ["SELFSIGNED", "Generate self-signed certificate (recommended)"],
                 ["PROVIDED", "Supply my own HTTPS certificate"],
                 ["DISABLED", "Use HTTP only (not recommended)"],
-            ] 
+            ]
         }
     }
 
