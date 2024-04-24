@@ -58,14 +58,21 @@ func DB() error {
 
 	var err error
 
-	opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
-	
-	opts.SetConnectTimeout(5 * time.Second)
+	opts := options.Client().
+	  SetConnectTimeout(7 * time.Second).
+		ApplyURI(mongoURL).
+		SetRetryWrites(true).
+		SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 	
 	hostname := ""
-	port := "27017" 
+	port := "27017"
 
 	if !isPuppetMode {
+		if len(opts.Hosts) == 0 {
+			// TODO
+			return errors.New("Cannot establish DB host, please check config")
+		}
+
 		hostname = opts.Hosts[0]
 		// split port
 		hostnameParts := strings.Split(hostname, ":")

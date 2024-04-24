@@ -132,10 +132,12 @@ export const ConstellationVPN = () => {
                   {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
                       <CosmosCheckbox formik={formik} name="IsRelay" label="Relay requests via this Node" />
-                      <CosmosCheckbox formik={formik} name="PrivateNode" label="This node is Private (no public IP)" />
+                      <CosmosCheckbox formik={formik} name="PrivateNode" label="This server is not a lighthouse (you wont be able to connect to it directly without another lighthouse)" />
                       {!formik.values.PrivateNode && <>
-                        <Alert severity="info">This is your Constellation hostname, that you will use to connect. If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
-                        <CosmosInputText formik={formik} name="ConstellationHostname" label="Constellation Hostname" />
+                        <Alert severity="info">This are your Constellation hostnames, that the app will use to connect. This can be a mixed of domain name (for dynamic IPs) and IPs.
+                        <br />
+                        If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
+                        <CosmosInputText formik={formik} name="ConstellationHostname" label="Constellation Hostnames (comma separated)" />
                       </>}
                     </>}
                   </>}

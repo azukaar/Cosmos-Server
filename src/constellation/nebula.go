@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"io"
+
 	"github.com/natefinch/lumberjack"
 )
 
@@ -179,10 +180,16 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	finalConfig := NebulaDefaultConfig
 
 	if !overwriteConfig.PrivateNode {
+		hostnames := []string{}
+		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		for _, hostname := range hsraw {
+			// trim
+			hostname = strings.TrimSpace(hostname)
+			hostnames = append(hostnames, hostname + ":4242")
+		}
+
 		finalConfig.StaticHostMap = map[string][]string{
-			"192.168.201.1": []string{
-				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
-			},
+			"192.168.201.1": hostnames,
 		}
 	} else {
 		finalConfig.StaticHostMap = map[string][]string{}
@@ -276,9 +283,19 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			staticHostMap["192.168.201.1"] = []string{
-				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			// staticHostMap["192.168.201.1"] = []string{
+			// 	utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			// }
+
+			hostnames := []string{}
+			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+			for _, hostname := range hsraw {
+				// trim
+				hostname = strings.TrimSpace(hostname)
+				hostnames = append(hostnames, hostname + ":4242")
 			}
+
+			staticHostMap["192.168.201.1"] = hostnames
 		}
 		
 		for _, l := range lh {

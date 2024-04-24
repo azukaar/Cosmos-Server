@@ -4,6 +4,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"os"
 	"time"
+	"strings"
 )
 
 var NebulaStarted = false
@@ -33,6 +34,23 @@ func Init() {
 			InitConfig()
 			
 			utils.Log("Initializing Constellation module...")
+
+			// if no hostname yet, set default one
+			if utils.GetMainConfig().ConstellationConfig.ConstellationHostname == "" {
+				utils.Log("Constellation: no hostname found, setting default one...")
+				hostnames, _ := utils.ListIps(true)
+				httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
+				if(utils.IsDomain(httpHostname)) {
+					hostnames = append(hostnames, "vpn." + httpHostname)
+				} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
+					hostnames = append(hostnames, httpHostname)
+				}
+				configFile := utils.ReadConfigFromFile()
+				configFile.ConstellationConfig.ConstellationHostname = strings.Join(hostnames, ", ")
+				utils.SetBaseMainConfig(configFile)
+			} else {
+				utils.Log("Constellation: hostname found: " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+			}
 
 			// check if ca.crt exists
 			if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {

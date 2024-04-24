@@ -27,7 +27,6 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 		config.ConstellationConfig.Enabled = true
 		config.ConstellationConfig.SlaveMode = true
 		config.ConstellationConfig.DNSDisabled = true
-		// ConstellationHostname = 
 
 		// output utils.CONFIGFOLDER + "nebula.yml"
 		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", body, 0644)

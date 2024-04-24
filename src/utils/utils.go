@@ -17,6 +17,8 @@ import (
 	"path/filepath"
 	"os/exec"
 
+	osnet "net"
+
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -326,15 +328,6 @@ func LoadBaseMainConfig(config Config) {
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
-	}
-	
-	if MainConfig.ConstellationConfig.ConstellationHostname == "" {
-		// if hostname is a domain add vpn. suffix otherwise use hostname
-		if IsDomain(MainConfig.HTTPConfig.Hostname) {
-			MainConfig.ConstellationConfig.ConstellationHostname = "vpn." + MainConfig.HTTPConfig.Hostname
-		} else {
-			MainConfig.ConstellationConfig.ConstellationHostname = MainConfig.HTTPConfig.Hostname
-		}
 	}
 }
 
@@ -813,4 +806,42 @@ func IsLocalIP(ip string) bool {
 		return true
 	}
 	return false
+}
+
+func ListIps(skipNebula bool) ([]string, error) {
+	// Get a list of all network interfaces.
+	interfaces, err := osnet.Interfaces()
+	if err != nil {
+		return []string{}, err
+	}
+
+	result := []string{}
+	// Iterate over all interfaces.
+	for _, iface := range interfaces {
+			// skip nebula1 interface 
+			if skipNebula && strings.HasPrefix(iface.Name, "nebula") {
+				continue
+			}
+			
+			// Get a list of addresses associated with the interface.
+			addrs, err := iface.Addrs()
+			if err != nil {
+				Warn("Error getting addresses for interface " + iface.Name + ": " + err.Error())
+					continue
+			}
+
+			// Iterate over all addresses.
+			for _, addr := range addrs {
+					// Check if the address is an IP address and not a mask.
+					if ipnet, ok := addr.(*osnet.IPNet); ok && !ipnet.IP.IsLoopback() {
+							if ipnet.IP.To4() != nil {
+								result = append(result, ipnet.IP.String())
+							} else if ipnet.IP.To16() != nil {
+								// ignore for now
+							}
+					}
+			}
+	}
+
+	return result, nil
 }
