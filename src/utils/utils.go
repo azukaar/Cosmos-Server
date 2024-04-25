@@ -840,7 +840,10 @@ func ListIps(skipNebula bool) ([]string, error) {
 					// Check if the address is an IP address and not a mask.
 					if ipnet, ok := addr.(*osnet.IPNet); ok && !ipnet.IP.IsLoopback() {
 							if ipnet.IP.To4() != nil {
-								result = append(result, ipnet.IP.String())
+								// if not duplicate
+								if !StringArrayContains(result, ipnet.IP.String()) {
+									result = append(result, ipnet.IP.String())
+								}
 							} else if ipnet.IP.To16() != nil {
 								// ignore for now
 							}
