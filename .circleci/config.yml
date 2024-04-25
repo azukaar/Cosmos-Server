@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Download and Extract ARM Nebula Binary
           command: |
-            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-arm64.tar.gz
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-arm64.tar.gz
             tar -xzvf nebula-linux-arm64.tar.gz
       
       - run:
@@ -69,7 +69,7 @@ jobs:
       - run:
           name: Download and Extract Nebula Binary
           command: |
-            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-amd64.tar.gz
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-amd64.tar.gz
             tar -xzvf nebula-linux-amd64.tar.gz
 
       - run:

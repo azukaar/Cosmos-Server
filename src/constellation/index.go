@@ -8,6 +8,7 @@ import (
 )
 
 var NebulaStarted = false
+var CachedDeviceNames = map[string]string{}
 
 func Init() {
 	ConstellationInitLock.Lock()
@@ -79,6 +80,35 @@ func Init() {
 
 			if err != nil {
 				utils.Error("Constellation: error while exporting nebula.yml", err)
+			}
+
+			// populate CachedDeviceNames
+			utils.Log("Constellation: populating device names cache...")
+			c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+			defer closeDb()
+
+			if errCo != nil {
+				utils.Error("Database Connect", errCo)
+			} else {
+				cursor, err := c.Find(nil, map[string]interface{}{})
+				defer cursor.Close(nil)
+
+				if err != nil {
+					utils.Error("DeviceList: Error fetching devices", err)
+				} else {
+					var devices []utils.ConstellationDevice
+
+					if err = cursor.All(nil, &devices); err != nil {
+						utils.Error("DeviceList: Error decoding devices", err)
+					} else {
+						for _, device := range devices {
+							CachedDeviceNames[device.DeviceName] = device.IP
+							utils.Debug("Constellation: device name cached: " + device.DeviceName + " -> " + device.IP)
+						}
+	
+						utils.Log("Constellation: device names cache populated")
+					}
+				}
 			}
 		}
 		

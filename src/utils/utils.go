@@ -822,6 +822,11 @@ func ListIps(skipNebula bool) ([]string, error) {
 			if skipNebula && strings.HasPrefix(iface.Name, "nebula") {
 				continue
 			}
+
+			// skip docker interfaces
+			if strings.HasPrefix(iface.Name, "docker") || strings.HasPrefix(iface.Name, "br-") || strings.HasPrefix(iface.Name, "veth") || strings.HasPrefix(iface.Name, "virbr") {
+				continue
+			}
 			
 			// Get a list of addresses associated with the interface.
 			addrs, err := iface.Addrs()

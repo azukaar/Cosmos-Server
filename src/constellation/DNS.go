@@ -74,6 +74,21 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			}
 		}
 	}
+	
+	if !customHandled {
+		// Overwrite Constellation devices with Constellation IP
+		for _, q := range r.Question {
+			utils.Debug("DNS Question " + q.Name)
+			for deviceName, ip := range CachedDeviceNames {
+				if strings.HasSuffix(q.Name, deviceName + ".") && q.Qtype == dns.TypeA {
+					utils.Debug("DNS Overwrite " + deviceName + " with its IP")
+					rr, _ := dns.NewRR(q.Name + " A " + ip)
+					m.Answer = append(m.Answer, rr)
+					customHandled = true
+				}
+			}
+		}
+	}
 
 	if !customHandled {
 		// Block blacklisted domains

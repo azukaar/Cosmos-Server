@@ -4,8 +4,8 @@ import * as API  from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, Stack } from "@mui/material";
+import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
+import { Alert, Button, CircularProgress, IconButton, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -15,6 +15,7 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
+import ResyncDeviceModal from "./resyncDevice";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -29,6 +30,7 @@ export const ConstellationVPN = () => {
   const [config, setConfig] = useState(null);
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
+  const [resynDevice, setResyncDevice] = useState(null); // [nickname, deviceName]
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
@@ -65,6 +67,11 @@ export const ConstellationVPN = () => {
 
   return <>
     {(devices && config && users) ? <>
+      {resynDevice &&
+        <ResyncDeviceModal nickname={resynDevice[0]} deviceName={resynDevice[1]} OnClose={
+          () => setResyncDevice(null)
+        } />
+      }
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
         <Alert severity="info">
@@ -204,10 +211,17 @@ export const ConstellationVPN = () => {
                 title: '',
                 clickable: true,
                 field: (r) => {
-                  return <DeleteButton onDelete={async () => {
-                    await API.constellation.block(r.nickname, r.deviceName, true);
-                    refreshConfig();
-                  }}></DeleteButton>
+                  return <>
+                    <Tooltip title="Resync Device">
+                      <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
+                        <SyncOutlined />
+                      </IconButton>
+                    </Tooltip>
+                    <DeleteButton onDelete={async () => {
+                      await API.constellation.block(r.nickname, r.deviceName, true);
+                      refreshConfig();
+                    }}></DeleteButton>
+                  </>
                 }
               }
           ]}

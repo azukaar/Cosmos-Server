@@ -127,6 +127,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			if request.IsLighthouse {
 				lightHousesList, err = GetAllLightHouses()
 			}
+
+			RestartNebula()
 			
 			// read configYml from config/nebula.yml
 			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{

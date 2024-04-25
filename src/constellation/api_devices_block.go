@@ -42,7 +42,7 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceBlocking: Blocking Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+  	defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -83,6 +83,8 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 			} else {
 				utils.Log("ConstellationDeviceBlocking: Device " + deviceName + " unblocked")
 			}
+			
+			RestartNebula()
 		} else {
 			utils.Error("DeviceBlocking: Error while finding device", err2)
 			utils.HTTPError(w, "Device Creation Error: " + err2.Error(),
