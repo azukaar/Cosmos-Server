@@ -851,5 +851,8 @@ func ListIps(skipNebula bool) ([]string, error) {
 			}
 	}
 
+	// TODO sort, local first
+	// ...
+
 	return result, nil
 }

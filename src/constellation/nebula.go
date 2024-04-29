@@ -365,6 +365,17 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["constellation_public_hostname"] = device.PublicHostname
 	configMap["constellation_api_key"] = APIKey
 
+	// lighten the config for QR Codes
+	// remove tun, firewall, punchy and logging
+	delete(configMap, "tun")
+	delete(configMap, "firewall")
+	delete(configMap, "punchy")
+	delete(configMap, "logging")
+	delete(configMap, "listen")
+
+	// delete blocked pki
+	delete(configMap["pki"].(map[interface{}]interface{}), "blocklist")
+
 	// export configMap as YML
 	yamlData, err = yaml.Marshal(configMap)
 	if err != nil {
