@@ -260,7 +260,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice, lite bool) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -359,19 +359,70 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	configMap["constellation_device_name"] = name
-	configMap["constellation_local_dns_overwrite"] = true
-	configMap["constellation_local_dns_overwrite_address"] = "192.168.201.1"
-	configMap["constellation_public_hostname"] = device.PublicHostname
-	configMap["constellation_api_key"] = APIKey
+	configEndpoint := utils.GetServerURL("") + "/api/constellation/config-sync"
+
+	configMap["cstln_device_name"] = name
+	configMap["cstln_local_dns_address"] = "192.168.201.1"
+	configMap["cstln_public_hostname"] = device.PublicHostname
+	configMap["cstln_api_key"] = APIKey
+	configMap["cstln_config_endpoint"] = configEndpoint
+
+	// list routes with a tunnel property matching the device name
+	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	tunnels := []utils.ProxyRouteConfig{}
+
+	for _, route := range routesList {
+		if route.TunnelVia == name {
+			if route.UseHost {
+				route.OverwriteHostHeader = route.Host
+			}
+			port := ""
+			protocol := ""
+
+			if strings.Contains(route.Target, "://") {
+				protocol = strings.Split(route.Target, "://")[0] + "://"
+			}
+
+			if protocol == "http://" || protocol == "https://" {
+				if utils.IsHTTPS {
+					protocol = "https://"
+					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPSPort
+				} else {
+					protocol = "http://"
+					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
+				}
+			} else if route.UseHost {
+				// extract port from target
+				if strings.Contains(route.Host, ":") {
+					_port := strings.Split(route.Host, ":")[1]
+						// if port is a number
+						if _, err := strconv.Atoi(_port); err == nil {
+							port = ":" + _port
+					}
+				}
+			}
+			
+			route.AcceptInsecureHTTPSTarget = true
+
+			route.Target = protocol + "192.168.201.1" + port
+
+			tunnels = append(tunnels, route)
+		}
+
+	}
+
+	configMap["cstln_tunnels"] = tunnels
 
 	// lighten the config for QR Codes
 	// remove tun, firewall, punchy and logging
-	delete(configMap, "tun")
-	delete(configMap, "firewall")
-	delete(configMap, "punchy")
-	delete(configMap, "logging")
-	delete(configMap, "listen")
+	if(lite) {
+		delete(configMap, "tun")
+		delete(configMap, "firewall")
+		delete(configMap, "punchy")
+		delete(configMap, "logging")
+		delete(configMap, "listen")
+		delete(configMap, "cstln_tunnels")
+	}
 
 	// delete blocked pki
 	delete(configMap["pki"].(map[interface{}]interface{}), "blocklist")

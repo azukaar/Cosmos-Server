@@ -110,6 +110,8 @@ func Init() {
 					}
 				}
 			}
+		} else {
+			SlaveConfigSync()
 		}
 		
 		// start nebula

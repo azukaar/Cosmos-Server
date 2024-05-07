@@ -4,6 +4,13 @@ import { useState } from "react";
 import { useTheme } from '@mui/material/styles';
 
 let routeImages = {
+  "TUNNEL": {
+    label: "Tunnel",
+    icon: "💫",
+    backgroundColor: "#082452",
+    color: "white",
+    colorDark: "white",
+  },
   "SERVAPP": {
     label: "ServApp",
     icon: "🐳",
@@ -44,7 +51,7 @@ let routeImages = {
 export const RouteMode = ({route}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  let c = routeImages[route.Mode.toUpperCase()];
+  let c = routeImages[(route.TunnelVia ? "TUNNEL" : route.Mode.toUpperCase())];
   return c ? <>
     <Chip
       icon={<span>{c.icon}</span>}

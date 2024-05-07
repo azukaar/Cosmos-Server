@@ -141,7 +141,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
-			})
+			}, true)
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading config", err)

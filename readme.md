@@ -5,6 +5,7 @@
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
 <p align="center"><a href="https://github.com/DrMxrcy"><img src="https://avatars.githubusercontent.com/DrMxrcy" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Serph91P"><img src="https://avatars.githubusercontent.com/Serph91P" style="border-radius:48px" width="48" height="48" alt="Seraph91P" title="Seraph91P" /></a>
 <a href="https://github.com/BlackrazorNZ"><img src="https://avatars.githubusercontent.com/BlackrazorNZ" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>

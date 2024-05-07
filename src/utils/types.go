@@ -177,14 +177,14 @@ const (
 	LENIENT = 3
 )
 type SmartShieldPolicy struct {
-	Enabled bool
-	PolicyStrictness int
-	PerUserTimeBudget float64
-	PerUserRequestLimit int
-	PerUserByteLimit int64
-	PerUserSimultaneous int
-	MaxGlobalSimultaneous int
-	PrivilegedGroups int
+	Enabled bool `yaml:"enabled"`
+	PolicyStrictness int `yaml:"policy_strictness"`
+	PerUserTimeBudget float64 `yaml:"per_user_time_budget"`
+	PerUserRequestLimit int `yaml:"per_user_request_limit"`
+	PerUserByteLimit int64 `yaml:"per_user_byte_limit"`
+	PerUserSimultaneous int 	`yaml:"per_user_simultaneous"`
+	MaxGlobalSimultaneous int `yaml:"max_global_simultaneous"`
+	PrivilegedGroups int `yaml:"privileged_groups"`
 }
 
 type DockerConfig struct {
@@ -198,40 +198,41 @@ type ProxyConfig struct {
 }
 
 type AddionalFiltersConfig struct {
-	Type string
-	Name string
-	Value string
+	Type string `yaml:"type"`
+	Name string	`yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 type ProxyRouteConfig struct {
-	Disabled bool
-	Name string `validate:"required"`
-	Description string
-	UseHost bool
-  Host string
-	UsePathPrefix bool
-	PathPrefix string
-	Timeout time.Duration
-	ThrottlePerMinute int
-	CORSOrigin string
-	StripPathPrefix bool
-	MaxBandwith int64
-	AuthEnabled bool
-	AdminOnly bool
-	Target  string `validate:"required"`
-	SmartShield SmartShieldPolicy
-	Mode ProxyMode
-	BlockCommonBots bool
-	BlockAPIAbuse bool
-	AcceptInsecureHTTPSTarget bool
-	HideFromDashboard bool
-	DisableHeaderHardening bool
-	SpoofHostname bool
-	AddionalFilters []AddionalFiltersConfig
-	RestrictToConstellation bool
-	OverwriteHostHeader string
-	WhitelistInboundIPs []string
-	Icon string
+	Disabled                   bool                        `yaml:"disabled"`
+	Name                       string                      `yaml:"name" validate:"required"`
+	Description                string                      `yaml:"description,omitempty"`
+	UseHost                    bool                        `yaml:"use_host"`
+	Host                       string                      `yaml:"host,omitempty"`
+	UsePathPrefix              bool                        `yaml:"use_path_prefix"`
+	PathPrefix                 string                      `yaml:"path_prefix,omitempty"`
+	Timeout                    time.Duration               `yaml:"timeout"`
+	ThrottlePerMinute          int                         `yaml:"throttle_per_minute"`
+	CORSOrigin                 string                      `yaml:"cors_origin,omitempty"`
+	StripPathPrefix            bool                        `yaml:"strip_path_prefix"`
+	MaxBandwith                int64                       `yaml:"max_bandwidth"`
+	AuthEnabled                bool                        `yaml:"auth_enabled"`
+	AdminOnly                  bool                        `yaml:"admin_only"`
+	Target                     string                      `yaml:"target" validate:"required"`
+	SmartShield                SmartShieldPolicy           `yaml:"smart_shield"`
+	Mode                       ProxyMode                   `yaml:"mode"`
+	BlockCommonBots            bool                        `yaml:"block_common_bots"`
+	BlockAPIAbuse              bool                        `yaml:"block_api_abuse"`
+	AcceptInsecureHTTPSTarget  bool                        `yaml:"accept_insecure_https_target"`
+	HideFromDashboard          bool                        `yaml:"hide_from_dashboard"`
+	DisableHeaderHardening     bool                        `yaml:"disable_header_hardening"`
+	SpoofHostname              bool                        `yaml:"spoof_hostname"`
+	AddionalFilters          []AddionalFiltersConfig   `yaml:"additional_filters,omitempty"`
+	RestrictToConstellation    bool                        `yaml:"restrict_to_constellation"`
+	OverwriteHostHeader        string                      `yaml:"overwrite_host_header,omitempty"`
+	WhitelistInboundIPs        []string                    `yaml:"whitelist_inbound_ips,omitempty"`
+	Icon                       string                      `yaml:"icon,omitempty"`
+	TunnelVia                  string                      `yaml:"tunnel_via,omitempty"`
 }
 
 type EmailConfig struct {
@@ -272,6 +273,7 @@ type ConstellationConfig struct {
 	CustomDNSEntries []ConstellationDNSEntry
 	NebulaConfig NebulaConfig
 	ConstellationHostname string
+	Tunnels []ProxyRouteConfig
 }
 
 type ConstellationDNSEntry struct {
@@ -279,6 +281,7 @@ type ConstellationDNSEntry struct {
 	Key string
 	Value string
 }
+
 type ConstellationDevice struct {
 	Nickname string `json:"nickname" bson:"Nickname"`
 	DeviceName string `json:"deviceName" bson:"DeviceName"`

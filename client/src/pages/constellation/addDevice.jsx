@@ -46,6 +46,8 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       renderCanvas(data);
     }, 500);
 
+    console.log("QRDATA", JSON.stringify(data))
+
     QRCode.toCanvas(canvasRef.current, JSON.stringify(data), 
       {
         width: 600,

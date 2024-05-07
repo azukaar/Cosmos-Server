@@ -544,7 +544,7 @@ func StringArrayContains(a []string, b string) bool {
 	return false
 }
 
-func GetServerURL() string {
+func GetServerURL(overwriteHostname string) string {
 	ServerURL := ""
 
 	if IsHTTPS {
@@ -553,8 +553,12 @@ func GetServerURL() string {
 		ServerURL += "http://"
 	}
 
-	ServerURL += MainConfig.HTTPConfig.Hostname
-
+	if overwriteHostname != "" {
+		ServerURL += overwriteHostname
+	} else {
+		ServerURL += MainConfig.HTTPConfig.Hostname
+	}
+	
 	if IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443" {
 		ServerURL += ":" + MainConfig.HTTPConfig.HTTPSPort
 	}

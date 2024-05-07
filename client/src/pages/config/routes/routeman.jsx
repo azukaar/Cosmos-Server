@@ -75,6 +75,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
+          TunnelVia: routeConfig.TunnelVia,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
         validationSchema={ValidateRouteSchema}
@@ -280,6 +281,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   <CosmosCheckbox
                     name="RestrictToConstellation"
                     label="Restrict access to Constellation VPN"
+                    formik={formik}
+                  />
+
+                  <CosmosInputText
+                    name="TunnelVia"
+                    label="Tunnel via another Constellation Cosmos node"
+                    placeholder="Cosmos device name"
                     formik={formik}
                   />
 

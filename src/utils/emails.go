@@ -92,7 +92,7 @@ func SendEmail(recipients []string, subject string, body string) error {
 		ServerName:         config.EmailConfig.Host,
 	}
 
-	ServerURL := GetServerURL()
+	ServerURL := GetServerURL("")
 	LogoURL := ServerURL + "logo"
 
 	send := func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {

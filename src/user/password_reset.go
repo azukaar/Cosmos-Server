@@ -83,7 +83,7 @@ func ResetPassword(w http.ResponseWriter, req *http.Request) {
 			}
 
 			utils.Debug("Sending an email to " + user.Email)
-			url := utils.GetServerURL() + ("cosmos-ui/register?t=1&nickname="+user.Nickname+"&key=" + RegisterKey)
+			url := utils.GetServerURL("") + ("cosmos-ui/register?t=1&nickname="+user.Nickname+"&key=" + RegisterKey)
 			
 			errEm := SendPasswordEmail(user.Nickname, user.Email, url) 
 

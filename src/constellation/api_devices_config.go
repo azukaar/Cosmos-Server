@@ -7,6 +7,9 @@ import (
 	"time"
 	"net"
 	"strings"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
+	"reflect"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
@@ -74,7 +77,7 @@ func DeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
 				APIKey: "",
-			})
+			}, false)
 
 			if err != nil {
 				utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)
@@ -172,7 +175,7 @@ func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
 				APIKey: "",
-			})
+			}, true)
 
 			if err != nil {
 				utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)
@@ -195,5 +198,104 @@ func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 		utils.Error("DeviceConfigManualSync: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
+	}
+}
+
+func SlaveConfigSync() {
+	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+	if err != nil {
+		utils.Error("SlaveConfigSync: error while reading nebula.yml", err)
+		return
+	}
+
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal(nebulaFile, &configMap)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Invalid slave config file for resync", err)
+		return
+	}
+
+	endpoint := configMap["cstln_config_endpoint"]
+	apiKey := configMap["cstln_api_key"]
+
+	if endpoint == nil  || apiKey == nil {
+		utils.Error("SlaveConfigSync: Invalid slave config file for resync", nil)
+		return
+	}
+
+	// fetch the config from the endpoint with Authorization header
+	req, err := http.NewRequest("GET", endpoint.(string), nil)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error creating request", err)
+		return
+	}
+
+	req.Header = map[string][]string{
+		"Authorization": {"Bearer " + apiKey.(string)},
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error fetching config", err)
+		return
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		utils.Error("SlaveConfigSync: Error fetching config", nil)
+		return
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error reading response", err)
+		return
+	}
+
+	// parse the response and re-apply cstln_api_key, pki cert, key and ca
+	var configMapNew map[string]interface{}
+	err = yaml.Unmarshal(body, &configMapNew)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Invalid slave config file for resync", err)
+		return
+	}
+
+	configMapNew["cstln_api_key"] = apiKey
+	
+	pkiMap, ok := configMapNew["pki"].(map[string]interface{})
+	if !ok {
+			utils.Error("SlaveConfigSync: Error asserting pki type", nil)
+			return
+	}
+
+	pkiMap["cert"] = configMapNew["pki"].(map[string]interface{})["cert"]
+	pkiMap["key"] = configMapNew["pki"].(map[string]interface{})["key"]
+	pkiMap["ca"] = configMapNew["pki"].(map[string]interface{})["ca"]
+
+	configMapNew["pki"] = pkiMap
+
+	// write the new config back to file
+
+	configYml, err := yaml.Marshal(configMapNew)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error marshalling new config", err)
+		return
+	}
+
+	err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configYml, 0644)
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error writing new config", err)
+		return
+	}
+
+	utils.Log("SlaveConfigSync: Config resynced")
+
+	// if the config change, restart
+	if !reflect.DeepEqual(configMap, configMapNew) {
+		RestartNebula()
+		utils.RestartHTTPServer()
 	}
 }
