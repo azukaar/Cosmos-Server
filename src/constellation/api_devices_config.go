@@ -10,9 +10,78 @@ import (
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"reflect"
+	"net/url"
+	"errors"
+	"context"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
+func setDefaultConstConfig(configMap map[string]interface{}) map[string]interface{} {
+	utils.Debug("setDefaultConstConfig: Setting default values for client nebula.yml")
+
+	if _, exists := configMap["logging"]; !exists {
+			configMap["logging"] = map[string]interface{}{
+					"format": "text",
+					"level":  "info",
+			}
+	}
+
+	if _, exists := configMap["listen"]; !exists {
+			configMap["listen"] = map[string]interface{}{
+					"host": "0.0.0.0",
+					"port": 4242,
+			}
+	}
+
+	if _, exists := configMap["punchy"]; !exists {
+			configMap["punchy"] = map[string]interface{}{
+					"punch":    true,
+					"respond":  true,
+			}
+	}
+
+	if _, exists := configMap["tun"]; !exists {
+			configMap["tun"] = map[string]interface{}{
+					"dev":                  "nebula1",
+					"disabled":             false,
+					"drop_local_broadcast": false,
+					"drop_multicast":       false,
+					"mtu":                  1300,
+					"routes":               []interface{}{},
+					"tx_queue":             500,
+					"unsafe_routes":        []interface{}{},
+			}
+	}
+
+	if _, exists := configMap["firewall"]; !exists {
+			configMap["firewall"] = map[string]interface{}{
+					"conntrack": map[string]interface{}{
+							"default_timeout": "10m",
+							"tcp_timeout":     "12m",
+							"udp_timeout":     "3m",
+					},
+					"inbound": []interface{}{
+							map[string]interface{}{
+									"host":  "any",
+									"port":  "any",
+									"proto": "any",
+							},
+					},
+					"inbound_action": "drop",
+					"outbound": []interface{}{
+							map[string]interface{}{
+									"host":  "any",
+									"port":  "any",
+									"proto": "any",
+							},
+					},
+					"outbound_action": "drop",
+			}
+	}
+
+	return configMap
+}
+
 
 func DeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 	time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
@@ -201,101 +270,197 @@ func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func SlaveConfigSync() {
+func SlaveConfigSync() (bool, error) {
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
+
+	utils.Log("SlaveConfigSync: Resyncing config")
+
 	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
 	if err != nil {
 		utils.Error("SlaveConfigSync: error while reading nebula.yml", err)
-		return
+		return false, err
 	}
 
 	configMap := make(map[string]interface{})
 	err = yaml.Unmarshal(nebulaFile, &configMap)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Invalid slave config file for resync", err)
-		return
+		return false, err
 	}
 
 	endpoint := configMap["cstln_config_endpoint"]
 	apiKey := configMap["cstln_api_key"]
 
+	utils.Log("SlaveConfigSync: Fetching config from " + endpoint.(string))
+
 	if endpoint == nil  || apiKey == nil {
 		utils.Error("SlaveConfigSync: Invalid slave config file for resync", nil)
-		return
+		return false, errors.New("Invalid slave config file for resync")
 	}
 
 	// fetch the config from the endpoint with Authorization header
 	req, err := http.NewRequest("GET", endpoint.(string), nil)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Error creating request", err)
-		return
+		return false, err
+	}
+
+	u, err := url.Parse(endpoint.(string))
+	if err != nil {
+		utils.Error("SlaveConfigSync: Error parsing URL", err)
+		return false, err
 	}
 
 	req.Header = map[string][]string{
 		"Authorization": {"Bearer " + apiKey.(string)},
+		"Host": {u.Hostname()},
 	}
 
-	client := &http.Client{}
+	/*
+	defaultPort := "80" // Default HTTP port
+	if u.Scheme == "https" {
+			defaultPort = "443" // Default HTTPS port
+	}
+	_, port := u.Hostname(), u.Port()
+	// If no port is specified in the URL, use the default port
+	if port == "" {
+			port = defaultPort
+	}
+
+	fixedIp := "192.168.201.1" + ":" + port
+	*/
+
+	client := &http.Client{
+		Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+						Timeout:   5 * time.Second,
+						KeepAlive: 5 * time.Second,
+						Resolver: &net.Resolver{
+								PreferGo: true,
+								Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+									return net.Dial(network, "192.168.201.1:53")
+								},
+						},
+				}).DialContext,
+		},
+	}
+
 	resp, err := client.Do(req)
 
 	if err != nil {
 		utils.Error("SlaveConfigSync: Error fetching config", err)
-		return
+		return false, err
 	}
 
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		utils.Error("SlaveConfigSync: Error fetching config", nil)
-		return
+		utils.Error("SlaveConfigSync: Error fetching config, status code: " + resp.Status, nil)
+		return false, errors.New("Error fetching config")
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Error reading response", err)
-		return
+		return false, err
 	}
+
+	type Response struct {
+    Status string      `json:"status"`
+    Data   interface{} `json:"data"` // Use interface{} if the data type can vary
+	}
+	var jsonresp Response
+	err = json.Unmarshal([]byte(body), &jsonresp)
+	if err != nil {
+			utils.Error("SlaveConfigSync: Error unmarshalling JSON", err)
+			return false, err
+	}
+
+	if jsonresp.Status != "OK" {
+		utils.Error("SlaveConfigSync: Error fetching config", nil)
+		return false, errors.New("Error fetching config")
+	}
+
+	// get jsonbody.data
+	databody := jsonresp.Data
 
 	// parse the response and re-apply cstln_api_key, pki cert, key and ca
 	var configMapNew map[string]interface{}
-	err = yaml.Unmarshal(body, &configMapNew)
+	err = yaml.Unmarshal([]byte(databody.(string)), &configMapNew)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Invalid slave config file for resync", err)
-		return
+		return false, err
 	}
 
+	configMapNew = setDefaultConstConfig(configMapNew)
+
 	configMapNew["cstln_api_key"] = apiKey
+
 	
 	pkiMap, ok := configMapNew["pki"].(map[string]interface{})
 	if !ok {
-			utils.Error("SlaveConfigSync: Error asserting pki type", nil)
-			return
+		pkiMap = make(map[string]interface{})
 	}
 
-	pkiMap["cert"] = configMapNew["pki"].(map[string]interface{})["cert"]
-	pkiMap["key"] = configMapNew["pki"].(map[string]interface{})["key"]
-	pkiMap["ca"] = configMapNew["pki"].(map[string]interface{})["ca"]
+	pkiMap["cert"] = configMap["pki"].(map[interface{}]interface{})["cert"]
+	pkiMap["key"] = configMap["pki"].(map[interface{}]interface{})["key"]
+	pkiMap["ca"] = configMap["pki"].(map[interface{}]interface{})["ca"]
 
 	configMapNew["pki"] = pkiMap
+	
+	// apply tunnels 
+
+	// Define the slice to hold the unmarshalled tunnels.
+	var tunnels []utils.ProxyRouteConfig
+	config := utils.ReadConfigFromFile()
+
+	// Convert the `cstln_tunnels` part back to YAML string.
+	tunnelsData, err := yaml.Marshal(configMapNew["cstln_tunnels"])
+	if err != nil {
+			utils.Error("Error marshalling tunnels data back to YAML", err)
+	} else {
+		// Unmarshal the YAML string into the specific struct.
+		err = yaml.Unmarshal(tunnelsData, &tunnels)
+
+		if err != nil {
+				utils.Error("Error unmarshalling tunnels YAML", err)
+		}	
+	}
+
+	config.ConstellationConfig.Tunnels = tunnels
 
 	// write the new config back to file
 
 	configYml, err := yaml.Marshal(configMapNew)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Error marshalling new config", err)
-		return
+		return false, err
 	}
 
 	err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configYml, 0644)
 	if err != nil {
 		utils.Error("SlaveConfigSync: Error writing new config", err)
-		return
+		return false, err
 	}
 
 	utils.Log("SlaveConfigSync: Config resynced")
+	
+	utils.SetBaseMainConfig(config)
+	
+	utils.TriggerEvent(
+		"cosmos.settings",
+		"Settings updated",
+		"success",
+		"",
+		map[string]interface{}{
+			"from": "Constellation",
+	})
 
 	// if the config change, restart
 	if !reflect.DeepEqual(configMap, configMapNew) {
-		RestartNebula()
-		utils.RestartHTTPServer()
+		return true, nil
 	}
+
+	return false, nil
 }

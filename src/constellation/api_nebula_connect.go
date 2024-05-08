@@ -18,6 +18,8 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 		utils.ConfigLock.Lock()
 		defer utils.ConfigLock.Unlock()
 
+		utils.Log("API_ConnectToExisting: connecting to an external Constellation")
+
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			utils.Error("API_Restart: Invalid User Request", err)
@@ -44,26 +46,18 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 			return	
 		}
 
-    // Define the slice to hold the unmarshalled tunnels.
-    var tunnels []utils.ProxyRouteConfig
+		configMap = setDefaultConstConfig(configMap)
 
-    // Convert the `cstln_tunnels` part back to YAML string.
-    tunnelsData, err := yaml.Marshal(configMap["cstln_tunnels"])
-    if err != nil {
-        utils.Error("Error marshalling tunnels data back to YAML", err)
-    } else {
-			// Unmarshal the YAML string into the specific struct.
-			err = yaml.Unmarshal(tunnelsData, &tunnels)
-
-			if err != nil {
-					utils.Error("Error unmarshalling tunnels YAML", err)
-			}	
+		configMapString, err := yaml.Marshal(configMap)
+		if err != nil {
+			utils.Error("API_ConnectToExisting: Invalid User Request", err)
+			utils.HTTPError(w, "API_ConnectToExisting Error",
+				http.StatusInternalServerError, "ACE002")
+			return
 		}
 
-		config.ConstellationConfig.Tunnels = tunnels
-
 		// output utils.CONFIGFOLDER + "nebula.yml"
-		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", body, 0644)
+		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configMapString, 0644)
 		
 		utils.SetBaseMainConfig(config)
 		
@@ -78,6 +72,8 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 	
 		RestartNebula()
 		utils.RestartHTTPServer()
+
+		utils.Log("API_ConnectToExisting: connected to an external Constellation")
 		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

@@ -110,15 +110,37 @@ func Init() {
 					}
 				}
 			}
-		} else {
-			SlaveConfigSync()
 		}
-		
+
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
 		err = startNebulaInBackground()
 		if err != nil {
 			utils.Error("Constellation: error while starting nebula", err)
+		}
+		
+		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			var err error
+			retries := 0
+			needRestart := false
+			needRestart, err = SlaveConfigSync()
+			for err != nil && retries < 4 {
+				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+				needRestart, err = SlaveConfigSync()
+				retries++
+				utils.Debug("Retrying to sync slave config")
+			}
+			if err != nil {
+				utils.Error("Failed to sync slave config", err)
+			} else {
+				utils.Log("Slave config synced")
+				if needRestart {
+					utils.Warn("Slave config has changed, restarting Nebula...")
+					ConstellationInitLock.Unlock()
+					RestartNebula()
+					utils.RestartHTTPServer()
+				}
+			}
 		}
 
 		utils.Log("Constellation module initialized")

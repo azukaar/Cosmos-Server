@@ -1,5 +1,7 @@
 ## Version 0.16.0
- - Improve offline mode with Constellation and DB
+ - Improve offline mode with Constellation
+ - Add automatic sync of Constellation nodes
+ - Fix issues where it was impossible to login with insecure local IPs
 
 ## Version 0.15.7
  - Added "Allow insecure local connection" for HTTP ip:port access in the same network

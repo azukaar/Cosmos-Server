@@ -164,6 +164,11 @@ const ProxyManagement = () => {
 
   if (config && config.ConstellationConfig.Tunnels) {
     // prepend
+    config.ConstellationConfig.Tunnels = config.ConstellationConfig.Tunnels.map((t) => {
+      t._IsTunnel = true;
+      return t;
+    });
+    
     routes = [...config.ConstellationConfig.Tunnels, ...routes];
   }
 
@@ -184,13 +189,13 @@ const ProxyManagement = () => {
       {routes && <PrettyTableView 
         data={routes}
         getKey={(r) => r.Name + r.Target + r.Mode}
-        linkTo={(r) => r.TunnelVia ? '' : ('/cosmos-ui/config-url/' + r.Name)}
+        linkTo={(r) => r._IsTunnel ? '' : ('/cosmos-ui/config-url/' + r.Name)}
         columns={[
           { 
             title: '', 
             field: (r) => <LazyLoad width={"64px"} height={"64px"}>
               <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
-              {routes.TunnelVia && <Chip label="Tunnel" />}
+              {routes._IsTunnel && <Chip label="Tunnel" />}
             </LazyLoad>,
             style: {
               textAlign: 'center',
@@ -199,7 +204,7 @@ const ProxyManagement = () => {
           {
             title: 'Enabled', 
             clickable:true, 
-            field: (r, k) => r.TunnelVia ? <>
+            field: (r, k) => r._IsTunnel ? <>
               <img height="30px" width="30px" style={{
                 display: 'block',
                 marginLeft: '10px',
@@ -232,7 +237,7 @@ const ProxyManagement = () => {
           { title: 'Target', screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: 'Security', screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
-          { title: '', clickable:true, field: (r, k) => r.TunnelVia ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
+          { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
             <QuestionCircleOutlined style={{
               // color: 'gray',
               fontSize: '20px',

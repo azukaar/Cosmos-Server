@@ -11,6 +11,20 @@ import (
 	"encoding/json"
 )
 
+func shouldCookieBeSecured(ip string) bool {
+	config := utils.GetMainConfig()
+
+	if !utils.IsHTTPS {
+		return false
+	} else {
+		if config.HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(ip) {
+			return false
+		} else {
+			return true
+		}
+	}
+}
+
 func quickLoggout(w http.ResponseWriter, req *http.Request, err error) (utils.User, error) {
 	utils.Error("UserToken: Token likely falsified", err)
 	logOutUser(w, req)
@@ -188,7 +202,7 @@ func logOutUser(w http.ResponseWriter, req *http.Request) {
 		Value: "",
 		Expires: time.Now().Add(-time.Hour * 24 * 365),
 		Path: "/",
-		Secure: utils.IsHTTPS,
+		Secure: shouldCookieBeSecured(req.RemoteAddr),
 		HttpOnly: true,
 	}
 
@@ -197,7 +211,7 @@ func logOutUser(w http.ResponseWriter, req *http.Request) {
 		Value: "{}",
 		Expires: time.Now().Add(-time.Hour * 24 * 365),
 		Path: "/",
-		Secure: utils.IsHTTPS,
+		Secure: shouldCookieBeSecured(req.RemoteAddr),
 		HttpOnly: false,
 	}
 
@@ -265,7 +279,7 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		Value: tokenString,
 		Expires: expiration,
 		Path: "/",
-		Secure: utils.IsHTTPS,
+		Secure: shouldCookieBeSecured(req.RemoteAddr),
 		HttpOnly: true,
 	}
 
@@ -274,7 +288,7 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		Value: user.Nickname + "," + strconv.Itoa(int(user.Role)),
 		Expires: expiration,
 		Path: "/",
-		Secure: utils.IsHTTPS,
+		Secure: shouldCookieBeSecured(req.RemoteAddr),
 		HttpOnly: false,
 	}
 
