@@ -51,10 +51,17 @@ let routeImages = {
 export const RouteMode = ({route}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  let c = routeImages[(route.TunnelVia ? "TUNNEL" : route.Mode.toUpperCase())];
+  let c = routeImages[(route._IsTunnel ? "TUNNEL" : route.Mode.toUpperCase())];
+
+  let cicon = c.icon;
+  
+  if (!route._IsTunnel && route.TunnelVia) {
+    cicon = c.icon + " 💫";
+  }
+
   return c ? <>
     <Chip
-      icon={<span>{c.icon}</span>}
+      icon={<span>{cicon}</span>}
       label={c.label}
       sx={{
         backgroundColor: c.backgroundColor,

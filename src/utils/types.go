@@ -227,12 +227,13 @@ type ProxyRouteConfig struct {
 	HideFromDashboard          bool                        `yaml:"hide_from_dashboard"`
 	DisableHeaderHardening     bool                        `yaml:"disable_header_hardening"`
 	SpoofHostname              bool                        `yaml:"spoof_hostname"`
-	AddionalFilters          []AddionalFiltersConfig   `yaml:"additional_filters,omitempty"`
+	AddionalFilters          []AddionalFiltersConfig       `yaml:"additional_filters,omitempty"`
 	RestrictToConstellation    bool                        `yaml:"restrict_to_constellation"`
 	OverwriteHostHeader        string                      `yaml:"overwrite_host_header,omitempty"`
 	WhitelistInboundIPs        []string                    `yaml:"whitelist_inbound_ips,omitempty"`
 	Icon                       string                      `yaml:"icon,omitempty"`
 	TunnelVia                  string                      `yaml:"tunnel_via,omitempty"`
+	TunneledHost							 string                      `yaml:"tunneled_host,omitempty"`
 }
 
 type EmailConfig struct {

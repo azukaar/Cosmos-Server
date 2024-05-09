@@ -9,13 +9,26 @@ import (
 	"strings"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
-	"reflect"
 	"net/url"
 	"errors"
 	"context"
 	
+	"fmt"
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
+
+func compareConfigs(configMap, configMapNew map[string]interface{}) bool {
+	configMapStr := fmt.Sprintf("%+v", configMap)
+	configMapNewStr := fmt.Sprintf("%+v", configMapNew)
+
+	if string(configMapStr) == string(configMapNewStr) {
+		return true
+	} else {
+		return false
+	}
+}
+
+
 func setDefaultConstConfig(configMap map[string]interface{}) map[string]interface{} {
 	utils.Debug("setDefaultConstConfig: Setting default values for client nebula.yml")
 
@@ -317,20 +330,6 @@ func SlaveConfigSync() (bool, error) {
 		"Host": {u.Hostname()},
 	}
 
-	/*
-	defaultPort := "80" // Default HTTP port
-	if u.Scheme == "https" {
-			defaultPort = "443" // Default HTTPS port
-	}
-	_, port := u.Hostname(), u.Port()
-	// If no port is specified in the URL, use the default port
-	if port == "" {
-			port = defaultPort
-	}
-
-	fixedIp := "192.168.201.1" + ":" + port
-	*/
-
 	client := &http.Client{
 		Transport: &http.Transport{
 				DialContext: (&net.Dialer{
@@ -458,7 +457,7 @@ func SlaveConfigSync() (bool, error) {
 	})
 
 	// if the config change, restart
-	if !reflect.DeepEqual(configMap, configMapNew) {
+	if !compareConfigs(configMap, configMapNew) {
 		return true, nil
 	}
 

@@ -406,6 +406,8 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 			route.Target = protocol + "192.168.201.1" + port
 
+			route.Host = route.TunneledHost
+
 			tunnels = append(tunnels, route)
 		}
 

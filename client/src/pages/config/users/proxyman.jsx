@@ -195,7 +195,6 @@ const ProxyManagement = () => {
             title: '', 
             field: (r) => <LazyLoad width={"64px"} height={"64px"}>
               <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
-              {routes._IsTunnel && <Chip label="Tunnel" />}
             </LazyLoad>,
             style: {
               textAlign: 'center',
@@ -221,7 +220,10 @@ const ProxyManagement = () => {
             },
             underline: true,
             field: (r) => <>
-              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
+              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>
+                {r.Name} {!r._IsTunnel && r.TunnelVia && <span>💫</span>}
+              </div>
+              <br/>
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },

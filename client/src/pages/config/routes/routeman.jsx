@@ -76,6 +76,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
           TunnelVia: routeConfig.TunnelVia,
+          TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
         validationSchema={ValidateRouteSchema}
@@ -290,6 +291,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     placeholder="Cosmos device name"
                     formik={formik}
                   />
+
+                  {formik.values.TunnelVia && <CosmosInputText
+                    name="TunneledHost"
+                    label="Hostname to tunnel from" 
+                    placeholder="other-host.com"
+                    formik={formik}
+                  />}
 
                   <CosmosCollapse title={'Advanced Settings'}>
                     <Stack spacing={2}>
