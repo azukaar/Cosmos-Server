@@ -501,11 +501,13 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 // TODO
 func GetAllTunnelHostnames() map[string]string {
 	config := GetMainConfig()
-	tunnels := config.ConstellationConfig.Tunnels
+	tunnels := config.HTTPConfig.ProxyConfig.Routes
 	results := map[string]string{}
 	
 	for _, tunnel := range tunnels {
-		results[strings.Split(tunnel.Host, ":")[0]] = tunnel.TunnelVia
+		if tunnel.TunnelVia != "" && tunnel.Host != "" {
+			results[strings.Split(tunnel.Host, ":")[0]] = tunnel.TunnelVia
+		}
 	}
 
 	return results
