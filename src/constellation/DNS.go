@@ -61,7 +61,25 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if !customHandled {
-		// Overwrite local hostnames with Constellation IP
+		// Overwrite remote hostnames with Constellation IP
+		remoteHostnames := utils.GetAllTunnelHostnames()
+		for _, q := range r.Question {
+			for hostname, _destination := range remoteHostnames {
+				destination := CachedDeviceNames[_destination]
+				if destination != "" {
+					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
+						utils.Debug("DNS Overwrite " + hostname + " with " + destination)
+						rr, _ := dns.NewRR(q.Name + " A " + destination)
+						m.Answer = append(m.Answer, rr)
+						customHandled = true
+					}
+				}
+			}
+		}
+	}
+	
+	if !customHandled {
+		// Overwrite local hostnames with their Constellation IP
 		for _, q := range r.Question {
 			utils.Debug("DNS Question " + q.Name)
 			for _, hostname := range hostnames {
@@ -80,8 +98,9 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		for _, q := range r.Question {
 			utils.Debug("DNS Question " + q.Name)
 			for deviceName, ip := range CachedDeviceNames {
-				if strings.HasSuffix(q.Name, deviceName + ".") && q.Qtype == dns.TypeA {
-					utils.Debug("DNS Overwrite " + deviceName + " with its IP")
+				procDeviceName := strings.ReplaceAll(deviceName, " ", "-")
+				if strings.HasSuffix(q.Name, procDeviceName + ".") && q.Qtype == dns.TypeA {
+					utils.Debug("DNS Overwrite " + procDeviceName + " with its IP")
 					rr, _ := dns.NewRR(q.Name + " A " + ip)
 					m.Answer = append(m.Answer, rr)
 					customHandled = true

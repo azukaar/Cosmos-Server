@@ -104,6 +104,14 @@ func Init() {
 						for _, device := range devices {
 							CachedDeviceNames[device.DeviceName] = device.IP
 							utils.Debug("Constellation: device name cached: " + device.DeviceName + " -> " + device.IP)
+
+							if device.PublicHostname != "" {
+								publicHostnames := strings.Split(device.PublicHostname, ",")
+								for _, publicHostname := range publicHostnames {
+									CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
+									utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
+								}
+							}
 						}
 	
 						utils.Log("Constellation: device names cache populated")
@@ -138,6 +146,7 @@ func Init() {
 					utils.Warn("Slave config has changed, restarting Nebula...")
 					ConstellationInitLock.Unlock()
 					RestartNebula()
+					ConstellationInitLock.Lock()
 					utils.RestartHTTPServer()
 				}
 			}

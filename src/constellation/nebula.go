@@ -41,6 +41,27 @@ func startNebulaInBackground() error {
 		return errors.New("nebula is already running")
 	}
 
+	// if pid file, kill the process
+	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+		// read pid
+		pid, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.pid")
+		if err != nil {
+			utils.Error("Constellation: Error reading pid file", err)
+		} else {
+			// kill process
+			pidInt, _ := strconv.Atoi(string(pid))
+			processToKill, err := os.FindProcess(pidInt)
+			if err != nil {
+				utils.Error("Constellation: Error finding process", err)
+			} else {
+				err = processToKill.Kill()
+				if err != nil {
+					utils.Error("Constellation: Error killing process", err)
+				}
+			}
+		}
+	}
+
 	logBuffer = &lumberjack.Logger{
 		Filename:   utils.CONFIGFOLDER+"nebula.log",
 		MaxSize:    1, // megabytes
@@ -68,6 +89,12 @@ func startNebulaInBackground() error {
 
 	NebulaStarted = true
 
+	// save PID
+	err := ioutil.WriteFile(utils.CONFIGFOLDER+"nebula.pid", []byte(fmt.Sprintf("%d", process.Process.Pid)), 0644)
+	if err != nil {
+		utils.Error("Constellation: Error writing PID file", err)
+	}
+
 	utils.Log(fmt.Sprintf("%s started with PID %d\n", binaryToRun(), process.Process.Pid))
 	return nil
 }
@@ -83,8 +110,15 @@ func stop() error {
 	if err := process.Process.Kill(); err != nil {
 		return err
 	}
+
 	process = nil
 	utils.Log("Stopped nebula.")
+
+	// remove PID file
+	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+		os.Remove(utils.CONFIGFOLDER + "nebula.pid")
+	}
+
 	return nil
 }
 
@@ -203,7 +237,12 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 	for _, l := range lh {
 		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
-			l.PublicHostname + ":" + l.Port,
+			// l.PublicHostname + ":" + l.Port,
+		}
+
+		for _, hostname := range strings.Split(l.PublicHostname, ",") {
+			hostname = strings.TrimSpace(hostname)
+			finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
 		}
 	}
 
@@ -300,7 +339,12 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
-				l.PublicHostname + ":" + l.Port,
+				// l.PublicHostname + ":" + l.Port,
+			}
+
+			for _, hostname := range strings.Split(l.PublicHostname, ",") {
+				hostname = strings.TrimSpace(hostname)
+				staticHostMap[cleanIp(l.IP)] = append(staticHostMap[cleanIp(l.IP)].([]string), hostname + ":" + l.Port)
 			}
 		}
 	} else {
@@ -391,7 +435,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 					protocol = "http://"
 					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
 				}
-			} else if route.UseHost {
+			} else {
 				// extract port from target
 				if strings.Contains(route.Host, ":") {
 					_port := strings.Split(route.Host, ":")[1]
@@ -403,6 +447,8 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			}
 			
 			route.AcceptInsecureHTTPSTarget = true
+
+			route.UseHost = true
 
 			route.Target = protocol + "192.168.201.1" + port
 

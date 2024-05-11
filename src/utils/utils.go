@@ -449,7 +449,9 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		mainHostname,
 	}
 
-	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	proxies := GetMainConfig().ConstellationConfig.Tunnels
+	proxies = append(proxies, GetMainConfig().HTTPConfig.ProxyConfig.Routes...)
+	
 	for _, proxy := range proxies {
 		if proxy.UseHost && proxy.Host != "" && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
 			if removePorts {
@@ -494,6 +496,19 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	}
 
 	return uniqueHostnames
+}
+
+// TODO
+func GetAllTunnelHostnames() map[string]string {
+	config := GetMainConfig()
+	tunnels := config.ConstellationConfig.Tunnels
+	results := map[string]string{}
+	
+	for _, tunnel := range tunnels {
+		results[strings.Split(tunnel.Host, ":")[0]] = tunnel.TunnelVia
+	}
+
+	return results
 }
 
 func GetAvailableRAM() uint64 {

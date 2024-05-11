@@ -110,6 +110,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		hostPort := ""
 		if route.OverwriteHostHeader != "" {
 			hostDest = route.OverwriteHostHeader
+			req.Host = hostDest
 		}
 
 		// split port
