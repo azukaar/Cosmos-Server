@@ -67,17 +67,10 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		remoteHostnames := utils.GetAllTunnelHostnames()
 		for _, q := range r.Question {
 			for hostname, _destination := range remoteHostnames {
-				utils.Debug("IHATEYOU DNS Question " + q.Name)
-				utils.Debug("IHATEYOU DNS hostname " + hostname)
-				utils.Debug("IHATEYOU DNS _destination " + _destination)
-
 				destination := CachedDeviceNames[_destination]
 				destination = strings.ReplaceAll(destination, "/24", "")
 
-				utils.Debug("IHATEYOU DNS destination " + destination)
-
 				if destination != "" {
-					utils.Debug("IHATEYOU DNS destination OKKKKKKK")
 					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
 						utils.Debug("DNS Overwrite " + hostname + " with " + destination)
 						rr, _ := dns.NewRR(q.Name + " A " + destination)
@@ -247,7 +240,7 @@ func InitDNS() {
 
 			err = server.ListenAndServe();
 			retries := 0
-			
+
 			for err != nil && retries < 4 {
 				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
 				err = server.ListenAndServe();
