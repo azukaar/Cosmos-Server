@@ -505,8 +505,8 @@ func GetAllTunnelHostnames() map[string]string {
 	results := map[string]string{}
 	
 	for _, tunnel := range tunnels {
-		if tunnel.TunnelVia != "" && tunnel.Host != "" {
-			results[strings.Split(tunnel.Host, ":")[0]] = tunnel.TunnelVia
+		if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
+			results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
 		}
 	}
 
