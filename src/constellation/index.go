@@ -28,6 +28,9 @@ func Init() {
 		utils.SetBaseMainConfig(configFile)
 		return
 	}
+
+	// Debug step
+	utils.GetAllTunnelHostnames()
 	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {

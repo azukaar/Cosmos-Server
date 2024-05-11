@@ -510,6 +510,8 @@ func GetAllTunnelHostnames() map[string]string {
 		}
 	}
 
+	Debug("Tunnel Hostnames: " + fmt.Sprint(results))
+
 	return results
 }
 
