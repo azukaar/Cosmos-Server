@@ -77,10 +77,6 @@ func main() {
 
 		constellation.Init()
 
-		if constellation.NebulaStarted {
-			go constellation.InitDNS()
-		}
-
 		storage.InitSnapRAIDConfig()
 		
 		// Has to be done last, so scheduler does not re-init

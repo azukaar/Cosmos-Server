@@ -403,7 +403,21 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	configEndpoint := utils.GetServerURL("") + "cosmos/api/constellation/config-sync"
+	// configEndpoint := utils.GetServerURL("") + "cosmos/api/constellation/config-sync"
+
+	configHost := utils.GetServerURL("")
+	
+	if !utils.IsDomain(utils.GetMainConfig().HTTPConfig.Hostname) {
+		configHost = "http://192.168.201.1"
+
+		if utils.GetMainConfig().HTTPConfig.HTTPPort != "80" {
+			configHost += ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
+		}
+
+		configHost += "/"
+	}
+
+	configEndpoint := configHost + "cosmos/api/constellation/config-sync"
 
 	configMap["cstln_device_name"] = name
 	configMap["cstln_local_dns_address"] = "192.168.201.1"

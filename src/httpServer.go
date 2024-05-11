@@ -64,9 +64,10 @@ func startHTTPSServer(router *mux.Router) error {
 		httpRouter := mux.NewRouter()
 
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// if AllowHTTPLocalIPAccess is on, allow local IP access via HTTP
-			utils.Debug("SERVING LOCAL IP ACCESS VIA HTTP?? " + r.RemoteAddr + " " + strconv.FormatBool(utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) + " " + strconv.FormatBool(utils.IsLocalIP(r.RemoteAddr)))
-			if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
+			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
+			if r.Host == "192.168.201.1" && r.URL.Path == "/cosmos/api/constellation/config-sync" {
+				constellation.DeviceConfigSync(w, r)
+			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
 				// use router 
 				router.ServeHTTP(w, r)
 			} else {

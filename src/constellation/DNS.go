@@ -40,6 +40,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	// []string hostnames
 	hostnames := utils.GetAllHostnames(false, true)
+
+	utils.Debug("DNS Request from " + w.RemoteAddr().String() + " for " + r.Question[0].Name)
 	
 	if !customHandled {
 		customDNSEntries := config.ConstellationConfig.CustomDNSEntries
@@ -65,10 +67,17 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		remoteHostnames := utils.GetAllTunnelHostnames()
 		for _, q := range r.Question {
 			for hostname, _destination := range remoteHostnames {
+				utils.Debug("IHATEYOU DNS Question " + q.Name)
+				utils.Debug("IHATEYOU DNS hostname " + hostname)
+				utils.Debug("IHATEYOU DNS _destination " + _destination)
+
 				destination := CachedDeviceNames[_destination]
 				destination = strings.ReplaceAll(destination, "/24", "")
 
+				utils.Debug("IHATEYOU DNS destination " + destination)
+
 				if destination != "" {
+					utils.Debug("IHATEYOU DNS destination OKKKKKKK")
 					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
 						utils.Debug("DNS Overwrite " + hostname + " with " + destination)
 						rr, _ := dns.NewRR(q.Name + " A " + destination)
@@ -173,12 +182,18 @@ func loadRawBlockList(DNSBlacklistRaw string) {
 	}
 }
 
+var DNSStarted = false
+
 func InitDNS() {
+	if DNSStarted {
+		return
+	}
+
+	utils.Log("Waiting for Constellation DNS")
+
 	ConstellationInitLock.Lock()
 	defer ConstellationInitLock.Unlock()
-
-	ProcessMux.Lock()
-	defer ProcessMux.Unlock()
+	
 	
 	config := utils.GetMainConfig()
 	DNSPort := config.ConstellationConfig.DNSPort
@@ -221,6 +236,8 @@ func InitDNS() {
 	}
 
 	if(!config.ConstellationConfig.DNSDisabled) {
+		utils.Log("Initializing Constellation DNS")
+
 		go (func() {
 			dns.HandleFunc(".", handleDNSRequest)
 			server := &dns.Server{Addr: "192.168.201.1:" + DNSPort, Net: "udp"}
@@ -230,14 +247,19 @@ func InitDNS() {
 
 			err = server.ListenAndServe();
 			retries := 0
+			
 			for err != nil && retries < 4 {
 				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
 				err = server.ListenAndServe();
 				retries++
 				utils.Debug("Retrying to start DNS server")
 			}
+			
 			if err != nil {
-				utils.Error("Failed to start DNS server", err)
+				utils.MajorError("Failed to start DNS server", err)
+			} else {
+				utils.Log("Constellation DNS started!")
+				DNSStarted = true
 			}
 		})()
 	}

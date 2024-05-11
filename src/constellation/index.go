@@ -142,7 +142,7 @@ func Init() {
 				utils.Debug("Retrying to sync slave config")
 			}
 			if err != nil {
-				utils.Error("Failed to sync slave config", err)
+				utils.MajorError("Failed to sync slave config", err)
 			} else {
 				utils.Log("Slave config synced")
 				if needRestart {
@@ -153,6 +153,8 @@ func Init() {
 					utils.RestartHTTPServer()
 				}
 			}
+		} else {
+			go InitDNS()
 		}
 
 		utils.Log("Constellation module initialized")

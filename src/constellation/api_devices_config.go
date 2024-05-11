@@ -125,7 +125,6 @@ func DeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 		}
 
 		utils.Log("DeviceConfigSync: Fetching devices for IP " + ip)
-		utils.Log("DeviceConfigSync: Fetching devices for APIKey " + auth)
 
 		cursor, err := c.Find(nil, map[string]interface{}{
 			"IP": ip + "/24",
