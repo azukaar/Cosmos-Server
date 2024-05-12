@@ -18,6 +18,7 @@ import (
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/certificate"
 	"github.com/go-acme/lego/v4/challenge/http01"
+	"github.com/go-acme/lego/v4/challenge/dns01"
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/registration"
 	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
@@ -180,7 +181,7 @@ func DoLetsEncrypt() (string, string) {
 			return "", ""
 		}
 
-		err = client.Challenge.SetDNS01Provider(provider)
+		err = client.Challenge.SetDNS01Provider(provider, dns01.addRecursiveNameservers([]string{"1.1.1.1"}))
 	} else {
 		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 		if err != nil {
