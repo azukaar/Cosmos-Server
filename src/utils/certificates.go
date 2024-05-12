@@ -14,6 +14,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"os"
+	"strings"
 	
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/certificate"
@@ -181,7 +182,13 @@ func DoLetsEncrypt() (string, string) {
 			return "", ""
 		}
 
-		err = client.Challenge.SetDNS01Provider(provider, dns01.addRecursiveNameservers([]string{"1.1.1.1"}))
+		if config.HTTPConfig.DNSChallengeResolver != "" {
+			// Split DNSChallengeResolver by commas to support multiple DNS servers
+			resolvers := strings.Split(config.HTTPConfig.DNSChallengeResolver, ",")
+			err = client.Challenge.SetDNS01Provider(provider, dns01.AddRecursiveNameservers(resolvers))
+		} else {
+			err = client.Challenge.SetDNS01Provider(provider)
+		}		
 	} else {
 		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 		if err != nil {
