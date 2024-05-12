@@ -7,17 +7,39 @@ import (
 	"time"
 
 	"github.com/azukaar/cosmos-server/src/user"
+	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/mux"
 )
 
-func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.Handler {
+func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			enabled := route.AuthEnabled
+			adminOnly := route.AdminOnly
+
+			// bypass auth if from Constellation tunnel
+			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
+				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
+				
+				isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
+				isConstIP := utils.IsConstellationIP(remoteAddr)
+				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
+
+				if isTunneledIp && isConstIP && isConstTokenValid {
+					utils.Debug("Bypassing auth for Constellation tunnel")
+					r.Header.Del("x-cstln-auth")
+
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+			
 			r.Header.Del("x-cosmos-user")
 			r.Header.Del("x-cosmos-role")
 			r.Header.Del("x-cosmos-mfa")
+			r.Header.Del("x-cstln-auth")
 
 			u, err := user.RefreshUserToken(w, r)
 
@@ -52,6 +74,20 @@ func tokenMiddleware(enabled bool, adminOnly bool) func(next http.Handler) http.
 	}
 }
 
+func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// If the request is from a Constellation tunnel, add the token
+			if route.TunnelVia == constellation.DeviceName {
+				// Add the token
+				r.Header.Set("x-cstln-auth", constellation.APIKey)
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
 	origin := router.NewRoute()
 
@@ -72,6 +108,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 		destination = http.StripPrefix(route.PathPrefix, destination)
 	}
+
+	destination = AddConstellationToken(route)(destination)
 
 	for filter := range route.AddionalFilters {
 		if route.AddionalFilters[filter].Type == "header" {
@@ -145,7 +183,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		destination = utils.SetSecurityHeaders(destination)
 	}
 
-	destination = tokenMiddleware(route.AuthEnabled, route.AdminOnly)(utils.CORSHeader(originCORS)((destination)))
+	destination = tokenMiddleware(route)(utils.CORSHeader(originCORS)((destination)))
 
 	origin.Handler(destination)
 

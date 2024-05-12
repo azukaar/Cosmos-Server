@@ -2,12 +2,57 @@ package constellation
 
 import (
 	"net/http"
+	"net"
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"strings"	
+	"errors"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
+
+// TODO: Cache this
+func CheckConstellationToken(req *http.Request) error {
+	ip, _, err := net.SplitHostPort(req.RemoteAddr)
+	if err != nil {
+		return errors.New("Invalid request")
+	}
+
+	// get authorization header
+	auth := req.Header.Get("x-cstln-auth")
+	if auth == "" {
+		return errors.New("Unauthorized: No Authorization header")
+	}
+
+	// remove "Bearer " from auth header
+	auth = strings.Replace(auth, "Bearer ", "", 1)
+	
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
+	if errCo != nil {
+		return errCo
+	}
+
+	utils.Log("DeviceConfigSync: Fetching devices for IP " + ip)
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"IP": ip + "/24",
+		"APIKey": auth,
+		"Blocked": false,
+	})
+	defer cursor.Close(nil)
+	if err != nil {
+		return err
+	}
+	
+	// if any device is found, return config without keys
+	if cursor.Next(nil) {
+		return nil
+	}
+
+	return errors.New("Unauthorized: Client not found")
+}
 
 func API_GetConfig(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {

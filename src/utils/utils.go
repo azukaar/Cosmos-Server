@@ -43,7 +43,8 @@ var IsHostNetwork = false
 
 var UpdateAvailable = map[string]bool{}
 
-var RestartHTTPServer func()
+var RestartHTTPServer = func() {}
+
 // var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
@@ -829,6 +830,28 @@ func IsLocalIP(ip string) bool {
 		return true
 	}
 	return false
+}
+
+func IsConstellationIP(ip string) bool {
+	if strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.") {
+		return true
+	}
+
+	return false 
+}
+
+func SplitIP(ipPort string) (string, string) {
+	host, port, err := osnet.SplitHostPort(ipPort)
+	if err != nil {
+			// If there was an error splitting host and port, try parsing as IP only
+			if ip := osnet.ParseIP(ipPort); ip != nil {
+					// If it's a valid IP, return it with an empty port
+					return ip.String(), ""
+			}
+			// Otherwise, return an empty IP and port (indicating an invalid input)
+			return "", ""
+	}
+	return host, port
 }
 
 func ListIps(skipNebula bool) ([]string, error) {

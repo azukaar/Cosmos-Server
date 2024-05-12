@@ -65,9 +65,9 @@ func startHTTPSServer(router *mux.Router) error {
 
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
-			if r.Host == "192.168.201.1" && r.URL.Path == "/cosmos/api/constellation/config-sync" {
-				constellation.DeviceConfigSync(w, r)
-			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
+			if r.Host == "192.168.201.1" && r.URL.Path == "/cosmos/api/constellation/config-sync" && utils.IsConstellationIP(r.RemoteAddr) {
+				router.ServeHTTP(w, r)
+			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)  {
 				// use router 
 				router.ServeHTTP(w, r)
 			} else {

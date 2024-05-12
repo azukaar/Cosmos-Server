@@ -130,7 +130,6 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			req.Header.Set("X-Forwarded-Port", hostPort)
 		}
 
-		
 		// spoof hostname
 		if route.SpoofHostname {
 			req.Header.Del("X-Forwarded-Port")

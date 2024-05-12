@@ -441,7 +441,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 				protocol = strings.Split(route.Target, "://")[0] + "://"
 			}
 
-			if protocol == "http://" || protocol == "https://" {
+			if protocol == "http://" || protocol == "https://" || route.Mode == "STATIC" || route.Mode == "SPA" {
 				if utils.IsHTTPS {
 					protocol = "https://"
 					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPSPort
@@ -461,12 +461,10 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			}
 			
 			route.AcceptInsecureHTTPSTarget = true
-
 			route.UseHost = true
-
 			route.Target = protocol + "192.168.201.1" + port
-
 			route.Host = route.TunneledHost
+			route.Mode = "PROXY"
 
 			tunnels = append(tunnels, route)
 		}
@@ -706,4 +704,8 @@ func generateNebulaCACert(name string) (error) {
 	cmd.Run()
 
 	return nil
+}
+
+func GetDeviceIp(device string) string {
+	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
 }

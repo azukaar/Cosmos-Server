@@ -5,10 +5,14 @@ import (
 	"os"
 	"time"
 	"strings"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
 )
 
 var NebulaStarted = false
 var CachedDeviceNames = map[string]string{}
+var DeviceName = ""
+var APIKey = ""
 
 func Init() {
 	ConstellationInitLock.Lock()
@@ -121,6 +125,27 @@ func Init() {
 					}
 				}
 			}
+		}
+
+		// cache device name and api key
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err == nil {
+			configMap := make(map[string]interface{})
+			err = yaml.Unmarshal(nebulaFile, &configMap)
+			if err != nil {
+				utils.Error("Constellation: error while unmarshalling nebula.yml", err)
+			} else {
+				if configMap["cstln_device_name"] == nil || configMap["cstln_api_key"] == nil {
+					utils.Error("Constellation: device name or api key not found in nebula.yml", nil)
+				} else {
+					DeviceName = configMap["cstln_device_name"].(string)
+					APIKey = configMap["cstln_api_key"].(string)
+				}
+			}
+		} else {
+			utils.Error("Constellation: error while reading nebula.yml", err)
+			DeviceName = ""
+			APIKey = ""
 		}
 
 		// start nebula

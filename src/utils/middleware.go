@@ -373,7 +373,9 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 		isLogin := !strings.HasPrefix(r.URL.Path, "/cosmos/api") ||
 						   strings.HasPrefix(r.URL.Path, "/cosmos/api/login") ||
 							 strings.HasPrefix(r.URL.Path, "/cosmos/api/password-reset") ||
-							 strings.HasPrefix(r.URL.Path, "/cosmos/api/mfa")
+							 strings.HasPrefix(r.URL.Path, "/cosmos/api/mfa") ||
+							 strings.HasPrefix(r.URL.Path, "/cosmos/api/can-send-email") ||
+							 strings.HasPrefix(r.URL.Path, "/cosmos/api/me")
 
 		if ni || og == "0.0.0.0" || isLogin {
 			next.ServeHTTP(w, r)
@@ -391,7 +393,7 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 
 		if og != reqHostNoPort {
 			PushShieldMetrics("hostname")
-			Error("Invalid Hostname " + r.Host + " for request", nil)
+			Error("Invalid Hostname " + r.Host + " for API request to " + r.URL.Path, nil)
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
 			
