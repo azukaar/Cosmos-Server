@@ -65,7 +65,7 @@ func startHTTPSServer(router *mux.Router) error {
 
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
-			if r.Host == "192.168.201.1" && r.URL.Path == "/cosmos/api/constellation/config-sync" && utils.IsConstellationIP(r.RemoteAddr) {
+			if r.Host == "192.168.201.1" && (r.URL.Path == "/cosmos/api/constellation/config-sync" || r.URL.Path == "/cosmos/api/constellation_webhook_sync") && utils.IsConstellationIP(r.RemoteAddr) {
 				router.ServeHTTP(w, r)
 			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)  {
 				// use router 
@@ -438,6 +438,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
 	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.DeviceConfigSync)
 	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.DeviceConfigManualSync)
+	srapiAdmin.HandleFunc("/api/constellation_webhook_sync", constellation.WebhookSync)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

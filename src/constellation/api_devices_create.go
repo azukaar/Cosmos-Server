@@ -53,7 +53,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
+		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

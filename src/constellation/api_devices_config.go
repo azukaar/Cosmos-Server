@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"errors"
 	"context"
+	"sync"
 	
 	"fmt"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -283,6 +284,10 @@ func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 }
 
 func SlaveConfigSync() (bool, error) {
+	if !utils.GetMainConfig().ConstellationConfig.Enabled || !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		return false, nil
+	}
+
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 
@@ -461,4 +466,106 @@ func SlaveConfigSync() (bool, error) {
 	}
 
 	return false, nil
+}
+
+// sync lock 
+var WebhookSyncMux = sync.Mutex{}
+
+func WebhookSync(w http.ResponseWriter, req *http.Request) {
+	if(req.Method == "GET") {
+		WebhookSyncMux.Lock()
+		defer WebhookSyncMux.Unlock()
+
+		// if request from 192.168.201.1
+		ip, _, err := net.SplitHostPort(req.RemoteAddr)
+		if err != nil {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		if ip != "192.168.201.1" {
+			utils.Error("WebhookSync: Unauthorized", nil)
+			utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "WH001")
+			return
+		}
+		
+		// isConstTokenValid := CheckConstellationTokenClient(r) == nil
+		// if !isConstTokenValid {
+		// 	utils.Error("WebhookSync: Unauthorized", nil)
+		// 	utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "WH001")
+		// 	return
+		// }
+
+		time.Sleep(time.Duration(5*time.Second))
+
+		restart, err := SlaveConfigSync()
+		if err != nil {
+			utils.Error("WebhookSync: Error syncing config", err)
+			utils.HTTPError(w, "Error syncing config", http.StatusInternalServerError, "WH002")
+			return
+		}
+
+		if restart {
+			utils.Log("WebhookSync: Restarting Nebula")
+			RestartNebula()
+			utils.RestartHTTPServer()
+		}
+
+		utils.Log("WebhookSync: Config synced")
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "OK",
+			"message": "Config synced",
+		})
+	} else {
+		utils.Error("WebhookSync: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+// TODO: Replace when secured pubsub MQ is implemented
+
+func TriggetWebhookSync() error {
+	lh, err := GetAllLightHouses()
+	if err != nil {
+		return err
+	}
+
+	for _, l := range lh {
+		// ip := strings.ReplaceAll(l.PublicHostname, "/24", "")
+		ip = l.PublicHostname
+		url := "https://" + ip + "/cosmos/api/constellation_webhook_sync"
+		utils.Log("TriggetWebhookSync: Triggering webhook sync for " + url)
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			utils.Error("TriggetWebhookSync: Error creating request", err)
+			continue
+		}
+
+		req.Header = map[string][]string{
+		}
+
+		client := &http.Client{}
+
+		resp, err := client.Do(req)
+		if err != nil {
+			utils.Error("TriggetWebhookSync: Error fetching config", err)
+			continue
+		}
+		
+		defer resp.Body.Close()
+
+		utils.Debug("TriggetWebhookSync: Received response with status code: " + resp.Status)
+
+		if resp.StatusCode != 200 {
+			utils.Error("TriggetWebhookSync: Error fetching config, status code: " + resp.Status, nil)
+			continue
+		}
+
+		utils.Log("TriggetWebhookSync: Webhook sync triggered for " + ip)
+	}
+
+	return nil
 }

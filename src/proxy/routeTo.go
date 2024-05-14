@@ -9,6 +9,9 @@ import (
 	"os"
 	"io/ioutil"
 	"strconv"
+	"time"
+	"context"
+	"net"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
@@ -141,11 +144,31 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		}
 	}
 
-	if AcceptInsecureHTTPSTarget {
-		proxy.Transport = &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	customTransport :=  &http.Transport{}
+
+	if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		customTransport = &http.Transport{
+			DialContext: (&net.Dialer{
+				Timeout:   5 * time.Second,
+				KeepAlive: 5 * time.Second,
+				Resolver: &net.Resolver{
+					PreferGo: true,
+					Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+						return net.Dial(network, "192.168.201.1:53")
+					},
+				},
+			}).DialContext,
 		}
 	}
+
+	if AcceptInsecureHTTPSTarget {
+		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		// proxy.Transport = &http.Transport{
+		// 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		// }
+	}
+
+	proxy.Transport = customTransport
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)

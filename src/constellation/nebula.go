@@ -123,6 +123,9 @@ func stop() error {
 }
 
 func RestartNebula() {
+	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		TriggetWebhookSync()
+	}
 	stop()
 	Init()
 }
@@ -419,11 +422,29 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	configEndpoint := configHost + "cosmos/api/constellation/config-sync"
 
+	configHostname := strings.Split(configHost, "://")[1]
+	configHostname = strings.Split(configHostname, ":")[0]
+	configHostport := ""
+
+	if strings.Contains(configHostname, ":") {
+		configHostport = strings.Split(configHostname, ":")[1]
+
+		if _, err := strconv.Atoi(configHostport); err == nil {
+			configHostport = ":" + configHostport
+		} else {
+			configHostport = ""
+		}
+	}
+
+
+	configHostProto := strings.Split(configHost, "://")[0] + "://"
+
 	configMap["cstln_device_name"] = name
 	configMap["cstln_local_dns_address"] = "192.168.201.1"
 	configMap["cstln_public_hostname"] = device.PublicHostname
 	configMap["cstln_api_key"] = APIKey
 	configMap["cstln_config_endpoint"] = configEndpoint
+	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 
 	// list routes with a tunnel property matching the device name
 	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
@@ -434,41 +455,37 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			if route.UseHost {
 				route.OverwriteHostHeader = route.Host
 			}
-			port := ""
-			protocol := ""
 
-			if strings.Contains(route.Target, "://") {
+			port := configHostport
+			protocol := configHostProto
+
+			targetProtocol := strings.Split(route.Target, "://")[0]
+			if targetProtocol != "" && targetProtocol != "http" && targetProtocol != "https" && route.Mode != "STATIC" && route.Mode != "SPA" {
 				protocol = strings.Split(route.Target, "://")[0] + "://"
-			}
-
-			if protocol == "http://" || protocol == "https://" || route.Mode == "STATIC" || route.Mode == "SPA" {
-				if utils.IsHTTPS {
-					protocol = "https://"
-					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPSPort
-				} else {
-					protocol = "http://"
-					port = ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
-				}
-			} else {
-				// extract port from target
-				if strings.Contains(route.Host, ":") {
-					_port := strings.Split(route.Host, ":")[1]
-						// if port is a number
-						if _, err := strconv.Atoi(_port); err == nil {
-							port = ":" + _port
-					}
+			} 
+			
+			// extract port from target
+			if strings.Contains(route.Host, ":") {
+				_port := strings.Split(route.Host, ":")[1]
+					// if port is a number
+					if _, err := strconv.Atoi(_port); err == nil {
+						port = ":" + _port
 				}
 			}
 			
-			route.AcceptInsecureHTTPSTarget = true
 			route.UseHost = true
-			route.Target = protocol + "192.168.201.1" + port
+			
+			route.Target = protocol + configHostname + port
+
+			if configMap["cstln_https_insecure"].(bool) {
+				route.AcceptInsecureHTTPSTarget = true
+			}
+
 			route.Host = route.TunneledHost
 			route.Mode = "PROXY"
 
 			tunnels = append(tunnels, route)
 		}
-
 	}
 
 	configMap["cstln_tunnels"] = tunnels

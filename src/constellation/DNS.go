@@ -237,6 +237,8 @@ func InitDNS() {
 
 			utils.Log("Starting DNS server on :" + DNSPort)
 			var err error
+			
+			DNSStarted = true
 
 			err = server.ListenAndServe();
 			retries := 0
@@ -250,9 +252,9 @@ func InitDNS() {
 			
 			if err != nil {
 				utils.MajorError("Failed to start DNS server", err)
+				DNSStarted = false
 			} else {
 				utils.Log("Constellation DNS started!")
-				DNSStarted = true
 			}
 		})()
 	}
