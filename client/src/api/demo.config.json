@@ -13,6 +13,7 @@
 			"GenerateMissingAuthCert": true,
 			"HTTPSCertificateMode": "LETSENCRYPT",
 			"DNSChallengeProvider": "",
+			"DNSChallengeResolver": "",
 			"HTTPPort": "80",
 			"HTTPSPort": "443",
 			"ProxyConfig": {
