@@ -83,7 +83,6 @@ type Config struct {
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
 	EmailConfig EmailConfig `validate:"required,dive,required"`
-	EmailOnLogin bool
 	DockerConfig DockerConfig
 	BlockedCountries []string
 	CountryBlacklistIsWhitelist bool
@@ -247,6 +246,7 @@ type EmailConfig struct {
 	From       string
 	UseTLS		 bool
 	AllowInsecureTLS		 bool
+	NotifyLogin  bool
 }
 
 type OpenIDClient struct {

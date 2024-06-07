@@ -83,7 +83,7 @@ func IsEmailEnabled() bool {
 
 func IsNotifyLoginEmailEnabled() bool {
 	config := GetMainConfig()
-	return config.EmailOnLogin
+	return config.EmailConfig.NotifyLogin
 }
 
 func SendEmail(recipients []string, subject string, body string) error {
