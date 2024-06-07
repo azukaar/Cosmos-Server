@@ -1,14 +1,16 @@
 package user
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+
+	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/gorilla/mux"
-	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type EditRequestJSON struct {
-	Email string `validate:"email"`
+	Email         string `validate:"omitempty,email"`
+	NotifyOnLogin bool   `validate:"omitempty"`
 }
 
 func UserEdit(w http.ResponseWriter, req *http.Request) {
@@ -17,9 +19,9 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 
 	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 		return
-	} 
+	}
 
-	if(req.Method == "PATCH") {
+	if req.Method == "PATCH" {
 		var request EditRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
 		if err1 != nil {
@@ -32,30 +34,29 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 		err2 := utils.Validate.Struct(request)
 		if err2 != nil {
 			utils.Error("UserEdit: Invalid User Request", err2)
-			utils.HTTPError(w, "User request invalid: " + err2.Error(), http.StatusInternalServerError, "UL002")
+			utils.HTTPError(w, "User request invalid: "+err2.Error(), http.StatusInternalServerError, "UL002")
 			return
 		}
-		
+
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
+		defer closeDb()
 		if errCo != nil {
-				utils.Error("Database Connect", errCo)
-				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
-				return
+			utils.Error("Database Connect", errCo)
+			utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+			return
 		}
 
 		utils.Debug("UserEdit: Edit user " + nickname)
 
-		toSet := map[string]interface{}{}
-		if request.Email != "" {
-			
-			if utils.AdminOnly(w, req) != nil {
-				return
-			} 
-
-			toSet["Email"] = request.Email
+		if utils.AdminOnly(w, req) != nil {
+			return
 		}
 
+		toSet := map[string]interface{}{}
+		if request.Email != "" {
+			toSet["Email"] = request.Email
+		}
+		toSet["NotifyOnLogin"] = request.NotifyOnLogin
 		_, err := c.UpdateOne(nil, map[string]interface{}{
 			"Nickname": nickname,
 		}, map[string]interface{}{
@@ -67,12 +68,12 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "User Edit Error", http.StatusInternalServerError, "UE001")
 			return
 		}
-		
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})
 	} else {
-		utils.Error("UserEdit: Method not allowed" + req.Method, nil)
+		utils.Error("UserEdit: Method not allowed"+req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}

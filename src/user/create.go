@@ -1,51 +1,54 @@
 package user
 
 import (
-	"net/http"
 	"encoding/json"
-	"go.mongodb.org/mongo-driver/mongo"
+	"net/http"
 	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 type CreateRequestJSON struct {
-	Nickname string `validate:"required,min=3,max=32,alphanum"`
-	Email string `validate:"omitempty,email"`
+	Nickname      string `validate:"required,min=3,max=32,alphanum"`
+	Email         string `validate:"omitempty,email"`
+	NotifyOnLogin bool   `validate:"omitempty"`
 }
 
 func UserCreate(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
-	} 
+	}
 
-	if(req.Method == "POST") {
+	if req.Method == "POST" {
 		var request CreateRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
 		if err1 != nil {
 			utils.Error("UserCreation: Invalid User Request", err1)
-			utils.HTTPError(w, "User Creation Error", 
+			utils.HTTPError(w, "User Creation Error",
 				http.StatusInternalServerError, "UC001")
-			return 
+			return
 		}
 
 		errV := utils.Validate.Struct(request)
 		if errV != nil {
 			utils.Error("UserCreation: Invalid User Request", errV)
-			utils.HTTPError(w, "User Creation Error: " + errV.Error(),
+			utils.HTTPError(w, "User Creation Error: "+errV.Error(),
 				http.StatusInternalServerError, "UC003")
-			return 
+			return
 		}
-		
+
 		nickname := utils.Sanitize(request.Nickname)
 		email := utils.Sanitize(request.Email)
+		notifyOnLogin := request.NotifyOnLogin
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
+		defer closeDb()
 		if errCo != nil {
-				utils.Error("Database Connect", errCo)
-				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
-				return
+			utils.Error("Database Connect", errCo)
+			utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+			return
 		}
 
 		user := utils.User{}
@@ -61,23 +64,24 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 			RegisterKeyExp := time.Now().Add(time.Hour * 24 * 7)
 
 			_, err3 := c.InsertOne(nil, map[string]interface{}{
-				"Nickname": nickname,
-				"Email": email,
-				"Password": "",
-				"RegisterKey": RegisterKey,
+				"Nickname":       nickname,
+				"Email":          email,
+				"Password":       "",
+				"RegisterKey":    RegisterKey,
 				"RegisterKeyExp": RegisterKeyExp,
-				"Role": utils.USER,
-				"PasswordCycle": 0,
-				"CreatedAt": time.Now(),
+				"Role":           utils.USER,
+				"PasswordCycle":  0,
+				"CreatedAt":      time.Now(),
+				"NotifyOnLogin":  notifyOnLogin,
 			})
 
 			if err3 != nil {
 				utils.Error("UserCreation: Error while creating user", err3)
-				utils.HTTPError(w, "User Creation Error", 
+				utils.HTTPError(w, "User Creation Error",
 					http.StatusInternalServerError, "UC001")
-				return 
-			} 
-			
+				return
+			}
+
 			utils.TriggerEvent(
 				"cosmos.user.create",
 				"User created",
@@ -85,26 +89,26 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 				"",
 				map[string]interface{}{
 					"nickname": nickname,
-			})
+				})
 
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data": map[string]interface{}{
-					"registerKey": RegisterKey,
+					"registerKey":    RegisterKey,
 					"registerKeyExp": RegisterKeyExp,
 				},
 			})
 		} else if err2 == nil {
 			utils.Error("UserCreation: User already exists", nil)
 			utils.HTTPError(w, "User already exists", http.StatusConflict, "UC002")
-		  return 
+			return
 		} else {
 			utils.Error("UserCreation: Error while finding user", err2)
 			utils.HTTPError(w, "User Creation Error", http.StatusInternalServerError, "UC001")
-			return 
+			return
 		}
 	} else {
-		utils.Error("UserCreation: Method not allowed" + req.Method, nil)
+		utils.Error("UserCreation: Method not allowed"+req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}

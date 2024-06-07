@@ -73,6 +73,7 @@ type User struct {
 	Was2FAVerified bool `json:"-" bson:"Was2FAVerified"`
 	MFAState int `json:"-" bson:"-"` 
 	// 0 = done, 1 = needed, 2 = not set
+	NotifyOnLogin bool `json:"notifyOnLogin" bson:"NotifyOnLogin"`
 }
 
 type Config struct {
