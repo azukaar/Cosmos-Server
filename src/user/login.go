@@ -1,15 +1,15 @@
 package user
 
 import (
-	"net/http"
-	"math/rand"
 	"encoding/json"
+	"math/rand"
+	"net/http"
+	"time"
+
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
-	"time"
-	
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 type LoginRequestJSON struct {
@@ -18,9 +18,9 @@ type LoginRequestJSON struct {
 }
 
 func UserLogin(w http.ResponseWriter, req *http.Request) {
-	if(req.Method == "POST") {
-		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
-		
+	if req.Method == "POST" {
+		time.Sleep(time.Duration(rand.Float64()*2) * time.Second)
+
 		if utils.IsLoggedIn(req) {
 			utils.Error("UserLogin: User already logged ing", nil)
 			utils.HTTPError(w, "User is already logged in", http.StatusUnauthorized, "UL002")
@@ -36,11 +36,11 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 		}
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  	defer closeDb()
+		defer closeDb()
 		if errCo != nil {
-				utils.Error("Database Connect", errCo)
-				utils.HTTPError(w, "Database Error", http.StatusInternalServerError, "DB001")
-				return
+			utils.Error("Database Connect", errCo)
+			utils.HTTPError(w, "Database Error", http.StatusInternalServerError, "DB001")
+			return
 		}
 
 		nickname := utils.Sanitize(request.Nickname)
@@ -70,11 +70,14 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		} else {
 			err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	
 			if err2 != nil {
 				utils.Error("UserLogin: Encryption error", err2)
 				utils.HTTPError(w, "User Logging Error", http.StatusUnauthorized, "UL001")
 				return
+			}
+
+			if utils.IsEmailEnabled() && utils.IsNotifyLoginEmailEnabled() {
+				SendLoginNotificationEmail(user.Nickname, user.Email)
 			}
 
 			SendUserToken(w, req, user, false)
@@ -96,7 +99,7 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	} else {
-		utils.Error("UserLogin: Method not allowed" + req.Method, nil)
+		utils.Error("UserLogin: Method not allowed"+req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}

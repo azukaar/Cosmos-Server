@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -82,6 +83,7 @@ type Config struct {
 	NewInstall bool `validate:"boolean"`
 	HTTPConfig HTTPConfig `validate:"required,dive,required"`
 	EmailConfig EmailConfig `validate:"required,dive,required"`
+	EmailOnLogin bool
 	DockerConfig DockerConfig
 	BlockedCountries []string
 	CountryBlacklistIsWhitelist bool
