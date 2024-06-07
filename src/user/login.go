@@ -77,7 +77,9 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			}
 
 			if utils.IsEmailEnabled() && utils.IsNotifyLoginEmailEnabled() && user.Email != "" {
-				SendLoginNotificationEmail(user.Nickname, user.Email)
+				if err := SendLoginNotificationEmail(user.Nickname, user.Email); err != nil {
+					utils.Error("UserLogin: Error while sending login notification email", err)
+				}
 			}
 
 			SendUserToken(w, req, user, false)
