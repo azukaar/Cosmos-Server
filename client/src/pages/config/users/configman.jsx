@@ -117,8 +117,6 @@ const ConfigManagement = () => {
           Email_From: config.EmailConfig.From,
           Email_UseTLS : config.EmailConfig.UseTLS,
           Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
-          Email_NotifyLogin: config.EmailConfig.NotifyLogin,
-          
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
           SkipPruneImages: config.DockerConfig.SkipPruneImages,
@@ -204,7 +202,6 @@ const ConfigManagement = () => {
               From: values.Email_From,
               UseTLS: values.Email_UseTLS,
               AllowInsecureTLS: values.Email_AllowInsecureTLS,
-              NotifyLogin: values.Email_NotifyLogin,
             },
             DockerConfig: {
               ...config.DockerConfig,
@@ -668,13 +665,6 @@ const ConfigManagement = () => {
                         helperText="Allow self-signed certificate"
                       />
                     )}
-                    
-                    <CosmosCheckbox
-                      label="Notify Users upon Successful Login"
-                      name="Email_NotifyLogin"
-                      formik={formik}
-                      helperText="Notify Users upon Successful Login"
-                    />
                   </>)}
                 </Stack>
               </MainCard>
