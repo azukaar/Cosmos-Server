@@ -199,6 +199,10 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
 
       let name = k[k.length - 1];
       let cat = k[k.length - 2];
+      if (k[0] === 'cosmos' && k[1] === 'system' && k[2] === 'docker') {
+        name = k.slice(4).join('.');  
+        cat = k[3];
+      }
 
       heads[cat] = true;
 
