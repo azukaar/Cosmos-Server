@@ -1,6 +1,6 @@
 // material-ui
 import * as React from 'react';
-import { Box, Button, Checkbox, Typography } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -121,40 +121,26 @@ const UserManagement = () => {
         </Dialog>
         
         <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
-            <DialogTitle>Edit User Details</DialogTitle>
+            <DialogTitle>Edit Email</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Use this form to edit {openEditEmail.nickname}'s details
+                    Use this form to invite edit {openEditEmail}'s Email.
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-email-edit"
-                    defaultValue={openEditEmail.email || ''}
-                    label="Email Address (Optional)"
+                    label="Email Address"
                     type="email"
                     fullWidth
                     variant="standard"
                 />
-                <Box>
-                    <Checkbox
-                        defaultChecked={openEditEmail.notifyOnLogin || false}
-                        margin="dense"
-                        id="c-email-notify"
-                        label="Notify User On Login"
-                        type="checkbox"
-                        fullWidth
-                        variant="standard"
-                    />
-                    Notify User upon successful login
-                </Box>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpenEditEmail(false)}>Cancel</Button>
                 <Button onClick={() => {
-                    API.users.edit(openEditEmail.nickname, {
-                        email: document.getElementById('c-email-edit').value || '',
-                        notifyOnLogin: document.getElementById('c-email-notify').checked,
+                    API.users.edit(openEditEmail, {
+                        email: document.getElementById('c-email-edit').value,
                     }).then(() => {
                         setOpenEditEmail(false);
                         refresh();
@@ -187,17 +173,6 @@ const UserManagement = () => {
                     fullWidth
                     variant="standard"
                 />
-               <Box>
-                    <Checkbox
-                        margin="dense"
-                        id="c-email-notify"
-                        label="Notify User On Login"
-                        type="checkbox"
-                        fullWidth
-                        variant="standard"
-                    />
-                    Notify User upon successful login
-                </Box>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpenCreateForm(false)}>Cancel</Button>
@@ -205,7 +180,6 @@ const UserManagement = () => {
                     API.users.create({
                         nickname: document.getElementById('c-nickname').value,
                         email: document.getElementById('c-email').value,
-                        notifyOnLogin: document.getElementById('c-email-notify').checked,
                     }).then(() => {
                         setOpenCreateForm(false);
                         refresh();
@@ -229,7 +203,7 @@ const UserManagement = () => {
         {!isLoading && rows && (<PrettyTableView 
             data={rows}
             onRowClick = {(r) => {
-                setOpenEditEmail(r);
+                setOpenEditEmail(r.nickname);
             }}
             getKey={(r) => r.nickname}
             columns={[
@@ -281,11 +255,6 @@ const UserManagement = () => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
                         return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : 'Never'}</>
                     },
-                },
-                {
-                    title: 'Notify On Login',
-                    screenMin: 'sm',
-                    field: (r) => r.notifyOnLogin ? 'Yes' : 'No',
                 },
                 {
                     title: '',
