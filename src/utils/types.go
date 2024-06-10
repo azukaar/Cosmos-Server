@@ -65,7 +65,6 @@ type User struct {
 	PasswordCycle			 int    `json:"-" bson:"PasswordCycle"`
 	Link 		 string    `json:"link" bson:"-"`
 	Email string `validate:"email" json:"email" bson:"Email"`
-	NotifyOnLogin bool `json:"notifyOnLogin" bson:"NotifyOnLogin"`
 	RegisteredAt time.Time   `json:"registeredAt" bson:"RegisteredAt"`
 	LastPasswordChangedAt time.Time   `json:"lastPasswordChangedAt" bson:"LastPasswordChangedAt"`
 	CreatedAt time.Time   `json:"createdAt" bson:"CreatedAt"`
@@ -74,6 +73,7 @@ type User struct {
 	Was2FAVerified bool `json:"-" bson:"Was2FAVerified"`
 	MFAState int `json:"-" bson:"-"` 
 	// 0 = done, 1 = needed, 2 = not set
+	NotifyOnLogin bool `json:"notifyOnLogin" bson:"NotifyOnLogin"`
 }
 
 type Config struct {
@@ -247,6 +247,7 @@ type EmailConfig struct {
 	From       string
 	UseTLS		 bool
 	AllowInsecureTLS		 bool
+	NotifyLogin  bool
 }
 
 type OpenIDClient struct {
