@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -45,7 +46,7 @@ See you soon!! <br>
 `, nickname, link))
 }
 
-func SendLoginNotificationEmail(nickname string, email string) error {
+func SendLoginNotificationEmail(nickname string, email string, ip string, date time.Time) error {
 	return utils.SendEmail(
 		[]string{email},
 		"Cosmos Login Notification",
@@ -53,5 +54,7 @@ func SendLoginNotificationEmail(nickname string, email string) error {
 Hello %s, <br>
 Your account has been logged into. If it wasn't you, please reset your password and alert your server admin. <br>
 If it was you, you can ignore this email. <br><br>
-`, nickname))
+The login was from the following IP: %s <br>
+On the following date: %s <br><br>
+`, nickname, ip, date.Format("2006-01-02 15:04:05")))
 }
