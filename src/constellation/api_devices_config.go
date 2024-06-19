@@ -1,21 +1,23 @@
 package constellation
 
 import (
-	"net/http"
-	"encoding/json"
-	"math/rand"
-	"time"
-	"net"
-	"strings"
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
-	"net/url"
-	"errors"
 	"context"
+	"encoding/json"
+	"errors"
+	"io/ioutil"
+	"math/rand"
+	"net"
+	"net/http"
+	"net/url"
+	"strings"
 	"sync"
-	
+	"time"
+
+	"gopkg.in/yaml.v2"
+
 	"fmt"
-	"github.com/azukaar/cosmos-server/src/utils" 
+
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func compareConfigs(configMap, configMapNew map[string]interface{}) bool {
@@ -534,7 +536,7 @@ func TriggetWebhookSync() error {
 
 	for _, l := range lh {
 		// ip := strings.ReplaceAll(l.PublicHostname, "/24", "")
-		ip = l.PublicHostname
+		ip := l.PublicHostname
 		url := "https://" + ip + "/cosmos/api/constellation_webhook_sync"
 		utils.Log("TriggetWebhookSync: Triggering webhook sync for " + url)
 
