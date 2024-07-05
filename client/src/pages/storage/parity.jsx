@@ -17,6 +17,7 @@ import SnapRAIDDialog, { SnapRAIDDialogInternal } from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
 import diskIcon from '../../assets/images/icons/disk.svg';
 import ResponsiveButton from "../../components/responseiveButton";
+import { useTranslation } from 'react-i18next';
 
 const getStatus = (status) => {
   if (!status) {
@@ -56,6 +57,7 @@ const cleanStatus = (status) => {
 }
 
 export const Parity = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [parities, setParities] = useState([]);
@@ -118,7 +120,7 @@ export const Parity = () => {
     {(config) ? <>
       {deleteRaid && <ConfirmModalDirect
         title="Delete Parity"
-        content="Are you sure you want to delete this parity?"
+        content={t('confirmParityDelete')}
         callback={() => apiDeleteRaid(deleteRaid)}
         onClose={() => setDeleteRaid(null)}
       />}
@@ -127,7 +129,7 @@ export const Parity = () => {
           <SnapRAIDDialog refresh={refresh} />
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>Refresh</ResponsiveButton>
+          }}>{t('Refresh')}</ResponsiveButton>
         </Stack>
       <div>
       {editOpened && <SnapRAIDDialogInternal refresh={refresh} open={editOpened} setOpen={setEditOpened} data={editOpened} />}
@@ -151,7 +153,7 @@ export const Parity = () => {
             },
           },
           {
-            title: 'Enabled', 
+            title: t('Enabled'), 
             clickable:true, 
             field: (r, k) => <Checkbox disabled={loading} size='large' color={r.Enabled ? 'success' : 'default'}
               onChange={() => setEnabled(r.Name, !r.Enabled)}
@@ -159,22 +161,22 @@ export const Parity = () => {
             />,
           },
           {
-            title: 'Parity Disks',
+            title: t('ParityDisks'),
             field: (r) => r.Parity ? r.Parity.map(d => <div>{d}</div>) : '-'
           },
           {
-            title: 'Data Disks',
+            title: t('DataDisks'),
             field: (r) => r.Parity ? Object.keys(r.Data).map(d => <div>
               {d}: {r.Data[d]}
             </div>) : '-'
           },
           {
-            title: 'Sync/Scrub Intervals',
+            title: t('SyncScrubInterval'),
             screenMin: 'sm',
             field: (r) => <div>Sync: {crontabToText(r.SyncCrontab)}<br/>Scrub: {crontabToText(r.ScrubCrontab)}</div>
           },
           {
-            title: 'Status',
+            title: t('Status'),
             screenMax: 'md',
             field: (r) => ({
               error: <ExclamationCircleOutlined style={{color: 'red'}}/>,
@@ -202,31 +204,31 @@ export const Parity = () => {
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Edit</ListItemText>
+                    <ListItemText>{t('Edit')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => sync(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Sync</ListItemText>
+                    <ListItemText>{t('Sync')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => scrub(r.Name)}>
                     <ListItemIcon>
                       <CompassOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Scrub</ListItemText>
+                    <ListItemText>{t('Scrub')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => fix(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Fix</ListItemText>
+                    <ListItemText>{t('Fix')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Delete</ListItemText>
+                    <ListItemText>{t('Delete')}</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

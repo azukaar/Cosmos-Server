@@ -6,6 +6,9 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat'; // import this for localized formatting
 import 'dayjs/locale/en-gb';
 
+// import i18n (needs to be bundled ;)) 
+import './utils/i18n';
+
 // scroll bar
 import 'simplebar/src/simplebar.css';
 

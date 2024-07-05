@@ -29,6 +29,7 @@ import PrettyTableView from '../../components/tableView/prettyTableView';
 import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import { MetricPicker } from './MetricsPicker';
+import { useTranslation } from 'react-i18next';
 
 const DisplayOperator = (operator) => {
   switch (operator) {
@@ -42,18 +43,27 @@ const DisplayOperator = (operator) => {
       return '?';
   }
 }
+
+//const { t } = useTranslation();
+//const NameIsRequired = t('NameIsRequired');
+//const trackingMetricIsRequired = t('trackingMetricIsRequired');
+//const ConditionOperatorIsRequired = t('ConditionOperatorIsRequired');
+//const ConditionValueIsRequired = t('ConditionValueIsRequired');
+//const PeriodIsRequired = t('PeriodIsRequired');
+
 const AlertValidationSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  trackingMetric: Yup.string().required('Tracking metric is required'),
-  conditionOperator: Yup.string().required('Condition operator is required'),
-  conditionValue: Yup.number().required('Condition value is required'),
-  period: Yup.string().required('Period is required'),
+  name: Yup.string().required('Name is Required'),
+  trackingMetric: Yup.string().required('Tracking Metric is Required'),
+  conditionOperator: Yup.string().required('Condition Operator is Required'),
+  conditionValue: Yup.number().required('Condition Value is Required'),
+  period: Yup.string().required('Period is Required'),
 });
 
 const EditAlertModal = ({ open, onClose, onSave }) => {
+  const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
-      name: open.Name || 'New Alert',
+      name: open.Name || t('NewAlert'),
       trackingMetric: open.TrackingMetric || '',
       conditionOperator: (open.Condition && open.Condition.Operator) || 'gt',
       conditionValue: (open.Condition && open.Condition.Value) || 0,
@@ -73,27 +83,27 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Alert</DialogTitle>
+      <DialogTitle>{t('EditAlert')}</DialogTitle>
       <FormikProvider value={formik}>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2}>
             <CosmosInputText
               name="name"
-              label="Name of the alert"
+              label={t('AlertName')}
               formik={formik}
               required
             />
             <MetricPicker
               name="trackingMetric"
-              label="Metric to track"
+              label={t('trackingMetric')}
               formik={formik}
               required
             />
             <Stack direction="row" spacing={2} alignItems="center">
               <CosmosSelect
                 name="conditionOperator"
-                label="Trigger Condition Operator"
+                label={t('conditionOperator')}
                 formik={formik}
                 options={[
                   ['gt', '>'],
@@ -104,31 +114,31 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
               </CosmosSelect>
               <CosmosInputText
                 name="conditionValue"
-                label="Trigger Condition Value"
+                label={t('conditionValue')}
                 formik={formik}
                 required
               />
               <CosmosCheckbox
                 style={{paddingTop: '20px'}}
                 name="conditionPercent"
-                label="Condition is a percent of max value"
+                label={t('conditionPercent')}
                 formik={formik}
               />
             </Stack>
 
             <CosmosSelect
               name="period"
-              label="Period (how often to check the metric)"
+              label={t('PeriodMetric')}
               formik={formik}
               options={[
-                ['latest', 'Latest'],
-                ['hourly', 'Hourly'],
-                ['daily', 'Daily'],
+                ['latest', t('Latest')],
+                ['hourly', t('Hourly')],
+                ['daily', t('Daily')],
             ]}></CosmosSelect>
 
             <CosmosSelect
               name="severity"
-              label="Severity"
+              label={t('Severity')}
               formik={formik}
               options={[
                 ['info', 'Info'],
@@ -138,23 +148,21 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
 
             <CosmosCheckbox
               name="throttled"
-              label="Throttle (only triggers a maximum of once a day)"
+              label={t('Throttle')}
               formik={formik}
             />
 
-            <CosmosFormDivider title={'Action Triggers'} />
+            <CosmosFormDivider title={t('ActionTriggers')} />
             
             <Stack direction="column" spacing={2}>
               {formik.values.actions
               .map((action, index) => {
                 return !action.removed && <>
                   {action.Type === 'stop' && 
-                    <Alert severity="info">Stop action will attempt to stop/disable any resources (ex. Containers, routes, etc... ) attachted to the metric.
-                    This will only have an effect on metrics specific to a resources (ex. CPU of a specific container). It will not do anything on global metric such as global used CPU</Alert>
+                    <Alert severity="info">{t('infoStopAction')}</Alert>
                   }
                   {action.Type === 'restart' &&
-                    <Alert severity="info">Restart action will attempt to restart any Containers attachted to the metric.
-                    This will only have an effect on metrics specific to a resources (ex. CPU of a specific container). It will not do anything on global metric such as global used CPU</Alert>
+                    <Alert severity="info">{t('infoRestartAction')}</Alert>
                   }
                   <Stack direction="row" spacing={2} key={index}>
                     <Box style={{
@@ -162,13 +170,13 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                     }}>
                       <CosmosSelect
                         name={`actions.${index}.Type`}
-                        label="Action Type"
+                        label={t('ActionType')}
                         formik={formik}
                         options={[
-                          ['notification', 'Send a notification'],
-                          ['email', 'Send an email'],
-                          ['stop', 'Stop/Disable resources causing the alert'],
-                          ['restart', 'Restart container causing the alert'],
+                          ['notification', t('SendANotification')],
+                          ['email', t('SendAnEmail')],
+                          ['stop', t('StopResourcesCausinganAlert')],
+                          ['restart', t('RestartResourcesCausinganAlert')],
                         ]}
                       />
                     </Box>
@@ -200,15 +208,15 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                     },
                   ]);
                 }}>
-                Add Action
+                {t('AddAction')}
               </Button>
             </Stack>
 
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button variant='contained' type="submit">Save</Button>
+          <Button onClick={onClose}>{t('Cancel')}</Button>
+          <Button variant='contained' type="submit">{t('Save')}</Button>
         </DialogActions>
       </form>
       </FormikProvider>
@@ -217,6 +225,7 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
 };
 
 const AlertPage = () => {
+  const { t } = useTranslation();
   const [config, setConfig] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [openModal, setOpenModal] = React.useState(false);
@@ -362,8 +371,28 @@ const AlertPage = () => {
           "Throttled": false,
           "Severity": "warn"
         },
+        "Disk Health": {
+          "Name": t('DiskHealth'),
+          "Enabled": true,
+          "Period": "latest",
+          "TrackingMetric": "system.disk-health.temperature.*",
+          "Condition": {
+            "Percent": false,
+            "Operator": "gt",
+            "Value": 50
+          },
+          "Actions": [
+            {
+              "Type": "notification",
+              "Target": ""
+            }
+          ],
+          "LastTriggered": "0001-01-01T00:00:00Z",
+          "Throttled": true,
+          "Severity": "warn"
+        },
         "Disk Full Notification": {
-          "Name": "Disk Full Notification",
+          "Name": t('DiskFullNotification'),
           "Enabled": true,
           "Period": "latest",
           "TrackingMetric": "cosmos.system.disk./",
@@ -409,13 +438,13 @@ const AlertPage = () => {
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>Refresh</Button>
+      }}>{t('Refresh')}</Button>
       <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
           setOpenModal(true);
-      }}>Create</Button>
+      }}>{t('Create')}</Button>
       <Button variant="outlined" color="warning" startIcon={<WarningOutlined />} onClick={() => {
         resetTodefault();
-      }}>Reset to default</Button>
+      }}>{t('ResetToDefault')}</Button>
     </Stack>
     
     {config && <>
@@ -452,7 +481,7 @@ const AlertPage = () => {
 
               columns={[
                 { 
-                  title: 'Enabled', 
+                  title: t('Enabled'), 
                   clickable:true, 
                   field: (r, k) => <Checkbox disabled={isLoading} size='large' color={r.Enabled ? 'success' : 'default'}
                     onChange={setEnabled(Object.keys(config.MonitoringAlerts)[k])}
@@ -462,29 +491,29 @@ const AlertPage = () => {
                   },
                 },
                 { 
-                  title: 'Name', 
+                  title: t('Name'), 
                   field: (r) => <><GetSevIcon level={r.Severity} /> {r.Name}</>,
                 },
                 { 
-                  title: 'Tracking Metric', 
+                  title: t('TrackingMetric'), 
                   field: (r) => metrics[r.TrackingMetric] ? metrics[r.TrackingMetric] : r.TrackingMetric,
                 },
                 { 
-                  title: 'Condition', 
+                  title: t('Condition'), 
                   screenMin: 'md',
                   field: (r) => DisplayOperator(r.Condition.Operator) + ' ' + r.Condition.Value + (r.Condition.Percent ? '%' : ''),
                 },
                 { 
-                  title: 'Period',
-                  field: (r) => r.Period,
+                  title: t('Period'),
+                  field: (r) => t(r.Period),
                 },
                 { 
-                  title: 'Last Triggered',
+                  title: t('LastTriggered'),
                   screenMin: 'md',
-                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : 'Never',
+                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : t('Never'),
                 },
                 { 
-                  title: 'Actions', 
+                  title: t('Actions'), 
                   field: (r) => r.Actions.map((a) => a.Type).join(', '),
                   screenMin: 'md',
                 },

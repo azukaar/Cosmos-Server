@@ -19,6 +19,7 @@ import * as API from "../../../api";
 import { LoadingButton } from "@mui/lab";
 import PrettyTableView from "../../../components/tableView/prettyTableView";
 import ResponsiveButton from "../../../components/responseiveButton";
+import { useTranslation } from 'react-i18next';
 
 const VolumeContainerSetup = ({
   noCard,
@@ -28,6 +29,7 @@ const VolumeContainerSetup = ({
   newContainer,
   OnChange,
 }) => {
+  const { t } = useTranslation();
   const [volumes, setVolumes] = React.useState([]);
   const theme = useTheme();
 
@@ -53,7 +55,7 @@ const VolumeContainerSetup = ({
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title="Volume Mounts">{children}</MainCard>;
+    return <MainCard title={t('VolumeMounts')}>{children}</MainCard>;
   };
 
   const initialValues = useMemo(() => {
@@ -81,7 +83,7 @@ const VolumeContainerSetup = ({
       });
       const unique = [...new Set(volumes)];
       if (unique.length !== volumes.length) {
-        errors.submit = "Mounts must have unique targets";
+        errors.submit = t('ErrorMountingNotUnique');
       }
       OnChange && OnChange(values, volumes);
       return errors;
@@ -145,8 +147,7 @@ const VolumeContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        This container is not running. Editing any settings will
-                        cause the container to start again.
+                        {t('ContainerNotRunning')}
                       </Alert>
                     )}
                   <Grid container spacing={4}>
@@ -176,7 +177,7 @@ const VolumeContainerSetup = ({
                                 ]);
                               }}
                             >
-                              New Mount Point
+                              {t('NewMountPoint')}
                             </ResponsiveButton>,
                           ]}
                           columns={[
@@ -202,14 +203,14 @@ const VolumeContainerSetup = ({
                                     name={`volumes[${k}].Type`}
                                     onChange={formik.handleChange}
                                   >
-                                    <MenuItem value="bind">Bind</MenuItem>
-                                    <MenuItem value="volume">Volume</MenuItem>
+                                    <MenuItem value="bind">{t('Bind')}</MenuItem>
+                                    <MenuItem value="volume">{t('Volume')}</MenuItem>
                                   </TextField>
                                 </div>
                               ),
                             },
                             {
-                              title: "Source",
+                              title: t('Source'),
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -261,7 +262,7 @@ const VolumeContainerSetup = ({
                               ),
                             },
                             {
-                              title: "Target",
+                              title: t('Target'),
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -307,7 +308,7 @@ const VolumeContainerSetup = ({
                                       );
                                     }}
                                   >
-                                    Unmount
+                                    {t('Unmount')}
                                   </Button>
                                 );
                               },
@@ -344,7 +345,7 @@ const VolumeContainerSetup = ({
                             variant="contained"
                             color="primary"
                           >
-                            Update Volumes
+                            {t('UpdateVolumes')}
                           </LoadingButton>
                         )}
                       </Stack>

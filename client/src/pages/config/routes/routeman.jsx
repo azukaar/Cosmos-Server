@@ -16,6 +16,7 @@ import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
 import { ValidateRouteSchema, sanitizeRoute } from '../../../utils/routes';
 import { isDomain } from '../../../utils/indexs';
+import { useTranslation } from 'react-i18next';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -45,6 +46,7 @@ const checkHost = debounce((host, setHostError) => {
 }, 500)
 
 const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
+  const { t } = useTranslation();
   const [openModal, setOpenModal] = React.useState(false);
   const [hostError, setHostError] = React.useState(null);
 
@@ -156,39 +158,39 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   <CosmosInputText
                     name="Name"
-                    label="Name"
-                    placeholder="Name"
+                    label={t('Name')}
+                    placeholder={t('Name')}
                     formik={formik}
                   />
 
                   <CosmosInputText
                     name="Description"
-                    label="Description"
-                    placeholder="Description"
+                    label={t('Description')}
+                    placeholder={t('Description')}
                     formik={formik}
                   />
 
                   <Hide h={lockTarget}>
-                    <CosmosFormDivider title={'Target Type'} />
+                    <CosmosFormDivider title={t('TargetType')} />
                     <Grid item xs={12}>
-                      <Alert color='info'>What are you trying to access with this route?</Alert>
+                      <Alert color='info'>{t('TargetTypeInfo')}</Alert>
                     </Grid>
 
                     <CosmosSelect
                       name="Mode"
-                      label="Mode"
+                      label={t('Mode')}
                       formik={formik}
                       disabled={lockTarget}
                       options={[
                         ["SERVAPP", "ServApp - Docker Container"],
                         ["PROXY", "Proxy"],
-                        ["STATIC", "Static Folder"],
-                        ["SPA", "Single Page Application"],
-                        ["REDIRECT", "Redirection"]
+                        ["STATIC", t('StaticFolder')],
+                        ["SPA", t('SinglePageApplication')],
+                        ["REDIRECT", t('Redirection')]
                       ]}
                     />
                   </Hide>
-                  <CosmosFormDivider title={'Target Settings'} />
+                  <CosmosFormDivider title={t('TargetSettings')} />
 
                   {
                     (formik.values.Mode === "SERVAPP") ?
@@ -202,7 +204,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                       />
                       : <CosmosInputText
                         name="Target"
-                        label={formik.values.Mode == "PROXY" ? "Target URL" : "Target Folder Path"}
+                        label={formik.values.Mode == "PROXY" ? t('TargetURL') : t('TargetFolderPath')}
                         placeholder={formik.values.Mode == "PROXY" ? "http://localhost:8080" : "/path/to/my/app"}
                         formik={formik}
                       />
@@ -210,26 +212,26 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   {formik.values.Target.startsWith('https://') && <CosmosCheckbox
                     name="AcceptInsecureHTTPSTarget"
-                    label="Accept Insecure HTTPS Target (not recommended)"
+                    label={t('AcceptInsecureHTTPSTarget')}
                     formik={formik}
                   />}
 
-                  <CosmosFormDivider title={'Source'} />
+                  <CosmosFormDivider title={t('Source')} />
 
                   <Grid item xs={12}>
-                    <Alert color='info'>What URL do you want to access your target from?</Alert>
+                    <Alert color='info'>{t('SourceInfo')}</Alert>
                   </Grid>
 
                   <CosmosCheckbox
                     name="UseHost"
-                    label="Use Host"
+                    label={t('UseHost')}
                     formik={formik}
                   />
 
                   {formik.values.UseHost && (<><CosmosInputText
                     name="Host"
-                    label="Host"
-                    placeholder="Host"
+                    label={t('Host')}
+                    placeholder={t('Host')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                     onChange={(e) => {
@@ -244,21 +246,21 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   <CosmosCheckbox
                     name="UsePathPrefix"
-                    label="Use Path Prefix"
+                    label={t('UsePathPrefix')}
                     formik={formik}
                   />
 
                   {formik.values.UsePathPrefix && <CosmosInputText
                     name="PathPrefix"
-                    label="Path Prefix"
-                    placeholder="Path Prefix"
+                    label={t('PathPrefix')}
+                    placeholder={t('PathPrefix')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
 
                   {formik.values.UsePathPrefix && <CosmosCheckbox
                     name="StripPathPrefix"
-                    label="Strip Path Prefix"
+                    label={t('StripPathPrefix')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
@@ -267,19 +269,19 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   
                   <CosmosCheckbox
                     name="AuthEnabled"
-                    label="Authentication Required"
+                    label={t('AuthEnabled')}
                     formik={formik}
                   />
                   
                   <CosmosCheckbox
                     name="_SmartShield_Enabled"
-                    label="Smart Shield Protection"
+                    label={t('SmartShieldEnabled')}
                     formik={formik}
                   />
                   
                   <CosmosCheckbox
                     name="RestrictToConstellation"
-                    label="Restrict access to Constellation VPN"
+                    label={t('RestrictToConstellation')}
                     formik={formik}
                   />
 
@@ -287,29 +289,27 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     <Stack spacing={2}>
                       <CosmosCheckbox
                         name="HideFromDashboard"
-                        label="Hide from Dashboard"
+                        label={t('HideFromDashboard')}
                         formik={formik}
                       />
 
                       <CosmosFormDivider />
-                      <Alert severity='info'>These settings are for advanced users only. Please do not change these unless you know what you are doing.</Alert>
+                      <Alert severity='info'>{t('AdvancedUsersOnlyInfo')}</Alert>
                       <CosmosInputText
                         name="OverwriteHostHeader"
-                        label="Overwrite Host Header (use this to chain resolve request from another server/ip)"
-                        placeholder="Overwrite Host Header"
+                        label={t('OverwriteHostHeader')}
+                        placeholder={t('OverwriteHostHeaderplaceholder')}
                         formik={formik}
                       />
 
                       <Alert severity='warning'>
-                        This setting will filter out all requests that do not come from the specified IPs.
-                        This requires your setup to report the true IP of the client. By default it will, but some exotic setup (like installing docker/cosmos on Windows, or behind Cloudlfare)
-                        will prevent Cosmos from knowing what is the client's real IP. If you used "Restrict to Constellation" above, Constellation IPs will always be allowed regardless of this setting.
+                        {t('warningFilterIP')}
                       </Alert>
 
                       <CosmosInputText
                         name="WhitelistInboundIPs"
-                        label="Whitelist Inbound IPs and/or IP ranges (comma separated)"
-                        placeholder="Whitelist Inbound IPs"
+                        label={t('WhitelistInboundIPs')}
+                        placeholder={t('WhitelistInboundIPs')}
                         formik={formik}
                       />
                     </Stack>
@@ -324,7 +324,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                 variant="contained"
                 color="primary"
               >
-                Save
+                {t('Save')}
               </Button></MainCard>}
             </Stack>
           </form>

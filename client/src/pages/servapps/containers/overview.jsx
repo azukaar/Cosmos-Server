@@ -11,6 +11,7 @@ import GetActions from '../actionBar';
 import { ServAppIcon } from '../../../utils/servapp-icon';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import UploadButtons from '../../../components/fileUpload';
+import { useTranslation } from 'react-i18next';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -19,6 +20,7 @@ const info = {
 }
 
 const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, selfName }) => {
+  const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [openModal, setOpenModal] = React.useState(false);
   const [openRestartModal, setOpenRestartModal] = React.useState(false);
@@ -79,13 +81,13 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
           </div>
             <div>
               {({
-               "created": <Chip label="Created" color="warning" />,
-               "restarting": <Chip label="Restarting" color="warning" />,
-               "running": <Chip label="Running" color="success" />,
-               "removing": <Chip label="Removing" color="error" />,
-               "paused": <Chip label="Paused" color="info" />,
-               "exited": <Chip label="Exited" color="error" />,
-               "dead": <Chip label="Dead" color="error" />,
+               "created": <Chip label={t('Created')} color="warning" />,
+               "restarting": <Chip label={t('Restarting')} color="warning" />,
+               "running": <Chip label={t('Running')} color="success" />,
+               "removing": <Chip label={t('Removing')} color="error" />,
+               "paused": <Chip label={t('Paused')} color="info" />,
+               "exited": <Chip label={t('Exited')} color="error" />,
+               "dead": <Chip label={t('Dead')} color="error" />,
              })[State.Status]}
             </div>
             <UploadButtons
@@ -131,20 +133,20 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             </Stack>
             {containerInfo.State.Status !== 'running' && (
             <Alert severity="warning" style={{ marginBottom: '10px' }}>
-                This container is not running. Editing any settings will cause the container to start again.
+                {t('WarningContainerNotRunning')}
               </Alert>
             )}
-            <strong><ContainerOutlined /> Image</strong>
+            <strong><ContainerOutlined /> {t('Image')}</strong>
             <div style={info}>{Image}</div>
             <strong><DesktopOutlined /> ID</strong>
             <div style={info}>{containerInfo.Id}</div>
-            <strong><InfoCircleOutlined /> IP Address</strong>
+            <strong><InfoCircleOutlined /> {t('IPAddress')}</strong>
             <div style={info}>{IPAddress}</div>
             <strong>
-              <SafetyCertificateOutlined/> Health
+              <SafetyCertificateOutlined/> {t('Health')}
             </strong>
             <div style={info}>{healthStatus}</div>
-            <strong><SettingOutlined /> Settings {State.Status !== 'running' ? '(Start container to edit)' : ''}</strong>
+            <strong><SettingOutlined /> {t('Settings')} {State.Status !== 'running' ? t('StartContainer') : ''}</strong>
             {/* <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
                 checked={Config.Labels['cosmos-force-network-secured'] === 'true'}
@@ -172,7 +174,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                     }, 3000);
                   })
                 }}
-              /> Auto Update Container
+              /> {t('AutoUpdateContainer')}
             </Stack>
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>
@@ -181,7 +183,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
               })}
               <br />
               <Chip 
-                label="New"
+                label={t('New')}
                 color="primary"
                 style={{paddingRight: '4px', margin: '5px'}}
                 deleteIcon={<PlusCircleOutlined />}
@@ -193,7 +195,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 }}
               />
             </div>
-            <strong><DashboardOutlined /> Monitoring</strong>
+            <strong><DashboardOutlined /> {t('Monitoring')}</strong>
               <div style={{ width: '96%' }}>
                 <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.cpu." + Name.replace('/', ''),

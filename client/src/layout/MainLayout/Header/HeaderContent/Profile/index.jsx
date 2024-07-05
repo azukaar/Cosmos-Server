@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -54,6 +55,7 @@ function a11yProps(index) {
 // ==============================|| HEADER CONTENT - PROFILE ||============================== //
 
 const Profile = () => {
+    const { t } = useTranslation();
     const theme = useTheme();
 
     const handleLogout = async () => {
@@ -173,7 +175,7 @@ const Profile = () => {
                                                                 textTransform: 'capitalize'
                                                             }}
                                                             icon={<UserOutlined style={{ marginBottom: 0, marginRight: '10px' }} />}
-                                                            label="Profile"
+                                                            label={t('Profile')}
                                                             {...a11yProps(0)}
                                                         />
                                                         <Tab
@@ -185,7 +187,7 @@ const Profile = () => {
                                                                 textTransform: 'capitalize'
                                                             }}
                                                             icon={<SettingOutlined style={{ marginBottom: 0, marginRight: '10px' }} />}
-                                                            label="Setting"
+                                                            label={t('Setting')}
                                                             {...a11yProps(1)}
                                                         />
                                                     </Tabs>

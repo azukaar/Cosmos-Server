@@ -17,6 +17,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import MenuButton from "../../components/MenuButton";
 import JobLogsDialog from "./jobLogs";
 import NewJobDialog from "./newJob";
+import { useTranslation } from 'react-i18next';
 
 const getStatus = (job) => {
   if (job.Running) return 'running';
@@ -26,6 +27,7 @@ const getStatus = (job) => {
 }
 
 export const CronManager = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [cronJobs, setCronJobs] = useState([]);
@@ -90,16 +92,16 @@ export const CronManager = () => {
         <Stack direction="row" spacing={2}>
           <ResponsiveButton variant="contained" startIcon={<PlusOutlined />} onClick={() => {
             setNewJob(true);
-          }}>New Job</ResponsiveButton>
+          }}>{t('NewJob')}</ResponsiveButton>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>Refresh</ResponsiveButton>
+          }}>{t('Refresh')}</ResponsiveButton>
         </Stack>
         {Object.keys(cronJobs).map(scheduler => <div>
           <h4>{({
-            "Custom": "Custom Jobs",
-            "SnapRAID": "Parity Disks Jobs",
-            "__OT__SnapRAID": "One Time Jobs",
+            "Custom": t('CustomJobs'),
+            "SnapRAID": t('ParityDisksJobs'),
+            "__OT__SnapRAID": t('OneTimeJobs'),
           }[scheduler])}</h4>
           <PrettyTableView 
             data={Object.values(cronJobs[scheduler])}
@@ -109,7 +111,7 @@ export const CronManager = () => {
             ]}
             columns={[
               (scheduler == "Custom" && {
-                title: 'Enabled',
+                title: t('Enabled'),
                 clickable:true, 
                 field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
                   onChange={() => setEnabled(r.Name, r.Disabled)}
@@ -117,20 +119,20 @@ export const CronManager = () => {
                 />,
               }),
               {
-                title: 'Name',
+                title: t('Name'),
                 field: (r) => r.Name,
               },
               {
-                title: 'Schedule',
+                title: t('Schedule'),
                 field: (r) => crontabToText(r.Crontab),
               },
               {
-                title: "Status",
+                title: t('Status'),
                 field: (r) => {
                   return <div style={{maxWidth: '400px'}} >{{
-                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>Running since {r.LastStarted}</Alert>,
-                    'success': <Alert severity={'success'} color={'success'}>Last run finished on {r.LastRun}, duration {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
-                    'error': <Alert severity={'error'} color={'error'}>Last run exited with an error on {r.LastRun}</Alert>,
+                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('RunningSince')}{r.LastStarted}</Alert>,
+                    'success': <Alert severity={'success'} color={'success'}>{t('LastRunFinishedOn')} {r.LastRun}, {t('duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
+                    'error': <Alert severity={'error'} color={'error'}>{t('LastRunExitedOn')} {r.LastRun}</Alert>,
                     'never': <Alert severity={'info'} color={'info'}>Never ran</Alert>
                     
                   }[getStatus(r)]}</div>
@@ -144,19 +146,19 @@ export const CronManager = () => {
                       refresh();
                     });
                   }}><StopOutlined /></IconButton></Tooltip>
-                    : <Tooltip title="Run"><IconButton onClick={() => {
+                    : <Tooltip title={t('Run')}><IconButton onClick={() => {
                       API.cron.run(scheduler, r.Name).then(() => {
                         refresh();
                       });
                     }}><PlayCircleOutlined /></IconButton></Tooltip>}
-                  <Tooltip title="Logs"><IconButton onClick={() => {
+                  <Tooltip title={t('Logs')}><IconButton onClick={() => {
                     setJobLogs(r);
                   }}><SearchOutlined /></IconButton></Tooltip>
                   {scheduler == "Custom" && <>
-                    <Tooltip title="Edit"><IconButton onClick={() => {
+                    <Tooltip title={t('Edit')}><IconButton onClick={() => {
                       setNewJob(r);
                     }}><EditOutlined /></IconButton></Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={t('Delete')}>
                       <DeleteIconButton onDelete={() => {
                         deleteCronJob(r);
                       }} />

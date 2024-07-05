@@ -14,8 +14,10 @@ import ApiModal from "../../components/apiModal";
 import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
+import { useTranslation } from 'react-i18next';
 
 export const ConstellationDNS = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
 
@@ -33,7 +35,7 @@ export const ConstellationDNS = () => {
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
-        <MainCard title={"Constellation Internal DNS"} content={config.constellationIP}>
+        <MainCard title={t('ConstellationInternalDNS')} content={config.constellationIP}>
           <Stack spacing={2}>
 
           <Formik
@@ -56,20 +58,17 @@ export const ConstellationDNS = () => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Stack spacing={2}>        
-                  <Alert severity="info">This is a DNS that runs inside your Constellation network. It automatically
-                  rewrites your domains DNS entries to be local to your network, and also allows you to do things like block ads
-                  and trackers on all devices connected to your network. You can also add custom DNS entries to resolve to specific
-                  IP addresses. This DNS server is only accessible from inside your network.</Alert>
+                  <Alert severity="info">{t('DNSText')}</Alert>
 
                   <CosmosInputText formik={formik} name="Fallback" label="DNS Fallback" placeholder={'8.8.8.8:53'} />
                   
-                  <CosmosFormDivider title={"DNS Blocklists"} />
+                  <CosmosFormDivider title={t('DNSBlocklists')} />
 
-                  <CosmosCheckbox formik={formik} name="DNSBlockBlacklist" label="Use Blacklists to block domains" />
+                  <CosmosCheckbox formik={formik} name="DNSBlockBlacklist" label={t('DNSBlockBlacklist')} />
 
-                  <Alert severity="warning">When changing your DNS records, always use private mode on your browser and allow some times for various caches to expire.</Alert>
+                  <Alert severity="warning">{t('DNSExpiryWarning')}</Alert>
 
-                  <InputLabel>DNS Blocklist URLs</InputLabel>
+                  <InputLabel>{t('DNSBlocklistURLs')}</InputLabel>
                   {formik.values.DNSAdditionalBlocklists && formik.values.DNSAdditionalBlocklists.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`DNSAdditionalBlocklists${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
@@ -90,7 +89,7 @@ export const ConstellationDNS = () => {
                   <Stack direction="row" spacing={2}>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("DNSAdditionalBlocklists", [...formik.values.DNSAdditionalBlocklists, ""]);
-                    }}>Add</Button>
+                    }}>{t('Add')}</Button>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("DNSAdditionalBlocklists", [
                         "https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
@@ -98,12 +97,12 @@ export const ConstellationDNS = () => {
                         "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
                         "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts"
                       ]);
-                    }}>Reset Default</Button>
+                    }}>{t('ResetDefault')}</Button>
                   </Stack>
 
-                  <CosmosFormDivider title={"DNS Custom Entries"} />
+                  <CosmosFormDivider title={t('DNSCustomEntries')} />
 
-                  <InputLabel>DNS Custom Entries</InputLabel>
+                  <InputLabel>{t('DNSCustomEntries')}</InputLabel>
                   {formik.values.CustomDNSEntries && formik.values.CustomDNSEntries.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`CustomDNSEntries${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
@@ -142,11 +141,11 @@ export const ConstellationDNS = () => {
                         Value: "",
                         Type: "A"
                       }]);
-                    }}>Add</Button>
+                    }}>{t('Add')}</Button>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("CustomDNSEntries", [
                       ]);
-                    }}>Reset</Button>
+                    }}>{t('Reset')}</Button>
                   </Stack>
 
                   <LoadingButton
@@ -156,7 +155,7 @@ export const ConstellationDNS = () => {
                       variant="contained"
                       color="primary"
                     >
-                      Save
+                      {t('Save')}
                   </LoadingButton>
                 </Stack>
               </form>

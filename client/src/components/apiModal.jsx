@@ -8,6 +8,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -40,6 +41,7 @@ const preStyle = {
 }
 
 const ApiModal = ({ callback, label }) => {
+    const { t } = useTranslation();
     const [openModal, setOpenModal] = useState(false);
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ const ApiModal = ({ callback, label }) => {
 
     return <>
       <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth={'sm'}>
-          <DialogTitle>Refresh Page</DialogTitle>
+          <DialogTitle>{t('RefreshPage')}</DialogTitle>
           <DialogContent>
               <DialogContentText>
                 <pre style={preStyle}>
@@ -71,7 +73,7 @@ const ApiModal = ({ callback, label }) => {
                   loading={loading}
               onClick={() => {   
                   getContent();         
-              }}>Refresh</LoadingButton>
+              }}>{t('Refresh')}</LoadingButton>
               <Button onClick={() => {
                   setOpenModal(false);           
               }}>Close</Button>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -15,6 +16,7 @@ import PlotComponent from './components/plot';
 import { formatDate } from './components/utils';
 
 const ContainerMetrics = ({containerName}) => {
+    const { t } = useTranslation();
     const [slot, setSlot] = useState('latest');
 
     const [zoom, setZoom] = useState({
@@ -115,7 +117,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'latest' ? 'primary' : 'secondary'}
                             variant={slot === 'latest' ? 'outlined' : 'text'}
                         >
-                            Latest
+                            {t('Latest')}
                         </Button>
                         <Button
                             size="small"
@@ -123,7 +125,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'hourly' ? 'primary' : 'secondary'}
                             variant={slot === 'hourly' ? 'outlined' : 'text'}
                         >
-                            Hourly
+                            {t('Hourly')}
                         </Button>
                         <Button
                             size="small"
@@ -131,7 +133,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'daily' ? 'primary' : 'secondary'}
                             variant={slot === 'daily' ? 'outlined' : 'text'}
                         >
-                            Daily
+                            {t('Daily')}
                         </Button>
 
                         {zoom.xaxis.min && <Button
@@ -144,17 +146,17 @@ const ContainerMetrics = ({containerName}) => {
                             color={'primary'}
                             variant={'outlined'}
                         >
-                            Reset Zoom
+                            {t('ResetZoom')}
                         </Button>}
                     </Stack>
                 </Grid>
                 
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Resources')} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
                 </Grid>
                
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Network')} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
                 </Grid>
             </Grid>
         </div>}

@@ -8,6 +8,7 @@ import { debounce, isDomain } from './indexs';
 
 import * as API from '../api';
 import { useEffect, useState } from 'react';
+import { Trans } from 'react-i18next';
 
 export const sanitizeRoute = (_route) => {
   let route = { ..._route };
@@ -165,7 +166,7 @@ export const HostnameChecker = ({hostname}) => {
 
   return <>{hostError && <Alert color='error'>{hostError}</Alert>}
 
-    {hostIp && <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, make sure it is your server IP!</Alert>}
+    {hostIp && <Alert color='info'><Trans i18nKey="HostnamePointsTo" hostIp={hostIp}>This hostname is pointing to <strong>{{hostIp}}</strong>, check that it is your server IP!</Trans></Alert>}
   </>
 };
 

@@ -19,10 +19,11 @@ import {
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
 import * as API from '../../api';
+import { useTranslation } from 'react-i18next';
 
 const NewVolumeButton = ({ fullWidth, refresh }) => {
+  const { t } = useTranslation();
   const [isOpened, setIsOpened] = useState(false);
-
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -52,7 +53,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>New Volume</DialogTitle>
+          <DialogTitle>{t('NewVolume')}</DialogTitle>
           <DialogContent>
             <DialogContentText></DialogContentText>
             <form onSubmit={formik.handleSubmit}>
@@ -73,18 +74,18 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
                 error={formik.touched.driver && Boolean(formik.errors.driver)}
                 style={{ marginBottom: '16px' }}
               >
-                <InputLabel htmlFor="driver">Driver</InputLabel>
+                <InputLabel htmlFor="driver">{t('Driver')}</InputLabel>
                 <Select
                   id="driver"
                   name="driver"
                   value={formik.values.driver}
                   onChange={formik.handleChange}
-                  label="Driver"
+                  label={t('Driver')}
                 >
                   <MenuItem value="">
                     <em>None</em>
                   </MenuItem>
-                  <MenuItem value="local">Local</MenuItem>
+                  <MenuItem value="local">{t('Local')}</MenuItem>
                   {/* Add more driver options if needed */}
                 </Select>
               </FormControl>
@@ -101,7 +102,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              Create
+              {t('Create')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -111,7 +112,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        New Volume
+        {t('NewVolume')}
       </Button>
     </>
   );

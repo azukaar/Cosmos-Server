@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -35,6 +36,7 @@ import { CosmosCollapse } from '../config/users/formShortcuts';
 import { redirectToLocal } from '../../utils/indexs';
 
 const MFALoginForm = () => {
+  const { t } = useTranslation();
   const urlSearchParams = new URLSearchParams(window.location.search);
   const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
 
@@ -53,7 +55,7 @@ const MFALoginForm = () => {
       token: '',
     }}
     validationSchema={Yup.object().shape({
-      token: Yup.string().required('Token is required').min(6, 'Token must be at least 6 characters').max(6, 'Token must be at most 6 characters'),
+      token: Yup.string().required(t('TokenRequired')).min(6, t('TokenMin6Char')).max(6, t('TokenMax6Char')),
     })}
     onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
       API.users.check2FA(values.token).then((data) => {
@@ -61,7 +63,7 @@ const MFALoginForm = () => {
       }).catch((error) => {
         console.log(error)
         setStatus({ success: false });
-        setErrors({ submit: "Wrong OTP. Try again" });
+        setErrors({ submit: t('WrongOTP') });
         setSubmitting(false);
       });
     }}
@@ -91,7 +93,7 @@ const MFALoginForm = () => {
             variant="contained"
             loading={formik.isSubmitting}
           >
-            Login
+            {t('Login')}
           </LoadingButton>
         </Stack>
       </form>
@@ -129,30 +131,30 @@ const MFASetup = () => {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
-        <Typography variant="h5">This server requires 2FA. Scan this QR code with your <Tooltip title="For example FreeOTP(+) or Google/Microsoft authenticator"><span style={{cursor: 'pointer', textDecoration:"underline dotted"}}>authenticator app</span></Tooltip> to proceed</Typography>
+        <Typography variant="h5"><Trans i18nKey="Requires2FAText">This server requires 2FA. Scan this QR code with your <Tooltip title={t('ExampleOTP')}><span style={{cursor: 'pointer', textDecoration:"underline dotted"}}>authenticator app</span></Tooltip> to proceed</Trans></Typography>
       </Grid>
       <Grid  item xs={12} textAlign={'center'}>
         <canvas style={{borderRadius: '15px'}} ref={canvasRef} />
       </Grid>
       <Grid item xs={12}>
-        <Typography variant="h5">...Or enter this code manually in it</Typography>
+        <Typography variant="h5">{t('OTPManualCode')}</Typography>
       </Grid>
       <Grid item xs={12}>
-        <CosmosCollapse title="Show manual code" defaultExpanded={false}>
+        <CosmosCollapse title={t('ShowManualCode')} defaultExpanded={false}>
         <div style={{padding: '20px', fontSize: '90%', borderRadius: '15px', background: 'rgba(0,0,0,0.2)'}}>
           {mfaCode && <span>{mfaCode.split('?')[1].split('&').map(a => <div>{decodeURI(a).replace('=', ': ')}</div>)}</span>}
         </div>
         </CosmosCollapse>
       </Grid>
       <Grid item xs={12}>
-        <Typography variant="h5">Once you have scanned the QR code or entered the code manually, enter the token from your authenticator app below</Typography>
+        <Typography variant="h5">{t('OTPEnterToken')}</Typography>
       </Grid>
       <Grid item xs={12}>
         <MFALoginForm />
       </Grid>
       <Grid item xs={12}>
         <Link to="/cosmos-ui/logout">
-          <Typography variant="h5">Logout</Typography>
+          <Typography variant="h5">{t('Logout')}</Typography>
         </Link>
       </Grid>
     </Grid>
@@ -164,7 +166,7 @@ const NewMFA = () => (
         <Grid container spacing={3}>
             <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-                    <Typography variant="h3">New MFA Setup</Typography>
+                    <Typography variant="h3">{t('NewMFASetup')}</Typography>
                 </Stack>
             </Grid>
             <Grid item xs={12}>
@@ -179,7 +181,7 @@ const MFALogin = () => (
       <Grid container spacing={3}>
           <Grid item xs={12}>
               <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-                  <Typography variant="h3">Enter your OTP</Typography>
+                  <Typography variant="h3">{t('EnterOTP')}</Typography>
               </Stack>
           </Grid>
           <Grid item xs={12}>

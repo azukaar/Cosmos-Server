@@ -15,6 +15,7 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
+import { Trans, useTranslation } from 'react-i18next';
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -26,6 +27,7 @@ const getDefaultConstellationHostname = (config) => {
 }
 
 export const ConstellationVPN = () => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
@@ -67,18 +69,18 @@ export const ConstellationVPN = () => {
     {(devices && config && users) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
-        <Alert severity="info">
+        <Alert severity="info"><Trans i18nKey="ConstellationDescription">
           Constellation is a VPN that runs inside your Cosmos network. It automatically
           connects all your devices together, and allows you to access them from anywhere.
           Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank">documentation</a> for more information.
           In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank">Constellation App</a>.
           Constellation is currently free to use until the end of the beta, planned January 2024.
-        </Alert>
-        <MainCard title={"Constellation Setup"} content={config.constellationIP}>
+        </Trans></Alert>
+        <MainCard title={t('ConstellationSetup')} content={config.constellationIP}>
           <Stack spacing={2}>
           {config.ConstellationConfig.Enabled && config.ConstellationConfig.SlaveMode && <>
             <Alert severity="info">
-              You are currently connected to an external constellation network. Use your main Cosmos server to manage your constellation network and devices.
+              {t('ConstellationExternalNetwork')}
             </Alert>
           </>}  
           <Formik
@@ -113,29 +115,29 @@ export const ConstellationVPN = () => {
                         await API.constellation.restart();
                       }}
                     >
-                      Restart VPN Service
+                      {t('RestartVPNService')}
                   </Button>
-                  <ApiModal callback={API.constellation.getLogs} label={"Show VPN logs"} />
-                  <ApiModal callback={API.constellation.getConfig} label={"Show VPN Config"} />
+                  <ApiModal callback={API.constellation.getLogs} label={t('ShowVPNLogs')} />
+                  <ApiModal callback={API.constellation.getConfig} label={t('ShowVPNConfig')} />
                   <ConfirmModal
                     variant="outlined"
                     color="warning"
-                    label={"Reset Network"}
-                    content={"This will completely reset the network, and disconnect all the clients. You will need to reconnect them. This cannot be undone."}
+                    label={t('ResetNetwork')}
+                    content={t('ResetnetworkText')}
                     callback={async () => {
                       await API.constellation.reset();
                       refreshConfig();
                     }}
                   />
                   </Stack>}
-                  <CosmosCheckbox formik={formik} name="Enabled" label="Constellation Enabled" />
+                  <CosmosCheckbox formik={formik} name="Enabled" label={t('ConstellationEnabled')} />
                   {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
-                      <CosmosCheckbox formik={formik} name="IsRelay" label="Relay requests via this Node" />
-                      <CosmosCheckbox formik={formik} name="PrivateNode" label="This node is Private (no public IP)" />
+                      <CosmosCheckbox formik={formik} name="IsRelay" label={t('RelayRequests')} />
+                      <CosmosCheckbox formik={formik} name="PrivateNode" label={t('PrivateNode')} />
                       {!formik.values.PrivateNode && <>
                         <Alert severity="info">This is your Constellation hostname, that you will use to connect. If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
-                        <CosmosInputText formik={formik} name="ConstellationHostname" label="Constellation Hostname" />
+                        <CosmosInputText formik={formik} name="ConstellationHostname" label={'Constellation '+t('Hostname')} />
                       </>}
                     </>}
                   </>}
@@ -146,11 +148,11 @@ export const ConstellationVPN = () => {
                       variant="contained"
                       color="primary"
                     >
-                      Save
+                      {t('Save')}
                   </LoadingButton>
                   <UploadButtons
                     accept=".yml,.yaml"
-                    label={"Upload External Constellation Network File"}
+                    label={t('ExternalNetworkConfig')}
                     variant="outlined"
                     fullWidth
                     OnChange={async (e) => {
@@ -182,19 +184,19 @@ export const ConstellationVPN = () => {
                   field: getIcon,
               },
               {
-                  title: 'Device Name',
+                  title: t('DeviceName'),
                   field: (r) => <strong>{r.deviceName}</strong>,
               },
               {
-                  title: 'Owner',
+                  title: t('Owner'),
                   field: (r) => <strong>{r.nickname}</strong>,
               },
               {
-                  title: 'Type',
+                  title: t('Type'),
                   field: (r) => <strong>{r.isLighthouse ? "Lighthouse" : "Client"}</strong>,
               },
               {
-                  title: 'Constellation IP',
+                  title: t('ConstellationIP'),
                   screenMin: 'md', 
                   field: (r) => r.ip,
               },

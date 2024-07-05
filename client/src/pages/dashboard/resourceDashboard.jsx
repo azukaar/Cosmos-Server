@@ -2,31 +2,33 @@ import {
   Grid,
   LinearProgress,
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 import PlotComponent from './components/plot';
 import TableComponent from './components/table';
 
 const ResourceDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
+  const { t } = useTranslation();
   return (<>
 
     <Grid container rowSpacing={4.5} columnSpacing={2.75} >
       <Grid item xs={12} md={7} lg={8}>
-        <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]} />
+        <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Resources')} data={[metrics["cosmos.system.cpu.0"], metrics["cosmos.system.ram"]]} />
       </Grid>
 
-      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Average Resources" data={
+      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('ContainersAverageResources')} data={
         Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.cpu") || key.startsWith("cosmos.system.docker.ram")).map((key) => metrics[key])
       } />
 
       <Grid item xs={12} md={7} lg={8}>
-        <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]} />
+        <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Network')} data={[metrics["cosmos.system.netTx"], metrics["cosmos.system.netRx"]]} />
       </Grid>
 
-      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Containers - Average Network" data={
+      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('ContainersAverageNetwork')} data={
         Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.docker.net")).map((key) => metrics[key])
       } />
 
-      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title="Disk Usage" displayMax={true}
+      <TableComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('DiskUsage')} displayMax={true}
         render={(metric, value, formattedValue) => {
           let percent = value / metric.Max * 100;
           return <span>
@@ -46,7 +48,7 @@ const ResourceDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
           zoom={zoom} setZoom={setZoom}
           xAxis={xAxis}
           slot={slot}
-          title={'Temperature'}
+          title={t('Temperature')}
           withSelector={'cosmos.system.temp.all'}
           SimpleDesign
           data={Object.keys(metrics).filter((key) => key.startsWith("cosmos.system.temp")).map((key) => metrics[key])}

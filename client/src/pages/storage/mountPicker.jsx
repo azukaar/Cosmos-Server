@@ -14,8 +14,10 @@ import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
+import { Trans, useTranslation } from 'react-i18next';
 
 export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
+  const { t } = useTranslation();
   const [mounts, setMounts] = useState([]);
   const [selectedMounts, setSelectedMounts] = useState(value || []);
   const theme = useTheme();
@@ -64,14 +66,14 @@ export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
       <div> 
         <FormControl sx={{ width: '100%' }}>
         <InputLabel shrink htmlFor="select-multiple-native">
-          Select Targets
+          {t('SelectTargets')}
         </InputLabel>
         <Select
           multiple
           native
           className={'native-multiselect'}
           value={selectedMounts}
-          label="Select Targets"
+          label={t('SelectTargets')}
           inputProps={{
             id: 'select-multiple-native',
           }}

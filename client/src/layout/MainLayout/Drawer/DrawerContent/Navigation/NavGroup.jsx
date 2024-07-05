@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
+import { Trans, useTranslation } from 'react-i18next';
 
 // material-ui
 import { Box, List, Typography } from '@mui/material';
@@ -10,6 +11,7 @@ import NavItem from './NavItem';
 // ==============================|| NAVIGATION - LIST GROUP ||============================== //
 
 const NavGroup = ({ item }) => {
+    const { t } = useTranslation();
     const menu = useSelector((state) => state.menu);
     const { drawerOpen } = menu;
 
@@ -39,7 +41,7 @@ const NavGroup = ({ item }) => {
                 drawerOpen && (
                     <Box sx={{ pl: 3, mb: 1.5 }}>
                         <Typography variant="subtitle2" color="textSecondary">
-                            {item.title}
+                            {t(item.title)}
                         </Typography>
                         {/* only available in paid version */}
                     </Box>

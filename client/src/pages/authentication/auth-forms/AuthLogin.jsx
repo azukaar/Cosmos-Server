@@ -17,6 +17,7 @@ import {
     Typography,
     Alert
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 import * as API from "../../../api";
 
@@ -36,6 +37,7 @@ import { redirectToLocal } from '../../../utils/indexs';
 // ============================|| FIREBASE - LOGIN ||============================ //
 
 const AuthLogin = () => {
+    const { t } = useTranslation();
     const [checked, setChecked] = React.useState(false);
     const [showResetPassword, setShowResetPassword] = React.useState(false);
 
@@ -76,17 +78,17 @@ const AuthLogin = () => {
     return (
         <>
             { notLogged &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">You need to be logged in to access this</Alert>
+                <Alert severity="error">{t('NotLoggedIn')}</Alert>
                 <br />
             </Grid>}
 
             { notLoggedAdmin &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">You need to be Admin</Alert>
+                <Alert severity="error">{t('NotAdmin')}</Alert>
                 <br />
             </Grid>}
 
             { invalid &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">You have been disconnected. Please login to continue</Alert>
+                <Alert severity="error">{t('DisconnectPleaseLogin')}</Alert>
                 <br />
             </Grid>}
             <Formik
@@ -96,8 +98,8 @@ const AuthLogin = () => {
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
-                    nickname: Yup.string().max(255).required('Nickname is required'),
-                    password: Yup.string().max(255).required('Password is required')
+                    nickname: Yup.string().max(255).required(t('NicknameRequired')),
+                    password: Yup.string().max(255).required(t('PasswordRequired'))
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     setSubmitting(true);
@@ -108,11 +110,11 @@ const AuthLogin = () => {
                     }).catch((err) => {
                         setStatus({ success: false });
                         if(err.code == 'UL001') {
-                            setErrors({ submit: 'Wrong nickname or password. Try again or try resetting your password' });
+                            setErrors({ submit: t('WrongLogin') });
                         } else if (err.code == 'UL002') {
-                            setErrors({ submit: 'You have not yet registered your account. You should have an invite link in your emails. If you need a new one, contact your administrator.' });
+                            setErrors({ submit: t('AccountUnconfirmed') });
                         } else {
-                            setErrors({ submit: 'Unexpected error. Try again later.' });
+                            setErrors({ submit: t('unexpectedError') });
                         }
                         setSubmitting(false);
                     });
@@ -123,7 +125,7 @@ const AuthLogin = () => {
                         <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="nickname-login">Nickname</InputLabel>
+                                    <InputLabel htmlFor="nickname-login">{t('Nickname')}</InputLabel>
                                     <OutlinedInput
                                         id="nickname-login"
                                         type="nickname"
@@ -131,7 +133,7 @@ const AuthLogin = () => {
                                         name="nickname"
                                         onBlur={handleBlur}
                                         onChange={handleChange}
-                                        placeholder="Enter your nickname"
+                                        placeholder={t('EnterNickname')}
                                         fullWidth
                                         error={Boolean(touched.nickname && errors.nickname)}
                                     />
@@ -144,7 +146,7 @@ const AuthLogin = () => {
                             </Grid>
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="password-login">Password</InputLabel>
+                                    <InputLabel htmlFor="password-login">{t('Password')}</InputLabel>
                                     <OutlinedInput
                                         fullWidth
                                         error={Boolean(touched.password && errors.password)}
@@ -167,7 +169,7 @@ const AuthLogin = () => {
                                                 </IconButton>
                                             </InputAdornment>
                                         }
-                                        placeholder="Enter your password"
+                                        placeholder={t('EnterPassword')}
                                     />
                                     {touched.password && errors.password && (
                                         <FormHelperText error id="standard-weight-helper-text-password-login">
@@ -192,10 +194,10 @@ const AuthLogin = () => {
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
                                     {showResetPassword && <Link variant="h6" component={RouterLink} to="/cosmos-ui/forgot-password" color="primary">
-                                        Forgot Your Password?
+                                        {t('ForgotPassword?')}
                                     </Link>}
                                     {!showResetPassword &&  <Typography variant="h6">
-                                        This server does not allow password reset.
+                                        {t('PasswordResetNotAllowed')}
                                     </Typography>}
                                 </Stack>
                             </Grid>
@@ -214,7 +216,7 @@ const AuthLogin = () => {
                                         variant="contained"
                                         color="primary"
                                     >
-                                        Login
+                                        {t('Login')}
                                     </LoadingButton>
                             </Grid>
                             {/* <Grid item xs={12}>

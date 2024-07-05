@@ -19,8 +19,10 @@ import DockerTerminal from './terminal';
 import ContainerMetrics from '../../dashboard/containerMetrics';
 import EventExplorerStandalone from '../../dashboard/eventsExplorerStandalone';
 import ContainerComposeEdit from './compose-editor';
+import { useTranslation } from 'react-i18next';
 
 const ContainerIndex = () => {
+  const { t } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -53,23 +55,23 @@ const ContainerIndex = () => {
       isLoading={!container || !config}
       tabs={[
         {
-          title: 'Overview',
+          title: t('Overview'),
           children: <ContainerOverview updatesAvailable={updatesAvailable} selfName={selfName} refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: 'Logs',
+          title: t('Logs'),
           children: <Logs containerInfo={container} config={config}/>
         },
         {
-          title: 'Monitoring',
+          title: t('Monitoring'),
           children: <ContainerMetrics containerName={containerName}/>
         },
         {
-          title: 'Events',
+          title: t('Events'),
           children: <EventExplorerStandalone initSearch={`{"object":"container@${containerName}"}`}/>
         },
         {
-          title: 'Terminal',
+          title: t('Terminal'),
           children: <DockerTerminal refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
@@ -81,11 +83,11 @@ const ContainerIndex = () => {
           children: <DockerContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: 'Network',
+          title: t('Network'),
           children: <NetworkContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: 'Storage',
+          title: t('Storage'),
           children: <VolumeContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
       ]} />

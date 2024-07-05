@@ -12,56 +12,58 @@ import { StorageMounts } from './mounts';
 import { StorageDisks } from './disks';
 import { StorageMerges } from './merges';
 import { Parity } from './parity';
+import { useTranslation } from 'react-i18next';
 
 const StorageIndex = () => {
+  const { t } = useTranslation();
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
         {
-          title: 'Disks',
+          title: t('Disks'),
           children: <StorageDisks />,
           path: 'disks'
         },
         {
-          title: 'Mounts',
+          title: t('Mounts'),
           children: <StorageMounts />,
           path: 'mounts'
         },
         {
-          title: 'External Storages',
+          title: t('ExternalStorages'),
           children: <div>
             <Alert severity="info">
-              Coming soon. This feature will allow you to mount external cloud (Dropbox, Onedrive, ...) to your server.
+              {t('ExternalStorageDesc')}
             </Alert>
           </div>,
           path: 'external'
         },
         {
-          title: 'Shares',
+          title: t('Shares'),
           children:  <div>
           <Alert severity="info">
-            Coming soon. This feature will allow you to share folders with different protocols (SMB, FTP, ...)
+            {t('SharesDesc')}
           </Alert>
         </div>,
           path: 'shares'
         },
         {
-          title: 'Merge Disks',
+          title: t('MergeDisks'),
           children: <StorageMerges />,
           path: 'mergerfs'
         },
         {
-          title: 'Parity',
+          title: t('Parity'),
           children: <Parity />,
           path: 'parity'
         },
         {
-          title: 'RAID',
+          title: t('RAID'),
           children:  <div>
           <Alert severity="info">
-            Coming soon. This feature will allow you to create RAID arrays with your disks.
+            {t('RAIDDesc')}
           </Alert>
         </div>,
           path: 'raid'

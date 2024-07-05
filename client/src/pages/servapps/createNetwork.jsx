@@ -14,8 +14,11 @@ import * as Yup from 'yup';
 import * as API from '../../api';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
 import ResponsiveButton from '../../components/responseiveButton';
+import { useTranslation } from 'react-i18next';
+
 
 const NewNetworkButton = ({ fullWidth, refresh }) => {
+  const { t } = useTranslation();
   const [isOpened, setIsOpened] = React.useState(false);
 
   const formik = useFormik({
@@ -54,7 +57,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>New Network</DialogTitle>
+          <DialogTitle>{t('NewNetwork')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -63,7 +66,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     fullWidth
                     id="name"
                     name="name"
-                    label="Name"
+                    label={t('Name')}
                     value={formik.values.name}
                     onChange={formik.handleChange}
                     error={formik.touched.name && Boolean(formik.errors.name)}
@@ -83,15 +86,15 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                       name="driver"
                       value={formik.values.driver}
                       onChange={formik.handleChange}
-                      label="Driver"
+                      label={t('Driver')}
                     >
                       <MenuItem value="">
                         <em>None</em>
                       </MenuItem>
-                      <MenuItem value="bridge">Bridge</MenuItem>
-                      <MenuItem value="host">Host</MenuItem>
-                      <MenuItem value="overlay">Overlay</MenuItem>
-                      <MenuItem value="macvlan">MACVLAN</MenuItem>
+                      <MenuItem value="bridge">{t('Bridge')}</MenuItem>
+                      <MenuItem value="host">{t('Host')}</MenuItem>
+                      <MenuItem value="overlay">{t('Overlay')}</MenuItem>
+                      <MenuItem value="macvlan">{t('MACVLAN')}</MenuItem>
                     </Select>
                   </FormControl>
                   
@@ -99,7 +102,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     fullWidth
                     id="subnet"
                     name="subnet"
-                    label="Subnet (optional)"
+                    label={t('Subnet')}
                     value={formik.values.subnet}
                     onChange={formik.handleChange}
                     error={formik.touched.subnet && Boolean(formik.errors.subnet)}
@@ -112,7 +115,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                       fullWidth
                       id="parentInterface"
                       name="parentInterface"
-                      label="Parent Interface"
+                      label={t('ParentInterface')}
                       value={formik.values.parentInterface}
                       onChange={formik.handleChange}
                       error={formik.touched.parentInterface && Boolean(formik.errors.parentInterface)}
@@ -123,7 +126,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
 
                   <CosmosCheckbox
                     name="attachCosmos"
-                    label="Attach to Cosmos"
+                    label={t('AttachToCosmos')}
                     formik={formik}
                   />
                 </Stack>
@@ -136,13 +139,13 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpened(false)}>Cancel</Button>
+            <Button onClick={() => setIsOpened(false)}>{t('Cancel')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              Create
+              {t('Create')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -152,7 +155,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        New Network
+        {t('NewNetwork')}
       </ResponsiveButton>
     </>
   );

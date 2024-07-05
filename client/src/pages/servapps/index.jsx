@@ -12,24 +12,26 @@ import ServApps from './servapps';
 import VolumeManagementList from './volumes';
 import NetworkManagementList from './networks';
 import { useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 const ServappsIndex = () => {
+  const { t } = useTranslation();
   const { stack } = useParams();
 
   return <div>
     {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
         {
-          title: 'Containers',
+          title: t('Containers'),
           children: <ServApps stack={stack} />,
           path: 'containers'
         },
         {
-          title: 'Volumes',
+          title: t('Volumes'),
           children: <VolumeManagementList />,
           path: 'volumes'
         },
         {
-          title: 'Networks',
+          title: t('Networks'),
           children:  <NetworkManagementList />,
           path: 'networks'
         },

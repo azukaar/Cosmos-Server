@@ -6,10 +6,11 @@ import { useEffect, useState } from 'react';
 import * as API from '../../api';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewNetworkButton from './createNetwork';
+import { useTranslation } from 'react-i18next';
 
-export const NetworksColumns = (theme, isDark) => [
+export const NetworksColumns = (theme, isDark, t) => [
   {
-    title: 'Network Name',
+    title: t('NetworkName'),
     field: (r) => <Stack direction='column'>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Driver} driver</div>
@@ -17,7 +18,7 @@ export const NetworksColumns = (theme, isDark) => [
     search: (r) => r.Name,
   },
   {
-    title: 'Properties',
+    title: t('Properties'),
     screenMin: 'md',
     field: (r) => (
       <Stack direction="row" spacing={1}>
@@ -29,23 +30,24 @@ export const NetworksColumns = (theme, isDark) => [
     ),
   },
   {
-    title: 'IPAM gateway / mask',
+    title: t('IPAM'),
     screenMin: 'lg',
     field: (r) => r.IPAM.Config ? r.IPAM.Config.map((config, index) => (
       <Stack key={index}>
         <div>{config.Gateway}</div>
         <div>{config.Subnet}</div>
       </Stack>
-    )) : 'No Ip',
+    )) : t('NoIp'),
   },
   {
-    title: 'Created At',
+    title: t('CreatedAt'),
     screenMin: 'lg',
     field: (r) => r.Created ? new Date(r.Created).toLocaleString() : '-',
   },
 ];
 
 const NetworkManagementList = () => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState(null);
   const [tryDelete, setTryDelete] = useState(null);
@@ -69,7 +71,7 @@ const NetworkManagementList = () => {
     <>
       <Stack direction='row' spacing={1} style={{ marginBottom: '20px' }}>
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={refresh}>
-          Refresh
+          {t('Refresh')}
         </Button>
       </Stack>
 
@@ -83,7 +85,7 @@ const NetworkManagementList = () => {
           onRowClick={() => { }}
           getKey={(r) => r.Id}
           columns={[
-            ...NetworksColumns(theme, isDark),
+            ...NetworksColumns(theme, isDark, t),
             {
               title: '',
               clickable: true,
@@ -108,7 +110,7 @@ const NetworkManagementList = () => {
                       }
                     }}
                   >
-                    {tryDelete === r.Id ? "Really?" : "Delete"}
+                    {tryDelete === r.Id ? t('Really?') : t('Delete')}
                   </Button>
                 </>
               ),

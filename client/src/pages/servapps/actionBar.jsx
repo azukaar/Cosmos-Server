@@ -4,6 +4,7 @@ import { CheckCircleOutlined, CloseSquareOutlined, DeleteOutlined, PauseCircleOu
 import * as API from '../../api';
 import LogsInModal from '../../components/logsInModal';
 import DeleteModal from './deleteModal';
+import { useTranslation } from 'react-i18next';
 
 const GetActions = ({
   Id,
@@ -21,6 +22,7 @@ const GetActions = ({
   const isMiniMobile = useMediaQuery((theme) => theme.breakpoints.down('xsm'));
   const [pullRequest, setPullRequest] = React.useState(null);
   const [isUpdating, setIsUpdating] = React.useState(false);
+  const { t } = useTranslation();
 
   
   const doTo = (action) => {
@@ -63,7 +65,7 @@ const GetActions = ({
 
   let actions = [
     {
-      t: 'Update Available' + (isStack ? ', go the stack details to update' : ', Click to Update'),
+      t: t('UpdateAvailable') + (isStack ? ', go the stack details to update' : ', Click to Update'),
       if: ['update_available'],
       es:  <IconButton className="shinyButton" style={{cursor: 'not-allowed'}} color='primary' onClick={()=>{}} size={isMiniMobile ? 'medium' : 'large'}>
       <UpCircleOutlined />
@@ -73,7 +75,7 @@ const GetActions = ({
       </IconButton>
     },
     {
-      t: 'No Update Available. Click to Force Pull',
+      t: t('NoUpdateAvailable'),
       if: ['update_not_available'],
       hideStack: true,
       e: <IconButton onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
@@ -81,42 +83,42 @@ const GetActions = ({
       </IconButton>
     },
     {
-      t: 'Start',
+      t: t('Start'),
       if: ['exited', 'created'],
       e: <IconButton onClick={() => {doTo('start')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
       </IconButton>
     },
     {
-      t: 'Unpause',
+      t: t('Unpause'),
       if: ['paused'],
       e: <IconButton onClick={() => {doTo('unpause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
       </IconButton>
     },
     {
-      t: 'Pause',
+      t: t('Pause'),
       if: ['running'],
       e: <IconButton onClick={() => {doTo('pause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PauseCircleOutlined />
       </IconButton>
     },
     {
-      t: 'Stop',
+      t: t('Stop'),
       if: ['paused', 'restarting', 'running'],
       e: <IconButton onClick={() => {doTo('stop')}} size={isMiniMobile ? 'medium' : 'large'} variant="outlined">
         <StopOutlined />
       </IconButton>
     },
     {
-      t: 'Restart',
+      t: t('Restart'),
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
       e: <IconButton onClick={() => doTo('restart')} size={isMiniMobile ? 'medium' : 'large'}>
         <ReloadOutlined />
       </IconButton>
     },
     {
-      t: 'Re-create',
+      t: t('Re-create'),
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
       hideStack: true,
       e: <IconButton onClick={() => doTo('recreate')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
@@ -124,14 +126,14 @@ const GetActions = ({
       </IconButton>
     },
     {
-      t: 'Kill',
+      t: t('Kill'),
       if: ['running', 'paused', 'created', 'restarting'],
       e: <IconButton onClick={() => doTo('kill')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <CloseSquareOutlined />
       </IconButton>
     },
     {
-      t: 'Delete',
+      t: t('Delete'),
       if: ['exited', 'created'],
       e: <DeleteModal config={config} Ids={Ids} containers={containers} refreshServApps={refreshServApps} setIsUpdatingId={setIsUpdatingId} />
     }
@@ -140,7 +142,7 @@ const GetActions = ({
   return <>
     {pullRequest && <LogsInModal
       request={pullRequest}
-      title="Updating ServApp..."
+      title={t('UpatingServApp')}
       OnSuccess={() => {
         refreshServApps();
         setPullRequest(null);

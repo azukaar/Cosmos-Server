@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
-
 import * as Yup from 'yup';
+import { Trans, useTranslation } from 'react-i18next';
 
 // material-ui
 import { Alert, Button, Checkbox, CircularProgress, FormControl, FormHelperText, Grid, Stack, Tooltip, Typography } from '@mui/material';
@@ -49,6 +49,7 @@ const debounce = (func, wait) => {
 const hostnameIsDomainReg = /^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/
 
 const NewInstall = () => {
+    const { t } = useTranslation();
     const [activeStep, setActiveStep] = useState(0);
     const [status, setStatus] = useState(null);
     const [counter, setCounter] = useState(0);
@@ -87,39 +88,38 @@ const NewInstall = () => {
 
     const getHTTPSOptions = (hostname) => {
         if(!hostname) {
-            return [["", "Set your hostname first"]];
+            return [["", t('SetHostname')]];
         }
 
         if(hostname.match(hostnameIsDomainReg)) {
             return [
                 ["", "Select an option"],
-                ["LETSENCRYPT", "Use Let's Encrypt automatic HTTPS (recommended)"],
-                ["SELFSIGNED", "Generate self-signed certificate"],
-                ["PROVIDED", "Supply my own HTTPS certificate"],
-                ["DISABLED", "Use HTTP only (not recommended)"],
+                ["LETSENCRYPT", t('SSLLetsEncrypt')],
+                ["SELFSIGNED", t('SSLSelfSigned')],
+                ["PROVIDED", t('SSLProvided')],
+                ["DISABLED", t('SSLDisabled')],
             ]
         } else {
             return [
-                ["", "Select an option"],
-                ["SELFSIGNED", "Generate self-signed certificate (recommended)"],
-                ["PROVIDED", "Supply my own HTTPS certificate"],
-                ["DISABLED", "Use HTTP only (not recommended)"],
+                ["", t('SelectOption')],
+                ["SELFSIGNED", t('SSLLetsEncrypt')],
+                ["PROVIDED", t('SSLProvided')],
+                ["DISABLED", t('SSLDisabled')],
             ]
         }
     }
 
     const steps = [
         {
-            label: 'Welcome! 💖',
+            label: t('Welcome'),
             component: <div>
-                First of all, thanks a lot for trying out Cosmos! And Welcome to the setup wizard.
-                This wizard will guide you through the setup of Cosmos. It will take about 2-3 minutes and you will be ready to go.
+                {t('WelcomeText')}
                 <br /><br />
-                <Checkbox checked={cleanInstall} onChange={(e) => setCleanInstall(e.target.checked)} />Clean install (remove any existing config files)
+                <Checkbox checked={cleanInstall} onChange={(e) => setCleanInstall(e.target.checked)} />{t('CleanInstall')}
                 <br /><br />
                 <a style={{color: 'white', textDecoration: 'none'}} target='_blank' rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/2%20setup">
                     <Button variant="outlined" color="inherit" startIcon={<QuestionCircleOutlined />}>
-                     Link to documentation
+                     {t('LinkDocs')}
                     </Button>
                 </a>
             </div>,
@@ -128,20 +128,20 @@ const NewInstall = () => {
             }
         },
         {
-            label: 'Docker 🐋 (step 1/4)',
+            label: t('Docker'),
             component: <Stack item xs={12} spacing={2}>
                 <div>
-                    <QuestionCircleOutlined /> Cosmos is using docker to run applications. It is optional, but Cosmos will run in reverse-proxy-only mode if it cannot connect to Docker.
+                    <QuestionCircleOutlined /> {t('WhatIsCosmos')}
                 </div>
                 {status && (status.docker ? 
                 <Alert severity="success">
-                    Docker is installed and running.
+                    {t('DockerAvailable')}
                 </Alert> :
-                <Alert severity="error">
+                <Alert severity="error"><Trans i18nKey="DockerNotConnected">
                     Docker is not connected! Please check your docker connection.<br/>
                     Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
                     if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
-                </Alert>)}
+                </Trans></Alert>)}
                 {(status && status.docker) ? (
                     <div>
                         <center>
@@ -151,28 +151,28 @@ const NewInstall = () => {
                         </center>
                     </div>
                 ) : (<><div>
-                    Rechecking Docker Status...
+                    {t('CheckingDocker')}
                 </div>
                 <div>
                     <center><CircularProgress color="inherit" /></center>
                 </div></>)}
             </Stack>,
             nextButtonLabel: () => {
-                return status && status.docker ? 'Next' : 'Skip';
+                return status && status.docker ? t('Next') : t('Skip');
             }
         },
         {
-            label: 'Database 🗄️ (step 2/4)',
+            label: t('Database'),
             component:  <Stack item xs={12} spacing={2}>
                 <div>
-                <QuestionCircleOutlined /> Cosmos is using a MongoDB database to store all the data. It is optional, but Authentication as well as the UI will not work without a database.
+                <QuestionCircleOutlined /> {t('CosmosDatabaseText')}
                 </div>
                 {(status && status.database) ? 
                     <Alert severity="success">
-                        Database is connected.
+                        {t('DatabaseConnected')}
                     </Alert> :
                     <><Alert severity="error">
-                        Database is not connected!
+                        {t('DatabaseNotConnected')}
                     </Alert>
                     <div>
                     <Formik
@@ -198,7 +198,7 @@ const NewInstall = () => {
                             <form noValidate onSubmit={formik.handleSubmit}>
                                 {pullRequest && <LogsInModal
                                     request={pullRequest}
-                                    title="Installing Database..."
+                                    title={t('InstallDB')}
                                     OnSuccess={() => {
                                         if(formik.values.DBMode === "DisableUserManagement") {
                                             setDatabaseEnable(false);
@@ -223,19 +223,19 @@ const NewInstall = () => {
                                 <Stack item xs={12} spacing={2}>
                                 <CosmosSelect
                                     name="DBMode"
-                                    label="Select your choice"
+                                    label={t('MakeSelection')}
                                     formik={formik}
                                     options={[
-                                        ["Create", "Automatically create a secure database (recommended)"],
-                                        ["Provided", "Supply my own database credentials"],
-                                        ["DisableUserManagement", "Disable User Management and UI"],
+                                        ["Create", t('CreateDB')],
+                                        ["Provided", t('ProvidedDB')],
+                                        ["DisableUserManagement", t('NoDB')],
                                     ]}
                                 />
                                 {formik.values.DBMode === "Provided" && (
                                     <>
                                     <CosmosInputText
                                         name="MongoDB"
-                                        label="Database URL"
+                                        label={t('DatabaseURL')}
                                         placeholder={"mongodb://user:password@localhost:27017"}
                                         formik={formik}
                                     />
@@ -253,8 +253,8 @@ const NewInstall = () => {
                                         color="primary"
                                         disabled={formik.isSubmitting}
                                         fullWidth>
-                                        {formik.isSubmitting ? 'Loading' : (
-                                            formik.values.DBMode === "DisableUserManagement" ? 'Disable' : 'Connect'
+                                        {formik.isSubmitting ? t('Loading') : (
+                                            formik.values.DBMode === "DisableUserManagement" ? t('Disable') : t('Connect')
                                         )}
                                     </Button>
                                 </AnimateButton>
@@ -279,16 +279,14 @@ const NewInstall = () => {
                 </div></>)}
             </Stack>,
             nextButtonLabel: () => {
-                return (status && status.database) ? 'Next' : '';
+                return (status && status.database) ? t('Next') : '';
             }
         },
         {
-            label: 'HTTPS 🌐 (step 3/4)',
+            label: t('HTTPS'),
             component: (<Stack item xs={12} spacing={2}>
             <div>
-                <QuestionCircleOutlined /> It is recommended to use Let's Encrypt to automatically provide HTTPS Certificates.
-                This requires a valid domain name pointing to this server. If you don't have one, <strong>you can select "Generate self-signed certificate" in the dropdown. </strong> 
-                If you enable HTTPS, it will be effective after the next restart.
+                <QuestionCircleOutlined /> {t('HTTPSDescription')}
             </div>
             <div>
             <Formik
@@ -316,7 +314,7 @@ const NewInstall = () => {
                         }),
                         Hostname: Yup.string().when('HTTPSCertificateMode', {
                             is: "LETSENCRYPT",
-                            then: Yup.string().required().matches(hostnameIsDomainReg, 'Let\'s Encrypt only accepts domain names'),
+                            then: Yup.string().required().matches(hostnameIsDomainReg, t('LetsEncryptOnlyAcceptsDomains')),
                             otherwise: Yup.string().required()
                         }),
                 })}
@@ -343,7 +341,7 @@ const NewInstall = () => {
                         return res;
                     } catch (error) {
                         setStatus({ success: false });
-                        setErrors({ submit: "Please check you have filled all the inputs properly" });
+                        setErrors({ submit: t('CheckInput') });
                         setSubmitting(false);
                     }
                 }}>
@@ -352,8 +350,8 @@ const NewInstall = () => {
                         <Stack item xs={12} spacing={2}>
                         <CosmosInputText
                             name="Hostname"
-                            label="Hostname (How would you like to access Cosmos?)"
-                            placeholder="yourdomain.com, your ip, or localhost"
+                            label={t('HostnameText')}
+                            placeholder={t('HostnamePlaceholder')}
                             formik={formik}
                             onChange={(e) => {
                               checkHost(e.target.value, setHostError, setHostIp);
@@ -361,43 +359,43 @@ const NewInstall = () => {
                         />
                         {formik.values.Hostname && (formik.values.Hostname.match(hostnameIsDomainReg) ? 
                             <Alert severity="info">
-                                You seem to be using a domain name. <br />
-                                Let's Encrypt can automatically generate a certificate for you.
+                                {t('SeemsDomain')} <br />
+                                {t('LetsEncryptAuto')}
                             </Alert>
                             :
                             <Alert severity="info">
-                                You seem to be using an IP address or local domain. <br />
-                                You can use automatic Self-Signed certificates.
+                                {t('SeemsLocal')} <br />
+                                {t('SelfSignedAuto')}
                             </Alert>)
                         }
                         <CosmosSelect
                             name="HTTPSCertificateMode"
-                            label="Select your choice"
+                            label={t('SelectOption')}
                             formik={formik}
                             options={getHTTPSOptions(formik.values.Hostname && formik.values.Hostname)}
                         />
                         {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
                             <>
-                            <Alert severity="warning">
+                            <Alert severity="warning"><Trans i18nKey="IfCloudFlareText">
                                 If you are using Cloudflare, make sure the DNS record is <strong>NOT</strong> set to <b>Proxied</b> (you should not see the orange cloud but a grey one).
                                 Otherwise Cloudflare will not allow Let's Encrypt to verify your domain. <br />
                                 Alternatively, you can also use the DNS challenge.
-                            </Alert>
+                            </Trans></Alert>
                             <CosmosInputText
                                 name="SSLEmail"
-                                label="Let's Encrypt Email"
+                                label={t('SSLEmail')}
                                 placeholder={"email@domain.com"}
                                 formik={formik}
                             />
                             {formik.values.DNSChallengeProvider && formik.values.DNSChallengeProvider != '' && (
-                                <Alert severity="info">
+                                <Alert severity="info"><Trans i18nKey="IfDNSChallengeText">
                                     You have enabled the DNS challenge. Make sure you have set the environment variables for your DNS provider.
                                     You can enable it now, but make sure you have set up your API tokens accordingly before attempting to access 
                                     Cosmos after this installer. See doc here: <a target="_blank" rel="noopener noreferrer" href="https://go-acme.github.io/lego/dns/">https://go-acme.github.io/lego/dns/</a>
-                                </Alert>
+                                </Trans></Alert>
                             )}
                             <DnsChallengeComp 
-                                label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
+                                label={t('DNSChallengeProvider')}
                                 name="DNSChallengeProvider"
                                 configName="DNSChallengeConfig"
                                 formik={formik}
@@ -409,14 +407,14 @@ const NewInstall = () => {
                                 <CosmosInputText
                                     multiline
                                     name="TLSKey"
-                                    label="Private Certificate"
+                                    label={t('PrivateCertificate')}
                                     placeholder="-----BEGIN RSA PRIVATE KEY-----\nQCdYIUkYi...."
                                     formik={formik}
                                     />
                                 <CosmosInputText
                                     multiline
                                     name="TLSCert"
-                                    label="Public Certificate"
+                                    label={t('PublicCertificate')}
                                     placeholder="-----BEGIN CERTIFICATE-----\nMIIEowIBwIBAA...."
                                     formik={formik}
                                 />
@@ -427,19 +425,18 @@ const NewInstall = () => {
                           <Alert color='error'>{hostError}</Alert>
                         </Grid>}
                         {hostIp && <Grid item xs={12}>
-                            <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, check that it is your server IP!</Alert>
+                            <Alert color='info'><Trans i18nKey="HostnamePointsTo" hostIp={hostIp}>This hostname is pointing to <strong>{{hostIp}}</strong>, check that it is your server IP!</Trans></Alert>
                         </Grid>}
 
                         {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && formik.values.UseWildcardCertificate && (!formik.values.DNSChallengeProvider || formik.values.DNSChallengeProvider == '') && (
                             <Alert severity="error">
-                                You have enabled wildcard certificates with Let's Encrypt. This only works if you use the DNS challenge!
-                                Please edit the DNS Provider text input.
+                                {t('WildcardLetsEncrypt')}
                             </Alert>
                         )}
                         
                         {(formik.values.HTTPSCertificateMode === "LETSENCRYPT" || formik.values.HTTPSCertificateMode === "SELFSIGNED") && formik.values.Hostname && formik.values.Hostname.match(hostnameIsDomainReg) && (
                         <CosmosCheckbox
-                            label={"Use Wildcard Certificate for *." + (formik.values.Hostname ||  "")}
+                            label={t('UseWildcartCertificate') + (formik.values.Hostname ||  "")}
                             name="UseWildcardCertificate"
                             formik={formik}
                         />)}
@@ -448,21 +445,21 @@ const NewInstall = () => {
                         {formik.values.HTTPSCertificateMode != "" && (formik.values.HTTPSCertificateMode != "DISABLED" || isDomain(formik.values.Hostname)) ? (
                         <Grid item xs={12}>
                         <CosmosCheckbox 
-                            label={<span>Allow insecure access via local IP &nbsp;
-                            <Tooltip title={<span style={{fontSize:'110%'}}>
+                            label={<span>{t('AllowHTTPLocalIPAccess')} &nbsp;
+                            <Tooltip title={<span style={{fontSize:'110%'}}><Trans i18nKey="AllowHTTPLocalIPAccessTitle">
                                 When HTTPS is used along side a domain, depending on your networking configuration, it is possible that your server is not receiving direct local connections. <br />
                                 This option allows you to also access your Cosmos admin using your local IP address, like ip:port. <br />
-                                You can already create ip:port URLs for your apps, <strong>but this will make them HTTP-only</strong>.</span>}>
+                                You can already create ip:port URLs for your apps, <strong>but this will make them HTTP-only</strong>.</Trans></span>}>
                                 <QuestionCircleOutlined size={'large'} />
                             </Tooltip></span>}
                             name="allowHTTPLocalIPAccess"
                             formik={formik}
                         />
-                        {formik.values.allowHTTPLocalIPAccess && <Alert severity="warning">
+                        {formik.values.allowHTTPLocalIPAccess && <Alert severity="warning"><Trans i18nKey="AllowHTTPLocalIPAccessAlert">
                         This option is not recommended as it exposes your server to security risks on your local network. <br />
                         Your local network is safer than the internet, but not safe, as devices like IoTs, smart-TVs, smartphones or even your router can be compromised. <br />
                         <strong>If you want to have a secure offline / local-only access to a server that uses a domain name and HTTPS, use Constellation instead.</strong>
-                        </Alert>}
+                        </Trans></Alert>}
                         </Grid>) : ""}
 
                         {formik.errors.submit && (
@@ -478,8 +475,8 @@ const NewInstall = () => {
                                 color="primary"
                                 disabled={formik.isSubmitting || !formik.isValid}
                                 fullWidth>
-                                {formik.isSubmitting ? 'Loading' : (
-                                    formik.values.HTTPSCertificateMode === "DISABLE" ? 'Disable' : 'Update'
+                                {formik.isSubmitting ? t('Loading') : (
+                                    formik.values.HTTPSCertificateMode === "DISABLE" ? t('Disable') : t('Update')
                                 )}
                             </Button>
                         </AnimateButton>
@@ -490,15 +487,15 @@ const NewInstall = () => {
             </div>
             </Stack>),
             nextButtonLabel: () => {
-                return (status && status.hostname != '0.0.0.0') ? 'Next' : '';
+                return (status && status.hostname != '0.0.0.0') ? t('Next') : '';
             }
         },
         {
-            label: 'Admin Account 🔑 (step 4/4)',
+            label: t('AdminAccount'),
             component: <div>
                 <Stack item xs={12} spacing={2}>
                 <div>
-                    <QuestionCircleOutlined /> Create a local admin account to manage your server. Email is optional and used for notifications and password recovery.
+                    <QuestionCircleOutlined /> {t('AdminAccountText')}
                 </div>
                 <Formik
                     initialValues={{
@@ -509,11 +506,11 @@ const NewInstall = () => {
                     }}
                     validationSchema={Yup.object().shape({
                         // nickname cant be admin or root
-                        nickname: Yup.string().required('Nickname is required').min(3).max(32)
-                        .matches(/^(?!admin|root).*$/, 'Nickname cannot be admin or root'),
-                        password: Yup.string().required('Password is required').min(8).max(128).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\/])(?=.{9,})/, 'Password must contain 9 characters: at least 1 lowercase, 1 uppercase, 1 number, and 1 special character'),
-                        email: Yup.string().email('Must be a valid email').max(255),
-                        confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match'),
+                        nickname: Yup.string().required(t('NicknameRequired')).min(3).max(32)
+                        .matches(/^(?!admin|root).*$/, t('NicknameRootAdmin')),
+                        password: Yup.string().required(t('PasswordRequired')).min(8).max(128).matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\/])(?=.{9,})/, 'Password must contain 9 characters: at least 1 lowercase, 1 uppercase, 1 number, and 1 special character'),
+                        email: Yup.string().email(t('InvalidEmail')).max(255),
+                        confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], t('PasswordsMatch')),
                     })}
                     onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                         setSubmitting(true);
@@ -536,8 +533,8 @@ const NewInstall = () => {
                             <Stack item xs={12} spacing={2}>
                             <CosmosInputText
                                 name="nickname"
-                                label="Nickname"
-                                placeholder="admin"
+                                label={t('Nickname')}
+                                placeholder={t('Nickname')}
                                 formik={formik}
                             />
                             <CosmosInputText
@@ -549,15 +546,15 @@ const NewInstall = () => {
                             />
                             <CosmosInputPassword
                                 name="password"
-                                label="Password"
-                                placeholder="password"
+                                label={t('Password')}
+                                placeholder={t('Password')}
                                 formik={formik}
                                 type="password"
                             />
                             <CosmosInputText
                                 name="confirmPassword"
-                                label="Confirm Password"
-                                placeholder="password"
+                                label={t('ConfirmPassword')}
+                                placeholder={t('Password')}
                                 formik={formik}
                                 type="password"
                             />
@@ -573,7 +570,7 @@ const NewInstall = () => {
                                     color="primary"
                                     disabled={formik.isSubmitting || !formik.isValid}
                                     fullWidth>
-                                    {formik.isSubmitting ? 'Loading' : 'Create'}
+                                    {formik.isSubmitting ? t('Loading') : t('Create')}
                                 </Button>
                             </AnimateButton>
                             </Stack>
@@ -587,15 +584,15 @@ const NewInstall = () => {
             }
         },
         {
-            label: 'Finish 🎉',
-            component: <div>
+            label: t('Finish'),
+            component: <div><Trans i18nKey="newInstallFinishText">
                 Well done! You have successfully installed Cosmos. You can now login to your server using the admin account you created.
                 If you have changed the hostname, don't forget to use that URL to access your server after the restart.
                 If you have are running into issues, check the logs for any error messages and edit the file in the /config folder. 
                 If you still don't manage, please join our <a target="_blank" rel="noopener noreferrer" href="https://discord.gg/PwMWwsrwHA">Discord server</a> and we'll be happy to help!
-            </div>,
+            </Trans></div>,
             nextButtonLabel: () => {
-                return 'Apply and Restart';
+                return t('ApplyRestart');
             }
         }
     ];
@@ -624,7 +621,7 @@ const NewInstall = () => {
                             setActiveStep(activeStep - 1)
                         }} 
                         disabled={activeStep <= 0}
-                    >Back</Button>
+                    >{t('Back')}</Button>
 
                     <Button 
                         variant="contained"
@@ -653,7 +650,7 @@ const NewInstall = () => {
                     >{
                         steps[activeStep].nextButtonLabel() ? 
                             steps[activeStep].nextButtonLabel() :
-                            'Next'
+                            t('Next')
                     }</Button>
                 </Stack>
             </Grid>

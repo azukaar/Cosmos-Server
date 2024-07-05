@@ -9,8 +9,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { LoadingButton } from '@mui/lab';
 import { useFormik, FormikProvider } from 'formik';
 import * as Yup from 'yup';
+import { useTranslation } from 'react-i18next';
 
 const FormatModal = ({ cb, OnClose }) => {
+  const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
       password: '',
@@ -37,7 +39,7 @@ const FormatModal = ({ cb, OnClose }) => {
     <>
       <Dialog open={true} onClose={() => OnClose()}>
         <FormikProvider value={formik}>
-          <DialogTitle>Format Disk</DialogTitle>
+          <DialogTitle>{t('FormatDisk')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -49,13 +51,13 @@ const FormatModal = ({ cb, OnClose }) => {
                       error={formik.touched.format && Boolean(formik.errors.format)}
                       style={{ marginBottom: '16px' }}
                     >
-                    <InputLabel htmlFor="format">Disk Format</InputLabel>
+                    <InputLabel htmlFor="format">{t('DiskFormat')}</InputLabel>
                     <Select
                       id="format"
                       name="format"
                       value={formik.values.format}
                       onChange={formik.handleChange}
-                      label="Disk Format"
+                      label={t('DiskFormat')}
                     >
                       <MenuItem value="ext4">Ext4 (Recommended)</MenuItem>
                       <MenuItem value="ext3">Ext3</MenuItem>
@@ -67,7 +69,7 @@ const FormatModal = ({ cb, OnClose }) => {
                     fullWidth
                     id="password"
                     name="password"
-                    label="Confirm Your Password"
+                    label={t('ConfirmYourPassword')}
                     value={formik.values.password}
                     type="password"
                     onChange={formik.handleChange}
@@ -85,13 +87,13 @@ const FormatModal = ({ cb, OnClose }) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => OnClose()}>Cancel</Button>
+            <Button onClick={() => OnClose()}>{t('Cancel')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              Confirm
+              {t('Confirm')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>

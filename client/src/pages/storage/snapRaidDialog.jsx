@@ -12,11 +12,13 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import { crontabToText } from "../../utils/indexs";
 import { MountPickerEntry } from "./mountPickerEntry";
 import { json } from "react-router";
+import { Trans, useTranslation } from 'react-i18next';
 
-const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {  
+const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
+  const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
-      name: data.Name || 'Storage Parity',
+      name: data.Name || t('StorageParity'),
       parity: data.Parity || [],
       data: data.Data || {},
       syncCronTab: data.SyncCrontab || '0 0 2 * * *',
@@ -24,9 +26,9 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
     },
     validateOnChange: false,
     validationSchema: yup.object({
-      name: yup.string().required('Required').min(3, 'Name should be at least 3 characters').matches(/^[a-zA-Z0-9_ ]+$/, 'Name should be alphanumeric'),
-      parity: yup.array().min(1, 'Select at least 1 parity disk'),
-      data: yup.object().test('data', 'Select at least 2 data disk', (value) => {
+      name: yup.string().required(t('Required')).min(3, t('NameAtLeast3Chars')).matches(/^[a-zA-Z0-9_ ]+$/, t('NameNotAlphanumeric')),
+      parity: yup.array().min(1, t('Atleast1Parity')),
+      data: yup.object().test('data', t('AtLeast2DataDisks'), (value) => {
         return Object.keys(value).length >= 2;
       })
     }),
@@ -64,32 +66,30 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
             <DialogTitle>
-              {data.Name ? ('Edit ' + data.Name) : 'Create Parity Disks'}
+              {data.Name ? (t('Edit') + " "+ data.Name) : t('CreateParityDisks')}
             </DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
-                        <Alert severity="info">
+                        <Alert severity="info"><Trans i18nKey="CreateParityText">
                           You are about to create parity disks. <strong>This operation is safe and reversible</strong>.
                           Parity disks are used to protect your data from disk failure.
                           When creating a parity disk, the data disks you want to protect. Do not add a disk containing the system or another parity disk.
-                        </Alert>
+                        </Trans></Alert>
                       </div>
                       <TextField
                         fullWidth
                         id="name"
                         name="name"
-                        label="Config Name"
+                        label={t('ConfigName')}
                         value={formik.values.name}
                         onChange={formik.handleChange}
                         error={formik.touched.name && Boolean(formik.errors.name)}
                         helperText={formik.touched.name && formik.errors.name}
                       />
                       <FormLabel>
-                        <strong>Step 1</strong>: First, select the parity disk(s). One parity disk will protect against one disk failure, two parity disks will protect against two disk failures, and so on.
-                        Remember that those disks will be used only for parity, and will not be available for data storage.
-                        Parity disks must be at least as large as the largest data disk, and should be empty.
+                        <strong>{t('Step1')}</strong> {t('ParityStep1')}
                       </FormLabel>
                       <MountPicker onChange={(value) => formik.setFieldValue('parity', value)} value={formik.values.parity} />
                       {formik.errors.parity && (
@@ -98,7 +98,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           </Grid>
                       )}
                       <FormLabel>
-                        <strong>Step 2</strong>: Select the data disks you want to protect with the parity disk(s).
+                        <strong>{t('Step2')}</strong> {t('ParityStep2')}
                       </FormLabel>
                       
 
@@ -123,12 +123,12 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           const data = formik.values.data;
                           data[`disk${Object.keys(data).length}`] = '';
                           formik.setFieldValue('data', data);
-                        }}>Add Data Disk</Button>
+                        }}>{t('AddDataDisk')}</Button>
                         <Button onClick={() => {
                           const data = formik.values.data;
                           delete data[Object.keys(data).pop()];
                           formik.setFieldValue('data', data);
-                        }}>Remove Data Disk</Button>
+                        }}>{t('RemoveDataDisk')}</Button>
                       </Stack>
 
                       {formik.errors.data && (
@@ -143,13 +143,13 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                       )}
                       <Stack spacing={2}>
                         <FormLabel>
-                          <strong>Step 3</strong>: Set the sync and scrub intervals. The sync interval is the time at which parity is updated. The scrub interval is the time at which the parity is checked for errors. This is using the CRONTAB syntax with seconds.
+                          <strong>{t('Step3')}</strong> {t('ParityStep3')}
                         </FormLabel>
                         <TextField
                           fullWidth
                           id="syncCronTab"
                           name="syncCronTab"
-                          label="Sync Interval"
+                          label={t('SyncInterval')}
                           value={formik.values.syncCronTab}
                           onChange={formik.handleChange}
                           error={formik.touched.syncCronTab && Boolean(formik.errors.syncCronTab)}
@@ -162,7 +162,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           fullWidth
                           id="scrubCronTab"
                           name="scrubCronTab"
-                          label="Scrub Interval"
+                          label={t('ScrubInterval')}
                           value={formik.values.scrubCronTab}
                           onChange={formik.handleChange}
                           error={formik.touched.scrubCronTab && Boolean(formik.errors.scrubCronTab)}
@@ -176,11 +176,11 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpen(false)}>Cancel</Button>
+                  <Button onClick={() => setOpen(false)}>{t('Cancel')}</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
                   }}>
-                    {data.Name ? 'Update' : 'Create'}
+                    {data.Name ? t('Update') : t('Create')}
                   </LoadingButton>
                 </DialogActions>
             </form>
@@ -190,6 +190,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
 }
 
 const SnapRAIDDialog = ({ refresh, data }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return <>
@@ -201,8 +202,8 @@ const SnapRAIDDialog = ({ refresh, data }) => {
         variant="contained"
         size="small"
         startIcon={<PlusCircleOutlined />}
-      >New Parity Disks</ResponsiveButton> :
-      <div onClick={() => setOpen(true)}>Edit</div>}
+      >{t('NewParityDisks')}</ResponsiveButton> :
+      <div onClick={() => setOpen(true)}>{t('Edit')}</div>}
     </div>
   </>
 }

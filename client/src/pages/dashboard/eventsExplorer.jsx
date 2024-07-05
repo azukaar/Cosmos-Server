@@ -4,12 +4,16 @@ import * as API from '../../api';
 import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { CosmosCollapse, CosmosSelect } from "../config/users/formShortcuts";
 import MainCard from '../../components/MainCard';
-import * as timeago from 'timeago.js';
+import { register, format } from 'timeago.js';
+import de from "timeago.js/lib/lang/de";
 import { ExclamationOutlined, SettingOutlined } from "@ant-design/icons";
 import { Alert } from "@mui/material";
 import { DownloadFile } from "../../api/downloadButton";
+import { useTranslation } from 'react-i18next';
 
 const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''}) => {
+	register('de', de);
+	const { t, i18n } = useTranslation();
 	const [events, setEvents] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState(initSearch);
@@ -118,7 +122,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 				<div>
 					<Button variant='contained' onClick={() => {
 						refresh("");
-					}} style={{height: '42px'}}>Refresh</Button>
+					}} style={{height: '42px'}}>{t('Refresh')}</Button>
 				</div>
 				<div>
 					<DownloadFile filename='events-export.json' content={
@@ -154,10 +158,10 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 						}}
 					/>
 				</div>
-				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder='Search (text or bson)' />
+				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('SearchTextBson')} />
 			</Stack>
 			<div>
-			{total} events found from {from.toLocaleString()} to {to.toLocaleString()}
+			{total} {t('eventsFoundFrom')} {from.toLocaleString()} {t('to')} {to.toLocaleString()}
 			</div>
 			<div>
 				{events && <Stack spacing={1}>
@@ -168,7 +172,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 									event.level == "debug" ? <SettingOutlined /> : event.level == "important" ? <ExclamationOutlined /> : undefined
 								}>
 									<div style={{fontWeight: 'bold', fontSize: '120%'}}>{event.label}</div>
-									<div>{(new Date(event.date)).toLocaleString()} - {timeago.format(event.date)}</div>
+									<div>{(new Date(event.date)).toLocaleString()} - {format(event.date, i18n.language)}</div>
 									<div>{event.eventId} - {event.object}</div>
 								</Alert>}>
 								<div style={{overflow: 'auto'}}>
