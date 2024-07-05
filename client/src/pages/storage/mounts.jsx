@@ -17,8 +17,10 @@ import SnapRAIDDialog from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
 import MountDialog, { MountDialogInternal } from "./mountDialog";
 import ResponsiveButton from "../../components/responseiveButton";
+import { useTranslation } from 'react-i18next';
 
 export const StorageMounts = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
@@ -46,26 +48,26 @@ export const StorageMounts = () => {
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>New Mount</ResponsiveButton>,
+          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('NewMount')}</ResponsiveButton>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>Refresh</ResponsiveButton>
+          }}>{t('Refresh')}</ResponsiveButton>
         ]}
         columns={[
           {
-            title: 'Device',
+            title: t('Device'),
             field: (r) => <><FolderOutlined/>  {r.device}</>,
           },
           { 
-            title: 'Path',
+            title: t('Path'),
             field: (r) => r.path,
           },
           { 
-            title: 'Type',
+            title: t('Type'),
             field: (r) => r.type,
           },
           { 
-            title: 'Options',
+            title: t('Options'),
             field: (r) => JSON.stringify(r.opts),
           },
           {
@@ -77,13 +79,13 @@ export const StorageMounts = () => {
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >Edit</ListItemText>
+                    <ListItemText >{t('Edit')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => setMountDialog({data: r, unmount: true})}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >unmount</ListItemText>
+                    <ListItemText >{t('Unmount')}</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

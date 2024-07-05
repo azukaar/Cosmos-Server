@@ -10,10 +10,12 @@ import { useEffect } from 'react';
 
 import * as API from '../../api';
 import { redirectTo, redirectToLocal } from '../../utils/indexs';
+import { useTranslation } from 'react-i18next';
 
 // ================================|| REGISTER ||================================ //
 
 const Logout = () => {
+  const { t } = useTranslation();
     useEffect(() => {
       API.auth.logout()
        .then(() => {
@@ -27,7 +29,7 @@ const Logout = () => {
         <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h3">
-                  You have been logged off. Redirecting you...
+                  {t('LogoutMsg')}
               </Typography>
             </Grid>
         </Grid>

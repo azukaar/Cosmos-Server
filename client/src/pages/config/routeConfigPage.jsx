@@ -9,8 +9,10 @@ import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
 import RouteMetrics from "../dashboard/routeMonitoring";
 import EventExplorerStandalone from "../dashboard/eventsExplorerStandalone";
+import { useTranslation } from 'react-i18next';
 
 const RouteConfigPage = () => {
+  const { t } = useTranslation();
   const { routeName } = useParams();
   const [config, setConfig] = useState(null);
   
@@ -38,18 +40,18 @@ const RouteConfigPage = () => {
       </Stack>
 
       {config && !currentRoute && <div>
-        <Alert severity="error">Route not found</Alert>  
+        <Alert severity="error">{t('RouteNotFound')}</Alert>  
       </div>}
 
       {config && currentRoute && <PrettyTabbedView tabs={[
         {
-          title: 'Overview',
+          title: t('Overview'),
           children: <RouteOverview routeConfig={currentRoute} />
         },
         {
-          title: 'Setup',
+          title: t('Setup'),
           children: <RouteManagement
-            title="Setup"
+            title={t('Setup')}
             submitButton
             routeConfig={currentRoute}
             routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
@@ -57,18 +59,18 @@ const RouteConfigPage = () => {
           />
         },
         {
-          title: 'Security',
+          title: t('Security'),
           children:  <RouteSecurity
             routeConfig={currentRoute}
             config={config}
           />
         },
         {
-          title: 'Monitoring',
+          title: t('Monitoring'),
           children:  <RouteMetrics routeName={routeName} />
         },
         {
-          title: 'Events',
+          title: t('Events'),
           children: <EventExplorerStandalone initLevel='info' initSearch={`{"object":"route@${routeName}"}`}/>
         },
       ]}/>}

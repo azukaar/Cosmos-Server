@@ -5,12 +5,14 @@ import * as API from '../../../api';
 import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
+import { useTranslation } from 'react-i18next';
 
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
 import { FitAddon } from '@xterm/addon-fit';
 
 const DockerTerminal = ({containerInfo, refresh}) => {
+  const { t } = useTranslation();
   const { Name, Config, NetworkSettings, State } = containerInfo;
   const isInteractive = Config.Tty;
   const theme = useTheme();
@@ -76,14 +78,14 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       setIsConnected(false);
       let terminalBoldRed = '\x1b[1;31m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldRed + 'Disconnected from ' + (newProc ? 'shell' : 'main process TTY') + '\r\n' + terminalReset);
+      terminal.write(terminalBoldRed + t('DisconnectedFrom') + (newProc ? 'shell' : t('mainprocessTTY')) + '\r\n' + terminalReset);
     };
     
     ws.current.onopen = () => {
       setIsConnected(true);
       let terminalBoldGreen = '\x1b[1;32m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldGreen + 'Connected to ' + (newProc ? 'shell' : 'main process TTY') + '\r\n' + terminalReset);
+      terminal.write(terminalBoldGreen + t('ConnectedTo') + (newProc ? 'shell' : t('mainprocessTTY')) + '\r\n' + terminalReset);
       // focus terminal
       terminal.focus();
     };
@@ -187,9 +189,8 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     }}>
       {(!isInteractive) && (
         <Alert severity="warning">
-          This container is not interactive. 
-          If you want to connect to the main process, 
-          <Button onClick={() => makeInteractive()}>Enable TTY</Button>
+          {t('TerminalNotInteractiveInfo')}
+          <Button onClick={() => makeInteractive()}>{t('EnableTTY')}</Button>
         </Alert>
       )}
       <div style={{
@@ -221,15 +222,15 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       }</div>
       
       {isConnected ? (<>
-        <Button  variant="contained" onClick={() => ws.current.close()}>Disconnect</Button>
+        <Button  variant="contained" onClick={() => ws.current.close()}>{t('Disconnect')}</Button>
         <Button  variant="outlined" onClick={() => ws.current.send('\t')}>TAB</Button>
         <Button  variant="outlined" onClick={() => ws.current.send('\x03')}>Ctrl+C</Button>
       </>
       ) :
         <>  
           <Button variant="contained"
-          onClick={() => connect(false)}>Connect</Button>
-          <Button variant="contained" onClick={() => connect(true)}>New Shell</Button>
+          onClick={() => connect(false)}>{t('Connect')}</Button>
+          <Button variant="contained" onClick={() => connect(true)}>{t('NewShell')}</Button>
         </>
       }
       </Stack>

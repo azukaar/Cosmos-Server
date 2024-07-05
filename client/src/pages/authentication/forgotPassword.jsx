@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { Button, FormHelperText, Grid, InputLabel, OutlinedInput, Stack, Typography } from '@mui/material';
@@ -16,6 +17,7 @@ import { useState } from 'react';
 // ================================|| LOGIN ||================================ //
 
 const ForgotPassword = () => {
+    const { t } = useTranslation();
     const [isSuccess, setIsSuccess] = useState(false);
 
     return (<AuthWrapper>
@@ -35,15 +37,15 @@ const ForgotPassword = () => {
                         email: '',
                     }}
                     validationSchema={Yup.object().shape({
-                        nickname: Yup.string().max(255).required('Nickname is required'),
-                        email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+                        nickname: Yup.string().max(255).required(t('NicknameRequired')),
+                        email: Yup.string().email(t('InvalidEmail')).max(255).required(t('EmailRequired')),
                     })}
                     onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                         try {
                             API.users.resetPassword(values).then((data) => {
                                 if (data.status == 'error') {
                                     setStatus({ success: false });
-                                    setErrors({ submit: 'Unexpected error. Check your infos or try again later.' });
+                                    setErrors({ submit: t('unexpectedError') });
                                     setSubmitting(false);
                                     return;
                                 } else {
@@ -65,7 +67,7 @@ const ForgotPassword = () => {
 
                                 <CosmosInputText
                                     name="nickname"
-                                    label="Nickname"
+                                    label={t('Nickname')}
                                     formik={formik}
                                 />
 
@@ -91,7 +93,7 @@ const ForgotPassword = () => {
                                         variant="contained"
                                         color="primary"
                                     >
-                                        Reset Password
+                                        {t('ResetPassword')}
                                     </Button>
                                 </Grid>
                             </Grid>
@@ -99,7 +101,7 @@ const ForgotPassword = () => {
                     )}
                 </Formik>}
                 {isSuccess && <div>
-                    <Typography variant="h6">Check your email for a link to reset your password. If it doesn’t appear within a few minutes, check your spam folder.</Typography>
+                    <Typography variant="h6">{t('PasswordResetCheckYourEmail')}</Typography>
                     <br/><br/>
                     <Button
                         disableElevation
@@ -111,7 +113,7 @@ const ForgotPassword = () => {
                         component={Link}
                         to="/cosmos-ui/login"
                     >
-                        Back to login
+                        {t('BackToLogin')}
                     </Button>
                 </div>}
             </Grid>

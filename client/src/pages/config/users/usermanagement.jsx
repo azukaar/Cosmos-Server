@@ -22,8 +22,10 @@ import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
+import { Trans, useTranslation } from 'react-i18next';
 
 const UserManagement = () => {
+    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [openCreateForm, setOpenCreateForm] = React.useState(false);
     const [openDeleteForm, setOpenDeleteForm] = React.useState(false);
@@ -64,7 +66,7 @@ const UserManagement = () => {
 
     return <>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
-            <DialogTitle>Invite User</DialogTitle>
+            <DialogTitle>{t('InviteUser')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     <div style={{
@@ -73,10 +75,10 @@ const UserManagement = () => {
                     }}>
                         {toAction.emailWasSent ? 
                             <div>
-                                <strong>An email has been sent</strong> with a link to {toAction.formAction}. Alternatively you can also share the link below:
+                                <strong>{t('EmailSent')}</strong> {t('WithALink')} {toAction.formAction}. {t('AlternativeShareThisLink')}
                             </div> :
                             <div>
-                                Send this link to {toAction.nickname} to {toAction.formAction}:
+                                {t('SendThisTo')} {toAction.nickname} {t('To')} {toAction.formAction}:
                             </div>
                         }
                     </div>
@@ -97,7 +99,7 @@ const UserManagement = () => {
                 <Button onClick={() => {
                     setOpenInviteForm(false);
                     refresh();
-                }}>Close</Button>
+                }}>{t('Close')}</Button>
             </DialogActions>
         </Dialog>: ''}
 
@@ -105,32 +107,32 @@ const UserManagement = () => {
             <DialogTitle>Delete User</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Are you sure you want to delete user {toAction} ?
+                    {t('ConfirmDeleteUser')} {toAction} ?
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenDeleteForm(false)}>Cancel</Button>
+                <Button onClick={() => setOpenDeleteForm(false)}>{t('Cancel')}</Button>
                 <Button onClick={() => {
                     API.users.deleteUser(toAction)
                     .then(() => {
                         refresh();
                         setOpenDeleteForm(false);
                     })
-                }}>Delete</Button>
+                }}>{t('Delete')}</Button>
             </DialogActions>
         </Dialog>
         
         <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
-            <DialogTitle>Edit Email</DialogTitle>
+            <DialogTitle>{t('EditEmail')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Use this form to invite edit {openEditEmail}'s Email.
+                    <Trans i18nKey="EditInvitedEmail">Use this form to invite edit {openEditEmail}\\'s Email.</Trans>
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-email-edit"
-                    label="Email Address"
+                    label={t('EmailAddress')}
                     type="email"
                     fullWidth
                     variant="standard"
@@ -145,21 +147,21 @@ const UserManagement = () => {
                         setOpenEditEmail(false);
                         refresh();
                     });
-                }}>Edit</Button>
+                }}>{t('Edit')}</Button>
             </DialogActions>
         </Dialog>
 
         <Dialog open={openCreateForm} onClose={() => setOpenCreateForm(false)}>
-            <DialogTitle>Create User</DialogTitle>
+            <DialogTitle>{t('CreateUser')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Use this form to invite a new user to the system.
+                    {t('FormInviteUser')}
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-nickname"
-                    label="Nickname"
+                    label={t('Nickname')}
                     type="text"
                     fullWidth
                     variant="standard"
@@ -168,7 +170,7 @@ const UserManagement = () => {
                     autoFocus
                     margin="dense"
                     id="c-email"
-                    label="Email Address (Optional)"
+                    label={t('EmailAddressOptional')}
                     type="email"
                     fullWidth
                     variant="standard"
@@ -192,10 +194,10 @@ const UserManagement = () => {
 
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
                 refresh();
-        }}>Refresh</Button>&nbsp;&nbsp;
+        }}>{t('Refresh')}</Button>&nbsp;&nbsp;
         <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
             setOpenCreateForm(true)
-        }}>Create</Button><br /><br />
+        }}>{t('Create')}</Button><br /><br />
 
 
         {isLoading && <center><br /><CircularProgress /></center>}
@@ -208,7 +210,7 @@ const UserManagement = () => {
             getKey={(r) => r.nickname}
             columns={[
                 {
-                    title: 'User',
+                    title: t('User'),
                     // underline: true,
                     field: (r) => <strong>{r.nickname}</strong>,
                 },
@@ -221,18 +223,18 @@ const UserManagement = () => {
 
                         return <>{isRegistered ? (r.role > 1 ? <Chip
                                 icon={<KeyOutlined />}
-                                label="Admin"
+                                label={t('Admin')}
                             /> : <Chip
                                 icon={<UserOutlined />}
-                                label="User"
+                                label={t('User')}
                             />) : (
                                 inviteExpired ? <Chip
                                     icon={<ExclamationCircleOutlined  />}
-                                    label="Invite Expired"
+                                    label={t('InviteExpired')}
                                     color="error"
                                 /> : <Chip
                                     icon={<WarningOutlined />}
-                                    label="Invite Pending"
+                                    label={t('InvitePending')}
                                     color="warning"
                                 />
                             )}</>
@@ -244,16 +246,16 @@ const UserManagement = () => {
                     field: (r) => r.email,
                 },
                 {
-                    title: 'Created At',
+                    title: t('CreatedAt'),
                     screenMin: 'lg',
                     field: (r) => new Date(r.createdAt).toLocaleString(),
                 },
                 {
-                    title: 'Last Login',
+                    title: t('LastLogin'),
                     screenMin: 'lg', 
                     field: (r) => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
-                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : 'Never'}</>
+                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : t('Never')}</>
                     },
                 },
                 {
@@ -273,13 +275,13 @@ const UserManagement = () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 1);
                                 }
-                            }>Send password reset</Button>) :
+                            }>{t('SendPasswordReset')}</Button>) :
                             (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                 () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 2);
                                 }
-                            } color="primary">Re-Send Invite</Button>)
+                            } color="primary">{t('ResendInvite')}</Button>)
                         }
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
@@ -287,7 +289,7 @@ const UserManagement = () => {
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
-                        }>Delete</Button>
+                        }>{t('Delete')}</Button>
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
                                 setLoadingRow(r.nickname);
@@ -295,7 +297,7 @@ const UserManagement = () => {
                                     refresh();
                                 });
                             }
-                        }>Reset 2FA</Button></>
+                        }>{t('Reset2FA')}</Button></>
                     }
                 },
             ]}

@@ -33,7 +33,7 @@ const pages = {
         },
         {
             id: 'storage',
-            title: 'Storage',
+            title: 'MenuStorage',
             type: 'item',
             url: '/cosmos-ui/storage',
             icon: icons.FolderOutlined,
@@ -41,7 +41,7 @@ const pages = {
         },
         {
             id: 'constellation',
-            title: 'Constellation',
+            title: 'MenuConstellation',
             type: 'item',
             url: '/cosmos-ui/constellation',
             icon: () => <img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />,
@@ -65,7 +65,7 @@ const pages = {
         },
         {
             id: 'cron',
-            title: 'Scheduler',
+            title: 'MenuScheduler',
             type: 'item',
             url: '/cosmos-ui/cron',
             icon: ClockCircleOutlined,

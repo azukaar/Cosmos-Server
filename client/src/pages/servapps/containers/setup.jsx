@@ -26,6 +26,7 @@ import * as API from "../../../api";
 import { LoadingButton } from "@mui/lab";
 import LogsInModal from "../../../components/logsInModal";
 import ResponsiveButton from "../../../components/responseiveButton";
+import { useTranslation } from 'react-i18next';
 
 const containerInfoFrom = (values) => {
   const labels = {};
@@ -69,6 +70,7 @@ const DockerContainerSetup = ({
   newContainer,
   OnForceSecure,
 }) => {
+  const { t } = useTranslation();
   const [pullRequest, setPullRequest] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -77,7 +79,7 @@ const DockerContainerSetup = ({
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title="Docker Container Setup">{children}</MainCard>;
+    return <MainCard title={t('DockerContainerSetup')}>{children}</MainCard>;
   };
 
   const initialValues = useMemo(() => {
@@ -121,10 +123,10 @@ const DockerContainerSetup = ({
     (values) => {
       const errors = {};
       if (!values.image) {
-        errors.image = "Required";
+        errors.image = t('Required');
       }
       if (!values.name && newContainer) {
-        errors.name = "Required";
+        errors.name = t('Required');
       }
       // env keys and labels key mustbe unique
       const envKeys = values.envVars.map((envVar) => envVar.key);
@@ -132,10 +134,10 @@ const DockerContainerSetup = ({
       const uniqueEnvKeysKeys = [...new Set(envKeys)];
       const uniqueLabelKeys = [...new Set(labelKeys)];
       if (uniqueEnvKeysKeys.length !== envKeys.length) {
-        errors.submit = "Environment Variables must be unique";
+        errors.submit = t('ErrorEnvKeyNotUnique');
       }
       if (uniqueLabelKeys.length !== labelKeys.length) {
-        errors.submit = "Labels must be unique";
+        errors.submit = t('ErrorLabelNotUnique');
       }
       OnChange && OnChange(containerInfoFrom(values));
       return errors;
@@ -195,7 +197,7 @@ const DockerContainerSetup = ({
             {pullRequest && (
               <LogsInModal
                 request={pullRequest}
-                title="Pulling New Image..."
+                title={t('PullingNewImage')}
                 OnSuccess={() => {
                   setPullRequest(null);
                   setLatestImage(formik.values.image);
@@ -214,8 +216,7 @@ const DockerContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        This container is not running. Editing any settings will
-                        cause the container to start again.
+                        {t('ContainerNotRunning')}
                       </Alert>
                     )}
                   <Grid container spacing={4}>
@@ -224,33 +225,33 @@ const DockerContainerSetup = ({
                         {newContainer && (
                           <CosmosInputText
                             name="name"
-                            label="Name"
-                            placeholder="Name"
+                            label={t('Name')}
+                            placeholder={t('Name')}
                             formik={formik}
                           />
                         )}
                         <CosmosInputText
                           name="image"
-                          label="Image"
-                          placeholder="Image"
+                          label={t('Image')}
+                          placeholder={t('Image')}
                           formik={formik}
                         />
                         <CosmosSelect
                           name="restartPolicy"
-                          label="Restart Policy"
-                          placeholder="Restart Policy"
+                          label={t('RestartPolicy')}
+                          placeholder={t('RestartPolicy')}
                           options={restartPolicies}
                           formik={formik}
                         />
                         <CosmosInputText
                           name="user"
-                          label="User"
-                          placeholder="User"
+                          label={t('User')}
+                          placeholder={t('User')}
                           formik={formik}
                         />
                         <CosmosCheckbox
                           name="interactive"
-                          label="Interactive Mode"
+                          label={t('InteractiveMode')}
                           formik={formik}
                         />
                         {OnForceSecure && (
@@ -259,7 +260,7 @@ const DockerContainerSetup = ({
                               type="checkbox"
                               as={FormControlLabel}
                               control={<Checkbox size="large" />}
-                              label={"Force secure container"}
+                              label={t('ForceSecureContainer')}
                               checked={
                                 containerInfo.Config.Labels.hasOwnProperty(
                                   "cosmos-force-network-secured"
@@ -277,7 +278,7 @@ const DockerContainerSetup = ({
                       </>
                     )}
 
-                    <CosmosFormDivider title={"Environment Variables"} />
+                    <CosmosFormDivider title={t('EnvironmentVariables')} />
                     <Grid item xs={12}>
                       {formik.values.envVars.map((envVar, idx) => (
                         <Grid container key={idx}>
@@ -285,7 +286,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`envVars.${idx}.key`}
                               onChange={formik.handleChange}
-                              label="Key"
+                              label={t('Key')}
                               fullWidth
                               value={envVar.key}
                             />
@@ -295,7 +296,7 @@ const DockerContainerSetup = ({
                               name={`envVars.${idx}.value`}
                               onChange={formik.handleChange}
                               fullWidth
-                              label="Value"
+                              label={t('Value')}
                               value={envVar.value}
                             />
                           </Grid>
@@ -327,11 +328,11 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        Add
+                        {t('Add')}
                       </ResponsiveButton>
                     </Grid>
 
-                    <CosmosFormDivider title={"Labels"} />
+                    <CosmosFormDivider title={t('Labels')} />
                     <Grid item xs={12}>
                       {formik.values.labels.map((label, idx) => (
                         <Grid container key={idx}>
@@ -339,7 +340,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`labels.${idx}.key`}
                               fullWidth
-                              label="Key"
+                              label={t('Key')}
                               value={label.key}
                               onChange={formik.handleChange}
                             />
@@ -347,7 +348,7 @@ const DockerContainerSetup = ({
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
                               name={`labels.${idx}.value`}
-                              label="Value"
+                              label={t('Value')}
                               fullWidth
                               value={label.value}
                               onChange={formik.handleChange}
@@ -380,11 +381,11 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        Add
+                        {t('Add')}
                       </ResponsiveButton>
                     </Grid>
 
-                    <CosmosFormDivider title={"Devices"} />
+                    <CosmosFormDivider title={t('Devices')} />
                     <Grid item xs={12}>
                       {formik.values.devices.map((device, idx) => (
                         <Grid container key={idx}>
@@ -392,7 +393,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`devices.${idx}.key`}
                               fullWidth
-                              label="Host Path"
+                              label={t('HostPath')}
                               value={device.key}
                               onChange={formik.handleChange}
                             />
@@ -400,7 +401,7 @@ const DockerContainerSetup = ({
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
                               name={`devices.${idx}.value`}
-                              label="Container Path"
+                              label={t('ContainerPath')}
                               fullWidth
                               value={device.value}
                               onChange={formik.handleChange}
@@ -433,7 +434,7 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        Add
+                        {t('Add')}
                       </ResponsiveButton>
                     </Grid>
                   </Grid>
@@ -454,9 +455,7 @@ const DockerContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        You have updated the image. Clicking the button below
-                        will pull the new image, and then only can you update
-                        the container.
+                        {t('ImageUpdatedWarning')}
                       </Alert>
                     )}
                     <LoadingButton
@@ -470,8 +469,8 @@ const DockerContainerSetup = ({
                       color="primary"
                     >
                       {formik.values.image !== latestImage
-                        ? "Pull New Image"
-                        : "Update Container"}
+                        ? t('PullNewImage')
+                        : t('UpdateContainer')}
                     </LoadingButton>
                   </Stack>
                 </MainCard>

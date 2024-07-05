@@ -6,8 +6,10 @@ import LogsInModal from '../../components/logsInModal';
 import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
 import { getContaienrsJobs, getContainersRoutes } from '../../utils/routes';
+import { useTranslation } from 'react-i18next';
 
 const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [failed, setFailed] = React.useState([]);
@@ -211,16 +213,16 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
   return <>
      {isOpen && <>
         <Dialog open={isOpen} onClose={() => {refreshServApps() ; setIsOpen(false)}}>
-            <DialogTitle>Delete Service</DialogTitle>
+            <DialogTitle>{t('DeleteService')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                   <Stack spacing={1}>
                     <div>
                       {isDeleting && <div>
-                        Deletion status:
+                        {t('DeletionStatus')}
                       </div>}
                       {!isDeleting && <div>
-                        Select what you wish to delete:
+                        {t('SelectWhatDelete')}
                       </div>}
                     </div>
                     {containers.map((container) => {
@@ -230,38 +232,38 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
                     })}
                     {networks.map((network) => {
                       return  (!isDeleting || (!ignored.includes(network + "-network"))) &&<div key={network + "-network"}>
-                        <ShowAction item={network + "-network"} /> <ApiOutlined /> Network {network}
+                        <ShowAction item={network + "-network"} /> <ApiOutlined /> {t('Network')} {network}
                       </div>
                     })}
                     {volumes.map((mount) => {
                       return  (!isDeleting || (!ignored.includes(mount + "-volume"))) && <div key={mount + "-volume"}> 
-                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> Volume {mount}
+                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> {t('Volume')} {mount}
                       </div>
                     })}
                     {routes.map((route) => {
                       return  (!isDeleting || (!ignored.includes(route + "-route"))) && <div key={route + "-route"}> 
-                        <ShowAction item={route + "-route"} /> <LinkOutlined /> Route {route}
+                        <ShowAction item={route + "-route"} /> <LinkOutlined /> {t('Route')} {route}
                       </div>
                     })}
                     {cronJobs.map((job) => {
                       return  (!isDeleting || (!ignored.includes(job + "-job"))) && <div key={job + "-job"}> 
-                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> Cron Job {job}
+                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> {t('CronJob')} {job}
                       </div>
                     })}
                   </Stack>
                 </DialogContentText>
             </DialogContent>
             {!isDeleting && <DialogActions>
-                <Button onClick={() => setIsOpen(false)}>Cancel</Button>
+                <Button onClick={() => setIsOpen(false)}>{t('Cancel')}</Button>
                 <Button onClick={() => {
                   doDelete();
-                }}>Delete</Button>
+                }}>{t('Delete')}</Button>
             </DialogActions>}
             {isDeleting && <DialogActions>
                 <Button onClick={() => {
                   refreshServApps();
                   setIsOpen(false);
-                }}>Done</Button>
+                }}>{t('Done')}</Button>
             </DialogActions>}
         </Dialog>
      </>}
