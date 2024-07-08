@@ -42,7 +42,7 @@ func Init() {
 
 	// prepend the default market
 	defaultMarket := utils.MarketSource{
-		Url: "https://azukaar.github.io/cosmos-servapps-official/index.json",
+		Url: "https://aseracorp.github.io/resiSTORE/index.json",
 		Name: "cosmos-cloud",
 	}
 
