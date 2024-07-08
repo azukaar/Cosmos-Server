@@ -10,14 +10,14 @@ if [ -n "$CIRCLE_BRANCH" ]; then
   fi
 fi
 
-echo "Pushing aseracorp/resiOS:$VERSION and aseracorp/resiOS:$LATEST"
+echo "Pushing aseracorp/resios:$VERSION and aseracorp/resios:$LATEST"
 
 sh build.sh
 
 # Multi-architecture build
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag aseracorp/resiOS:$VERSION \
-  --tag aseracorp/resiOS:$LATEST \
+  --tag aseracorp/resios:$VERSION \
+  --tag aseracorp/resios:$LATEST \
   --push \
   .
