@@ -34,25 +34,6 @@ const pages = {
             icon: icons.NodeExpandOutlined,
         },
         {
-            id: 'storage',
-            title: 'menu-items.management.storage',
-            type: 'item',
-            url: '/resios-ui/storage',
-            icon: icons.FolderOutlined,
-            adminOnly: true            
-        },
-        {
-            id: 'constellation',
-            title: 'menu-items.management.constellation',
-            type: 'item',
-            url: '/resios-ui/constellation',
-            icon: () => <DarkModeSwitch
-                light={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />}
-                dark={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationWhiteIcon} />}
-            />,
-            
-        },
-        {
             id: 'users',
             title: 'menu-items.management.usersTitle',
             type: 'item',

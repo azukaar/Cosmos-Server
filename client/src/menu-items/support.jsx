@@ -1,7 +1,5 @@
 // assets
-import { GithubOutlined, QuestionOutlined, BugOutlined } from '@ant-design/icons';
-import DiscordOutlined from '../assets/images/icons/discord.svg'
-import DiscordOutlinedWhite from '../assets/images/icons/discord_white.svg'
+import { MessageOutlined, GithubOutlined, QuestionOutlined, BugOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
 
 // ==============================|| MENU ITEMS - SAMPLE PAGE & DOCUMENTATION ||============================== //
@@ -21,10 +19,10 @@ const support = {
     children: [
         {
             id: 'discord',
-            title: 'menu-items.support.discord',
+            title: 'aseracorp.menu-items.support.helpDiscussion',
             type: 'item',
-            url: 'https://discord.com/invite/PwMWwsrwHA',
-            icon: DiscordOutlinedIcon,
+            url: 'https://github.com/aseracorp/resiOS/discussions',
+            icon: MessageOutlined,
             external: true,
             target: true
         },
@@ -50,7 +48,7 @@ const support = {
             id: 'bug',
             title: 'menu-items.support.bugReportTitle',
             type: 'item',
-            url: 'https://github.com/aseracorp/resiOS/issues/new/choose',
+            url: 'https://github.com/aseracorp/resiOS/issues',
             icon: BugOutlined,
             external: true,
             target: true
