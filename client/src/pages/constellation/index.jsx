@@ -32,7 +32,7 @@ const ConstellationIndex = () => {
   }, []);
 
   const ConstContent = isAdmin ? <div>
-    <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
+    <PrettyTabbedView path="/resios-ui/constellation/:tab" tabs={[
         {
           title: 'VPN',
           children: <ConstellationVPN />,

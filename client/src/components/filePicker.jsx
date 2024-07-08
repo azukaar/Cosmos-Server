@@ -194,7 +194,7 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, _storage = '', _path 
                       ))}
                     </List>
                     <Stack alignItems="center" spacing={2}>
-                      <Button href="/cosmos-ui/config-url" target="_blank" style={{width: '110px', textAlign:'center'}}>Add external storages</Button>
+                      <Button href="/resios-ui/config-url" target="_blank" style={{width: '110px', textAlign:'center'}}>Add external storages</Button>
                     </Stack>
                     </Stack>
                 </div>}

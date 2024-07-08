@@ -245,7 +245,7 @@ const ServApps = ({stack}) => {
 
     <Stack spacing={{xs: 1, sm: 1, md: 2 }}>
       <Stack direction="row" spacing={2}>
-        {stack && <Link to="/cosmos-ui/servapps">
+        {stack && <Link to="/resios-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
         <Input placeholder={t('global.searchPlaceholder')}
@@ -263,7 +263,7 @@ const ServApps = ({stack}) => {
           refreshServApps();
         }}>{t('global.refresh')}</ResponsiveButton>
         {!stack && <>
-        <Link to="/cosmos-ui/servapps/new-service">
+        <Link to="/resios-ui/servapps/new-service">
           <ResponsiveButton
             variant="contained" 
             startIcon={<AppstoreAddOutlined />}
@@ -456,8 +456,8 @@ const ServApps = ({stack}) => {
  
               <div>
                 <Link to={app.type === 'stack' ? 
-                  `/cosmos-ui/servapps/stack/${app.name}` : 
-                  `/cosmos-ui/servapps/containers/${app.name.replace('/', '')}`
+                  `/resios-ui/servapps/stack/${app.name}` : 
+                  `/resios-ui/servapps/containers/${app.name.replace('/', '')}`
                   }>
                   <Button variant="outlined" color="primary" fullWidth>
                     {app.type === 'stack' ? t('mgmt.servapps.viewStackButton') : t('mgmt.servapps.viewDetailsButton')}

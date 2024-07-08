@@ -111,7 +111,7 @@ const ForgotPassword = () => {
                         variant="contained"
                         color="primary"
                         component={Link}
-                        to="/cosmos-ui/login"
+                        to="/resios-ui/login"
                     >
                         {t('auth.forgotPassword.backToLogin')}
                     </Button>

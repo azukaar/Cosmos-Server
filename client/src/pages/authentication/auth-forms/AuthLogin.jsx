@@ -56,14 +56,14 @@ const AuthLogin = () => {
     const notLogged = urlSearchParams.get('notlogged') == 1;
     const notLoggedAdmin = urlSearchParams.get('notlogged') == 2;
     const invalid = urlSearchParams.get('invalid') == 1;
-    const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
+    const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/resios-ui';
 
     useEffect(() => {
         API.auth.me().then((data) => {
             if(data.status == 'OK') {
                 redirectToLocal(redirectToURL);
             } else if(data.status == 'NEW_INSTALL') {
-                redirectToLocal('/cosmos-ui/newInstall');
+                redirectToLocal('/resios-ui/newInstall');
             }
         });
 
@@ -193,7 +193,7 @@ const AuthLogin = () => {
                                         }
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
-                                    {showResetPassword && <Link variant="h6" component={RouterLink} to="/cosmos-ui/forgot-password" color="primary">
+                                    {showResetPassword && <Link variant="h6" component={RouterLink} to="/resios-ui/forgot-password" color="primary">
                                         {t('auth.forgotPwd')}
                                     </Link>}
                                     {!showResetPassword &&  <Typography variant="h6">

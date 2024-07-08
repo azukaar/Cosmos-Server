@@ -22,7 +22,7 @@ const pages = {
             id: 'servapps',
             title: 'menu-items.management.servApps',
             type: 'item',
-            url: '/cosmos-ui/servapps',
+            url: '/resios-ui/servapps',
             icon: AppstoreOutlined,
             adminOnly: true
         },
@@ -30,14 +30,14 @@ const pages = {
             id: 'url',
             title: 'menu-items.management.urls',
             type: 'item',
-            url: '/cosmos-ui/config-url',
+            url: '/resios-ui/config-url',
             icon: icons.NodeExpandOutlined,
         },
         {
             id: 'storage',
             title: 'menu-items.management.storage',
             type: 'item',
-            url: '/cosmos-ui/storage',
+            url: '/resios-ui/storage',
             icon: icons.FolderOutlined,
             adminOnly: true            
         },
@@ -45,7 +45,7 @@ const pages = {
             id: 'constellation',
             title: 'menu-items.management.constellation',
             type: 'item',
-            url: '/cosmos-ui/constellation',
+            url: '/resios-ui/constellation',
             icon: () => <DarkModeSwitch
                 light={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />}
                 dark={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationWhiteIcon} />}
@@ -56,7 +56,7 @@ const pages = {
             id: 'users',
             title: 'menu-items.management.usersTitle',
             type: 'item',
-            url: '/cosmos-ui/config-users',
+            url: '/resios-ui/config-users',
             icon: icons.ProfileOutlined,
             adminOnly: true
         },
@@ -64,7 +64,7 @@ const pages = {
             id: 'openid',
             title: 'menu-items.management.openId',
             type: 'item',
-            url: '/cosmos-ui/openid-manage',
+            url: '/resios-ui/openid-manage',
             icon: PicLeftOutlined,
             adminOnly: true
         },
@@ -72,7 +72,7 @@ const pages = {
             id: 'cron',
             title: 'menu-items.management.schedulerTitle',
             type: 'item',
-            url: '/cosmos-ui/cron',
+            url: '/resios-ui/cron',
             icon: ClockCircleOutlined,
             adminOnly: true
         },
@@ -80,7 +80,7 @@ const pages = {
             id: 'config',
             title: 'menu-items.management.configurationTitle',
             type: 'item',
-            url: '/cosmos-ui/config-general',
+            url: '/resios-ui/config-general',
             icon: icons.SettingOutlined,
         }
     ]

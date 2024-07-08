@@ -99,7 +99,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             {isAdmin && <div>
               <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
             </div>}
-            <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
+            <Link to={"/resios-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
@@ -228,7 +228,7 @@ const MarketPage = () => {
       zIndex: 1300,
       backgroundColor: 'rgba(0,0,0,0.5)',
     }}>
-      <Link to="/cosmos-ui/market-listing" as={Box}
+      <Link to="/resios-ui/market-listing" as={Box}
         style={{
           position: 'fixed',
           top: 0,
@@ -254,7 +254,7 @@ const MarketPage = () => {
           }
         }}>
 
-          <Link to="/cosmos-ui/market-listing" style={{
+          <Link to="/resios-ui/market-listing" style={{
             textDecoration: 'none',
           }}>
             <Button className="CheckButton" color="primary" variant="outlined">
@@ -342,7 +342,7 @@ const MarketPage = () => {
             }}
           />
 
-          <Link to="/cosmos-ui/servapps/new-service">
+          <Link to="/resios-ui/servapps/new-service">
             <ResponsiveButton
               variant="contained"
               startIcon={<AppstoreAddOutlined />}
@@ -372,7 +372,7 @@ const MarketPage = () => {
               style={{
                 ...gridAnim,
                 cursor: 'pointer',
-              }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name + app.appstore} item><Link to={"/cosmos-ui/market-listing/" + app.appstore + "/" + app.name} style={{
+              }} xs={12} sm={12} md={6} lg={4} xl={3} key={app.name + app.appstore} item><Link to={"/resios-ui/market-listing/" + app.appstore + "/" + app.name} style={{
                 textDecoration: 'none',
               }}>
                   <div key={app.name} style={appCardStyle(theme)}>

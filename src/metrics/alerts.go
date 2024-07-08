@@ -186,7 +186,7 @@ more information.<br />`, alert.Severity, metric.Key))
 			Message: "header.notification.message.alertTriggered",
 			Vars: alert.Name,
 			Level: alert.Severity,
-			Link: "/cosmos-ui/monitoring",
+			Link: "/resios-ui/monitoring",
 		})
 
 	} else if action.Type == "script" {

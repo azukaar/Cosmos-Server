@@ -29,7 +29,7 @@ const RouteOverview = ({ routeConfig }) => {
   function deleteRoute(event) {
     event.stopPropagation();
     API.config.deleteRoute(routeConfig.Name).then(() => {
-      redirectToLocal('/cosmos-ui/config-url');
+      redirectToLocal('/resios-ui/config-url');
     });
   }
 

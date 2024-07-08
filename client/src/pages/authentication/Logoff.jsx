@@ -20,7 +20,7 @@ const Logout = () => {
       API.auth.logout()
        .then(() => {
           setTimeout(() => {
-            redirectToLocal('/cosmos-ui/login');
+            redirectToLocal('/resios-ui/login');
           }, 2000);
         });
     },[]);

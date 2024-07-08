@@ -19,7 +19,7 @@ const ServappsIndex = () => {
   const { stack } = useParams();
 
   return <div>
-    {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
+    {!stack && <PrettyTabbedView path="/resios-ui/servapps/:tab" tabs={[
         {
           title: t('mgmt.servapps.networks.containers'),
           children: <ServApps stack={stack} />,

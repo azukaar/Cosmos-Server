@@ -88,7 +88,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                     }).then((res) => {
                         setStatus({ success: true });
                         setSubmitting(false);
-                        redirectToLocal('/cosmos-ui/login');
+                        redirectToLocal('/resios-ui/login');
                     }).catch((err) => {
                         setStatus({ success: false });
                         setErrors({ submit: err.message });

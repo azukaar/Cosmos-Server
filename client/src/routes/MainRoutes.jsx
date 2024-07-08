@@ -26,76 +26,76 @@ const MainRoutes = {
     children: [
         {
             path: '/',
-            // redirect to /cosmos-ui
-            element: <Navigate to="/cosmos-ui/" />
+            // redirect to /resios-ui
+            element: <Navigate to="/resios-ui/" />
         },
         {
-            path: '/cosmos-ui/logo',
-            // redirect to /cosmos-ui
+            path: '/resios-ui/logo',
+            // redirect to /resios-ui
             element: <Navigate to={logo} />
         },
         [{
-            path: '/cosmos-ui',
+            path: '/resios-ui',
             element: <HomePage />
         },
         {
-            path: '/cosmos-ui/monitoring',
+            path: '/resios-ui/monitoring',
             element: <DashboardDefault />
         },
         {
-            path: '/cosmos-ui/storage',
+            path: '/resios-ui/storage',
             element: <StorageIndex />
         },
         {
-            path: '/cosmos-ui/constellation',
+            path: '/resios-ui/constellation',
             element: <ConstellationIndex />
         },
         {
-            path: '/cosmos-ui/servapps',
+            path: '/resios-ui/servapps',
             element: <ServAppsIndex />
         },
         {
-            path: '/cosmos-ui/servapps/stack/:stack',
+            path: '/resios-ui/servapps/stack/:stack',
             element: <ServAppsIndex />
         },
         {
-            path: '/cosmos-ui/config-users',
+            path: '/resios-ui/config-users',
             element: <UserManagement />
         },
         {
-            path: '/cosmos-ui/config-general',
+            path: '/resios-ui/config-general',
             element: <ConfigManagement />
         },
         {
-            path: '/cosmos-ui/servapps/new-service',
+            path: '/resios-ui/servapps/new-service',
             element: <NewDockerServiceForm />
         },
         {
-            path: '/cosmos-ui/config-url',
+            path: '/resios-ui/config-url',
             element: <ProxyManagement />
         },
         {
-            path: '/cosmos-ui/config-url/:routeName',
+            path: '/resios-ui/config-url/:routeName',
             element: <RouteConfigPage />,
         },
         {
-            path: '/cosmos-ui/servapps/containers/:containerName',
+            path: '/resios-ui/servapps/containers/:containerName',
             element: <ContainerIndex />,
         },
         {
-            path: '/cosmos-ui/openid-manage',
+            path: '/resios-ui/openid-manage',
             element: <OpenIdList />,
         },
         {
-            path: '/cosmos-ui/market-listing/',
+            path: '/resios-ui/market-listing/',
             element: <MarketPage />
         },
         {
-            path: '/cosmos-ui/market-listing/:appStore/:appName',
+            path: '/resios-ui/market-listing/:appStore/:appName',
             element: <MarketPage />
         },
         {
-            path: '/cosmos-ui/cron',
+            path: '/resios-ui/cron',
             element: <CronManager />
         }].map(children => ({
             ...children,

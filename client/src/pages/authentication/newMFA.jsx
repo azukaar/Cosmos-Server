@@ -38,14 +38,14 @@ import { redirectToLocal } from '../../utils/indexs';
 const MFALoginForm = () => {
   const { t } = useTranslation();
   const urlSearchParams = new URLSearchParams(window.location.search);
-  const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
+  const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/resios-ui';
 
   useEffect(() => {
     API.auth.me().then((data) => {
         if(data.status == 'OK') {
           redirectToLocal(redirectToURL);
         } else if(data.status == 'NEW_INSTALL') {
-          redirectToLocal('/cosmos-ui/newInstall');
+          redirectToLocal('/resios-ui/newInstall');
         }
     });
   });  
@@ -156,7 +156,7 @@ const MFASetup = () => {
         <MFALoginForm />
       </Grid>
       <Grid item xs={12}>
-        <Link to="/cosmos-ui/logout">
+        <Link to="/resios-ui/logout">
           <Typography variant="h5">{t('global.logout')}</Typography>
         </Link>
       </Grid>

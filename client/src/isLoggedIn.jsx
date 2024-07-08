@@ -7,13 +7,13 @@ async function isLoggedIn() {
     const data = await API.auth.me();
 
     if (data.status == 'NEW_INSTALL') {
-        return '/cosmos-ui/newInstall';
+        return '/resios-ui/newInstall';
     } else if (data.status == 'error' && data.code == "HTTP004") {
-        return '/cosmos-ui/login?redirect=' + redirectToURL;
+        return '/resios-ui/login?redirect=' + redirectToURL;
     } else if (data.status == 'error' && data.code == "HTTP006") {
-        return '/cosmos-ui/loginmfa?redirect=' + redirectToURL;
+        return '/resios-ui/loginmfa?redirect=' + redirectToURL;
     } else if (data.status == 'error' && data.code == "HTTP007") {
-        return '/cosmos-ui/newmfa?redirect=' + redirectToURL;
+        return '/resios-ui/newmfa?redirect=' + redirectToURL;
     } else if (data.status == 'OK') {
         return data.status
     } else {

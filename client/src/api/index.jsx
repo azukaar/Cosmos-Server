@@ -53,20 +53,20 @@ let getStatus = (initial) => {
 
     if(response.status != 'OK') {
       if( 
-          window.location.href.indexOf('/cosmos-ui/newInstall') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/login') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/loginmfa') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/newmfa') == -1 &&
-          window.location.href.indexOf('/cosmos-ui/register') == -1 &&
-          window.location.href.indexOf('/cosmos-ui/forgot-password') == -1) {
+          window.location.href.indexOf('/resios-ui/newInstall') == -1 && 
+          window.location.href.indexOf('/resios-ui/login') == -1 && 
+          window.location.href.indexOf('/resios-ui/loginmfa') == -1 && 
+          window.location.href.indexOf('/resios-ui/newmfa') == -1 &&
+          window.location.href.indexOf('/resios-ui/register') == -1 &&
+          window.location.href.indexOf('/resios-ui/forgot-password') == -1) {
         if(response.status == 'NEW_INSTALL') {
-            redirectToLocal('/cosmos-ui/newInstall');
+            redirectToLocal('/resios-ui/newInstall');
         } else if (response.status == 'error' && response.code == "HTTP004") {
-            redirectToLocal('/cosmos-ui/login?redirect=' + redirectToURL);
+            redirectToLocal('/resios-ui/login?redirect=' + redirectToURL);
         } else if (response.status == 'error' && response.code == "HTTP006") {
-            redirectToLocal('/cosmos-ui/loginmfa?redirect=' + redirectToURL);
+            redirectToLocal('/resios-ui/loginmfa?redirect=' + redirectToURL);
         } else if (response.status == 'error' && response.code == "HTTP007") {
-            redirectToLocal('/cosmos-ui/newmfa?redirect=' + redirectToURL);
+            redirectToLocal('/resios-ui/newmfa?redirect=' + redirectToURL);
         }
       } else {
         return "nothing";

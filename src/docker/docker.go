@@ -566,7 +566,7 @@ func CheckUpdatesAvailable() map[string]bool {
 				Message: "header.notification.message.containerUpdate",
 				Vars: container.Names[0][1:],
 				Level: "info",
-				Link: "/cosmos-ui/servapps/containers/" + container.Names[0][1:],
+				Link: "/resios-ui/servapps/containers/" + container.Names[0][1:],
 			})
 
 			utils.Log("Downloaded new update for " + container.Image + " ready to install")

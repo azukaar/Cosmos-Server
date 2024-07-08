@@ -21,35 +21,35 @@ const LoginRoutes = {
     element: <MinimalLayout />,
     children: [
         {
-            path: '/cosmos-ui/login',
+            path: '/resios-ui/login',
             element: <AuthLogin />
         },
         {
-            path: '/cosmos-ui/register',
+            path: '/resios-ui/register',
             element: <AuthRegister />
         },
         {
-            path: '/cosmos-ui/logout',
+            path: '/resios-ui/logout',
             element: <Logout />
         },
         {
-            path: '/cosmos-ui/newInstall',
+            path: '/resios-ui/newInstall',
             element: <NewInstall />
         },
         {
-            path: '/cosmos-ui/newmfa',
+            path: '/resios-ui/newmfa',
             element: <NewMFA />
         },
         {
-            path: '/cosmos-ui/openid',
+            path: '/resios-ui/openid',
             element: <OpenID />
         },
         {
-            path: '/cosmos-ui/loginmfa',
+            path: '/resios-ui/loginmfa',
             element: <MFALogin />
         },
         {
-            path: '/cosmos-ui/forgot-password',
+            path: '/resios-ui/forgot-password',
             element: <ForgotPassword />
         },
     ]

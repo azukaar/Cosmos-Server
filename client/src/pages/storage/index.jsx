@@ -37,7 +37,7 @@ const StorageIndex = () => {
   let containerized = coStatus && coStatus.containerized;
 
   return <div>
-    <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
+    <PrettyTabbedView path="/resios-ui/storage/:tab" tabs={[
         {
           title: t('mgmt.storage.disks'),
           children: <StorageDisks />,
