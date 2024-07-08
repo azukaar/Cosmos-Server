@@ -12,8 +12,8 @@ import (
 
 	"github.com/go-co-op/gocron/v2"
 
-	"github.com/azukaar/cosmos-server/src/docker"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/docker"
+	"github.com/aseracorp/resiOS/src/utils"
 
 	"github.com/docker/docker/api/types"
 )

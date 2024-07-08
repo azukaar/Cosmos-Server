@@ -8,9 +8,9 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/metrics"
-	"github.com/azukaar/cosmos-server/src/constellation"
+	"github.com/aseracorp/resiOS/src/utils"
+	"github.com/aseracorp/resiOS/src/metrics"
+	"github.com/aseracorp/resiOS/src/constellation"
 )
 
 /*

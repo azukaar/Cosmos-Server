@@ -8,7 +8,7 @@ import (
 	"time"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 type RegisterRequestJSON struct {

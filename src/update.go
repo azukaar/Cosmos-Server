@@ -46,7 +46,7 @@ func parseMD5File(content string) string {
 
 func GetLatestVersion(includeBeta bool) (*VersionInfo, error) {
     // Fetch releases from GitHub API
-    resp, err := http.Get("https://api.github.com/repos/azukaar/cosmos-server/releases")
+    resp, err := http.Get("https://api.github.com/repos/aseracorp/resiOS/releases")
     if err != nil {
         return nil, fmt.Errorf("failed to fetch releases: %v", err)
     }

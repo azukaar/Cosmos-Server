@@ -32,7 +32,7 @@ const support = {
             id: 'github',
             title: 'menu-items.support.github',
             type: 'item',
-            url: 'https://github.com/azukaar/Cosmos-Server',
+            url: 'https://github.com/aseracorp/resiOS',
             icon: GithubOutlined,
             external: true,
             target: true
@@ -50,7 +50,7 @@ const support = {
             id: 'bug',
             title: 'menu-items.support.bugReportTitle',
             type: 'item',
-            url: 'https://github.com/azukaar/Cosmos-Server/issues/new/choose',
+            url: 'https://github.com/aseracorp/resiOS/issues/new/choose',
             icon: BugOutlined,
             external: true,
             target: true

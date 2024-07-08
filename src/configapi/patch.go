@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/constellation"
+	"github.com/aseracorp/resiOS/src/utils"
+	"github.com/aseracorp/resiOS/src/constellation"
 )
 
 type UpdateRouteRequest struct {

@@ -17,7 +17,7 @@ import (
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 
 	"github.com/gorilla/mux"
 )

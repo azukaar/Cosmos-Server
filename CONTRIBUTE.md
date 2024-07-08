@@ -25,7 +25,7 @@ Aside from those, you will need a bunch of files. First, You optionally need Geo
 Second you need the Nebula binaries from https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-arm64.tar.gz and https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-amd64.tar.gz
 Make sure you have the binary set in the root of your workspace like  this:
 
-![image](https://github.com/azukaar/Cosmos-Server/assets/7872597/11de2778-e799-47b7-b0ba-443e658965dd)
+![image](https://github.com/aseracorp/resiOS/assets/7872597/11de2778-e799-47b7-b0ba-443e658965dd)
 
 
 ### Setting up and running the dev client

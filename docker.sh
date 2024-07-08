@@ -10,14 +10,14 @@ if [ -n "$CIRCLE_BRANCH" ]; then
   fi
 fi
 
-echo "Pushing azukaar/cosmos-server:$VERSION and azukaar/cosmos-server:$LATEST"
+echo "Pushing aseracorp/resiOS:$VERSION and aseracorp/resiOS:$LATEST"
 
 sh build.sh
 
 # Multi-architecture build
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag azukaar/cosmos-server:$VERSION \
-  --tag azukaar/cosmos-server:$LATEST \
+  --tag aseracorp/resiOS:$VERSION \
+  --tag aseracorp/resiOS:$LATEST \
   --push \
   .

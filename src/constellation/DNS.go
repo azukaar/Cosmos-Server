@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 
 	"github.com/miekg/dns"
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 var DNSBlacklist = map[string]bool{}

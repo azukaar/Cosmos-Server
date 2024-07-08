@@ -24,7 +24,7 @@ import (
 	_ "github.com/rclone/rclone/cmd/all"
 	_ "github.com/rclone/rclone/lib/plugin"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 

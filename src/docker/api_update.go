@@ -8,7 +8,7 @@ import (
 	"bufio"
 
 	"github.com/gorilla/mux"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {

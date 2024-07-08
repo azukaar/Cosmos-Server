@@ -15,7 +15,7 @@ import (
 
 	"go.deanishe.net/favicon"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 type CachedImage struct {

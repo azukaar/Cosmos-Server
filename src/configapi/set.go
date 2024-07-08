@@ -3,11 +3,11 @@ package configapi
 import (
 	"net/http"
 	"encoding/json"
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/authorizationserver"
-	"github.com/azukaar/cosmos-server/src/constellation"
-	"github.com/azukaar/cosmos-server/src/cron"
-	"github.com/azukaar/cosmos-server/src/storage"
+	"github.com/aseracorp/resiOS/src/utils"
+	"github.com/aseracorp/resiOS/src/authorizationserver"
+	"github.com/aseracorp/resiOS/src/constellation"
+	"github.com/aseracorp/resiOS/src/cron"
+	"github.com/aseracorp/resiOS/src/storage"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {

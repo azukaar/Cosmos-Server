@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {

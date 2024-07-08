@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 func compareConfigs(configMap, configMapNew map[string]interface{}) bool {

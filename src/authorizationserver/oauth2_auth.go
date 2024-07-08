@@ -2,7 +2,7 @@ package authorizationserver
 
 import (
 	"net/http"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 func authEndpoint(rw http.ResponseWriter, req *http.Request) {

@@ -18,7 +18,7 @@
 
 ---
 
-[![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA) ![CircleCI](https://img.shields.io/circleci/build/github/azukaar/Cosmos-Server?token=6efd010d0f82f97175f04a6acf2dae2bbcc4063c&style=flat-square) [![Docker Pulls](https://img.shields.io/docker/pulls/azukaar/cosmos-server?style=flat-square)](https://hub.docker.com/r/azukaar/cosmos-server)
+[![DiscordLink](https://img.shields.io/discord/1083875833824944188?label=Discord&logo=Discord&style=flat-square)](https://discord.gg/PwMWwsrwHA) ![CircleCI](https://img.shields.io/circleci/build/github/aseracorp/resiOS?token=6efd010d0f82f97175f04a6acf2dae2bbcc4063c&style=flat-square) [![Docker Pulls](https://img.shields.io/docker/pulls/aseracorp/resiOS?style=flat-square)](https://hub.docker.com/r/aseracorp/resiOS)
 
 
 ☁️ Cosmos is the most secure and easy way to self-host a Home Server. It acts as a secure gateway to your application, as well as a server manager. It aims to solve the increasingly worrying problem of vulnerable self-hosted applications and personal servers.
@@ -27,13 +27,13 @@
   <br/>
   <br/>
   <a target="_blank" href="https://cosmos-cloud.io/">
-    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/ws.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/aseracorp/resiOS/master/icons/ws.png" />
   </a>
   <a target="_blank" href="https://cosmos-cloud.io/doc">
-    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/doc.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/aseracorp/resiOS/master/icons/doc.png" />
   </a>
   <a target="_blank" href="https://cosmos-cloud.io/cosmos-ui">
-    <img height="44px" src="https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/icons/demo.png" />
+    <img height="44px" src="https://raw.githubusercontent.com/aseracorp/resiOS/master/icons/demo.png" />
   </a>
   <br/>
   <br/>
@@ -271,7 +271,7 @@ Note that **you are allowed** to use it to host a monetized business website, a 
 Installation is simple using Docker:
 
 ```
-sudo docker run -d --network host  --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket -v /:/mnt/host -v /var/lib/cosmos:/config azukaar/cosmos-server:latest
+sudo docker run -d --network host  --privileged --name cosmos-server -h cosmos-server --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket -v /:/mnt/host -v /var/lib/cosmos:/config aseracorp/resiOS:latest
 ```
 
 **DO NOT USE <span style="color:red">UNRAID TEMPLATES</span>, <span style="color:red">CASAOS</span> OR <span style="color:red">PORTAINER STACKS</span> TO INSTALL COSMOS. IT WILL NOT WORK PROPERLY. JUST RUN THE `DOCKER RUN` COMMAND!**. You can use Docker-Compose but if you are on mac or windows (so no host mode) without a domain, that will prevent Cosmos from binding ports to itself! (preventing ip:port from working properly)

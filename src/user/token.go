@@ -2,7 +2,7 @@ package user
 
 import (
 	"net/http"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 	"github.com/golang-jwt/jwt"
 	"errors"
 	"strconv"

@@ -5,7 +5,7 @@
 			"Names": [
 				"/cosmos"
 			],
-			"Image": "azukaar/cosmos-server:latest-unstable",
+			"Image": "aseracorp/resiOS:latest-unstable",
 			"ImageID": "sha256:569f35743de9554b4d3582cd3dd6e02debae945f9c884bf43ada1612856fb353",
 			"Command": "./cosmos",
 			"Created": 1682946886,

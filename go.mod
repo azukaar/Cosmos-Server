@@ -1,4 +1,4 @@
-module github.com/azukaar/cosmos-server
+module github.com/aseracorp/resiOS
 
 go 1.23
 

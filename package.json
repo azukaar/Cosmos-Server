@@ -4,9 +4,9 @@
   "description": "",
   "main": "test-server.js",
   "bugs": {
-    "url": "https://github.com/azukaar/cosmos-server/issues"
+    "url": "https://github.com/aseracorp/resiOS/issues"
   },
-  "homepage": "https://github.com/azukaar/cosmos-server#readme",
+  "homepage": "https://github.com/aseracorp/resiOS#readme",
   "dependencies": {
     "@ant-design/colors": "^6.0.0",
     "@ant-design/icons": "^4.7.0",

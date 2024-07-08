@@ -11,8 +11,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 	"go.mongodb.org/mongo-driver/bson"
 
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/aseracorp/resiOS/src/utils"
+	"github.com/aseracorp/resiOS/src/docker"
 )
 
 func MigratePre014Coll(collection string, from *mongo.Client) {

@@ -2,7 +2,7 @@ package configapi
 
 import (
 	"net/http"
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 func ConfigRoute(w http.ResponseWriter, req *http.Request) {

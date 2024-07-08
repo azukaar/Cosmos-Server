@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 type SyncPayload struct {

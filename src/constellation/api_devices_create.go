@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"go.mongodb.org/mongo-driver/mongo"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 )
 
 type DeviceCreateRequestJSON struct {

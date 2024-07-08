@@ -3,7 +3,7 @@ package metrics
 import (
 	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 

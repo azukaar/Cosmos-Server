@@ -14,9 +14,9 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/net"
 
-	"github.com/azukaar/cosmos-server/src/docker"
-	"github.com/azukaar/cosmos-server/src/storage"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/docker"
+	"github.com/aseracorp/resiOS/src/storage"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 func GetSystemMetrics() {

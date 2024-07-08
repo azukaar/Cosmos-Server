@@ -13,12 +13,12 @@ import (
 
 	"golang.org/x/sys/cpu"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
-	"github.com/azukaar/cosmos-server/src/docker" 
-	"github.com/azukaar/cosmos-server/src/proxy" 
-	"github.com/azukaar/cosmos-server/src/metrics" 
-	"github.com/azukaar/cosmos-server/src/market" 
-	"github.com/azukaar/cosmos-server/src/cron" 
+	"github.com/aseracorp/resiOS/src/utils" 
+	"github.com/aseracorp/resiOS/src/docker" 
+	"github.com/aseracorp/resiOS/src/proxy" 
+	"github.com/aseracorp/resiOS/src/metrics" 
+	"github.com/aseracorp/resiOS/src/market" 
+	"github.com/aseracorp/resiOS/src/cron" 
 )
 
 func StatusRoute(w http.ResponseWriter, req *http.Request) {

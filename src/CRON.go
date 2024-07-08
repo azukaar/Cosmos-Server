@@ -8,10 +8,10 @@ import (
 	"path/filepath"
 	"encoding/json"
 
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/storage"
-	"github.com/azukaar/cosmos-server/src/docker"
-	"github.com/azukaar/cosmos-server/src/proxy"
+	"github.com/aseracorp/resiOS/src/utils"
+	"github.com/aseracorp/resiOS/src/storage"
+	"github.com/aseracorp/resiOS/src/docker"
+	"github.com/aseracorp/resiOS/src/proxy"
 	
 
 	"github.com/jasonlvhit/gocron"

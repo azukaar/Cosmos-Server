@@ -1,7 +1,7 @@
 package constellation
 
 import (
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/aseracorp/resiOS/src/utils" 
 	"os/exec"
 	"os"
 	"fmt"

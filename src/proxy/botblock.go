@@ -3,7 +3,7 @@ package proxy
 import (
 	"net/http"
 
-	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/aseracorp/resiOS/src/metrics"
 )
 
 var botUserAgents = []string{

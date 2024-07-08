@@ -12,7 +12,7 @@ import (
 	// "encoding/json"
 
 	conttype "github.com/docker/docker/api/types/container"
-	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/aseracorp/resiOS/src/utils"
 )
 
 const timeoutDuration = 2 * time.Minute
