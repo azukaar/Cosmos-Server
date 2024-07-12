@@ -135,25 +135,25 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
 
-              <MainCard title={t('NetworkSettings')}>
+              <MainCard title={t('mgmt.servApps.newContainer.networkSettingsTitle')}>
                 <Stack spacing={4}>
                   {containerInfo.State && containerInfo.State.Status !== 'running' && (
                   <Alert severity="warning" style={{ marginBottom: '0px' }}>
-                      {t('ContainerNotRunningEdit')}
+                      {t('mgmt.servApps.networks.containerotRunningWarning')}
                     </Alert>
                   )}
                   {isForceSecure && (
                     <Alert severity="warning" style={{ marginBottom: '0px' }}>
-                      {t('ContainerForcedSecureNetwork')}          
+                      {t('mgmt.servApps.networks.forcedSecurityWarning')}          
                     </Alert>
                   )}
                   <CosmosInputText
-                    label={t('NetworkMode')}
+                    label={t('mgmt.servApps.networks.modeInput.modeLabel')}
                     name="networkMode"
                     placeholder={'default'}
                     formik={formik}
                   />
-                  <CosmosFormDivider title={t('ExposePorts')} />
+                  <CosmosFormDivider title={t('mgmt.servApps.networks.exposePortsTitle')} />
                   <div>
                     {formik.values.ports.map((port, idx) => (
                       <Grid container key={idx}>
@@ -171,7 +171,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         </Grid>
                         <Grid item xs={4} style={{ padding }}>
                           <TextField
-                            label={t('ContainerPort')}
+                            label={t('mgmt.servApps.networks.containerPortInput.containerPortLabel')}
                             fullWidth
                             value={port.port}
                             onChange={(e) => {
@@ -250,13 +250,13 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         variant="contained"
                         color="primary"
                       >
-                        {t('UpdatePorts')}
+                        {t('mgmt.servApps.networks.updatePortsButton')}
                       </LoadingButton>}
                     </Stack>
                   </div>
                 </Stack>
               </MainCard>
-              <MainCard title={t('Networks')}>
+              <MainCard title={t('global.networks')}>
                 <Stack spacing={2}>
 
                 {networks && <Stack spacing={2}>
@@ -264,8 +264,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                     const network = networks.find((n) => n.Name === networkName);
                     if (!network) {
                       return <Alert severity="error">
-                        {t('ConnectedToRemovedNetwork')} <strong>{networkName}</strong>. 
-                        {t('EitherRecreate')}
+                        {t('mgmt.servApps.networks.removedNetConnectedError')} <strong>{networkName}</strong>. 
+                        {t('mgmt.servApps.networks.removedNetConnectedEitherRecreate')}
                         <Button
                           style={{ marginLeft: '10px' }}
                           variant="outlined"
@@ -274,7 +274,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                             disconnect(networkName);
                           }}
                         >
-                          {t('DisconnectIt')}
+                          {t('mgmt.servApps.networks.removedNetConnectedDisconnect')}
                         </Button>
                       </Alert>
                     }
@@ -317,7 +317,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                           onClick={() => {
                             isConnected ? disconnect(r.Name) : connect(r.Name);
                           }}>
-                          {isConnected ? t('Disconnect') : t('Connect')}
+                          {isConnected ? t('mgmt.servapps.containers.terminal.disconnectButton') : t('mgmt.servapps.containers.terminal.connectButton')}
                         </Button>)
                       }
                     }

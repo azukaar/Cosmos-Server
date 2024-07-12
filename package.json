@@ -35,7 +35,6 @@
     "framer-motion": "^7.3.6",
     "history": "^5.3.0",
     "i18next": "^23.11.5",
-    "i18next-fs-backend": "^2.3.1",
     "i18next-browser-languagedetector": "^8.0.0",
     "js-yaml": "^4.1.0",
     "lodash.map": "^4.6.0",

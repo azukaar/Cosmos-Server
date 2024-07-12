@@ -66,7 +66,7 @@ const UserManagement = () => {
 
     return <>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
-            <DialogTitle>{t('InviteUser')}</DialogTitle>
+            <DialogTitle>{t('mgmt.usermgmt.inviteUserTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     <div style={{
@@ -75,10 +75,10 @@ const UserManagement = () => {
                     }}>
                         {toAction.emailWasSent ? 
                             <div>
-                                <strong>{t('EmailSent')}</strong> {t('WithALink')} {toAction.formAction}. {t('AlternativeShareThisLink')}
+                                <strong>{t('mgmt.usermgmt.inviteUser.emailSentConfirmation')}</strong> {t('mgmt.usermgmt.inviteUser.emailSentwithLink')} {toAction.formAction}. {t('mgmt.usermgmt.inviteUser.emailSentAltShareLink')}
                             </div> :
                             <div>
-                                {t('SendThisTo')} {toAction.nickname} {t('To')} {toAction.formAction}:
+                                {t('mgmt.usermgmt.inviteUser.emailSentAltShare')} {toAction.nickname} {t('mgmt.usermgmt.inviteUser.emailSentAltShareTo')} {toAction.formAction}:
                             </div>
                         }
                     </div>
@@ -99,40 +99,40 @@ const UserManagement = () => {
                 <Button onClick={() => {
                     setOpenInviteForm(false);
                     refresh();
-                }}>{t('Close')}</Button>
+                }}>{t('global.close')}</Button>
             </DialogActions>
         </Dialog>: ''}
 
         <Dialog open={openDeleteForm} onClose={() => setOpenDeleteForm(false)}>
-            <DialogTitle>Delete User</DialogTitle>
+            <DialogTitle>{t('mgmt.usermgmt.deleteUserTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('ConfirmDeleteUser')} {toAction} ?
+                    {t('mgmt.usermgmt.deleteUserConfirm')} {toAction} ?
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenDeleteForm(false)}>{t('Cancel')}</Button>
+                <Button onClick={() => setOpenDeleteForm(false)}>{t('global.cancelAction')}</Button>
                 <Button onClick={() => {
                     API.users.deleteUser(toAction)
                     .then(() => {
                         refresh();
                         setOpenDeleteForm(false);
                     })
-                }}>{t('Delete')}</Button>
+                }}>{t('global.delete')}</Button>
             </DialogActions>
         </Dialog>
         
         <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
-            <DialogTitle>{t('EditEmail')}</DialogTitle>
+            <DialogTitle>{t('mgmt.usermgmt.editEmailTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    <Trans i18nKey="EditInvitedEmail">Use this form to invite edit {openEditEmail}\\'s Email.</Trans>
+                    <Trans i18nKey="mgmt.usermgmt.editEmailText" values={{ user: openEditEmail }} />
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-email-edit"
-                    label={t('EmailAddress')}
+                    label={t('mgmt.usermgmt.editEmail.emailInput.emailLabel')}
                     type="email"
                     fullWidth
                     variant="standard"
@@ -147,21 +147,21 @@ const UserManagement = () => {
                         setOpenEditEmail(false);
                         refresh();
                     });
-                }}>{t('Edit')}</Button>
+                }}>{t('global.edit')}</Button>
             </DialogActions>
         </Dialog>
 
         <Dialog open={openCreateForm} onClose={() => setOpenCreateForm(false)}>
-            <DialogTitle>{t('CreateUser')}</DialogTitle>
+            <DialogTitle>{t('mgmt.usermgmt.createUserTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('FormInviteUser')}
+                    {t('mgmt.usermgmt.inviteUserText')}
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-nickname"
-                    label={t('Nickname')}
+                    label={t('global.nicknameLabel')}
                     type="text"
                     fullWidth
                     variant="standard"
@@ -170,14 +170,14 @@ const UserManagement = () => {
                     autoFocus
                     margin="dense"
                     id="c-email"
-                    label={t('EmailAddressOptional')}
+                    label={t('mgmt.usermgmt.createUser.emailOptInput.emailOptLabel')}
                     type="email"
                     fullWidth
                     variant="standard"
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenCreateForm(false)}>Cancel</Button>
+                <Button onClick={() => setOpenCreateForm(false)}>{t('global.cancelAction')}</Button>
                 <Button onClick={() => {
                     API.users.create({
                         nickname: document.getElementById('c-nickname').value,
@@ -187,17 +187,17 @@ const UserManagement = () => {
                         refresh();
                         sendlink(document.getElementById('c-nickname').value, 2);
                     });
-                }}>Create</Button>
+                }}>{t('global.createAction')}</Button>
             </DialogActions>
         </Dialog>
 
 
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
                 refresh();
-        }}>{t('Refresh')}</Button>&nbsp;&nbsp;
+        }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
         <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
             setOpenCreateForm(true)
-        }}>{t('Create')}</Button><br /><br />
+        }}>{t('global.createAction')}</Button><br /><br />
 
 
         {isLoading && <center><br /><CircularProgress /></center>}
@@ -210,7 +210,7 @@ const UserManagement = () => {
             getKey={(r) => r.nickname}
             columns={[
                 {
-                    title: t('User'),
+                    title: t('global.user'),
                     // underline: true,
                     field: (r) => <strong>{r.nickname}</strong>,
                 },
@@ -223,18 +223,18 @@ const UserManagement = () => {
 
                         return <>{isRegistered ? (r.role > 1 ? <Chip
                                 icon={<KeyOutlined />}
-                                label={t('Admin')}
+                                label={t('mgmt.usermgmt.adminLabel')}
                             /> : <Chip
                                 icon={<UserOutlined />}
-                                label={t('User')}
+                                label={t('global.user')}
                             />) : (
                                 inviteExpired ? <Chip
                                     icon={<ExclamationCircleOutlined  />}
-                                    label={t('InviteExpired')}
+                                    label={t('mgmt.usermgmt.inviteExpiredLabel')}
                                     color="error"
                                 /> : <Chip
                                     icon={<WarningOutlined />}
-                                    label={t('InvitePending')}
+                                    label={t('mgmt.usermgmt.invitePendingLabel')}
                                     color="warning"
                                 />
                             )}</>
@@ -246,16 +246,16 @@ const UserManagement = () => {
                     field: (r) => r.email,
                 },
                 {
-                    title: t('CreatedAt'),
+                    title: t('global.createdAt'),
                     screenMin: 'lg',
                     field: (r) => new Date(r.createdAt).toLocaleString(),
                 },
                 {
-                    title: t('LastLogin'),
+                    title: t('mgmt.usermgmt.lastLogin'),
                     screenMin: 'lg', 
                     field: (r) => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
-                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : t('Never')}</>
+                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : t('global.never')}</>
                     },
                 },
                 {
@@ -275,13 +275,13 @@ const UserManagement = () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 1);
                                 }
-                            }>{t('SendPasswordReset')}</Button>) :
+                            }>{t('mgmt.usermgmt.sendPasswordResetButton')}</Button>) :
                             (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                 () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 2);
                                 }
-                            } color="primary">{t('ResendInvite')}</Button>)
+                            } color="primary">{t('newInstall.usermgmt.inviteUser.resendInviteButton')}</Button>)
                         }
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
@@ -289,7 +289,7 @@ const UserManagement = () => {
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
-                        }>{t('Delete')}</Button>
+                        }>{t('global.delete')}</Button>
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
                                 setLoadingRow(r.nickname);
@@ -297,7 +297,7 @@ const UserManagement = () => {
                                     refresh();
                                 });
                             }
-                        }>{t('Reset2FA')}</Button></>
+                        }>{t('mgmt.usermgmt.reset2faButton')}</Button></>
                     }
                 },
             ]}

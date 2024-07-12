@@ -39,7 +39,7 @@ const FormatModal = ({ cb, OnClose }) => {
     <>
       <Dialog open={true} onClose={() => OnClose()}>
         <FormikProvider value={formik}>
-          <DialogTitle>{t('FormatDisk')}</DialogTitle>
+          <DialogTitle>{t('mgmt.storage.formatDiskTitle')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -51,13 +51,13 @@ const FormatModal = ({ cb, OnClose }) => {
                       error={formik.touched.format && Boolean(formik.errors.format)}
                       style={{ marginBottom: '16px' }}
                     >
-                    <InputLabel htmlFor="format">{t('DiskFormat')}</InputLabel>
+                    <InputLabel htmlFor="format">{t('mgmt.storage.diskformatTitle')}</InputLabel>
                     <Select
                       id="format"
                       name="format"
                       value={formik.values.format}
                       onChange={formik.handleChange}
-                      label={t('DiskFormat')}
+                      label={t('mgmt.storage.diskformatTitle')}
                     >
                       <MenuItem value="ext4">Ext4 (Recommended)</MenuItem>
                       <MenuItem value="ext3">Ext3</MenuItem>
@@ -69,7 +69,7 @@ const FormatModal = ({ cb, OnClose }) => {
                     fullWidth
                     id="password"
                     name="password"
-                    label={t('ConfirmYourPassword')}
+                    label={t('mgmt.storage.confirmPwd.confirmPwdLabel')}
                     value={formik.values.password}
                     type="password"
                     onChange={formik.handleChange}
@@ -87,13 +87,13 @@ const FormatModal = ({ cb, OnClose }) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => OnClose()}>{t('Cancel')}</Button>
+            <Button onClick={() => OnClose()}>{t('global.cancelAction')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              {t('Confirm')}
+              {t('global.confirmAction')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>

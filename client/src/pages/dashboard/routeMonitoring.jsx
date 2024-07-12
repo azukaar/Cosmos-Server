@@ -168,7 +168,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'latest' ? 'primary' : 'secondary'}
                             variant={slot === 'latest' ? 'outlined' : 'text'}
                         >
-                            {t('Latest')}
+                            {t('navigation.monitoring.latest')}
                         </Button>
                         <Button
                             size="small"
@@ -176,7 +176,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'hourly' ? 'primary' : 'secondary'}
                             variant={slot === 'hourly' ? 'outlined' : 'text'}
                         >
-                            {t('Hourly')}
+                            {t('navigation.monitoring.hourly')}
                         </Button>
                         <Button
                             size="small"
@@ -184,7 +184,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'daily' ? 'primary' : 'secondary'}
                             variant={slot === 'daily' ? 'outlined' : 'text'}
                         >
-                            {t('Daily')}
+                            {t('navigation.monitoring.daily')}
                         </Button>
 
                         {zoom.xaxis.min && <Button
@@ -197,7 +197,7 @@ const RouteMetrics = ({routeName}) => {
                             color={'primary'}
                             variant={'outlined'}
                         >
-                            {t('ResetZoom')}
+                            {t('global.resetZoomButton')}
                         </Button>}
                     </Stack>
                 </Grid>

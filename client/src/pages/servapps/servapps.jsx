@@ -248,7 +248,7 @@ const ServApps = ({stack}) => {
         {stack && <Link to="/cosmos-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
-        <Input placeholder={t('Search')}
+        <Input placeholder={t('global.searchPlaceholder')}
           value={search}
           startAdornment={
             <InputAdornment position="start">
@@ -261,18 +261,18 @@ const ServApps = ({stack}) => {
         />
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServApps();
-        }}>{t('Refresh')}</ResponsiveButton>
+        }}>{t('global.refresh')}</ResponsiveButton>
         {!stack && <>
         <Link to="/cosmos-ui/servapps/new-service">
           <ResponsiveButton
             variant="contained" 
             startIcon={<AppstoreAddOutlined />}
-            >{t('StartServApp')}</ResponsiveButton>
+            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
         </Link>
         <DockerComposeImport refresh={refreshServApps}/>
         <DownloadFile
           filename={'backup.cosmos-compose.json'}
-          label={t('ExportDockerBackup')}
+          label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
           contentGetter={API.config.getBackup}
         />
         </>}
@@ -281,7 +281,7 @@ const ServApps = ({stack}) => {
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
         {updatesAvailable && updatesAvailable.length && <Grid2 style={gridAnim} xs={12} item>
           <Item>
-            <Alert severity="info">{t('UpdatesAvailableFor')} {Object.keys(updatesAvailable).join(', ')}</Alert>
+            <Alert severity="info">{t('mgmt.servapps.updatesAvailableFor')} {Object.keys(updatesAvailable).join(', ')}</Alert>
           </Item>
         </Grid2>}
         {servApps && Object.values(servAppsStacked)
@@ -301,13 +301,13 @@ const ServApps = ({stack}) => {
                   <Typography variant="body2" color="text.secondary">
                     {
                       ({
-                        "created": <Chip label={t('Created')} color="warning" />,
-                        "restarting": <Chip label={t('Restarting')} color="warning" />,
-                        "running": <Chip label={t('Running')} color="success" />,
-                        "removing": <Chip label={t('Removing')} color="error" />,
-                        "paused": <Chip label={t('Paused')} color="info" />,
-                        "exited": <Chip label={t('Exited')} color="error" />,
-                        "dead": <Chip label={t('Dead')} color="error" />,
+                        "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
+                        "restarting": <Chip label={t('mgmt.servApps.restartingChip.restartingLabel')} color="warning" />,
+                        "running": <Chip label={t('mgmt.servApps.runningChip.runningLabel')} color="success" />,
+                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
+                        "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
+                        "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
+                        "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
                       })[app.state]
                     }
                   </Typography>
@@ -363,7 +363,7 @@ const ServApps = ({stack}) => {
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
-                  {t('Networks')}
+                  {t('global.networks')}
                 </Typography> 
                 <Stack style={noOver} margin={1} direction="row" spacing={1}>
                   {app.networkSettings.Networks && Object.keys(app.networkSettings.Networks).map((network) => {
@@ -373,7 +373,7 @@ const ServApps = ({stack}) => {
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
-                  {t('URLs')}
+                  {t('menu-items.management.urls')}
                 </Typography>
                 <Stack style={noOver} spacing={2} direction="row">
                   {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
@@ -381,7 +381,7 @@ const ServApps = ({stack}) => {
                   })}
                   {/* {getContainersRoutes(config, app.Names[0].replace('/', '')).length == 0 && */}
                     <Chip 
-                      label={t('New')}
+                      label={t('mgmt.servApps.newChip.newLabel')}
                       color="primary"
                       style={{paddingRight: '4px'}}
                       deleteIcon={<PlusCircleOutlined />}
@@ -440,7 +440,7 @@ const ServApps = ({stack}) => {
                           refreshServApps();
                         })
                       }}
-                    /> {t('autoUpdateContainer')}
+                    /> {t('mgmt.servApps.autoUpdateCheckbox')}
                   </Stack>
                 </Stack>
               }
@@ -449,8 +449,8 @@ const ServApps = ({stack}) => {
                   "cosmos.system.docker.cpu." + app.name.replace('/', ''),
                   "cosmos.system.docker.ram." + app.name.replace('/', ''),
                 ]} labels={{
-                  ["cosmos.system.docker.cpu." + app.name.replace('/', '')]: t('CPU'), 
-                  ["cosmos.system.docker.ram." + app.name.replace('/', '')]: t('RAM')
+                  ["cosmos.system.docker.cpu." + app.name.replace('/', '')]: t('global.CPU'), 
+                  ["cosmos.system.docker.ram." + app.name.replace('/', '')]: t('global.RAM')
                 }}/>
               </div>
  
@@ -460,7 +460,7 @@ const ServApps = ({stack}) => {
                   `/cosmos-ui/servapps/containers/${app.name.replace('/', '')}`
                   }>
                   <Button variant="outlined" color="primary" fullWidth>
-                    {app.type === 'stack' ? t('ViewStack') : t('ViewDetails')}
+                    {app.type === 'stack' ? t('mgmt.servapps.viewStackButton') : t('mgmt.servapps.viewDetailsButton')}
                   </Button>
                 </Link>
               </div>

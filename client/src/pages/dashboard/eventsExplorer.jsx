@@ -9,7 +9,7 @@ import de from "timeago.js/lib/lang/de";
 import { ExclamationOutlined, SettingOutlined } from "@ant-design/icons";
 import { Alert } from "@mui/material";
 import { DownloadFile } from "../../api/downloadButton";
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''}) => {
 	register('de', de);
@@ -122,7 +122,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 				<div>
 					<Button variant='contained' onClick={() => {
 						refresh("");
-					}} style={{height: '42px'}}>{t('Refresh')}</Button>
+					}} style={{height: '42px'}}>{t('global.refresh')}</Button>
 				</div>
 				<div>
 					<DownloadFile filename='events-export.json' content={
@@ -158,10 +158,9 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 						}}
 					/>
 				</div>
-				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('SearchTextBson')} />
+				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('navigation.monitoring.events.searchInput.searchPlaceholder')} />
 			</Stack>
-			<div>
-			{total} {t('eventsFoundFrom')} {from.toLocaleString()} {t('to')} {to.toLocaleString()}
+			<div><Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: from.toLocaleString(), to: to.toLocaleString()}}/>
 			</div>
 			<div>
 				{events && <Stack spacing={1}>
@@ -195,7 +194,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 						<Button variant='contained' fullWidth onClick={() => {
 							// set page to last element's id
 							setPage(events[events.length - 1].id);
-						}}>Load more</Button>
+						}}>{t('navigation.monitoring.events.loadMoreButton')}</Button>
 					</MainCard>}
 				</Stack>}
 			</div>

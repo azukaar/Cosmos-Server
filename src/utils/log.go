@@ -69,9 +69,9 @@ func MajorError(message string, err error) {
 
 	WriteNotification(Notification{
 		Recipient: "admin",
-		Title: "ServerError",
+		Title: "header.notification.title.serverError",
 		Message: message + " : " + errStr,
-		Vars: message + " : " + errStr,
+		Vars: "",
 		Level: "error",
 	})
 }

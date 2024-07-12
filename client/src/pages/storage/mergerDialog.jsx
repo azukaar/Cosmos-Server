@@ -24,8 +24,8 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
     validateOnChange: false,
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
-      branches: yup.array().min(2, t('SelectAtLeast2')),
-      path: yup.string().required(t('Required')).matches(/^\/(mnt|var\/mnt)\/.{1,}$/, t('pathPrefixMNT')),
+      branches: yup.array().min(2, t('mgmt.storage.selectMin2')),
+      path: yup.string().required(t('global.required')).matches(/^\/(mnt|var\/mnt)\/.{1,}$/, t('mgmt.storage.pathPrefixMntValidation')),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
@@ -52,15 +52,12 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
     <Dialog open={open} onClose={() => setOpen(false)}>
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>{t('MergeDisks')}</DialogTitle>
+            <DialogTitle>{t('mgmt.storage.mergeTitle')}</DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
-                        <Alert severity="info"><Trans i18nKey="MergeDisksText">
-                          You are about to merge disks together. <strong>This operation is safe and reversible</strong>.
-                          It will not affect the data on the disks, but will make the content available to be viewed in the file explorer as a single disk.
-                        </Trans></Alert>
+                        <Alert severity="info"><Trans i18nKey="mgmt.storage.mergeText" /></Alert>
                       </div>
                       <MountPicker onChange={(value) => formik.setFieldValue('branches', value)} />
                       {formik.errors.branches && (
@@ -73,7 +70,7 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
                         fullWidth
                         id="path"
                         name="path"
-                        label={t('PathToMountTo')}
+                        label={t('mgmt.storage.mountPath')}
                         value={formik.values.path}
                         onChange={formik.handleChange}
                         error={formik.touched.path && Boolean(formik.errors.path)}
@@ -83,7 +80,7 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
                         fullWidth
                         id="chown"
                         name="chown"
-                        label={t('chown')}
+                        label={t('mgmt.storage.chown')}
                         value={formik.values.chown}
                         onChange={formik.handleChange}
                         error={formik.touched.chown && Boolean(formik.errors.chown)}
@@ -93,7 +90,7 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
                         fullWidth
                         id="opts"
                         name="opts"
-                        label={t('AdditionalMergerFSOptions')}
+                        label={t('mgmt.storage.merge.fsOptions.fsOptionsLabel')}
                         value={formik.values.opts}
                         onChange={formik.handleChange}
                         error={formik.touched.opts && Boolean(formik.errors.opts)}
@@ -104,7 +101,7 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
                           name="permanent"
                           checked={formik.values.permanent}
                           onChange={formik.handleChange}
-                        /> {t('Permanent')} {t('Mount')}
+                        /> {t('mgmt.storage.mount.permanent')} {t('global.mount')}
                       </div>
                       {formik.errors.submit && (
                         <Grid item xs={12}>
@@ -115,10 +112,10 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpen(false)}>{t('Cancel')}</Button>
+                  <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
-                  }}>{t('Merge')}</LoadingButton>
+                  }}>{t('mgmt.storage.mergeButton')}</LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>
@@ -138,7 +135,7 @@ const MergerDialog = ({ refresh }) => {
       variant="contained"
       startIcon={<PlusCircleOutlined />}
       size="small"
-    >{t('CreateMerge')}</ResponsiveButton>
+    >{t('mgmt.storage.newMerge.newMergeButton')}</ResponsiveButton>
   </>
 }
 

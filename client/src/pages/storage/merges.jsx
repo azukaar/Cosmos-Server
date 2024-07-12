@@ -52,23 +52,23 @@ export const StorageMerges = () => {
             <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>,
             <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
               refresh();
-            }}>{t('Refresh')}</ResponsiveButton>
+            }}>{t('global.refresh')}</ResponsiveButton>
           ]}
           columns={[
             {
-              title: t('Device'),
+              title: t('mgmt.storage.deviceTitle'),
               field: (r) => r.device,
             },
             { 
-              title: t('Path'),
+              title: t('mgmt.storage.pathTitle'),
               field: (r) => r.path,
             },
             { 
-              title: t('Type'),
+              title: t('mgmt.storage.typeTitle'),
               field: (r) => r.type,
             },
             { 
-              title: t('Options'),
+              title: t('mgmt.storage.optionsTitle'),
               screenMin: 'md',
               field: (r) => JSON.stringify(r.opts),
 

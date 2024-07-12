@@ -84,10 +84,10 @@ export const ValidateRouteSchema = Yup.object().shape({
   Mode: Yup.string().required('Mode is required'),
   Target: Yup.string().required('Target is required').when('Mode', {
     is: 'SERVAPP',
-    then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
+    then: Yup.string().matches(/:[0-9]+$/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.noPort" />),
   }).when('Mode', {
     is: 'PROXY',
-    then: Yup.string().matches(/^(https?:\/\/)/, 'Invalid Target, must start with http:// or https://'),
+    then: Yup.string().matches(/^(https?:\/\/)/, <Trans i18nKey="mgmt.config.containerPicker.resultTargetValidation.wrongProtocol" />),
   }),
 
   Host: Yup.string().when('UseHost', {
@@ -166,7 +166,7 @@ export const HostnameChecker = ({hostname}) => {
 
   return <>{hostError && <Alert color='error'>{hostError}</Alert>}
 
-    {hostIp && <Alert color='info'><Trans i18nKey="HostnamePointsTo" hostIp={hostIp}>This hostname is pointing to <strong>{{hostIp}}</strong>, check that it is your server IP!</Trans></Alert>}
+    {hostIp && <Alert color='info'><Trans i18nKey="newInstall.hostnamePointsToInfo" values={{hostIp: hostIp}} /></Alert>}
   </>
 };
 

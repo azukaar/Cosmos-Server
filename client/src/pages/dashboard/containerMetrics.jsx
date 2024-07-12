@@ -117,7 +117,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'latest' ? 'primary' : 'secondary'}
                             variant={slot === 'latest' ? 'outlined' : 'text'}
                         >
-                            {t('Latest')}
+                            {t('navigation.monitoring.latest')}
                         </Button>
                         <Button
                             size="small"
@@ -125,7 +125,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'hourly' ? 'primary' : 'secondary'}
                             variant={slot === 'hourly' ? 'outlined' : 'text'}
                         >
-                            {t('Hourly')}
+                            {t('navigation.monitoring.hourly')}
                         </Button>
                         <Button
                             size="small"
@@ -133,7 +133,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'daily' ? 'primary' : 'secondary'}
                             variant={slot === 'daily' ? 'outlined' : 'text'}
                         >
-                            {t('Daily')}
+                            {t('navigation.monitoring.daily')}
                         </Button>
 
                         {zoom.xaxis.min && <Button
@@ -146,17 +146,17 @@ const ContainerMetrics = ({containerName}) => {
                             color={'primary'}
                             variant={'outlined'}
                         >
-                            {t('ResetZoom')}
+                            {t('global.resetZoomButton')}
                         </Button>}
                     </Stack>
                 </Grid>
                 
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Resources')} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('navigation.monitoring.resourcesTitle')} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
                 </Grid>
                
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('Network')} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('global.network')} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
                 </Grid>
             </Grid>
         </div>}

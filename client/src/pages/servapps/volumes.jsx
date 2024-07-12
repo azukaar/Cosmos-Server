@@ -41,7 +41,7 @@ const VolumeManagementList = () => {
         <>
           <Stack direction='row' spacing={1} style={{ marginBottom: '20px' }}>
             <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={refresh}>
-                {t('Refresh')}
+                {t('global.refresh')}
             </Button>
           </Stack>
 
@@ -56,7 +56,7 @@ const VolumeManagementList = () => {
                     ]}
                     columns={[
                         {
-                            title: t('VolumeName'),
+                            title: t('mgmt.servapps.volumes.volumeName'),
                             field: (r) =>  <Stack direction='column'>
                             <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
                             <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Mountpoint}</div>
@@ -64,17 +64,17 @@ const VolumeManagementList = () => {
                             search: (r) => r.Name,
                         },
                         {
-                            title: t('Driver'),
+                            title: t('global.driver'),
                             screenMin: 'lg', 
                             field: (r) => r.Driver,
                         },
                         {
-                            title: t('Scope'),
+                            title: t('mgmt.servapps.volumes.list.ScopeTitle'),
                             screenMin: 'lg', 
                             field: (r) => r.Scope,
                         },
                         {
-                            title: t('CreatedAt'),
+                            title: t('global.createdAt'),
                             screenMin: 'lg', 
                             field: (r) => new Date(r.CreatedAt).toLocaleString(),
                         },
@@ -102,7 +102,7 @@ const VolumeManagementList = () => {
                                           }
                                         }}
                                     >
-                                        {tryDelete === r.Name ? t('Really?') : t('Delete')}
+                                        {tryDelete === r.Name ? t('global.confirmDeletion') : t('global.delete')}
                                     </Button>
                                 </>
                             ),

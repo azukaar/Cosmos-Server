@@ -30,11 +30,11 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
       subnet: '',
     },
     validationSchema: Yup.object({
-      name: Yup.string().required('Required'),
-      driver: Yup.string().required('Required'),
+      name: Yup.string().required(t('global.required')),
+      driver: Yup.string().required(t('global.required')),
       parentInterface: Yup.string().when('driver', {
         is: 'macvlan',
-        then: Yup.string().required('Parent interface is required for MACVLAN')
+        then: Yup.string().required(t('mgmt.servApps.createNetwork.parentReqForMacvlan'))
       }),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
@@ -57,7 +57,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>{t('NewNetwork')}</DialogTitle>
+          <DialogTitle>{t('mgmt.servapps.networks.list.newNetwork')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -66,7 +66,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     fullWidth
                     id="name"
                     name="name"
-                    label={t('Name')}
+                    label={t('global.nameTitle')}
                     value={formik.values.name}
                     onChange={formik.handleChange}
                     error={formik.touched.name && Boolean(formik.errors.name)}
@@ -80,21 +80,21 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     error={formik.touched.driver && Boolean(formik.errors.driver)}
                     style={{ marginBottom: '16px' }}
                   >
-                    <InputLabel htmlFor="driver">Driver</InputLabel>
+                    <InputLabel htmlFor="driver">{t('global.driver')}</InputLabel>
                     <Select
                       id="driver"
                       name="driver"
                       value={formik.values.driver}
                       onChange={formik.handleChange}
-                      label={t('Driver')}
+                      label={t('global.driver')}
                     >
                       <MenuItem value="">
-                        <em>None</em>
+                        <em>{t('mgmt.servApps.driver.none')}</em>
                       </MenuItem>
-                      <MenuItem value="bridge">{t('Bridge')}</MenuItem>
-                      <MenuItem value="host">{t('Host')}</MenuItem>
-                      <MenuItem value="overlay">{t('Overlay')}</MenuItem>
-                      <MenuItem value="macvlan">{t('MACVLAN')}</MenuItem>
+                      <MenuItem value="bridge">{t('mgmt.servapps.networks.list.bridge')}</MenuItem>
+                      <MenuItem value="host">{t('mgmt.servapps.networks.list.host')}</MenuItem>
+                      <MenuItem value="overlay">{t('mgmt.servapps.networks.list.overlay')}</MenuItem>
+                      <MenuItem value="macvlan">{t('mgmt.servapps.networks.list.macvlan')}</MenuItem>
                     </Select>
                   </FormControl>
                   
@@ -102,7 +102,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                     fullWidth
                     id="subnet"
                     name="subnet"
-                    label={t('Subnet')}
+                    label={t('mgmt.servapps.networks.list.subnet')}
                     value={formik.values.subnet}
                     onChange={formik.handleChange}
                     error={formik.touched.subnet && Boolean(formik.errors.subnet)}
@@ -115,7 +115,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
                       fullWidth
                       id="parentInterface"
                       name="parentInterface"
-                      label={t('ParentInterface')}
+                      label={t('mgmt.servapps.networks.list.parentIf')}
                       value={formik.values.parentInterface}
                       onChange={formik.handleChange}
                       error={formik.touched.parentInterface && Boolean(formik.errors.parentInterface)}
@@ -126,7 +126,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
 
                   <CosmosCheckbox
                     name="attachCosmos"
-                    label={t('AttachToCosmos')}
+                    label={t('mgmt.servapps.networks.attackNetwork')}
                     formik={formik}
                   />
                 </Stack>
@@ -139,13 +139,13 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpened(false)}>{t('Cancel')}</Button>
+            <Button onClick={() => setIsOpened(false)}>{t('global.cancelAction')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              {t('Create')}
+              {t('global.createAction')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -155,7 +155,7 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        {t('NewNetwork')}
+        {t('mgmt.servapps.networks.list.newNetwork')}
       </ResponsiveButton>
     </>
   );

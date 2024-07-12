@@ -60,7 +60,7 @@ const ApiModal = ({ callback, label }) => {
 
     return <>
       <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth={'sm'}>
-          <DialogTitle>{t('RefreshPage')}</DialogTitle>
+          <DialogTitle>{t('global.refreshPage')}</DialogTitle>
           <DialogContent>
               <DialogContentText>
                 <pre style={preStyle}>
@@ -73,7 +73,7 @@ const ApiModal = ({ callback, label }) => {
                   loading={loading}
               onClick={() => {   
                   getContent();         
-              }}>{t('Refresh')}</LoadingButton>
+              }}>{t('global.refresh')}</LoadingButton>
               <Button onClick={() => {
                   setOpenModal(false);           
               }}>Close</Button>

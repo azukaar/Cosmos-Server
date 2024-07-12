@@ -69,18 +69,16 @@ export const ConstellationVPN = () => {
     {(devices && config && users) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
-        <Alert severity="info"><Trans i18nKey="ConstellationDescription">
-          Constellation is a VPN that runs inside your Cosmos network. It automatically
-          connects all your devices together, and allows you to access them from anywhere.
-          Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank">documentation</a> for more information.
-          In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank">Constellation App</a>.
-          Constellation is currently free to use until the end of the beta, planned January 2024.
-        </Trans></Alert>
-        <MainCard title={t('ConstellationSetup')} content={config.constellationIP}>
+        <Alert severity="info">
+          <Trans i18nKey="mgmt.constellation.setupText"
+            components={[<a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank"></a>, <a href="https://cosmos-cloud.io/clients" target="_blank"></a>]}
+          />
+        </Alert>
+        <MainCard title={t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
           <Stack spacing={2}>
           {config.ConstellationConfig.Enabled && config.ConstellationConfig.SlaveMode && <>
             <Alert severity="info">
-              {t('ConstellationExternalNetwork')}
+              {t('mgmt.constellation.externalText')}
             </Alert>
           </>}  
           <Formik
@@ -115,29 +113,29 @@ export const ConstellationVPN = () => {
                         await API.constellation.restart();
                       }}
                     >
-                      {t('RestartVPNService')}
+                      {t('mgmt.constellation.restartButton')}
                   </Button>
-                  <ApiModal callback={API.constellation.getLogs} label={t('ShowVPNLogs')} />
-                  <ApiModal callback={API.constellation.getConfig} label={t('ShowVPNConfig')} />
+                  <ApiModal callback={API.constellation.getLogs} label={t('mgmt.constellation.showLogsButton')} />
+                  <ApiModal callback={API.constellation.getConfig} label={t('mgmt.constellation.showConfigButton')} />
                   <ConfirmModal
                     variant="outlined"
                     color="warning"
-                    label={t('ResetNetwork')}
-                    content={t('ResetnetworkText')}
+                    label={t('mgmt.constellation.resetLabel')}
+                    content={t('mgmt.constellation.resetText')}
                     callback={async () => {
                       await API.constellation.reset();
                       refreshConfig();
                     }}
                   />
                   </Stack>}
-                  <CosmosCheckbox formik={formik} name="Enabled" label={t('ConstellationEnabled')} />
+                  <CosmosCheckbox formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
                   {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
-                      <CosmosCheckbox formik={formik} name="IsRelay" label={t('RelayRequests')} />
-                      <CosmosCheckbox formik={formik} name="PrivateNode" label={t('PrivateNode')} />
+                      <CosmosCheckbox formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
+                      <CosmosCheckbox formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
                       {!formik.values.PrivateNode && <>
-                        <Alert severity="info">This is your Constellation hostname, that you will use to connect. If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
-                        <CosmosInputText formik={formik} name="ConstellationHostname" label={'Constellation '+t('Hostname')} />
+                        <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
+                        <CosmosInputText formik={formik} name="ConstellationHostname" label={'Constellation '+t('global.hostname')} />
                       </>}
                     </>}
                   </>}
@@ -148,11 +146,11 @@ export const ConstellationVPN = () => {
                       variant="contained"
                       color="primary"
                     >
-                      {t('Save')}
+                      {t('global.saveAction')}
                   </LoadingButton>
                   <UploadButtons
                     accept=".yml,.yaml"
-                    label={t('ExternalNetworkConfig')}
+                    label={t('mgmt.constellation.setup.externalConfig.label')}
                     variant="outlined"
                     fullWidth
                     OnChange={async (e) => {
@@ -184,19 +182,19 @@ export const ConstellationVPN = () => {
                   field: getIcon,
               },
               {
-                  title: t('DeviceName'),
+                  title: t('mgmt.constellation.setup.deviceName.label'),
                   field: (r) => <strong>{r.deviceName}</strong>,
               },
               {
-                  title: t('Owner'),
+                  title: t('mgmt.constellation.setup.owner.label'),
                   field: (r) => <strong>{r.nickname}</strong>,
               },
               {
-                  title: t('Type'),
+                  title: t('mgmt.storage.typeTitle'),
                   field: (r) => <strong>{r.isLighthouse ? "Lighthouse" : "Client"}</strong>,
               },
               {
-                  title: t('ConstellationIP'),
+                  title: t('mgmt.constellation.setup.ipTitle'),
                   screenMin: 'md', 
                   field: (r) => r.ip,
               },

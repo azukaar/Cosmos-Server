@@ -203,7 +203,7 @@ const Notification = () => {
                         >
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MainCard
-                                    title={t('Notification')}
+                                    title={t('header.notificationTitle')}
                                     elevation={0}
                                     border={false}
                                     content={false}
@@ -241,7 +241,7 @@ const Notification = () => {
                                                 <ListItemText
                                                     primary={<>
                                                         <Typography variant={notification.Read ? 'body' : 'h6'} noWrap>
-                                                            <Trans i18nKey={"Notifications."+notification.Title}>{notification.Title}</Trans>
+                                                            <Trans i18nKey={notification.Title} />
                                                         </Typography>
                                                         <div style={{ 
                                                             overflow: 'hidden',
@@ -250,11 +250,7 @@ const Notification = () => {
                                                             paddingLeft: '8px',
                                                             margin: '2px'
                                                         }}>
-                                                            <Trans
-                                                                i18nKey={"Notifications." + notification.Message}
-                                                                defaults={notification.Message}
-                                                                values={{ Vars: notification.Vars }}
-                                                            />
+                                                            <Trans i18nKey={notification.Message} values={{ Vars: notification.Vars }} />
                                                         </div></>
                                                     }
                                                 />

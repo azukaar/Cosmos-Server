@@ -66,14 +66,14 @@ export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
       <div> 
         <FormControl sx={{ width: '100%' }}>
         <InputLabel shrink htmlFor="select-multiple-native">
-          {t('SelectTargets')}
+          {t('mgmt.storage.mountPicker')}
         </InputLabel>
         <Select
           multiple
           native
           className={'native-multiselect'}
           value={selectedMounts}
-          label={t('SelectTargets')}
+          label={t('mgmt.storage.mountPicker')}
           inputProps={{
             id: 'select-multiple-native',
           }}

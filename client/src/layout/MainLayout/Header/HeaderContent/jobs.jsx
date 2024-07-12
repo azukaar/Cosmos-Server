@@ -61,7 +61,7 @@ const getStatus = (job) => {
 
 const Jobs = () => {
     register('de', de);
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const {role} = useClientInfos();
     const isAdmin = role === "2";
     const theme = useTheme();
@@ -251,8 +251,8 @@ const Jobs = () => {
                                                 alignItems: 'center',
                                             }}>
                                             <Typography variant="caption" noWrap >
-                                                {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
-                                                    job.Running ? <span><LoadingOutlined />{` Running - Started ${format(job.LastStarted, i18n.language)}`}</span> : `Last run ${format(job.LastRun, i18n.language)}`
+                                                {job.LastStarted == '0001-01-01T00:00:00Z' ? t('mgmt.scheduler.list.status.neverRan') : (
+                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${format(job.LastStarted, i18n.language)}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${format(job.LastRun, i18n.language)}`
                                                 )}
                                             </Typography>
                                             </ListItemButton>

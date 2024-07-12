@@ -15,7 +15,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -103,7 +103,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
-                {t('View')}
+                {t('navigation.market.viewButton')}
               </Button>
             </Link>
           </Stack>
@@ -258,7 +258,7 @@ const MarketPage = () => {
             textDecoration: 'none',
           }}>
             <Button className="CheckButton" color="primary" variant="outlined">
-              {t('Close')}
+              {t('global.close')}
             </Button>
           </Link>
 
@@ -281,16 +281,16 @@ const MarketPage = () => {
 
           {openedApp.appstore != 'cosmos-cloud' && <div>
             <div>
-            <Tooltip title={t('WarningUnofficialMarket')}>
+            <Tooltip title={t('navigation.market.unofficialMarketTooltip')}>
                 <WarningOutlined />
-              </Tooltip> <strong>{t('Source')}:</strong> {openedApp.appstore} 
+              </Tooltip> <strong>{t('global.source')}:</strong> {openedApp.appstore} 
             </div>
           </div>}
           
           <div>
-            <div><strong>{t('repository')}:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
-            <div><strong>{t('image')}:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
-            <div><strong>{t('compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
+            <div><strong>{t('navigation.market.repository')}:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
+            <div><strong>{t('navigation.market.image')}:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
+            <div><strong>{t('navigation.market.compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>
 
           <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
@@ -327,9 +327,9 @@ const MarketPage = () => {
         minHeight: 'calc(65vh - 80px)',
         padding: '24px',
       }}>
-        <h2>{t('Applications')}</h2>
+        <h2>{t('navigation.market.applicationsTitle')}</h2>
         <Stack direction="row" spacing={2}>
-          <Input placeholder={t('Search')+" " + filteredAppList.length + " "+t('Applications')}
+          <Input placeholder={<Trans i18nKey="navigation.market.search" count={{count: filteredAppList.length}}/>}
             value={search}
             style={{ maxWidth: '400px' }}
             startAdornment={
@@ -346,11 +346,11 @@ const MarketPage = () => {
             <ResponsiveButton
               variant="contained"
               startIcon={<AppstoreAddOutlined />}
-            >{t('StartServApp')}</ResponsiveButton>
+            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
           </Link>
           <DockerComposeImport refresh={() => { }} />
           <EditSourcesModal onSave={refresh} />
-          <PersistentCheckbox name="filterDups" label={t('FilterDuplicates')} value={filterDups} onChange={setFilterDups} />
+          <PersistentCheckbox name="filterDups" label={t('navigation.market.filterDuplicateCheckbox')} value={filterDups} onChange={setFilterDups} />
         </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',

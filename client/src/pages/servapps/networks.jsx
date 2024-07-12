@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 export const NetworksColumns = (theme, isDark, t) => [
   {
-    title: t('NetworkName'),
+    title: t('mgmt.servapps.networks.list.networkName'),
     field: (r) => <Stack direction='column'>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Driver} driver</div>
@@ -18,7 +18,7 @@ export const NetworksColumns = (theme, isDark, t) => [
     search: (r) => r.Name,
   },
   {
-    title: t('Properties'),
+    title: t('mgmt.servapps.networks.list.networkproperties'),
     screenMin: 'md',
     field: (r) => (
       <Stack direction="row" spacing={1}>
@@ -30,17 +30,17 @@ export const NetworksColumns = (theme, isDark, t) => [
     ),
   },
   {
-    title: t('IPAM'),
+    title: t('mgmt.servapps.networks.list.networkIpam'),
     screenMin: 'lg',
     field: (r) => r.IPAM.Config ? r.IPAM.Config.map((config, index) => (
       <Stack key={index}>
         <div>{config.Gateway}</div>
         <div>{config.Subnet}</div>
       </Stack>
-    )) : t('NoIp'),
+    )) : t('mgmt.servapps.networks.list.networkNoIp'),
   },
   {
-    title: t('CreatedAt'),
+    title: t('global.createdAt'),
     screenMin: 'lg',
     field: (r) => r.Created ? new Date(r.Created).toLocaleString() : '-',
   },
@@ -71,7 +71,7 @@ const NetworkManagementList = () => {
     <>
       <Stack direction='row' spacing={1} style={{ marginBottom: '20px' }}>
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={refresh}>
-          {t('Refresh')}
+          {t('global.refresh')}
         </Button>
       </Stack>
 
@@ -110,7 +110,7 @@ const NetworkManagementList = () => {
                       }
                     }}
                   >
-                    {tryDelete === r.Id ? t('Really?') : t('Delete')}
+                    {tryDelete === r.Id ? t('global.confirmDeletion') : t('global.delete')}
                   </Button>
                 </>
               ),

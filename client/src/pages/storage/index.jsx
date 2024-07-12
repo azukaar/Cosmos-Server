@@ -22,48 +22,48 @@ const StorageIndex = () => {
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
         {
-          title: t('Disks'),
+          title: t('mgmt.storage.disks'),
           children: <StorageDisks />,
           path: 'disks'
         },
         {
-          title: t('Mounts'),
+          title: t('mgmt.storage.mounts'),
           children: <StorageMounts />,
           path: 'mounts'
         },
         {
-          title: t('ExternalStorages'),
+          title: t('mgmt.storage.externalStorage'),
           children: <div>
             <Alert severity="info">
-              {t('ExternalStorageDesc')}
+              {t('mgmt.storage.externalStorageText')}
             </Alert>
           </div>,
           path: 'external'
         },
         {
-          title: t('Shares'),
+          title: t('mgmt.storage.sharesTitle'),
           children:  <div>
           <Alert severity="info">
-            {t('SharesDesc')}
+            {t('mgmt.storage.sharesText')}
           </Alert>
         </div>,
           path: 'shares'
         },
         {
-          title: t('MergeDisks'),
+          title: t('mgmt.storage.mergeTitle'),
           children: <StorageMerges />,
           path: 'mergerfs'
         },
         {
-          title: t('Parity'),
+          title: t('mgmt.storage.parityTitle'),
           children: <Parity />,
           path: 'parity'
         },
         {
-          title: t('RAID'),
+          title: t('mgmt.storage.raidTitle'),
           children:  <div>
           <Alert severity="info">
-            {t('RAIDDesc')}
+            {t('mgmt.storage.raidText')}
           </Alert>
         </div>,
           path: 'raid'

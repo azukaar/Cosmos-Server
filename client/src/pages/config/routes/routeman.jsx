@@ -146,7 +146,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
               <MainCard name={routeConfig.Name} title={
-                noControls ? 'New URL' :
+                noControls ? t('mgmt.urls.edit.newUrlTitle') :
                   <div>{title || routeConfig.Name}</div>
               }>
                 <Grid container spacing={2}>
@@ -158,39 +158,39 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   <CosmosInputText
                     name="Name"
-                    label={t('Name')}
-                    placeholder={t('Name')}
+                    label={t('global.nameTitle')}
+                    placeholder={t('global.nameTitle')}
                     formik={formik}
                   />
 
                   <CosmosInputText
                     name="Description"
-                    label={t('Description')}
-                    placeholder={t('Description')}
+                    label={t('global.description')}
+                    placeholder={t('global.description')}
                     formik={formik}
                   />
 
                   <Hide h={lockTarget}>
-                    <CosmosFormDivider title={t('TargetType')} />
+                    <CosmosFormDivider title={t('mgmt.urls.edit.targetTypeTitle')} />
                     <Grid item xs={12}>
-                      <Alert color='info'>{t('TargetTypeInfo')}</Alert>
+                      <Alert color='info'>{t('mgmt.urls.edit.targetTypeInfo')}</Alert>
                     </Grid>
 
                     <CosmosSelect
                       name="Mode"
-                      label={t('Mode')}
+                      label={t('mgmt.urls.edit.targetType.modeSelection.modeLabel')}
                       formik={formik}
                       disabled={lockTarget}
                       options={[
-                        ["SERVAPP", "ServApp - Docker Container"],
-                        ["PROXY", "Proxy"],
-                        ["STATIC", t('StaticFolder')],
-                        ["SPA", t('SinglePageApplication')],
-                        ["REDIRECT", t('Redirection')]
+                        ["SERVAPP", t('mgmt.urls.edit.targetType.modeSelection.servAppChoice')],
+                        ["PROXY", t('mgmt.urls.edit.targetType.modeSelection.proxyChoice')],
+                        ["STATIC", t('mgmt.urls.edit.targetType.modeSelection.staticChoice')],
+                        ["SPA", t('mgmt.urls.edit.targetType.modeSelection.spaChoice')],
+                        ["REDIRECT", t('mgmt.urls.edit.targetType.modeSelection.redirectChoice')]
                       ]}
                     />
                   </Hide>
-                  <CosmosFormDivider title={t('TargetSettings')} />
+                  <CosmosFormDivider title={t('mgmt.urls.edit.targetSettingsTitle')} />
 
                   {
                     (formik.values.Mode === "SERVAPP") ?
@@ -204,7 +204,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                       />
                       : <CosmosInputText
                         name="Target"
-                        label={formik.values.Mode == "PROXY" ? t('TargetURL') : t('TargetFolderPath')}
+                        label={formik.values.Mode == "PROXY" ? t('mgmt.urls.edit.targetSettings.targetUrlInput.targetUrlLabel') : t('mgmt.routes.routeman.targetFolderPathInput.targetFolderPathLabel')}
                         placeholder={formik.values.Mode == "PROXY" ? "http://localhost:8080" : "/path/to/my/app"}
                         formik={formik}
                       />
@@ -212,26 +212,26 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   {formik.values.Target.startsWith('https://') && <CosmosCheckbox
                     name="AcceptInsecureHTTPSTarget"
-                    label={t('AcceptInsecureHTTPSTarget')}
+                    label={t('mgmt.urls.edit.insecureHttpsCheckbox.insecureHttpsLabel')}
                     formik={formik}
                   />}
 
-                  <CosmosFormDivider title={t('Source')} />
+                  <CosmosFormDivider title={t('global.source')} />
 
                   <Grid item xs={12}>
-                    <Alert color='info'>{t('SourceInfo')}</Alert>
+                    <Alert color='info'>{t('mgmt.urls.edit.sourceInfo')}</Alert>
                   </Grid>
 
                   <CosmosCheckbox
                     name="UseHost"
-                    label={t('UseHost')}
+                    label={t('mgmt.urls.edit.useHostCheckbox.useHostLabel')}
                     formik={formik}
                   />
 
                   {formik.values.UseHost && (<><CosmosInputText
                     name="Host"
-                    label={t('Host')}
-                    placeholder={t('Host')}
+                    label={t('mgmt.servapps.networks.list.host')}
+                    placeholder={t('mgmt.servapps.networks.list.host')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                     onChange={(e) => {
@@ -246,70 +246,70 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                   <CosmosCheckbox
                     name="UsePathPrefix"
-                    label={t('UsePathPrefix')}
+                    label={t('mgmt.urls.edit.usePathPrefixCheckbox.usePathPrefixLabel')}
                     formik={formik}
                   />
 
                   {formik.values.UsePathPrefix && <CosmosInputText
                     name="PathPrefix"
-                    label={t('PathPrefix')}
-                    placeholder={t('PathPrefix')}
+                    label={t('mgmt.urls.edit.pathPrefixInputx.pathPrefixLabel')}
+                    placeholder={t('mgmt.urls.edit.pathPrefixInputx.pathPrefixPlaceholder')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
 
                   {formik.values.UsePathPrefix && <CosmosCheckbox
                     name="StripPathPrefix"
-                    label={t('StripPathPrefix')}
+                    label={t('mgmt.urls.edit.stripPathCheckbox.stripPathLabel')}
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
                   
-                  <CosmosFormDivider title={'Basic Security'} />
+                  <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurityTitle')} />
                   
                   <CosmosCheckbox
                     name="AuthEnabled"
-                    label={t('AuthEnabled')}
+                    label={t('mgmt.urls.edit.basicSecurity.authEnabledCheckbox.authEnabledLabel')}
                     formik={formik}
                   />
                   
                   <CosmosCheckbox
                     name="_SmartShield_Enabled"
-                    label={t('SmartShieldEnabled')}
+                    label={t('mgmt.urls.edit.basicSecurity.smartShieldEnabledCheckbox.smartShieldEnabledLabel')}
                     formik={formik}
                   />
                   
                   <CosmosCheckbox
                     name="RestrictToConstellation"
-                    label={t('RestrictToConstellation')}
+                    label={t('mgmt.urls.edit.basicSecurity.restrictToConstellationCheckbox.restrictToConstellationLabel')}
                     formik={formik}
                   />
 
-                  <CosmosCollapse title={'Advanced Settings'}>
+                  <CosmosCollapse title={t('mgmt.urls.edit.advancedSettingsTitle')}>
                     <Stack spacing={2}>
                       <CosmosCheckbox
                         name="HideFromDashboard"
-                        label={t('HideFromDashboard')}
+                        label={t('mgmt.urls.edit.advancedSettings.hideFromDashboardCheckbox.hideFromDashboardLabel')}
                         formik={formik}
                       />
 
                       <CosmosFormDivider />
-                      <Alert severity='info'>{t('AdvancedUsersOnlyInfo')}</Alert>
+                      <Alert severity='info'>{t('mgmt.urls.edit.advancedSettings.advancedSettingsInfo')}</Alert>
                       <CosmosInputText
                         name="OverwriteHostHeader"
-                        label={t('OverwriteHostHeader')}
-                        placeholder={t('OverwriteHostHeaderplaceholder')}
+                        label={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel')}
+                        placeholder={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder')}
                         formik={formik}
                       />
 
                       <Alert severity='warning'>
-                        {t('warningFilterIP')}
+                        {t('mgmt.urls.edit.advancedSettings.filterIpWarning')}
                       </Alert>
 
                       <CosmosInputText
                         name="WhitelistInboundIPs"
-                        label={t('WhitelistInboundIPs')}
-                        placeholder={t('WhitelistInboundIPs')}
+                        label={t('mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpLabel')}
+                        placeholder={t('mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpPlaceholder')}
                         formik={formik}
                       />
                     </Stack>
@@ -324,7 +324,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                 variant="contained"
                 color="primary"
               >
-                {t('Save')}
+                {t('global.saveAction')}
               </Button></MainCard>}
             </Stack>
           </form>

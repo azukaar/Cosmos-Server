@@ -40,18 +40,18 @@ const RouteConfigPage = () => {
       </Stack>
 
       {config && !currentRoute && <div>
-        <Alert severity="error">{t('RouteNotFound')}</Alert>  
+        <Alert severity="error">{t('mgmt.servapps.routeConfig.routeNotFound')}</Alert>  
       </div>}
 
       {config && currentRoute && <PrettyTabbedView tabs={[
         {
-          title: t('Overview'),
+          title: t('mgmt.servapps.overview'),
           children: <RouteOverview routeConfig={currentRoute} />
         },
         {
-          title: t('Setup'),
+          title: t('mgmt.servapps.routeConfig.setup'),
           children: <RouteManagement
-            title={t('Setup')}
+            title={t('mgmt.servapps.routeConfig.setup')}
             submitButton
             routeConfig={currentRoute}
             routeNames={config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name)}
@@ -59,18 +59,18 @@ const RouteConfigPage = () => {
           />
         },
         {
-          title: t('Security'),
+          title: t('global.securityTitle'),
           children:  <RouteSecurity
             routeConfig={currentRoute}
             config={config}
           />
         },
         {
-          title: t('Monitoring'),
+          title: t('menu-items.navigation.monitoringTitle'),
           children:  <RouteMetrics routeName={routeName} />
         },
         {
-          title: t('Events'),
+          title: t('navigation.monitoring.eventsTitle'),
           children: <EventExplorerStandalone initLevel='info' initSearch={`{"object":"route@${routeName}"}`}/>
         },
       ]}/>}

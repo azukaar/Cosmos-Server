@@ -27,7 +27,7 @@ import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 const diskStyle = {
   width: "100%",
@@ -61,7 +61,7 @@ const FormatButton = ({disk, refresh}) => {
       color="error"
       size="small"
       startIcon={<CloseCircleOutlined />}
-    >{t('Format')}</LoadingButton>
+    >{t('mgmt.storage.formatButton')}</LoadingButton>
     
     {passwordConfirm && <FormatModal
       OnClose={() => {
@@ -84,7 +84,7 @@ const FormatButton = ({disk, refresh}) => {
         }, cb)
       }}
       initialLogs={[
-        t('StartingFormatDisk') + disk.name + t('StartingFormatDisk2')
+        <Trans i18nKey="mgmt.storage.startFormatLog" values={{disk: disk.name}} />
       ]}
       alwaysShow={true}
       OnSuccess={() => {
@@ -94,7 +94,7 @@ const FormatButton = ({disk, refresh}) => {
         setFormatting(false);
         refresh && refresh();
       }}
-      title={t('Formatting')+'...'}
+      title={t('mgmt.storage.formattingLog')+'...'}
     />}
   </>
 }
@@ -236,11 +236,11 @@ export const StorageDisks = () => {
       <SMARTDialog disk={SMARTDialogOpened} OnClose={() => SetSMARTDialogOpened(false)} />
 
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
-      {containerized && <Alert severity="warning">{t('CosmosInsideContainer')}</Alert>}
+      {containerized && <Alert severity="warning">{t('mgmt.storage.runningInsideContainerWarning')}</Alert>}
       <div>
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-        }}>{t('Refresh')}</ResponsiveButton>
+        }}>{t('global.refresh')}</ResponsiveButton>
       </div>
       <div>
       <TreeView

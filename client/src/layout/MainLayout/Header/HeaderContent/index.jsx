@@ -26,7 +26,7 @@ const HeaderContent = () => {
                 <Notification />
 
                 <Link href="/cosmos-ui/logout" underline="none">
-                    <Chip label={t('Logout')} />
+                    <Chip label={t('global.logout')} />
                 </Link>
             </Stack>
             {/* {!matchesXs && <Profile />}

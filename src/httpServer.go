@@ -286,8 +286,8 @@ func InitServer() *mux.Router {
 
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
-				Title: "CosmosCertificateRenewed",
-				Message: "Message.CosmosCertificateRenewed",
+				Title: "header.notification.title.certificateRenewed",
+				Message: "header.notification.message.certificateRenewed",
 				Vars: strings.Join(domains, ", "),
 				Level: "info",
 			})
@@ -322,8 +322,8 @@ func InitServer() *mux.Router {
 
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
-				Title: "CosmosCertificateRenewed",
-				Message: "Message.CosmosCertificateRenewed",
+				Title: "header.notification.title.certificateRenewed",
+				Message: "header.notification.message.certificateRenewed",
 				Vars: strings.Join(domains, ", "),
 				Level: "info",
 			})

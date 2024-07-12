@@ -29,7 +29,7 @@ const Logout = () => {
         <Grid container spacing={3}>
             <Grid item xs={12}>
               <Typography variant="h3">
-                  {t('LogoutMsg')}
+                  {t('auth.logoffText')}
               </Typography>
             </Grid>
         </Grid>

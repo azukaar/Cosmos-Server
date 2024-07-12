@@ -19,7 +19,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
     },
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
-      path: yup.string().required(t('Required')).matches(/^\/(mnt|var\/mnt)\/.{1,}$/, t('pathPrefixMNT')),
+      path: yup.string().required(t('global.required')).matches(/^\/(mnt|var\/mnt)\/.{1,}$/, t('mgmt.storage.pathPrefixMntValidation')),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
@@ -49,15 +49,13 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
     <Dialog open={open} onClose={() => setOpen(false)}>
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
-            <DialogTitle><Trans i18nKey="UnMountDisk">{unmount ? t('Unmount') : t('Mount')} Disk</Trans></DialogTitle>
+            <DialogTitle><Trans i18nKey="mgmt.storage.unMountDiskButton" values={{unMount: unmount ? t('global.unmount') : t('global.mount')}}/></DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
                         <Alert severity="info">
-                            {unmount ? t('UnmountDiskText') : t('MountDiskText')}: <strong>{disk.name}</strong> {disk.mountpoint && (<> t('MountedAt') <strong>{disk.mountpoint}</strong></>)}<br />
-                            {unmount ? t('UnmountText2') : t('MountText2')}<br />
-                            {unmount ? t('UnmountText3') : t('MountText3')}
+                            <Trans i18nKey="mgmt.storage.unMountDiskText" values={{unMount: unmount ? t('global.unmount') : t('global.mount'), disk: disk.name, mountpoint: disk.mountpoint ? (<> mounted at <strong>{disk.mountpoint}</strong></>) : <></>, unAvailable: unmount ? t('unavailable') : t('available')}} />
                         </Alert>
                       </div>
                       {unmount ? '' : <>
@@ -65,7 +63,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
                           fullWidth
                           id="path"
                           name="path"
-                          label={t('PathToMountTo')}
+                          label={t('mgmt.storage.mountPath')}
                           value={formik.values.path}
                           onChange={formik.handleChange}
                           error={formik.touched.path && Boolean(formik.errors.path)}
@@ -75,7 +73,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
                           fullWidth
                           id="chown"
                           name="chown"
-                          label={t('chown')}
+                          label={t('mgmt.storage.chown')}
                           value={formik.values.chown}
                           onChange={formik.handleChange}
                           error={formik.touched.chown && Boolean(formik.errors.chown)}
@@ -87,7 +85,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
                           name="permanent"
                           checked={formik.values.permanent}
                           onChange={formik.handleChange}
-                        /> {t('Permanent')} {unmount ? t('unmount') : t('mount')}
+                        /> {t('mgmt.storage.mount.permanent')} {unmount ? t('global.unmount') : t('global.mount')}
                       </div>
                       {formik.errors.submit && (
                         <Grid item xs={12}>
@@ -101,7 +99,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
                   <Button onClick={() => setOpen(false)}>Cancel</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
-                  }}>{unmount ? t('Unmount') : t('Mount')}</LoadingButton>
+                  }}>{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>
@@ -121,7 +119,7 @@ const MountDiskDialog = ({ disk, unmount, refresh }) => {
       variant="outlined"
       size="small"
       startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
-    >{unmount ? t('Unmount') : t('Mount')}</Button>
+    >{unmount ? t('global.unmount') : t('global.mount')}</Button>
   </>
 }
 

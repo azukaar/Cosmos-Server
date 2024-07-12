@@ -47,54 +47,54 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
     return config ? (<>
         {needsRefresh && <>
             <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('Refresh Page')}</DialogTitle>
+                <DialogTitle>{t('global.refreshPage')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {t('RefreshSelfSignedCert')} {isNotDomain && t('RefreshNotUsingDomain')}
+                        {t('mgmt.config.proxy.refreshNeededWarning.selfSigned')} {isNotDomain && t('mgmt.config.proxy.refreshNeededWarning.notDomain')}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => {
                         window.location.reload(true);                
-                    }}>{t('Refresh')}</Button>
+                    }}>{t('global.refresh')}</Button>
                 </DialogActions>
             </Dialog>
         </>}
         {newRouteWarning && <>
             <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('CertificateRenewal')}</DialogTitle>
+                <DialogTitle>{t('mgmt.config.certRenewalTitle')}</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {t('CertificateRenewalText1')} <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">{t('CertificateRenewalText2')}</a>.
+                        {t('mgmt.config.certRenewalText')} <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">{t('mgmt.config.certRenewalLinktext')}</a>.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => {
                         setOpenModal(false);             
-                    }}>{t('OK')}</Button>
+                    }}>{t('mgmt.config.restart.okButton')}</Button>
                 </DialogActions>
             </Dialog>
         </>}
     </>)
     :(<>
         <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-            <DialogTitle>{!isRestarting ? t('RestartServer?') : t('RestartingServer')}</DialogTitle>
+            <DialogTitle>{!isRestarting ? t('mgmt.config.restart.restartTitle') : t('mgmt.config.restart.restartStatus')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     {warn && <div>
                         <Alert severity="warning" icon={<WarningOutlined />}>
-                        {t('WarningTimeout')}<br />{t('WarningTimeoutLog')}
+                        {t('mgmt.config.restart.restartTimeoutWarning')}<br />{t('mgmt.config.restart.restartTimeoutWarningTip')}
                         </Alert>
                     </div>}
                     {isRestarting ? 
                     <div style={{textAlign: 'center', padding: '20px'}}>
                         <CircularProgress />
                     </div>
-                    : t('Restart?')}
+                    : t('mgmt.config.restart.restartQuestion')}
                 </DialogContentText>
             </DialogContent>
             {!isRestarting && <DialogActions>
-                <Button onClick={() => setOpenModal(false)}>{t('Later')}</Button>
+                <Button onClick={() => setOpenModal(false)}>{t('mgmt.config.restart.laterButton')}</Button>
                 <Button onClick={() => {
                     setIsRestarting(true);
                     API.config.restart()
@@ -104,7 +104,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
                     setTimeout(() => {
                         setWarn(true);
                     }, 20000)
-                }}>{t('Restart')}</Button>
+                }}>{t('mgmt.servapps.actionBar.restart')}</Button>
             </DialogActions>}
         </Dialog>
     </>);
