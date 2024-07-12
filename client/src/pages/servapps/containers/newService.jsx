@@ -111,7 +111,7 @@ const NewDockerService = ({service, refresh, edit}) => {
   }
 
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
-    <MainCard title={edit ? t('EditService') : t('CreateService')}>
+    <MainCard title={edit ? t('mgmt.servapps.container.compose.editServiceTitle') : t('mgmt.servapps.container.compose.createServiceButton')}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
@@ -122,16 +122,16 @@ const NewDockerService = ({service, refresh, edit}) => {
         className={edit ? '' : 'shinyButton'}
         loading={log.length && !isDone}
         startIcon={edit ? <SyncOutlined /> : <PlusCircleOutlined />}
-      >{edit ? t('Edit'): t('Create')}</LoadingButton>}
+      >{edit ? t('global.edit'): t('global.createAction')}</LoadingButton>}
       {isDone && <Stack spacing={1}>
-        <Alert severity="success">{t('ServiceCreated')}</Alert>
+        <Alert severity="success">{t('mgmt.servapps.container.compose.createServiceSuccess')}</Alert>
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
           return <Alert severity={m.type}>{m.label}</Alert>
         })}
       </Stack>}
       
 
-      {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>{t('Back')}</Button> : null}
+      {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>{t('global.backAction')}</Button> : null}
 
       {log.length ? <pre style={preStyle} ref={preRef}>
         {log.map((l) => {
@@ -141,7 +141,7 @@ const NewDockerService = ({service, refresh, edit}) => {
       <div>
         <Editor
           value={dockerCompose}
-          placeholder={t('PasteCompose')}
+          placeholder={t('mgmt.servapps.pasteComposeButton.pasteComposePlaceholder')}
           onValueChange={code => setDockerCompose(code)}
           highlight={code => highlight(code, isJSON ? languages.json : languages.yaml)}
           padding={10}

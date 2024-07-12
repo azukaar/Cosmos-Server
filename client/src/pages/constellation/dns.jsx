@@ -35,7 +35,7 @@ export const ConstellationDNS = () => {
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
-        <MainCard title={t('ConstellationInternalDNS')} content={config.constellationIP}>
+        <MainCard title={t('mgmt.constellation.dnsTitle')} content={config.constellationIP}>
           <Stack spacing={2}>
 
           <Formik
@@ -58,17 +58,17 @@ export const ConstellationDNS = () => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Stack spacing={2}>        
-                  <Alert severity="info">{t('DNSText')}</Alert>
+                  <Alert severity="info">{t('mgmt.constellation.setup.dnsText')}</Alert>
 
                   <CosmosInputText formik={formik} name="Fallback" label="DNS Fallback" placeholder={'8.8.8.8:53'} />
                   
-                  <CosmosFormDivider title={t('DNSBlocklists')} />
+                  <CosmosFormDivider title={t('mgmt.constellation.dnsBlocklistsTitle')} />
 
-                  <CosmosCheckbox formik={formik} name="DNSBlockBlacklist" label={t('DNSBlockBlacklist')} />
+                  <CosmosCheckbox formik={formik} name="DNSBlockBlacklist" label={t('mgmt.constellation.setup.dnsBlocklistText')} />
 
-                  <Alert severity="warning">{t('DNSExpiryWarning')}</Alert>
+                  <Alert severity="warning">{t('mgmt.constellation.setup.dnsExpiryWarning')}</Alert>
 
-                  <InputLabel>{t('DNSBlocklistURLs')}</InputLabel>
+                  <InputLabel>{t('mgmt.constellation.setup.dnsBlocklistUrls.label')}</InputLabel>
                   {formik.values.DNSAdditionalBlocklists && formik.values.DNSAdditionalBlocklists.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`DNSAdditionalBlocklists${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
@@ -89,7 +89,7 @@ export const ConstellationDNS = () => {
                   <Stack direction="row" spacing={2}>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("DNSAdditionalBlocklists", [...formik.values.DNSAdditionalBlocklists, ""]);
-                    }}>{t('Add')}</Button>
+                    }}>{t('global.addAction')}</Button>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("DNSAdditionalBlocklists", [
                         "https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
@@ -97,12 +97,12 @@ export const ConstellationDNS = () => {
                         "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
                         "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts"
                       ]);
-                    }}>{t('ResetDefault')}</Button>
+                    }}>{t('mgmt.constellation.setup.dns.resetDefault')}</Button>
                   </Stack>
 
-                  <CosmosFormDivider title={t('DNSCustomEntries')} />
+                  <CosmosFormDivider title={t('mgmt.constellation.setup.dns.customEntries')} />
 
-                  <InputLabel>{t('DNSCustomEntries')}</InputLabel>
+                  <InputLabel>{t('mgmt.constellation.setup.dns.customEntries')}</InputLabel>
                   {formik.values.CustomDNSEntries && formik.values.CustomDNSEntries.map((item, index) => (
                     <Stack direction={"row"} spacing={2} key={`CustomDNSEntries${item}`} width={"100%"}>
                       <DeleteButton onDelete={() => {
@@ -141,11 +141,11 @@ export const ConstellationDNS = () => {
                         Value: "",
                         Type: "A"
                       }]);
-                    }}>{t('Add')}</Button>
+                    }}>{t('global.addAction')}</Button>
                     <Button variant="outlined" onClick={() => {
                       formik.setFieldValue("CustomDNSEntries", [
                       ]);
-                    }}>{t('Reset')}</Button>
+                    }}>{t('mgmt.constellation.dns.resetButton')}</Button>
                   </Stack>
 
                   <LoadingButton
@@ -155,7 +155,7 @@ export const ConstellationDNS = () => {
                       variant="contained"
                       color="primary"
                     >
-                      {t('Save')}
+                      {t('global.saveAction')}
                   </LoadingButton>
                 </Stack>
               </form>

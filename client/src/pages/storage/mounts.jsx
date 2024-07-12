@@ -48,26 +48,26 @@ export const StorageMounts = () => {
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('NewMount')}</ResponsiveButton>,
+          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>{t('Refresh')}</ResponsiveButton>
+          }}>{t('global.refresh')}</ResponsiveButton>
         ]}
         columns={[
           {
-            title: t('Device'),
+            title: t('mgmt.storage.deviceTitle'),
             field: (r) => <><FolderOutlined/>  {r.device}</>,
           },
           { 
-            title: t('Path'),
+            title: t('mgmt.storage.pathTitle'),
             field: (r) => r.path,
           },
           { 
-            title: t('Type'),
+            title: t('mgmt.storage.typeTitle'),
             field: (r) => r.type,
           },
           { 
-            title: t('Options'),
+            title: t('mgmt.storage.optionsTitle'),
             field: (r) => JSON.stringify(r.opts),
           },
           {
@@ -79,13 +79,13 @@ export const StorageMounts = () => {
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >{t('Edit')}</ListItemText>
+                    <ListItemText >{t('global.edit')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => setMountDialog({data: r, unmount: true})}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >{t('Unmount')}</ListItemText>
+                    <ListItemText >{t('global.unmount')}</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

@@ -31,8 +31,8 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
           redirect: clientConfig ? clientConfig.redirect : '',
         }}
         validationSchema={yup.object({
-          id: yup.string().required(t('Required')),
-          redirect: yup.string().required(t('Required')),
+          id: yup.string().required(t('global.required')),
+          redirect: yup.string().required(t('global.required')),
         })}
         onSubmit={(values) => {
           onSubmit && onSubmit(values);
@@ -40,7 +40,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
       >
         {(formik) => (
           <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>{clientId ? clientId : t('NewClient')}</DialogTitle>
+            <DialogTitle>{clientId ? clientId : t('mgmt.openid.newClientTitle')}</DialogTitle>
             {openNewModal && <>
               <DialogContent>
                 <DialogContentText>
@@ -59,7 +59,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
                       fullWidth
                       id="redirect"
                       name="redirect"
-                      label={t('Redirect')}
+                      label={t('mgmt.openId.redirect')}
                       value={formik.values.redirect}
                       onChange={formik.handleChange}
                       error={formik.touched.redirect && Boolean(formik.errors.redirect)}
@@ -74,10 +74,10 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
                     return <div>{err}</div>
                   })}</Alert>
                 </Stack>}
-                <Button onClick={() => setOpenNewModal(false)}>{t('Cancel')}</Button>
+                <Button onClick={() => setOpenNewModal(false)}>{t('global.cancelAction')}</Button>
                 <Button color="primary" variant="contained" type="submit" onClick={() => {
                   formik.handleSubmit();
-                }}>{clientId ? t('Edit') : t('Create')}</Button>
+                }}>{clientId ? t('global.edit') : t('global.createAction')}</Button>
               </DialogActions>
             </>}
           </form>

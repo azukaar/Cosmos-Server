@@ -78,14 +78,14 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       setIsConnected(false);
       let terminalBoldRed = '\x1b[1;31m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldRed + t('DisconnectedFrom') + (newProc ? 'shell' : t('mainprocessTTY')) + '\r\n' + terminalReset);
+      terminal.write(terminalBoldRed + t('mgmt.servapps.containers.terminal.disconnectedFromText') + (newProc ? 'shell' : t('mgmt.servapps.containers.terminal.mainprocessTty')) + '\r\n' + terminalReset);
     };
     
     ws.current.onopen = () => {
       setIsConnected(true);
       let terminalBoldGreen = '\x1b[1;32m';
       let terminalReset = '\x1b[0m';
-      terminal.write(terminalBoldGreen + t('ConnectedTo') + (newProc ? 'shell' : t('mainprocessTTY')) + '\r\n' + terminalReset);
+      terminal.write(terminalBoldGreen + t('mgmt.servapps.containers.terminal.connectedToText') + (newProc ? 'shell' : t('mgmt.servapps.containers.terminal.mainprocessTty')) + '\r\n' + terminalReset);
       // focus terminal
       terminal.focus();
     };
@@ -189,8 +189,8 @@ const DockerTerminal = ({containerInfo, refresh}) => {
     }}>
       {(!isInteractive) && (
         <Alert severity="warning">
-          {t('TerminalNotInteractiveInfo')}
-          <Button onClick={() => makeInteractive()}>{t('EnableTTY')}</Button>
+          {t('mgmt.servapps.containers.terminal.terminalNotInteractiveWarning')}
+          <Button onClick={() => makeInteractive()}>{t('mgmt.servapps.containers.terminal.ttyEnableButton')}</Button>
         </Alert>
       )}
       <div style={{
@@ -222,15 +222,15 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       }</div>
       
       {isConnected ? (<>
-        <Button  variant="contained" onClick={() => ws.current.close()}>{t('Disconnect')}</Button>
+        <Button  variant="contained" onClick={() => ws.current.close()}>{t('mgmt.servapps.containers.terminal.disconnectButton')}</Button>
         <Button  variant="outlined" onClick={() => ws.current.send('\t')}>TAB</Button>
         <Button  variant="outlined" onClick={() => ws.current.send('\x03')}>Ctrl+C</Button>
       </>
       ) :
         <>  
           <Button variant="contained"
-          onClick={() => connect(false)}>{t('Connect')}</Button>
-          <Button variant="contained" onClick={() => connect(true)}>{t('NewShell')}</Button>
+          onClick={() => connect(false)}>{t('mgmt.servapps.containers.terminal.connectButton')}</Button>
+          <Button variant="contained" onClick={() => connect(true)}>{t('mgmt.servapps.containers.terminal.newShellButton')}</Button>
         </>
       }
       </Stack>

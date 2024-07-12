@@ -647,7 +647,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
   return <>
     <Dialog open={openModal} onClose={() => setOpenModal(false)} fullWidth maxWidth={'sm'}>
-      <DialogTitle>{installer ? t('Installation') : t('ImportComposeFile')}</DialogTitle>
+      <DialogTitle>{installer ? t('mgmt.servapps.compose.installTitle') : t('mgmt.servapps.importComposeFileButton')}</DialogTitle>
       <DialogContent style={{ width: '100%' }}>
         <DialogContentText>
           {step === 0 && !installer && <><Stack spacing={2}>
@@ -671,7 +671,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
             <TextField
               multiline
-              placeholder={t('PasteCompose')}
+              placeholder={t('mgmt.servapps.pasteComposeButton.pasteComposePlaceholder')}
               fullWidth
               value={dockerCompose}
               onChange={(e) => setDockerCompose(e.target.value)}
@@ -689,7 +689,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               {ymlError}
             </div>
 
-            {!ymlError && (<><FormLabel>{t('ChooseServiceName')}</FormLabel>
+            {!ymlError && (<><FormLabel>{t('mgmt.servApps.newContainer.serviceNameInput')}</FormLabel>
 
               <TextField label="" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
 
@@ -776,7 +776,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 return Object.keys(service).map((hostIndex) => {
                   const hostname = service[hostIndex];
                   return <>
-                    <FormLabel>{t('ChooseURL')} {hostname.name}</FormLabel>
+                    <FormLabel>{t('mgmt.servApps.newContainer.chooseUrl')} {hostname.name}</FormLabel>
                     <div style={{ opacity: 0.9, fontSize: '0.8em', textDecoration: 'italic' }}
                     >{hostname.description}</div>
                     <TextField key={serviceIndex + hostIndex} label="Hostname" value={hostname.host} onChange={(e) => {
@@ -789,7 +789,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               })}
 
               {service && service.services && Object.values(service.services).map((value) => {
-                return <CosmosCollapse title={t('Customize')+`${value.container_name}`+t('Customize2')}>
+                return <CosmosCollapse title={t('mgmt.servApps.newContainer.customize')+`${value.container_name}`+t('mgmt.servApps.newContainer.customize2')}>
                   <Stack spacing={2}>
                     <DockerContainerSetup
                       newContainer
@@ -820,7 +820,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                       noCard
                       installer
                     />
-                    <CosmosFormDivider title={t('Volumes')} />
+                    <CosmosFormDivider title={t('mgmt.servapps.networks.volumes')} />
                     <VolumeContainerSetup
                       newContainer
                       frozenVolumes={service['cosmos-installer'] && service['cosmos-installer']['frozen-volumes'] || []}
@@ -829,7 +829,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                           Binds: [],
                           Mounts: value.volumes && Object.keys(value.volumes).map(k => {
                             return {
-                              Type: value.volumes[k].type || (k.startsWith('/') ? t('Bind') : t('Volume')),
+                              Type: value.volumes[k].type || (k.startsWith('/') ? t('mgmt.servapps.newContainer.volumes.bindInput') : t('global.volume')),
                               Source: value.volumes[k].source || "",
                               Target: value.volumes[k].target || "",
                             }
@@ -872,7 +872,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       </DialogContent>
       {(installerInit && service.minVersion && isNewerVersion(service.minVersion)) ?
       <Alert severity="error" icon={<WarningOutlined />}>
-        {t('CosmosOutdated')}
+        {t('mgmt.servApps.newContainer.cosmosOutdatedError')}
       </Alert>
       : 
       (!isLoading && <DialogActions>
@@ -886,7 +886,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           setContext({});
           setHostnames({});
           setOverrides({});
-        }}>{t('Close')}</Button>
+        }}>{t('global.close')}</Button>
         <Button disabled={!dockerCompose || ymlError || hostnameErrors()} onClick={() => {
           if (step === 0) {
             setStep(1);
@@ -894,8 +894,8 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             setStep(0);
           }
         }}>
-          {step === 0 && t('Next')}
-          {step === 1 && t('Back')}
+          {step === 0 && t('global.next')}
+          {step === 1 && t('global.backAction')}
         </Button>
       </DialogActions>)}
     </Dialog>
@@ -908,7 +908,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       variant={(installerInit ? "contained" : "outlined")}
       startIcon={(installerInit ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
     >
-      {installerInit ? t('Install') : t('ImportComposeFile')}
+      {installerInit ? t('mgmt.servapps.compose.installButton') : t('mgmt.servapps.importComposeFileButton')}
     </ResponsiveButton>
     
   </>;

@@ -55,7 +55,7 @@ const MFALoginForm = () => {
       token: '',
     }}
     validationSchema={Yup.object().shape({
-      token: Yup.string().required(t('TokenRequired')).min(6, t('TokenMin6Char')).max(6, t('TokenMax6Char')),
+      token: Yup.string().required(t('mgmt.openid.newMfa.tokenRequiredValidation')).min(6, t('mgmt.openid.newMfa.tokenmin6charValidation')).max(6, t('mgmt.openid.newMfa.tokenmax6charValidation')),
     })}
     onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
       API.users.check2FA(values.token).then((data) => {
@@ -63,7 +63,7 @@ const MFALoginForm = () => {
       }).catch((error) => {
         console.log(error)
         setStatus({ success: false });
-        setErrors({ submit: t('WrongOTP') });
+        setErrors({ submit: t('mgmt.openid.newMfa.wrongOtpValidation') });
         setSubmitting(false);
       });
     }}
@@ -93,7 +93,7 @@ const MFALoginForm = () => {
             variant="contained"
             loading={formik.isSubmitting}
           >
-            {t('Login')}
+            {t('auth.login')}
           </LoadingButton>
         </Stack>
       </form>
@@ -131,30 +131,34 @@ const MFASetup = () => {
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
-        <Typography variant="h5"><Trans i18nKey="Requires2FAText">This server requires 2FA. Scan this QR code with your <Tooltip title={t('ExampleOTP')}><span style={{cursor: 'pointer', textDecoration:"underline dotted"}}>authenticator app</span></Tooltip> to proceed</Trans></Typography>
+        <Typography variant="h5">
+          <Trans i18nKey="mgmt.openid.newMfa.requires2faText"
+            components={[<Tooltip title=""></Tooltip>, <span style={{cursor: 'pointer', textDecoration:"underline dotted"}}></span>]}
+          />
+        </Typography>
       </Grid>
       <Grid  item xs={12} textAlign={'center'}>
         <canvas style={{borderRadius: '15px'}} ref={canvasRef} />
       </Grid>
       <Grid item xs={12}>
-        <Typography variant="h5">{t('OTPManualCode')}</Typography>
+        <Typography variant="h5">{t('mgmt.openid.newMfa.otpManualCode')}</Typography>
       </Grid>
       <Grid item xs={12}>
-        <CosmosCollapse title={t('ShowManualCode')} defaultExpanded={false}>
+        <CosmosCollapse title={t('mgmt.openid.newMfa.otpManualCode.showButton')} defaultExpanded={false}>
         <div style={{padding: '20px', fontSize: '90%', borderRadius: '15px', background: 'rgba(0,0,0,0.2)'}}>
           {mfaCode && <span>{mfaCode.split('?')[1].split('&').map(a => <div>{decodeURI(a).replace('=', ': ')}</div>)}</span>}
         </div>
         </CosmosCollapse>
       </Grid>
       <Grid item xs={12}>
-        <Typography variant="h5">{t('OTPEnterToken')}</Typography>
+        <Typography variant="h5">{t('mgmt.openid.newMfa.otpEnterTokenText')}</Typography>
       </Grid>
       <Grid item xs={12}>
         <MFALoginForm />
       </Grid>
       <Grid item xs={12}>
         <Link to="/cosmos-ui/logout">
-          <Typography variant="h5">{t('Logout')}</Typography>
+          <Typography variant="h5">{t('global.logout')}</Typography>
         </Link>
       </Grid>
     </Grid>
@@ -166,7 +170,7 @@ const NewMFA = () => (
         <Grid container spacing={3}>
             <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-                    <Typography variant="h3">{t('NewMFASetup')}</Typography>
+                    <Typography variant="h3">{t('mgmt.openid.newMfa')}</Typography>
                 </Stack>
             </Grid>
             <Grid item xs={12}>
@@ -181,7 +185,7 @@ const MFALogin = () => (
       <Grid container spacing={3}>
           <Grid item xs={12}>
               <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-                  <Typography variant="h3">{t('EnterOTP')}</Typography>
+                  <Typography variant="h3">{t('mgmt.openid.newMfa.enterOtp')}</Typography>
               </Stack>
           </Grid>
           <Grid item xs={12}>

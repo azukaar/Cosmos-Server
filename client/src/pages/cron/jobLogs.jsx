@@ -63,7 +63,7 @@ const JobLogsDialog = ({job, OnClose}) => {
   return <Dialog open={job} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>{t('LastLogs')} {job.Name}</DialogTitle>
+      <DialogTitle>{t('mgmt.scheduler.lastLogs')} {job.Name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
             <pre style={preStyle}>
@@ -76,7 +76,7 @@ const JobLogsDialog = ({job, OnClose}) => {
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>{t('Close')}</Button>
+          }}>{t('global.close')}</Button>
       </DialogActions>
   </Dialog>
 };

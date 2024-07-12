@@ -147,7 +147,7 @@ const ProxyManagement = () => {
 
     // if exist, increment the copy number
     do {
-      suffix += ' - '+t('Copy');
+      suffix += ' - '+t('global.copyFilenameSuffix');
     } while (routes.filter((r) => r.Name === newRoute.Name + suffix).length > 0);
 
     newRoute.Name = newRoute.Name + suffix;
@@ -178,10 +178,10 @@ const ProxyManagement = () => {
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>{t('Refresh')}</Button>&nbsp;&nbsp;
+      }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
       <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setOpenNewModal(true);
-      }}>{t('Create')}</Button>
+      }}>{t('global.createAction')}</Button>
     </Stack>
 
     {config && <>
@@ -203,7 +203,7 @@ const ProxyManagement = () => {
             },
           },
           {
-            title: t('Enabled'), 
+            title: t('global.enabled'), 
             clickable:true, 
             field: (r, k) => r._IsTunnel ? <>
               <img height="30px" width="30px" style={{
@@ -215,7 +215,7 @@ const ProxyManagement = () => {
               checked={!r.Disabled}
             />,
           },
-          { title: t('URL'),
+          { title: t('mgmt.config.proxy.urlTitle'),
             search: (r) => r.Name + ' ' + r.Description,
             style: {
               textDecoration: 'inherit',
@@ -229,7 +229,7 @@ const ProxyManagement = () => {
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
-          { title: t('Network'), screenMin: 'lg', clickable:false, field: (r) => 
+          { title: t('global.network'), screenMin: 'lg', clickable:false, field: (r) => 
             <div style={{width: '400px', marginLeft: '-200px', marginBottom: '10px'}}>
               <MiniPlotComponent  metrics={[
                 "cosmos.proxy.route.bytes." + r.Name,
@@ -237,9 +237,9 @@ const ProxyManagement = () => {
               ]} noLabels noBackground/>
             </div>
           },
-          { title: t('Origin'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
-          { title: t('Target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
-          { title: t('Security'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
+          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
             <QuestionCircleOutlined style={{
@@ -303,7 +303,7 @@ const ProxyManagement = () => {
                 variant="contained"
                 color="primary"
               >
-                {t('SaveChanges')}
+                {t('mgmt.config.proxy.saveChangesButton')}
               </Button>
             </AnimateButton>
             </Stack>
@@ -314,7 +314,7 @@ const ProxyManagement = () => {
       }
       {!routes && <>
         <Typography variant="h6" gutterBottom component="div">
-          {t('NoRoutesCfg')}
+          {t('mgmt.config.proxy.noRoutesConfiguredText')}
         </Typography>
       </>
       }

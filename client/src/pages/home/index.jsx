@@ -284,13 +284,13 @@ const HomePage = () => {
         <Stack style={{ zIndex: 2, padding: '0px 8px'}} spacing={1}>
             {isAdmin && coStatus && !coStatus.database && (
                 <Alert severity="error">
-                    {t('DatabaseCantConnect')}
+                    {t('navigation.home.dbCantConnectError')}
                 </Alert>
             )}
 
             {isAdmin && coStatus && coStatus.letsencrypt && (
                 <Alert severity="error">
-                    {t('LetsEncryptEmailError')}
+                    {t('navigation.home.LetsEncryptEmailError')}
                 </Alert>
             )}
 
@@ -302,7 +302,7 @@ const HomePage = () => {
 
             {isAdmin && coStatus && coStatus.LetsEncryptErrors && coStatus.LetsEncryptErrors.length > 0 && (
                 <Alert severity="error">
-                    {t('LetsEncryptErrors')}
+                    {t('navigation.home.LetsEncryptError')}
                     {coStatus.LetsEncryptErrors.map((err) => {
                         return <div> - {err}</div>
                     })}
@@ -311,35 +311,31 @@ const HomePage = () => {
 
             {isAdmin && coStatus && coStatus.newVersionAvailable && (
                 <Alert severity="warning">
-                    {t('NewCosmosVersion')}
+                    {t('navigation.home.newCosmosVersionError')}
                 </Alert>
             )}
 
             {isAdmin && coStatus && !coStatus.hostmode && config && (
                 <Alert severity="warning">
-                    {t('CosmosNotDockerHost')} <br />
+                    {t('navigation.home.cosmosNotDockerHostError')} <br />
                     <Migrate014 config={config} />
                 </Alert>
             )}
 
             {isAdmin && coStatus && coStatus.needsRestart && (
                 <Alert severity="warning">
-                    {t('ConfigChangeReqRestart')}
+                    {t('navigation.home.configChangeRequiresRestartError')}
                 </Alert>
             )}
 
             {isAdmin && coStatus && coStatus.domain && (
                 <Alert severity="error">
-                    {t('LocalhostNotRecommended')}
+                    {t('navigation.home.localhostnotRecommendedError')}
                 </Alert>
             )}
 
             {isAdmin && coStatus && !coStatus.docker && (
-                <Alert severity="error"><Trans i18nKey="DockerNotConnected">
-                    Docker is not connected! Please check your docker connection.<br />
-                    Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />
-                    if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.
-                </Trans></Alert>
+                <Alert severity="error"><Trans i18nKey="newInstall.dockerNotConnected" /></Alert>
             )}
         </Stack>
 
@@ -350,7 +346,7 @@ const HomePage = () => {
                         <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
                             <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
                                 <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
                                 <div>-</div>
                                 <div>-</div>
                                 </Stack>
@@ -364,9 +360,9 @@ const HomePage = () => {
                         <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
                             <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
                                 <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
-                                    <div>{t('avail')}: -</div>
-                                    <div>{t('used')}: -</div>
+                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
+                                    <div>{t('navigation.home.availRam')}: -</div>
+                                    <div>{t('navigation.home.usedRam')}: -</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
                                     -
@@ -395,9 +391,9 @@ const HomePage = () => {
                         <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
                             <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
                                 <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                <div style={{fontSize: '18px', fontWeight: "bold"}}>CPU</div>
+                                <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
                                 <div>{coStatus.CPU}</div>
-                                <div>{coStatus.AVX ? t('AVXSupported') : t('NoAVXSupport')}</div>
+                                <div>{coStatus.AVX ? t('navigation.home.Avx') : t('navigation.home.noAvx')}</div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
                                     <Chart
@@ -418,9 +414,9 @@ const HomePage = () => {
                         <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
                             <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
                                 <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>RAM</div>
-                                    <div>{t('avail')}: <strong>{maxRAM}</strong></div>
-                                    <div>{t('used')}: <strong>{latestRAM}</strong></div>
+                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
+                                    <div>{t('navigation.home.availRam')}: <strong>{maxRAM}</strong></div>
+                                    <div>{t('navigation.home.usedRam')}: <strong>{latestRAM}</strong></div>
                                 </Stack>
                                 <div style={{height: '97px'}}>
                                     <Chart
@@ -440,12 +436,12 @@ const HomePage = () => {
                     <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
                         <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
                         <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            <MiniPlotComponent noBackground title={t('NETWORK')} agglo metrics={[
+                            <MiniPlotComponent noBackground title={t('navigation.home.network')} agglo metrics={[
                                 "cosmos.system.netTx",
                                 "cosmos.system.netRx",
                             ]} labels={{
-                                ["cosmos.system.netTx"]: t('trs')+":", 
-                                ["cosmos.system.netRx"]: t('rcv')+":"
+                                ["cosmos.system.netTx"]: t('navigation.home.trsNet')+":", 
+                                ["cosmos.system.netRx"]: t('navigation.home.rcvNet')+":"
                             }}/>
                         </Stack>
                         </Box>
@@ -519,8 +515,8 @@ const HomePage = () => {
                     <Box style={{ padding: 10, borderRadius: 5, ...appColor }}>
                         <Stack direction="row" spacing={2} alignItems="center">
                             <div style={{ minWidth: 0 }}>
-                                <h3 style={blockStyle}>{t('NoApps')}</h3>
-                                <p style={blockStyle}>{t('NoAppsLong')}</p>
+                                <h3 style={blockStyle}>{t('navigation.home.noAppsTitle')}</h3>
+                                <p style={blockStyle}>{t('navigation.home.noApps')}</p>
                             </div>
                         </Stack>
                     </Box>

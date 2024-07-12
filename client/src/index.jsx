@@ -5,9 +5,12 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'; // import this i
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat'; // import this for localized formatting
 import 'dayjs/locale/en-gb';
+import 'dayjs/locale/en';
+import 'dayjs/locale/de';
 
 // import i18n (needs to be bundled ;)) 
-import './utils/i18n';
+import './utils/locales/i18n';
+import { i18n } from './utils/locales/i18n';
 
 // scroll bar
 import 'simplebar/src/simplebar.css';
@@ -27,10 +30,9 @@ import reportWebVitals from './reportWebVitals';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 
 import dayjs from 'dayjs';
-import 'dayjs/locale/en-gb';
 dayjs.extend(customParseFormat); // if needed
 dayjs.extend(localizedFormat); // if needed
-dayjs.locale('en-gb');
+dayjs.locale(i18n.language);
 
 // ==============================|| MAIN - REACT DOM RENDER  ||============================== //
 
@@ -40,7 +42,7 @@ root.render(
     <StrictMode>
         <ReduxProvider store={store}>
             <BrowserRouter basename="/">    
-                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={i18n.language}>
                     <App />
                 </LocalizationProvider>
             </BrowserRouter>

@@ -79,7 +79,7 @@ const DockerContainerSetup = ({
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title={t('DockerContainerSetup')}>{children}</MainCard>;
+    return <MainCard title={t('mgmt.servapps.newContainerTitle')}>{children}</MainCard>;
   };
 
   const initialValues = useMemo(() => {
@@ -123,10 +123,10 @@ const DockerContainerSetup = ({
     (values) => {
       const errors = {};
       if (!values.image) {
-        errors.image = t('Required');
+        errors.image = t('global.required');
       }
       if (!values.name && newContainer) {
-        errors.name = t('Required');
+        errors.name = t('global.required');
       }
       // env keys and labels key mustbe unique
       const envKeys = values.envVars.map((envVar) => envVar.key);
@@ -134,10 +134,10 @@ const DockerContainerSetup = ({
       const uniqueEnvKeysKeys = [...new Set(envKeys)];
       const uniqueLabelKeys = [...new Set(labelKeys)];
       if (uniqueEnvKeysKeys.length !== envKeys.length) {
-        errors.submit = t('ErrorEnvKeyNotUnique');
+        errors.submit = t('mgmt.servapps.newContainer.env.keyNotUniqueError');
       }
       if (uniqueLabelKeys.length !== labelKeys.length) {
-        errors.submit = t('ErrorLabelNotUnique');
+        errors.submit = t('mgmt.servapps.newContainer.label.labelNotUniqueError');
       }
       OnChange && OnChange(containerInfoFrom(values));
       return errors;
@@ -197,7 +197,7 @@ const DockerContainerSetup = ({
             {pullRequest && (
               <LogsInModal
                 request={pullRequest}
-                title={t('PullingNewImage')}
+                title={t('mgmt.servapps.newContainer.pullingImageStatus')}
                 OnSuccess={() => {
                   setPullRequest(null);
                   setLatestImage(formik.values.image);
@@ -216,7 +216,7 @@ const DockerContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        {t('ContainerNotRunning')}
+                        {t('mgmt.servApps.volumes.containerNotRunningWarning')}
                       </Alert>
                     )}
                   <Grid container spacing={4}>
@@ -225,33 +225,33 @@ const DockerContainerSetup = ({
                         {newContainer && (
                           <CosmosInputText
                             name="name"
-                            label={t('Name')}
-                            placeholder={t('Name')}
+                            label={t('global.nameTitle')}
+                            placeholder={t('global.nameTitle')}
                             formik={formik}
                           />
                         )}
                         <CosmosInputText
                           name="image"
-                          label={t('Image')}
-                          placeholder={t('Image')}
+                          label={t('mgmt.servApps.container.overview.imageTitle')}
+                          placeholder={t('mgmt.servApps.container.overview.imageTitle')}
                           formik={formik}
                         />
                         <CosmosSelect
                           name="restartPolicy"
-                          label={t('RestartPolicy')}
-                          placeholder={t('RestartPolicy')}
+                          label={t('mgmt.servapps.newContainer.restartPolicyInput.restartPolicyLabel')}
+                          placeholder={t('mgmt.servapps.newContainer.restartPolicyInput.restartPolicyPlaceholder')}
                           options={restartPolicies}
                           formik={formik}
                         />
                         <CosmosInputText
                           name="user"
-                          label={t('User')}
-                          placeholder={t('User')}
+                          label={t('global.user')}
+                          placeholder={t('global.user')}
                           formik={formik}
                         />
                         <CosmosCheckbox
                           name="interactive"
-                          label={t('InteractiveMode')}
+                          label={t('mgmt.servapps.newContainer.interactiveCheckbox.interactiveLabel')}
                           formik={formik}
                         />
                         {OnForceSecure && (
@@ -260,7 +260,7 @@ const DockerContainerSetup = ({
                               type="checkbox"
                               as={FormControlLabel}
                               control={<Checkbox size="large" />}
-                              label={t('ForceSecureContainer')}
+                              label={t('mgmt.servapps.newContainer.forceSecureCheckbox.forceSecureLabel')}
                               checked={
                                 containerInfo.Config.Labels.hasOwnProperty(
                                   "cosmos-force-network-secured"
@@ -278,7 +278,7 @@ const DockerContainerSetup = ({
                       </>
                     )}
 
-                    <CosmosFormDivider title={t('EnvironmentVariables')} />
+                    <CosmosFormDivider title={t('mgmt.servapps.newContainer.envTitle')} />
                     <Grid item xs={12}>
                       {formik.values.envVars.map((envVar, idx) => (
                         <Grid container key={idx}>
@@ -286,7 +286,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`envVars.${idx}.key`}
                               onChange={formik.handleChange}
-                              label={t('Key')}
+                              label={t('mgmt.servapps.newContainer.env.envKeyInput.envKeyLabel')}
                               fullWidth
                               value={envVar.key}
                             />
@@ -296,7 +296,7 @@ const DockerContainerSetup = ({
                               name={`envVars.${idx}.value`}
                               onChange={formik.handleChange}
                               fullWidth
-                              label={t('Value')}
+                              label={t('mgmt.servapps.newContainer.env.envValueInput.envValueLabel')}
                               value={envVar.value}
                             />
                           </Grid>
@@ -328,11 +328,11 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        {t('Add')}
+                        {t('global.addAction')}
                       </ResponsiveButton>
                     </Grid>
 
-                    <CosmosFormDivider title={t('Labels')} />
+                    <CosmosFormDivider title={t('mgmt.servapps.newContainer.labelsTitle')} />
                     <Grid item xs={12}>
                       {formik.values.labels.map((label, idx) => (
                         <Grid container key={idx}>
@@ -340,7 +340,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`labels.${idx}.key`}
                               fullWidth
-                              label={t('Key')}
+                              label={t('mgmt.servapps.newContainer.env.envKeyInput.envKeyLabel')}
                               value={label.key}
                               onChange={formik.handleChange}
                             />
@@ -348,7 +348,7 @@ const DockerContainerSetup = ({
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
                               name={`labels.${idx}.value`}
-                              label={t('Value')}
+                              label={t('mgmt.servapps.newContainer.env.envValueInput.envValueLabel')}
                               fullWidth
                               value={label.value}
                               onChange={formik.handleChange}
@@ -381,11 +381,11 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        {t('Add')}
+                        {t('global.addAction')}
                       </ResponsiveButton>
                     </Grid>
 
-                    <CosmosFormDivider title={t('Devices')} />
+                    <CosmosFormDivider title={t('mgmt.servapps.newContainer.devicesTitle')} />
                     <Grid item xs={12}>
                       {formik.values.devices.map((device, idx) => (
                         <Grid container key={idx}>
@@ -393,7 +393,7 @@ const DockerContainerSetup = ({
                             <TextField
                               name={`devices.${idx}.key`}
                               fullWidth
-                              label={t('HostPath')}
+                              label={t('mgmt.servapps.newContainer.devices.hostPathInput.hostPathLabel')}
                               value={device.key}
                               onChange={formik.handleChange}
                             />
@@ -401,7 +401,7 @@ const DockerContainerSetup = ({
                           <Grid item xs={6} style={{ padding }}>
                             <TextField
                               name={`devices.${idx}.value`}
-                              label={t('ContainerPath')}
+                              label={t('mgmt.servapps.newContainer.devices.containerPathInput.containerPathLabel')}
                               fullWidth
                               value={device.value}
                               onChange={formik.handleChange}
@@ -434,7 +434,7 @@ const DockerContainerSetup = ({
                         }}
                         startIcon={<PlusCircleOutlined />}
                       >
-                        {t('Add')}
+                        {t('global.addAction')}
                       </ResponsiveButton>
                     </Grid>
                   </Grid>
@@ -455,7 +455,7 @@ const DockerContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        {t('ImageUpdatedWarning')}
+                        {t('mgmt.servapps.newContainer.imageUpdateWarning')}
                       </Alert>
                     )}
                     <LoadingButton
@@ -469,8 +469,8 @@ const DockerContainerSetup = ({
                       color="primary"
                     >
                       {formik.values.image !== latestImage
-                        ? t('PullNewImage')
-                        : t('UpdateContainer')}
+                        ? t('mgmt.servapps.newContainer.pullImageButton')
+                        : t('mgmt.servapps.newContainer.updateContainerButton')}
                     </LoadingButton>
                   </Stack>
                 </MainCard>

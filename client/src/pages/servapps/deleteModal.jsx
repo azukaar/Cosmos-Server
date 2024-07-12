@@ -213,16 +213,16 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
   return <>
      {isOpen && <>
         <Dialog open={isOpen} onClose={() => {refreshServApps() ; setIsOpen(false)}}>
-            <DialogTitle>{t('DeleteService')}</DialogTitle>
+            <DialogTitle>{t('mgmt.servApps.container.deleteService')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                   <Stack spacing={1}>
                     <div>
                       {isDeleting && <div>
-                        {t('DeletionStatus')}
+                        {t('mgmt.servApps.container.deleteServiceStatus')}
                       </div>}
                       {!isDeleting && <div>
-                        {t('SelectWhatDelete')}
+                        {t('mgmt.servApps.container.selectWhatToDelete')}
                       </div>}
                     </div>
                     {containers.map((container) => {
@@ -232,38 +232,38 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
                     })}
                     {networks.map((network) => {
                       return  (!isDeleting || (!ignored.includes(network + "-network"))) &&<div key={network + "-network"}>
-                        <ShowAction item={network + "-network"} /> <ApiOutlined /> {t('Network')} {network}
+                        <ShowAction item={network + "-network"} /> <ApiOutlined /> {t('global.network')} {network}
                       </div>
                     })}
                     {volumes.map((mount) => {
                       return  (!isDeleting || (!ignored.includes(mount + "-volume"))) && <div key={mount + "-volume"}> 
-                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> {t('Volume')} {mount}
+                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> {t('global.volume')} {mount}
                       </div>
                     })}
                     {routes.map((route) => {
                       return  (!isDeleting || (!ignored.includes(route + "-route"))) && <div key={route + "-route"}> 
-                        <ShowAction item={route + "-route"} /> <LinkOutlined /> {t('Route')} {route}
+                        <ShowAction item={route + "-route"} /> <LinkOutlined /> {t('mgmt.servApps.container.delete.route')} {route}
                       </div>
                     })}
                     {cronJobs.map((job) => {
                       return  (!isDeleting || (!ignored.includes(job + "-job"))) && <div key={job + "-job"}> 
-                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> {t('CronJob')} {job}
+                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> {t('mgmt.servApps.container.delete.cronjob')} {job}
                       </div>
                     })}
                   </Stack>
                 </DialogContentText>
             </DialogContent>
             {!isDeleting && <DialogActions>
-                <Button onClick={() => setIsOpen(false)}>{t('Cancel')}</Button>
+                <Button onClick={() => setIsOpen(false)}>{t('global.cancelAction')}</Button>
                 <Button onClick={() => {
                   doDelete();
-                }}>{t('Delete')}</Button>
+                }}>{t('global.delete')}</Button>
             </DialogActions>}
             {isDeleting && <DialogActions>
                 <Button onClick={() => {
                   refreshServApps();
                   setIsOpen(false);
-                }}>{t('Done')}</Button>
+                }}>{t('mgmt.servApps.container.delete.done')}</Button>
             </DialogActions>}
         </Dialog>
      </>}

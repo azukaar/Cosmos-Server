@@ -92,16 +92,16 @@ export const CronManager = () => {
         <Stack direction="row" spacing={2}>
           <ResponsiveButton variant="contained" startIcon={<PlusOutlined />} onClick={() => {
             setNewJob(true);
-          }}>{t('NewJob')}</ResponsiveButton>
+          }}>{t('mgmt.cron.newCronTitle')}</ResponsiveButton>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>{t('Refresh')}</ResponsiveButton>
+          }}>{t('global.refresh')}</ResponsiveButton>
         </Stack>
         {Object.keys(cronJobs).map(scheduler => <div>
           <h4>{({
-            "Custom": t('CustomJobs'),
-            "SnapRAID": t('ParityDisksJobs'),
-            "__OT__SnapRAID": t('OneTimeJobs'),
+            "Custom": t('mgmt.scheduler.customJobsTitle'),
+            "SnapRAID": t('mgmt.scheduler.parityDiskJobsTitle'),
+            "__OT__SnapRAID": t('mgmt.scheduler.oneTimeJobsTitle'),
           }[scheduler])}</h4>
           <PrettyTableView 
             data={Object.values(cronJobs[scheduler])}
@@ -111,7 +111,7 @@ export const CronManager = () => {
             ]}
             columns={[
               (scheduler == "Custom" && {
-                title: t('Enabled'),
+                title: t('global.enabled'),
                 clickable:true, 
                 field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
                   onChange={() => setEnabled(r.Name, r.Disabled)}
@@ -119,21 +119,21 @@ export const CronManager = () => {
                 />,
               }),
               {
-                title: t('Name'),
+                title: t('global.nameTitle'),
                 field: (r) => r.Name,
               },
               {
-                title: t('Schedule'),
-                field: (r) => crontabToText(r.Crontab),
+                title: t('mgmt.scheduler.list.scheduleTitle'),
+                field: (r) => crontabToText(r.Crontab, t),
               },
               {
-                title: t('Status'),
+                title: t('global.statusTitle'),
                 field: (r) => {
                   return <div style={{maxWidth: '400px'}} >{{
-                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('RunningSince')}{r.LastStarted}</Alert>,
-                    'success': <Alert severity={'success'} color={'success'}>{t('LastRunFinishedOn')} {r.LastRun}, {t('duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
-                    'error': <Alert severity={'error'} color={'error'}>{t('LastRunExitedOn')} {r.LastRun}</Alert>,
-                    'never': <Alert severity={'info'} color={'info'}>Never ran</Alert>
+                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.runningSince')}{r.LastStarted}</Alert>,
+                    'success': <Alert severity={'success'} color={'success'}>{t('mgmt.scheduler.list.status.lastRunFinishedOn')} {r.LastRun}, {t('mgmt.scheduler.list.status.lastRunFinishedOn.duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
+                    'error': <Alert severity={'error'} color={'error'}>{t('mgmt.scheduler.list.status.lastRunExitedOn')} {r.LastRun}</Alert>,
+                    'never': <Alert severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.neverRan')}</Alert>
                     
                   }[getStatus(r)]}</div>
                 }
@@ -146,19 +146,19 @@ export const CronManager = () => {
                       refresh();
                     });
                   }}><StopOutlined /></IconButton></Tooltip>
-                    : <Tooltip title={t('Run')}><IconButton onClick={() => {
+                    : <Tooltip title={t('mgmt.scheduler.list.action.run')}><IconButton onClick={() => {
                       API.cron.run(scheduler, r.Name).then(() => {
                         refresh();
                       });
                     }}><PlayCircleOutlined /></IconButton></Tooltip>}
-                  <Tooltip title={t('Logs')}><IconButton onClick={() => {
+                  <Tooltip title={t('mgmt.scheduler.list.action.logs')}><IconButton onClick={() => {
                     setJobLogs(r);
                   }}><SearchOutlined /></IconButton></Tooltip>
                   {scheduler == "Custom" && <>
-                    <Tooltip title={t('Edit')}><IconButton onClick={() => {
+                    <Tooltip title={t('global.edit')}><IconButton onClick={() => {
                       setNewJob(r);
                     }}><EditOutlined /></IconButton></Tooltip>
-                    <Tooltip title={t('Delete')}>
+                    <Tooltip title={t('global.delete')}>
                       <DeleteIconButton onDelete={() => {
                         deleteCronJob(r);
                       }} />

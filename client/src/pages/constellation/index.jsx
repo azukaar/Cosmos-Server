@@ -35,15 +35,15 @@ const ConstellationIndex = () => {
           title: 'Firewall',
           children: <div>
             <Alert severity="info">
-              {t('FirewallText')}
+              {t('mgmt.constellation.setup.firewallInfo')}
             </Alert>
           </div>,
         },
         {
-          title: t('UnsafeRoutes'),
+          title: t('mgmt.constellation.setup.unsafeRoutesTitle'),
           children: <div>
             <Alert severity="info">
-              {t('UnsafeRoutesText')}
+              {t('mgmt.constellation.setup.unsafeRoutesText')}
             </Alert>
           </div>,
         }

@@ -1,8 +1,4 @@
 import { Button } from "@mui/material";
-import { useTranslation } from 'react-i18next';
-
-// import i18n (needs to be bundled ;)) 
-import './i18n';
 
 export const randomString = (length) => {
   let text = "";
@@ -55,12 +51,11 @@ export const redirectToLocal = (url) => {
   window.location.href = url;
 }
 
-export const crontabToText = (crontab) => {
-  const { t } = useTranslation();
+export const crontabToText = (crontab, t) => {
   const parts = crontab.split(' ');
 
   if (parts.length !== 6) {
-      return t('InvalidCron');
+      return t('mgmt.cron.invalidCron');
   }
 
   const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts;

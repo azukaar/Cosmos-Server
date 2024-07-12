@@ -199,16 +199,16 @@ const SMARTDialog = ({disk, OnClose}) => {
     return <Dialog open={disk} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>S.M.A.R.T. {t('for')} {disk.name}</DialogTitle>
+      <DialogTitle>{t('mgmt.storage.smart.for')} {disk.name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
-            <Alert severity="error">{t('ErrorNoSMART')}</Alert>
+            <Alert severity="error">{t('mgmt.storage.smart.noSmartError')}</Alert>
           </DialogContentText>
       </DialogContent>
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>{t('Close')}</Button>
+          }}>{t('global.close')}</Button>
       </DialogActions>
   </Dialog>;
   }
@@ -216,17 +216,17 @@ const SMARTDialog = ({disk, OnClose}) => {
   return <Dialog open={disk} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>S.M.A.R.T. {t('for')} {disk.name}</DialogTitle>
+      <DialogTitle>S.M.A.R.T. {t('mgmt.storage.smart.for')} {disk.name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
             <Stack direction="row" spacing={8}>
               <Stack spacing={2}>
                 <div>
-                  <InputLabel>{t('health')}</InputLabel>
+                  <InputLabel>{t('mgmt.storage.smart.health')}</InputLabel>
                   {healthChip(disk) + ' ' + healthStatus(disk, disk.rota ? fullData : []) + '%'}
                 </div>
                 <div>
-                  <InputLabel>{t('Temperature')}</InputLabel>
+                  <InputLabel>{t('global.temperature')}</InputLabel>
                   {(disk.smart && disk.smart.Temperature) ? `${temperatureChip(disk.smart.Temperature)} ${disk.smart.Temperature}°C` : '⚪ ?'}
                 </div>
                 <div style={{maxWidth: '200px'}}>  
@@ -258,11 +258,11 @@ const SMARTDialog = ({disk, OnClose}) => {
                 getKey={(r) => `${r.Id}`}
                 columns={[
                   {
-                    title: t('Name'),
+                    title: t('global.nameTitle'),
                     field: (r) => <Tooltip title={r.def.description}><span><InfoCircleOutlined /> {r.def.display_name}</span></Tooltip>, 
                   },
                   {
-                    title: <Tooltip title={t('SMARTThreshhold')}><span>{t('Value')} <InfoCircleOutlined /> </span></Tooltip>,
+                    title: <Tooltip title={t('mgmt.storage.smart.threshholdTooltip')}><span>{t('mgmt.servapps.newContainer.env.envValueInput.envValueLabel')} <InfoCircleOutlined /> </span></Tooltip>,
                     style: {minWidth: '110px'},
                     field: (r) => {
                       let StatusIcon = '';
@@ -280,7 +280,7 @@ const SMARTDialog = ({disk, OnClose}) => {
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>{t('Close')}</Button>
+          }}>{t('global.close')}</Button>
       </DialogActions>
   </Dialog>
 };

@@ -53,7 +53,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>{t('NewVolume')}</DialogTitle>
+          <DialogTitle>{t('mgmt.servApps.volumes.newVolumeTitle')}</DialogTitle>
           <DialogContent>
             <DialogContentText></DialogContentText>
             <form onSubmit={formik.handleSubmit}>
@@ -74,18 +74,18 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
                 error={formik.touched.driver && Boolean(formik.errors.driver)}
                 style={{ marginBottom: '16px' }}
               >
-                <InputLabel htmlFor="driver">{t('Driver')}</InputLabel>
+                <InputLabel htmlFor="driver">{t('global.driver')}</InputLabel>
                 <Select
                   id="driver"
                   name="driver"
                   value={formik.values.driver}
                   onChange={formik.handleChange}
-                  label={t('Driver')}
+                  label={t('global.driver')}
                 >
                   <MenuItem value="">
-                    <em>None</em>
+                    <em>{t('mgmt.servApps.driver.none')}</em>
                   </MenuItem>
-                  <MenuItem value="local">{t('Local')}</MenuItem>
+                  <MenuItem value="local">{t('mgmt.servApps.volumes.newVolume.driverSelection.localChoice')}</MenuItem>
                   {/* Add more driver options if needed */}
                 </Select>
               </FormControl>
@@ -97,12 +97,12 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpened(false)}>Cancel</Button>
+            <Button onClick={() => setIsOpened(false)}>{t('global.cancelAction')}</Button>
             <LoadingButton
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              {t('Create')}
+              {t('global.createAction')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -112,7 +112,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        {t('NewVolume')}
+        {t('mgmt.servApps.volumes.newVolumeTitle')}
       </Button>
     </>
   );

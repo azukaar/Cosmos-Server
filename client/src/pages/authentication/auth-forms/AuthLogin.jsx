@@ -78,17 +78,17 @@ const AuthLogin = () => {
     return (
         <>
             { notLogged &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">{t('NotLoggedIn')}</Alert>
+                <Alert severity="error">{t('auth.notLoggedInError')}</Alert>
                 <br />
             </Grid>}
 
             { notLoggedAdmin &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">{t('NotAdmin')}</Alert>
+                <Alert severity="error">{t('auth.notAdminError')}</Alert>
                 <br />
             </Grid>}
 
             { invalid &&<Grid container spacing={2} justifyContent="center">
-                <Alert severity="error">{t('DisconnectPleaseLogin')}</Alert>
+                <Alert severity="error">{t('auth.loggedOutError')}</Alert>
                 <br />
             </Grid>}
             <Formik
@@ -98,8 +98,8 @@ const AuthLogin = () => {
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
-                    nickname: Yup.string().max(255).required(t('NicknameRequired')),
-                    password: Yup.string().max(255).required(t('PasswordRequired'))
+                    nickname: Yup.string().max(255).required(t('global.nicknameRequiredValidation')),
+                    password: Yup.string().max(255).required(t('auth.pwdRequired'))
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
                     setSubmitting(true);
@@ -110,11 +110,11 @@ const AuthLogin = () => {
                     }).catch((err) => {
                         setStatus({ success: false });
                         if(err.code == 'UL001') {
-                            setErrors({ submit: t('WrongLogin') });
+                            setErrors({ submit: t('auth.wrongCredError') });
                         } else if (err.code == 'UL002') {
-                            setErrors({ submit: t('AccountUnconfirmed') });
+                            setErrors({ submit: t('auth.accountUnconfirmedError') });
                         } else {
-                            setErrors({ submit: t('unexpectedError') });
+                            setErrors({ submit: t('auth.unexpectedErrorValidation') });
                         }
                         setSubmitting(false);
                     });
@@ -125,7 +125,7 @@ const AuthLogin = () => {
                         <Grid container spacing={3}>
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="nickname-login">{t('Nickname')}</InputLabel>
+                                    <InputLabel htmlFor="nickname-login">{t('global.nicknameLabel')}</InputLabel>
                                     <OutlinedInput
                                         id="nickname-login"
                                         type="nickname"
@@ -133,7 +133,7 @@ const AuthLogin = () => {
                                         name="nickname"
                                         onBlur={handleBlur}
                                         onChange={handleChange}
-                                        placeholder={t('EnterNickname')}
+                                        placeholder={t('auth.usernameInput')}
                                         fullWidth
                                         error={Boolean(touched.nickname && errors.nickname)}
                                     />
@@ -146,7 +146,7 @@ const AuthLogin = () => {
                             </Grid>
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="password-login">{t('Password')}</InputLabel>
+                                    <InputLabel htmlFor="password-login">{t('auth.pwd')}</InputLabel>
                                     <OutlinedInput
                                         fullWidth
                                         error={Boolean(touched.password && errors.password)}
@@ -169,7 +169,7 @@ const AuthLogin = () => {
                                                 </IconButton>
                                             </InputAdornment>
                                         }
-                                        placeholder={t('EnterPassword')}
+                                        placeholder={t('auth.enterPwd')}
                                     />
                                     {touched.password && errors.password && (
                                         <FormHelperText error id="standard-weight-helper-text-password-login">
@@ -194,10 +194,10 @@ const AuthLogin = () => {
                                         label={<Typography variant="h6">Keep me sign in</Typography>}
                                     />*/}
                                     {showResetPassword && <Link variant="h6" component={RouterLink} to="/cosmos-ui/forgot-password" color="primary">
-                                        {t('ForgotPassword?')}
+                                        {t('auth.forgotPwd')}
                                     </Link>}
                                     {!showResetPassword &&  <Typography variant="h6">
-                                        {t('PasswordResetNotAllowed')}
+                                        {t('auth.pwdResetNotAllowed')}
                                     </Typography>}
                                 </Stack>
                             </Grid>
@@ -216,7 +216,7 @@ const AuthLogin = () => {
                                         variant="contained"
                                         color="primary"
                                     >
-                                        {t('Login')}
+                                        {t('auth.login')}
                                     </LoadingButton>
                             </Grid>
                             {/* <Grid item xs={12}>

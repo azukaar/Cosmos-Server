@@ -93,12 +93,12 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       >
         {(formik) => (
           <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>{t('AddDevice')}</DialogTitle>
+            <DialogTitle>{t('mgmt.constellation.setup.addDeviceTitle')}</DialogTitle>
 
             {isDone ? <DialogContent>
               <DialogContentText>
                 <p>
-                {t('DeviceAdded')}
+                {t('mgmt.constellation.setup.addDeviceSuccess')}
                 </p>
 
                 <Stack spacing={2} direction={"column"}>
@@ -135,7 +135,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
               </DialogContentText>
             </DialogContent> : <DialogContent>
               <DialogContentText>
-                <p>{t('AddDeviceConstellation')}</p>
+                <p>{t('mgmt.constellation.setup.addDeviceText')}</p>
                 <div>
                   <Stack spacing={2} style={{}}>
                   <CosmosCheckbox
@@ -146,7 +146,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                   {!formik.values.isLighthouse &&
                     (isAdmin ? <CosmosSelect
                       name="nickname"
-                      label={t('Owner')}
+                      label={t('mgmt.constellation.setup.owner.label')}
                       formik={formik}
                       // disabled={!isAdmin}
                       options={
@@ -155,7 +155,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                         })
                       }
                     /> : <>
-                      <InputLabel>{t('Owner')}</InputLabel>
+                      <InputLabel>{t('mgmt.constellation.setup.owner.label')}</InputLabel>
                       <OutlinedInput
                         fullWidth
                         multiline
@@ -168,13 +168,13 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
                     <CosmosInputText
                       name="deviceName"
-                      label={t('DeviceName')}
+                      label={t('mgmt.constellation.setup.deviceName.label')}
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="ip"
-                      label={t('ConstellationIPAddress')}
+                      label={t('mgmt.constellation.setup.ip.label')}
                       formik={formik}
                     />
 
@@ -187,21 +187,21 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                     <CosmosInputText
                       multiline
                       name="publicKey"
-                      label={t('PublicKey')}
+                      label={t('mgmt.constellation.setup.pubKey.label')}
                       formik={formik}
                     />
                     {formik.values.isLighthouse && <>
-                      <CosmosFormDivider title={t('LighthouseSetup')} />
+                      <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />
 
                       <CosmosInputText
                         name="PublicHostname"
-                        label={t('PublicHostname')}
+                        label={t('mgmt.constellation.setup.pubHostname.label')}
                         formik={formik}
                       />
 
                       <CosmosCheckbox
                         name="IsRelay"
-                        label={t('isRelay')}
+                        label={t('mgmt.constellation.isRelay.label')}
                         formik={formik}
                       />
                     </>}
@@ -219,7 +219,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
             <DialogActions>
               <Button onClick={() => setOpenModal(false)}>Close</Button>
-              {!isDone && <Button color="primary" variant="contained" type="submit">{t('Add')}</Button>}
+              {!isDone && <Button color="primary" variant="contained" type="submit">{t('global.addAction')}</Button>}
             </DialogActions>
           </form>
 
@@ -238,7 +238,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       }
       startIcon={<PlusCircleFilled />}
     >
-      {t('AddDevice')}
+      {t('mgmt.constellation.setup.addDeviceTitle')}
     </ResponsiveButton>
   </>;
 };

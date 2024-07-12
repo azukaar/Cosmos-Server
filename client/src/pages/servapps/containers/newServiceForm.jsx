@@ -104,7 +104,7 @@ const NewDockerServiceForm = () => {
         setCurrentTab(currentTab - 1);
       }}
     >
-        {t('Previous')}
+        {t('newInstall.previousButton')}
     </Button>
     <Button
       variant="contained"
@@ -116,7 +116,7 @@ const NewDockerServiceForm = () => {
         setMaxTab(Math.max(currentTab + 1, maxTab));
       }}
     >
-        {t('Next')}
+        {t('global.next')}
     </Button>
     </Stack>
 
@@ -124,7 +124,7 @@ const NewDockerServiceForm = () => {
     <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">
         <Back />
-        <div>{t('NewServApp')}</div>
+        <div>{t('mgmt.servApp.newServAppButton')}</div>
       </Stack>
 
       {<PrettyTabbedView
@@ -191,14 +191,14 @@ const NewDockerServiceForm = () => {
                   }
                   setContainerInfo(newValues);
                 }}
-              />{t('ServAppURL')}
+              />{t('mgmt.servApp.url')}
             </MainCard>
             {containerInfo.CreateRoute && <RouteManagement TargetContainer={containerInfo} 
               routeConfig={{
                 Target: "http://"+containerInfo.Name.replace('/', '') + ":",
                 Mode: "SERVAPP",
                 Name: containerInfo.Name.replace('/', ''),
-                Description: t('ExposeApp') + containerInfo.Name.replace('/', '') + t('ExposeApp2'),
+                Description: t('mgmt.servApp.exposeDesc').replace('containerName',containerInfo.Name.replace('/', '')) + containerInfo.Name.replace('/', ''),
                 UseHost: true,
                 Host: getHostnameFromName(containerInfo.Name, null, config),
                 UsePathPrefix: false,
@@ -229,7 +229,7 @@ const NewDockerServiceForm = () => {
           />}{nav()}</Stack>
         },
         {
-          title: t('Network'),
+          title: t('global.network'),
           disabled: maxTab < 1,
           children: <Stack spacing={2}><NetworkContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             const newValues = {
@@ -282,7 +282,7 @@ const NewDockerServiceForm = () => {
           }}/>{nav()}</Stack>
         },
         {
-          title: t('Storage'),
+          title: t('menu-items.management.storage'),
           disabled: maxTab < 1,
           children: <Stack spacing={2}><VolumeContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             const newValues = {
@@ -302,7 +302,7 @@ const NewDockerServiceForm = () => {
           }} />{nav()}</Stack>
         },
         {
-          title: t('ReviewStart'),
+          title: t('mgmt.servApp.newContainer.reviewStartButton'),
           disabled: maxTab < 1,
           children: <Stack spacing={2}><NewDockerService service={service} />{nav()}</Stack>
         }

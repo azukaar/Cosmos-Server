@@ -44,13 +44,6 @@ const DisplayOperator = (operator) => {
   }
 }
 
-//const { t } = useTranslation();
-//const NameIsRequired = t('NameIsRequired');
-//const trackingMetricIsRequired = t('trackingMetricIsRequired');
-//const ConditionOperatorIsRequired = t('ConditionOperatorIsRequired');
-//const ConditionValueIsRequired = t('ConditionValueIsRequired');
-//const PeriodIsRequired = t('PeriodIsRequired');
-
 const AlertValidationSchema = Yup.object().shape({
   name: Yup.string().required('Name is Required'),
   trackingMetric: Yup.string().required('Tracking Metric is Required'),
@@ -63,7 +56,7 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
   const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
-      name: open.Name || t('NewAlert'),
+      name: open.Name || t('navigation.monitoring.alerts.newAlertButton'),
       trackingMetric: open.TrackingMetric || '',
       conditionOperator: (open.Condition && open.Condition.Operator) || 'gt',
       conditionValue: (open.Condition && open.Condition.Value) || 0,
@@ -83,27 +76,27 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('EditAlert')}</DialogTitle>
+      <DialogTitle>{t('navigation.monitoring.alerts.action.edit')}</DialogTitle>
       <FormikProvider value={formik}>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2}>
             <CosmosInputText
               name="name"
-              label={t('AlertName')}
+              label={t('navigation.monitoring.alerts.alertNameLabel')}
               formik={formik}
               required
             />
             <MetricPicker
               name="trackingMetric"
-              label={t('trackingMetric')}
+              label={t('navigation.monitoring.alerts.trackingMetricLabel')}
               formik={formik}
               required
             />
             <Stack direction="row" spacing={2} alignItems="center">
               <CosmosSelect
                 name="conditionOperator"
-                label={t('conditionOperator')}
+                label={t('navigation.monitoring.alerts.conditionOperatorLabel')}
                 formik={formik}
                 options={[
                   ['gt', '>'],
@@ -114,31 +107,31 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
               </CosmosSelect>
               <CosmosInputText
                 name="conditionValue"
-                label={t('conditionValue')}
+                label={t('navigation.monitoring.alerts.conditionValueLabel')}
                 formik={formik}
                 required
               />
               <CosmosCheckbox
                 style={{paddingTop: '20px'}}
                 name="conditionPercent"
-                label={t('conditionPercent')}
+                label={t('navigation.monitoring.alerts.conditionLabel')}
                 formik={formik}
               />
             </Stack>
 
             <CosmosSelect
               name="period"
-              label={t('PeriodMetric')}
+              label={t('navigation.monitoring.alerts.periodLabel')}
               formik={formik}
               options={[
-                ['latest', t('Latest')],
-                ['hourly', t('Hourly')],
-                ['daily', t('Daily')],
+                ['latest', t('navigation.monitoring.latest')],
+                ['hourly', t('navigation.monitoring.hourly')],
+                ['daily', t('navigation.monitoring.daily')],
             ]}></CosmosSelect>
 
             <CosmosSelect
               name="severity"
-              label={t('Severity')}
+              label={t('navigation.monitoring.alerts.action.edit.severitySelection.severityLabel')}
               formik={formik}
               options={[
                 ['info', 'Info'],
@@ -148,21 +141,21 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
 
             <CosmosCheckbox
               name="throttled"
-              label={t('Throttle')}
+              label={t('navigation.monitoring.alerts.throttleCheckbox.throttleLabel')}
               formik={formik}
             />
 
-            <CosmosFormDivider title={t('ActionTriggers')} />
+            <CosmosFormDivider title={t('mgmt.monitoring.alerts.actionTriggersTitle')} />
             
             <Stack direction="column" spacing={2}>
               {formik.values.actions
               .map((action, index) => {
                 return !action.removed && <>
                   {action.Type === 'stop' && 
-                    <Alert severity="info">{t('infoStopAction')}</Alert>
+                    <Alert severity="info">{t('navigation.monitoring.alerts.actions.stopActionInfo')}</Alert>
                   }
                   {action.Type === 'restart' &&
-                    <Alert severity="info">{t('infoRestartAction')}</Alert>
+                    <Alert severity="info">{t('navigation.monitoring.alerts.actions.restartActionInfo')}</Alert>
                   }
                   <Stack direction="row" spacing={2} key={index}>
                     <Box style={{
@@ -170,13 +163,13 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                     }}>
                       <CosmosSelect
                         name={`actions.${index}.Type`}
-                        label={t('ActionType')}
+                        label={t('navigation.monitoring.alerts.action.edit.actionTypeInput.actionTypeLabel')}
                         formik={formik}
                         options={[
-                          ['notification', t('SendANotification')],
-                          ['email', t('SendAnEmail')],
-                          ['stop', t('StopResourcesCausinganAlert')],
-                          ['restart', t('RestartResourcesCausinganAlert')],
+                          ['notification', t('navigation.monitoring.alerts.actions.sendNotification')],
+                          ['email', t('navigation.monitoring.alerts.actions.sendEmail')],
+                          ['stop', t('navigation.monitoring.alerts.actions.stop')],
+                          ['restart', t('navigation.monitoring.alerts.actions.restart')],
                         ]}
                       />
                     </Box>
@@ -208,15 +201,15 @@ const EditAlertModal = ({ open, onClose, onSave }) => {
                     },
                   ]);
                 }}>
-                {t('AddAction')}
+                {t('mgmt.monitoring.alerts.addActionButton')}
               </Button>
             </Stack>
 
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>{t('Cancel')}</Button>
-          <Button variant='contained' type="submit">{t('Save')}</Button>
+          <Button onClick={onClose}>{t('global.cancelAction')}</Button>
+          <Button variant='contained' type="submit">{t('global.saveAction')}</Button>
         </DialogActions>
       </form>
       </FormikProvider>
@@ -327,15 +320,15 @@ const AlertPage = () => {
           },
           "Actions": [
             {
-              "Type": "notification",
+              "mgmt.storage.typeTitle": "notification",
               "Target": ""
             },
             {
-              "Type": "email",
+              "mgmt.storage.typeTitle": "email",
               "Target": ""
             },
             {
-              "Type": "stop",
+              "mgmt.storage.typeTitle": "stop",
               "Target": ""
             }
           ],
@@ -355,15 +348,15 @@ const AlertPage = () => {
           },
           "Actions": [
             {
-              "Type": "notification",
+              "mgmt.storage.typeTitle": "notification",
               "Target": ""
             },
             {
-              "Type": "email",
+              "mgmt.storage.typeTitle": "email",
               "Target": ""
             },
             {
-              "Type": "stop",
+              "mgmt.storage.typeTitle": "stop",
               "Target": ""
             }
           ],
@@ -372,7 +365,7 @@ const AlertPage = () => {
           "Severity": "warn"
         },
         "Disk Health": {
-          "Name": t('DiskHealth'),
+          "Name": 'DiskHealth',
           "Enabled": true,
           "Period": "latest",
           "TrackingMetric": "system.disk-health.temperature.*",
@@ -383,7 +376,7 @@ const AlertPage = () => {
           },
           "Actions": [
             {
-              "Type": "notification",
+              "mgmt.storage.typeTitle": "notification",
               "Target": ""
             }
           ],
@@ -392,7 +385,7 @@ const AlertPage = () => {
           "Severity": "warn"
         },
         "Disk Full Notification": {
-          "Name": t('DiskFullNotification'),
+          "Name": 'Disk Full Notification',
           "Enabled": true,
           "Period": "latest",
           "TrackingMetric": "cosmos.system.disk./",
@@ -403,7 +396,7 @@ const AlertPage = () => {
           },
           "Actions": [
             {
-              "Type": "notification",
+              "mgmt.storage.typeTitle": "notification",
               "Target": ""
             }
           ],
@@ -438,13 +431,13 @@ const AlertPage = () => {
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>{t('Refresh')}</Button>
+      }}>{t('global.refresh')}</Button>
       <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
           setOpenModal(true);
-      }}>{t('Create')}</Button>
+      }}>{t('global.createAction')}</Button>
       <Button variant="outlined" color="warning" startIcon={<WarningOutlined />} onClick={() => {
         resetTodefault();
-      }}>{t('ResetToDefault')}</Button>
+      }}>{t('navigation.monitoring.alerts.resetToDefaultButton')}</Button>
     </Stack>
     
     {config && <>
@@ -481,7 +474,7 @@ const AlertPage = () => {
 
               columns={[
                 { 
-                  title: t('Enabled'), 
+                  title: t('global.enabled'), 
                   clickable:true, 
                   field: (r, k) => <Checkbox disabled={isLoading} size='large' color={r.Enabled ? 'success' : 'default'}
                     onChange={setEnabled(Object.keys(config.MonitoringAlerts)[k])}
@@ -491,29 +484,29 @@ const AlertPage = () => {
                   },
                 },
                 { 
-                  title: t('Name'), 
+                  title: t('global.nameTitle'), 
                   field: (r) => <><GetSevIcon level={r.Severity} /> {r.Name}</>,
                 },
                 { 
-                  title: t('TrackingMetric'), 
+                  title: t('navigation.monitoring.alerts.trackingMetricTitle'), 
                   field: (r) => metrics[r.TrackingMetric] ? metrics[r.TrackingMetric] : r.TrackingMetric,
                 },
                 { 
-                  title: t('Condition'), 
+                  title: t('navigation.monitoring.alerts.conditionTitle'), 
                   screenMin: 'md',
                   field: (r) => DisplayOperator(r.Condition.Operator) + ' ' + r.Condition.Value + (r.Condition.Percent ? '%' : ''),
                 },
                 { 
-                  title: t('Period'),
+                  title: t('navigation.monitoring.alerts.periodTitle'),
                   field: (r) => t(r.Period),
                 },
                 { 
-                  title: t('LastTriggered'),
+                  title: t('navigation.monitoring.alerts.astTriggeredTitle'),
                   screenMin: 'md',
-                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : t('Never'),
+                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : t('global.never'),
                 },
                 { 
-                  title: t('Actions'), 
+                  title: t('navigation.monitoring.alerts.actionsTitle'), 
                   field: (r) => r.Actions.map((a) => a.Type).join(', '),
                   screenMin: 'md',
                 },

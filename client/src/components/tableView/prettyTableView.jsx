@@ -37,7 +37,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
   return (
     <Stack direction="column" spacing={2} style={{width: fullWidth ? '100%': ''}}>
       <Stack direction="row" spacing={2}>
-        <Input placeholder={t('Search')}
+        <Input placeholder={t('global.searchPlaceholder')}
           value={search}
           style={{
             width: '250px',

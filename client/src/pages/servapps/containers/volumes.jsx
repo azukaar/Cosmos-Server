@@ -55,7 +55,7 @@ const VolumeContainerSetup = ({
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title={t('VolumeMounts')}>{children}</MainCard>;
+    return <MainCard title={t('mgmt.servapps.newContainer.volumesTitle')}>{children}</MainCard>;
   };
 
   const initialValues = useMemo(() => {
@@ -83,7 +83,7 @@ const VolumeContainerSetup = ({
       });
       const unique = [...new Set(volumes)];
       if (unique.length !== volumes.length) {
-        errors.submit = t('ErrorMountingNotUnique');
+        errors.submit = t('mgmt.servapps.newContainer.volumes.mountNotUniqueError');
       }
       OnChange && OnChange(values, volumes);
       return errors;
@@ -147,7 +147,7 @@ const VolumeContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        {t('ContainerNotRunning')}
+                        {t('mgmt.servApps.volumes.containerNotRunningWarning')}
                       </Alert>
                     )}
                   <Grid container spacing={4}>
@@ -177,7 +177,7 @@ const VolumeContainerSetup = ({
                                 ]);
                               }}
                             >
-                              {t('NewMountPoint')}
+                              {t('mgmt.servapps.newContainer.volumes.newMountButton')}
                             </ResponsiveButton>,
                           ]}
                           columns={[
@@ -203,14 +203,14 @@ const VolumeContainerSetup = ({
                                     name={`volumes[${k}].Type`}
                                     onChange={formik.handleChange}
                                   >
-                                    <MenuItem value="bind">{t('Bind')}</MenuItem>
-                                    <MenuItem value="volume">{t('Volume')}</MenuItem>
+                                    <MenuItem value="bind">{t('mgmt.servapps.newContainer.volumes.bindInput')}</MenuItem>
+                                    <MenuItem value="volume">{t('global.volume')}</MenuItem>
                                   </TextField>
                                 </div>
                               ),
                             },
                             {
-                              title: t('Source'),
+                              title: t('global.source'),
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -262,7 +262,7 @@ const VolumeContainerSetup = ({
                               ),
                             },
                             {
-                              title: t('Target'),
+                              title: t('global.target'),
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -308,7 +308,7 @@ const VolumeContainerSetup = ({
                                       );
                                     }}
                                   >
-                                    {t('Unmount')}
+                                    {t('global.unmount')}
                                   </Button>
                                 );
                               },
@@ -345,7 +345,7 @@ const VolumeContainerSetup = ({
                             variant="contained"
                             color="primary"
                           >
-                            {t('UpdateVolumes')}
+                            {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
                           </LoadingButton>
                         )}
                       </Stack>
