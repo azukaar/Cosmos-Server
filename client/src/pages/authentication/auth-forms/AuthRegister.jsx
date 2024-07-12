@@ -101,7 +101,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                         <Grid container spacing={3}>
                             {isInviteLink ? <Grid item xs={12}>
                                 <Alert severity="info">
-                                    <strong>Invite Link</strong> - You have been invited to join this Cosmos instance. This Nickname has been provided to us by your administrator. Keep note of it, you will need it to login. 
+                                    <strong>Invite Link</strong> - You have been invited to join this resiOS instance. This Nickname has been provided to us by your administrator. Keep note of it, you will need it to login. 
                                 </Alert>
                             </Grid> : ''}
                             {isInviteLink ? <Grid item xs={12}>

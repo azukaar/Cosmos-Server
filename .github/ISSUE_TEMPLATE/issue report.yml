@@ -51,7 +51,7 @@ body:
     id: system-details
     attributes:
       label: System details
-      description: "Please fill out the following details about your system depending on how relevant (always include Cosmos Version!)."
+      description: "Please fill out the following details about your system depending on how relevant (always include resiOS Version!)."
       value: |
         - OS: [e.g. iOS]
         - Browser [e.g. chrome, safari]

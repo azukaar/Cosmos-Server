@@ -155,7 +155,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 
 				if utils.IsInsideContainer {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
-						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
+						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in resiOS with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
 					} else {
 						newSource = "/mnt/host" + newSource
 					}
@@ -169,7 +169,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 					err := os.MkdirAll(newSource, 0755)
 					if err != nil {
 						utils.Error("EditContainer: Unable to create directory for bind mount", err)
-						return "", errors.New("Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory")
+						return "", errors.New("Unable to create directory for bind mount. Make sure parent directories exist, and that resiOS has permissions to create directories in the host directory")
 					}
 		
 					if newConfig.Config.User != "" {

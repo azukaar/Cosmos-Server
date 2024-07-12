@@ -20,7 +20,7 @@ const Logo = () => {
          */
         <>
             <img src={isLight ? logo : logoDark} alt="resiOS" width="40" />
-            <span style={{fontWeight: 'bold', fontSize: '160%', paddingLeft:'10px'}}> Cosmos Cloud</span>
+            <span style={{fontWeight: 'bold', fontSize: '170%', paddingLeft:'10px'}}> resiOS</span>
         </>
     );
 };

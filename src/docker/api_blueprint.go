@@ -619,8 +619,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 				if utils.IsInsideContainer {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
-						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
-						OnLog(utils.DoErr("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
+						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in resiOS with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
+						OnLog(utils.DoErr("Unable to create directory for bind mount in the host directory. Please mount the host / in resiOS with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))
 					
 						continue
 					} else {
@@ -638,8 +638,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					err := os.MkdirAll(newSource, 0750)
 
 					if err != nil {
-						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory", err)
-						OnLog(utils.DoErr("Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory: %s\n", err.Error()))
+						utils.Error("CreateService: Unable to create directory for bind mount. Make sure parent directories exist, and that resiOS has permissions to create directories in the host directory", err)
+						OnLog(utils.DoErr("Unable to create directory for bind mount. Make sure parent directories exist, and that resiOS has permissions to create directories in the host directory: %s\n", err.Error()))
 						Rollback(rollbackActions, OnLog)
 						return err
 					}

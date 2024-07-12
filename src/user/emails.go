@@ -13,7 +13,7 @@ func SendInviteEmail(nickname string, email string, link string) error {
 		"Cosmos Invitation for "+nickname,
 		fmt.Sprintf(`<h1>You have been invited!</h1>
 Hello %s, <br>
-The admin of a Cosmos Server invited you to join their server. <br>
+The admin of a resiOS Server invited you to join their server. <br>
 In order to join, you can click the following link to setup your account: <br>
 <a class="button" href="%s">Setup</a> <br><br>
 See you soon!! <br>
@@ -26,7 +26,7 @@ func SendAdminPasswordEmail(nickname string, email string, link string) error {
 		"Cosmos Password Reset",
 		fmt.Sprintf(`<h1>Password Reset</h1>
 Hello %s, <br>
-The admin of a Cosmos Server has sent you a password reset link. <br>
+The admin of a resiOS Server has sent you a password reset link. <br>
 In order to reset your password, you can click the following link and fill in the form: <br>
 <a class="button" href="%s">Reset Password</a> <br><br>
 See you soon!! <br>
