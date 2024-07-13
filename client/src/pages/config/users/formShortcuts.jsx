@@ -19,6 +19,7 @@ import {
   FormControl,
   IconButton,
   InputAdornment,
+  Select,
 
 } from '@mui/material';
 import { Field } from 'formik';
@@ -148,41 +149,40 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
   </Grid>
 }
 
+
 export const CosmosSelect = ({ name, onChange, label, formik, disabled, options, style }) => {
-  return <Grid item xs={12}>
-    <Stack spacing={1}>
-      <InputLabel htmlFor={name}>{label}</InputLabel>
-      <TextField
-        className="px-2 my-2"
-        variant="outlined"
-        name={name}
-        id={name}
-        disabled={disabled}
-        select
-        value={getNestedValue(formik.values, name)}
-        onChange={(...ar) => {
-          onChange && onChange(...ar);
-          formik.handleChange(...ar);
-        }}
-        error={
-          getNestedValue(formik.touched, name) &&
-          Boolean(getNestedValue(formik.errors, name))
-        }
-        helperText={
-          getNestedValue(formik.touched, name) &&
-          getNestedValue(formik.errors, name)
-        }
-        style={style}
-      >
-        {options.map((option) => (
-          <MenuItem key={option[0]} value={option[0]}>
-            {option[1]}
-          </MenuItem>
-        ))}
-      </TextField>
-    </Stack>
-  </Grid>;
-}
+  return (
+    <Grid item xs={12}>
+      <Stack spacing={1}>
+        <InputLabel htmlFor={name}>{label}</InputLabel>
+        <FormControl variant="outlined" fullWidth error={getNestedValue(formik.touched, name) && Boolean(getNestedValue(formik.errors, name))} disabled={disabled} style={style}>
+          <Select
+            className="px-2 my-2"
+            variant="outlined"
+            name={name}
+            id={name}
+            disabled={disabled}
+            value={getNestedValue(formik.values, name) || ''}
+            displayEmpty
+            onChange={(...ar) => {
+              onChange && onChange(...ar);
+              formik.handleChange(...ar);
+            }}
+          >
+            {options.map((option) => (
+              <MenuItem key={option[0]} value={option[0]}>
+                {option[1]}
+              </MenuItem>
+            ))}
+          </Select>
+          {getNestedValue(formik.touched, name) && getNestedValue(formik.errors, name) && (
+            <FormHelperText>{getNestedValue(formik.errors, name)}</FormHelperText>
+          )}
+        </FormControl>
+      </Stack>
+    </Grid>
+  );
+};
 
 export const CosmosCheckbox = ({ name, label, formik, style }) => {
   return <Grid item xs={12}>

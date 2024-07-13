@@ -139,6 +139,11 @@ func startHTTPSServer(router *mux.Router) error {
 		proxy.InitInternalTCPProxy()
 	}
 
+	// Publish mDNS 
+	// if config.HTTPConfig.PublishMDNS {
+		proxy.PublishAllMDNSFromConfig()
+	// }
+
 	utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
 
 	return HTTPServer.ListenAndServeTLS("", "")
@@ -436,9 +441,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
 	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
-	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.DeviceConfigSync)
-	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.DeviceConfigManualSync)
-	srapiAdmin.HandleFunc("/api/constellation_webhook_sync", constellation.WebhookSync)
+	// device request config
+	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.GetDeviceConfigSync)
+	// user manually request constellation config for resync
+	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.GetDeviceConfigManualSync)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

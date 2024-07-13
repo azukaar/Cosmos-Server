@@ -9,12 +9,14 @@ import {
   Grid,
   Stack,
   FormHelperText,
+  TextField,
+  MenuItem,
 } from '@mui/material';
 import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
-import { ValidateRouteSchema, sanitizeRoute } from '../../../utils/routes';
+import { ValidateRouteSchema, getHostnameFromName, sanitizeRoute } from '../../../utils/routes';
 import { isDomain } from '../../../utils/indexs';
 
 const Hide = ({ children, h }) => {
@@ -48,10 +50,19 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
   const [openModal, setOpenModal] = React.useState(false);
   const [hostError, setHostError] = React.useState(null);
 
+  const [tunnels, setTunnels] = React.useState([]);
+
   React.useEffect(() => {
     if(routeConfig && routeConfig.Host) {
       checkHost(routeConfig.Host, setHostError);
     }
+
+    (async () => {
+      setTunnels((await API.constellation.list()).data.filter(
+        (device) => device.isLighthouse
+      ) || []);
+    })();
+
   }, [])
  
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
@@ -75,7 +86,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
-          TunnelVia: routeConfig.TunnelVia,
+          TunnelVia: routeConfig.TunnelVia || '',
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
@@ -285,19 +296,28 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     formik={formik}
                   />
 
-                  <CosmosInputText
-                    name="TunnelVia"
-                    label="Tunnel via another Constellation Cosmos node"
-                    placeholder="Cosmos device name"
-                    formik={formik}
-                  />
+                  {(formik.values.TunnelVia || tunnels.length > 0) && (<>
+                    <CosmosSelect
+                      name="TunnelVia"
+                      label="Tunnel via another Constellation Cosmos node"
+                      formik={formik}
+                      onChange={(e) => {
+                        const newHostname = tunnels.find((t) => t.deviceName === e.target.value)?.publicHostname;
+                        formik.setFieldValue('TunneledHost', getHostnameFromName(formik.values.Name, null, config, newHostname));
+                      }}
+                      options={[
+                        ['', 'None'],
+                        ...tunnels.map((t) => [t.deviceName, `${t.deviceName} (${t.publicHostname})`])
+                      ]}
+                    />
 
-                  {formik.values.TunnelVia && <CosmosInputText
-                    name="TunneledHost"
-                    label="Hostname to tunnel from" 
-                    placeholder="other-host.com"
-                    formik={formik}
-                  />}
+                    {formik.values.TunnelVia && <CosmosInputText
+                      name="TunneledHost"
+                      label="Hostname to tunnel from (what is the user facing hostname of the tunnel)" 
+                      placeholder="other-host.com"
+                      formik={formik}
+                    />}
+                  </>)}
 
                   <CosmosCollapse title={'Advanced Settings'}>
                     <Stack spacing={2}>

@@ -90,20 +90,20 @@ const NewInstall = () => {
             return [["", "Set your hostname first"]];
         }
 
-        if(hostname.match(hostnameIsDomainReg)) {
+        if(hostname.match(hostnameIsDomainReg) && !hostname.endsWith('.local')) {
             return [
-                ["", "Select an option"],
+                ["", "Select your HTTP(S) mode"]
                 ["LETSENCRYPT", "Use Let's Encrypt automatic HTTPS (recommended)"],
                 ["SELFSIGNED", "Generate self-signed certificate"],
                 ["PROVIDED", "Supply my own HTTPS certificate"],
-                ["DISABLED", "Use HTTP only (not recommended)"],
+                ["DISABLED", "Use HTTP only"],
             ]
         } else {
             return [
-                ["", "Select an option"],
-                ["SELFSIGNED", "Generate self-signed certificate (recommended)"],
+                ["", "Select your HTTP(S) mode"]
+                ["DISABLED", "Use HTTP only"],
+                ["SELFSIGNED", "Generate self-signed certificate"],
                 ["PROVIDED", "Supply my own HTTPS certificate"],
-                ["DISABLED", "Use HTTP only (not recommended)"],
             ]
         }
     }
@@ -223,7 +223,7 @@ const NewInstall = () => {
                                 <Stack item xs={12} spacing={2}>
                                 <CosmosSelect
                                     name="DBMode"
-                                    label="Select your choice"
+                                    label="Select your encryption"
                                     formik={formik}
                                     options={[
                                         ["Create", "Automatically create a secure database (recommended)"],
@@ -289,10 +289,20 @@ const NewInstall = () => {
                 <QuestionCircleOutlined /> It is recommended to use Let's Encrypt to automatically provide HTTPS Certificates.
                 This requires a valid domain name pointing to this server. If you don't have one, <strong>you can select "Generate self-signed certificate" in the dropdown. </strong> 
                 If you enable HTTPS, it will be effective after the next restart.
+                <Alert severity="info">
+                    If you don't know, leave the default value "cosmos.local". You will be able to access Cosmos by typing "http://cosmos.local" in your browser!
+                </Alert>
+                <Alert severity="warning">
+                    *.local domains such as cosmos.local only work for <strong>home servers</strong>. If your server is remote (ex. rented server), you either need to use the IP of the server / domain name.
+                </Alert>
             </div>
             <div>
             <Formik
                 initialValues={{
+                    SSLEmail: "",
+                    TLSKey: "",
+                    TLSCert: "",
+                    Hostname: "cosmos.local",
                     HTTPSCertificateMode: "",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
@@ -359,7 +369,7 @@ const NewInstall = () => {
                               checkHost(e.target.value, setHostError, setHostIp);
                             }}
                         />
-                        {formik.values.Hostname && (formik.values.Hostname.match(hostnameIsDomainReg) ? 
+                        {formik.values.Hostname && ((formik.values.Hostname.match(hostnameIsDomainReg) && !formik.values.Hostname.endsWith('.local')) ? 
                             <Alert severity="info">
                                 You seem to be using a domain name. <br />
                                 Let's Encrypt can automatically generate a certificate for you.
@@ -367,7 +377,7 @@ const NewInstall = () => {
                             :
                             <Alert severity="info">
                                 You seem to be using an IP address or local domain. <br />
-                                You can use automatic Self-Signed certificates.
+                                You can only use plain HTTP or self-signed certificates (use self-signed if you know what you are doing, as it causes issues with some apps, especially on IOS).
                             </Alert>)
                         }
                         <CosmosSelect

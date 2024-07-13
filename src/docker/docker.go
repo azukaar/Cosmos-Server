@@ -772,7 +772,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 
 	perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
 	if perCore == 0 {
-		utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
+		// utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
 		perCore = 1
 	}
 
@@ -791,7 +791,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 		
 		// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 	} else {
-		utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
+		// utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
 	}
 
 	// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100

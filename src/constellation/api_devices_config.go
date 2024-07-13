@@ -9,10 +9,8 @@ import (
 	"strings"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
-	"net/url"
 	"errors"
-	"context"
-	"sync"
+	// "sync"
 	
 	"fmt"
 	"github.com/azukaar/cosmos-server/src/utils" 
@@ -97,7 +95,7 @@ func setDefaultConstConfig(configMap map[string]interface{}) map[string]interfac
 }
 
 
-func DeviceConfigSync(w http.ResponseWriter, req *http.Request) {
+func GetDeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 	time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
 
 	if(req.Method == "GET") {
@@ -190,7 +188,73 @@ type DeviceResyncRequest struct {
 	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
 }
 
-func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
+func GetDeviceConfigForSync(nickname, deviceName string) ([]byte, error) {
+	utils.Log("DeviceConfigSync: Fetching config for " + deviceName + " from " + nickname)
+
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
+	if errCo != nil {
+		utils.Error("Database Connect", errCo)
+		return nil, errCo
+	}
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"DeviceName": deviceName,
+		"Nickname": nickname,
+	})
+	defer cursor.Close(nil)
+	if err != nil {
+		utils.Error("DeviceList: Error fetching devices", err)
+		return nil, err
+	}
+	
+	// if any device is found, return config without keys
+	if cursor.Next(nil) {
+		utils.Log("DeviceConfigSync: Device found " + deviceName)
+
+		d := utils.ConstellationDevice{}
+		err := cursor.Decode(&d)
+		if err != nil {
+			utils.Error("DeviceList: Error decoding device", err)
+			return nil, err
+		}
+
+		configYml, err := getYAMLClientConfig(d.DeviceName, utils.CONFIGFOLDER + "nebula.yml", "", "", "", "", utils.ConstellationDevice{
+			Nickname: d.Nickname,
+			DeviceName: d.DeviceName,
+			PublicKey: "",
+			IP: d.IP,
+			IsLighthouse: d.IsLighthouse,
+			IsRelay: d.IsRelay,
+			PublicHostname: d.PublicHostname,
+			Port: d.Port,
+			APIKey: "",
+		}, false)
+
+		if err != nil {
+			utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)
+			return nil, err
+		}
+
+		// respond in JSON (from yaml)
+		configJSON, err := json.Marshal(map[string]interface{}{
+			"status":  "OK",
+			"data": string(configYml),
+		})
+
+		if err != nil {
+			utils.Error("DeviceConfigSync: Error marshalling nebula.yml to JSON", err)
+			return nil, err
+		}
+
+		return configJSON, nil		
+	} else {
+		utils.Error("DeviceConfigSync: Unauthorized [2]", nil)
+		return nil, errors.New("Unauthorized")
+	}
+}
+
+func GetDeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		var request DeviceResyncRequest
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -283,16 +347,42 @@ func DeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func SlaveConfigSync() (bool, error) {
+func GetNATSCredentials(isMaster bool) (string, string, error) {
+	if isMaster {
+		return MASTERUSER, MASTERPWD, nil
+	}
+	
+	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+	if err != nil {
+		utils.Error("GetNATSCredentials: error while reading nebula.yml", err)
+		return "", "", err
+	}
+
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal(nebulaFile, &configMap)
+	if err != nil {
+		utils.Error("GetNATSCredentials: Invalid slave config file for resync", err)
+		return "", "", err
+	}
+
+	if configMap["cstln_api_key"] == nil || configMap["cstln_device_name"] == nil {
+		utils.Error("GetNATSCredentials: Invalid slave config file for resync", nil)
+		return "", "", errors.New("Invalid slave config file for resync")
+	}
+
+	apiKey := configMap["cstln_api_key"].(string)
+	deviceName := configMap["cstln_device_name"].(string)
+
+	return deviceName, apiKey, nil
+}
+
+func SlaveConfigSync(newConfig string) (bool, error) {
 	if !utils.GetMainConfig().ConstellationConfig.Enabled || !utils.GetMainConfig().ConstellationConfig.SlaveMode {
 		return false, nil
 	}
-
-	ProcessMux.Lock()
-	defer ProcessMux.Unlock()
-
+	
 	utils.Log("SlaveConfigSync: Resyncing config")
-
+	
 	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
 	if err != nil {
 		utils.Error("SlaveConfigSync: error while reading nebula.yml", err)
@@ -309,64 +399,32 @@ func SlaveConfigSync() (bool, error) {
 	endpoint := configMap["cstln_config_endpoint"]
 	apiKey := configMap["cstln_api_key"]
 
-	utils.Log("SlaveConfigSync: Fetching config from " + endpoint.(string))
-
 	if endpoint == nil  || apiKey == nil {
 		utils.Error("SlaveConfigSync: Invalid slave config file for resync", nil)
 		return false, errors.New("Invalid slave config file for resync")
 	}
 
+	// utils.Log("SlaveConfigSync: Fetching config from " + endpoint.(string))
+
 	// fetch the config from the endpoint with Authorization header
-	req, err := http.NewRequest("GET", endpoint.(string), nil)
-	if err != nil {
-		utils.Error("SlaveConfigSync: Error creating request", err)
-		return false, err
-	}
+	// req, err := http.NewRequest("GET", endpoint.(string), nil)
+	// if err != nil {
+	// 	utils.Error("SlaveConfigSync: Error creating request", err)
+	// 	return false, err
+	// }
 
-	u, err := url.Parse(endpoint.(string))
-	if err != nil {
-		utils.Error("SlaveConfigSync: Error parsing URL", err)
-		return false, err
-	}
+	body := newConfig
 
-	req.Header = map[string][]string{
-		"Authorization": {"Bearer " + apiKey.(string)},
-		"Host": {u.Hostname()},
-	}
+	if body == "" {
+		utils.Log("SlaveConfigSync: Fetching config from NATS")
 
-	client := &http.Client{
-		Transport: &http.Transport{
-				DialContext: (&net.Dialer{
-						Timeout:   5 * time.Second,
-						KeepAlive: 5 * time.Second,
-						Resolver: &net.Resolver{
-								PreferGo: true,
-								Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-									return net.Dial(network, "192.168.201.1:53")
-								},
-						},
-				}).DialContext,
-		},
-	}
-
-	resp, err := client.Do(req)
-
-	if err != nil {
-		utils.Error("SlaveConfigSync: Error fetching config", err)
-		return false, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != 200 {
-		utils.Error("SlaveConfigSync: Error fetching config, status code: " + resp.Status, nil)
-		return false, errors.New("Error fetching config")
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		utils.Error("SlaveConfigSync: Error reading response", err)
-		return false, err
+		body, err = SendNATSMessage(NATSClientTopic + ".constellation.config", "SYNC")
+		if err != nil {
+			utils.Error("SlaveConfigSync: Error fetching config", err)
+			return false, err
+		}
+	} else {
+		utils.Log("SlaveConfigSync: Config already received. Sync now")
 	}
 
 	type Response struct {
@@ -468,103 +526,53 @@ func SlaveConfigSync() (bool, error) {
 	return false, nil
 }
 
-// sync lock 
-var WebhookSyncMux = sync.Mutex{}
+func TriggerClientResync() error {
+	utils.Log("TriggerClientResync: Resyncing all clients")
 
-func WebhookSync(w http.ResponseWriter, req *http.Request) {
-	if(req.Method == "GET") {
-		WebhookSyncMux.Lock()
-		defer WebhookSyncMux.Unlock()
+	// get al clients
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
 
-		// if request from 192.168.201.1
-		ip, _, err := net.SplitHostPort(req.RemoteAddr)
-		if err != nil {
-			http.Error(w, "Invalid request", http.StatusBadRequest)
-			return
-		}
-
-		if ip != "192.168.201.1" {
-			utils.Error("WebhookSync: Unauthorized", nil)
-			utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "WH001")
-			return
-		}
-		
-		// isConstTokenValid := CheckConstellationTokenClient(r) == nil
-		// if !isConstTokenValid {
-		// 	utils.Error("WebhookSync: Unauthorized", nil)
-		// 	utils.HTTPError(w, "Unauthorized", http.StatusUnauthorized, "WH001")
-		// 	return
-		// }
-
-		time.Sleep(time.Duration(5*time.Second))
-
-		restart, err := SlaveConfigSync()
-		if err != nil {
-			utils.Error("WebhookSync: Error syncing config", err)
-			utils.HTTPError(w, "Error syncing config", http.StatusInternalServerError, "WH002")
-			return
-		}
-
-		if restart {
-			utils.Log("WebhookSync: Restarting Nebula")
-			RestartNebula()
-			utils.RestartHTTPServer()
-		}
-
-		utils.Log("WebhookSync: Config synced")
-
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":  "OK",
-			"message": "Config synced",
-		})
-	} else {
-		utils.Error("WebhookSync: Method not allowed" + req.Method, nil)
-		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
-		return
+	if errCo != nil {
+		utils.Error("TriggerClientResync: Database Connect", errCo)
+		return errCo
 	}
-}
 
-// TODO: Replace when secured pubsub MQ is implemented
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": false,
+	})
 
-func TriggetWebhookSync() error {
-	lh, err := GetAllLightHouses()
+	defer cursor.Close(nil)
+
 	if err != nil {
+		utils.Error("TriggerClientResync: Error fetching devices", err)
 		return err
 	}
 
-	for _, l := range lh {
-		// ip := strings.ReplaceAll(l.PublicHostname, "/24", "")
-		ip = l.PublicHostname
-		url := "https://" + ip + "/cosmos/api/constellation_webhook_sync"
-		utils.Log("TriggetWebhookSync: Triggering webhook sync for " + url)
-
-		req, err := http.NewRequest("GET", url, nil)
+	for cursor.Next(nil) {
+		d := utils.ConstellationDevice{}
+		err := cursor.Decode(&d)
 		if err != nil {
-			utils.Error("TriggetWebhookSync: Error creating request", err)
+			utils.Error("TriggerClientResync: Error decoding device", err)
 			continue
 		}
 
-		req.Header = map[string][]string{
-		}
-
-		client := &http.Client{}
-
-		resp, err := client.Do(req)
+		// send message to client
+		username := sanitizeNATSUsername(d.DeviceName)
+		body, err := GetDeviceConfigForSync(d.Nickname, d.DeviceName)
 		if err != nil {
-			utils.Error("TriggetWebhookSync: Error fetching config", err)
-			continue
-		}
-		
-		defer resp.Body.Close()
-
-		utils.Debug("TriggetWebhookSync: Received response with status code: " + resp.Status)
-
-		if resp.StatusCode != 200 {
-			utils.Error("TriggetWebhookSync: Error fetching config, status code: " + resp.Status, nil)
+			utils.Error("TriggerClientResync: Error getting device config for sync", err)
 			continue
 		}
 
-		utils.Log("TriggetWebhookSync: Webhook sync triggered for " + ip)
+		_, err = SendNATSMessage("cosmos."+username+".constellation.config.resync", (string)(body))
+
+		if err != nil {
+			utils.Error("TriggerClientResync: Error sending resync message to client", err)
+			continue
+		}
+
+		utils.Log("TriggerClientResync: Resync message sent to " + username)
 	}
 
 	return nil

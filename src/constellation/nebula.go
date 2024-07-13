@@ -124,7 +124,9 @@ func stop() error {
 
 func RestartNebula() {
 	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		TriggetWebhookSync()
+		TriggerClientResync()
+		CloseNATSClient()
+		StopNATS()
 	}
 	stop()
 	Init()

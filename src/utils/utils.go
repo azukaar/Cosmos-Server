@@ -66,6 +66,7 @@ var DefaultConfig = Config{
 		HTTPPort:                "80",
 		HTTPSPort:               "443",
 		Hostname:                "0.0.0.0",
+		PublishMDNS:						 true,
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},

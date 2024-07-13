@@ -11,6 +11,7 @@ import (
 
 var NebulaStarted = false
 var CachedDeviceNames = map[string]string{}
+var CachedDevices = map[string]utils.ConstellationDevice{}
 var DeviceName = ""
 var APIKey = ""
 
@@ -110,12 +111,14 @@ func Init() {
 					} else {
 						for _, device := range devices {
 							CachedDeviceNames[device.DeviceName] = device.IP
+							CachedDevices[device.DeviceName] = device
 							utils.Debug("Constellation: device name cached: " + device.DeviceName + " -> " + device.IP)
 
 							if device.PublicHostname != "" {
 								publicHostnames := strings.Split(device.PublicHostname, ",")
 								for _, publicHostname := range publicHostnames {
 									CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
+									CachedDevices[strings.TrimSpace(publicHostname)] = device
 									utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
 								}
 							}
@@ -136,7 +139,9 @@ func Init() {
 				utils.Error("Constellation: error while unmarshalling nebula.yml", err)
 			} else {
 				if configMap["cstln_device_name"] == nil || configMap["cstln_api_key"] == nil {
-					utils.Error("Constellation: device name or api key not found in nebula.yml", nil)
+					utils.Warn("Constellation: device name or api key not found in nebula.yml")
+					DeviceName = ""
+					APIKey = ""
 				} else {
 					DeviceName = configMap["cstln_device_name"].(string)
 					APIKey = configMap["cstln_api_key"].(string)
@@ -156,13 +161,15 @@ func Init() {
 		}
 		
 		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			InitNATSClient()
+
 			var err error
 			retries := 0
 			needRestart := false
-			needRestart, err = SlaveConfigSync()
+			needRestart, err = SlaveConfigSync("")
 			for err != nil && retries < 4 {
 				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
-				needRestart, err = SlaveConfigSync()
+				needRestart, err = SlaveConfigSync("")
 				retries++
 				utils.Debug("Retrying to sync slave config")
 			}
@@ -180,6 +187,7 @@ func Init() {
 			}
 		} else {
 			go InitDNS()
+			go StartNATS()
 		}
 
 		utils.Log("Constellation module initialized")

@@ -108,6 +108,7 @@ const ConfigManagement = () => {
           UseForwardedFor: config.HTTPConfig.UseForwardedFor,
           AllowSearchEngine: config.HTTPConfig.AllowSearchEngine,
           AllowHTTPLocalIPAccess: config.HTTPConfig.AllowHTTPLocalIPAccess,
+          PublishMDNS: config.HTTPConfig.PublishMDNS,
 
           Email_Enabled: config.EmailConfig.Enabled,
           Email_Host: config.EmailConfig.Host,
@@ -595,6 +596,16 @@ const ConfigManagement = () => {
                     <CosmosCheckbox 
                       label="Allow search engines to index your server"
                       name="AllowSearchEngine"
+                      formik={formik}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Alert severity="info">
+                      This allows you to publish your server on your local network using mDNS. This means all your .local domains will be available on your local network with no additional config.
+                    </Alert>
+                    <CosmosCheckbox 
+                      label="Publish .local domains on your local network with mDNS"
+                      name="PublishMDNS"
                       formik={formik}
                     />
                   </Grid>
