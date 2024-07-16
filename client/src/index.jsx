@@ -10,7 +10,7 @@ import 'dayjs/locale/de';
 
 // import i18n (needs to be bundled ;)) 
 import './utils/locales/i18n';
-import { i18n } from './utils/locales/i18n';
+import { getLanguage } from './utils/locales/i18n';
 
 // scroll bar
 import 'simplebar/src/simplebar.css';
@@ -32,7 +32,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 dayjs.extend(customParseFormat); // if needed
 dayjs.extend(localizedFormat); // if needed
-dayjs.locale(i18n.language);
+dayjs.locale(getLanguage());
 
 // ==============================|| MAIN - REACT DOM RENDER  ||============================== //
 
@@ -42,7 +42,7 @@ root.render(
     <StrictMode>
         <ReduxProvider store={store}>
             <BrowserRouter basename="/">    
-                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={i18n.language}>
+                <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={getLanguage()}>
                     <App />
                 </LocalizationProvider>
             </BrowserRouter>

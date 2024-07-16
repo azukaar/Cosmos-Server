@@ -252,7 +252,7 @@ const Jobs = () => {
                                             }}>
                                             <Typography variant="caption" noWrap >
                                                 {job.LastStarted == '0001-01-01T00:00:00Z' ? t('mgmt.scheduler.list.status.neverRan') : (
-                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${format(job.LastStarted, i18n.language)}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${format(job.LastRun, i18n.language)}`
+                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${format(job.LastStarted, i18n.resolvedLanguage)}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${format(job.LastRun, i18n.resolvedLanguage)}`
                                                 )}
                                             </Typography>
                                             </ListItemButton>

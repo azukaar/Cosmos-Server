@@ -261,10 +261,10 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         }}
       />
 
-      <InputLabel htmlFor={name}>{t('mgmt.config.containerPicker.resultTargetPreview')}</InputLabel>
+      <InputLabel htmlFor={name}>{t('mgmt.config.containerPicker.targetTypePreview')}</InputLabel>
       <TextField
         name={name}
-        placeholder={"This will be generated automatically"}
+        placeholder={t('mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel')}
         id={name}
         value={formik.values[name]}
         disabled={true}
