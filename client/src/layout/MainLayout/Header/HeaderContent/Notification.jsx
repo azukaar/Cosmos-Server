@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -241,7 +241,7 @@ const Notification = () => {
                                                 <ListItemText
                                                     primary={<>
                                                         <Typography variant={notification.Read ? 'body' : 'h6'} noWrap>
-                                                            <Trans i18nKey={notification.Title} />
+                                                            {t(notification.Title)}
                                                         </Typography>
                                                         <div style={{ 
                                                             overflow: 'hidden',
@@ -250,13 +250,13 @@ const Notification = () => {
                                                             paddingLeft: '8px',
                                                             margin: '2px'
                                                         }}>
-                                                            <Trans i18nKey={notification.Message} values={{ Vars: notification.Vars }} />
+                                                            {t(notification.Message, { Vars: notification.Vars })}
                                                         </div></>
                                                     }
                                                 />
                                                 <ListItemSecondaryAction>
                                                     <Typography variant="caption" noWrap>
-                                                        {format(notification.Date, i18n.language)}
+                                                        {format(notification.Date, i18n.resolvedLanguage)}
                                                     </Typography>
                                                 </ListItemSecondaryAction>
                                             </ListItemButton>

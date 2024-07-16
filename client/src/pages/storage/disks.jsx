@@ -27,7 +27,7 @@ import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 const diskStyle = {
   width: "100%",
@@ -84,7 +84,7 @@ const FormatButton = ({disk, refresh}) => {
         }, cb)
       }}
       initialLogs={[
-        <Trans i18nKey="mgmt.storage.startFormatLog" values={{disk: disk.name}} />
+        t('mgmt.storage.startFormatLog', {disk: disk.name})
       ]}
       alwaysShow={true}
       OnSuccess={() => {

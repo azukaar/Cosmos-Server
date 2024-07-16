@@ -20,7 +20,7 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 
 dayjs.extend(localizedFormat); // if needed
-dayjs.locale(i18n.language);
+dayjs.locale(i18n.resolvedLanguage);
 
 const EventExplorerStandalone = ({initSearch, initLevel}) => {
   const { t } = useTranslation();

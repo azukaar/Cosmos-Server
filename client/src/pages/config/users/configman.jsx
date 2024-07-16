@@ -707,18 +707,12 @@ const ConfigManagement = () => {
 
                   <Grid item xs={12}>
                       <InputLabel htmlFor="GeoBlocking">
-                        <Trans i18nKey="mgmt.config.security.geoBlockSelection.geoBlockLabel" values={{blockAllow: formik.values.CountryBlacklistIsWhitelist ?
-                            t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varAllow') :
-                            t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varBlock')
-                          }}/>
+                        {t('mgmt.config.security.geoBlockSelection.geoBlockLabel', {blockAllow: formik.values.CountryBlacklistIsWhitelist ? t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varAllow') : t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varBlock')
+                          })}
                       </InputLabel>
                   </Grid>
 
-                  <CountrySelect name="GeoBlocking" label={
-                    <Trans i18nKey="mgmt.config.security.geoBlockSelection.geoBlockLabel" values={{blockAllow: formik.values.CountryBlacklistIsWhitelist ?
-                      t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varAllow') :
-                      t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varBlock')
-                    }}/>} formik={formik} />
+                  <CountrySelect name="GeoBlocking" label={t('mgmt.config.security.geoBlockSelection', { blockAllow: formik.values.CountryBlacklistIsWhitelist ? t('mgmt.config.security.geoBlockSelection.varAllow') : t('mgmt.config.security.geoBlockSelection.varBlock') })} formik={formik} />
 
                   <Grid item xs={12}>
                     <Button onClick={() => {

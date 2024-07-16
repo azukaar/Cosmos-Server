@@ -171,7 +171,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 									event.level == "debug" ? <SettingOutlined /> : event.level == "important" ? <ExclamationOutlined /> : undefined
 								}>
 									<div style={{fontWeight: 'bold', fontSize: '120%'}}>{event.label}</div>
-									<div>{(new Date(event.date)).toLocaleString()} - {format(event.date, i18n.language)}</div>
+									<div>{(new Date(event.date)).toLocaleString()} - {format(event.date, i18n.resolvedLanguage)}</div>
 									<div>{event.eventId} - {event.object}</div>
 								</Alert>}>
 								<div style={{overflow: 'auto'}}>

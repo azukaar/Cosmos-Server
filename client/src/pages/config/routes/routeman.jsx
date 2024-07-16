@@ -204,7 +204,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                       />
                       : <CosmosInputText
                         name="Target"
-                        label={formik.values.Mode == "PROXY" ? t('mgmt.urls.edit.targetSettings.targetUrlInput.targetUrlLabel') : t('mgmt.routes.routeman.targetFolderPathInput.targetFolderPathLabel')}
+                        label={formik.values.Mode == "PROXY" ? t('mgmt.urls.edit.targetSettings.targetUrlInput.targetUrlLabel') : t('mgmt.urls.edit.targetFolderPathInput.targetFolderPathLabel')}
                         placeholder={formik.values.Mode == "PROXY" ? "http://localhost:8080" : "/path/to/my/app"}
                         formik={formik}
                       />

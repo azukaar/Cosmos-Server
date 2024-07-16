@@ -126,7 +126,7 @@ const UserManagement = () => {
             <DialogTitle>{t('mgmt.usermgmt.editEmailTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    <Trans i18nKey="mgmt.usermgmt.editEmailText" values={{ user: openEditEmail }} />
+                    {t('mgmt.usermgmt.editEmailText', { user: openEditEmail })}
                 </DialogContentText>
                 <TextField
                     autoFocus
@@ -139,7 +139,7 @@ const UserManagement = () => {
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenEditEmail(false)}>Cancel</Button>
+                <Button onClick={() => setOpenEditEmail(false)}>{t('global.cancelAction')}</Button>
                 <Button onClick={() => {
                     API.users.edit(openEditEmail, {
                         email: document.getElementById('c-email-edit').value,

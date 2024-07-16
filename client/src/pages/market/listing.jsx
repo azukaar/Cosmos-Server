@@ -15,7 +15,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -329,7 +329,7 @@ const MarketPage = () => {
       }}>
         <h2>{t('navigation.market.applicationsTitle')}</h2>
         <Stack direction="row" spacing={2}>
-          <Input placeholder={<Trans i18nKey="navigation.market.search" count={{count: filteredAppList.length}}/>}
+          <Input placeholder={t('navigation.market.search',  {count: filteredAppList.length})}
             value={search}
             style={{ maxWidth: '400px' }}
             startAdornment={

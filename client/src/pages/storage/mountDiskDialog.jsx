@@ -4,7 +4,7 @@ import React, {useState} from "react";
 import { CosmosCheckbox } from "../config/users/formShortcuts";
 import { Formik, FormikProvider, useFormik } from "formik";
 import * as yup from "yup";
-import { Trans, useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 import * as API from '../../api';
 import { DownCircleOutlined, UpCircleOutlined } from "@ant-design/icons";
@@ -49,13 +49,14 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
     <Dialog open={open} onClose={() => setOpen(false)}>
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
-            <DialogTitle><Trans i18nKey="mgmt.storage.unMountDiskButton" values={{unMount: unmount ? t('global.unmount') : t('global.mount')}}/></DialogTitle>
+            <DialogTitle>{t('mgmt.storage.unMountDiskButton', {unMount: unmount ? t('global.unmount') : t('global.mount')})}
+            </DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
                         <Alert severity="info">
-                            <Trans i18nKey="mgmt.storage.unMountDiskText" values={{unMount: unmount ? t('global.unmount') : t('global.mount'), disk: disk.name, mountpoint: disk.mountpoint ? (<> mounted at <strong>{disk.mountpoint}</strong></>) : <></>, unAvailable: unmount ? t('unavailable') : t('available')}} />
+                            {t('mgmt.storage.unMountDiskText', {unMount: unmount ? t('global.unmount') : t('global.mount'), disk: disk.name, mountpoint: disk.mountpoint ? (<> mounted at <strong>{disk.mountpoint}</strong></>) : <></>, unAvailable: unmount ? t('unavailable') : t('available')})}
                         </Alert>
                       </div>
                       {unmount ? '' : <>
