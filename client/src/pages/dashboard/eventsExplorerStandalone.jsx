@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import localizedFormat from 'dayjs/plugin/localizedFormat'; // import this for localized formatting
-import { i18n } from '../../utils/locales/i18n';
-import 'dayjs/locale/en-gb';
-import 'dayjs/locale/en';
-import 'dayjs/locale/de';
 import { useTranslation } from 'react-i18next';
 
 // material-ui
@@ -20,7 +16,6 @@ import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import dayjs from 'dayjs';
 
 dayjs.extend(localizedFormat); // if needed
-dayjs.locale(i18n.resolvedLanguage);
 
 const EventExplorerStandalone = ({initSearch, initLevel}) => {
   const { t } = useTranslation();
