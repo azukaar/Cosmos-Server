@@ -379,7 +379,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
 }
 
 const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
   const [step, setStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -700,10 +700,10 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     setContext({ ...context, [formElement.name]: e.target.checked });
                   }
                   } />}
-                  label={formElement.label}
+                  label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                 /> : (formElement.type === 'password' || formElement.type === 'email') ?
                   <TextField
-                  label={formElement.label}
+                  label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                   value={context[formElement.name]}
                   type={formElement.type}
                   onChange={(e) => {
@@ -713,7 +713,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 :  (formElement.type === 'select') ?
                     <CosmosSelect
                     name={formElement.name} 
-                    label={formElement.label}
+                    label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                     formik={{
                       values: {
                         [formElement.name] : context[formElement.name]
@@ -726,12 +726,12 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     onChange={(e) => {
                       setContext({ ...context, [formElement.name]: e.target.value });
                     }}
-                    options={formElement.options}
+                    options={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.options'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.options'] || formElement.options }
                   />
                 : formElement.type === 'hostname' ? 
                   <>
                     <TextField
-                      label={formElement.label}
+                      label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                       value={context[formElement.name]}
                       onChange={(e) => {
                         setContext({ ...context, [formElement.name]: e.target.value });
@@ -752,18 +752,18 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                         },
                       }}
                       nameOnly={formElement.type === 'container'}
-                      label={formElement.label}
+                      label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                       onTargetChange={(_, name) => {
                         setContext({ ...context, [formElement['name-container']]: name });
                       }}
                   />
                 : formElement.type === 'error' || formElement.type === 'info' || formElement.type === 'warning' ?
                   <Alert severity={formElement.type}>
-                    {formElement.label}
+                    { service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                   </Alert>
                 
                 : <TextField
-                  label={formElement.label}
+                  label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                   value={context[formElement.name]}
                   onChange={(e) => {
                     setContext({ ...context, [formElement.name]: e.target.value });

@@ -60,7 +60,7 @@ const preStyle = {
 }
 
 const NewDockerService = ({service, refresh, edit}) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -126,7 +126,7 @@ const NewDockerService = ({service, refresh, edit}) => {
       {isDone && <Stack spacing={1}>
         <Alert severity="success">{t('mgmt.servapps.container.compose.createServiceSuccess')}</Alert>
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
-          return <Alert severity={m.type}>{m.label}</Alert>
+          return <Alert severity={m.type}>{ /*couldn't test this yet, but shoud work for max 1 msg*/ installer?.translation?.[i18n?.resolvedLanguage]?.['post-install.label'] || installer?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['post-install.label'] || m.label }</Alert>
         })}
       </Stack>}
       
