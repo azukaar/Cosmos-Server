@@ -1,4 +1,4 @@
-package market 
+package market
 
 import (
 	"net/http"
@@ -6,32 +6,43 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"time"
 )
-
 type appDefinition struct {
-	Name string `json:"name"`
-	Description string `json:"description"`
-	Url string `json:"url"`
+	Name                   string                `json:"name"`
+	Description            string                `json:"description"`
+	Url                    string                `json:"url"`
+	LongDescription        string                `json:"longDescription"`
+	Translation            *translationLanguages `json:"translation"`
+	Tags                   []string              `json:"tags"`
+	Repository             string                `json:"repository"`
+	Image                  string                `json:"image"`
+	Screenshots            []string              `json:"screenshots"`
+	Icon                   string                `json:"icon"`
+	Compose                string                `json:"compose"`
+	SupportedArchitectures []string              `json:"supported_architectures"`
+}
+
+type translationLanguages struct {
+	En		*appDefinition `json:"en"`
+	De 		*appDefinition `json:"de"`
+	DeCH	*appDefinition `json:"de-CH"`
+}
+
+type translationFields struct {
+	Description     string `json:"description"`
 	LongDescription string `json:"longDescription"`
-	Tags []string 		`json:"tags"`
-	Repository string	`json:"repository"`
-	Image string		`json:"image"`
-	Screenshots []string	`json:"screenshots"`
-	Icon string		`json:"icon"`
-	Compose string	`json:"compose"`
-	SupportedArchitectures []string	`json:"supported_architectures"`
 }
 
 type marketDefinition struct {
 	Showcase []appDefinition `json:"showcase"`
-	All []appDefinition `json:"all"`
-	Source string `json:"source"`
+	All      []appDefinition `json:"all"`
+	Source   string          `json:"source"`
 }
 
 type marketCacheObject struct {
-	Url string	`json:"url"`
-	Name string	`json:"name"`
-	LastUpdate time.Time	`json:"lastUpdate"`
-	Results marketDefinition	`json:"results"`
+	Url        string           `json:"url"`
+	Name       string           `json:"name"`
+	LastUpdate time.Time        `json:"lastUpdate"`
+	Results    marketDefinition `json:"results"`
 }
 
 var currentMarketcache []marketCacheObject
@@ -48,7 +59,7 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 			// fetch market.url
 			resp, err := http.Get(cachedMarket.Url)
 			if err != nil {
-				utils.Error("MarketUpdate: Error while fetching market" + cachedMarket.Url, err)
+				utils.Error("MarketUpdate: Error while fetching market"+cachedMarket.Url, err)
 				// utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK001")
 				continue
 			}
@@ -60,7 +71,7 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 			err = json.NewDecoder(resp.Body).Decode(&result)
 
 			if err != nil {
-				utils.Error("MarketUpdate: Error while parsing market" + cachedMarket.Url, err)
+				utils.Error("MarketUpdate: Error while parsing market"+cachedMarket.Url, err)
 				// utils.HTTPError(w, "Market Get Error " + cachedMarket.Url, http.StatusInternalServerError, "MK003")
 				continue
 			}
@@ -79,9 +90,9 @@ func updateCache(w http.ResponseWriter, req *http.Request) error {
 				"success",
 				"",
 				map[string]interface{}{
-					"market": cachedMarket.Name,
+					"market":       cachedMarket.Name,
 					"numberOfApps": len(result.All),
-			})
+				})
 
 			utils.Log("MarketUpdate: Updated market " + result.Source + " with " + string(len(result.All)) + " results")
 

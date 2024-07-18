@@ -15,7 +15,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'; 
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -61,7 +61,7 @@ function Showcases({ showcase, isDark, isAdmin }) {
 }
 
 function ShowcasesItem({ isDark, item, isAdmin }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return (
     <Paper style={{
       position: 'relative',
@@ -92,7 +92,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             <img src={item.icon} style={{ width: '36px', height: '36px' }} />
             <h2>{item.name}</h2>
           </Stack>
-          <p dangerouslySetInnerHTML={{ __html: item.longDescription }} style={{
+          <p dangerouslySetInnerHTML={{ __html: item?.translation?.[i18n?.resolvedLanguage]?.longDescription || item?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || item.longDescription }} style={{
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
@@ -132,7 +132,7 @@ const gridAnim = {
 };
 
 const MarketPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [apps, setApps] = useState([]);
   const [showcase, setShowcase] = useState([]);
   const theme = useTheme();
@@ -293,7 +293,7 @@ const MarketPage = () => {
             <div><strong>{t('navigation.market.compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>
 
-          <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
+          <div dangerouslySetInnerHTML={{ __html: openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription }}></div>
 
           {isAdmin && <div>
             <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
@@ -386,7 +386,7 @@ const MarketPage = () => {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'pre-wrap',
                         }}
-                        >{app.description}</div>
+                        >{ app?.translation?.[i18n?.resolvedLanguage]?.description || app?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.description || app.description }</div>
                         <Stack direction={'row'} spacing={1}>
                           <div style={{
                             fontStyle: "italic", opacity: 0.7,
