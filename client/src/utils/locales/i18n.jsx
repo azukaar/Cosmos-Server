@@ -1,7 +1,8 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-import resourcesToBackend from 'i18next-resources-to-backend'
+import resourcesToBackend from 'i18next-resources-to-backend';
+import dayjs from 'dayjs';
 
 i18n
   // detect user language
@@ -15,6 +16,11 @@ i18n
     keySeparator: false,
     debug: false,
     fallbackLng: 'en',
+    supportedLngs: [
+      'en',
+      'de',
+      'de-CH'
+    ],
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
     },
@@ -28,5 +34,16 @@ i18n
       (typeof window !== 'undefined' && window.localStorage.i18nextLng) ||
       'en';
   };
+
+  const locales = {
+    en: () => import('dayjs/locale/en'),
+    enGB: () => import('dayjs/locale/en-gb'),
+    de: () => import('dayjs/locale/de'),
+    deCH: () => import('dayjs/locale/de-ch'),
+  }
+  
+  export function dayjsLocale (language) {
+    locales[language.replace('-', '')]().then(() => dayjs.locale(language.toLowerCase()))
+  }
 
 export { i18n };
