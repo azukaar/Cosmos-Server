@@ -306,6 +306,7 @@ const NewInstall = () => {
                     HTTPSCertificateMode: "",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
+                    DNSChallengeResolver: '',
                     DNSChallengeConfig: {},
                     allowHTTPLocalIPAccess: false,
                     __success: false,
@@ -342,6 +343,7 @@ const NewInstall = () => {
                             TLSCert: values.HTTPSCertificateMode === "PROVIDED" ? values.TLSCert : '',
                             Hostname: values.Hostname,
                             DNSChallengeProvider: values.DNSChallengeProvider,
+                            DNSChallengeResolver: values.DNSChallengeResolver,
                             DNSChallengeConfig: values.DNSChallengeConfig,
                             allowHTTPLocalIPAccess: values.allowHTTPLocalIPAccess,
                         });
@@ -397,6 +399,12 @@ const NewInstall = () => {
                                 name="SSLEmail"
                                 label="Let's Encrypt Email"
                                 placeholder={"email@domain.com"}
+                                formik={formik}
+                            />
+                            <CosmosInputText
+                                name="DNSChallengeResolver"
+                                label="DNS Server to use when resolving the letsencrypt challenge"
+                                placeholder={"1.1.1.1"}
                                 formik={formik}
                             />
                             {formik.values.DNSChallengeProvider && formik.values.DNSChallengeProvider != '' && (

@@ -34,6 +34,7 @@ type NewInstallJSON struct {
 	SSLEmail string `json:"sslEmail",validate:"omitempty,email"`
 	UseWildcardCertificate bool `json:"useWildcardCertificate",validate:"omitempty"`
 	DNSChallengeProvider string `json:"dnsChallengeProvider",validate:"omitempty"`
+	DNSChallengeResolver string `json:"dnsChallengeResolver",validate:"omitempty"`
 	DNSChallengeConfig map[string]string
 	AllowHTTPLocalIPAccess bool `json:"allowHTTPLocalIPAccess",validate:"omitempty"`
 }
@@ -128,6 +129,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			newConfig.HTTPConfig.SSLEmail = request.SSLEmail
 			newConfig.HTTPConfig.UseWildcardCertificate = request.UseWildcardCertificate
 			newConfig.HTTPConfig.DNSChallengeProvider = request.DNSChallengeProvider
+			newConfig.HTTPConfig.DNSChallengeResolver = request.DNSChallengeResolver
 			newConfig.HTTPConfig.DNSChallengeConfig = request.DNSChallengeConfig
 			newConfig.HTTPConfig.TLSCert = request.TLSCert
 			newConfig.HTTPConfig.TLSKey = request.TLSKey

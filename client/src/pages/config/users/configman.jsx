@@ -102,6 +102,7 @@ const ConfigManagement = () => {
           UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
           DNSChallengeProvider: config.HTTPConfig.DNSChallengeProvider,
+          DNSChallengeResolver: config.HTTPConfig.DNSChallengeResolver,
           DNSChallengeConfig: config.HTTPConfig.DNSChallengeConfig,
           ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
           OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
@@ -186,6 +187,7 @@ const ConfigManagement = () => {
               UseWildcardCertificate: values.UseWildcardCertificate,
               HTTPSCertificateMode: values.HTTPSCertificateMode,
               DNSChallengeProvider: values.DNSChallengeProvider,
+              DNSChallengeResolver: values.DNSChallengeResolver,
               DNSChallengeConfig: values.DNSChallengeConfig,
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
@@ -818,6 +820,20 @@ const ConfigManagement = () => {
                           formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                         }}
                         label="Email address for Let's Encrypt"
+                        formik={formik}
+                      />
+                    )
+                  }
+
+
+                  {formik.values.HTTPSCertificateMode === "LETSENCRYPT" && (
+                      <CosmosInputText
+                        onChange={(e) => {
+                          formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
+                        }}
+                        label="DNS Server to use when resolving the letsencrypt challenge"
+                        name="DNSChallengeResolver"
+                        configName="DNSChallengeResolver"
                         formik={formik}
                       />
                     )
