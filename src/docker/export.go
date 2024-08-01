@@ -106,7 +106,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 					return networks
 			}(),
 
-			DependsOn:      []string{},  // This is not directly available from inspect. It's part of docker-compose.
+			DependsOn:      map[string]ContainerCreateRequestContainerDependsOnCont{},  // This is not directly available from inspect. It's part of docker-compose.
 			RestartPolicy:  string(detailedInfo.HostConfig.RestartPolicy.Name),
 			Devices:        func() []string {
 					var devices []string

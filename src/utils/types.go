@@ -170,6 +170,7 @@ type HTTPConfig struct {
 	DNSChallengeConfig map[string]string `json:"DNSChallengeConfig,omitempty"`
 	UseForwardedFor bool
 	AllowSearchEngine bool
+	PublishMDNS bool
 } 
 
 const (

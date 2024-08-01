@@ -127,13 +127,14 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
   </>
 }
 
-const MountDialog = ({ disk, unmount, refresh }) => {
+const MountDialog = ({ disk, unmount, refresh, disabled }) => {
   const [open, setOpen] = useState(false);
 
   return <>
     {open && <MountDialogInternal disk={disk} unmount={unmount} refresh={refresh} open={open} setOpen={setOpen}/>}
     
     <Button
+      disabled={disabled}
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"

@@ -159,7 +159,9 @@ export const ConstellationVPN = () => {
                   </LoadingButton>
                   <UploadButtons
                     accept=".yml,.yaml"
-                    label={"Upload External Constellation Network File"}
+                    label={config.ConstellationConfig.SlaveMode ?
+                      "Resync External Constellation Network File"
+                      : "Upload External Constellation Network File"}
                     variant="outlined"
                     fullWidth
                     OnChange={async (e) => {
