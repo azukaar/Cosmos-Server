@@ -232,9 +232,15 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
-            // ensure container_name
-            if (!doc.services[key].container_name) {
-              doc.services[key].container_name = key;
+            // convert DependsOn
+            if (doc.services[key].depends_on) {
+              if (Array.isArray(doc.services[key].depends_on)) {
+                let depends_on = {};
+                doc.services[key].depends_on.forEach((depend) => {
+                  depends_on['' + depend] = {}; 
+                });
+                doc.services[key].depends_on = depends_on;
+              }
             }
 
             // convert healthcheck
@@ -255,6 +261,45 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                 }
               });
             }
+
+            // ensure hostname
+            if (!doc.services[key].hostname) {
+              doc.services[key].hostname = key;
+            }
+            
+            // if service name is set, namespace the keys
+            if (serviceName) {
+              let newKey = serviceName + '-' + key;
+              doc.services[newKey] = doc.services[key];
+              doc.services[newKey].old_key = key;
+              delete doc.services[key];
+              key = newKey;
+            }
+
+            // ensure container_name
+            if (!doc.services[key].container_name) {
+              doc.services[key].container_name = key;
+            }
+          });
+
+          // ensure depends on names
+          Object.keys(doc.services).forEach((key) => {
+            if (doc.services[key].depends_on) {
+              Object.keys(doc.services[key].depends_on).forEach((depend) => {
+                Object.keys(doc.services).forEach((potentialMatch) => {
+                  if (doc.services[potentialMatch].old_key === depend) {
+                    let name = doc.services[potentialMatch].container_name || potentialMatch;
+                    doc.services[key].depends_on[name] = {};
+                    delete doc.services[key].depends_on[depend];
+                  }
+                });
+              });
+            }
+          });
+          
+          // clean up old-keys
+          Object.keys(doc.services).forEach((key) => {
+            delete doc.services[key].old_key;
           });
         }
 
@@ -483,7 +528,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         } else if (jsoned['services'] && Object.keys(jsoned['services']).length > 0 && Object.keys(jsoned['services'])[0].trim() !== '') {
           setServiceName(Object.keys(jsoned['services'])[0]);
         } else {
-          setServiceName(cleanDefaultName || 'default-name');
+          setServiceName(cleanDefaultName || 'default-service');
         }
       }
 

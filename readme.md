@@ -19,7 +19,6 @@
 <a href="https://github.com/kandykarter"><img src="https://avatars.githubusercontent.com/kandykarter" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/rdawman"><img src="https://avatars.githubusercontent.com/rdawman" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/kkolarov64"><img src="https://avatars.githubusercontent.com/kkolarov64" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/Dimtar"><img src="https://avatars.githubusercontent.com/Dimtar" style="border-radius:48px" width="48" height="48" alt="Daniel C" title="Daniel C" /></a>
 </p><!-- /sponsors -->
 
 ---

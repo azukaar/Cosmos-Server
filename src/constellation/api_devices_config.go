@@ -1,19 +1,18 @@
 package constellation
 
 import (
-	"net/http"
 	"encoding/json"
 	"math/rand"
-	"time"
 	"net"
 	"strings"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"errors"
-	// "sync"
-	
 	"fmt"
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"net/http"
+	"time"
+
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func compareConfigs(configMap, configMapNew map[string]interface{}) bool {
