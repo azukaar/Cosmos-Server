@@ -191,6 +191,11 @@ func PublishAllMDNSFromConfig() {
 		
 		publishingCnames = localRoutes
 
+		// if empty
+		if len(publishingCnames) == 0 {
+			return
+		}
+
 		if newPub {
 			go publishing(
 				context.Background(),
