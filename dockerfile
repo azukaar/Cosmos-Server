@@ -19,7 +19,7 @@ EXPOSE 443 80
 VOLUME /config
 
 RUN apt-get update \
-    && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid avahi-daemon avahi-utils dbus \
+    && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,6 +33,4 @@ COPY build/* ./
 COPY static ./static
 
 # Run the respective binary based on the BINARY_NAME
-CMD service dbus start && \
-    service avahi-daemon start && \
-    ./$(cat /binary_name)
+CMD ["sh", "-c", "./$(cat /binary_name)"]

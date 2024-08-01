@@ -167,7 +167,7 @@ func PublishAllMDNSFromConfig() {
 	}
 	
 	if err != nil {
-		utils.MajorError("failed to create mDNS publisher (*.local domains will be missing) ", err)
+		utils.MajorError("failed to start mDNS (*.local domains). Install Avahi to solve this issue.", err)
 	} else {
 		routes := utils.GetAllHostnames(false, true)
 		

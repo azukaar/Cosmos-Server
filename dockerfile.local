@@ -10,7 +10,7 @@ WORKDIR /app
 
 ENV PATH=$PATH:/usr/local/go/bin
 
-RUN apt-get update && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid dbus avahi-daemon avahi-utils && \
+RUN apt-get update && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid && \
     apt-get install -y --no-install-recommends  wget curl && \
     apt-get install -y --no-install-recommends nodejs && \
     wget https://golang.org/dl/go1.21.6.linux-amd64.tar.gz && \
@@ -40,6 +40,4 @@ RUN npm run client-build && \
 
 WORKDIR /app/build
 
-CMD service dbus start && \
-    service avahi-daemon start && \
-    ./cosmos
+CMD ./cosmos
