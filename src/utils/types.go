@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -246,6 +247,7 @@ type EmailConfig struct {
 	From       string
 	UseTLS		 bool
 	AllowInsecureTLS		 bool
+	NotifyLogin  bool
 }
 
 type OpenIDClient struct {
