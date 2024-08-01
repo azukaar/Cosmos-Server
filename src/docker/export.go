@@ -50,6 +50,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			},
 			DNS:              detailedInfo.HostConfig.DNS,
 			DNSSearch:        detailedInfo.HostConfig.DNSSearch,
+			Runtime:		  detailedInfo.HostConfig.Runtime,
 			ExtraHosts:       detailedInfo.HostConfig.ExtraHosts,
 			SecurityOpt:      detailedInfo.HostConfig.SecurityOpt,
 			StorageOpt:       detailedInfo.HostConfig.StorageOpt,

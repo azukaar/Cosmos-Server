@@ -62,6 +62,7 @@ type ContainerCreateRequestContainer struct {
 
 	Command string `json:"command,omitempty"`
 	Entrypoint string `json:"entrypoint,omitempty"`
+	Runtime string `json:"runtime,omitempty"`
 	WorkingDir string `json:"working_dir,omitempty"`
 	User string `json:"user,omitempty"`
 	UID int `json:"uid,omitempty"`
@@ -698,6 +699,10 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			CapDrop:     container.CapDrop,
 		}
 
+		if container.Runtime != "" {
+			hostConfig.Runtime = strings.Join(strings.Fields(container.Runtime), " ")
+		}		
+
 		// For Healthcheck
 		if len(container.HealthCheck.Test) > 0 {
 			containerConfig.Healthcheck = &conttype.HealthConfig{
@@ -807,7 +812,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 				Was: oldConfig,
 			})
 		}
-		
 		_, err = DockerClient.ContainerCreate(DockerContext, containerConfig, hostConfig, networkingConfig, nil, container.Name)
 
 		if err != nil {
