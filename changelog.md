@@ -8,6 +8,7 @@
  - Added hostname stickiness to compose network namespaces
  - Fixed issues with container's monitoring when name contains a dot (Thanks @BearTS)
  - Added email on succesful login  (Thanks @BearTS)
+ - Add support for runtime (Thanks @ryan-schubert)
 
 ## Version 0.15.7
  - Added "Allow insecure local connection" for HTTP ip:port access in the same network
