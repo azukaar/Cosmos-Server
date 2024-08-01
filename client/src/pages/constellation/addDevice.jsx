@@ -70,7 +70,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
-          IsRelay: true,
+          IsRelay: false,
           isLighthouse: false,
         }}
 
@@ -202,7 +202,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
                       <CosmosCheckbox
                         name="IsRelay"
-                        label="Can Relay Traffic"
+                        label="Relay traffic via this Lighthouse"
                         formik={formik}
                       />
                     </>}

@@ -106,7 +106,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
   </>
 }
 
-const MountDiskDialog = ({ disk, unmount, refresh }) => {
+const MountDiskDialog = ({ disk, unmount, refresh, disabled }) => {
   const [open, setOpen] = useState(false);
 
   return <>
@@ -116,6 +116,7 @@ const MountDiskDialog = ({ disk, unmount, refresh }) => {
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
+      disabled={disabled}
       startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
     >{unmount ? 'Unmount' : 'Mount'}</Button>
   </>

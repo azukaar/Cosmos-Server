@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type UpdateRouteRequest struct {
@@ -105,6 +106,7 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 	})
 	
 	utils.RestartHTTPServer()
+	constellation.RestartNebula()
 		
 	if updateReq.NewRoute != nil && updateReq.NewRoute.Mode == "SERVAPP" {
 		utils.Log("RouteSettingsUpdate: Service needs update: "+updateReq.NewRoute.Target)

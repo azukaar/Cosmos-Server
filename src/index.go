@@ -53,6 +53,7 @@ func main() {
 	}
 
 	config := utils.GetMainConfig()
+	
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()

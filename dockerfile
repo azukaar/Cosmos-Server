@@ -19,7 +19,7 @@ EXPOSE 443 80
 VOLUME /config
 
 RUN apt-get update \
-    && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid \
+    && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid avahi-daemon avahi-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
