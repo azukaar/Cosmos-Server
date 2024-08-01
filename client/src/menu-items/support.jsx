@@ -16,12 +16,12 @@ const DiscordOutlinedIcon = (props) => {
 
 const support = {
     id: 'support',
-    title: 'menu-items.support',
+    title: 'Support',
     type: 'group',
     children: [
         {
             id: 'discord',
-            title: 'menu-items.support.discord',
+            title: 'Discord',
             type: 'item',
             url: 'https://discord.com/invite/PwMWwsrwHA',
             icon: DiscordOutlinedIcon,
@@ -30,7 +30,7 @@ const support = {
         },
         {
             id: 'github',
-            title: 'menu-items.support.github',
+            title: 'Github',
             type: 'item',
             url: 'https://github.com/azukaar/Cosmos-Server',
             icon: GithubOutlined,
@@ -39,7 +39,7 @@ const support = {
         },
         {
             id: 'documentation',
-            title: 'menu-items.support.docsTitle',
+            title: 'Documentation',
             type: 'item',
             url: 'https://cosmos-cloud.io/doc',
             icon: QuestionOutlined,
@@ -48,7 +48,7 @@ const support = {
         },
         {
             id: 'bug',
-            title: 'menu-items.support.bugReportTitle',
+            title: 'Found a Bug?',
             type: 'item',
             url: 'https://github.com/azukaar/Cosmos-Server/issues/new/choose',
             icon: BugOutlined,

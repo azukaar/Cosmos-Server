@@ -10,10 +10,8 @@ import { CircularProgress, Input, InputAdornment, Stack, TextField, useMediaQuer
 import { SearchOutlined } from '@ant-design/icons';
 import { useTheme } from '@mui/material/styles';
 import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, linkTo, buttons, fullWidth }) => {
-  const { t } = useTranslation();
   const [search, setSearch] = React.useState('');
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -37,7 +35,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
   return (
     <Stack direction="column" spacing={2} style={{width: fullWidth ? '100%': ''}}>
       <Stack direction="row" spacing={2}>
-        <Input placeholder={t('global.searchPlaceholder')}
+        <Input placeholder="Search"
           value={search}
           style={{
             width: '250px',

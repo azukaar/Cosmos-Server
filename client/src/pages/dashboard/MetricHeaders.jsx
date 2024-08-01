@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -10,7 +9,6 @@ import {
 import { formatDate } from './components/utils';
 
 const MetricHeaders = ({loaded, slot, setSlot, zoom, setZoom}) => {
-    const { t } = useTranslation();
     const resetZoom = () => {
         setZoom({
             xaxis: {}
@@ -50,7 +48,7 @@ const MetricHeaders = ({loaded, slot, setSlot, zoom, setZoom}) => {
                 color={slot === 'latest' ? 'primary' : 'secondary'}
                 variant={slot === 'latest' ? 'outlined' : 'text'}
             >
-                {t('navigation.monitoring.latest')}
+                Latest
             </Button>
             <Button
                 size="small"
@@ -58,7 +56,7 @@ const MetricHeaders = ({loaded, slot, setSlot, zoom, setZoom}) => {
                 color={slot === 'hourly' ? 'primary' : 'secondary'}
                 variant={slot === 'hourly' ? 'outlined' : 'text'}
             >
-                {t('navigation.monitoring.hourly')}
+                Hourly
             </Button>
             <Button
                 size="small"
@@ -66,7 +64,7 @@ const MetricHeaders = ({loaded, slot, setSlot, zoom, setZoom}) => {
                 color={slot === 'daily' ? 'primary' : 'secondary'}
                 variant={slot === 'daily' ? 'outlined' : 'text'}
             >
-                {t('navigation.monitoring.daily')}
+                Daily
             </Button>
 
             {zoom.xaxis.min && <Button
@@ -79,7 +77,7 @@ const MetricHeaders = ({loaded, slot, setSlot, zoom, setZoom}) => {
                 color={'primary'}
                 variant={'outlined'}
             >
-                {t('global.resetZoomButton')}
+                Reset Zoom
             </Button>}
         </Stack>
         </div>}

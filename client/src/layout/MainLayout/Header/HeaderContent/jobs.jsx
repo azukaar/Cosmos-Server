@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -21,8 +20,7 @@ import {
     useMediaQuery,
     Button
 } from '@mui/material';
-import { register, format } from 'timeago.js';
-import de from "timeago.js/lib/lang/de";
+import * as timeago from 'timeago.js';
 
 // project import
 import MainCard from '../../../../components/MainCard';
@@ -60,8 +58,6 @@ const getStatus = (job) => {
 }
 
 const Jobs = () => {
-    register('de', de);
-    const { t, i18n } = useTranslation();
     const {role} = useClientInfos();
     const isAdmin = role === "2";
     const theme = useTheme();
@@ -251,8 +247,8 @@ const Jobs = () => {
                                                 alignItems: 'center',
                                             }}>
                                             <Typography variant="caption" noWrap >
-                                                {job.LastStarted == '0001-01-01T00:00:00Z' ? t('mgmt.scheduler.list.status.neverRan') : (
-                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${format(job.LastStarted, i18n.resolvedLanguage)}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${format(job.LastRun, i18n.resolvedLanguage)}`
+                                                {job.LastStarted == '0001-01-01T00:00:00Z' ? 'Never Run' : (
+                                                    job.Running ? <span><LoadingOutlined />{` Running - Started ${timeago.format(job.LastStarted)}`}</span> : `Last run ${timeago.format(job.LastRun)}`
                                                 )}
                                             </Typography>
                                             </ListItemButton>

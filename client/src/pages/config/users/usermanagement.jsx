@@ -22,10 +22,8 @@ import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
-import { Trans, useTranslation } from 'react-i18next';
 
 const UserManagement = () => {
-    const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(false);
     const [openCreateForm, setOpenCreateForm] = React.useState(false);
     const [openDeleteForm, setOpenDeleteForm] = React.useState(false);
@@ -66,7 +64,7 @@ const UserManagement = () => {
 
     return <>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
-            <DialogTitle>{t('mgmt.usermgmt.inviteUserTitle')}</DialogTitle>
+            <DialogTitle>Invite User</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     <div style={{
@@ -75,10 +73,10 @@ const UserManagement = () => {
                     }}>
                         {toAction.emailWasSent ? 
                             <div>
-                                <strong>{t('mgmt.usermgmt.inviteUser.emailSentConfirmation')}</strong> {t('mgmt.usermgmt.inviteUser.emailSentwithLink')} {toAction.formAction}. {t('mgmt.usermgmt.inviteUser.emailSentAltShareLink')}
+                                <strong>An email has been sent</strong> with a link to {toAction.formAction}. Alternatively you can also share the link below:
                             </div> :
                             <div>
-                                {t('mgmt.usermgmt.inviteUser.emailSentAltShare')} {toAction.nickname} {t('mgmt.usermgmt.inviteUser.emailSentAltShareTo')} {toAction.formAction}:
+                                Send this link to {toAction.nickname} to {toAction.formAction}:
                             </div>
                         }
                     </div>
@@ -99,47 +97,47 @@ const UserManagement = () => {
                 <Button onClick={() => {
                     setOpenInviteForm(false);
                     refresh();
-                }}>{t('global.close')}</Button>
+                }}>Close</Button>
             </DialogActions>
         </Dialog>: ''}
 
         <Dialog open={openDeleteForm} onClose={() => setOpenDeleteForm(false)}>
-            <DialogTitle>{t('mgmt.usermgmt.deleteUserTitle')}</DialogTitle>
+            <DialogTitle>Delete User</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('mgmt.usermgmt.deleteUserConfirm')} {toAction} ?
+                    Are you sure you want to delete user {toAction} ?
                 </DialogContentText>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenDeleteForm(false)}>{t('global.cancelAction')}</Button>
+                <Button onClick={() => setOpenDeleteForm(false)}>Cancel</Button>
                 <Button onClick={() => {
                     API.users.deleteUser(toAction)
                     .then(() => {
                         refresh();
                         setOpenDeleteForm(false);
                     })
-                }}>{t('global.delete')}</Button>
+                }}>Delete</Button>
             </DialogActions>
         </Dialog>
         
         <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
-            <DialogTitle>{t('mgmt.usermgmt.editEmailTitle')}</DialogTitle>
+            <DialogTitle>Edit Email</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('mgmt.usermgmt.editEmailText', { user: openEditEmail })}
+                    Use this form to invite edit {openEditEmail}'s Email.
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-email-edit"
-                    label={t('mgmt.usermgmt.editEmail.emailInput.emailLabel')}
+                    label="Email Address"
                     type="email"
                     fullWidth
                     variant="standard"
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenEditEmail(false)}>{t('global.cancelAction')}</Button>
+                <Button onClick={() => setOpenEditEmail(false)}>Cancel</Button>
                 <Button onClick={() => {
                     API.users.edit(openEditEmail, {
                         email: document.getElementById('c-email-edit').value,
@@ -147,21 +145,21 @@ const UserManagement = () => {
                         setOpenEditEmail(false);
                         refresh();
                     });
-                }}>{t('global.edit')}</Button>
+                }}>Edit</Button>
             </DialogActions>
         </Dialog>
 
         <Dialog open={openCreateForm} onClose={() => setOpenCreateForm(false)}>
-            <DialogTitle>{t('mgmt.usermgmt.createUserTitle')}</DialogTitle>
+            <DialogTitle>Create User</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('mgmt.usermgmt.inviteUserText')}
+                    Use this form to invite a new user to the system.
                 </DialogContentText>
                 <TextField
                     autoFocus
                     margin="dense"
                     id="c-nickname"
-                    label={t('global.nicknameLabel')}
+                    label="Nickname"
                     type="text"
                     fullWidth
                     variant="standard"
@@ -170,14 +168,14 @@ const UserManagement = () => {
                     autoFocus
                     margin="dense"
                     id="c-email"
-                    label={t('mgmt.usermgmt.createUser.emailOptInput.emailOptLabel')}
+                    label="Email Address (Optional)"
                     type="email"
                     fullWidth
                     variant="standard"
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenCreateForm(false)}>{t('global.cancelAction')}</Button>
+                <Button onClick={() => setOpenCreateForm(false)}>Cancel</Button>
                 <Button onClick={() => {
                     API.users.create({
                         nickname: document.getElementById('c-nickname').value,
@@ -187,17 +185,17 @@ const UserManagement = () => {
                         refresh();
                         sendlink(document.getElementById('c-nickname').value, 2);
                     });
-                }}>{t('global.createAction')}</Button>
+                }}>Create</Button>
             </DialogActions>
         </Dialog>
 
 
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
                 refresh();
-        }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
+        }}>Refresh</Button>&nbsp;&nbsp;
         <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
             setOpenCreateForm(true)
-        }}>{t('global.createAction')}</Button><br /><br />
+        }}>Create</Button><br /><br />
 
 
         {isLoading && <center><br /><CircularProgress /></center>}
@@ -210,7 +208,7 @@ const UserManagement = () => {
             getKey={(r) => r.nickname}
             columns={[
                 {
-                    title: t('global.user'),
+                    title: 'User',
                     // underline: true,
                     field: (r) => <strong>{r.nickname}</strong>,
                 },
@@ -223,18 +221,18 @@ const UserManagement = () => {
 
                         return <>{isRegistered ? (r.role > 1 ? <Chip
                                 icon={<KeyOutlined />}
-                                label={t('mgmt.usermgmt.adminLabel')}
+                                label="Admin"
                             /> : <Chip
                                 icon={<UserOutlined />}
-                                label={t('global.user')}
+                                label="User"
                             />) : (
                                 inviteExpired ? <Chip
                                     icon={<ExclamationCircleOutlined  />}
-                                    label={t('mgmt.usermgmt.inviteExpiredLabel')}
+                                    label="Invite Expired"
                                     color="error"
                                 /> : <Chip
                                     icon={<WarningOutlined />}
-                                    label={t('mgmt.usermgmt.invitePendingLabel')}
+                                    label="Invite Pending"
                                     color="warning"
                                 />
                             )}</>
@@ -246,16 +244,16 @@ const UserManagement = () => {
                     field: (r) => r.email,
                 },
                 {
-                    title: t('global.createdAt'),
+                    title: 'Created At',
                     screenMin: 'lg',
                     field: (r) => new Date(r.createdAt).toLocaleString(),
                 },
                 {
-                    title: t('mgmt.usermgmt.lastLogin'),
+                    title: 'Last Login',
                     screenMin: 'lg', 
                     field: (r) => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
-                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : t('global.never')}</>
+                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : 'Never'}</>
                     },
                 },
                 {
@@ -275,13 +273,13 @@ const UserManagement = () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 1);
                                 }
-                            }>{t('mgmt.usermgmt.sendPasswordResetButton')}</Button>) :
+                            }>Send password reset</Button>) :
                             (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                 () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 2);
                                 }
-                            } color="primary">{t('newInstall.usermgmt.inviteUser.resendInviteButton')}</Button>)
+                            } color="primary">Re-Send Invite</Button>)
                         }
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
@@ -289,7 +287,7 @@ const UserManagement = () => {
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
-                        }>{t('global.delete')}</Button>
+                        }>Delete</Button>
                         &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
                             () => {
                                 setLoadingRow(r.nickname);
@@ -297,7 +295,7 @@ const UserManagement = () => {
                                     refresh();
                                 });
                             }
-                        }>{t('mgmt.usermgmt.reset2faButton')}</Button></>
+                        }>Reset 2FA</Button></>
                     }
                 },
             ]}

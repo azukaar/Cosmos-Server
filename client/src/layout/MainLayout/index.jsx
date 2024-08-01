@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -19,7 +18,6 @@ import { openDrawer } from '../../store/reducers/menu';
 // ==============================|| MAIN LAYOUT ||============================== //
 
 const MainLayout = () => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const matchDownLG = useMediaQuery(theme.breakpoints.down('xl'));
     const dispatch = useDispatch();

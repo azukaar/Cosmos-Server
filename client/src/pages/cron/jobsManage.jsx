@@ -17,7 +17,6 @@ import ResponsiveButton from "../../components/responseiveButton";
 import MenuButton from "../../components/MenuButton";
 import JobLogsDialog from "./jobLogs";
 import NewJobDialog from "./newJob";
-import { useTranslation } from 'react-i18next';
 
 const getStatus = (job) => {
   if (job.Running) return 'running';
@@ -27,7 +26,6 @@ const getStatus = (job) => {
 }
 
 export const CronManager = () => {
-  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [cronJobs, setCronJobs] = useState([]);
@@ -92,16 +90,16 @@ export const CronManager = () => {
         <Stack direction="row" spacing={2}>
           <ResponsiveButton variant="contained" startIcon={<PlusOutlined />} onClick={() => {
             setNewJob(true);
-          }}>{t('mgmt.cron.newCronTitle')}</ResponsiveButton>
+          }}>New Job</ResponsiveButton>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>{t('global.refresh')}</ResponsiveButton>
+          }}>Refresh</ResponsiveButton>
         </Stack>
         {Object.keys(cronJobs).map(scheduler => <div>
           <h4>{({
-            "Custom": t('mgmt.scheduler.customJobsTitle'),
-            "SnapRAID": t('mgmt.scheduler.parityDiskJobsTitle'),
-            "__OT__SnapRAID": t('mgmt.scheduler.oneTimeJobsTitle'),
+            "Custom": "Custom Jobs",
+            "SnapRAID": "Parity Disks Jobs",
+            "__OT__SnapRAID": "One Time Jobs",
           }[scheduler])}</h4>
           <PrettyTableView 
             data={Object.values(cronJobs[scheduler])}
@@ -111,7 +109,7 @@ export const CronManager = () => {
             ]}
             columns={[
               (scheduler == "Custom" && {
-                title: t('global.enabled'),
+                title: 'Enabled',
                 clickable:true, 
                 field: (r, k) => <Checkbox disabled={loading} size='large' color={!r.Disabled ? 'success' : 'default'}
                   onChange={() => setEnabled(r.Name, r.Disabled)}
@@ -119,21 +117,21 @@ export const CronManager = () => {
                 />,
               }),
               {
-                title: t('global.nameTitle'),
+                title: 'Name',
                 field: (r) => r.Name,
               },
               {
-                title: t('mgmt.scheduler.list.scheduleTitle'),
-                field: (r) => crontabToText(r.Crontab, t),
+                title: 'Schedule',
+                field: (r) => crontabToText(r.Crontab),
               },
               {
-                title: t('global.statusTitle'),
+                title: "Status",
                 field: (r) => {
                   return <div style={{maxWidth: '400px'}} >{{
-                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.runningSince')}{r.LastStarted}</Alert>,
-                    'success': <Alert severity={'success'} color={'success'}>{t('mgmt.scheduler.list.status.lastRunFinishedOn')} {r.LastRun}, {t('mgmt.scheduler.list.status.lastRunFinishedOn.duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
-                    'error': <Alert severity={'error'} color={'error'}>{t('mgmt.scheduler.list.status.lastRunExitedOn')} {r.LastRun}</Alert>,
-                    'never': <Alert severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.neverRan')}</Alert>
+                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>Running since {r.LastStarted}</Alert>,
+                    'success': <Alert severity={'success'} color={'success'}>Last run finished on {r.LastRun}, duration {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
+                    'error': <Alert severity={'error'} color={'error'}>Last run exited with an error on {r.LastRun}</Alert>,
+                    'never': <Alert severity={'info'} color={'info'}>Never ran</Alert>
                     
                   }[getStatus(r)]}</div>
                 }
@@ -146,19 +144,19 @@ export const CronManager = () => {
                       refresh();
                     });
                   }}><StopOutlined /></IconButton></Tooltip>
-                    : <Tooltip title={t('mgmt.scheduler.list.action.run')}><IconButton onClick={() => {
+                    : <Tooltip title="Run"><IconButton onClick={() => {
                       API.cron.run(scheduler, r.Name).then(() => {
                         refresh();
                       });
                     }}><PlayCircleOutlined /></IconButton></Tooltip>}
-                  <Tooltip title={t('mgmt.scheduler.list.action.logs')}><IconButton onClick={() => {
+                  <Tooltip title="Logs"><IconButton onClick={() => {
                     setJobLogs(r);
                   }}><SearchOutlined /></IconButton></Tooltip>
                   {scheduler == "Custom" && <>
-                    <Tooltip title={t('global.edit')}><IconButton onClick={() => {
+                    <Tooltip title="Edit"><IconButton onClick={() => {
                       setNewJob(r);
                     }}><EditOutlined /></IconButton></Tooltip>
-                    <Tooltip title={t('global.delete')}>
+                    <Tooltip title="Delete">
                       <DeleteIconButton onDelete={() => {
                         deleteCronJob(r);
                       }} />

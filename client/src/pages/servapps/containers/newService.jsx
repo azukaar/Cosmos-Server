@@ -21,7 +21,6 @@ import { smartDockerLogConcat, tryParseProgressLog } from '../../../utils/docker
 import { LoadingButton } from '@mui/lab';
 import LogLine from '../../../components/logLine';
 import Highlighter from '../../../components/third-party/Highlighter';
-import { useTranslation } from 'react-i18next';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
@@ -60,7 +59,6 @@ const preStyle = {
 }
 
 const NewDockerService = ({service, refresh, edit}) => {
-  const { t } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -111,7 +109,7 @@ const NewDockerService = ({service, refresh, edit}) => {
   }
 
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
-    <MainCard title={edit ? t('mgmt.servapps.container.compose.editServiceTitle') : t('mgmt.servapps.container.compose.createServiceButton')}>
+    <MainCard title={edit ? "Edit Service" : "Create Service - Preview"}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
@@ -122,16 +120,16 @@ const NewDockerService = ({service, refresh, edit}) => {
         className={edit ? '' : 'shinyButton'}
         loading={log.length && !isDone}
         startIcon={edit ? <SyncOutlined /> : <PlusCircleOutlined />}
-      >{edit ? t('global.edit'): t('global.createAction')}</LoadingButton>}
+      >{edit ? 'Edit': 'Create'}</LoadingButton>}
       {isDone && <Stack spacing={1}>
-        <Alert severity="success">{t('mgmt.servapps.container.compose.createServiceSuccess')}</Alert>
+        <Alert severity="success">Service Created!</Alert>
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
           return <Alert severity={m.type}>{m.label}</Alert>
         })}
       </Stack>}
       
 
-      {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>{t('global.backAction')}</Button> : null}
+      {edit && !isDone && log.length ? <Button onClick={() => setLog([])}>Back</Button> : null}
 
       {log.length ? <pre style={preStyle} ref={preRef}>
         {log.map((l) => {
@@ -141,7 +139,7 @@ const NewDockerService = ({service, refresh, edit}) => {
       <div>
         <Editor
           value={dockerCompose}
-          placeholder={t('mgmt.servapps.pasteComposeButton.pasteComposePlaceholder')}
+          placeholder='Paste your docker-compose.yml / cosmos-compose.json here or use the file upload button.'
           onValueChange={code => setDockerCompose(code)}
           highlight={code => highlight(code, isJSON ? languages.json : languages.yaml)}
           padding={10}

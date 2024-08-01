@@ -12,11 +12,9 @@ import RestartModal from '../../config/users/restart';
 import RouteManagement from '../../config/routes/routeman';
 import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../../utils/routes';
 import HostChip from '../../../components/hostChip';
-import { useTranslation } from 'react-i18next';
 
 
 const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
-  const { t } = useTranslation();
   const [openRestartModal, setOpenRestartModal] = useState(false);
   const [submitErrors, setSubmitErrors] = useState([]);
   const [newRoute, setNewRoute] = useState(null);
@@ -33,7 +31,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
   return <>
   <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} newRoute />
   <Dialog open={openNewModal} onClose={() => setOpenNewModal(false)}>
-    <DialogTitle>{t('mgmt.urls.edit.newUrlTitle')}</DialogTitle>
+    <DialogTitle>New URL</DialogTitle>
         {openNewModal && <>
         <DialogContent>
             <DialogContentText>
@@ -79,7 +77,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
                   return <div>{err}</div>
                 })}</Alert>
             </Stack>}
-            <Button onClick={() => setOpenNewModal(false)}>{t('global.cancelAction')}</Button>
+            <Button onClick={() => setOpenNewModal(false)}>Cancel</Button>
             <Button onClick={() => {
               let errors = ValidateRoute(newRoute, config);
               if (errors && errors.length > 0) {
@@ -89,7 +87,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
                 addRoute();
               }
               
-            }}>{t('global.confirmAction')}</Button>
+            }}>Confirm</Button>
         </DialogActions>
     </>}
   </Dialog>

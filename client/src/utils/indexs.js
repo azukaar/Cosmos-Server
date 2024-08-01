@@ -51,11 +51,11 @@ export const redirectToLocal = (url) => {
   window.location.href = url;
 }
 
-export const crontabToText = (crontab, t) => {
+export const crontabToText = (crontab) => {
   const parts = crontab.split(' ');
 
   if (parts.length !== 6) {
-      return t('mgmt.cron.invalidCron');
+      return 'Invalid CRONTAB format (use 6 parts)';
   }
 
   const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts;

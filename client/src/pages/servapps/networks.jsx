@@ -6,11 +6,10 @@ import { useEffect, useState } from 'react';
 import * as API from '../../api';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewNetworkButton from './createNetwork';
-import { useTranslation } from 'react-i18next';
 
-export const NetworksColumns = (theme, isDark, t) => [
+export const NetworksColumns = (theme, isDark) => [
   {
-    title: t('mgmt.servapps.networks.list.networkName'),
+    title: 'Network Name',
     field: (r) => <Stack direction='column'>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
       <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Driver} driver</div>
@@ -18,7 +17,7 @@ export const NetworksColumns = (theme, isDark, t) => [
     search: (r) => r.Name,
   },
   {
-    title: t('mgmt.servapps.networks.list.networkproperties'),
+    title: 'Properties',
     screenMin: 'md',
     field: (r) => (
       <Stack direction="row" spacing={1}>
@@ -30,24 +29,23 @@ export const NetworksColumns = (theme, isDark, t) => [
     ),
   },
   {
-    title: t('mgmt.servapps.networks.list.networkIpam'),
+    title: 'IPAM gateway / mask',
     screenMin: 'lg',
     field: (r) => r.IPAM.Config ? r.IPAM.Config.map((config, index) => (
       <Stack key={index}>
         <div>{config.Gateway}</div>
         <div>{config.Subnet}</div>
       </Stack>
-    )) : t('mgmt.servapps.networks.list.networkNoIp'),
+    )) : 'No Ip',
   },
   {
-    title: t('global.createdAt'),
+    title: 'Created At',
     screenMin: 'lg',
     field: (r) => r.Created ? new Date(r.Created).toLocaleString() : '-',
   },
 ];
 
 const NetworkManagementList = () => {
-  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState(null);
   const [tryDelete, setTryDelete] = useState(null);
@@ -71,7 +69,7 @@ const NetworkManagementList = () => {
     <>
       <Stack direction='row' spacing={1} style={{ marginBottom: '20px' }}>
         <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={refresh}>
-          {t('global.refresh')}
+          Refresh
         </Button>
       </Stack>
 
@@ -85,7 +83,7 @@ const NetworkManagementList = () => {
           onRowClick={() => { }}
           getKey={(r) => r.Id}
           columns={[
-            ...NetworksColumns(theme, isDark, t),
+            ...NetworksColumns(theme, isDark),
             {
               title: '',
               clickable: true,
@@ -110,7 +108,7 @@ const NetworkManagementList = () => {
                       }
                     }}
                   >
-                    {tryDelete === r.Id ? t('global.confirmDeletion') : t('global.delete')}
+                    {tryDelete === r.Id ? "Really?" : "Delete"}
                   </Button>
                 </>
               ),

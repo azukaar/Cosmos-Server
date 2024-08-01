@@ -3,10 +3,8 @@ import { Box, Button, Checkbox, CircularProgress, Input, Stack, TextField, Typog
 import * as API from '../../../api';
 import LogLine from '../../../components/logLine';
 import { useTheme } from '@emotion/react';
-import { useTranslation } from 'react-i18next';
 
 const Logs = ({ containerInfo }) => {
-  const { t } = useTranslation();
   const { Name, Config, NetworkSettings, State } = containerInfo;
   const containerName = Name;
   const [logs, setLogs] = useState([]);
@@ -116,9 +114,9 @@ const Logs = ({ containerInfo }) => {
         <Stack direction={screenMin ? 'row' : 'column'} spacing={3}>
           <Stack direction="row" spacing={3}>
           <Input
-            label={t('global.searchPlaceholder')}
+            label="Search"
             value={searchTerm}
-            placeholder={t('global.searchPlaceholder')+"..."}
+            placeholder="Search..."
             onChange={(e) => {
               setHasScrolled(false);
               setSearchTerm(e.target.value);
@@ -134,7 +132,7 @@ const Logs = ({ containerInfo }) => {
                 setLastReceivedLogs('');
               }}
             />
-            {t('mgmt.servApps.container.protocols.errorOnlyCheckbox')}
+            Error Only
           </Box>
         </Stack>
           <Stack direction="row" spacing={3}>
@@ -158,7 +156,7 @@ const Logs = ({ containerInfo }) => {
               fetchLogs(true, true);
             }}
           >
-            {t('global.refresh')}
+            Refresh
           </Button>
         </Stack>
         </Stack>

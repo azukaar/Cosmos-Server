@@ -15,7 +15,6 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
-import { useTranslation } from 'react-i18next';
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -61,7 +60,6 @@ function Showcases({ showcase, isDark, isAdmin }) {
 }
 
 function ShowcasesItem({ isDark, item, isAdmin }) {
-  const { t } = useTranslation();
   return (
     <Paper style={{
       position: 'relative',
@@ -103,7 +101,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
-                {t('navigation.market.viewButton')}
+                View
               </Button>
             </Link>
           </Stack>
@@ -132,7 +130,6 @@ const gridAnim = {
 };
 
 const MarketPage = () => {
-  const { t } = useTranslation();
   const [apps, setApps] = useState([]);
   const [showcase, setShowcase] = useState([]);
   const theme = useTheme();
@@ -258,7 +255,7 @@ const MarketPage = () => {
             textDecoration: 'none',
           }}>
             <Button className="CheckButton" color="primary" variant="outlined">
-              {t('global.close')}
+              Close
             </Button>
           </Link>
 
@@ -281,16 +278,16 @@ const MarketPage = () => {
 
           {openedApp.appstore != 'cosmos-cloud' && <div>
             <div>
-            <Tooltip title={t('navigation.market.unofficialMarketTooltip')}>
+            <Tooltip title="This app is not hosted on the Cosmos Cloud App Store. It is not officially verified and tested.">
                 <WarningOutlined />
-              </Tooltip> <strong>{t('global.source')}:</strong> {openedApp.appstore} 
+              </Tooltip> <strong>source:</strong> {openedApp.appstore} 
             </div>
           </div>}
           
           <div>
-            <div><strong>{t('navigation.market.repository')}:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
-            <div><strong>{t('navigation.market.image')}:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
-            <div><strong>{t('navigation.market.compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
+            <div><strong>repository:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
+            <div><strong>image:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
+            <div><strong>compose:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>
 
           <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
@@ -327,9 +324,9 @@ const MarketPage = () => {
         minHeight: 'calc(65vh - 80px)',
         padding: '24px',
       }}>
-        <h2>{t('navigation.market.applicationsTitle')}</h2>
+        <h2>Applications</h2>
         <Stack direction="row" spacing={2}>
-          <Input placeholder={t('navigation.market.search',  {count: filteredAppList.length})}
+          <Input placeholder={"Search " + filteredAppList.length + " applications"}
             value={search}
             style={{ maxWidth: '400px' }}
             startAdornment={
@@ -346,11 +343,11 @@ const MarketPage = () => {
             <ResponsiveButton
               variant="contained"
               startIcon={<AppstoreAddOutlined />}
-            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
+            >Start ServApp</ResponsiveButton>
           </Link>
           <DockerComposeImport refresh={() => { }} />
           <EditSourcesModal onSave={refresh} />
-          <PersistentCheckbox name="filterDups" label={t('navigation.market.filterDuplicateCheckbox')} value={filterDups} onChange={setFilterDups} />
+          <PersistentCheckbox name="filterDups" label="Filter Duplicates" value={filterDups} onChange={setFilterDups} />
         </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',

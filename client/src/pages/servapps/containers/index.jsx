@@ -19,10 +19,8 @@ import DockerTerminal from './terminal';
 import ContainerMetrics from '../../dashboard/containerMetrics';
 import EventExplorerStandalone from '../../dashboard/eventsExplorerStandalone';
 import ContainerComposeEdit from './compose-editor';
-import { useTranslation } from 'react-i18next';
 
 const ContainerIndex = () => {
-  const { t } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
   const [config, setConfig] = React.useState(null);
@@ -55,23 +53,23 @@ const ContainerIndex = () => {
       isLoading={!container || !config}
       tabs={[
         {
-          title: t('mgmt.servapps.overview'),
+          title: 'Overview',
           children: <ContainerOverview updatesAvailable={updatesAvailable} selfName={selfName} refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: t('mgmt.scheduler.list.action.logs'),
+          title: 'Logs',
           children: <Logs containerInfo={container} config={config}/>
         },
         {
-          title: t('menu-items.navigation.monitoringTitle'),
+          title: 'Monitoring',
           children: <ContainerMetrics containerName={containerName}/>
         },
         {
-          title: t('navigation.monitoring.eventsTitle'),
+          title: 'Events',
           children: <EventExplorerStandalone initSearch={`{"object":"container@${containerName}"}`}/>
         },
         {
-          title: t('mgmt.servapps.terminal'),
+          title: 'Terminal',
           children: <DockerTerminal refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
@@ -83,11 +81,11 @@ const ContainerIndex = () => {
           children: <DockerContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: t('global.network'),
+          title: 'Network',
           children: <NetworkContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
         {
-          title: t('menu-items.management.storage'),
+          title: 'Storage',
           children: <VolumeContainerSetup refresh={refreshContainer} containerInfo={container} config={config}/>
         },
       ]} />

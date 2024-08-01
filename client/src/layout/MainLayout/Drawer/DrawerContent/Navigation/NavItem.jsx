@@ -2,7 +2,6 @@ import PropTypes from 'prop-types';
 import { forwardRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -15,7 +14,6 @@ import { useClientInfos } from '../../../../../utils/hooks';
 // ==============================|| NAVIGATION - LIST ITEM ||============================== //
 
 const NavItem = ({ item, level }) => {
-    const { t } = useTranslation();
     const theme = useTheme();
     const dispatch = useDispatch();
     const menu = useSelector((state) => state.menu);
@@ -150,7 +148,7 @@ const NavItem = ({ item, level }) => {
                 <ListItemText
                     primary={
                         <Typography variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor }}>
-                            {t(item.title)}
+                            {item.title}
                         </Typography>
                     }
                 />

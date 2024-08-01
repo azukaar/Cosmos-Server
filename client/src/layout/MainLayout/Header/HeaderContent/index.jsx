@@ -8,12 +8,10 @@ import Profile from './Profile';
 import Notification from './Notification';
 import MobileSection from './MobileSection';
 import Jobs from './jobs';
-import { useTranslation } from 'react-i18next';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
 const HeaderContent = () => {
-    const { t } = useTranslation();
     const matchesXs = useMediaQuery((theme) => theme.breakpoints.down('md'));
 
     return (
@@ -26,7 +24,7 @@ const HeaderContent = () => {
                 <Notification />
 
                 <Link href="/cosmos-ui/logout" underline="none">
-                    <Chip label={t('global.logout')} />
+                    <Chip label="Logout" />
                 </Link>
             </Stack>
             {/* {!matchesXs && <Profile />}

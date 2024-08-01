@@ -4,10 +4,8 @@ import { Alert } from '@mui/material';
 import RouteManagement from '../config/routes/routeman';
 import { ValidateRoute, getFaviconURL, sanitizeRoute, getContainersRoutes, getHostnameFromName } from '../../utils/routes';
 import * as API from '../../api';
-import { useTranslation } from 'react-i18next';
 
 const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container }) => {
-  const { t } = useTranslation();
   const [submitErrors, setSubmitErrors] = useState([]);
   const [newRoute, setNewRoute] = useState(null);
 
@@ -18,13 +16,13 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
   }
   
   return <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-    <DialogTitle>{t('mgmt.servApp.container.urls.exposeTitle')}</DialogTitle>
+    <DialogTitle>Expose ServApp</DialogTitle>
         {openModal && <>
         <DialogContent>
             <DialogContentText>
               <Stack spacing={2}>
                 <div>
-                  {t('mgmt.servApp.container.urls.exposeText')}
+                  Welcome to the URL Wizard. This interface will help you expose your ServApp securely to the internet by creating a new URL.
                 </div>
                 <div>
                     <RouteManagement TargetContainer={openModal} 
@@ -68,7 +66,7 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                   return <div>{err}</div>
                 })}</Alert>
             </Stack>}
-            <Button onClick={() => setOpenModal(false)}>{t('global.cancelAction')}</Button>
+            <Button onClick={() => setOpenModal(false)}>Cancel</Button>
             <Button onClick={() => {
               let errors = ValidateRoute(newRoute, config);
               if (errors && errors.length > 0) {
@@ -82,7 +80,7 @@ const ExposeModal = ({ openModal, setOpenModal, config, updateRoutes, container 
                 updateRoutes(newRoute);
               }
               
-            }}>{t('global.confirmAction')}</Button>
+            }}>Confirm</Button>
         </DialogActions>
     </>}
   </Dialog>

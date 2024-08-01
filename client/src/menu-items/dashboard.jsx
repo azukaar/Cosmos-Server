@@ -10,12 +10,12 @@ const icons = {
 
 const dashboard = {
     id: 'group-dashboard',
-    title: 'menu-items.navigation',
+    title: 'Navigation',
     type: 'group',
     children: [
         {
             id: 'home',
-            title: 'menu-items.navigation.home',
+            title: 'Home',
             type: 'item',
             url: '/cosmos-ui/',
             icon: icons.HomeOutlined,
@@ -23,7 +23,7 @@ const dashboard = {
         },
         {
             id: 'dashboard',
-            title: 'menu-items.navigation.monitoringTitle',
+            title: 'Monitoring',
             type: 'item',
             url: '/cosmos-ui/monitoring',
             icon: DashboardOutlined,
@@ -32,7 +32,7 @@ const dashboard = {
         },
         {
             id: 'market',
-            title: 'menu-items.navigation.marketTitle',
+            title: 'Market',
             type: 'item',
             url: '/cosmos-ui/market-listing',
             icon: AppstoreAddOutlined,

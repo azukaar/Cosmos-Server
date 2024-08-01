@@ -19,7 +19,6 @@ import * as API from "../../../api";
 import { LoadingButton } from "@mui/lab";
 import PrettyTableView from "../../../components/tableView/prettyTableView";
 import ResponsiveButton from "../../../components/responseiveButton";
-import { useTranslation } from 'react-i18next';
 
 const VolumeContainerSetup = ({
   noCard,
@@ -29,7 +28,6 @@ const VolumeContainerSetup = ({
   newContainer,
   OnChange,
 }) => {
-  const { t } = useTranslation();
   const [volumes, setVolumes] = React.useState([]);
   const theme = useTheme();
 
@@ -55,7 +53,7 @@ const VolumeContainerSetup = ({
 
   const wrapCard = (children) => {
     if (noCard) return children;
-    return <MainCard title={t('mgmt.servapps.newContainer.volumesTitle')}>{children}</MainCard>;
+    return <MainCard title="Volume Mounts">{children}</MainCard>;
   };
 
   const initialValues = useMemo(() => {
@@ -83,7 +81,7 @@ const VolumeContainerSetup = ({
       });
       const unique = [...new Set(volumes)];
       if (unique.length !== volumes.length) {
-        errors.submit = t('mgmt.servapps.newContainer.volumes.mountNotUniqueError');
+        errors.submit = "Mounts must have unique targets";
       }
       OnChange && OnChange(values, volumes);
       return errors;
@@ -147,7 +145,8 @@ const VolumeContainerSetup = ({
                         severity="warning"
                         style={{ marginBottom: "15px" }}
                       >
-                        {t('mgmt.servApps.volumes.containerNotRunningWarning')}
+                        This container is not running. Editing any settings will
+                        cause the container to start again.
                       </Alert>
                     )}
                   <Grid container spacing={4}>
@@ -177,7 +176,7 @@ const VolumeContainerSetup = ({
                                 ]);
                               }}
                             >
-                              {t('mgmt.servapps.newContainer.volumes.newMountButton')}
+                              New Mount Point
                             </ResponsiveButton>,
                           ]}
                           columns={[
@@ -203,14 +202,14 @@ const VolumeContainerSetup = ({
                                     name={`volumes[${k}].Type`}
                                     onChange={formik.handleChange}
                                   >
-                                    <MenuItem value="bind">{t('mgmt.servapps.newContainer.volumes.bindInput')}</MenuItem>
-                                    <MenuItem value="volume">{t('global.volume')}</MenuItem>
+                                    <MenuItem value="bind">Bind</MenuItem>
+                                    <MenuItem value="volume">Volume</MenuItem>
                                   </TextField>
                                 </div>
                               ),
                             },
                             {
-                              title: t('global.source'),
+                              title: "Source",
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -262,7 +261,7 @@ const VolumeContainerSetup = ({
                               ),
                             },
                             {
-                              title: t('global.target'),
+                              title: "Target",
                               field: (r, k) => (
                                 <div
                                   style={{
@@ -308,7 +307,7 @@ const VolumeContainerSetup = ({
                                       );
                                     }}
                                   >
-                                    {t('global.unmount')}
+                                    Unmount
                                   </Button>
                                 );
                               },
@@ -345,7 +344,7 @@ const VolumeContainerSetup = ({
                             variant="contained"
                             color="primary"
                           >
-                            {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
+                            Update Volumes
                           </LoadingButton>
                         )}
                       </Stack>

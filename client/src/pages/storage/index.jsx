@@ -12,58 +12,56 @@ import { StorageMounts } from './mounts';
 import { StorageDisks } from './disks';
 import { StorageMerges } from './merges';
 import { Parity } from './parity';
-import { useTranslation } from 'react-i18next';
 
 const StorageIndex = () => {
-  const { t } = useTranslation();
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
         {
-          title: t('mgmt.storage.disks'),
+          title: 'Disks',
           children: <StorageDisks />,
           path: 'disks'
         },
         {
-          title: t('mgmt.storage.mounts'),
+          title: 'Mounts',
           children: <StorageMounts />,
           path: 'mounts'
         },
         {
-          title: t('mgmt.storage.externalStorage'),
+          title: 'External Storages',
           children: <div>
             <Alert severity="info">
-              {t('mgmt.storage.externalStorageText')}
+              Coming soon. This feature will allow you to mount external cloud (Dropbox, Onedrive, ...) to your server.
             </Alert>
           </div>,
           path: 'external'
         },
         {
-          title: t('mgmt.storage.sharesTitle'),
+          title: 'Shares',
           children:  <div>
           <Alert severity="info">
-            {t('mgmt.storage.sharesText')}
+            Coming soon. This feature will allow you to share folders with different protocols (SMB, FTP, ...)
           </Alert>
         </div>,
           path: 'shares'
         },
         {
-          title: t('mgmt.storage.mergeTitle'),
+          title: 'Merge Disks',
           children: <StorageMerges />,
           path: 'mergerfs'
         },
         {
-          title: t('mgmt.storage.parityTitle'),
+          title: 'Parity',
           children: <Parity />,
           path: 'parity'
         },
         {
-          title: t('mgmt.storage.raidTitle'),
+          title: 'RAID',
           children:  <div>
           <Alert severity="info">
-            {t('mgmt.storage.raidText')}
+            Coming soon. This feature will allow you to create RAID arrays with your disks.
           </Alert>
         </div>,
           path: 'raid'

@@ -182,9 +182,8 @@ more information.<br />`, alert.Severity, metric.Key))
 	} else if action.Type == "notification" {
 		utils.WriteNotification(utils.Notification{
 			Recipient: "admin",
-			Title: "header.notification.title.alertTriggered",
-			Message: "header.notification.message.alertTriggered",
-			Vars: alert.Name,
+			Title: "Alert triggered",
+			Message: "The alert \"" + alert.Name + "\" was triggered.",
 			Level: alert.Severity,
 			Link: "/cosmos-ui/monitoring",
 		})

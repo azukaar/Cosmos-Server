@@ -4,16 +4,12 @@ import * as API from '../../api';
 import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { CosmosCollapse, CosmosSelect } from "../config/users/formShortcuts";
 import MainCard from '../../components/MainCard';
-import { register, format } from 'timeago.js';
-import de from "timeago.js/lib/lang/de";
+import * as timeago from 'timeago.js';
 import { ExclamationOutlined, SettingOutlined } from "@ant-design/icons";
 import { Alert } from "@mui/material";
 import { DownloadFile } from "../../api/downloadButton";
-import { Trans, useTranslation } from 'react-i18next';
 
 const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''}) => {
-	register('de', de);
-	const { t, i18n } = useTranslation();
 	const [events, setEvents] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState(initSearch);
@@ -122,7 +118,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 				<div>
 					<Button variant='contained' onClick={() => {
 						refresh("");
-					}} style={{height: '42px'}}>{t('global.refresh')}</Button>
+					}} style={{height: '42px'}}>Refresh</Button>
 				</div>
 				<div>
 					<DownloadFile filename='events-export.json' content={
@@ -158,9 +154,10 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 						}}
 					/>
 				</div>
-				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('navigation.monitoring.events.searchInput.searchPlaceholder')} />
+				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder='Search (text or bson)' />
 			</Stack>
-			<div><Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: from.toLocaleString(), to: to.toLocaleString()}}/>
+			<div>
+			{total} events found from {from.toLocaleString()} to {to.toLocaleString()}
 			</div>
 			<div>
 				{events && <Stack spacing={1}>
@@ -171,7 +168,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 									event.level == "debug" ? <SettingOutlined /> : event.level == "important" ? <ExclamationOutlined /> : undefined
 								}>
 									<div style={{fontWeight: 'bold', fontSize: '120%'}}>{event.label}</div>
-									<div>{(new Date(event.date)).toLocaleString()} - {format(event.date, i18n.resolvedLanguage)}</div>
+									<div>{(new Date(event.date)).toLocaleString()} - {timeago.format(event.date)}</div>
 									<div>{event.eventId} - {event.object}</div>
 								</Alert>}>
 								<div style={{overflow: 'auto'}}>
@@ -194,7 +191,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 						<Button variant='contained' fullWidth onClick={() => {
 							// set page to last element's id
 							setPage(events[events.length - 1].id);
-						}}>{t('navigation.monitoring.events.loadMoreButton')}</Button>
+						}}>Load more</Button>
 					</MainCard>}
 				</Stack>}
 			</div>

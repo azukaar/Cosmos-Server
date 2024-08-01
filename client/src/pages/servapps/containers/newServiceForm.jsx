@@ -18,10 +18,8 @@ import VolumeContainerSetup from './volumes';
 import DockerTerminal from './terminal';
 import NewDockerService from './newService';
 import RouteManagement from '../../config/routes/routeman';
-import { useTranslation } from 'react-i18next';
 
 const NewDockerServiceForm = () => {
-  const { t } = useTranslation();
   const [currentTab, setCurrentTab] = React.useState(0);
   const [maxTab, setMaxTab] = React.useState(0);
   const [config, setConfig] = React.useState(null);
@@ -104,7 +102,7 @@ const NewDockerServiceForm = () => {
         setCurrentTab(currentTab - 1);
       }}
     >
-        {t('newInstall.previousButton')}
+        Previous
     </Button>
     <Button
       variant="contained"
@@ -116,7 +114,7 @@ const NewDockerServiceForm = () => {
         setMaxTab(Math.max(currentTab + 1, maxTab));
       }}
     >
-        {t('global.next')}
+        Next
     </Button>
     </Stack>
 
@@ -124,7 +122,7 @@ const NewDockerServiceForm = () => {
     <Stack spacing={1}>
       <Stack direction="row" spacing={1} alignItems="center">
         <Back />
-        <div>{t('mgmt.servApp.newServAppButton')}</div>
+        <div>Start New Servapp</div>
       </Stack>
 
       {<PrettyTabbedView
@@ -191,14 +189,14 @@ const NewDockerServiceForm = () => {
                   }
                   setContainerInfo(newValues);
                 }}
-              />{t('mgmt.servApp.url')}
+              />Create a URL to access this ServApp
             </MainCard>
             {containerInfo.CreateRoute && <RouteManagement TargetContainer={containerInfo} 
               routeConfig={{
                 Target: "http://"+containerInfo.Name.replace('/', '') + ":",
                 Mode: "SERVAPP",
                 Name: containerInfo.Name.replace('/', ''),
-                Description: t('mgmt.servApp.exposeDesc').replace('containerName',containerInfo.Name.replace('/', '')) + containerInfo.Name.replace('/', ''),
+                Description: "Expose " + containerInfo.Name.replace('/', '') + " to the internet",
                 UseHost: true,
                 Host: getHostnameFromName(containerInfo.Name, null, config),
                 UsePathPrefix: false,
@@ -229,7 +227,7 @@ const NewDockerServiceForm = () => {
           />}{nav()}</Stack>
         },
         {
-          title: t('global.network'),
+          title: 'Network',
           disabled: maxTab < 1,
           children: <Stack spacing={2}><NetworkContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             const newValues = {
@@ -282,7 +280,7 @@ const NewDockerServiceForm = () => {
           }}/>{nav()}</Stack>
         },
         {
-          title: t('menu-items.management.storage'),
+          title: 'Storage',
           disabled: maxTab < 1,
           children: <Stack spacing={2}><VolumeContainerSetup newContainer containerInfo={containerInfo} OnChange={(values) => {
             const newValues = {
@@ -302,7 +300,7 @@ const NewDockerServiceForm = () => {
           }} />{nav()}</Stack>
         },
         {
-          title: t('mgmt.servApp.newContainer.reviewStartButton'),
+          title: 'Review & Start',
           disabled: maxTab < 1,
           children: <Stack spacing={2}><NewDockerService service={service} />{nav()}</Stack>
         }

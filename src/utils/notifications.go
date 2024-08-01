@@ -21,7 +21,6 @@ type Notification struct {
 	ID primitive.ObjectID      `bson:"_id,omitempty"`
 	Title string
 	Message string
-	Vars string
 	Icon string
 	Link string
 	Date time.Time
@@ -177,7 +176,6 @@ func WriteNotification(notification Notification) {
 			BufferedDBWrite("notifications", map[string]interface{}{
 				"Title": notification.Title,
 				"Message": notification.Message,
-				"Vars": notification.Vars,
 				"Icon": notification.Icon,
 				"Link": notification.Link,
 				"Date": notification.Date,
@@ -191,7 +189,6 @@ func WriteNotification(notification Notification) {
 		BufferedDBWrite("notifications", map[string]interface{}{
 			"Title": notification.Title,
 			"Message": notification.Message,
-			"Vars": notification.Vars,
 			"Icon": notification.Icon,
 			"Link": notification.Link,
 			"Date": notification.Date,

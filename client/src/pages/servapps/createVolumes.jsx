@@ -19,11 +19,10 @@ import {
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
 import * as API from '../../api';
-import { useTranslation } from 'react-i18next';
 
 const NewVolumeButton = ({ fullWidth, refresh }) => {
-  const { t } = useTranslation();
   const [isOpened, setIsOpened] = useState(false);
+
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -53,7 +52,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>{t('mgmt.servApps.volumes.newVolumeTitle')}</DialogTitle>
+          <DialogTitle>New Volume</DialogTitle>
           <DialogContent>
             <DialogContentText></DialogContentText>
             <form onSubmit={formik.handleSubmit}>
@@ -74,18 +73,18 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
                 error={formik.touched.driver && Boolean(formik.errors.driver)}
                 style={{ marginBottom: '16px' }}
               >
-                <InputLabel htmlFor="driver">{t('global.driver')}</InputLabel>
+                <InputLabel htmlFor="driver">Driver</InputLabel>
                 <Select
                   id="driver"
                   name="driver"
                   value={formik.values.driver}
                   onChange={formik.handleChange}
-                  label={t('global.driver')}
+                  label="Driver"
                 >
                   <MenuItem value="">
-                    <em>{t('mgmt.servApps.driver.none')}</em>
+                    <em>None</em>
                   </MenuItem>
-                  <MenuItem value="local">{t('mgmt.servApps.volumes.newVolume.driverSelection.localChoice')}</MenuItem>
+                  <MenuItem value="local">Local</MenuItem>
                   {/* Add more driver options if needed */}
                 </Select>
               </FormControl>
@@ -97,12 +96,12 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
             )}
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpened(false)}>{t('global.cancelAction')}</Button>
+            <Button onClick={() => setIsOpened(false)}>Cancel</Button>
             <LoadingButton
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              {t('global.createAction')}
+              Create
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -112,7 +111,7 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        {t('mgmt.servApps.volumes.newVolumeTitle')}
+        New Volume
       </Button>
     </>
   );

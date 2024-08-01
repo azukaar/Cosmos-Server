@@ -6,10 +6,8 @@ import LogsInModal from '../../components/logsInModal';
 import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
 import { getContaienrsJobs, getContainersRoutes } from '../../utils/routes';
-import { useTranslation } from 'react-i18next';
 
 const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}) => {
-  const { t } = useTranslation();
   const [isOpen, setIsOpen] = React.useState(false);
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [failed, setFailed] = React.useState([]);
@@ -213,16 +211,16 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
   return <>
      {isOpen && <>
         <Dialog open={isOpen} onClose={() => {refreshServApps() ; setIsOpen(false)}}>
-            <DialogTitle>{t('mgmt.servApps.container.deleteService')}</DialogTitle>
+            <DialogTitle>Delete Service</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                   <Stack spacing={1}>
                     <div>
                       {isDeleting && <div>
-                        {t('mgmt.servApps.container.deleteServiceStatus')}
+                        Deletion status:
                       </div>}
                       {!isDeleting && <div>
-                        {t('mgmt.servApps.container.selectWhatToDelete')}
+                        Select what you wish to delete:
                       </div>}
                     </div>
                     {containers.map((container) => {
@@ -232,38 +230,38 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
                     })}
                     {networks.map((network) => {
                       return  (!isDeleting || (!ignored.includes(network + "-network"))) &&<div key={network + "-network"}>
-                        <ShowAction item={network + "-network"} /> <ApiOutlined /> {t('global.network')} {network}
+                        <ShowAction item={network + "-network"} /> <ApiOutlined /> Network {network}
                       </div>
                     })}
                     {volumes.map((mount) => {
                       return  (!isDeleting || (!ignored.includes(mount + "-volume"))) && <div key={mount + "-volume"}> 
-                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> {t('global.volume')} {mount}
+                        <ShowAction item={mount + "-volume"} /> <DatabaseOutlined /> Volume {mount}
                       </div>
                     })}
                     {routes.map((route) => {
                       return  (!isDeleting || (!ignored.includes(route + "-route"))) && <div key={route + "-route"}> 
-                        <ShowAction item={route + "-route"} /> <LinkOutlined /> {t('mgmt.servApps.container.delete.route')} {route}
+                        <ShowAction item={route + "-route"} /> <LinkOutlined /> Route {route}
                       </div>
                     })}
                     {cronJobs.map((job) => {
                       return  (!isDeleting || (!ignored.includes(job + "-job"))) && <div key={job + "-job"}> 
-                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> {t('mgmt.servApps.container.delete.cronjob')} {job}
+                        <ShowAction item={job + "-job"} /> <ClockCircleOutlined /> Cron Job {job}
                       </div>
                     })}
                   </Stack>
                 </DialogContentText>
             </DialogContent>
             {!isDeleting && <DialogActions>
-                <Button onClick={() => setIsOpen(false)}>{t('global.cancelAction')}</Button>
+                <Button onClick={() => setIsOpen(false)}>Cancel</Button>
                 <Button onClick={() => {
                   doDelete();
-                }}>{t('global.delete')}</Button>
+                }}>Delete</Button>
             </DialogActions>}
             {isDeleting && <DialogActions>
                 <Button onClick={() => {
                   refreshServApps();
                   setIsOpen(false);
-                }}>{t('mgmt.servApps.container.delete.done')}</Button>
+                }}>Done</Button>
             </DialogActions>}
         </Dialog>
      </>}

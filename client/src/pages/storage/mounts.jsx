@@ -17,10 +17,8 @@ import SnapRAIDDialog from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
 import MountDialog, { MountDialogInternal } from "./mountDialog";
 import ResponsiveButton from "../../components/responseiveButton";
-import { useTranslation } from 'react-i18next';
 
 export const StorageMounts = () => {
-  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
@@ -48,26 +46,26 @@ export const StorageMounts = () => {
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
+          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>New Mount</ResponsiveButton>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>{t('global.refresh')}</ResponsiveButton>
+          }}>Refresh</ResponsiveButton>
         ]}
         columns={[
           {
-            title: t('mgmt.storage.deviceTitle'),
+            title: 'Device',
             field: (r) => <><FolderOutlined/>  {r.device}</>,
           },
           { 
-            title: t('mgmt.storage.pathTitle'),
+            title: 'Path',
             field: (r) => r.path,
           },
           { 
-            title: t('mgmt.storage.typeTitle'),
+            title: 'Type',
             field: (r) => r.type,
           },
           { 
-            title: t('mgmt.storage.optionsTitle'),
+            title: 'Options',
             field: (r) => JSON.stringify(r.opts),
           },
           {
@@ -79,13 +77,13 @@ export const StorageMounts = () => {
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >{t('global.edit')}</ListItemText>
+                    <ListItemText >Edit</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading} onClick={() => setMountDialog({data: r, unmount: true})}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >{t('global.unmount')}</ListItemText>
+                    <ListItemText >unmount</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -16,7 +15,6 @@ import PlotComponent from './components/plot';
 import { formatDate } from './components/utils';
 
 const ContainerMetrics = ({containerName}) => {
-    const { t } = useTranslation();
     const [slot, setSlot] = useState('latest');
 
     const [zoom, setZoom] = useState({
@@ -117,7 +115,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'latest' ? 'primary' : 'secondary'}
                             variant={slot === 'latest' ? 'outlined' : 'text'}
                         >
-                            {t('navigation.monitoring.latest')}
+                            Latest
                         </Button>
                         <Button
                             size="small"
@@ -125,7 +123,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'hourly' ? 'primary' : 'secondary'}
                             variant={slot === 'hourly' ? 'outlined' : 'text'}
                         >
-                            {t('navigation.monitoring.hourly')}
+                            Hourly
                         </Button>
                         <Button
                             size="small"
@@ -133,7 +131,7 @@ const ContainerMetrics = ({containerName}) => {
                             color={slot === 'daily' ? 'primary' : 'secondary'}
                             variant={slot === 'daily' ? 'outlined' : 'text'}
                         >
-                            {t('navigation.monitoring.daily')}
+                            Daily
                         </Button>
 
                         {zoom.xaxis.min && <Button
@@ -146,17 +144,17 @@ const ContainerMetrics = ({containerName}) => {
                             color={'primary'}
                             variant={'outlined'}
                         >
-                            {t('global.resetZoomButton')}
+                            Reset Zoom
                         </Button>}
                     </Stack>
                 </Grid>
                 
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('navigation.monitoring.resourcesTitle')} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
                 </Grid>
                
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('global.network')} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Network'} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
                 </Grid>
             </Grid>
         </div>}

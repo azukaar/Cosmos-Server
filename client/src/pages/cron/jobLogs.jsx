@@ -16,7 +16,6 @@ import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
 import LogLine from "../../components/logLine";
-import { useTranslation } from 'react-i18next';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -49,7 +48,6 @@ const preStyle = {
 }
 
 const JobLogsDialog = ({job, OnClose}) => {
-  const { t } = useTranslation();
   const [jobFull, setJobFull] = useState(null);
   
   useEffect(() => {
@@ -63,7 +61,7 @@ const JobLogsDialog = ({job, OnClose}) => {
   return <Dialog open={job} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>{t('mgmt.scheduler.lastLogs')} {job.Name}</DialogTitle>
+      <DialogTitle>Last logs for {job.Name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
             <pre style={preStyle}>
@@ -76,7 +74,7 @@ const JobLogsDialog = ({job, OnClose}) => {
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>{t('global.close')}</Button>
+          }}>Close</Button>
       </DialogActions>
   </Dialog>
 };

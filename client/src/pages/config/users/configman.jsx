@@ -36,15 +36,12 @@ import ConfirmModal from '../../../components/confirmModal';
 import { DownloadFile } from '../../../api/downloadButton';
 import { isDomain } from '../../../utils/indexs';
 
-import { Trans, useTranslation } from 'react-i18next';
-
 const ConfigManagement = () => {
-  const { t } = useTranslation();
   const [config, setConfig] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
-  const [saveLabel, setSaveLabel] = React.useState(t('global.saveAction'));
+  const [saveLabel, setSaveLabel] = React.useState("Save");
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
@@ -67,19 +64,19 @@ const ConfigManagement = () => {
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>{t('mgmt.config.header.refreshButton.refreshLabel')}</Button>
+      }}>Refresh</Button>
 
       {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           setOpenRestartModal(true);
-      }}>{t('mgmt.config.header.restartButton.restartLabel')}</Button>}
+      }}>Restart Server</Button>}
       
       <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
           API.metrics.reset().then((res) => {
             refresh();
           });
       }}
-      label={t('mgmt.config.header.purgeMetricsButton.purgeMetricsLabel')} 
-      content={t('mgmt.config.header.purgeMetricsButton.purgeMetricsPopUp.cofirmAction')} />
+      label={'Purge Metrics Dashboard'} 
+      content={'Are you sure you want to purge all the metrics data from the dashboards?'} />
     </Stack>
     
     {config && <>
@@ -147,9 +144,9 @@ const ConfigManagement = () => {
         }}
 
         validationSchema={Yup.object().shape({
-          Hostname: Yup.string().max(255).required(t('mgmt.config.http.hostnameInput.HostnameValidation')),
+          Hostname: Yup.string().max(255).required('Hostname is required'),
           MongoDB: Yup.string().max(512),
-          LoggingLevel: Yup.string().max(255).required(t('mgmt.config.general.logLevelInput.logLevelValidation')),
+          LoggingLevel: Yup.string().max(255).required('Logging Level is required'),
         })}
 
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -226,15 +223,15 @@ const ConfigManagement = () => {
           
           return API.config.set(toSave).then((data) => {
             setOpenModal(true);
-            setSaveLabel(t('global.savedConfirmation'));
+            setSaveLabel("Saved!");
             setTimeout(() => {
-              setSaveLabel(t('global.saveAction'));
+              setSaveLabel("Save");
             }, 3000);
           }).catch((err) => {
             setOpenModal(true);
-            setSaveLabel(t('global.savedError'));
+            setSaveLabel("Error while saving, try again.");
             setTimeout(() => {
-              setSaveLabel(t('global.saveAction'));
+              setSaveLabel("Save");
             }, 3000);
           });
         }}
@@ -264,26 +261,27 @@ const ConfigManagement = () => {
               </MainCard>}
 
               {!isAdmin && <div>
-                <Alert severity="warning">{t('mgmt.config.general.notAdminWarning')} 
+                <Alert severity="warning">As you are not an admin, you can't edit the configuration.
+                This page is only here for visibility. 
                 </Alert>
               </div>} 
 
-              <MainCard title={t('mgmt.config.generalTitle')}>
+              <MainCard title="General">
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Alert severity="info">{t('mgmt.config.general.configFileInfo')}</Alert>
+                    <Alert severity="info">This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.</Alert>
                   </Grid>
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.general.forceMfaCheckbox.forceMfaLabel')}
+                    label="Force Multi-Factor Authentication"
                     name="RequireMFA"
                     formik={formik}
-                    helperText={t('mgmt.config.general.forceMfaCheckbox.forceMfaHelperText')}
+                    helperText="Require MFA for all users"
                   />
                   
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel htmlFor="MongoDB-login">{t('mgmt.config.general.mongoDbInput')}</InputLabel>
+                      <InputLabel htmlFor="MongoDB-login">MongoDB connection string. It is advised to use Environment variable to store this securely instead. (Optional)</InputLabel>
                       <OutlinedInput
                         id="MongoDB-login"
                         type="password"
@@ -301,64 +299,64 @@ const ConfigManagement = () => {
                           {formik.errors.MongoDB}
                         </FormHelperText>
                       )}
-                      <CosmosCollapse title={t('mgmt.config.general.puppetModeTitle')}>
+                      <CosmosCollapse title="Puppet Mode">
                         <Grid container spacing={3}>
                           <Grid item xs={12}>
                             <CosmosCheckbox
-                              label={t('mgmt.config.general.puppetMode.enableCheckbox.enableLabel')}
+                              label="Puppet Mode Enabled"
                               name="PuppetModeEnabled"
                               formik={formik}
-                              helperText={t('mgmt.config.general.puppetMode.enableCheckbox.enableHelperText')}
+                              helperText="Enable Puppet Mode"
                             />
 
                             {formik.values.PuppetModeEnabled && (
                               <Grid container spacing={3}>
                                 <Grid item xs={12}>
                                   <CosmosInputText
-                                    label={t('mgmt.config.general.puppetMode.hostnameInput.hostnameLabel')}
+                                    label="Puppet Mode Hostname"
                                     name="PuppetModeHostname"
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.hostnameInput.hostnameHelperText')}
+                                    helperText="Puppet Mode Hostname"
                                   />
                                 </Grid>
 
                                 <Grid item xs={12}>
                                   <CosmosInputText
-                                    label={t('mgmt.config.general.puppetMode.dbVolumeInput.dbVolumeLabel')}
+                                    label="Puppet Mode Database Volume"
                                     name="PuppetModeDbVolume"
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.dbVolumeInput.dbVolumeHelperText')}
+                                    helperText="Puppet Mode Database Volume"
                                   />
 
                                   <CosmosInputText
-                                    label={t('mgmt.config.general.puppetMode.configVolumeInput.configVolumeLabel')}
+                                    label="Puppet Mode Config Volume"
                                     name="PuppetModeConfigVolume"
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.configVolumeInput.configVolumeHelperText')}
+                                    helperText="Puppet Mode Config Volume"
                                   />
                                   
                                   <CosmosInputText
-                                    label={t('mgmt.config.general.puppetMode.versionInput.versionLabel')}
+                                    label="Puppet Mode Version"
                                     name="PuppetModeVersion"
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.versionInput.versionHelperText')}
+                                    helperText="Puppet Mode Version"
                                   />
                                 </Grid>
 
                                 <Grid item xs={12}>
                                   <CosmosInputText
-                                    label={t('mgmt.config.general.puppetMode.usernameInput.usernameLabel')}
+                                    label="Puppet Mode Username"
                                     name="PuppetModeUsername"
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.usernameInput.usernameHelperText')}
+                                    helperText="Puppet Mode Username"
                                   />
 
                                   <CosmosInputPassword
-                                    label={t('mgmt.config.general.puppetMode.passwordInput.passwordLabel')}
+                                    label="Puppet Mode Password"
                                     name="PuppetModePassword"
                                     autoComplete='new-password'
                                     formik={formik}
-                                    helperText={t('mgmt.config.general.puppetMode.passwordInput.passwordHelperText')}
+                                    helperText="Puppet Mode Password"
                                     noStrength
                                   />
                                 </Grid>
@@ -371,15 +369,15 @@ const ConfigManagement = () => {
                   </Grid>
 
                   <CosmosInputText
-                    label={t('mgmt.config.general.backupDirInput.backupDirLabel')}
+                    label="Backup Output Directory (relative to the host server `/`)"
                     name="BackupOutputDir"
                     formik={formik}
-                    helperText={t('mgmt.config.general.backupDirInput.backupDirHelperText')}
+                    helperText="Directory where backups will be stored (relative to the host server `/`)"
                   />
                   
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel htmlFor="LoggingLevel-login">{t('mgmt.config.general.logLevelInput')}</InputLabel>
+                      <InputLabel htmlFor="LoggingLevel-login">Level of logging (Default: INFO)</InputLabel>
                       <TextField
                         className="px-2 my-2"
                         variant="outlined"
@@ -413,24 +411,24 @@ const ConfigManagement = () => {
                   </Grid>
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.general.monitoringCheckbox.monitoringLabel')}
+                    label="Monitoring Enabled"
                     name="MonitoringEnabled"
                     formik={formik}
                   />
                 </Grid>
               </MainCard>
               
-              <MainCard title={t('mgmt.config.appearanceTitle')}>
+              <MainCard title="Appearance">
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     {!uploadingBackground && formik.values.Background && <img src=
-                      {formik.values.Background} alt={t('mgmt.config.appearance.uploadWallpaperButton.previewBrokenError')}
+                      {formik.values.Background} alt="preview seems broken. Please re-upload."
                       width={285} />}
                     {uploadingBackground && <Skeleton variant="rectangular" width={285} height={140} />}
                      <Stack spacing={1} direction="row">
                       <UploadButtons
                         accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
-                        label={t('mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel')}
+                        label="Upload Wallpaper"
                         OnChange={(e) => {
                           setUploadingBackground(true);
                           const file = e.target.files[0];
@@ -447,7 +445,7 @@ const ConfigManagement = () => {
                           formik.setFieldValue('Background', "");
                         }}
                       >
-                        {t('mgmt.config.appearance.resetWallpaperButton.resetWallpaperLabel')}
+                        Reset Wallpaper
                       </Button>
                       <Button
                         variant="outlined"
@@ -458,14 +456,14 @@ const ConfigManagement = () => {
                           SetSecondaryColor("");
                         }}
                       >
-                        {t('mgmt.config.appearance.resetColorsButton.resetColorsLabel')}
+                        Reset Colors
                       </Button>
                     </Stack>
                   </Grid>
                   
                   <Grid item xs={12}>
                     <CosmosCheckbox 
-                      label={t('mgmt.config.appearance.appDetailsOnHomepageCheckbox.appDetailsOnHomepageLabel')}
+                      label="Show Application Details on Homepage"
                       name="Expanded"
                       formik={formik}
                     />
@@ -473,7 +471,7 @@ const ConfigManagement = () => {
                   
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">{t('mgmt.config.appearance.primaryColorSlider')}</InputLabel>
+                      <InputLabel style={{marginBottom: '10px'}} htmlFor="PrimaryColor">Primary Color</InputLabel>
                       <SliderPicker
                         id="PrimaryColor"
                         color={formik.values.PrimaryColor}
@@ -488,7 +486,7 @@ const ConfigManagement = () => {
                   
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">{t('mgmt.config.appearance.secondaryColorSlider')}</InputLabel>
+                      <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">Secondary Color</InputLabel>
                       <SliderPicker
                         id="SecondaryColor"
                         color={formik.values.SecondaryColor}
@@ -507,7 +505,7 @@ const ConfigManagement = () => {
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
                     <Stack spacing={1}>
-                      <InputLabel htmlFor="Hostname-login">{t('mgmt.config.http.hostnameInput.HostnameLabel')}</InputLabel>
+                      <InputLabel htmlFor="Hostname-login">Hostname: This will be used to restrict access to your Cosmos Server (Your IP, or your domain name)</InputLabel>
                       <OutlinedInput
                         id="Hostname-login"
                         type="text"
@@ -530,14 +528,21 @@ const ConfigManagement = () => {
                   {(formik.values.HTTPSCertificateMode != "DISABLED" || isDomain(formik.values.Hostname)) ? (
                   <Grid item xs={12}>
                       <CosmosCheckbox 
-                        label={<span>{t('mgmt.config.http.allowInsecureLocalAccessCheckbox.allowInsecureLocalAccessLabel')} &nbsp;
-                          <Tooltip title={<span style={{fontSize:'110%'}}><Trans i18nKey="mgmt.config.http.allowInsecureLocalAccessCheckbox.allowInsecureLocalAccessTooltip" /></span>}>
-                                <QuestionCircleOutlined size={'large'} />
-                            </Tooltip></span>}
+                        label={<span>Allow insecure access via local IP &nbsp;
+                          <Tooltip title={<span style={{fontSize:'110%'}}>
+                            When HTTPS is used along side a domain, depending on your networking configuration, it is possible that your server is not receiving direct local connections. <br />
+                            This option allows you to also access your Cosmos admin using your local IP address, like ip:port. <br />
+                            You can already create ip:port URLs for your apps, <strong>but this will make them HTTP-only</strong>.</span>}>
+                              <QuestionCircleOutlined size={'large'} />
+                          </Tooltip></span>}
                         name="AllowHTTPLocalIPAccess"
                         formik={formik}
                       />
-                      {formik.values.allowHTTPLocalIPAccess && <Alert severity="warning"><Trans i18nKey="mgmt.config.http.allowInsecureLocalAccessCheckbox.allowInsecureLocalAccessWarning" /></Alert>}
+                    {formik.values.AllowHTTPLocalIPAccess && <Alert severity="warning">
+                      This option is not recommended as it exposes your server to security risks on your local network. <br />
+                      Your local network is safer than the internet, but not safe, as devices like IoTs, smart-TVs, smartphones or even your router can be compromised. <br />
+                      <strong>If you want to have a secure offline / local-only access to a server that uses a domain name and HTTPS, use Constellation instead.</strong>
+                    </Alert>}
                   </Grid>) : ""}
 
                   <Grid item xs={12}>
@@ -585,10 +590,10 @@ const ConfigManagement = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Alert severity="info">
-                      {t('mgmt.config.http.allowSearchIndexCheckbox')}<br />
+                      Enable this option if you have a public site and want to allow search engines to find it, so it appears on search results. <br />
                     </Alert>
                     <CosmosCheckbox 
-                      label={t('mgmt.config.http.allowSearchIndexCheckbox.allowSearchIndexLabel')}
+                      label="Allow search engines to index your server"
                       name="AllowSearchEngine"
                       formik={formik}
                     />
@@ -598,13 +603,13 @@ const ConfigManagement = () => {
               
               <MainCard title="Emails - SMTP">
                 <Stack spacing={2}>
-                  <Alert severity="info">{t('mgmt.config.email.inbobox.label')}.</Alert>
+                  <Alert severity="info">This allow you to setup an SMTP server for Cosmos to send emails such as password reset emails and invites.</Alert>
 
                   <CosmosCheckbox 
-                    label={t('mgmt.config.email.enableCheckbox.enableLabel')}
+                    label="Enable SMTP"
                     name="Email_Enabled"
                     formik={formik}
-                    helperText={t('mgmt.config.email.enableCheckbox.enableHelperText')}
+                    helperText="Enable SMTP"
                   />
 
                   {formik.values.Email_Enabled && (<>
@@ -623,41 +628,41 @@ const ConfigManagement = () => {
                     />
 
                     <CosmosInputText
-                      label={t('mgmt.config.email.usernameInput.usernameLabel')}
+                      label="SMTP Username"
                       name="Email_Username"
                       formik={formik}
-                      helperText={t('mgmt.config.email.usernameInput.usernameHelperText')}
+                      helperText="SMTP Username"
                     />
 
                     <CosmosInputPassword
-                      label={t('mgmt.config.email.passwordInput.passwordLabel')}
+                      label="SMTP Password"
                       name="Email_Password"
                       autoComplete='new-password'
                       formik={formik}
-                      helperText={t('mgmt.config.email.passwordInput.passwordHelperText')}
+                      helperText="SMTP Password"
                       noStrength
                     />
 
                     <CosmosInputText
-                      label={t('mgmt.config.email.senderInput.senderLabel')}
+                      label="SMTP From"
                       name="Email_From"
                       formik={formik}
-                      helperText={t('mgmt.config.email.senderInput.senderHelperText')}
+                      helperText="SMTP From"
                     />
 
                     <CosmosCheckbox
-                      label={t('mgmt.config.email.tlsCheckbox.tlsLabel')}
+                      label="SMTP Uses TLS"
                       name="Email_UseTLS"
                       formik={formik}
-                      helperText={t('mgmt.config.email.tlsCheckbox.tlsLabel')}
+                      helperText="SMTP Uses TLS"
                     />
 
                     {formik.values.Email_UseTLS && (
                       <CosmosCheckbox
-                        label={t('mgmt.config.email.selfSignedCheckbox.SelfSignedLabel')}
+                        label="Allow Insecure TLS"
                         name="Email_AllowInsecureTLS"
                         formik={formik}
-                        helperText={t('mgmt.config.email.selfSignedCheckbox.SelfSignedHelperText')}
+                        helperText="Allow self-signed certificate"
                       />
                     )}
                   </>)}
@@ -667,19 +672,19 @@ const ConfigManagement = () => {
               <MainCard title="Docker">
                 <Stack spacing={2}>
                   <CosmosCheckbox
-                    label={t('mgmt.config.docker.skipPruneNetworkCheckbox.skipPruneNetworkLabel')}
+                    label="Do not clean up Network"
                     name="SkipPruneNetwork"
                     formik={formik}
                   />
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.docker.skipPruneImageCheckbox.skipPruneImageLabel')}
+                    label="Do not clean up Images"
                     name="SkipPruneImages"
                     formik={formik}
                   />
 
                   <CosmosInputText
-                    label={t('mgmt.config.docker.defaultDatapathInput.defaultDatapathLabel')}
+                    label="Default data path for installs"
                     name="DefaultDataPath"
                     formik={formik}
                     placeholder={'/usr'}
@@ -688,7 +693,7 @@ const ConfigManagement = () => {
               </MainCard>
 
 
-              <MainCard title={t('global.securityTitle')}>
+              <MainCard title="Security">
                   <Grid container spacing={3}>
 
                   {/* <CosmosCheckbox
@@ -700,50 +705,50 @@ const ConfigManagement = () => {
                   <CosmosFormDivider title='Geo-Blocking' />
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.security.invertBlacklistCheckbox.invertBlacklistLabel')}
+                    label={"Use list as whitelist instead of blacklist"}
                     name="CountryBlacklistIsWhitelist"
                     formik={formik}
                   />
 
                   <Grid item xs={12}>
-                      <InputLabel htmlFor="GeoBlocking">
-                        {t('mgmt.config.security.geoBlockSelection.geoBlockLabel', {blockAllow: formik.values.CountryBlacklistIsWhitelist ? t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varAllow') : t('mgmt.config.security.geoBlockSelection.geoBlockLabel.varBlock')
-                          })}
-                      </InputLabel>
+                    <InputLabel htmlFor="GeoBlocking">Geo-Blocking: (Those countries will be 
+                    {formik.values.CountryBlacklistIsWhitelist ? " allowed to access " : " blocked from accessing "}
+                    your server)</InputLabel>
                   </Grid>
 
-                  <CountrySelect name="GeoBlocking" label={t('mgmt.config.security.geoBlockSelection', { blockAllow: formik.values.CountryBlacklistIsWhitelist ? t('mgmt.config.security.geoBlockSelection.varAllow') : t('mgmt.config.security.geoBlockSelection.varBlock') })} formik={formik} />
+                  <CountrySelect name="GeoBlocking" label="Choose which countries you want to block or allow" formik={formik} />
 
                   <Grid item xs={12}>
                     <Button onClick={() => {
                       formik.setFieldValue("GeoBlocking", ["CN","RU","TR","BR","BD","IN","NP","PK","LK","VN","ID","IR","IQ","EG","AF","RO",])
                       formik.setFieldValue("CountryBlacklistIsWhitelist", false)
-                    }} variant="outlined">{t('mgmt.config.security.geoblock.resetToDefaultButton')}</Button>
+                    }} variant="outlined">Reset to default (most dangerous countries)</Button>
                   </Grid>
                   
-                  <CosmosFormDivider title={t('mgmt.config.security.adminRestrictionsTitle')} />
+                  <CosmosFormDivider title='Admin Restrictions' />
 
-                  <Grid item xs={12}>
-                    <Alert severity="info">{t('mgmt.config.security.adminRestrictions.adminRestrictionsInfo')}</Alert>
-                  </Grid>
+                  <Alert severity="info">
+                    Use those options to restrict access to the admin panel. Be careful, if you lock yourself out, you will need to manually edit the config file.
+                    To restrict the access to your local network, you can use the "Admin Whitelist" with the IP range 192.168.0.0/16 
+                  </Alert>
                   
                   <CosmosInputText
-                    label={t('mgmt.config.security.adminRestrictions.adminWhitelistInput.adminWhitelistLabel')}
+                    label="Admin Whitelist Inbound IPs and/or IP ranges (comma separated)"
                     name="AdminWhitelistIPs"
                     formik={formik}
-                    helperText={t('mgmt.config.security.adminRestrictions.adminWhitelistInput.adminWhitelistHelperText')}
+                    helperText="Comma separated list of IPs that will be allowed to access the admin panel"
                   />
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.security.adminRestrictions.adminConstellationCheckbox.adminConstellationLabel')}
+                    label={"Only allow access to the admin panel from the constellation"}
                     name="AdminConstellationOnly"
                     formik={formik}
                   />
 
-                  <CosmosFormDivider title={t('mgmt.config.security.encryptionTitle')} />
+                  <CosmosFormDivider title='Encryption' />
 
                   <Grid item xs={12}>
-                    <Alert severity="info">{t('mgmt.config.security.encryption.enryptionInfo')}</Alert>
+                    <Alert severity="info">For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.</Alert>
                   </Grid>
 
                   <Grid item xs={12}>
@@ -753,28 +758,28 @@ const ConfigManagement = () => {
                         name="GenerateMissingAuthCert"
                         as={FormControlLabel}
                         control={<Checkbox size="large" />}
-                        label={t('mgmt.config.security.encryption.genMissingAuthCheckbox.genMissingAuthLabel')}
+                        label="Generate missing Authentication Certificates automatically (Default: true)"
                       />
                     </Stack>
                   </Grid>
 
                   <CosmosSelect
                     name="HTTPSCertificateMode"
-                    label={t('mgmt.config.security.encryption.httpsCertSelection.httpsCertLabel')}
+                    label="HTTPS Certificates"
                     formik={formik}
                     onChange={(e) => {
                       formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                     }}
                     options={[
-                      ["LETSENCRYPT", t('mgmt.config.security.encryption.httpsCertSelection.sslLetsEncryptChoice')],
-                      ["SELFSIGNED", t('mgmt.config.security.encryption.httpsCertSelection.sslSelfSignedChoice')],
-                      ["PROVIDED", t('mgmt.config.security.encryption.httpsCertSelection.sslProvidedChoice')],
-                      ["DISABLED", t('mgmt.config.security.encryption.httpsCertSelection.sslDisabledChoice')],
+                      ["LETSENCRYPT", "Automatically generate certificates using Let's Encrypt (Recommended)"],
+                      ["SELFSIGNED", "Locally self-sign certificates (unsecure)"],
+                      ["PROVIDED", "I have my own certificates"],
+                      ["DISABLED", "Do not use HTTPS (very unsecure)"],
                     ]}
                   />
 
                   <CosmosCheckbox
-                    label={t('mgmt.config.security.encryption.wildcardCheckbox.wildcardLabel') + formik.values.Hostname}
+                    label={"Use Wildcard Certificate for the root domain of " + formik.values.Hostname}
                     onChange={(e) => {
                       formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                     }}
@@ -788,7 +793,7 @@ const ConfigManagement = () => {
                       onChange={(e) => {
                         formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                       }}
-                      label={t('mgmt.config.security.encryption.overwriteWildcardInput.overwriteWildcardLabel')}
+                      label="(optional, only if you know what you are doing) Override Wildcard Domains (comma separated, need to add both wildcard AND root domain like in the placeholder)"
                       formik={formik}
                       placeholder={"example.com,*.example.com"}
                     />
@@ -801,7 +806,7 @@ const ConfigManagement = () => {
                         onChange={(e) => {
                           formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                         }}
-                        label={t('mgmt.config.security.encryption.sslLetsEncryptEmailInput.sslLetsEncryptEmailLabel')}
+                        label="Email address for Let's Encrypt"
                         formik={formik}
                       />
                     )
@@ -813,7 +818,7 @@ const ConfigManagement = () => {
                         onChange={(e) => {
                           formik.setFieldValue("ForceHTTPSCertificateRenewal", true);
                         }}
-                        label={t('mgmt.config.security.encryption.sslLetsEncryptDnsSelection.sslLetsEncryptDnsLabel')}
+                        label="Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)"
                         name="DNSChallengeProvider"
                         configName="DNSChallengeConfig"
                         formik={formik}
@@ -822,7 +827,7 @@ const ConfigManagement = () => {
                   }
 
                   <Grid item xs={12}>
-                    <h4>{t('mgmt.config.security.encryption.authPubKeyTitle')}</h4>
+                    <h4>Authentication Public Key</h4>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                       <pre className='code'>
                         {config.HTTPConfig.AuthPublicKey}
@@ -831,7 +836,7 @@ const ConfigManagement = () => {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <h4>{t('mgmt.config.security.encryption.rootHttpsPubKeyTitle')}</h4>
+                    <h4>Root HTTPS Public Key</h4>
                     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                       <pre className='code'>
                         {config.HTTPConfig.TLSCert}
@@ -841,7 +846,7 @@ const ConfigManagement = () => {
 
                   <Grid item xs={12}>
                     <CosmosCheckbox
-                      label={t('mgmt.config.security.encryption.sslCertForceRenewCheckbox.sslCertForceRenewLabel')}
+                      label={"Force HTTPS Certificate Renewal On Next Save"}
                       name="ForceHTTPSCertificateRenewal"
                       formik={formik}
                     />

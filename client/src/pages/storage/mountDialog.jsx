@@ -4,12 +4,10 @@ import React, {useState} from "react";
 import { CosmosCheckbox } from "../config/users/formShortcuts";
 import { Formik, FormikProvider, useFormik } from "formik";
 import * as yup from "yup";
-import { useTranslation } from 'react-i18next';
 
 import * as API from '../../api';
 
-const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
-  const { t } = useTranslation();
+const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {  
   const formik = useFormik({
     initialValues: {
       device: data ? data.device : '',
@@ -19,8 +17,8 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
     },
     validationSchema: yup.object({
       // should start with /mnt/ or /var/mnt
-      device: yup.string().required(t('global.required')),
-      path: yup.string().required(t('global.required')).matches(/^\/(mnt|var\/mnt)\/.{1,}$/, t('mgmt.storage.pathPrefixMntValidation')),
+      device: yup.string().required('Required'),
+      path: yup.string().required('Required').matches(/^\/(mnt|var\/mnt)\/.{1,}$/, 'Path should start with /mnt/ or /var/mnt'),
     }),
     onSubmit: async (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
@@ -60,22 +58,22 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
     <Dialog open={open} onClose={() => setOpen(false)}>
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>{t('mgmt.storage.unMountDiskButton', {unMount: unmount ? t('global.unmount') : t('global.mount')})}
-            </DialogTitle>
+            <DialogTitle>{unmount ? 'Unmount' : 'Mount'} Disk</DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
                         <Alert severity="info">
-                            {t('mgmt.storage.unMountText', {unMount: unmount ? t('global.unmount') : t('global.mount'), mountpoint: data && data.mountpoint && (<> t('mgmt.storage.mountedAtText') <strong>{data && data.mountpoint}</strong></>), unAvailable: unmount ? t('mgmt.storage.unavailable') : t('mgmt.storage.available')})}
-                            </Alert>
+                          You are about to {unmount ? 'unmount' : 'mount'} a folder {data && data.mountpoint && (<> mounted at <strong>{data && data.mountpoint}</strong></>)}. This will make the content {unmount ? 'unavailable' : 'available'} to be viewed in the file explorer.
+                          Permanent {unmount ? 'unmount' : 'mount'} will persist after reboot.
+                        </Alert>
                       </div>
                       {unmount ? '' : <>
                         <TextField
                           fullWidth
                           id="device"
                           name="device"
-                          label={t('mgmt.storage.mount.whatToMountLabel')}
+                          label="What to mount"
                           value={formik.values.device}
                           onChange={formik.handleChange}
                           error={formik.touched.device && Boolean(formik.errors.device)}
@@ -85,7 +83,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                           fullWidth
                           id="path"
                           name="path"
-                          label={t('mgmt.storage.mountPath')}
+                          label="Path to mount to"
                           value={formik.values.path}
                           onChange={formik.handleChange}
                           error={formik.touched.path && Boolean(formik.errors.path)}
@@ -95,7 +93,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                           fullWidth
                           id="chown"
                           name="chown"
-                          label={t('mgmt.storage.chown')}
+                          label="Change mount folder owner (optional, ex. 1000:1000)"
                           value={formik.values.chown}
                           onChange={formik.handleChange}
                           error={formik.touched.chown && Boolean(formik.errors.chown)}
@@ -107,7 +105,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                           name="permanent"
                           checked={formik.values.permanent}
                           onChange={formik.handleChange}
-                        /> {t('mgmt.storage.mount.permanent')} {unmount ? t('global.unmount') : t('global.mount')}
+                        /> Permanent {unmount ? 'Unmount' : 'Mount'}
                       </div>
                       {formik.errors.submit && (
                         <Grid item xs={12}>
@@ -118,10 +116,10 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
+                  <Button onClick={() => setOpen(false)}>Cancel</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
-                  }}>{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
+                  }}>{unmount ? 'Unmount' : 'Mount'}</LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>
@@ -130,7 +128,6 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
 }
 
 const MountDialog = ({ disk, unmount, refresh }) => {
-  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return <>
@@ -140,7 +137,7 @@ const MountDialog = ({ disk, unmount, refresh }) => {
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
-    >{unmount ? t('global.unmount') : t('global.mount')}</Button>
+    >{unmount ? 'Unmount' : 'Mount'}</Button>
   </>
 }
 

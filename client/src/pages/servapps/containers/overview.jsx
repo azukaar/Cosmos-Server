@@ -11,7 +11,6 @@ import GetActions from '../actionBar';
 import { ServAppIcon } from '../../../utils/servapp-icon';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import UploadButtons from '../../../components/fileUpload';
-import { useTranslation } from 'react-i18next';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -20,7 +19,6 @@ const info = {
 }
 
 const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, selfName }) => {
-  const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [openModal, setOpenModal] = React.useState(false);
   const [openRestartModal, setOpenRestartModal] = React.useState(false);
@@ -81,13 +79,13 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
           </div>
             <div>
               {({
-               "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
-               "restarting": <Chip label={t('mgmt.servApps.restartingChip.restartingLabel')} color="warning" />,
-               "running": <Chip label={t('mgmt.servApps.runningChip.runningLabel')} color="success" />,
-               "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
-               "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
-               "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
-               "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
+               "created": <Chip label="Created" color="warning" />,
+               "restarting": <Chip label="Restarting" color="warning" />,
+               "running": <Chip label="Running" color="success" />,
+               "removing": <Chip label="Removing" color="error" />,
+               "paused": <Chip label="Paused" color="info" />,
+               "exited": <Chip label="Exited" color="error" />,
+               "dead": <Chip label="Dead" color="error" />,
              })[State.Status]}
             </div>
             <UploadButtons
@@ -133,20 +131,20 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             </Stack>
             {containerInfo.State.Status !== 'running' && (
             <Alert severity="warning" style={{ marginBottom: '10px' }}>
-                {t('mgmt.servApps.notRunningWarning')}
+                This container is not running. Editing any settings will cause the container to start again.
               </Alert>
             )}
-            <strong><ContainerOutlined /> {t('mgmt.servApps.container.overview.imageTitle')}</strong>
+            <strong><ContainerOutlined /> Image</strong>
             <div style={info}>{Image}</div>
             <strong><DesktopOutlined /> ID</strong>
             <div style={info}>{containerInfo.Id}</div>
-            <strong><InfoCircleOutlined /> {t('mgmt.servApps.container.overview.ipAddressTitle')}</strong>
+            <strong><InfoCircleOutlined /> IP Address</strong>
             <div style={info}>{IPAddress}</div>
             <strong>
-              <SafetyCertificateOutlined/> {t('mgmt.servApps.container.overview.healthTitle')}
+              <SafetyCertificateOutlined/> Health
             </strong>
             <div style={info}>{healthStatus}</div>
-            <strong><SettingOutlined /> {t('mgmt.servApps.container.overview.settingsTitle')} {State.Status !== 'running' ? t('mgmt.servApps.startToEditInfo') : ''}</strong>
+            <strong><SettingOutlined /> Settings {State.Status !== 'running' ? '(Start container to edit)' : ''}</strong>
             {/* <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
               <Checkbox
                 checked={Config.Labels['cosmos-force-network-secured'] === 'true'}
@@ -174,7 +172,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                     }, 3000);
                   })
                 }}
-              /> {t('mgmt.servApps.autoUpdateCheckbox')}
+              /> Auto Update Container
             </Stack>
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>
@@ -183,7 +181,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
               })}
               <br />
               <Chip 
-                label={t('mgmt.servApps.newChip.newLabel')}
+                label="New"
                 color="primary"
                 style={{paddingRight: '4px', margin: '5px'}}
                 deleteIcon={<PlusCircleOutlined />}
@@ -195,7 +193,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 }}
               />
             </div>
-            <strong><DashboardOutlined /> {t('menu-items.navigation.monitoringTitle')}</strong>
+            <strong><DashboardOutlined /> Monitoring</strong>
               <div style={{ width: '96%' }}>
                 <MiniPlotComponent agglo metrics={[
                   "cosmos.system.docker.cpu." + Name.replace('/', ''),

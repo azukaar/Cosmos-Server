@@ -187,5 +187,3 @@ If you are having issues with the installation, please contact us on [Discord](h
 # Contribute
 
 [Contribute.md](./CONTRIBUTE.md)
-
-All of the Credits go to the original Project: [Cosmos Server](https://github.com/azukaar/Cosmos-Server)

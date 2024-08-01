@@ -22,7 +22,6 @@ import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { useEffect, useState } from 'react';
 import { isDomain } from '../../../utils/indexs';
-import { useTranslation } from 'react-i18next';
 
 function checkIsOnline() {
     API.isOnline().then((res) => {
@@ -35,7 +34,6 @@ function checkIsOnline() {
 }
 
 const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
-    const { t } = useTranslation();
     const [isRestarting, setIsRestarting] = useState(false);
     const [warn, setWarn] = useState(false);
     const needsRefresh = config && (config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" ||
@@ -47,54 +45,54 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
     return config ? (<>
         {needsRefresh && <>
             <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('global.refreshPage')}</DialogTitle>
+                <DialogTitle>Refresh Page</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {t('mgmt.config.proxy.refreshNeededWarning.selfSigned')} {isNotDomain && t('mgmt.config.proxy.refreshNeededWarning.notDomain')}
+                        You need to refresh the page because you are using a self-signed certificate, in case you have to accept any new certificates. To avoid it in the future, please use Let's Encrypt. {isNotDomain && 'You are also not using a domain name, the server might go offline for a few seconds to remap your docker ports.'}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => {
                         window.location.reload(true);                
-                    }}>{t('global.refresh')}</Button>
+                    }}>Refresh</Button>
                 </DialogActions>
             </Dialog>
         </>}
         {newRouteWarning && <>
             <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('mgmt.config.certRenewalTitle')}</DialogTitle>
+                <DialogTitle>Certificate Renewal</DialogTitle>
                 <DialogContent>
                     <DialogContentText>
-                        {t('mgmt.config.certRenewalText')} <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">{t('mgmt.config.certRenewalLinktext')}</a>.
+                        You are using Let's Encrypt but you are not using the DNS Challenge with a wildcard certificate. This means the server has to renew the certificate everytime you add a new hostname, causing a few seconds of downtime. To avoid it in the future, please refer to <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">this link to the documentation</a>.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => {
                         setOpenModal(false);             
-                    }}>{t('mgmt.config.restart.okButton')}</Button>
+                    }}>OK</Button>
                 </DialogActions>
             </Dialog>
         </>}
     </>)
     :(<>
         <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-            <DialogTitle>{!isRestarting ? t('mgmt.config.restart.restartTitle') : t('mgmt.config.restart.restartStatus')}</DialogTitle>
+            <DialogTitle>{!isRestarting ? 'Restart Server?' : 'Restarting Server...'}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
                     {warn && <div>
                         <Alert severity="warning" icon={<WarningOutlined />}>
-                        {t('mgmt.config.restart.restartTimeoutWarning')}<br />{t('mgmt.config.restart.restartTimeoutWarningTip')}
+                        The server is taking longer than expected to restart.<br />Consider troubleshouting the logs. If you use a self-signed certificate, you might have to refresh and re-accept it.
                         </Alert>
                     </div>}
                     {isRestarting ? 
                     <div style={{textAlign: 'center', padding: '20px'}}>
                         <CircularProgress />
                     </div>
-                    : t('mgmt.config.restart.restartQuestion')}
+                    : 'Do you want to restart your server?'}
                 </DialogContentText>
             </DialogContent>
             {!isRestarting && <DialogActions>
-                <Button onClick={() => setOpenModal(false)}>{t('mgmt.config.restart.laterButton')}</Button>
+                <Button onClick={() => setOpenModal(false)}>Later</Button>
                 <Button onClick={() => {
                     setIsRestarting(true);
                     API.config.restart()
@@ -104,7 +102,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
                     setTimeout(() => {
                         setWarn(true);
                     }, 20000)
-                }}>{t('mgmt.servapps.actionBar.restart')}</Button>
+                }}>Restart</Button>
             </DialogActions>}
         </Dialog>
     </>);

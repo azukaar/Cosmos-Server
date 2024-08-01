@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 
 // material-ui
 import MuiBreadcrumbs from '@mui/material/Breadcrumbs';
@@ -13,7 +12,6 @@ import MainCard from '../MainCard';
 // ==============================|| BREADCRUMBS ||============================== //
 
 const Breadcrumbs = ({ navigation, title, ...others }) => {
-    const { t } = useTranslation();
     const location = useLocation();
     const [main, setMain] = useState();
     const [item, setItem] = useState();
@@ -67,7 +65,7 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
     if (main && main.type === 'collapse') {
         mainContent = (
             <Typography component={Link} to={document.location.pathname} variant="h6" sx={{ textDecoration: 'none' }} color="textSecondary">
-                {t(main.title)}
+                {main.title}
             </Typography>
         );
     }
@@ -77,7 +75,7 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
         itemTitle = item.title;
         itemContent = (
             <Typography variant="subtitle1" color="textPrimary">
-                {t(itemTitle)}
+                {itemTitle}
             </Typography>
         );
 
@@ -99,7 +97,7 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
                         </Grid>
                         {title && (
                             <Grid item sx={{ mt: 2 }}>
-                                <Typography variant="h5">{t(item.title)}</Typography>
+                                <Typography variant="h5">{item.title}</Typography>
                             </Grid>
                         )}
                     </Grid>
