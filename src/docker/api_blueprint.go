@@ -37,6 +37,10 @@ type ContainerCreateRequestContainerHealthcheck struct {
 	StartPeriod int `json:"start_period"`
 }
 
+type ContainerCreateRequestContainerDependsOnCont struct {
+	Condition string `json:"condition"`
+	Restart string `json:"restart"`
+}
 
 type ContainerCreateRequestContainer struct {
 	Name 			string            `json:"container_name"`
@@ -52,7 +56,7 @@ type ContainerCreateRequestContainer struct {
 	RestartPolicy  string            `json:"restart,omitempty"`
 	Devices        []string          `json:"devices"`
 	Expose 		     []string          `json:"expose"`
-	DependsOn      []string          `json:"depends_on"`
+	DependsOn      map[string]ContainerCreateRequestContainerDependsOnCont `json:"depends_on,omitempty"`
 	Tty            bool              `json:"tty,omitempty"`
 	StdinOpen      bool              `json:"stdin_open,omitempty"`
 
@@ -1024,7 +1028,7 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		for name, service := range serviceMap {
 			// Check if all dependencies are already in startOrder
 			allDependenciesStarted := true
-			for _, dependency := range service.DependsOn {
+			for dependency, _ := range service.DependsOn {
 				dependencyStarted := false
 				for _, startedService := range startOrder {
 					if startedService.Name == dependency {
@@ -1059,7 +1063,7 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		for name, _ := range serviceMap {
 			errorMessage += "Could not start service: " + name + "\n"
 			errorMessage += "Unsatisfied dependencies:\n"
-			for _, dependency := range serviceMap[name].DependsOn {
+			for dependency, _ := range serviceMap[name].DependsOn {
 				_, ok := serviceMap[dependency]
 				if ok {
 					errorMessage += dependency + "\n"
