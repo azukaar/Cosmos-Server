@@ -207,42 +207,43 @@ func GetSystemMetrics() {
 		utils.Error("Metrics - Error fetching Docker stats:", err)
 	} else {
 		for _, ds := range dockerStats {
-			ds.Name = strings.Replace(ds.Name, ".", "_", -1)
-			PushSetMetric("system.docker.cpu."+ds.Name, int(ds.CPUUsage), DataDef{
+			containerName := strings.Replace(ds.Name, ".", "_", -1)
+
+			PushSetMetric("system.docker.cpu."+containerName, int(ds.CPUUsage), DataDef{
 				Period:    time.Second * 30,
-				Label:     "Docker CPU " + ds.Name,
+				Label:     "Docker CPU " + containerName,
 				AggloType: "avg",
 				Scale:     100,
 				Unit:      "%",
-				Object:    "container@" + ds.Name,
+				Object:    "container@" + containerName,
 			})
-			PushSetMetric("system.docker.ram."+ds.Name, int(ds.MemUsage), DataDef{
+			PushSetMetric("system.docker.ram."+containerName, int(ds.MemUsage), DataDef{
 				Max:       memInfo.Total,
 				Period:    time.Second * 30,
-				Label:     "Docker RAM " + ds.Name,
+				Label:     "Docker RAM " + containerName,
 				AggloType: "avg",
 				Unit:      "B",
-				Object:    "container@" + ds.Name,
+				Object:    "container@" + containerName,
 			})
-			PushSetMetric("system.docker.netRx."+ds.Name, int(ds.NetworkRx), DataDef{
+			PushSetMetric("system.docker.netRx."+containerName, int(ds.NetworkRx), DataDef{
 				Max:           0,
 				Period:        time.Second * 30,
-				Label:         "Docker Network Received " + ds.Name,
+				Label:         "Docker Network Received " + containerName,
 				SetOperation:  "max",
 				AggloType:     "sum",
 				DecumulatePos: true,
 				Unit:          "B",
-				Object:        "container@" + ds.Name,
+				Object:        "container@" + containerName,
 			})
-			PushSetMetric("system.docker.netTx."+ds.Name, int(ds.NetworkTx), DataDef{
+			PushSetMetric("system.docker.netTx."+containerName, int(ds.NetworkTx), DataDef{
 				Max:           0,
 				Period:        time.Second * 30,
-				Label:         "Docker Network Sent " + ds.Name,
+				Label:         "Docker Network Sent " + containerName,
 				SetOperation:  "max",
 				AggloType:     "sum",
 				DecumulatePos: true,
 				Unit:          "B",
-				Object:        "container@" + ds.Name,
+				Object:        "container@" + containerName,
 			})
 		}
 	}
@@ -253,13 +254,14 @@ func GetSystemMetrics() {
 		utils.Error("Metrics - Error fetching Disk health:", err)
 	} else {
 		for _, disk := range disks {
-			disk.Name = strings.Replace(disk.Name, ".", "_", -1)
-			PushSetMetric("system.disk-health.temperature."+disk.Name, int(disk.SMART.Temperature), DataDef{
+			diskName := strings.Replace(disk.Name, ".", "_", -1)
+
+			PushSetMetric("system.disk-health.temperature."+diskName, int(disk.SMART.Temperature), DataDef{
 				Period:    time.Second * 60,
-				Label:     "Disk Temperature " + disk.Name,
+				Label:     "Disk Temperature " + diskName,
 				AggloType: "avg",
 				Unit:      "°C",
-				Object:    "disk@" + disk.Name,
+				Object:    "disk@" + diskName,
 			})
 		}
 	}
