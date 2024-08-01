@@ -16,8 +16,10 @@ import UploadButtons from "../../components/fileUpload";
 import MergerDialog, { MergerDialogInternal } from "./mergerDialog";
 import ResponsiveButton from "../../components/responseiveButton";
 import MenuButton from "../../components/MenuButton";
+import { useTranslation } from 'react-i18next';
 
 export const StorageMerges = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
@@ -50,23 +52,23 @@ export const StorageMerges = () => {
             <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>,
             <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
               refresh();
-            }}>Refresh</ResponsiveButton>
+            }}>{t('global.refresh')}</ResponsiveButton>
           ]}
           columns={[
             {
-              title: 'Device',
+              title: t('mgmt.storage.deviceTitle'),
               field: (r) => r.device,
             },
             { 
-              title: 'Path',
+              title: t('mgmt.storage.pathTitle'),
               field: (r) => r.path,
             },
             { 
-              title: 'Type',
+              title: t('mgmt.storage.typeTitle'),
               field: (r) => r.type,
             },
             { 
-              title: 'Options',
+              title: t('mgmt.storage.optionsTitle'),
               screenMin: 'md',
               field: (r) => JSON.stringify(r.opts),
 

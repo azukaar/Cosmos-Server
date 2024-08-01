@@ -8,8 +8,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ConfirmModal = ({ callback, label, content, startIcon }) => {
+    const { t } = useTranslation();
     const [openModal, setOpenModal] = useState(false);
 
     return <>
@@ -23,12 +25,12 @@ const ConfirmModal = ({ callback, label, content, startIcon }) => {
           <DialogActions>
               <Button onClick={() => {
                   setOpenModal(false);           
-              }}>Cancel</Button>
+              }}>{t('global.cancelAction')}</Button>
               <LoadingButton
               onClick={() => {   
                   callback();     
                   setOpenModal(false);    
-              }}>Confirm</LoadingButton>
+              }}>{t('global.confirmAction')}</LoadingButton>
           </DialogActions>
       </Dialog>
 
@@ -55,7 +57,7 @@ const ConfirmModalDirect = ({ callback, content, onClose }) => {
         onClose && onClose();
         setOpenModal(false);
       }}>
-          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogTitle>{t('global.confirmDeletion')}</DialogTitle>
           <DialogContent>
               <DialogContentText>
                   {content}
@@ -65,13 +67,13 @@ const ConfirmModalDirect = ({ callback, content, onClose }) => {
               <Button onClick={() => {
                   setOpenModal(false);    
                   onClose && onClose();
-              }}>Cancel</Button>
+              }}>{t('global.cancelAction')}</Button>
               <LoadingButton
               onClick={() => {   
                   callback();     
                   setOpenModal(false);    
                   onClose && onClose();
-              }}>Confirm</LoadingButton>
+              }}>{t('global.confirmAction')}</LoadingButton>
           </DialogActions>
       </Dialog>
     </>

@@ -27,6 +27,7 @@ import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
+import { useTranslation } from 'react-i18next';
 
 const diskStyle = {
   width: "100%",
@@ -47,6 +48,7 @@ const icons = {
 }
 
 const FormatButton = ({disk, refresh}) => {
+  const { t } = useTranslation();
   const [formatting, setFormatting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
@@ -59,7 +61,7 @@ const FormatButton = ({disk, refresh}) => {
       color="error"
       size="small"
       startIcon={<CloseCircleOutlined />}
-    >Format</LoadingButton>
+    >{t('mgmt.storage.formatButton')}</LoadingButton>
     
     {passwordConfirm && <FormatModal
       OnClose={() => {
@@ -82,7 +84,7 @@ const FormatButton = ({disk, refresh}) => {
         }, cb)
       }}
       initialLogs={[
-        "Starting format disk " + disk.name + "..."
+        t('mgmt.storage.startFormatLog', {disk: disk.name})
       ]}
       alwaysShow={true}
       OnSuccess={() => {
@@ -92,7 +94,7 @@ const FormatButton = ({disk, refresh}) => {
         setFormatting(false);
         refresh && refresh();
       }}
-      title="Formatting..."
+      title={t('mgmt.storage.formattingLog')+'...'}
     />}
   </>
 }
@@ -200,6 +202,7 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened}) => {
 }
 
 export const StorageDisks = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [disks, setDisks] = useState([]);
@@ -233,11 +236,11 @@ export const StorageDisks = () => {
       <SMARTDialog disk={SMARTDialogOpened} OnClose={() => SetSMARTDialogOpened(false)} />
 
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
-      {containerized && <Alert severity="warning">You are running Cosmos inside a Docker container. As such, it will only have limited access to your disks and their informations.</Alert>}
+      {containerized && <Alert severity="warning">{t('mgmt.storage.runningInsideContainerWarning')}</Alert>}
       <div>
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-        }}>Refresh</ResponsiveButton>
+        }}>{t('global.refresh')}</ResponsiveButton>
       </div>
       <div>
       <TreeView

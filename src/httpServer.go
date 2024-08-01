@@ -286,8 +286,9 @@ func InitServer() *mux.Router {
 
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
-				Title: "Cosmos Certificate Renewed",
-				Message: "The TLS certificate for the following domains has been renewed: " + strings.Join(domains, ", "),
+				Title: "header.notification.title.certificateRenewed",
+				Message: "header.notification.message.certificateRenewed",
+				Vars: strings.Join(domains, ", "),
 				Level: "info",
 			})
 
@@ -321,8 +322,9 @@ func InitServer() *mux.Router {
 
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
-				Title: "Cosmos Certificate Renewed",
-				Message: "The TLS certificate for the following domains has been renewed: " + strings.Join(domains, ", "),
+				Title: "header.notification.title.certificateRenewed",
+				Message: "header.notification.message.certificateRenewed",
+				Vars: strings.Join(domains, ", "),
 				Level: "info",
 			})
 		}

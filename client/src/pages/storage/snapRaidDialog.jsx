@@ -12,11 +12,13 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import { crontabToText } from "../../utils/indexs";
 import { MountPickerEntry } from "./mountPickerEntry";
 import { json } from "react-router";
+import { Trans, useTranslation } from 'react-i18next';
 
-const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {  
+const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
+  const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
-      name: data.Name || 'Storage Parity',
+      name: data.Name || t('mgmt.storage.snapraid.storageParity'),
       parity: data.Parity || [],
       data: data.Data || {},
       syncCronTab: data.SyncCrontab || '0 0 2 * * *',
@@ -24,9 +26,9 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
     },
     validateOnChange: false,
     validationSchema: yup.object({
-      name: yup.string().required('Required').min(3, 'Name should be at least 3 characters').matches(/^[a-zA-Z0-9_ ]+$/, 'Name should be alphanumeric'),
-      parity: yup.array().min(1, 'Select at least 1 parity disk'),
-      data: yup.object().test('data', 'Select at least 2 data disk', (value) => {
+      name: yup.string().required(t('global.required')).min(3, t('mgmt.storage.snapraid.min3chars')).matches(/^[a-zA-Z0-9_ ]+$/, t('mgmt.storage.snapraid.notAlphanumeric')),
+      parity: yup.array().min(1, t('mgmt.storage.snapraid.min1parity')),
+      data: yup.object().test('data', t('mgmt.storage.snapraid.min2datadisks'), (value) => {
         return Object.keys(value).length >= 2;
       })
     }),
@@ -64,32 +66,28 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
           <FormikProvider value={formik}>
             <form onSubmit={formik.handleSubmit}>
             <DialogTitle>
-              {data.Name ? ('Edit ' + data.Name) : 'Create Parity Disks'}
+              {data.Name ? (t('global.edit') + " "+ data.Name) : t('mgmt.storage.snapraid.createParityDisksButton')}
             </DialogTitle>
                 <DialogContent>
                   <DialogContentText>
                     <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                       <div>
                         <Alert severity="info">
-                          You are about to create parity disks. <strong>This operation is safe and reversible</strong>.
-                          Parity disks are used to protect your data from disk failure.
-                          When creating a parity disk, the data disks you want to protect. Do not add a disk containing the system or another parity disk.
+                          <Trans i18nKey="mgmt.storage.snapraid.createParityInfo" />
                         </Alert>
                       </div>
                       <TextField
                         fullWidth
                         id="name"
                         name="name"
-                        label="Config Name"
+                        label={t('mgmt.storage.configName.configNameLabel')}
                         value={formik.values.name}
                         onChange={formik.handleChange}
                         error={formik.touched.name && Boolean(formik.errors.name)}
                         helperText={formik.touched.name && formik.errors.name}
                       />
                       <FormLabel>
-                        <strong>Step 1</strong>: First, select the parity disk(s). One parity disk will protect against one disk failure, two parity disks will protect against two disk failures, and so on.
-                        Remember that those disks will be used only for parity, and will not be available for data storage.
-                        Parity disks must be at least as large as the largest data disk, and should be empty.
+                        <strong>{t('mgmt.storage.snapraid.createParity.step')} 1:</strong> {t('mgmt.storage.snapraid.createParity.Step1Text')}
                       </FormLabel>
                       <MountPicker onChange={(value) => formik.setFieldValue('parity', value)} value={formik.values.parity} />
                       {formik.errors.parity && (
@@ -98,7 +96,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           </Grid>
                       )}
                       <FormLabel>
-                        <strong>Step 2</strong>: Select the data disks you want to protect with the parity disk(s).
+                        <strong>{t('mgmt.storage.snapraid.createParity.step')} 2:</strong> {t('mgmt.storage.snapraid.createParity.Step2Text')}
                       </FormLabel>
                       
 
@@ -123,12 +121,12 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           const data = formik.values.data;
                           data[`disk${Object.keys(data).length}`] = '';
                           formik.setFieldValue('data', data);
-                        }}>Add Data Disk</Button>
+                        }}>{t('mgmt.storage.snapraid.addDatadisk')}</Button>
                         <Button onClick={() => {
                           const data = formik.values.data;
                           delete data[Object.keys(data).pop()];
                           formik.setFieldValue('data', data);
-                        }}>Remove Data Disk</Button>
+                        }}>{t('mgmt.storage.snapraid.removeDatadisk')}</Button>
                       </Stack>
 
                       {formik.errors.data && (
@@ -143,44 +141,44 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                       )}
                       <Stack spacing={2}>
                         <FormLabel>
-                          <strong>Step 3</strong>: Set the sync and scrub intervals. The sync interval is the time at which parity is updated. The scrub interval is the time at which the parity is checked for errors. This is using the CRONTAB syntax with seconds.
+                          <strong>{t('mgmt.storage.snapraid.createParity.step')} 3:</strong> {t('mgmt.storage.snapraid.createParity.Step3Text')}
                         </FormLabel>
                         <TextField
                           fullWidth
                           id="syncCronTab"
                           name="syncCronTab"
-                          label="Sync Interval"
+                          label={t('mgmt.storage.snapraid.syncInterval.syncIntervalLabel')}
                           value={formik.values.syncCronTab}
                           onChange={formik.handleChange}
                           error={formik.touched.syncCronTab && Boolean(formik.errors.syncCronTab)}
                           helperText={formik.touched.syncCronTab && formik.errors.syncCronTab}
                         />
                         <FormLabel>
-                          {crontabToText(formik.values.syncCronTab)}
+                          {crontabToText(formik.values.syncCronTab, t)}
                         </FormLabel>
                         <TextField
                           fullWidth
                           id="scrubCronTab"
                           name="scrubCronTab"
-                          label="Scrub Interval"
+                          label={t('mgmt.storage.snapraid.scrubInterval.scrubIntervalLabel')}
                           value={formik.values.scrubCronTab}
                           onChange={formik.handleChange}
                           error={formik.touched.scrubCronTab && Boolean(formik.errors.scrubCronTab)}
                           helperText={formik.touched.scrubCronTab && formik.errors.scrubCronTab}
                         />
                         <FormLabel>
-                          {crontabToText(formik.values.scrubCronTab)}
+                          {crontabToText(formik.values.scrubCronTab, t)}
                         </FormLabel>
                       </Stack>
                     </Stack>
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                  <Button onClick={() => setOpen(false)}>Cancel</Button>
+                  <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
                   <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                     formik.handleSubmit();
                   }}>
-                    {data.Name ? 'Update' : 'Create'}
+                    {data.Name ? t('global.update') : t('global.createAction')}
                   </LoadingButton>
                 </DialogActions>
             </form>
@@ -190,6 +188,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
 }
 
 const SnapRAIDDialog = ({ refresh, data }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return <>
@@ -201,8 +200,8 @@ const SnapRAIDDialog = ({ refresh, data }) => {
         variant="contained"
         size="small"
         startIcon={<PlusCircleOutlined />}
-      >New Parity Disks</ResponsiveButton> :
-      <div onClick={() => setOpen(true)}>Edit</div>}
+      >{t('mgmt.storage.snapraid.createParity.newDisks')}</ResponsiveButton> :
+      <div onClick={() => setOpen(true)}>{t('global.edit')}</div>}
     </div>
   </>
 }

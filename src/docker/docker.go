@@ -560,8 +560,9 @@ func CheckUpdatesAvailable() map[string]bool {
 
 			utils.WriteNotification(utils.Notification{
 				Recipient: "admin",
-				Title: "Container Update",
-				Message: "Container " + container.Names[0][1:] + " updated to the latest version!",
+				Title: "header.notification.title.containerUpdate",
+				Message: "header.notification.message.containerUpdate",
+				Vars: container.Names[0][1:],
 				Level: "info",
 				Link: "/cosmos-ui/servapps/containers/" + container.Names[0][1:],
 			})

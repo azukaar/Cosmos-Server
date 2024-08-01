@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -23,6 +24,7 @@ import EventsExplorer from './eventsExplorer';
 import MetricHeaders from './MetricHeaders';
 
 const DashboardDefault = () => {
+    const { t } = useTranslation();
     const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('latest');
     const [currentTab, setCurrentTab] = useState(0);
@@ -132,7 +134,7 @@ const DashboardDefault = () => {
         {metrics && <div style={{zIndex:2, position: 'relative'}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
                 <Grid item xs={12} sx={{ mb: -2.25 }}>
-                    <Typography variant="h4">Server Monitoring</Typography>
+                    <Typography variant="h4">{t('navigation.monitoringTitle')}</Typography>
                     {currentTab <= 2 && <MetricHeaders loaded={metrics} slot={slot} setSlot={setSlot} zoom={zoom} setZoom={setZoom} />}
                     {currentTab > 2 && <div style={{height: 41}}></div>}
                 </Grid>
@@ -149,19 +151,19 @@ const DashboardDefault = () => {
                         isLoading={!metrics}
                         tabs={[
                             {
-                                title: 'Resources',
+                                title: t('navigation.monitoring.resourcesTitle'),
                                 children: <ResourceDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
                             },
                             {
-                                title: 'Proxy',
+                                title: t('navigation.monitoring.proxyTitle'),
                                 children: <ProxyDashboard xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
                             },
                             {
-                                title: 'Events',
+                                title: t('navigation.monitoring.eventsTitle'),
                                 children: <EventsExplorer xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} metrics={metrics} />
                             },
                             {
-                                title: 'Alerts',
+                                title: t('navigation.monitoring.alertsTitle'),
                                 children: <AlertPage />
                             },
                         ]}
