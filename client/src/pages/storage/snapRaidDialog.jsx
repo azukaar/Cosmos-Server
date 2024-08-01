@@ -189,7 +189,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
   </>
 }
 
-const SnapRAIDDialog = ({ refresh, data }) => {
+const SnapRAIDDialog = ({ refresh, data, disabled }) => {
   const [open, setOpen] = useState(false);
 
   return <>
@@ -200,6 +200,7 @@ const SnapRAIDDialog = ({ refresh, data }) => {
         onClick={() => {setOpen(true);}}
         variant="contained"
         size="small"
+        disabled={disabled}
         startIcon={<PlusCircleOutlined />}
       >New Parity Disks</ResponsiveButton> :
       <div onClick={() => setOpen(true)}>Edit</div>}
