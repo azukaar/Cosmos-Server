@@ -1,4 +1,4 @@
-import React from 'react';
+import {React, useEffect} from 'react';
 import { Box, Stack } from '@mui/material';
 import Grid2 from '@mui/material/Unstable_Grid2/Grid2';
 import { Link } from 'react-router-dom';
@@ -7,9 +7,15 @@ import { ServAppIcon } from '../../utils/servapp-icon';
 import { useDragAndDrop } from '@formkit/drag-and-drop/react';
 
 const AppGrid = ({ config, servApps, routes, coStatus, appColor, appBorder, blockStyle }) => {
-  const validRoutes = routes ? routes.filter(route => !route.HideFromDashboard) : [];
-  const [parentRef, apps] = useDragAndDrop(validRoutes);
+  const savedOrder = JSON.parse(localStorage.getItem('appOrder')) || [];
+  const initialRoutes = routes ? routes.filter(route => !route.HideFromDashboard) : [];
+  const initialApps = savedOrder.length ? savedOrder : initialRoutes;
+  const [parentRef, apps, setApps] = useDragAndDrop(initialApps);
 
+  useEffect(() => {
+    localStorage.setItem('appOrder', JSON.stringify(apps));
+  }, [apps]);
+  
   return (
     <Grid2 container spacing={2} ref={parentRef}>
       {config && servApps && apps.map((route) => {
