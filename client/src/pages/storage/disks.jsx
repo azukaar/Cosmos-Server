@@ -27,6 +27,7 @@ import FormatModal from "./FormatModal";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
+import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
 
 const diskStyle = {
@@ -48,6 +49,7 @@ const icons = {
 }
 
 const FormatButton = ({disk, refresh, disabled}) => {
+  const { t } = useTranslation();
   const [formatting, setFormatting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [passwordConfirm, setPasswordConfirm] = useState(false);
@@ -62,7 +64,7 @@ const FormatButton = ({disk, refresh, disabled}) => {
       size="small"
       startIcon={<CloseCircleOutlined />}
     >
-      Format
+      {t('mgmt.storage.formatButton')}
     </LoadingButton>
     
     {passwordConfirm && <FormatModal
@@ -86,7 +88,7 @@ const FormatButton = ({disk, refresh, disabled}) => {
         }, cb)
       }}
       initialLogs={[
-        "Starting format disk " + disk.name + "..."
+        t('mgmt.storage.startFormatLog', {disk: disk.name})
       ]}
       alwaysShow={true}
       OnSuccess={() => {
@@ -96,7 +98,7 @@ const FormatButton = ({disk, refresh, disabled}) => {
         setFormatting(false);
         refresh && refresh();
       }}
-      title="Formatting..."
+      title={t('mgmt.storage.formattingLog')+'...'}
     />}
   </>
 }
@@ -204,6 +206,7 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened, containerized}) => {
 }
 
 export const StorageDisks = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [disks, setDisks] = useState([]);
@@ -241,7 +244,7 @@ export const StorageDisks = () => {
       <div>
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-        }}>Refresh</ResponsiveButton>
+        }}>{t('global.refresh')}</ResponsiveButton>
       </div>
       <div>
       <TreeView

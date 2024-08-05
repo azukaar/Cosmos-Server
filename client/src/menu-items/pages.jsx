@@ -13,12 +13,12 @@ const icons = {
 
 const pages = {
     id: 'management',
-    title: 'Management',
+    title: 'menu-items.managementTitle',
     type: 'group',
     children: [
         {
             id: 'servapps',
-            title: 'ServApps',
+            title: 'menu-items.management.servApps',
             type: 'item',
             url: '/cosmos-ui/servapps',
             icon: AppstoreOutlined,
@@ -26,14 +26,14 @@ const pages = {
         },
         {
             id: 'url',
-            title: 'URLs',
+            title: 'menu-items.management.urls',
             type: 'item',
             url: '/cosmos-ui/config-url',
             icon: icons.NodeExpandOutlined,
         },
         {
             id: 'storage',
-            title: 'Storage',
+            title: 'menu-items.management.storage',
             type: 'item',
             url: '/cosmos-ui/storage',
             icon: icons.FolderOutlined,
@@ -41,7 +41,7 @@ const pages = {
         },
         {
             id: 'constellation',
-            title: 'Constellation',
+            title: 'menu-items.management.constellation',
             type: 'item',
             url: '/cosmos-ui/constellation',
             icon: () => <img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />,
@@ -49,7 +49,7 @@ const pages = {
         },
         {
             id: 'users',
-            title: 'Users',
+            title: 'menu-items.management.usersTitle',
             type: 'item',
             url: '/cosmos-ui/config-users',
             icon: icons.ProfileOutlined,
@@ -57,7 +57,7 @@ const pages = {
         },
         {
             id: 'openid',
-            title: 'OpenID',
+            title: 'menu-items.management.openId',
             type: 'item',
             url: '/cosmos-ui/openid-manage',
             icon: PicLeftOutlined,
@@ -65,7 +65,7 @@ const pages = {
         },
         {
             id: 'cron',
-            title: 'Scheduler',
+            title: 'menu-items.management.schedulerTitle',
             type: 'item',
             url: '/cosmos-ui/cron',
             icon: ClockCircleOutlined,
@@ -73,7 +73,7 @@ const pages = {
         },
         {
             id: 'config',
-            title: 'Configuration',
+            title: 'menu-items.management.configurationTitle',
             type: 'item',
             url: '/cosmos-ui/config-general',
             icon: icons.SettingOutlined,

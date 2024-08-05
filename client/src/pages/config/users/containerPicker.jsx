@@ -28,12 +28,14 @@ import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useTranslation } from 'react-i18next';
 
 import defaultport from '../../servapps/defaultport.json';
 
 import * as API  from '../../../api';
 
 export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange, label = "Container Name", name = "Target"}) {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
   const [hasPublicPorts, setHasPublicPorts] = React.useState(false);
@@ -177,7 +179,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
 
   return ( <Grid item xs={12}>
     <Stack spacing={1}>
-    <InputLabel htmlFor={name + "-autocomplete"}>{label}</InputLabel>
+    <InputLabel htmlFor={name + "-autocomplete"}>{t('mgmt.config.containerPicker.containerPortInput')}</InputLabel>
     {!loading && <Autocomplete
       id={name + "-autocomplete"}
       open={open}
@@ -200,7 +202,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
       options={containers}
       loading={loading}
       freeSolo={true}
-      placeholder={"Please select a container"}
+      placeholder={t('mgmt.config.containerPicker.containerNameSelection.containerNameValidation')}
       value={lockTarget ? TargetContainer : (targetResult.containerObject || {Names: ['...']})}
       renderInput={(params) => (
         <TextField
@@ -218,7 +220,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
       )}
     />}
     {!nameOnly && <>
-      <InputLabel htmlFor={name + "-port"}>Container Port</InputLabel>
+      <InputLabel htmlFor={name + "-port"}>{t('mgmt.config.containerPicker.containerPortInput')}</InputLabel>
       <Autocomplete
         className="px-2 my-2"
         variant="outlined"
@@ -244,11 +246,11 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         renderInput={(params) => <TextField {...params} />}
       />
         {targetResult.port == '' && targetResult.port == 0 && <FormHelperText error id="standard-weight-helper-text-name-login">
-          Please select a port
+          {t('mgmt.config.containerPicker.containerPortSelection.containerPortValidation')}
         </FormHelperText>}
       
 
-      <InputLabel htmlFor={name + "-protocol"}>Container Protocol (use HTTP if unsure, or tcp for non-http proxying)</InputLabel>
+      <InputLabel htmlFor={name + "-protocol"}>{t('mgmt.config.containerPicker.containerProtocolInput')}</InputLabel>
       <TextField
         type="text"
         name={name + "-protocol"}
@@ -259,10 +261,10 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         }}
       />
 
-      <InputLabel htmlFor={name}>Result Target Preview</InputLabel>
+      <InputLabel htmlFor={name}>{t('mgmt.config.containerPicker.targetTypePreview')}</InputLabel>
       <TextField
         name={name}
-        placeholder={"This will be generated automatically"}
+        placeholder={t('mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel')}
         id={name}
         value={formik.values[name]}
         disabled={true}

@@ -42,6 +42,7 @@ import NewRouteCreate from '../routes/newRoute';
 import LazyLoad from 'react-lazyload';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
+import { useTranslation } from 'react-i18next';
 
 const stickyButton = {
   position: 'fixed',
@@ -59,6 +60,7 @@ function shorten(test) {
 }
 
 const ProxyManagement = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [config, setConfig] = React.useState(null);
@@ -145,7 +147,7 @@ const ProxyManagement = () => {
 
     // if exist, increment the copy number
     do {
-      suffix += ' - Copy';
+      suffix += ' - '+t('global.copyFilenameSuffix');
     } while (routes.filter((r) => r.Name === newRoute.Name + suffix).length > 0);
 
     newRoute.Name = newRoute.Name + suffix;
@@ -176,10 +178,10 @@ const ProxyManagement = () => {
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>Refresh</Button>&nbsp;&nbsp;
+      }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
       <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setOpenNewModal(true);
-      }}>Create</Button>
+      }}>{t('global.createAction')}</Button>
     </Stack>
 
     {config && <>
@@ -201,7 +203,7 @@ const ProxyManagement = () => {
             },
           },
           {
-            title: 'Enabled', 
+            title: t('global.enabled'), 
             clickable:true, 
             field: (r, k) => r._IsTunnel ? <>
               <img height="30px" width="30px" style={{
@@ -213,7 +215,7 @@ const ProxyManagement = () => {
               checked={!r.Disabled}
             />,
           },
-          { title: 'URL',
+          { title: t('mgmt.config.proxy.urlTitle'),
             search: (r) => r.Name + ' ' + r.Description,
             style: {
               textDecoration: 'inherit',
@@ -227,7 +229,7 @@ const ProxyManagement = () => {
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
-          { title: 'Network', screenMin: 'lg', clickable:false, field: (r) => 
+          { title: t('global.network'), screenMin: 'lg', clickable:false, field: (r) => 
             <div style={{width: '400px', marginLeft: '-200px', marginBottom: '10px'}}>
               <MiniPlotComponent  metrics={[
                 "cosmos.proxy.route.bytes." + r.Name,
@@ -235,9 +237,9 @@ const ProxyManagement = () => {
               ]} noLabels noBackground/>
             </div>
           },
-          { title: 'Origin', screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
-          { title: 'Target', screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
-          { title: 'Security', screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
+          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
             <QuestionCircleOutlined style={{
@@ -301,7 +303,7 @@ const ProxyManagement = () => {
                 variant="contained"
                 color="primary"
               >
-                Save Changes
+                {t('mgmt.config.proxy.saveChangesButton')}
               </Button>
             </AnimateButton>
             </Stack>
@@ -312,7 +314,7 @@ const ProxyManagement = () => {
       }
       {!routes && <>
         <Typography variant="h6" gutterBottom component="div">
-          No routes configured.
+          {t('mgmt.config.proxy.noRoutesConfiguredText')}
         </Typography>
       </>
       }

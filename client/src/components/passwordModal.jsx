@@ -9,15 +9,16 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { LoadingButton } from '@mui/lab';
 import { useFormik, FormikProvider } from 'formik';
 import * as Yup from 'yup';
+import { useTranslation } from 'react-i18next';
 
 const PasswordModal = ({ textInfos, cb, OnClose }) => {
-
+  const { t } = useTranslation();
   const formik = useFormik({
     initialValues: {
       password: ''
     },
     validationSchema: Yup.object({
-      password: Yup.string().required('Required'),
+      password: Yup.string().required(t('global.required')),
     }),
     onSubmit: async (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
@@ -37,7 +38,7 @@ const PasswordModal = ({ textInfos, cb, OnClose }) => {
     <>
       <Dialog open={true} onClose={() => OnClose()}>
         <FormikProvider value={formik}>
-          <DialogTitle>Confirm Password</DialogTitle>
+          <DialogTitle>{t('auth.confirmPassword')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -46,7 +47,7 @@ const PasswordModal = ({ textInfos, cb, OnClose }) => {
                     fullWidth
                     id="password"
                     name="password"
-                    label="Your Password"
+                    label={t('auth.yourPassword')}
                     value={formik.values.password}
                     type="password"
                     onChange={formik.handleChange}
@@ -64,13 +65,13 @@ const PasswordModal = ({ textInfos, cb, OnClose }) => {
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => OnClose()}>Cancel</Button>
+            <Button onClick={() => OnClose()}>{t('global.cancelAction')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}
             >
-              Confirm
+              {t('global.confirmAction')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>

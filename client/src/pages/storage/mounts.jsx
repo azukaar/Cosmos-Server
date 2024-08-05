@@ -17,9 +17,11 @@ import SnapRAIDDialog from "./snapRaidDialog";
 import MenuButton from "../../components/MenuButton";
 import MountDialog, { MountDialogInternal } from "./mountDialog";
 import ResponsiveButton from "../../components/responseiveButton";
+import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
 
 export const StorageMounts = () => {
+  const { t } = useTranslation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
@@ -52,26 +54,26 @@ export const StorageMounts = () => {
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />}  disabled={containerized} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>New Mount</ResponsiveButton>,
+          <ResponsiveButton startIcon={<PlusCircleOutlined />}  disabled={containerized} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
-          }}>Refresh</ResponsiveButton>
+          }}>{t('global.refresh')}</ResponsiveButton>
         ]}
         columns={[
           {
-            title: 'Device',
+            title: t('mgmt.storage.deviceTitle'),
             field: (r) => <><FolderOutlined/>  {r.device}</>,
           },
           { 
-            title: 'Path',
+            title: t('mgmt.storage.pathTitle'),
             field: (r) => r.path,
           },
           { 
-            title: 'Type',
+            title: t('mgmt.storage.typeTitle'),
             field: (r) => r.type,
           },
           { 
-            title: 'Options',
+            title: t('mgmt.storage.optionsTitle'),
             field: (r) => JSON.stringify(r.opts),
           },
           {
@@ -83,13 +85,13 @@ export const StorageMounts = () => {
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >Edit</ListItemText>
+                    <ListItemText >{t('global.edit')}</ListItemText>
                   </MenuItem>
                   <MenuItem disabled={loading || containerized} onClick={() => setMountDialog({data: r, unmount: true})}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText >unmount</ListItemText>
+                    <ListItemText >{t('global.unmount')}</ListItemText>
                   </MenuItem>
                 </MenuButton>
               </div>

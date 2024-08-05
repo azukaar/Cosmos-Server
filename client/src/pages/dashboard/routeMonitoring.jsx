@@ -27,6 +27,7 @@ import PlotComponent from './components/plot';
 import TableComponent from './components/table';
 import { HomeBackground, TransparentHeader } from '../home';
 import { formatDate } from './components/utils';
+import { useTranslation } from 'react-i18next';
 
 // avatar style
 const avatarSX = {
@@ -64,6 +65,7 @@ const status = [
 // ==============================|| DASHBOARD - DEFAULT ||============================== //
 
 const RouteMetrics = ({routeName}) => {
+    const { t } = useTranslation();
     const [value, setValue] = useState('today');
     const [slot, setSlot] = useState('latest');
 
@@ -166,7 +168,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'latest' ? 'primary' : 'secondary'}
                             variant={slot === 'latest' ? 'outlined' : 'text'}
                         >
-                            Latest
+                            {t('navigation.monitoring.latest')}
                         </Button>
                         <Button
                             size="small"
@@ -174,7 +176,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'hourly' ? 'primary' : 'secondary'}
                             variant={slot === 'hourly' ? 'outlined' : 'text'}
                         >
-                            Hourly
+                            {t('navigation.monitoring.hourly')}
                         </Button>
                         <Button
                             size="small"
@@ -182,7 +184,7 @@ const RouteMetrics = ({routeName}) => {
                             color={slot === 'daily' ? 'primary' : 'secondary'}
                             variant={slot === 'daily' ? 'outlined' : 'text'}
                         >
-                            Daily
+                            {t('navigation.monitoring.daily')}
                         </Button>
 
                         {zoom.xaxis.min && <Button
@@ -195,7 +197,7 @@ const RouteMetrics = ({routeName}) => {
                             color={'primary'}
                             variant={'outlined'}
                         >
-                            Reset Zoom
+                            {t('global.resetZoomButton')}
                         </Button>}
                     </Stack>
                 </Grid>

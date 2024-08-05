@@ -29,6 +29,7 @@ import PrettyTableView from '../../components/tableView/prettyTableView';
 import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import ResponsiveButton from '../../components/responseiveButton';
+import { useTranslation } from 'react-i18next';
 
 const AlertValidationSchema = Yup.object().shape({
   name: Yup.string().required('Name is required'),
@@ -39,6 +40,7 @@ const AlertValidationSchema = Yup.object().shape({
 });
 
 const EditSourcesModal = ({ onSave }) => {
+  const { t } = useTranslation();
   const [config, setConfig] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   
@@ -86,14 +88,14 @@ const EditSourcesModal = ({ onSave }) => {
         }
 
         if (source.Name === '') {
-          errors[`sources.${index}.Name`] = 'Name is required';
+          errors[`sources.${index}.Name`] = t('global.name.validation');
         }
         if (source.Url === '') {
-          errors[`sources.${index}.Url`] = 'URL is required';
+          errors[`sources.${index}.Url`] = t('navigation.market.sources.urlRequiredValidation');
         }
 
         if (source.Name === 'cosmos-cloud' || values.sources.filter((s) => s.Name === source.Name && !s.removed).length > 1) {
-          errors[`sources.${index}.Name`] = 'Name must be unique';
+          errors[`sources.${index}.Name`] = t('navigation.market.sources.nameNotUniqueValidation');
         }
       });
 
@@ -105,15 +107,15 @@ const EditSourcesModal = ({ onSave }) => {
 
   return (<>
     <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth>
-      <DialogTitle>Edit Sources</DialogTitle>
+      <DialogTitle>{t('navigation.market.sourcesTitle')}</DialogTitle>
         
       {config && <FormikProvider value={formik}>
       <form onSubmit={formik.handleSubmit}>
         <DialogContent>
           <Stack spacing={2}>
             <Alert severity="info" style={{ margin: '0 20px 20px 20px' }}>
-              This allows you to add additional 3rd party Cosmos app-markets to the market. <br />
-              To find new sources,  <a href="https://github.com/azukaar/awesome-cosmos-cloud" target="_blank">start here</a>
+              {t('navigation.market.newSources.additionalMarketsInfo')} <br />
+              {t('navigation.market.newSources.additionalMarketsInfo.moreInfo')}  <a href="https://github.com/azukaar/awesome-cosmos-cloud" target="_blank">{t('navigation.market.newSources.additionalMarketsInfo.href')}</a>
             </Alert>
             {formik.values.sources && formik.values.sources
             .map((action, index) => {
@@ -168,13 +170,13 @@ const EditSourcesModal = ({ onSave }) => {
                   },
                 ]);
               }}>
-              Add Source
+              {t('navigation.market.sources.addSourceButton')}
             </Button>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
-          <Button variant='contained' type="submit" disabled={formik.isSubmitting || !formik.isValid}>Save</Button>
+          <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
+          <Button variant='contained' type="submit" disabled={formik.isSubmitting || !formik.isValid}>{t('global.saveAction')}</Button>
         </DialogActions>
       </form>
       </FormikProvider>}
@@ -185,7 +187,7 @@ const EditSourcesModal = ({ onSave }) => {
       variant="outlined"
       startIcon={<ContainerOutlined />}
       onClick={() => setOpen(true)}
-    >Sources</ResponsiveButton>
+    >{t('navigation.market.sources.editSourcesButton')}</ResponsiveButton>
     </>
   );
 };

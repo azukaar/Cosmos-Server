@@ -11,8 +11,10 @@ import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
 import LinkContainersButton from '../linkContainersButton';
+import { useTranslation } from 'react-i18next';
 
 const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange, OnConnect, OnDisconnect }) => {
+  const { t } = useTranslation();
   const [networks, setNetworks] = React.useState([]);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -133,25 +135,25 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
 
-              <MainCard title={'Network Settings'}>
+              <MainCard title={t('mgmt.servApps.newContainer.networkSettingsTitle')}>
                 <Stack spacing={4}>
                   {containerInfo.State && containerInfo.State.Status !== 'running' && (
                   <Alert severity="warning" style={{ marginBottom: '0px' }}>
-                      This container is not running. Editing any settings will cause the container to start again.
+                      {t('mgmt.servApps.networks.containerotRunningWarning')}
                     </Alert>
                   )}
                   {isForceSecure && (
                     <Alert severity="warning" style={{ marginBottom: '0px' }}>
-                      This container is forced to be secured. You cannot expose any ports to the internet directly, please create a URL in Cosmos instead. You also cannot connect it to the Bridge network.          
+                      {t('mgmt.servApps.networks.forcedSecurityWarning')}          
                     </Alert>
                   )}
                   <CosmosInputText
-                    label="Network Mode"
+                    label={t('mgmt.servApps.networks.modeInput.modeLabel')}
                     name="networkMode"
                     placeholder={'default'}
                     formik={formik}
                   />
-                  <CosmosFormDivider title={'Expose Ports'} />
+                  <CosmosFormDivider title={t('mgmt.servApps.networks.exposePortsTitle')} />
                   <div>
                     {formik.values.ports.map((port, idx) => (
                       <Grid container key={idx}>
@@ -169,7 +171,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         </Grid>
                         <Grid item xs={4} style={{ padding }}>
                           <TextField
-                            label="Container Port"
+                            label={t('mgmt.servApps.networks.containerPortInput.containerPortLabel')}
                             fullWidth
                             value={port.port}
                             onChange={(e) => {
@@ -248,13 +250,13 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         variant="contained"
                         color="primary"
                       >
-                        Update Ports
+                        {t('mgmt.servApps.networks.updatePortsButton')}
                       </LoadingButton>}
                     </Stack>
                   </div>
                 </Stack>
               </MainCard>
-              <MainCard title={'Networks'}>
+              <MainCard title={t('global.networks')}>
                 <Stack spacing={2}>
 
                 {networks && <Stack spacing={2}>
@@ -262,8 +264,8 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                     const network = networks.find((n) => n.Name === networkName);
                     if (!network) {
                       return <Alert severity="error">
-                        You are connected to a network that has been removed: <strong>{networkName}</strong>. 
-                        Either re-create it or
+                        {t('mgmt.servApps.networks.removedNetConnectedError')} <strong>{networkName}</strong>. 
+                        {t('mgmt.servApps.networks.removedNetConnectedEitherRecreate')}
                         <Button
                           style={{ marginLeft: '10px' }}
                           variant="outlined"
@@ -272,7 +274,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                             disconnect(networkName);
                           }}
                         >
-                          Disconnect It
+                          {t('mgmt.servApps.networks.removedNetConnectedDisconnect')}
                         </Button>
                       </Alert>
                     }
@@ -304,7 +306,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                           <ApiOutlined style={{ color: 'red' }} />
                       }
                     },
-                    ...NetworksColumns(theme, isDark),
+                    ...NetworksColumns(theme, isDark, t),
                     {
                       title: '',
                       field: (r) => {
@@ -315,7 +317,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                           onClick={() => {
                             isConnected ? disconnect(r.Name) : connect(r.Name);
                           }}>
-                          {isConnected ? 'Disconnect' : 'Connect'}
+                          {isConnected ? t('mgmt.servapps.containers.terminal.disconnectButton') : t('mgmt.servapps.containers.terminal.connectButton')}
                         </Button>)
                       }
                     }

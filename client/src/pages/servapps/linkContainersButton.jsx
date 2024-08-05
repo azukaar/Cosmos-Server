@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react';
 import { LoadingButton } from '@mui/lab';
 import { FormikProvider, useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useTranslation } from 'react-i18next';
 
 import * as API from '../../api';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
@@ -20,6 +21,7 @@ import { CosmosContainerPicker } from '../config/users/containerPicker';
 import { randomString } from '../../utils/indexs';
 
 const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContainer, OnConnect }) => {
+  const { t } = useTranslation();
   const [isOpened, setIsOpened] = useState(false);
   const formik = useFormik({
     initialValues: {
@@ -67,7 +69,7 @@ const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContaine
     <>
       <Dialog open={isOpened} onClose={() => setIsOpened(false)}>
         <FormikProvider value={formik}>
-          <DialogTitle>Link with container</DialogTitle>
+          <DialogTitle>{t('mgmt.servApps.container.network.linkContainerTitle')}</DialogTitle>
           <DialogContent>
             <DialogContentText>
               <form onSubmit={formik.handleSubmit}>
@@ -89,12 +91,12 @@ const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContaine
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setIsOpened(false)}>Cancel</Button>
+            <Button onClick={() => setIsOpened(false)}>{t('global.cancelAction')}</Button>
             <LoadingButton
               disabled={formik.errors.submit}
               onClick={formik.handleSubmit}
               loading={formik.isSubmitting}>
-              Link Containers
+              {t('mgmt.servApps.container.network.linkContainerButton')}
             </LoadingButton>
           </DialogActions>
         </FormikProvider>
@@ -104,7 +106,7 @@ const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContaine
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
-        Link Containers
+        {t('mgmt.servApps.container.network.linkContainerButton')}
       </ResponsiveButton>
     </>
   );

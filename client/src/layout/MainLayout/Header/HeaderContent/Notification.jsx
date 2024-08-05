@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -19,7 +20,8 @@ import {
     Typography,
     useMediaQuery
 } from '@mui/material';
-import * as timeago from 'timeago.js';
+import { register, format } from 'timeago.js';
+import de from "timeago.js/lib/lang/de";
 
 // project import
 import MainCard from '../../../../components/MainCard';
@@ -50,6 +52,8 @@ const actionSX = {
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
 const Notification = () => {
+    register('de', de);
+    const { t, i18n } = useTranslation();
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
     const [notifications, setNotifications] = useState([]);
@@ -199,7 +203,7 @@ const Notification = () => {
                         >
                             <ClickAwayListener onClickAway={handleClose}>
                                 <MainCard
-                                    title="Notification"
+                                    title={t('header.notificationTitle')}
                                     elevation={0}
                                     border={false}
                                     content={false}
@@ -237,7 +241,7 @@ const Notification = () => {
                                                 <ListItemText
                                                     primary={<>
                                                         <Typography variant={notification.Read ? 'body' : 'h6'} noWrap>
-                                                            {notification.Title}
+                                                            {t(notification.Title)}
                                                         </Typography>
                                                         <div style={{ 
                                                             overflow: 'hidden',
@@ -246,13 +250,13 @@ const Notification = () => {
                                                             paddingLeft: '8px',
                                                             margin: '2px'
                                                         }}>
-                                                            {notification.Message}
+                                                            {t(notification.Message, { Vars: notification.Vars })}
                                                         </div></>
                                                     }
                                                 />
                                                 <ListItemSecondaryAction>
                                                     <Typography variant="caption" noWrap>
-                                                        {timeago.format(notification.Date)}
+                                                        {format(notification.Date, i18n.resolvedLanguage)}
                                                     </Typography>
                                                 </ListItemSecondaryAction>
                                             </ListItemButton>

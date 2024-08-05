@@ -15,6 +15,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
+import { useTranslation } from 'react-i18next'; 
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -60,6 +61,7 @@ function Showcases({ showcase, isDark, isAdmin }) {
 }
 
 function ShowcasesItem({ isDark, item, isAdmin }) {
+  const { t, i18n } = useTranslation();
   return (
     <Paper style={{
       position: 'relative',
@@ -90,7 +92,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             <img src={item.icon} style={{ width: '36px', height: '36px' }} />
             <h2>{item.name}</h2>
           </Stack>
-          <p dangerouslySetInnerHTML={{ __html: item.longDescription }} style={{
+          <p dangerouslySetInnerHTML={{ __html: item?.translation?.[i18n?.resolvedLanguage]?.longDescription || item?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || item.longDescription }} style={{
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
@@ -101,7 +103,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
               textDecoration: 'none',
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
-                View
+                {t('navigation.market.viewButton')}
               </Button>
             </Link>
           </Stack>
@@ -130,6 +132,7 @@ const gridAnim = {
 };
 
 const MarketPage = () => {
+  const { t, i18n } = useTranslation();
   const [apps, setApps] = useState([]);
   const [showcase, setShowcase] = useState([]);
   const theme = useTheme();
@@ -255,7 +258,7 @@ const MarketPage = () => {
             textDecoration: 'none',
           }}>
             <Button className="CheckButton" color="primary" variant="outlined">
-              Close
+              {t('global.close')}
             </Button>
           </Link>
 
@@ -278,19 +281,19 @@ const MarketPage = () => {
 
           {openedApp.appstore != 'cosmos-cloud' && <div>
             <div>
-            <Tooltip title="This app is not hosted on the Cosmos Cloud App Store. It is not officially verified and tested.">
+            <Tooltip title={t('navigation.market.unofficialMarketTooltip')}>
                 <WarningOutlined />
-              </Tooltip> <strong>source:</strong> {openedApp.appstore} 
+              </Tooltip> <strong>{t('global.source')}:</strong> {openedApp.appstore} 
             </div>
           </div>}
           
           <div>
-            <div><strong>repository:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
-            <div><strong>image:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
-            <div><strong>compose:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
+            <div><strong>{t('navigation.market.repository')}:</strong> <LinkMUI href={openedApp.repository}>{openedApp.repository}</LinkMUI></div>
+            <div><strong>{t('navigation.market.image')}:</strong> <LinkMUI href={openedApp.image}>{openedApp.image}</LinkMUI></div>
+            <div><strong>{t('navigation.market.compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>
 
-          <div dangerouslySetInnerHTML={{ __html: openedApp.longDescription }}></div>
+          <div dangerouslySetInnerHTML={{ __html: openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription }}></div>
 
           {isAdmin && <div>
             <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
@@ -324,9 +327,9 @@ const MarketPage = () => {
         minHeight: 'calc(65vh - 80px)',
         padding: '24px',
       }}>
-        <h2>Applications</h2>
+        <h2>{t('navigation.market.applicationsTitle')}</h2>
         <Stack direction="row" spacing={2}>
-          <Input placeholder={"Search " + filteredAppList.length + " applications"}
+          <Input placeholder={t('navigation.market.search',  {count: filteredAppList.length})}
             value={search}
             style={{ maxWidth: '400px' }}
             startAdornment={
@@ -343,11 +346,11 @@ const MarketPage = () => {
             <ResponsiveButton
               variant="contained"
               startIcon={<AppstoreAddOutlined />}
-            >Start ServApp</ResponsiveButton>
+            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
           </Link>
           <DockerComposeImport refresh={() => { }} />
           <EditSourcesModal onSave={refresh} />
-          <PersistentCheckbox name="filterDups" label="Filter Duplicates" value={filterDups} onChange={setFilterDups} />
+          <PersistentCheckbox name="filterDups" label={t('navigation.market.filterDuplicateCheckbox')} value={filterDups} onChange={setFilterDups} />
         </Stack>
         {(!apps || !Object.keys(apps).length) && <Box style={{
           width: '100%',
@@ -383,7 +386,7 @@ const MarketPage = () => {
                           textOverflow: 'ellipsis',
                           whiteSpace: 'pre-wrap',
                         }}
-                        >{app.description}</div>
+                        >{ app?.translation?.[i18n?.resolvedLanguage]?.description || app?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.description || app.description }</div>
                         <Stack direction={'row'} spacing={1}>
                           <div style={{
                             fontStyle: "italic", opacity: 0.7,

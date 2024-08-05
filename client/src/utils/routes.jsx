@@ -8,6 +8,7 @@ import { debounce, isDomain } from './indexs';
 
 import * as API from '../api';
 import { useEffect, useState } from 'react';
+import { Trans } from 'react-i18next';
 
 export const sanitizeRoute = (_route) => {
   let route = { ..._route };
@@ -83,10 +84,10 @@ export const ValidateRouteSchema = Yup.object().shape({
   Mode: Yup.string().required('Mode is required'),
   Target: Yup.string().required('Target is required').when('Mode', {
     is: 'SERVAPP',
-    then: Yup.string().matches(/:[0-9]+$/, 'Invalid Target, must have a port'),
+    then: Yup.string().matches(/:[0-9]+$/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.noPort" />),
   }).when('Mode', {
     is: 'PROXY',
-    then: Yup.string().matches(/^(https?:\/\/)/, 'Invalid Target, must start with http:// or https://'),
+    then: Yup.string().matches(/^(https?:\/\/)/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.wrongProtocol" />),
   }),
 
   Host: Yup.string().when('UseHost', {
@@ -165,7 +166,7 @@ export const HostnameChecker = ({hostname}) => {
 
   return <>{hostError && <Alert color='error'>{hostError}</Alert>}
 
-    {hostIp && <Alert color='info'>This hostname is pointing to <strong>{hostIp}</strong>, make sure it is your server IP!</Alert>}
+    {hostIp && <Alert color='info'><Trans i18nKey="newInstall.hostnamePointsToInfo" values={{hostIp: hostIp}} /></Alert>}
   </>
 };
 

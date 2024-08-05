@@ -15,6 +15,7 @@ import { PascalToSnake, isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
+import { useTranslation } from 'react-i18next';
 
 const temperatureChip = (temperature) => {
   if (temperature < 45) {
@@ -190,6 +191,7 @@ const getSMARTDef = async() => {
 }
 
 const SMARTDialog = ({disk, OnClose}) => {
+  const { t } = useTranslation();
   const fullData = disk.smart && disk.smart.AdditionalData && (disk.rota ? Object.values(disk.smart.AdditionalData.Attrs) :
     disk.smart.AdditionalData);
 
@@ -197,16 +199,16 @@ const SMARTDialog = ({disk, OnClose}) => {
     return <Dialog open={disk} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>S.M.A.R.T. for {disk.name}</DialogTitle>
+      <DialogTitle>{t('mgmt.storage.smart.for')} {disk.name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
-            <Alert severity="error">No S.M.A.R.T. data available for this disk. If you are running Cosmos behind some sort of virtualization or containerization, it is probably the reason why the data is not available.</Alert>
+            <Alert severity="error">{t('mgmt.storage.smart.noSmartError')}</Alert>
           </DialogContentText>
       </DialogContent>
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>Close</Button>
+          }}>{t('global.close')}</Button>
       </DialogActions>
   </Dialog>;
   }
@@ -214,17 +216,17 @@ const SMARTDialog = ({disk, OnClose}) => {
   return <Dialog open={disk} onClose={() => {
       OnClose && OnClose();
     }}>
-      <DialogTitle>S.M.A.R.T. for {disk.name}</DialogTitle>
+      <DialogTitle>S.M.A.R.T. {t('mgmt.storage.smart.for')} {disk.name}</DialogTitle>
       <DialogContent>
           <DialogContentText>
             <Stack direction="row" spacing={8}>
               <Stack spacing={2}>
                 <div>
-                  <InputLabel>health</InputLabel>
+                  <InputLabel>{t('mgmt.storage.smart.health')}</InputLabel>
                   {healthChip(disk) + ' ' + healthStatus(disk, disk.rota ? fullData : []) + '%'}
                 </div>
                 <div>
-                  <InputLabel>temperature</InputLabel>
+                  <InputLabel>{t('global.temperature')}</InputLabel>
                   {(disk.smart && disk.smart.Temperature) ? `${temperatureChip(disk.smart.Temperature)} ${disk.smart.Temperature}°C` : '⚪ ?'}
                 </div>
                 <div style={{maxWidth: '200px'}}>  
@@ -256,11 +258,11 @@ const SMARTDialog = ({disk, OnClose}) => {
                 getKey={(r) => `${r.Id}`}
                 columns={[
                   {
-                    title: 'Name',
+                    title: t('global.nameTitle'),
                     field: (r) => <Tooltip title={r.def.description}><span><InfoCircleOutlined /> {r.def.display_name}</span></Tooltip>, 
                   },
                   {
-                    title: <Tooltip title="This value is a % of health (100 is best). Next to them is a threshold below which it is urgent to replace your hardrive."><span>Value <InfoCircleOutlined /> </span></Tooltip>,
+                    title: <Tooltip title={t('mgmt.storage.smart.threshholdTooltip')}><span>{t('mgmt.servapps.newContainer.env.envValueInput.envValueLabel')} <InfoCircleOutlined /> </span></Tooltip>,
                     style: {minWidth: '110px'},
                     field: (r) => {
                       let StatusIcon = '';
@@ -278,7 +280,7 @@ const SMARTDialog = ({disk, OnClose}) => {
       <DialogActions>
           <Button onClick={() => {
               OnClose && OnClose();
-          }}>Close</Button>
+          }}>{t('global.close')}</Button>
       </DialogActions>
   </Dialog>
 };

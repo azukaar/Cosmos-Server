@@ -18,8 +18,10 @@ import MiniPlotComponent from '../dashboard/components/mini-plot';
 import LogLine from "../../components/logLine";
 import { CosmosContainerPicker } from '../config/users/containerPicker';
 import * as yup from "yup";
+import { useTranslation } from 'react-i18next';
 
 const NewJobDialog = ({job, OnClose, refresh}) => {
+  const { t } = useTranslation();
   const isEdit = job && typeof job === 'object';
   const [config, setConfig] = useState(null);
 
@@ -80,18 +82,18 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
     }}>
       <FormikProvider value={formik}>
         <form onSubmit={formik.handleSubmit}>
-          <DialogTitle>{isEdit ? 'Edit': 'Add'} job</DialogTitle>
+          <DialogTitle>{t('mgmt.cron.editCronTitle')}</DialogTitle>
           <DialogContent>
               <DialogContentText>
                 <Stack spacing={2} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                   <div>
-                    Create a custom job to run a shell command in a container. Leave the container field empty to run on the host (<strong>Running on the host only works if Cosmos is not itself running in a container</strong>).
+                    {t('mgmt.cron.editCron.customText')} (<strong>{t('mgmt.cron.editCron.customText.onHostOnly')}</strong>).
                   </div>
                   <TextField
                     fullWidth
                     id="Name"
                     name="Name"
-                    label="Name of the job"
+                    label={t('mgmt.cron.newCron.cronNameInput.cronNameLabel')}
                     value={formik.values.Name}
                     onChange={formik.handleChange}
                     error={formik.touched.Name && Boolean(formik.errors.Name)}
@@ -102,19 +104,19 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
                     fullWidth
                     id="Crontab"
                     name="Crontab"
-                    label="Schedule (using crontab syntax)"
+                    label={t('mgmt.cron.newCron.crontabInput.crontabLabel')}
                     value={formik.values.Crontab}
                     onChange={formik.handleChange}
                     error={formik.touched.Crontab && Boolean(formik.errors.Crontab)}
                     helperText={formik.touched.Crontab && formik.errors.Crontab}
                   />
-                  <InputLabel>{crontabToText(formik.values.Crontab)}</InputLabel>
+                  <InputLabel>{crontabToText(formik.values.Crontab, t)}</InputLabel>
 
                   <TextField
                     fullWidth
                     id="Command"
                     name="Command"
-                    label="Command to run (ex. echo 'Hello world')"
+                    label={t('mgmt.cron.newCron.commandInput.commandLabel')}
                     value={formik.values.Command}
                     onChange={formik.handleChange}
                     error={formik.touched.Command && Boolean(formik.errors.Command)}
@@ -126,7 +128,7 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
                     onTargetChange={(_, name) => {
                       formik.setFieldValue('Container', name);
                     }}
-                    name="Container"
+                    name='Container'
                     nameOnly
                   />
                    
@@ -137,10 +139,10 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
           <DialogActions>
               <Button onClick={() => {
                   OnClose && OnClose();
-              }}>Close</Button>
+              }}>{t('global.close')}</Button>
               <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
                 formik.handleSubmit();
-              }}>Submit</LoadingButton>
+              }}>{t('mgmt.cron.newCron.submitButton')}</LoadingButton>
           </DialogActions>
         </form>
       </FormikProvider>
