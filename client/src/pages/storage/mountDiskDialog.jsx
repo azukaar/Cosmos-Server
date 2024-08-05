@@ -108,7 +108,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
   </>
 }
 
-const MountDiskDialog = ({ disk, unmount, refresh }) => {
+const MountDiskDialog = ({ disk, unmount, refresh, disabled }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -119,6 +119,7 @@ const MountDiskDialog = ({ disk, unmount, refresh }) => {
       onClick={() => {setOpen(true);}}
       variant="outlined"
       size="small"
+      disabled={disabled}
       startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
     >{unmount ? t('global.unmount') : t('global.mount')}</Button>
   </>

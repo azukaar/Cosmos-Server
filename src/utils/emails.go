@@ -81,6 +81,11 @@ func IsEmailEnabled() bool {
 	return config.EmailConfig.Enabled
 }
 
+func IsNotifyLoginEmailEnabled() bool {
+	config := GetMainConfig()
+	return config.EmailConfig.NotifyLogin
+}
+
 func SendEmail(recipients []string, subject string, body string) error {
 	config := GetMainConfig()
 
@@ -146,7 +151,7 @@ func SendEmail(recipients []string, subject string, body string) error {
 		body,
 		ServerURL,
 	))
-	
+
 	TriggerEvent(
 		"cosmos.email.send",
 		"Email sent",
@@ -154,8 +159,8 @@ func SendEmail(recipients []string, subject string, body string) error {
 		"",
 		map[string]interface{}{
 			"recipients": recipients,
-			"subject": subject,
-	})
+			"subject":    subject,
+		})
 
 	return send(hostPort, auth, config.EmailConfig.From, recipients, msg)
 }

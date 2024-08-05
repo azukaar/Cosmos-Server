@@ -72,7 +72,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
-          IsRelay: true,
+          IsRelay: false,
           isLighthouse: false,
         }}
 

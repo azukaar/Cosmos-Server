@@ -156,7 +156,9 @@ export const ConstellationVPN = () => {
                   </LoadingButton>
                   <UploadButtons
                     accept=".yml,.yaml"
-                    label={t('mgmt.constellation.setup.externalConfig.label')}
+                    label={config.ConstellationConfig.SlaveMode ?
+                      t('mgmt.constellation.setup.externalConfig.slaveMode.label')
+                      : t('mgmt.constellation.setup.externalConfig.label')}
                     variant="outlined"
                     fullWidth
                     OnChange={async (e) => {

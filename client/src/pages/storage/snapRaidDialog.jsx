@@ -187,7 +187,7 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
   </>
 }
 
-const SnapRAIDDialog = ({ refresh, data }) => {
+const SnapRAIDDialog = ({ refresh, data, disabled }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -199,6 +199,7 @@ const SnapRAIDDialog = ({ refresh, data }) => {
         onClick={() => {setOpen(true);}}
         variant="contained"
         size="small"
+        disabled={disabled}
         startIcon={<PlusCircleOutlined />}
       >{t('mgmt.storage.snapraid.createParity.newDisks')}</ResponsiveButton> :
       <div onClick={() => setOpen(true)}>{t('global.edit')}</div>}

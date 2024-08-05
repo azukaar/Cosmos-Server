@@ -17,6 +17,7 @@ import MergerDialog, { MergerDialogInternal } from "./mergerDialog";
 import ResponsiveButton from "../../components/responseiveButton";
 import MenuButton from "../../components/MenuButton";
 import { useTranslation } from 'react-i18next';
+import VMWarning from "./vmWarning";
 
 export const StorageMerges = () => {
   const { t } = useTranslation();
@@ -25,14 +26,18 @@ export const StorageMerges = () => {
   const [mounts, setMounts] = useState([]);
   const [mergeDialog, setMergeDialog] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [containerized, setContainerized] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     let mountsData = await API.storage.mounts.list();
     let configAsync = await API.config.get();
+    let status = await API.getStatus();
+
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setMounts(mountsData.data);
+    setContainerized(status.data.containerized);
     setLoading(false);
   };
 
@@ -44,12 +49,13 @@ export const StorageMerges = () => {
     {(config) ? <>
       {mergeDialog && <MergerDialogInternal data={mergeDialog.data} refresh={refresh} unmount={mergeDialog.unmount} open={mergeDialog} setOpen={setMergeDialog} />}
       <Stack spacing={2}>
+      {containerized && <VMWarning />}
       <div>
         <PrettyTableView 
           data={mounts.filter((mount) => mount.type === 'fuse.mergerfs')}
           getKey={(r) => `${r.device} - ${refresh.path}`}
           buttons={[
-            <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh}/>,
+            <MergerDialog disk={{name: '/dev/sda'}} refresh={refresh} disabled={containerized}/>,
             <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
               refresh();
             }}>{t('global.refresh')}</ResponsiveButton>
@@ -77,7 +83,7 @@ export const StorageMerges = () => {
               title: '',
               clickable:true, 
               field: (r) => <>
-                <DeleteIconButton onDelete={() => {
+                <DeleteIconButton disabled={containerized} onDelete={() => {
                   API.storage.mounts.unmount({ mountPoint: r.path, permanent: true }).then(() => {
                     refresh();
                   });

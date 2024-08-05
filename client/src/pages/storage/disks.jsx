@@ -28,6 +28,7 @@ import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
 import { useTranslation } from 'react-i18next';
+import VMWarning from "./vmWarning";
 
 const diskStyle = {
   width: "100%",
@@ -47,7 +48,7 @@ const icons = {
   raid6: raidIcon,
 }
 
-const FormatButton = ({disk, refresh}) => {
+const FormatButton = ({disk, refresh, disabled}) => {
   const { t } = useTranslation();
   const [formatting, setFormatting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,13 +56,16 @@ const FormatButton = ({disk, refresh}) => {
 
   return <>
     <LoadingButton
+      disabled={disabled}
       loading={loading}
       onClick={() => {setPasswordConfirm(true); setLoading(true)}}
       variant="outlined"
       color="error"
       size="small"
       startIcon={<CloseCircleOutlined />}
-    >{t('mgmt.storage.formatButton')}</LoadingButton>
+    >
+      {t('mgmt.storage.formatButton')}
+    </LoadingButton>
     
     {passwordConfirm && <FormatModal
       OnClose={() => {
@@ -99,7 +103,7 @@ const FormatButton = ({disk, refresh}) => {
   </>
 }
 
-const Disk = ({disk, refresh, SetSMARTDialogOpened}) => {
+const Disk = ({disk, refresh, SetSMARTDialogOpened, containerized}) => {
   const theme = useTheme();
   const darkMode = theme.palette.mode === 'dark';
 
@@ -177,9 +181,9 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened}) => {
               })}
             </Stack>
             <Stack spacing={2} direction="column" justifyContent={"center"}>
-              {(disk.type == "disk" || disk.type == "part") ? <FormatButton disk={disk} refresh={refresh}/> : ""}
+              {(disk.type == "disk" || disk.type == "part") ? <FormatButton disabled={containerized} disk={disk} refresh={refresh}/> : ""}
               
-              {disk.mountpoint ? <MountDiskDialog disk={disk} unmount={true} refresh={refresh} /> : ""}
+              {disk.mountpoint ? <MountDiskDialog disabled={containerized} disk={disk} unmount={true} refresh={refresh} /> : ""}
               
               {(
                 (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
@@ -195,7 +199,7 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened}) => {
       </div>
     }>
       {disk.children && disk.children.map((child, index) => {
-        return <Disk disk={child} refresh={refresh} SetSMARTDialogOpened={SetSMARTDialogOpened}/>
+        return <Disk containerized={containerized} disk={child} refresh={refresh} SetSMARTDialogOpened={SetSMARTDialogOpened}/>
       })}
     </TreeItem>
   </>;
@@ -236,7 +240,7 @@ export const StorageDisks = () => {
       <SMARTDialog disk={SMARTDialogOpened} OnClose={() => SetSMARTDialogOpened(false)} />
 
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
-      {containerized && <Alert severity="warning">{t('mgmt.storage.runningInsideContainerWarning')}</Alert>}
+      {containerized && <VMWarning />}
       <div>
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
@@ -251,7 +255,7 @@ export const StorageDisks = () => {
         defaultExpandIcon={<PlusCircleFilled />}
       >
         {disks && disks.map((disk, index) => {
-          return <Disk SetSMARTDialogOpened={SetSMARTDialogOpened} disk={disk} refresh={async () => {
+          return <Disk containerized={containerized} SetSMARTDialogOpened={SetSMARTDialogOpened} disk={disk} refresh={async () => {
             await new Promise(r => setTimeout(r, 1000));
             await refresh()
           }} />

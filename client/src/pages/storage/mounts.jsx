@@ -18,6 +18,7 @@ import MenuButton from "../../components/MenuButton";
 import MountDialog, { MountDialogInternal } from "./mountDialog";
 import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
+import VMWarning from "./vmWarning";
 
 export const StorageMounts = () => {
   const { t } = useTranslation();
@@ -26,15 +27,19 @@ export const StorageMounts = () => {
   const [mounts, setMounts] = useState([]);
   const [mountDialog, setMountDialog] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [containerized, setContainerized] = useState(false);
 
   const refresh = async () => {
     setLoading(true);
     let mountsData = await API.storage.mounts.list();
     let configAsync = await API.config.get();
+    let status = await API.getStatus();
+
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setMounts(mountsData.data);
     setLoading(false);
+    setContainerized(status.data.containerized);
   };
 
   useEffect(() => {
@@ -43,12 +48,13 @@ export const StorageMounts = () => {
 
   return <>
     {mountDialog && <MountDialogInternal data={mountDialog.data} refresh={refresh} unmount={mountDialog.unmount} open={mountDialog} setOpen={setMountDialog} />}
-    {(config) ? <>
+    {(config) ? <Stack spacing={2}>
+      {containerized && <VMWarning />}
       <PrettyTableView 
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
+          <ResponsiveButton startIcon={<PlusCircleOutlined />}  disabled={containerized} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
           }}>{t('global.refresh')}</ResponsiveButton>
@@ -75,13 +81,13 @@ export const StorageMounts = () => {
             field: (r) => <>
               <div style={{position: 'relative'}}>
                 <MenuButton>
-                  <MenuItem disabled={!r.device.startsWith('/dev/') || loading} onClick={() => setMountDialog({data: r, unmount: false})}>
+                  <MenuItem disabled={!r.device.startsWith('/dev/') || loading || containerized} onClick={() => setMountDialog({data: r, unmount: false})}>
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText >{t('global.edit')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => setMountDialog({data: r, unmount: true})}>
+                  <MenuItem disabled={loading || containerized} onClick={() => setMountDialog({data: r, unmount: true})}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>
@@ -93,7 +99,7 @@ export const StorageMounts = () => {
           },
         ]}
       />
-    </> : <center>
+    </Stack> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
   </>

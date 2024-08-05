@@ -3,6 +3,7 @@ package utils
 import (
 	"os"
 	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -169,6 +170,7 @@ type HTTPConfig struct {
 	DNSChallengeConfig map[string]string `json:"DNSChallengeConfig,omitempty"`
 	UseForwardedFor bool
 	AllowSearchEngine bool
+	PublishMDNS bool
 } 
 
 const (
@@ -245,6 +247,7 @@ type EmailConfig struct {
 	From       string
 	UseTLS		 bool
 	AllowInsecureTLS		 bool
+	NotifyLogin  bool
 }
 
 type OpenIDClient struct {

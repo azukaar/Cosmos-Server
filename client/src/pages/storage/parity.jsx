@@ -18,6 +18,7 @@ import MenuButton from "../../components/MenuButton";
 import diskIcon from '../../assets/images/icons/disk.svg';
 import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
+import VMWarning from "./vmWarning";
 
 const getStatus = (status) => {
   if (!status) {
@@ -64,15 +65,19 @@ export const Parity = () => {
   const [loading, setLoading] = useState(false);
   const [deleteRaid, setDeleteRaid] = useState(null);
   const [editOpened, setEditOpened] = useState(null);
+  const [containerized, setContainerized] = useState(false);
   
   const refresh = async () => {
     setLoading(true);
     let paritiesData = await API.storage.snapRAID.list();
     let configAsync = await API.config.get();
+    let status = await API.getStatus();
     setConfig(configAsync.data);
     setIsAdmin(configAsync.isAdmin);
     setParities(paritiesData.data);
     setLoading(false);
+    
+    setContainerized(status.data.containerized);
   };
   
   const apiDeleteRaid = async (name) => {
@@ -125,8 +130,9 @@ export const Parity = () => {
         onClose={() => setDeleteRaid(null)}
       />}
       <Stack spacing={2}>
+        {containerized && <VMWarning />}
         <Stack direction="row" spacing={2} justifyContent="flex-start">  
-          <SnapRAIDDialog refresh={refresh} />
+          <SnapRAIDDialog refresh={refresh} disabled={containerized}/>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
           }}>{t('global.refresh')}</ResponsiveButton>
@@ -200,31 +206,31 @@ export const Parity = () => {
             field: (r) => {
               return <div style={{position: 'relative'}}>
                 <MenuButton>
-                  <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
+                  <MenuItem disabled={loading || containerized} onClick={() => setEditOpened(r)}>
                     <ListItemIcon>
                       <EditOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>{t('global.edit')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => sync(r.Name)}>
+                  <MenuItem disabled={loading || containerized} onClick={() => sync(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>{t('mgmt.storage.list.syncText')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => scrub(r.Name)}>
+                  <MenuItem disabled={loading || containerized} onClick={() => scrub(r.Name)}>
                     <ListItemIcon>
                       <CompassOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>{t('mgmt.storage.list.scrubText')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => fix(r.Name)}>
+                  <MenuItem disabled={loading || containerized} onClick={() => fix(r.Name)}>
                     <ListItemIcon>
                       <CloudOutlined fontSize="small" />
                     </ListItemIcon>
                     <ListItemText>{t('mgmt.storage.list.fixText')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => tryDeleteRaid(r.Name)}>
+                  <MenuItem disabled={loading || containerized} onClick={() => tryDeleteRaid(r.Name)}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>

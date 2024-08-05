@@ -32,9 +32,6 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 		config.ConstellationConfig.Enabled = true
 		config.ConstellationConfig.SlaveMode = true
 		config.ConstellationConfig.DNSDisabled = true
-
-		// extract "tunnels" from config 
-		// and append the new tunnel to it
 		
 		var configMap map[string]interface{}
 

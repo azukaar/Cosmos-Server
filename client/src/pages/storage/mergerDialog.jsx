@@ -123,7 +123,7 @@ const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {
   </>
 }
 
-const MergerDialog = ({ refresh }) => {
+const MergerDialog = ({ refresh, disabled }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -131,6 +131,7 @@ const MergerDialog = ({ refresh }) => {
     {open && <MergerDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
     
     <ResponsiveButton
+      disabled={disabled}
       onClick={() => {setOpen(true);}}
       variant="contained"
       startIcon={<PlusCircleOutlined />}

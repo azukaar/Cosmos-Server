@@ -372,6 +372,7 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 
 		isLogin := !strings.HasPrefix(r.URL.Path, "/cosmos/api") ||
 						   strings.HasPrefix(r.URL.Path, "/cosmos/api/login") ||
+						   strings.HasPrefix(r.URL.Path, "/cosmos/api/status") ||
 							 strings.HasPrefix(r.URL.Path, "/cosmos/api/password-reset") ||
 							 strings.HasPrefix(r.URL.Path, "/cosmos/api/mfa") ||
 							 strings.HasPrefix(r.URL.Path, "/cosmos/api/can-send-email") ||

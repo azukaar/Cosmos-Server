@@ -50,6 +50,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			},
 			DNS:              detailedInfo.HostConfig.DNS,
 			DNSSearch:        detailedInfo.HostConfig.DNSSearch,
+			Runtime:		  detailedInfo.HostConfig.Runtime,
 			ExtraHosts:       detailedInfo.HostConfig.ExtraHosts,
 			SecurityOpt:      detailedInfo.HostConfig.SecurityOpt,
 			StorageOpt:       detailedInfo.HostConfig.StorageOpt,
@@ -106,7 +107,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 					return networks
 			}(),
 
-			DependsOn:      []string{},  // This is not directly available from inspect. It's part of docker-compose.
+			DependsOn:      map[string]ContainerCreateRequestContainerDependsOnCont{},  // This is not directly available from inspect. It's part of docker-compose.
 			RestartPolicy:  string(detailedInfo.HostConfig.RestartPolicy.Name),
 			Devices:        func() []string {
 					var devices []string
