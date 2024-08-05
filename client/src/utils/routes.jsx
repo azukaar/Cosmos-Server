@@ -171,15 +171,27 @@ export const HostnameChecker = ({hostname}) => {
 
 const hostnameIsDomainReg = /^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/
 
-export const getHostnameFromName = (name, route, config) => {
-  let origin = window.location.origin.split('://')[1];
-  let protocol = window.location.origin.split('://')[0];
+export const getHostnameFromName = (name, route, config, overrideOrigin) => {
+  let origin = overrideOrigin || window.location.origin.split('://')[1];
+  let protocol = overrideOrigin || window.location.origin.split('://')[0];
+  let port = origin.split(':')[1];
+  if (port)
+    origin = origin.split(':')[0];
   let res;
 
   if(origin.match(hostnameIsDomainReg)) {
-    res = name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-') + '.' + origin
+    res = name.replace('/', '').replace(/_/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase().replace(/\s/g, '-');
+    
     if(route)
       res = (route.hostPrefix || '') + res + (route.hostSuffix || '');
+    
+    if(origin.endsWith('.local'))
+      res = res + '.local'
+    else
+      res = res + '.' + origin
+
+    if(port)
+      res += ':' + port;
   } else {
     const existingRoutes = Object.values(config.HTTPConfig.ProxyConfig.Routes);
     origin = origin.split(':')[0];

@@ -17,6 +17,8 @@ import (
 	"path/filepath"
 	"os/exec"
 
+	osnet "net"
+
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -41,7 +43,8 @@ var IsHostNetwork = false
 
 var UpdateAvailable = map[string]bool{}
 
-var RestartHTTPServer func()
+var RestartHTTPServer = func() {}
+
 // var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
@@ -63,6 +66,7 @@ var DefaultConfig = Config{
 		HTTPPort:                "80",
 		HTTPSPort:               "443",
 		Hostname:                "0.0.0.0",
+		PublishMDNS:						 true,
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},
@@ -327,15 +331,6 @@ func LoadBaseMainConfig(config Config) {
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
 	}
-	
-	if MainConfig.ConstellationConfig.ConstellationHostname == "" {
-		// if hostname is a domain add vpn. suffix otherwise use hostname
-		if IsDomain(MainConfig.HTTPConfig.Hostname) {
-			MainConfig.ConstellationConfig.ConstellationHostname = "vpn." + MainConfig.HTTPConfig.Hostname
-		} else {
-			MainConfig.ConstellationConfig.ConstellationHostname = MainConfig.HTTPConfig.Hostname
-		}
-	}
 }
 
 func GetMainConfig() Config {
@@ -456,7 +451,9 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		mainHostname,
 	}
 
-	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	proxies := GetMainConfig().ConstellationConfig.Tunnels
+	proxies = append(proxies, GetMainConfig().HTTPConfig.ProxyConfig.Routes...)
+	
 	for _, proxy := range proxies {
 		if proxy.UseHost && proxy.Host != "" && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
 			if removePorts {
@@ -501,6 +498,23 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	}
 
 	return uniqueHostnames
+}
+
+// TODO
+func GetAllTunnelHostnames() map[string]string {
+	config := GetMainConfig()
+	tunnels := config.HTTPConfig.ProxyConfig.Routes
+	results := map[string]string{}
+	
+	for _, tunnel := range tunnels {
+		if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
+			results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
+		}
+	}
+
+	Debug("Tunnel Hostnames: " + fmt.Sprint(results))
+
+	return results
 }
 
 func GetAvailableRAM() uint64 {
@@ -551,7 +565,7 @@ func StringArrayContains(a []string, b string) bool {
 	return false
 }
 
-func GetServerURL() string {
+func GetServerURL(overwriteHostname string) string {
 	ServerURL := ""
 
 	if IsHTTPS {
@@ -560,8 +574,12 @@ func GetServerURL() string {
 		ServerURL += "http://"
 	}
 
-	ServerURL += MainConfig.HTTPConfig.Hostname
-
+	if overwriteHostname != "" {
+		ServerURL += overwriteHostname
+	} else {
+		ServerURL += MainConfig.HTTPConfig.Hostname
+	}
+	
 	if IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443" {
 		ServerURL += ":" + MainConfig.HTTPConfig.HTTPSPort
 	}
@@ -813,4 +831,75 @@ func IsLocalIP(ip string) bool {
 		return true
 	}
 	return false
+}
+
+func IsConstellationIP(ip string) bool {
+	if strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.") {
+		return true
+	}
+
+	return false 
+}
+
+func SplitIP(ipPort string) (string, string) {
+	host, port, err := osnet.SplitHostPort(ipPort)
+	if err != nil {
+			// If there was an error splitting host and port, try parsing as IP only
+			if ip := osnet.ParseIP(ipPort); ip != nil {
+					// If it's a valid IP, return it with an empty port
+					return ip.String(), ""
+			}
+			// Otherwise, return an empty IP and port (indicating an invalid input)
+			return "", ""
+	}
+	return host, port
+}
+
+func ListIps(skipNebula bool) ([]string, error) {
+	// Get a list of all network interfaces.
+	interfaces, err := osnet.Interfaces()
+	if err != nil {
+		return []string{}, err
+	}
+
+	result := []string{}
+	// Iterate over all interfaces.
+	for _, iface := range interfaces {
+			// skip nebula1 interface 
+			if skipNebula && strings.HasPrefix(iface.Name, "nebula") {
+				continue
+			}
+
+			// skip docker interfaces
+			if strings.HasPrefix(iface.Name, "docker") || strings.HasPrefix(iface.Name, "br-") || strings.HasPrefix(iface.Name, "veth") || strings.HasPrefix(iface.Name, "virbr") {
+				continue
+			}
+			
+			// Get a list of addresses associated with the interface.
+			addrs, err := iface.Addrs()
+			if err != nil {
+				Warn("Error getting addresses for interface " + iface.Name + ": " + err.Error())
+					continue
+			}
+
+			// Iterate over all addresses.
+			for _, addr := range addrs {
+					// Check if the address is an IP address and not a mask.
+					if ipnet, ok := addr.(*osnet.IPNet); ok && !ipnet.IP.IsLoopback() {
+							if ipnet.IP.To4() != nil {
+								// if not duplicate
+								if !StringArrayContains(result, ipnet.IP.String()) {
+									result = append(result, ipnet.IP.String())
+								}
+							} else if ipnet.IP.To16() != nil {
+								// ignore for now
+							}
+					}
+			}
+	}
+
+	// TODO sort, local first
+	// ...
+
+	return result, nil
 }

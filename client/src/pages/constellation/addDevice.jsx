@@ -17,63 +17,6 @@ import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
 
-const getDocker = (data, isCompose) => {
-  let lighthouses = '';
-
-  for (let i = 0; i < data.LighthousesList.length; i++) {
-    const l = data.LighthousesList[i];
-    lighthouses += l.publicHostname + ";" +  l.ip + ":" + l.port + ";" + l.isRelay + ",";
-  }
-
-  let containerName = "cosmos-constellation-lighthouse";
-  let imageName = "cosmos-constellation-lighthouse:latest";
-
-  let volPath = "/var/lib/cosmos-constellation";
-
-  if (isCompose) {
-    return `
-version: "3.8"
-services:
-  ${containerName}:
-    image: ${imageName}
-    container_name: ${containerName}
-    restart: unless-stopped
-    network_mode: bridge
-    ports:
-      - "${data.Port}:4242"
-    volumes:
-      - ${volPath}:/config
-    environment:
-      - CA=${JSON.stringify(data.CA)}
-      - CERT=${JSON.stringify(data.PrivateKey)}
-      - KEY=${JSON.stringify(data.PublicKey)}
-      - LIGHTHOUSES=${lighthouses}
-      - PUBLIC_HOSTNAME=${data.PublicHostname}
-      - IS_RELAY=${data.IsRelay}
-      - IP=${data.IP}
-`;
-  } else {
-    return `
-docker run -d \\
-  --name ${containerName} \\
-  --restart unless-stopped \\
-  --network bridge \\
-  -v ${volPath}:/config \\
-  -e CA=${JSON.stringify(data.CA)} \\
-  -e CERT=${JSON.stringify(data.PrivateKey)} \\
-  -e KEY=${JSON.stringify(data.PublicKey)} \\
-  -e LIGHTHOUSES=${lighthouses} \\
-  -e PUBLIC_HOSTNAME=${data.PublicHostname} \\
-  -e IS_RELAY=${data.IsRelay} \\
-  -e IP=${data.IP} \\
-  -p ${data.Port}:4242 \\
-  ${imageName}
-`;
-  }
-
-}
-
-
 const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
@@ -103,6 +46,8 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       renderCanvas(data);
     }, 500);
 
+    console.log("QRDATA", JSON.stringify(data))
+
     QRCode.toCanvas(canvasRef.current, JSON.stringify(data), 
       {
         width: 600,
@@ -125,7 +70,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
-          IsRelay: true,
+          IsRelay: false,
           isLighthouse: false,
         }}
 
@@ -257,7 +202,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
                       <CosmosCheckbox
                         name="IsRelay"
-                        label="Can Relay Traffic"
+                        label="Relay traffic via this Lighthouse"
                         formik={formik}
                       />
                     </>}

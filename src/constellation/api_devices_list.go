@@ -3,9 +3,7 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
-	"fmt"
-
-	
+		
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
@@ -49,8 +47,6 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "Error decoding devices", http.StatusInternalServerError, "DL002")
 			return
 		}
-
-		fmt.Println(devices)
 	} else {
 		// If not admin, get user's devices based on their nickname
 		nickname := req.Header.Get("x-cosmos-user")

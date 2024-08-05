@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"io"
+
 	"github.com/natefinch/lumberjack"
 )
 
@@ -38,6 +39,27 @@ func startNebulaInBackground() error {
 
 	if process != nil {
 		return errors.New("nebula is already running")
+	}
+
+	// if pid file, kill the process
+	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+		// read pid
+		pid, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.pid")
+		if err != nil {
+			utils.Error("Constellation: Error reading pid file", err)
+		} else {
+			// kill process
+			pidInt, _ := strconv.Atoi(string(pid))
+			processToKill, err := os.FindProcess(pidInt)
+			if err != nil {
+				utils.Error("Constellation: Error finding process", err)
+			} else {
+				err = processToKill.Kill()
+				if err != nil {
+					utils.Error("Constellation: Error killing process", err)
+				}
+			}
+		}
 	}
 
 	logBuffer = &lumberjack.Logger{
@@ -67,6 +89,12 @@ func startNebulaInBackground() error {
 
 	NebulaStarted = true
 
+	// save PID
+	err := ioutil.WriteFile(utils.CONFIGFOLDER+"nebula.pid", []byte(fmt.Sprintf("%d", process.Process.Pid)), 0644)
+	if err != nil {
+		utils.Error("Constellation: Error writing PID file", err)
+	}
+
 	utils.Log(fmt.Sprintf("%s started with PID %d\n", binaryToRun(), process.Process.Pid))
 	return nil
 }
@@ -82,12 +110,24 @@ func stop() error {
 	if err := process.Process.Kill(); err != nil {
 		return err
 	}
+
 	process = nil
 	utils.Log("Stopped nebula.")
+
+	// remove PID file
+	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+		os.Remove(utils.CONFIGFOLDER + "nebula.pid")
+	}
+
 	return nil
 }
 
 func RestartNebula() {
+	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		TriggerClientResync()
+		CloseNATSClient()
+		StopNATS()
+	}
 	stop()
 	Init()
 }
@@ -179,10 +219,16 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	finalConfig := NebulaDefaultConfig
 
 	if !overwriteConfig.PrivateNode {
+		hostnames := []string{}
+		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		for _, hostname := range hsraw {
+			// trim
+			hostname = strings.TrimSpace(hostname)
+			hostnames = append(hostnames, hostname + ":4242")
+		}
+
 		finalConfig.StaticHostMap = map[string][]string{
-			"192.168.201.1": []string{
-				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
-			},
+			"192.168.201.1": hostnames,
 		}
 	} else {
 		finalConfig.StaticHostMap = map[string][]string{}
@@ -196,7 +242,12 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 	for _, l := range lh {
 		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
-			l.PublicHostname + ":" + l.Port,
+			// l.PublicHostname + ":" + l.Port,
+		}
+
+		for _, hostname := range strings.Split(l.PublicHostname, ",") {
+			hostname = strings.TrimSpace(hostname)
+			finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
 		}
 	}
 
@@ -253,7 +304,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice, lite bool) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -276,14 +327,29 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			staticHostMap["192.168.201.1"] = []string{
-				utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			// staticHostMap["192.168.201.1"] = []string{
+			// 	utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
+			// }
+
+			hostnames := []string{}
+			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+			for _, hostname := range hsraw {
+				// trim
+				hostname = strings.TrimSpace(hostname)
+				hostnames = append(hostnames, hostname + ":4242")
 			}
+
+			staticHostMap["192.168.201.1"] = hostnames
 		}
 		
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
-				l.PublicHostname + ":" + l.Port,
+				// l.PublicHostname + ":" + l.Port,
+			}
+
+			for _, hostname := range strings.Split(l.PublicHostname, ",") {
+				hostname = strings.TrimSpace(hostname)
+				staticHostMap[cleanIp(l.IP)] = append(staticHostMap[cleanIp(l.IP)].([]string), hostname + ":" + l.Port)
 			}
 		}
 	} else {
@@ -342,11 +408,103 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	configMap["constellation_device_name"] = name
-	configMap["constellation_local_dns_overwrite"] = true
-	configMap["constellation_local_dns_overwrite_address"] = "192.168.201.1"
-	configMap["constellation_public_hostname"] = device.PublicHostname
-	configMap["constellation_api_key"] = APIKey
+	// configEndpoint := utils.GetServerURL("") + "cosmos/api/constellation/config-sync"
+
+	configHost := utils.GetServerURL("")
+	
+	if !utils.IsDomain(utils.GetMainConfig().HTTPConfig.Hostname) {
+		configHost = "http://192.168.201.1"
+
+		if utils.GetMainConfig().HTTPConfig.HTTPPort != "80" {
+			configHost += ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
+		}
+
+		configHost += "/"
+	}
+
+	configEndpoint := configHost + "cosmos/api/constellation/config-sync"
+
+	configHostname := strings.Split(configHost, "://")[1]
+	configHostname = strings.Split(configHostname, ":")[0]
+	configHostport := ""
+
+	if strings.Contains(configHostname, ":") {
+		configHostport = strings.Split(configHostname, ":")[1]
+
+		if _, err := strconv.Atoi(configHostport); err == nil {
+			configHostport = ":" + configHostport
+		} else {
+			configHostport = ""
+		}
+	}
+
+
+	configHostProto := strings.Split(configHost, "://")[0] + "://"
+
+	configMap["cstln_device_name"] = name
+	configMap["cstln_local_dns_address"] = "192.168.201.1"
+	configMap["cstln_public_hostname"] = device.PublicHostname
+	configMap["cstln_api_key"] = APIKey
+	configMap["cstln_config_endpoint"] = configEndpoint
+	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
+
+	// list routes with a tunnel property matching the device name
+	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	tunnels := []utils.ProxyRouteConfig{}
+
+	for _, route := range routesList {
+		if route.TunnelVia == name {
+			if route.UseHost {
+				route.OverwriteHostHeader = route.Host
+			}
+
+			port := configHostport
+			protocol := configHostProto
+
+			targetProtocol := strings.Split(route.Target, "://")[0]
+			if targetProtocol != "" && targetProtocol != "http" && targetProtocol != "https" && route.Mode != "STATIC" && route.Mode != "SPA" {
+				protocol = strings.Split(route.Target, "://")[0] + "://"
+			} 
+			
+			// extract port from target
+			if strings.Contains(route.Host, ":") {
+				_port := strings.Split(route.Host, ":")[1]
+					// if port is a number
+					if _, err := strconv.Atoi(_port); err == nil {
+						port = ":" + _port
+				}
+			}
+			
+			route.UseHost = true
+			
+			route.Target = protocol + configHostname + port
+
+			if configMap["cstln_https_insecure"].(bool) {
+				route.AcceptInsecureHTTPSTarget = true
+			}
+
+			route.Host = route.TunneledHost
+			route.Mode = "PROXY"
+
+			tunnels = append(tunnels, route)
+		}
+	}
+
+	configMap["cstln_tunnels"] = tunnels
+
+	// lighten the config for QR Codes
+	// remove tun, firewall, punchy and logging
+	if(lite) {
+		delete(configMap, "tun")
+		delete(configMap, "firewall")
+		delete(configMap, "punchy")
+		delete(configMap, "logging")
+		delete(configMap, "listen")
+		delete(configMap, "cstln_tunnels")
+	}
+
+	// delete blocked pki
+	delete(configMap["pki"].(map[interface{}]interface{}), "blocklist")
 
 	// export configMap as YML
 	yamlData, err = yaml.Marshal(configMap)
@@ -565,4 +723,8 @@ func generateNebulaCACert(name string) (error) {
 	cmd.Run()
 
 	return nil
+}
+
+func GetDeviceIp(device string) string {
+	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
 }

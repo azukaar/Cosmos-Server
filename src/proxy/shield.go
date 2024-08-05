@@ -5,12 +5,12 @@ import (
 	"time"
 	"net/http"
 	"fmt"
-	"net"
 	"math"
 	"strconv"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 /*
@@ -280,16 +280,21 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 	return int64(math.Max(0, math.Min(math.Min(timeExhaustedPercentage, requestsExhaustedPercentage), bytesExhaustedPercentage)))
 }
 
-func GetClientID(r *http.Request) string {
+func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
+	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
+	isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
+	isConstIP := utils.IsConstellationIP(remoteAddr)
+	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-	if UseForwardedFor && r.Header.Get("x-forwarded-for") != "" {
-		ip, _, _ := net.SplitHostPort(r.Header.Get("x-forwarded-for"))
-		utils.Debug("SmartShield: Getting client ID " + ip)
+	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
+		 (isTunneledIp && isConstIP && isConstTokenValid) {
+		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
+		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip
 	} else {
-		ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+		ip, _ := utils.SplitIP(r.RemoteAddr)
 		utils.Debug("SmartShield: Getting client ID " + ip)
 		return ip
 	}
@@ -329,7 +334,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			clientID := GetClientID(r)
+			clientID := GetClientID(r, route)
 
 			wrapper := &SmartResponseWriterWrapper {
 				ResponseWriter: w,

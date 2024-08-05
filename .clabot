@@ -8,7 +8,7 @@
     "revam",
     "Kawanaao",
     "davis4acca",
-    "george-radu-cs",
+    "george-radu-cs", "BearTS", "lilkidsuave", "ryan-schubert",
     "tcorzo"
   ],
   "message": "We require contributors to sign our [Contributor License Agreement](https://github.com/azukaar/Cosmos-Server/blob/master/cla.md). In order for us to review and merge your code, add yourself to the .clabot file as contributor, as a way of signing the CLA."

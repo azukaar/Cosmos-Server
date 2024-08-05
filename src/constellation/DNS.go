@@ -40,6 +40,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 
 	// []string hostnames
 	hostnames := utils.GetAllHostnames(false, true)
+
+	utils.Debug("DNS Request from " + w.RemoteAddr().String() + " for " + r.Question[0].Name)
 	
 	if !customHandled {
 		customDNSEntries := config.ConstellationConfig.CustomDNSEntries
@@ -61,13 +63,51 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	}
 
 	if !customHandled {
-		// Overwrite local hostnames with Constellation IP
+		// Overwrite remote hostnames with Constellation IP
+		remoteHostnames := utils.GetAllTunnelHostnames()
+		for _, q := range r.Question {
+			for hostname, _destination := range remoteHostnames {
+				destination := CachedDeviceNames[_destination]
+				destination = strings.ReplaceAll(destination, "/24", "")
+
+				if destination != "" {
+					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
+						utils.Debug("DNS Overwrite " + hostname + " with " + destination)
+						rr, _ := dns.NewRR(q.Name + " A " + destination)
+						m.Answer = append(m.Answer, rr)
+						customHandled = true
+					}
+				}
+			}
+		}
+	}
+	
+	if !customHandled {
+		// Overwrite local hostnames with their Constellation IP
 		for _, q := range r.Question {
 			utils.Debug("DNS Question " + q.Name)
 			for _, hostname := range hostnames {
 				if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
 					utils.Debug("DNS Overwrite " + hostname + " with 192.168.201.1")
 					rr, _ := dns.NewRR(q.Name + " A 192.168.201.1")
+					m.Answer = append(m.Answer, rr)
+					customHandled = true
+				}
+			}
+		}
+	}
+	
+	if !customHandled {
+		// Overwrite Constellation devices with Constellation IP
+		for _, q := range r.Question {
+			utils.Debug("DNS Question " + q.Name)
+			for deviceName, ip := range CachedDeviceNames {
+				procDeviceName := strings.ReplaceAll(deviceName, " ", "-")
+				ip = strings.ReplaceAll(ip, "/24", "")
+				
+				if strings.HasSuffix(q.Name, procDeviceName + ".") && q.Qtype == dns.TypeA {
+					utils.Debug("DNS Overwrite " + procDeviceName + " with its IP")
+					rr, _ := dns.NewRR(q.Name + " A " + ip)
 					m.Answer = append(m.Answer, rr)
 					customHandled = true
 				}
@@ -135,12 +175,18 @@ func loadRawBlockList(DNSBlacklistRaw string) {
 	}
 }
 
+var DNSStarted = false
+
 func InitDNS() {
+	if DNSStarted {
+		return
+	}
+
+	utils.Log("Waiting for Constellation DNS")
+
 	ConstellationInitLock.Lock()
 	defer ConstellationInitLock.Unlock()
-
-	ProcessMux.Lock()
-	defer ProcessMux.Unlock()
+	
 	
 	config := utils.GetMainConfig()
 	DNSPort := config.ConstellationConfig.DNSPort
@@ -183,23 +229,32 @@ func InitDNS() {
 	}
 
 	if(!config.ConstellationConfig.DNSDisabled) {
+		utils.Log("Initializing Constellation DNS")
+
 		go (func() {
 			dns.HandleFunc(".", handleDNSRequest)
 			server := &dns.Server{Addr: "192.168.201.1:" + DNSPort, Net: "udp"}
 
 			utils.Log("Starting DNS server on :" + DNSPort)
 			var err error
+			
+			DNSStarted = true
 
 			err = server.ListenAndServe();
 			retries := 0
+
 			for err != nil && retries < 4 {
 				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
 				err = server.ListenAndServe();
 				retries++
 				utils.Debug("Retrying to start DNS server")
 			}
+			
 			if err != nil {
-				utils.Error("Failed to start DNS server", err)
+				utils.MajorError("Failed to start DNS server", err)
+				DNSStarted = false
+			} else {
+				utils.Log("Constellation DNS started!")
 			}
 		})()
 	}

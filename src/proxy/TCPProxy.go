@@ -134,6 +134,10 @@ func InitInternalTCPProxy() {
 	HTTPPort := config.HTTPConfig.HTTPPort
 	HTTPSPort := config.HTTPConfig.HTTPSPort
 	routes := config.HTTPConfig.ProxyConfig.Routes
+    tunnels := []utils.ProxyRouteConfig{}
+    if config.ConstellationConfig.Enabled {
+        tunnels = config.ConstellationConfig.Tunnels
+    }
 	targetPort := HTTPPort
 
     allowHTTPLocal := config.HTTPConfig.AllowHTTPLocalIPAccess
@@ -142,7 +146,11 @@ func InitInternalTCPProxy() {
 		targetPort = HTTPSPort
 	}
 
-	for _, route := range routes {
+    routesList := []utils.ProxyRouteConfig{}
+    routesList = append(routesList, tunnels...)
+    routesList = append(routesList, routes...)
+
+	for _, route := range routesList {
 		if route.UseHost && strings.Contains(route.Host, ":") {
 			hostname := route.Host
 			port := strings.Split(hostname, ":")[1]

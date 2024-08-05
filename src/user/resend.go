@@ -80,7 +80,7 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 
 			if utils.IsEmailEnabled() && user.Email != "" {
 				utils.Debug("Sending an email to " + user.Email)
-				url := utils.GetServerURL() + ("cosmos-ui/register?t="+request.FormType+"&nickname="+user.Nickname+"&key=" + RegisterKey)
+				url := utils.GetServerURL("") + ("cosmos-ui/register?t="+request.FormType+"&nickname="+user.Nickname+"&key=" + RegisterKey)
 				
 				var errEm error 
 				

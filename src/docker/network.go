@@ -58,7 +58,7 @@ func doesSubnetOverlap(networks []types.NetworkResource, subnet string) bool {
 
 func findAvailableSubnets(nb int) ([]string, error) {
 	result := []string{}
-	baseSubnet := "172.16.0.0/29"
+	baseSubnet := "172.16.0.0/28"
 
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {

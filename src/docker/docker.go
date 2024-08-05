@@ -254,7 +254,10 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	// only force hostname if network is bridge or default, otherwise it will fail
 	if newConfig.HostConfig.NetworkMode == "bridge" || newConfig.HostConfig.NetworkMode == "default" {
 		newConfig.Config.Hostname = newName[1:]
-	} else {
+	} else if newConfig.HostConfig.NetworkMode != "host"  && newConfig.HostConfig.NetworkMode != "none" {
+		// if not bridge, default, host or none, restore hostname
+		newConfig.Config.Hostname = oldContainer.Config.Hostname
+	}	else {
 		// if not, remove hostname because otherwise it will try to keep the old one
 		newConfig.Config.Hostname = ""
 		// IDK Docker is weird, if you don't erase this it will break
@@ -772,7 +775,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 
 	perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
 	if perCore == 0 {
-		utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
+		// utils.Debug("StatsAll - Docker CPU PercpuUsage is 0")
 		perCore = 1
 	}
 
@@ -791,7 +794,7 @@ func Stats(container types.Container) (ContainerStats, error) {
 		
 		// utils.Debug("StatsAll - CPU CPUUsage " + strconv.FormatFloat(cpuUsage, 'f', 6, 64))
 	} else {
-		utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
+		// utils.Debug("StatsAll - Error calculating CPU usage for " + container.Names[0])
 	}
 
 	// memUsage := float64(stats.MemoryStats.Usage) / float64(stats.MemoryStats.Limit) * 100

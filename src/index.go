@@ -53,6 +53,7 @@ func main() {
 	}
 
 	config := utils.GetMainConfig()
+	
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
@@ -76,10 +77,6 @@ func main() {
 		utils.Log("Starting constellation services...")
 
 		constellation.Init()
-
-		if constellation.NebulaStarted {
-			go constellation.InitDNS()
-		}
 
 		storage.InitSnapRAIDConfig()
 		

@@ -20,9 +20,8 @@ func UserGet(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if(req.Method == "GET") {
-
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
+  	defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

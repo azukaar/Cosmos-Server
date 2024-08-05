@@ -19,6 +19,16 @@ function addDevice(device) {
   }))
 }
 
+function resyncDevice(device) {
+  return wrap(fetch('/cosmos/api/constellation/config-manual-sync', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(device),
+  }))
+}
+
 function restart() {
   return wrap(fetch('/cosmos/api/constellation/restart', {
     method: 'GET',
@@ -101,6 +111,7 @@ function block(nickname, devicename, block) {
 export {
   list,
   addDevice,
+  resyncDevice,
   restart,
   getConfig,
   getLogs,

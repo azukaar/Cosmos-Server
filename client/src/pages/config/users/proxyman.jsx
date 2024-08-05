@@ -4,7 +4,7 @@ import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
 import { useTheme } from '@mui/material/styles';
-import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined, QuestionCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -25,8 +25,10 @@ import {
   MenuItem,
   Chip,
   CircularProgress,
+  Tooltip,
 
 } from '@mui/material';
+import ConstellationIcon from '../../../assets/images/icons/constellation.png'
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
@@ -160,6 +162,16 @@ const ProxyManagement = () => {
 
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
+  if (config && config.ConstellationConfig.Tunnels) {
+    // prepend
+    config.ConstellationConfig.Tunnels = config.ConstellationConfig.Tunnels.map((t) => {
+      t._IsTunnel = true;
+      return t;
+    });
+    
+    routes = [...config.ConstellationConfig.Tunnels, ...routes];
+  }
+
   return <div style={{   }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
@@ -177,7 +189,7 @@ const ProxyManagement = () => {
       {routes && <PrettyTableView 
         data={routes}
         getKey={(r) => r.Name + r.Target + r.Mode}
-        linkTo={(r) => '/cosmos-ui/config-url/' + r.Name}
+        linkTo={(r) => r._IsTunnel ? '' : ('/cosmos-ui/config-url/' + r.Name)}
         columns={[
           { 
             title: '', 
@@ -191,7 +203,12 @@ const ProxyManagement = () => {
           {
             title: 'Enabled', 
             clickable:true, 
-            field: (r, k) => <Checkbox disabled={isLoading} size='large' color={!r.Disabled ? 'success' : 'default'}
+            field: (r, k) => r._IsTunnel ? <>
+              <img height="30px" width="30px" style={{
+                display: 'block',
+                marginLeft: '10px',
+              }} src={ConstellationIcon} />
+            </> : <Checkbox disabled={isLoading} size='large' color={!r.Disabled ? 'success' : 'default'}
               onChange={setRouteEnabled(routes.indexOf(r))}
               checked={!r.Disabled}
             />,
@@ -203,7 +220,10 @@ const ProxyManagement = () => {
             },
             underline: true,
             field: (r) => <>
-              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>{r.Name}</div><br/>
+              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize:'125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark}}>
+                {r.Name} {!r._IsTunnel && r.TunnelVia && <span>💫</span>}
+              </div>
+              <br/>
               <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
             </>
           },
@@ -219,7 +239,14 @@ const ProxyManagement = () => {
           { title: 'Target', screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: 'Security', screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
-          { title: '', clickable:true, field: (r, k) =>  <RouteActions
+          { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
+            <QuestionCircleOutlined style={{
+              // color: 'gray',
+              fontSize: '20px',
+              verticalAlign: 'middle',
+              paddingRight: '5px',
+            }} />
+          </Tooltip> : <RouteActions
               route={r}
               routeKey={routes.indexOf(r)}
               up={(event) => up(event, routes.indexOf(r))}

@@ -57,7 +57,7 @@ jobs:
       - run:
           name: Download and Extract ARM Nebula Binary
           command: |
-            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-arm64.tar.gz
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-arm64.tar.gz
             tar -xzvf nebula-linux-arm64.tar.gz
       
       - run:
@@ -69,7 +69,7 @@ jobs:
       - run:
           name: Download and Extract Nebula Binary
           command: |
-            curl -LO https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-amd64.tar.gz
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-amd64.tar.gz
             tar -xzvf nebula-linux-amd64.tar.gz
 
       - run:
@@ -79,65 +79,6 @@ jobs:
       - run:
           name: Build and publish dockerfiles
           command: sh docker.sh
-
-  buildarm:
-    machine:
-      image: ubuntu-2004:202101-01
-    resource_class: arm.medium
-
-    steps:
-      - checkout
-
-      - run:
-          name: install dependencies
-          command: sudo apt-get install bash curl
-
-      - run:
-          name: download Go
-          command: wget https://golang.org/dl/go1.21.6.linux-arm64.tar.gz
-      
-      - run:
-          name: install Go
-          command: sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go1.21.6.linux-arm64.tar.gz
-      
-      - run:
-          name: set Go path
-          command: echo 'export PATH=$PATH:/usr/local/go/bin' >> $BASH_ENV
-
-      - run: |
-            echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
-            echo ' [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
-     
-      - run: |
-          node -v
-
-      - run: |
-          nvm install v16
-          node -v
-          nvm alias default v16
-
-      - run: |
-          node -v
-
-      - run: docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
-
-      - run:
-          name: Install dependencies
-          command: npm install
-          
-      - run:
-          name: Download GeoLite2-Country database
-          command: |
-            curl -s -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=$MAX_TOKEN&suffix=tar.gz" -o GeoLite2-Country.tar.gz
-            tar -xzf GeoLite2-Country.tar.gz --strip-components 1 --wildcards "*.mmdb"
-
-      - run:
-          name: Build UI
-          command: npm run client-build
-
-      - run:
-          name: Build and publish dockerfiles
-          command: sh docker.arm64.sh
 
 workflows:
   version: 2

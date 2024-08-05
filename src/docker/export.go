@@ -28,48 +28,49 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 		return ContainerCreateRequestContainer{}, errors.New(ExportError)
 	}
 
-	// Map the detailedInfo to your ContainerCreateRequestContainer struct
-	// Here's a simplified example, you'd need to handle all the fields
-	service := ContainerCreateRequestContainer{
-		Name:        strings.TrimPrefix(detailedInfo.Name, "/"),
-		Image:       detailedInfo.Config.Image,
-		Environment: detailedInfo.Config.Env,
-		Labels:      detailedInfo.Config.Labels,
-		Command:     strings.Join(detailedInfo.Config.Cmd, " "),
-		Entrypoint:  strings.Join(detailedInfo.Config.Entrypoint, " "),
-		WorkingDir:  detailedInfo.Config.WorkingDir,
-		User:        detailedInfo.Config.User,
-		Tty:         detailedInfo.Config.Tty,
-		StdinOpen:   detailedInfo.Config.OpenStdin,
-		Hostname:    detailedInfo.Config.Hostname,
-		Domainname:  detailedInfo.Config.Domainname,
-		MacAddress:  detailedInfo.NetworkSettings.MacAddress,
-		NetworkMode: string(detailedInfo.HostConfig.NetworkMode),
-		StopSignal:  detailedInfo.Config.StopSignal,
-		HealthCheck: ContainerCreateRequestContainerHealthcheck{},
-		DNS:         detailedInfo.HostConfig.DNS,
-		DNSSearch:   detailedInfo.HostConfig.DNSSearch,
-		ExtraHosts:  detailedInfo.HostConfig.ExtraHosts,
-		SecurityOpt: detailedInfo.HostConfig.SecurityOpt,
-		StorageOpt:  detailedInfo.HostConfig.StorageOpt,
-		Sysctls:     detailedInfo.HostConfig.Sysctls,
-		Isolation:   string(detailedInfo.HostConfig.Isolation),
-		CapAdd:      detailedInfo.HostConfig.CapAdd,
-		CapDrop:     detailedInfo.HostConfig.CapDrop,
-		Privileged:  detailedInfo.HostConfig.Privileged,
+		// Map the detailedInfo to your ContainerCreateRequestContainer struct
+		// Here's a simplified example, you'd need to handle all the fields
+		service := ContainerCreateRequestContainer{
+			Name:         strings.TrimPrefix(detailedInfo.Name, "/"),
+			Image:        detailedInfo.Config.Image,
+			Environment:  detailedInfo.Config.Env,
+			Labels:       detailedInfo.Config.Labels,
+			Command:      strings.Join(detailedInfo.Config.Cmd, " "),
+			Entrypoint:   strings.Join(detailedInfo.Config.Entrypoint, " "),
+			WorkingDir:   detailedInfo.Config.WorkingDir,
+			User:         detailedInfo.Config.User,
+			Tty:          detailedInfo.Config.Tty,
+			StdinOpen:    detailedInfo.Config.OpenStdin,
+			Hostname:     detailedInfo.Config.Hostname,
+			Domainname:   detailedInfo.Config.Domainname,
+			MacAddress:   detailedInfo.NetworkSettings.MacAddress,
+			NetworkMode:  string(detailedInfo.HostConfig.NetworkMode),
+			StopSignal:   detailedInfo.Config.StopSignal,
+			HealthCheck:  ContainerCreateRequestContainerHealthcheck {
+			},
+			DNS:              detailedInfo.HostConfig.DNS,
+			DNSSearch:        detailedInfo.HostConfig.DNSSearch,
+			ExtraHosts:       detailedInfo.HostConfig.ExtraHosts,
+			SecurityOpt:      detailedInfo.HostConfig.SecurityOpt,
+			StorageOpt:       detailedInfo.HostConfig.StorageOpt,
+			Sysctls:          detailedInfo.HostConfig.Sysctls,
+			Isolation:        string(detailedInfo.HostConfig.Isolation),
+			CapAdd:           detailedInfo.HostConfig.CapAdd,
+			CapDrop:          detailedInfo.HostConfig.CapDrop,
+			Privileged:       detailedInfo.HostConfig.Privileged,
 
-		// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
+			// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
 
-		// Ports
-		Ports: func() []string {
-			ports := []string{}
-			for port, binding := range detailedInfo.NetworkSettings.Ports {
-				for _, b := range binding {
-					ports = append(ports, fmt.Sprintf("%s:%s:%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
-				}
-			}
-			return ports
-		}(),
+			// Ports
+			Ports: func() []string {
+					ports := []string{}
+					for port, binding := range detailedInfo.NetworkSettings.Ports {
+							for _, b := range binding {
+									ports = append(ports, fmt.Sprintf("%s:%s:%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
+							}
+					}
+					return ports
+			}(),
 
 		// Volumes
 		Volumes: func() []mount.Mount {

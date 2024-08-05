@@ -4,8 +4,8 @@ import * as API  from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, CircularProgress, Stack } from "@mui/material";
+import { CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
+import { Alert, Button, CircularProgress, IconButton, Stack, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -15,6 +15,7 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
+import ResyncDeviceModal from "./resyncDevice";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -29,6 +30,7 @@ export const ConstellationVPN = () => {
   const [config, setConfig] = useState(null);
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
+  const [resynDevice, setResyncDevice] = useState(null); // [nickname, deviceName]
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
@@ -65,6 +67,11 @@ export const ConstellationVPN = () => {
 
   return <>
     {(devices && config && users) ? <>
+      {resynDevice &&
+        <ResyncDeviceModal nickname={resynDevice[0]} deviceName={resynDevice[1]} OnClose={
+          () => setResyncDevice(null)
+        } />
+      }
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
       <div>
         <Alert severity="info">
@@ -132,10 +139,12 @@ export const ConstellationVPN = () => {
                   {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
                       <CosmosCheckbox formik={formik} name="IsRelay" label="Relay requests via this Node" />
-                      <CosmosCheckbox formik={formik} name="PrivateNode" label="This node is Private (no public IP)" />
+                      <CosmosCheckbox formik={formik} name="PrivateNode" label="This server is not a lighthouse (you wont be able to connect to it directly without another lighthouse)" />
                       {!formik.values.PrivateNode && <>
-                        <Alert severity="info">This is your Constellation hostname, that you will use to connect. If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
-                        <CosmosInputText formik={formik} name="ConstellationHostname" label="Constellation Hostname" />
+                        <Alert severity="info">This are your Constellation hostnames, that the app will use to connect. This can be a mixed of domain name (for dynamic IPs) and IPs.
+                        <br />
+                        If you are using a domain name, this needs to be different from your server's hostname. Whatever the domain you choose, it is very important that you make sure there is a A entry in your domain DNS pointing to this server. <strong>If you change this value, you will need to reset your network and reconnect all the clients!</strong></Alert>
+                        <CosmosInputText formik={formik} name="ConstellationHostname" label="Constellation Hostnames (comma separated)" />
                       </>}
                     </>}
                   </>}
@@ -150,7 +159,9 @@ export const ConstellationVPN = () => {
                   </LoadingButton>
                   <UploadButtons
                     accept=".yml,.yaml"
-                    label={"Upload External Constellation Network File"}
+                    label={config.ConstellationConfig.SlaveMode ?
+                      "Resync External Constellation Network File"
+                      : "Upload External Constellation Network File"}
                     variant="outlined"
                     fullWidth
                     OnChange={async (e) => {
@@ -202,10 +213,17 @@ export const ConstellationVPN = () => {
                 title: '',
                 clickable: true,
                 field: (r) => {
-                  return <DeleteButton onDelete={async () => {
-                    await API.constellation.block(r.nickname, r.deviceName, true);
-                    refreshConfig();
-                  }}></DeleteButton>
+                  return <>
+                    <Tooltip title="Resync Device">
+                      <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
+                        <SyncOutlined />
+                      </IconButton>
+                    </Tooltip>
+                    <DeleteButton onDelete={async () => {
+                      await API.constellation.block(r.nickname, r.deviceName, true);
+                      refreshConfig();
+                    }}></DeleteButton>
+                  </>
                 }
               }
           ]}

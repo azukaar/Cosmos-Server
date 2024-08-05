@@ -105,12 +105,6 @@ const RouteSecurity = ({ routeConfig, config }) => {
                     <CosmosFormDivider title={'Headers'} />
 
                     <CosmosCheckbox
-                      name="SpoofHostname"
-                      label="Spoof Hostname (hack for stubborn applications)"
-                      formik={formik}
-                    />
-
-                    <CosmosCheckbox
                       name="DisableHeaderHardening"
                       label="Disable Header Hardening"
                       formik={formik}

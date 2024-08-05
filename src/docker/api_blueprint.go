@@ -90,6 +90,10 @@ func (d DependsOnField) MarshalJSON() ([]byte, error) {
 	// Otherwise, marshal as an object
 	return json.Marshal(map[string]*DependsOnCondition(d))
 }
+type ContainerCreateRequestContainerDependsOnCont struct {
+	Condition string `json:"condition"`
+	Restart string `json:"restart"`
+}
 
 type ContainerCreateRequestContainer struct {
 	Name        string                                          `json:"container_name"`
@@ -111,6 +115,7 @@ type ContainerCreateRequestContainer struct {
 
 	Command         string                                     `json:"command,omitempty"`
 	Entrypoint      string                                     `json:"entrypoint,omitempty"`
+	Runtime string `json:"runtime,omitempty"`
 	WorkingDir      string                                     `json:"working_dir,omitempty"`
 	User            string                                     `json:"user,omitempty"`
 	UID             int                                        `json:"uid,omitempty"`
@@ -744,6 +749,10 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Isolation:   conttype.Isolation(container.Isolation),
 			CapAdd:      container.CapAdd,
 			CapDrop:     container.CapDrop,
+		}
+
+		if container.Runtime != "" {
+			hostConfig.Runtime = strings.Join(strings.Fields(container.Runtime), " ")
 		}
 
 		// For Healthcheck

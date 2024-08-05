@@ -64,9 +64,10 @@ func startHTTPSServer(router *mux.Router) error {
 		httpRouter := mux.NewRouter()
 
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// if AllowHTTPLocalIPAccess is on, allow local IP access via HTTP
-			utils.Debug("SERVING LOCAL IP ACCESS VIA HTTP?? " + r.RemoteAddr + " " + strconv.FormatBool(utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess) + " " + strconv.FormatBool(utils.IsLocalIP(r.RemoteAddr)))
-			if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
+			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
+			if r.Host == "192.168.201.1" && (r.URL.Path == "/cosmos/api/constellation/config-sync" || r.URL.Path == "/cosmos/api/constellation_webhook_sync") && utils.IsConstellationIP(r.RemoteAddr) {
+				router.ServeHTTP(w, r)
+			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)  {
 				// use router 
 				router.ServeHTTP(w, r)
 			} else {
@@ -137,6 +138,11 @@ func startHTTPSServer(router *mux.Router) error {
 	} else {
 		proxy.InitInternalTCPProxy()
 	}
+
+	// Publish mDNS 
+	// if config.HTTPConfig.PublishMDNS {
+		proxy.PublishAllMDNSFromConfig()
+	// }
 
 	utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
 
@@ -435,6 +441,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
 	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
+	// device request config
+	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.GetDeviceConfigSync)
+	// user manually request constellation config for resync
+	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.GetDeviceConfigManualSync)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

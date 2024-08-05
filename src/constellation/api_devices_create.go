@@ -53,7 +53,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
+		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -127,6 +128,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			if request.IsLighthouse {
 				lightHousesList, err = GetAllLightHouses()
 			}
+
+			RestartNebula()
 			
 			// read configYml from config/nebula.yml
 			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{
@@ -139,7 +142,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
-			})
+			}, true)
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading config", err)
