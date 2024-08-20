@@ -467,7 +467,7 @@ const HomePage = () => {
             </>)}
             
             {config && servApps && routes.map((route) => {
-                let skip = route.Mode == "REDIRECT" && (!coStatus || !coStatus.homepage.ShowRedirect);
+                let skip = route.Mode == "REDIRECT";
                 let containerName;
                 let container;
                 if (route.Mode == "SERVAPP") {

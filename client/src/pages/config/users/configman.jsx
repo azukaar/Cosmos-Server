@@ -127,7 +127,6 @@ const ConfigManagement = () => {
 
           Background: config && config.HomepageConfig && config.HomepageConfig.Background,
           Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
-          ShowRedirect: config && config.HomepageConfig && config.HomepageConfig.ShowRedirect,
           PrimaryColor: config && config.ThemeConfig && config.ThemeConfig.PrimaryColor,
           SecondaryColor: config && config.ThemeConfig && config.ThemeConfig.SecondaryColor,
         
@@ -217,8 +216,7 @@ const ConfigManagement = () => {
             HomepageConfig: {
               ...config.HomepageConfig,
               Background: values.Background,
-              Expanded: values.Expanded,
-              ShowRedirect: values.ShowRedirect
+              Expanded: values.Expanded
             },
             ThemeConfig: {
               ...config.ThemeConfig,
@@ -471,14 +469,6 @@ const ConfigManagement = () => {
                     <CosmosCheckbox 
                       label="Show Application Details on Homepage"
                       name="Expanded"
-                      formik={formik}
-                    />
-                  </Grid>
-
-                  <Grid item xs={12}>
-                    <CosmosCheckbox 
-                      label="Show Redirect URLs on Homepage"
-                      name="ShowRedirect"
                       formik={formik}
                     />
                   </Grid>
