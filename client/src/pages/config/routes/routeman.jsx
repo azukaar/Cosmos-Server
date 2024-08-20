@@ -199,6 +199,9 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         ["SPA", "Single Page Application"],
                         ["REDIRECT", "Redirection"]
                       ]}
+                      onChange={() => {
+                        formik.setFieldValue("HideFromDashboard", formik.values.Mode === "REDIRECT");
+                      }}
                     />
                   </Hide>
                   <CosmosFormDivider title={'Target Settings'} />
