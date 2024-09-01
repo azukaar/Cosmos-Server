@@ -102,6 +102,8 @@ type Config struct {
 	AdminConstellationOnly bool
 	Storage StorageConfig
 	CRON map[string]CRONConfig
+	Licence string
+	ServerToken string
 }
 
 type CRONConfig struct {

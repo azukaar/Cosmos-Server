@@ -109,6 +109,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
         onChange={(e) => {
           changePassword(e.target.value);
           formik.handleChange(e);
+          onChange && onChange(e);
         }}
         placeholder="********"
         endAdornment={

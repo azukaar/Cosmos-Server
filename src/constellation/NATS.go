@@ -36,7 +36,7 @@ func StartNATS() {
 	if ns != nil {
 		return
 	}
-
+	
 	utils.Log("Starting NATS server...")
 
 	time.Sleep(2 * time.Second)
@@ -120,6 +120,10 @@ func StartNATS() {
 			retries++
 			continue
 		}
+		if NebulaFailedStarting {
+			utils.Error("Nebula failed to start, aborting NATS server setup", nil)
+			return
+		}
 
 		go ns.Start()
 
@@ -147,9 +151,11 @@ func StartNATS() {
 func StopNATS() {
 	utils.Log("Stopping NATS server...")
 
-	ns.Shutdown()
-	ns.WaitForShutdown()
-	ns = nil
+	if ns != nil {
+		ns.Shutdown()
+		ns.WaitForShutdown()
+		ns = nil
+	}
 }
 
 // sync lock
@@ -166,6 +172,11 @@ func InitNATSClient() {
 
 	var err error
 	retries := 0
+
+	if NebulaFailedStarting {
+		utils.Error("Nebula failed to start, aborting NATS client connection", nil)
+		return
+	}
 
 	utils.Log("Connecting to NATS server...")
 	
@@ -195,6 +206,11 @@ func InitNATSClient() {
 	for err != nil {
 		if retries >= 30 {
 			retries = 30
+		}
+
+		if NebulaFailedStarting {
+			utils.Error("Nebula failed to start, aborting NATS client connection", nil)
+			return
 		}
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)

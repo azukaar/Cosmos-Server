@@ -4,8 +4,7 @@
 
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
-<p align="center"><a href="https://github.com/DrMxrcy"><img src="https://avatars.githubusercontent.com/DrMxrcy" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<p align="center"><a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Fortcraft"><img src="https://avatars.githubusercontent.com/Fortcraft" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Gordi90"><img src="https://avatars.githubusercontent.com/Gordi90" style="border-radius:48px" width="48" height="48" alt="Dér Kristóf Gordon" title="Dér Kristóf Gordon" /></a>
@@ -15,10 +14,10 @@
 <a href="https://github.com/riczescaran"><img src="https://avatars.githubusercontent.com/riczescaran" style="border-radius:48px" width="48" height="48" alt="Ricardo Escaran" title="Ricardo Escaran" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/keyxmakerx"><img src="https://avatars.githubusercontent.com/keyxmakerx" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/jeep4meeee"><img src="https://avatars.githubusercontent.com/jeep4meeee" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/kandykarter"><img src="https://avatars.githubusercontent.com/kandykarter" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/rdawman"><img src="https://avatars.githubusercontent.com/rdawman" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/kkolarov64"><img src="https://avatars.githubusercontent.com/kkolarov64" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/furu00"><img src="https://avatars.githubusercontent.com/furu00" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/rpschube"><img src="https://avatars.githubusercontent.com/rpschube" style="border-radius:48px" width="48" height="48" alt="Ryan Schubert" title="Ryan Schubert" /></a>
 </p><!-- /sponsors -->
 
 ---

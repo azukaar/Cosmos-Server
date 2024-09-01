@@ -79,7 +79,6 @@ export const ConstellationVPN = () => {
           connects all your devices together, and allows you to access them from anywhere.
           Please refer to the <a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank">documentation</a> for more information.
           In order to connect, please use the <a href="https://cosmos-cloud.io/clients" target="_blank">Constellation App</a>.
-          Constellation is currently free to use until the end of the beta, planned January 2024.
         </Alert>
         <MainCard title={"Constellation Setup"} content={config.constellationIP}>
           <Stack spacing={2}>

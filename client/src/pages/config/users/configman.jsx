@@ -93,6 +93,9 @@ const ConfigManagement = () => {
           CountryBlacklistIsWhitelist: config.CountryBlacklistIsWhitelist,
           AutoUpdate: config.AutoUpdate,
 
+          Licence: config.Licence,
+          ServerToken: config.ServerToken,
+
           Hostname: config.HTTPConfig.Hostname,
           GenerateMissingTLSCert: config.HTTPConfig.GenerateMissingTLSCert,
           GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
@@ -158,6 +161,8 @@ const ConfigManagement = () => {
           let toSave = {
             ...config,
             MongoDB: values.MongoDB,
+            Licence: values.Licence,
+            ServerToken: values.ServerToken,
             Database: {
               ...config.Database,
               PuppetMode: values.PuppetModeEnabled,
@@ -418,6 +423,17 @@ const ConfigManagement = () => {
                     label="Monitoring Enabled"
                     name="MonitoringEnabled"
                     formik={formik}
+                  />
+
+                  <CosmosInputPassword
+                    noStrength
+                    label="Licence Key"
+                    name="Licence"
+                    formik={formik}
+                    helperText="Licence Key"
+                    onChange={(e) => {
+                      formik.setFieldValue("ServerToken", "");
+                    }}
                   />
                 </Grid>
               </MainCard>

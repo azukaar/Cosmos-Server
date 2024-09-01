@@ -185,12 +185,6 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                       formik={formik}
                     /> */}
 
-                    <CosmosInputText
-                      multiline
-                      name="publicKey"
-                      label="Public Key (Optional)"
-                      formik={formik}
-                    />
                     {formik.values.isLighthouse && <>
                       <CosmosFormDivider title={"Lighthouse Setup"} />
 

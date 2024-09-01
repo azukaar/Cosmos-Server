@@ -23,22 +23,20 @@ func Init() {
 
 	var err error
 
-	// if date is > 1st of January 2024
-	timeNow := time.Now()
-	if  timeNow.Year() > 2024 || (timeNow.Year() == 2024 && timeNow.Month() > 9) {
-		utils.Error("Constellation: this preview version has expired, please update to use the lastest version of Constellation.", nil)
-		// disable constellation
-		configFile := utils.ReadConfigFromFile()
-		configFile.ConstellationConfig.Enabled = false
-		utils.SetBaseMainConfig(configFile)
-		return
-	}
-
 	// Debug step
 	utils.GetAllTunnelHostnames()
 	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {
+		if !utils.FBL.LValid {
+			utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
+			// disable constellation
+			configFile := utils.ReadConfigFromFile()
+			configFile.ConstellationConfig.Enabled = false
+			utils.SetBaseMainConfig(configFile)
+			return
+		}
+
 		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
 			InitConfig()
 			

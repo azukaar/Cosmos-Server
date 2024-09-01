@@ -33,9 +33,13 @@ func binaryToRun() string {
 	return "./nebula"
 }
 
+var NebulaFailedStarting = false
+
 func startNebulaInBackground() error {
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
+
+	NebulaFailedStarting = false
 
 	if process != nil {
 		return errors.New("nebula is already running")
@@ -89,6 +93,8 @@ func startNebulaInBackground() error {
 
 	NebulaStarted = true
 
+	go monitorNebulaProcess(process)
+
 	// save PID
 	err := ioutil.WriteFile(utils.CONFIGFOLDER+"nebula.pid", []byte(fmt.Sprintf("%d", process.Process.Pid)), 0644)
 	if err != nil {
@@ -98,6 +104,26 @@ func startNebulaInBackground() error {
 	utils.Log(fmt.Sprintf("%s started with PID %d\n", binaryToRun(), process.Process.Pid))
 	return nil
 }
+
+func monitorNebulaProcess(proc *exec.Cmd) {
+	err := proc.Wait()
+	if err != nil {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				NebulaFailedStarting = true
+				utils.MajorError("Constellation process exited with an error. See logs", exitErr)
+			} else {
+				NebulaFailedStarting = true
+				utils.MajorError("Constellation process exited with an error. See logs", err)
+			}
+	}
+
+	// The process has stopped, so update the global state
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
+	process = nil
+	NebulaStarted = false
+}
+
 
 func stop() error {
 	ProcessMux.Lock()
@@ -447,6 +473,17 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_api_key"] = APIKey
 	configMap["cstln_config_endpoint"] = configEndpoint
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
+
+	// get client licence
+	if lite {
+		utils.Log("Creating client license for " + name)
+		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
+		if err != nil {
+			return "", err
+		}
+		configMap["cstln_licence"] = lic
+		utils.Log("Client license created for " + name)
+	}
 
 	// list routes with a tunnel property matching the device name
 	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes

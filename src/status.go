@@ -74,6 +74,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"AVX": cpu.X86.HasAVX,
 				"LetsEncryptErrors": utils.LetsEncryptErrors,
 				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
+				"Licence": utils.FBL.LValid,
 			},
 		})
 	} else {

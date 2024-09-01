@@ -313,7 +313,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 			policy.PerUserTimeBudget = 2 * 60 * 60 * 1000 // 2 hours
 		}
 		if(policy.PerUserRequestLimit == 0) {
-			policy.PerUserRequestLimit = 6000 // 100 requests per minute
+			policy.PerUserRequestLimit = 9000 // 150 requests per minute
 		}
 		if(policy.PerUserByteLimit == 0) {
 			policy.PerUserByteLimit = 150 * 1024 * 1024 * 1024 // 150GB

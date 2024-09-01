@@ -181,7 +181,7 @@ func SecureAPI(userRouter *mux.Router, public bool, publicCors bool) {
 			SmartShield: utils.SmartShieldPolicy{
 				Enabled: true,
 				PolicyStrictness: 1,
-				PerUserRequestLimit: 6000,
+				PerUserRequestLimit: 9000,
 			},
 		},
 	))

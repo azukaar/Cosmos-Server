@@ -76,6 +76,8 @@ func main() {
 
 		utils.Log("Starting constellation services...")
 
+		utils.InitFBL()
+
 		constellation.Init()
 
 		storage.InitSnapRAIDConfig()

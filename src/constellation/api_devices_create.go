@@ -129,7 +129,6 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				lightHousesList, err = GetAllLightHouses()
 			}
 
-			RestartNebula()
 			
 			// read configYml from config/nebula.yml
 			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{
@@ -143,6 +142,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				Port: request.Port,
 				APIKey: APIKey,
 			}, true)
+
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading config", err)
@@ -180,6 +180,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"LighthousesList": lightHousesList,
 				},
 			})
+			
+			RestartNebula()
 		} else if err2 == nil {
 			utils.Error("DeviceCreation: Device already exists", nil)
 			utils.HTTPError(w, "Device name already exists", http.StatusConflict, "DC002")

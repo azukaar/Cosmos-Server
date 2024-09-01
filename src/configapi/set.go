@@ -50,6 +50,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 			map[string]interface{}{
 		})
 
+		utils.InitFBL()
 		utils.DisconnectDB()
 		authorizationserver.Init()
 		utils.RestartHTTPServer()
