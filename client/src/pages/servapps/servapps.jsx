@@ -22,6 +22,7 @@ import { ServAppIcon } from '../../utils/servapp-icon';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
 import { DownloadFile } from '../../api/downloadButton';
 import { useTheme } from '@mui/material/styles';
+import { useTranslation } from 'react-i18next';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -48,6 +49,7 @@ const noOver = {
 }
 
 const ServApps = ({stack}) => {
+  const { t } = useTranslation();
   const [servApps, setServApps] = useState([]);
   const [isUpdating, setIsUpdating] = useState({});
   const [search, setSearch] = useState("");
@@ -246,7 +248,7 @@ const ServApps = ({stack}) => {
         {stack && <Link to="/cosmos-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
-        <Input placeholder="Search"
+        <Input placeholder={t('global.searchPlaceholder')}
           value={search}
           startAdornment={
             <InputAdornment position="start">
@@ -259,18 +261,18 @@ const ServApps = ({stack}) => {
         />
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServApps();
-        }}>Refresh</ResponsiveButton>
+        }}>{t('global.refresh')}</ResponsiveButton>
         {!stack && <>
         <Link to="/cosmos-ui/servapps/new-service">
           <ResponsiveButton
             variant="contained" 
             startIcon={<AppstoreAddOutlined />}
-            >Start ServApp</ResponsiveButton>
+            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
         </Link>
         <DockerComposeImport refresh={refreshServApps}/>
         <DownloadFile
           filename={'backup.cosmos-compose.json'}
-          label={'Export Docker Backup'}
+          label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
           contentGetter={API.config.getBackup}
         />
         </>}
@@ -279,7 +281,7 @@ const ServApps = ({stack}) => {
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
         {updatesAvailable && updatesAvailable.length && <Grid2 style={gridAnim} xs={12} item>
           <Item>
-            <Alert severity="info">Update are available for {Object.keys(updatesAvailable).join(', ')}</Alert>
+            <Alert severity="info">{t('mgmt.servapps.updatesAvailableFor')} {Object.keys(updatesAvailable).join(', ')}</Alert>
           </Item>
         </Grid2>}
         {servApps && Object.values(servAppsStacked)
@@ -299,13 +301,13 @@ const ServApps = ({stack}) => {
                   <Typography variant="body2" color="text.secondary">
                     {
                       ({
-                        "created": <Chip label="Created" color="warning" />,
-                        "restarting": <Chip label="Restarting" color="warning" />,
-                        "running": <Chip label="Running" color="success" />,
-                        "removing": <Chip label="Removing" color="error" />,
-                        "paused": <Chip label="Paused" color="info" />,
-                        "exited": <Chip label="Exited" color="error" />,
-                        "dead": <Chip label="Dead" color="error" />,
+                        "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
+                        "restarting": <Chip label={t('mgmt.servApps.restartingChip.restartingLabel')} color="warning" />,
+                        "running": <Chip label={t('mgmt.servApps.runningChip.runningLabel')} color="success" />,
+                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
+                        "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
+                        "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
+                        "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
                       })[app.state]
                     }
                   </Typography>
@@ -361,7 +363,7 @@ const ServApps = ({stack}) => {
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
-                  Networks
+                  {t('global.networks')}
                 </Typography> 
                 <Stack style={noOver} margin={1} direction="row" spacing={1}>
                   {app.networkSettings.Networks && Object.keys(app.networkSettings.Networks).map((network) => {
@@ -371,7 +373,7 @@ const ServApps = ({stack}) => {
               </Stack>
               <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
                 <Typography  variant="h6" color="text.secondary">
-                  URLs
+                  {t('menu-items.management.urls')}
                 </Typography>
                 <Stack style={noOver} spacing={2} direction="row">
                   {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
@@ -379,7 +381,7 @@ const ServApps = ({stack}) => {
                   })}
                   {/* {getContainersRoutes(config, app.Names[0].replace('/', '')).length == 0 && */}
                     <Chip 
-                      label="New"
+                      label={t('mgmt.servApps.newChip.newLabel')}
                       color="primary"
                       style={{paddingRight: '4px'}}
                       deleteIcon={<PlusCircleOutlined />}
@@ -438,7 +440,7 @@ const ServApps = ({stack}) => {
                           refreshServApps();
                         })
                       }}
-                    /> Auto Update Container
+                    /> {t('mgmt.servApps.autoUpdateCheckbox')}
                   </Stack>
                 </Stack>
               }
@@ -447,8 +449,8 @@ const ServApps = ({stack}) => {
                   "cosmos.system.docker.cpu." + app.name.replace('/', ''),
                   "cosmos.system.docker.ram." + app.name.replace('/', ''),
                 ]} labels={{
-                  ["cosmos.system.docker.cpu." + app.name.replace('/', '')]: "CPU", 
-                  ["cosmos.system.docker.ram." + app.name.replace('/', '')]: "RAM"
+                  ["cosmos.system.docker.cpu." + app.name.replace('/', '')]: t('global.CPU'), 
+                  ["cosmos.system.docker.ram." + app.name.replace('/', '')]: t('global.RAM')
                 }}/>
               </div>
  
@@ -458,7 +460,7 @@ const ServApps = ({stack}) => {
                   `/cosmos-ui/servapps/containers/${app.name.replace('/', '')}`
                   }>
                   <Button variant="outlined" color="primary" fullWidth>
-                    {app.type === 'stack' ? 'View Stack' : 'View Details'}
+                    {app.type === 'stack' ? t('mgmt.servapps.viewStackButton') : t('mgmt.servapps.viewDetailsButton')}
                   </Button>
                 </Link>
               </div>
