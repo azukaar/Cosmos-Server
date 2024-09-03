@@ -51,7 +51,7 @@ func InitConfig() {
 			Relays		[]string `yaml:"relays"`
 		}{
 			AMRelay:   true,
-			UseRelays: false,
+			UseRelays: true,
 			Relays:    []string{},
 		},
 		TUN: struct {

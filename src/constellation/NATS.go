@@ -280,7 +280,7 @@ func SendNATSMessage(topic string, payload string) (string, error) {
 	utils.Debug("[MQ] Sending message to topic: " + topic)
 
 	// Send a request and wait for a response
-	msg, err := nc.Request(topic, []byte(payload), 5*time.Second)
+	msg, err := nc.Request(topic, []byte(payload), 2*time.Second)
 	if err != nil {
 		utils.Error("[MQ] Error sending request", err)
 		return "", err

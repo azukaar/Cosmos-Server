@@ -181,7 +181,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				},
 			})
 			
-			RestartNebula()
+			go RestartNebula()
 		} else if err2 == nil {
 			utils.Error("DeviceCreation: Device already exists", nil)
 			utils.HTTPError(w, "Device name already exists", http.StatusConflict, "DC002")

@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net"
 	"strings"
+	"sync"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
 	"errors"
@@ -525,7 +526,12 @@ func SlaveConfigSync(newConfig string) (bool, error) {
 	return false, nil
 }
 
+var clientSyncLock = sync.Mutex{}
+
 func TriggerClientResync() error {
+	clientSyncLock.Lock()
+	defer clientSyncLock.Unlock()
+
 	utils.Log("TriggerClientResync: Resyncing all clients")
 
 	// get al clients

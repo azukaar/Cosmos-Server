@@ -93,7 +93,7 @@ const VPNSalesPage = () => {
               ${isYearly ? discountedYearlyPrice : discountedMonthlyPrice}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {isYearly ? 'per year' : 'per month'}
+              per month
             </Typography>
             <Chip 
               label="EARLY15: 15% OFF FOR LIFE" 

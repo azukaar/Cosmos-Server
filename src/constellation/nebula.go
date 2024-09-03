@@ -475,15 +475,14 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 
 	// get client licence
-	if lite {
-		utils.Log("Creating client license for " + name)
-		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
-		if err != nil {
-			return "", err
-		}
-		configMap["cstln_licence"] = lic
-		utils.Log("Client license created for " + name)
+	utils.Log("Creating client license for " + name)
+	lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
+	if err != nil {
+		return "", err
 	}
+	configMap["cstln_licence"] = lic
+	utils.Log("Client license created for " + name)
+	
 
 	// list routes with a tunnel property matching the device name
 	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
