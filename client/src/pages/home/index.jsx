@@ -467,7 +467,6 @@ const HomePage = () => {
             </>)}
             
             {config && servApps && routes.map((route) => {
-                let skip = route.Mode == "REDIRECT";
                 let containerName;
                 let container;
                 if (route.Mode == "SERVAPP") {
@@ -479,10 +478,7 @@ const HomePage = () => {
                     // }
                 }
                 
-                if (route.HideFromDashboard) 
-                    skip = true;
-
-                return !skip && coStatus && (coStatus.homepage.Expanded ?
+                return !route.HideFromDashboard && coStatus && (coStatus.homepage.Expanded ?
                 
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
                     <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
