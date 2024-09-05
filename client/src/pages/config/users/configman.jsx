@@ -435,6 +435,15 @@ const ConfigManagement = () => {
                       formik.setFieldValue("ServerToken", "");
                     }}
                   />
+                  {formik.values.Licence && 
+                  <Grid item xs={12}>
+                    <Stack spacing={1}><Button 
+                      href='https://billing.stripe.com/p/login/28obMlc7X1jgeqY144'
+                      target="_blank"
+                      variant="outlined">Manage Licence</Button>
+                    </Stack>
+                  </Grid>
+                  }
                 </Grid>
               </MainCard>
               

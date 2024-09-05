@@ -1,5 +1,6 @@
 // material-ui
 import { Alert, Button, InputLabel, OutlinedInput, Stack, TextField } from '@mui/material';
+import { LoadingButton } from '@mui/lab';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -70,7 +71,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
-          IsRelay: false,
+          IsRelay: true,
           isLighthouse: false,
         }}
 
@@ -214,7 +215,9 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
             <DialogActions>
               <Button onClick={() => setOpenModal(false)}>Close</Button>
-              {!isDone && <Button color="primary" variant="contained" type="submit">Add</Button>}
+              {!isDone && <LoadingButton 
+              loading={formik.isSubmitting}
+              color="primary" variant="contained" type="submit">Add</LoadingButton>}
             </DialogActions>
           </form>
 

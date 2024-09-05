@@ -49,8 +49,8 @@ const VPNSalesPage = () => {
           <List>
             {[
               'Securely access your home server from anywhere in the world',
-              'No need to open ports, reducing potential security vulnerabilities',
-              'Encrypted connections keep your data safe from prying eyes',
+              'No need to open ports, reducing potential security vulnerabilities*',
+              'Encrypted connections keep your data safe from prying eyes*',
               'Easy setup and management through the Cosmos interface',
               'Automatically switches from internet to local network when you get home',
               'Automatic DNS rewrite',
@@ -67,6 +67,11 @@ const VPNSalesPage = () => {
               </ListItem>
             ))}
           </List>
+          <span>
+            <Typography variant="body2" color="text.secondary">
+              * The lighthouses (the tunnel) is selfhosted, and requires you to install it on a server that is reachable from the internet.
+            </Typography>
+          </span>
         </CardContent>
       </Card>
 
@@ -119,7 +124,7 @@ const VPNSalesPage = () => {
               </ListItem>
             ))}
           </List>
-          <Button variant="contained" color="primary" fullWidth href={isYearly ? yearlyLink : monthlyLink}>
+          <Button variant="contained" color="primary" target='_blank' fullWidth href={isYearly ? yearlyLink : monthlyLink}>
             Upgrade Now
           </Button>
         </CardContent>
