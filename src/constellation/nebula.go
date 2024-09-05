@@ -109,8 +109,8 @@ func monitorNebulaProcess(proc *exec.Cmd) {
 	err := proc.Wait()
 	if err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
-				if strings.Contains(exitErr, "signal: killed") {
-					utils.Warning("Constellation process killed.")
+				if strings.Contains(exitErr.Error(), "signal: killed") {
+					utils.Warn("Constellation process killed.")
 				}
 				NebulaFailedStarting = true
 				utils.MajorError("Constellation process exited with an error. See logs", exitErr)
