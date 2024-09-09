@@ -14,8 +14,10 @@ import { ValidateRoute, getFaviconURL, sanitizeRoute } from '../../utils/routes'
 import HostChip from '../../components/hostChip';
 import { Formik, useFormik } from 'formik';
 import * as yup from 'yup';
+import { useTranslation } from 'react-i18next';
 
 const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSubmit }) => {
+  const { t } = useTranslation();
   const [submitErrors, setSubmitErrors] = useState([]);
   const [newRoute, setNewRoute] = useState(null);
 
@@ -29,8 +31,8 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
           redirect: clientConfig ? clientConfig.redirect : '',
         }}
         validationSchema={yup.object({
-          id: yup.string().required('Required'),
-          redirect: yup.string().required('Required'),
+          id: yup.string().required(t('global.required')),
+          redirect: yup.string().required(t('global.required')),
         })}
         onSubmit={(values) => {
           onSubmit && onSubmit(values);
@@ -38,7 +40,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
       >
         {(formik) => (
           <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>{clientId ? clientId : "New client"}</DialogTitle>
+            <DialogTitle>{clientId ? clientId : t('mgmt.openid.newClientTitle')}</DialogTitle>
             {openNewModal && <>
               <DialogContent>
                 <DialogContentText>
@@ -57,7 +59,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
                       fullWidth
                       id="redirect"
                       name="redirect"
-                      label="Redirect"
+                      label={t('mgmt.openId.redirect')}
                       value={formik.values.redirect}
                       onChange={formik.handleChange}
                       error={formik.touched.redirect && Boolean(formik.errors.redirect)}
@@ -72,10 +74,10 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
                     return <div>{err}</div>
                   })}</Alert>
                 </Stack>}
-                <Button onClick={() => setOpenNewModal(false)}>Cancel</Button>
+                <Button onClick={() => setOpenNewModal(false)}>{t('global.cancelAction')}</Button>
                 <Button color="primary" variant="contained" type="submit" onClick={() => {
                   formik.handleSubmit();
-                }}>{clientId ? "Edit" : "Create"}</Button>
+                }}>{clientId ? t('global.edit') : t('global.createAction')}</Button>
               </DialogActions>
             </>}
           </form>

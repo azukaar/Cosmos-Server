@@ -25,6 +25,7 @@ import {
 import { Field } from 'formik';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
 import { strengthColor, strengthIndicator } from '../../../utils/password-strength';
+import { useTranslation } from 'react-i18next';
 
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
@@ -77,6 +78,7 @@ export const CosmosInputText = ({ name, style, value, errors, multiline, type, p
 }
 
 export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoComplete, onChange, label, formik }) => {
+  const { t } = useTranslation();
   const [level, setLevel] = React.useState();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
@@ -89,7 +91,7 @@ export const CosmosInputPassword = ({ name, noStrength, type, placeholder, autoC
 
   const changePassword = (value) => {
       const temp = strengthIndicator(value);
-      setLevel(strengthColor(temp));
+      setLevel(strengthColor(temp, t));
   }; 
   
   React.useEffect(() => {

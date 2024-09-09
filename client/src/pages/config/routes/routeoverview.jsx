@@ -13,6 +13,7 @@ import { Field } from 'formik';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 import UploadButtons from '../../../components/fileUpload';
+import { useTranslation } from 'react-i18next';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -21,6 +22,7 @@ const info = {
 }
 
 const RouteOverview = ({ routeConfig }) => {
+  const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [confirmDelete, setConfirmDelete] = React.useState(false);
 
@@ -43,29 +45,29 @@ const RouteOverview = ({ routeConfig }) => {
             <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
           </div>
           <Stack spacing={2} style={{ width: '100%' }}>
-            <strong><ContainerOutlined />Description</strong>
+            <strong><ContainerOutlined /> {t('global.description')}</strong>
             <div style={info}>{routeConfig.Description}</div>
             <strong><NodeExpandOutlined /> URL</strong>
             <div><HostChip route={routeConfig} /></div>
-            <strong><InfoCircleOutlined /> Target</strong>
+            <strong><InfoCircleOutlined /> {t('global.target')}</strong>
             <div><RouteMode route={routeConfig} /> <Chip label={routeConfig.Target} /></div>
-            <strong><SafetyCertificateOutlined/> Security</strong>
+            <strong><SafetyCertificateOutlined/> {t('global.securityTitle')}</strong>
             <div><RouteSecurity route={routeConfig} /></div>
-            <strong><DashboardOutlined/> Monitoring</strong>
+            <strong><DashboardOutlined/> {t('menu-items.navigation.monitoringTitle')}</strong>
             <div>
               <MiniPlotComponent agglo metrics={[
                 "cosmos.proxy.route.success." + routeConfig.Name,
                 "cosmos.proxy.route.error." + routeConfig.Name,
               ]} labels={{
-                ["cosmos.proxy.route.error." + routeConfig.Name]: "Error", 
-                ["cosmos.proxy.route.success." + routeConfig.Name]: "Succ."
+                ["cosmos.proxy.route.error." + routeConfig.Name]: t('global.error'), 
+                ["cosmos.proxy.route.success." + routeConfig.Name]: t('global.success')
               }}/>
               <MiniPlotComponent agglo metrics={[
                 "cosmos.proxy.route.bytes." + routeConfig.Name,
                 "cosmos.proxy.route.time." + routeConfig.Name,
               ]} labels={{
                 ["cosmos.proxy.route.bytes." + routeConfig.Name]: "Bytes", 
-                ["cosmos.proxy.route.time." + routeConfig.Name]: "Time"
+                ["cosmos.proxy.route.time." + routeConfig.Name]: t('global.time')
               }}/>
             </div>
           </Stack>

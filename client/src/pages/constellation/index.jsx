@@ -8,12 +8,15 @@ import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
+import { useTranslation } from 'react-i18next';
+
 
 import { ConstellationVPN } from './vpn';
 import { ConstellationDNS } from './dns';
 import VPNSalesPage from './free';
 
 const ConstellationIndex = () => {
+  const { t } = useTranslation();
   const {role} = useClientInfos();
   const isAdmin = role === "2";
   const [coStatus, setCoStatus] = React.useState(null);
@@ -44,17 +47,15 @@ const ConstellationIndex = () => {
           title: 'Firewall',
           children: <div>
             <Alert severity="info">
-              Coming soon. This feature will allow you to open and close ports individually
-              on each device and decide who can access them.
+              {t('mgmt.constellation.setup.firewallInfo')}
             </Alert>
           </div>,
         },
         {
-          title: 'Unsafe Routes',
+          title: t('mgmt.constellation.setup.unsafeRoutesTitle'),
           children: <div>
             <Alert severity="info">
-              Coming soon. This feature will allow you to tunnel your traffic through
-              your devices to things outside of your constellation.
+              {t('mgmt.constellation.setup.unsafeRoutesText')}
             </Alert>
           </div>,
         }

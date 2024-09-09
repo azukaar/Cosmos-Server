@@ -34,8 +34,8 @@ import { useNavigate } from 'react-router';
 import NewRouteCreate from '../config/routes/newRoute';
 import { DeleteButton } from '../../components/delete';
 import OpenIdEditModal from './openid-edit';
-
 import bcrypt from 'bcryptjs';
+import { useTranslation } from 'react-i18next';
 
 const stickyButton = {
   position: 'fixed',
@@ -53,6 +53,7 @@ function shorten(test) {
 }
 
 const OpenIdList = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [config, setConfig] = React.useState(null);
@@ -130,11 +131,11 @@ const OpenIdList = () => {
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
         refresh();
-      }}>Refresh</Button>&nbsp;&nbsp;
+      }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
       <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setClientId(null);
         setOpenNewModal(true);
-      }}>Create</Button>
+      }}>{t('global.createAction')}</Button>
     </Stack>
 
     {config && <>
@@ -158,10 +159,10 @@ const OpenIdList = () => {
       />
 
       {newSecret && <Dialog open={newSecret} onClose={() => setNewSecret(false)}>
-        <DialogTitle>New Secret</DialogTitle>
+        <DialogTitle>{t('mgmt.openId.newSecret')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Secret has been updated. Please copy it now as it will not be shown again.
+            {t('mgmt.openId.secretUpdated')}
             
             <Stack direction="row" spacing={2} style={{ marginTop: '10px', width: '100%', maxWidth: '100%' }}>
               <div style={{overflowX: 'scroll', float: 'left', width: '100%', padding: '5px', background:'rgba(0,0,0,0.15)', whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'auto', fontStyle: 'italic'}}>
@@ -178,13 +179,13 @@ const OpenIdList = () => {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setNewSecret(false)}>Close</Button>
+          <Button onClick={() => setNewSecret(false)}>{t('global.close')}</Button>
         </DialogActions>
       </Dialog>}
 
       
       <Alert severity="warning" icon={<WarningOutlined />}>
-        This is an experimental feature. It is recommended to use with caution. Please report any issue you find!
+        {t('mgmt.openId.experimentalWarning')}
       </Alert>
 
       {clients && <PrettyTableView
@@ -215,7 +216,7 @@ const OpenIdList = () => {
             </>
           },
           {
-            title: 'Redirect URI',
+            title: t('mgmt.openId.redirectUri'),
             screenMin: 'sm',
             search: (r) => r.redirect,
             field: (r) => r.redirect,
@@ -224,7 +225,7 @@ const OpenIdList = () => {
             title: '', clickable: true, field: (r, k) => <>
               <Button variant="contained" color="primary" startIcon={<ArrowRightOutlined />} onClick={() => {
                 generateNewSecret(r.id)
-              }}>Reset Secret</Button>&nbsp;&nbsp;
+              }}>{t('mgmt.openId.resetSecret')}</Button>&nbsp;&nbsp;
               <DeleteButton onDelete={(event) => deleteClient(event, k)} />
             </>,
           },

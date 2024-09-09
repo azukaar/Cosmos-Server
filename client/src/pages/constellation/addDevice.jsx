@@ -17,8 +17,10 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
+import { useTranslation } from 'react-i18next';
 
 const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
+  const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
   const canvasRef = React.useRef(null);
@@ -92,15 +94,12 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       >
         {(formik) => (
           <form onSubmit={formik.handleSubmit}>
-            <DialogTitle>Add Device</DialogTitle>
+            <DialogTitle>{t('mgmt.constellation.setup.addDeviceTitle')}</DialogTitle>
 
             {isDone ? <DialogContent>
               <DialogContentText>
                 <p>
-                Device added successfully!
-                  Download scan the QR Code from the Cosmos app or download the relevant
-                  files to your device along side the config and network certificate to
-                  connect:
+                {t('mgmt.constellation.setup.addDeviceSuccess')}
                 </p>
 
                 <Stack spacing={2} direction={"column"}>
@@ -137,7 +136,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
               </DialogContentText>
             </DialogContent> : <DialogContent>
               <DialogContentText>
-                <p>Add a Device to the constellation using either the Cosmos or Nebula client</p>
+                <p>{t('mgmt.constellation.setup.addDeviceText')}</p>
                 <div>
                   <Stack spacing={2} style={{}}>
                   <CosmosCheckbox
@@ -148,7 +147,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                   {!formik.values.isLighthouse &&
                     (isAdmin ? <CosmosSelect
                       name="nickname"
-                      label="Owner"
+                      label={t('mgmt.constellation.setup.owner.label')}
                       formik={formik}
                       // disabled={!isAdmin}
                       options={
@@ -157,7 +156,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                         })
                       }
                     /> : <>
-                      <InputLabel>Owner</InputLabel>
+                      <InputLabel>{t('mgmt.constellation.setup.owner.label')}</InputLabel>
                       <OutlinedInput
                         fullWidth
                         multiline
@@ -170,13 +169,13 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
 
                     <CosmosInputText
                       name="deviceName"
-                      label="Device Name"
+                      label={t('mgmt.constellation.setup.deviceName.label')}
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="ip"
-                      label="Constellation IP Address"
+                      label={t('mgmt.constellation.setup.ip.label')}
                       formik={formik}
                     />
 
@@ -187,17 +186,17 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                     /> */}
 
                     {formik.values.isLighthouse && <>
-                      <CosmosFormDivider title={"Lighthouse Setup"} />
+                      <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />
 
                       <CosmosInputText
                         name="PublicHostname"
-                        label="Public Hostname"
+                        label={t('mgmt.constellation.setup.pubHostname.label')}
                         formik={formik}
                       />
 
                       <CosmosCheckbox
                         name="IsRelay"
-                        label="Relay traffic via this Lighthouse"
+                        label={t('mgmt.constellation.isRelay.label')}
                         formik={formik}
                       />
                     </>}
@@ -217,7 +216,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
               <Button onClick={() => setOpenModal(false)}>Close</Button>
               {!isDone && <LoadingButton 
               loading={formik.isSubmitting}
-              color="primary" variant="contained" type="submit">Add</LoadingButton>}
+              color="primary" variant="contained" type="submit">{t('global.addAction')}</LoadingButton>}
             </DialogActions>
           </form>
 
@@ -236,7 +235,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       }
       startIcon={<PlusCircleFilled />}
     >
-      Add Device
+      {t('mgmt.constellation.setup.addDeviceTitle')}
     </ResponsiveButton>
   </>;
 };

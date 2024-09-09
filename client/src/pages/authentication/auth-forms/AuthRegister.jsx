@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -38,6 +39,7 @@ import { redirectToLocal } from '../../../utils/indexs';
 // ============================|| FIREBASE - REGISTER ||============================ //
 
 const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
+    const { t } = useTranslation();
     const [level, setLevel] = useState();
     const [showPassword, setShowPassword] = useState(false);
     const handleClickShowPassword = () => {
@@ -50,7 +52,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
 
     const changePassword = (value) => {
         const temp = strengthIndicator(value);
-        setLevel(strengthColor(temp));
+        setLevel(strengthColor(temp, t));
     };
 
     useEffect(() => {
