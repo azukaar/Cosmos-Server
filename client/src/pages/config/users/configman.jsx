@@ -429,7 +429,7 @@ const ConfigManagement = () => {
 
                   <CosmosInputPassword
                     noStrength
-                    label="Licence Key"
+                    label={t('mgmt.config.general.licenceInput.licenceLabel')}
                     name="Licence"
                     formik={formik}
                     helperText="Licence Key"
@@ -442,7 +442,7 @@ const ConfigManagement = () => {
                     <Stack spacing={1}><Button 
                       href='https://billing.stripe.com/p/login/28obMlc7X1jgeqY144'
                       target="_blank"
-                      variant="outlined">Manage Licence</Button>
+                      variant="outlined">{t('mgmt.config.general.licenceInput.manageLicenceButton')}</Button>
                     </Stack>
                   </Grid>
                   }
@@ -624,7 +624,7 @@ const ConfigManagement = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Alert severity="info">
-                      This allows you to publish your server on your local network using mDNS. This means all your .local domains will be available on your local network with no additional config.
+                      {t('mgmt.config.http.publishMDNSCheckbox')}
                     </Alert>
                     <CosmosCheckbox 
                       label="Publish .local domains on your local network with mDNS"
@@ -701,10 +701,9 @@ const ConfigManagement = () => {
                     )}
                     
                     <CosmosCheckbox
-                      label="Notify Users upon Successful Login"
+                      label={t('mgmt.config.email.notifyLoginCheckbox.notifyLoginLabel')}
                       name="Email_NotifyLogin"
                       formik={formik}
-                      helperText="Notify Users upon Successful Login"
                     />
                   </>)}
                 </Stack>

@@ -1,6 +1,8 @@
 ## Version 0.16.0
+ - Multilanguage support (Thanks @madejackson)
  - Improve offline mode with Constellation
  - Add automatic sync of Constellation nodes
+ - Constellation is now paid
  - Fix issues where it was impossible to login with insecure local IPs
  - Default networks to 16 Ips instead of 8
  - Added automatic mDNS publishing for local network

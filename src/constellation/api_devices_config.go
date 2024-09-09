@@ -157,7 +157,7 @@ func GetDeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
 				APIKey: "",
-			}, false)
+			}, false, false)
 
 			if err != nil {
 				utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)
@@ -229,7 +229,7 @@ func GetDeviceConfigForSync(nickname, deviceName string) ([]byte, error) {
 			PublicHostname: d.PublicHostname,
 			Port: d.Port,
 			APIKey: "",
-		}, false)
+		}, false, false)
 
 		if err != nil {
 			utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)
@@ -321,7 +321,7 @@ func GetDeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
 				APIKey: "",
-			}, true)
+			}, true, true)
 
 			if err != nil {
 				utils.Error("DeviceConfigSync: Error marshalling nebula.yml", err)

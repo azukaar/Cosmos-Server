@@ -72,7 +72,7 @@ const FormatButton = ({disk, refresh, disabled}) => {
         setPasswordConfirm(false);
         setLoading(false);
       }}
-      textInfos={`Enter your password to confirm you want to format ${disk.name}`}
+      textInfos={t('mgmt.storage.formatModalText', {disk: disk.name})}
       cb={async (values) => {
         setPasswordConfirm(false);
         setFormatting(values);

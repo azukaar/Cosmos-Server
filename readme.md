@@ -18,6 +18,7 @@
 <a href="https://github.com/rdawman"><img src="https://avatars.githubusercontent.com/rdawman" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/furu00"><img src="https://avatars.githubusercontent.com/furu00" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/rpschube"><img src="https://avatars.githubusercontent.com/rpschube" style="border-radius:48px" width="48" height="48" alt="Ryan Schubert" title="Ryan Schubert" /></a>
+<a href="https://github.com/madejackson"><img src="https://avatars.githubusercontent.com/madejackson" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
 ---

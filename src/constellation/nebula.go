@@ -333,7 +333,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice, lite bool) (string, error) {
+func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice, lite bool, getLicence bool) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
 	// Read the YAML config file
@@ -477,14 +477,16 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_config_endpoint"] = configEndpoint
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 
-	// get client licence
-	utils.Log("Creating client license for " + name)
-	lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
-	if err != nil {
-		return "", err
+	if getLicence {
+		// get client licence
+		utils.Log("Creating client license for " + name)
+		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
+		if err != nil {
+			return "", err
+		}
+		configMap["cstln_licence"] = lic
+		utils.Log("Client license created for " + name)
 	}
-	configMap["cstln_licence"] = lic
-	utils.Log("Client license created for " + name)
 	
 
 	// list routes with a tunnel property matching the device name

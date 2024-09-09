@@ -106,6 +106,7 @@ const MFASetup = () => {
   const canvasRef = useRef(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { t, Trans } = useTranslation();
 
   const getCode = () => {
     return API.users.new2FA().then(({data}) => {
@@ -165,8 +166,10 @@ const MFASetup = () => {
   );
 }
 
-const NewMFA = () => (
-    <AuthWrapper>
+const NewMFA = () => {
+    const { t } = useTranslation();
+
+    return <AuthWrapper>
         <Grid container spacing={3}>
             <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
@@ -178,10 +181,12 @@ const NewMFA = () => (
             </Grid>
         </Grid>
     </AuthWrapper>
-);
+}
 
-const MFALogin = () => (
-  <AuthWrapper>
+const MFALogin = () => {
+  const { t } = useTranslation();
+
+  return <AuthWrapper>
       <Grid container spacing={3}>
           <Grid item xs={12}>
               <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
@@ -193,7 +198,7 @@ const MFALogin = () => (
           </Grid>
       </Grid>
   </AuthWrapper>
-);
+}
 
 export default NewMFA;
 

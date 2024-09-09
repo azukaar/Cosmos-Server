@@ -834,7 +834,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               })}
 
               {service && service.services && Object.values(service.services).map((value) => {
-                return <CosmosCollapse title={t('mgmt.servApps.newContainer.customize')+`${value.container_name}`+t('mgmt.servApps.newContainer.customize2')}>
+                return <CosmosCollapse title={t('mgmt.servApps.newContainer.customize', {container_name: value.container_name})}>
                   <Stack spacing={2}>
                     <DockerContainerSetup
                       newContainer

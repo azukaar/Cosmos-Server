@@ -2,6 +2,7 @@ import { CheckOutlined, ClockCircleOutlined, CopyOutlined, DashboardOutlined, De
 import { Card, Chip, Stack, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTheme } from '@mui/material/styles';
+import { Trans, useTranslation } from 'react-i18next';
 
 let routeImages = {
   "TUNNEL": {
@@ -74,8 +75,10 @@ export const RouteMode = ({route}) => {
 }
 
 export const RouteSecurity = ({route}) => {
+  const { t } = useTranslation();
+
   return <div style={{fontWeight: 'bold', fontSize: '110%'}}>
-    <Tooltip title={route.SmartShield && route.SmartShield.Enabled ? "Smart Shield is enabled" : "Smart Shield is disabled"}>
+    <Tooltip title={route.SmartShield && route.SmartShield.Enabled ? t('tooltip.route.SmartShield.enabled') : t('tooltip.route.SmartShield.disabled')}>
       <div style={{display: 'inline-block'}}>
         {route.SmartShield && route.SmartShield.Enabled ? 
           <SafetyOutlined style={{color: 'green'}} /> :
@@ -84,7 +87,7 @@ export const RouteSecurity = ({route}) => {
       </div>
     </Tooltip>
     &nbsp;
-    <Tooltip title={route.AuthEnabled ? "Authentication is enabled" : "Authentication is disabled"}>
+    <Tooltip title={route.AuthEnabled ? t('tooltip.route.authentication.enabled') : t('tooltip.route.authentication.disabled')}>
       <div style={{display: 'inline-block'}}>
         {route.AuthEnabled ? 
           <LockOutlined style={{color: 'green'}} /> :
@@ -93,7 +96,7 @@ export const RouteSecurity = ({route}) => {
       </div>
     </Tooltip>
     &nbsp;
-    <Tooltip title={route.ThrottlePerMinute ? "Throttling is enabled" : "Throttling is disabled"}>
+    <Tooltip title={route.ThrottlePerMinute ? t('tooltip.route.throttling.enabled') : t('tooltip.route.throttling.disabled')}>
       <div style={{display: 'inline-block'}}>
         {route.ThrottlePerMinute ?
           <DashboardOutlined style={{color: 'green'}} /> :
@@ -102,7 +105,7 @@ export const RouteSecurity = ({route}) => {
       </div>
     </Tooltip>
     &nbsp;
-    <Tooltip title={route.Timeout ? "Timeout is enabled" : "Timeout is disabled"}>
+    <Tooltip title={route.Timeout ? t('tooltip.route.timeout.enabled') : t('tooltip.route.timeout.disabled')}>
       <div style={{display: 'inline-block'}}>
         {route.Timeout ?
           <ClockCircleOutlined style={{color: 'green'}} /> :
@@ -118,6 +121,7 @@ export const RouteActions = ({route, routeKey, up, down, deleteRoute, duplicateR
   const [confirmDelete, setConfirmDelete] = useState(false);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { t } = useTranslation();
 
   const miniChip = {
     width: '30px',
@@ -145,7 +149,7 @@ export const RouteActions = ({route, routeKey, up, down, deleteRoute, duplicateR
       
       <Chip label={<CopyOutlined />} onClick={(event) => duplicateRoute(event)}/>
 
-      <Tooltip title='Routes with the lowest priority are matched first'>
+      <Tooltip title={t('tooltip.route.move')}>
         <Stack direction={'column'} spacing={0}>
           <Card sx={{...miniChip, borderBottom: 'none'}} onClick={(event) => up(event)}><UpOutlined /></Card>
           <Card sx={{...miniChip, cursor: 'auto'}}>{routeKey}</Card>

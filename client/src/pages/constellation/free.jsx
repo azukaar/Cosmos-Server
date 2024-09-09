@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Button, 
   Card, 
@@ -16,78 +17,84 @@ import {
 } from '@mui/material';
 import { Warning as WarningIcon, Check as CheckIcon } from '@mui/icons-material';
 import banner from '../../assets/images/const_banner.png';
+import { getCurrencyFromLanguage } from '../../utils/indexs';
 
 const VPNSalesPage = () => {
   const [isYearly, setIsYearly] = useState(true);
+  const { t, i18n } = useTranslation();
+  const currency = getCurrencyFromLanguage(i18n.language);
 
-  const monthlyPrice = 10.30;
-  const yearlyPrice = 8.25;
+  const monthlyPrices = {
+    "USD": 10.30,
+    "EUR": 9.90,
+    "GBP": 8.90
+  }
+
+  const yearlyPrices = {
+    "USD": 99.00,
+    "EUR": 93.00,
+    "GBP": 88.00
+  }
+
+  const monthlyPrice = monthlyPrices[currency];
+  const yearlyPrice = yearlyPrices[currency];
 
   const discountedMonthlyPrice = (monthlyPrice * 0.85).toFixed(2);
   const discountedYearlyPrice = (yearlyPrice * 0.85).toFixed(2);
 
+
   const monthlyLink = "https://buy.stripe.com/5kAbMN4qrbkVcBGcMR?prefilled_promo_code=EARLY15";
   const yearlyLink = "https://buy.stripe.com/cN2bMN9KLbkV59e9AE?prefilled_promo_code=EARLY15";
+
+  const featureKeys = Array.from({ length: 8 }, (_, i) => `mgmt.constellation.features.${i}`);
+  const planFeatureKeys = Array.from({ length: 4 }, (_, i) => `mgmt.constellation.plan_features.${i}`);
 
   return (
     <Container maxWidth="md">
       <Box my={4}>
-        <img src={banner} alt="Constellation VPN Banner" style={{ width: '100%', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
+        <img src={banner} alt={t('mgmt.constellation.banner_alt')} style={{ width: '100%', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
       </Box>
 
-      <Typography variant="h3" gutterBottom>Unlock Constellation: Your Secure Gateway Home</Typography>
+      <Typography variant="h3" gutterBottom>{t('mgmt.constellation.title')}</Typography>
 
       <Typography variant="body1" paragraph>
-        Constellation is a powerful VPN based technology that allows you to securely access your home server from anywhere, without the need to open ports on your router. Keep your data safe and your connections secure with our state-of-the-art encryption technology.
+        {t('mgmt.constellation.description')}
       </Typography>
 
       <Card variant="outlined" sx={{ mb: 4 }}>
         <CardHeader 
-          title={<Typography variant="h5">Why Constellation VPN</Typography>}
+          title={<Typography variant="h5">{t('mgmt.constellation.why_title')}</Typography>}
         />
         <CardContent>
           <List>
-            {[
-              'Securely access your home server from anywhere in the world',
-              'No need to open ports, reducing potential security vulnerabilities*',
-              'Encrypted connections keep your data safe from prying eyes*',
-              'Easy setup and management through the Cosmos interface',
-              'Automatically switches from internet to local network when you get home',
-              'Automatic DNS rewrite',
-              'Block ads and trackers on all devices',
-              'Support the ongoing development of new features and improvements of Cosmos'
-            ].map((item, index) => (
+            {featureKeys.map((key, index) => (
               <ListItem key={index}>
                 <ListItemIcon>
-                  {index === 7 && <span>❤️</span>}
-                  {index !== 7 &&
-                  <CheckIcon color="primary" />}
+                  {index === 7 ? <span>❤️</span> : <CheckIcon color="primary" />}
                 </ListItemIcon>
-                <ListItemText primary={item} />
+                <ListItemText primary={t(key)} />
               </ListItem>
             ))}
           </List>
-          <span>
-            <Typography variant="body2" color="text.secondary">
-              * The lighthouses (the tunnel) is selfhosted, and requires you to install it on a server that is reachable from the internet.
-            </Typography>
-          </span>
+          <Typography variant="body2" color="text.secondary">
+            {t('mgmt.constellation.lighthouse_note')}
+          </Typography>
         </CardContent>
       </Card>
 
       <Box display="flex" justifyContent="center" alignItems="center" mb={4}>
-        <Typography>Monthly</Typography>
+        <Typography>{t('mgmt.constellation.monthly')}</Typography>
         <Switch 
           checked={isYearly}
           onChange={() => setIsYearly(!isYearly)}
           color="primary"
         />
-        <Typography>Yearly</Typography>
+        <Typography>{t('mgmt.constellation.yearly')}</Typography>
       </Box>
 
       <Card variant="outlined" sx={{ maxWidth: 400, margin: 'auto' }}>
         <CardHeader 
-          title={<Typography variant="h4" align="center">{isYearly ? 'Yearly Plan' : 'Monthly Plan'}</Typography>}
+          title={<Typography variant="h4" align="center">{t(isYearly ? 'mgmt.constellation.yearly_plan' : 'mgmt.constellation.monthly_plan')}</Typography>}
         />
         <CardContent>
           <Box textAlign="center" mb={2}>
@@ -98,34 +105,35 @@ const VPNSalesPage = () => {
               ${isYearly ? discountedYearlyPrice : discountedMonthlyPrice}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              per month
+              {t('mgmt.constellation.per_month')}
             </Typography>
             <Chip 
-              label="EARLY15: 15% OFF FOR LIFE" 
+              label={t('mgmt.constellation.discount_chip')}
               color="secondary" 
               sx={{ mt: 1 }}
             />
             <Typography variant="body2" color="text.secondary" mt={1}>
-              Limited time offer until Febrary 2025 for <strong>early adopters!</strong>
+              {t('mgmt.constellation.early_adopter_offer')}
             </Typography>
           </Box>
           <List>
-            {[
-              'Unlimited devices',
-              'All VPN features',
-              isYearly ? 'Save 17% compared to monthly' : 'Flexible monthly billing',
-              '15% lifetime discount applied'
-            ].map((item, index) => (
+            {planFeatureKeys.map((key, index) => (
               <ListItem key={index}>
                 <ListItemIcon>
                   <CheckIcon color="primary" />
                 </ListItemIcon>
-                <ListItemText primary={item} />
+                <ListItemText 
+                  primary={
+                    isYearly && index === 2 
+                      ? t('mgmt.constellation.yearly_savings') 
+                      : t(key)
+                  } 
+                />
               </ListItem>
             ))}
           </List>
           <Button variant="contained" color="primary" target='_blank' fullWidth href={isYearly ? yearlyLink : monthlyLink}>
-            Upgrade Now
+            {t('mgmt.constellation.upgrade_button')}
           </Button>
         </CardContent>
       </Card>

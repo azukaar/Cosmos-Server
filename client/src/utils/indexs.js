@@ -174,3 +174,19 @@ export const PascalToSnake = (str) => {
     return m[0] + "_" + m[1];
   }).toLowerCase();
 }
+
+export const getCurrencyFromLanguage = (language) => {
+  const currencyMap = {
+    en: 'USD', // English (assuming US English as default)
+    'en-US': 'USD', // US English
+    'en-GB': 'GBP', // British English
+    de: 'EUR', // German
+    fr: 'EUR', // French
+    es: 'EUR', // Spanish
+    it: 'EUR', // Italian
+    pt: 'EUR', // Portuguese
+    nl: 'EUR', // Dutch
+  };
+
+  return currencyMap[language] || 'USD'; // Default to USD if no match
+};

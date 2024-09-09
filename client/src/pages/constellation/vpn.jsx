@@ -16,6 +16,7 @@ import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
 import { Trans, useTranslation } from 'react-i18next';
+import ResyncDeviceModal from "./resyncDevice";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it

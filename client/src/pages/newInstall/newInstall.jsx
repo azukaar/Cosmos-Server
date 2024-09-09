@@ -94,9 +94,9 @@ const NewInstall = () => {
         if(hostname.match(hostnameIsDomainReg) && !hostname.endsWith('.local')) {
             return [
                 ["", t('mgmt.config.security.encryption.httpsCertSelection.httpsCertSelection')],
-                ["LETSENCRYPT", t('mgmt.config.security.encryption.httpsCertSelection.sslLetsEncryptChoice')],
                 ["SELFSIGNED", t('mgmt.config.security.encryption.httpsCertSelection.sslSelfSignedChoice')],
                 ["PROVIDED", t('mgmt.config.security.encryption.httpsCertSelection.sslProvidedChoice')],
+                ["LETSENCRYPT", t('mgmt.config.security.encryption.httpsCertSelection.sslLetsEncryptChoice')],
                 ["DISABLED", t('mgmt.config.security.encryption.httpsCertSelection.sslDisabledChoice')],
             ]
         } else {
@@ -375,7 +375,7 @@ const NewInstall = () => {
                         }
                         <CosmosSelect
                             name="HTTPSCertificateMode"
-                            label={t('auth.selectOption')}
+                            label={t('auth.selectHTTPSMode')}
                             formik={formik}
                             options={getHTTPSOptions(formik.values.Hostname && formik.values.Hostname)}
                         />

@@ -16,10 +16,12 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
+import { Trans, useTranslation } from 'react-i18next';
 
 const ResyncDeviceModal = ({ nickname, deviceName, OnClose }) => {
   const canvasRef = React.useRef(null);
   const [data, setData] = useState(null);
+  const { t } = useTranslation();
 
   const renderCanvas = (data) => {
     if (!canvasRef.current) return setTimeout(() => {
@@ -51,14 +53,12 @@ const ResyncDeviceModal = ({ nickname, deviceName, OnClose }) => {
 
   return <>
     <Dialog open={true} onClose={OnClose}>
-      <DialogTitle>Resync Device</DialogTitle>
+      <DialogTitle>{t('mgmt.constellation.resyncDeviceModal.title')}</DialogTitle>
 
       <DialogContent>
         <DialogContentText>
           <p>
-            Use this to resync a client that lost connection to the server.
-            In your client, click on "Resync Device" and follow the process.
-            <strong>Do not use this on a new device, use the "Add Device" button instead.</strong>
+            <Trans i18nKey="mgmt.constellation.resyncDeviceModal.description" />
           </p>
 
           <Stack spacing={2} direction={"column"}>
@@ -71,7 +71,7 @@ const ResyncDeviceModal = ({ nickname, deviceName, OnClose }) => {
             <DownloadFile 
               filename={`constellation.resync.yml`}
               content={data}
-              label={"Download constellation.resync.yml"}
+              label={t('mgmt.constellation.resyncDeviceModal.button')}
             />
           </Stack>
         </DialogContentText>

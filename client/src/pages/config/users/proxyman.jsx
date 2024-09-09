@@ -241,7 +241,7 @@ const ProxyManagement = () => {
           { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
-          { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title="This route is tunneled to your main Cosmos server, you have to edit it from there.">
+          { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title={t('tooltip.route.tunnelWarn')}>
             <QuestionCircleOutlined style={{
               // color: 'gray',
               fontSize: '20px',

@@ -301,7 +301,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   {(formik.values.TunnelVia || tunnels.length > 0) && (<>
                     <CosmosSelect
                       name="TunnelVia"
-                      label="Tunnel via another Constellation Cosmos node"
+                      label={t('mgmt.urls.edit.tunnelViaSelection.tunnelViaLabel')}
                       formik={formik}
                       onChange={(e) => {
                         const newHostname = tunnels.find((t) => t.deviceName === e.target.value)?.publicHostname;
@@ -315,7 +315,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
                     {formik.values.TunnelVia && <CosmosInputText
                       name="TunneledHost"
-                      label="Hostname to tunnel from (what is the user facing hostname of the tunnel)" 
+                      label={t('mgmt.urls.edit.tunneledHostInput.tunneledHostLabel')}
                       placeholder="other-host.com"
                       formik={formik}
                     />}
