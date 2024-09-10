@@ -720,5 +720,6 @@
 	"mgmt.urls.edit.tunnelViaSelection.tunnelViaLabel": "Tunnel via another Constellation Cosmos node",
 	"mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname to tunnel from (what is the user facing hostname of the tunnel)",
 	"mgmt.config.general.licenceInput.licenceLabel": "Licence Key",
-	"mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence"
+	"mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
+	"language.selectLanguage": "Select Language"
 }

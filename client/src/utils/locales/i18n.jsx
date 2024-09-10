@@ -18,8 +18,23 @@ i18n
     fallbackLng: 'en',
     supportedLngs: [
       'en',
+      'en-GB',
+      'cn',
       'de',
-      'de-CH'
+      'de-CH',
+      'es',
+      'fr',
+      'hi',
+      'it',
+      'jp',
+      'kr',
+      'nl',
+      'pl',
+      'pt',
+      'ru',
+      'tr',
+      'ar',
+      'en-FUNNYSHAKESPEARE',
     ],
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default
@@ -40,6 +55,20 @@ i18n
     enGB: () => import('dayjs/locale/en-gb'),
     de: () => import('dayjs/locale/de'),
     deCH: () => import('dayjs/locale/de-ch'),
+    fr: () => import('dayjs/locale/fr'),
+    es: () => import('dayjs/locale/es'),
+    cn: () => import('dayjs/locale/zh-cn'),
+    hi: () => import('dayjs/locale/hi'),
+    it: () => import('dayjs/locale/it'),
+    jp: () => import('dayjs/locale/ja'),
+    kr: () => import('dayjs/locale/ko'),
+    nl: () => import('dayjs/locale/nl'),
+    pl: () => import('dayjs/locale/pl'),
+    pt: () => import('dayjs/locale/pt'),
+    ru: () => import('dayjs/locale/ru'),
+    tr: () => import('dayjs/locale/tr'),
+    ar: () => import('dayjs/locale/ar-sa'),
+    enFUNNYSHAKESPEARE: () => import('dayjs/locale/en-gb'),
   }
   
   export function dayjsLocale (language) {

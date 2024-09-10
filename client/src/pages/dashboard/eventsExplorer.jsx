@@ -160,7 +160,10 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 				</div>
 				<TextField fullWidth value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t('navigation.monitoring.events.searchInput.searchPlaceholder')} />
 			</Stack>
-			<div><Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: from.toLocaleString(), to: to.toLocaleString()}}/>
+			<div>
+				{!loading &&
+					<Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: from.toLocaleString(), to: to.toLocaleString()}}/>
+				}
 			</div>
 			<div>
 				{events && <Stack spacing={1}>

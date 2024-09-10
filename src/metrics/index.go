@@ -181,8 +181,6 @@ func PushSetMetric(key string, value int, def DataDef) {
 				if def.DecumulatePos && value < 0 {
 					value = 0
 				}
-			} else {
-				value = 0
 			}
 		}
 		

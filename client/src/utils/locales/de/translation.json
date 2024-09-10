@@ -720,5 +720,6 @@
 	"mgmt.urls.edit.tunnelViaSelection.tunnelViaLabel": "Tunnel über einen anderen Constellation Cosmos-Knoten",
 	"mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname, von dem aus getunnelt wird (welcher Hostname ist benutzerseitig sichtbar für den Tunnel)",
 	"mgmt.config.general.licenceInput.licenceLabel": "Lizenzschlüssel",
-	"mgmt.config.general.licenceInput.manageLicenceButton": "Lizenz verwalten"
+	"mgmt.config.general.licenceInput.manageLicenceButton": "Lizenz verwalten",
+	"language.selectLanguage": "Sprache auswählen"
 }

@@ -10,12 +10,14 @@ const DrawerContent = () => (
         sx={{
             '& .simplebar-content': {
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                // space between
+                justifyContent: 'space-between',
+                height: '100%',
             }
         }}
     >
         <Navigation />
-        {/* <NavCard /> */}
     </SimpleBar>
 );
 

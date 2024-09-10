@@ -46,6 +46,11 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		licenceValid := false 
+		if utils.FBL != nil && utils.FBL.LValid {
+			licenceValid = true
+		}
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": map[string]interface{}{
@@ -74,7 +79,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"AVX": cpu.X86.HasAVX,
 				"LetsEncryptErrors": utils.LetsEncryptErrors,
 				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
-				"Licence": utils.FBL.LValid,
+				"Licence": licenceValid,
 			},
 		})
 	} else {

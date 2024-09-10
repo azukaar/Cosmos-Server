@@ -11,6 +11,7 @@
  - Fixed issues with container's monitoring when name contains a dot (Thanks @BearTS)
  - Added email on succesful login  (Thanks @BearTS)
  - Add support for runtime (Thanks @ryan-schubert)
+ - Revamped the header and sidebar a little
 
 ## Version 0.15.7
  - Added "Allow insecure local connection" for HTTP ip:port access in the same network

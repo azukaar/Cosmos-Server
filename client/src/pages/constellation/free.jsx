@@ -22,7 +22,7 @@ import { getCurrencyFromLanguage } from '../../utils/indexs';
 const VPNSalesPage = () => {
   const [isYearly, setIsYearly] = useState(true);
   const { t, i18n } = useTranslation();
-  const currency = getCurrencyFromLanguage(i18n.language);
+  const currency = getCurrencyFromLanguage();
 
   const monthlyPrices = {
     "USD": 10.30,

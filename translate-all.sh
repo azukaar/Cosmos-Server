@@ -1,0 +1,14 @@
+node translate.js cn
+node translate.js de
+node translate.js es
+node translate.js fr
+node translate.js hi
+node translate.js it
+node translate.js nl
+node translate.js pl
+node translate.js pt
+node translate.js ru
+node translate.js tr
+node translate.js kr
+node translate.js ar
+node translate.js en-FUNNYSHAKESPEARE

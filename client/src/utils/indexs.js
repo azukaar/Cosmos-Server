@@ -175,7 +175,10 @@ export const PascalToSnake = (str) => {
   }).toLowerCase();
 }
 
-export const getCurrencyFromLanguage = (language) => {
+export const getCurrencyFromLanguage = () => {
+  let language = window.navigator.userLanguage || window.navigator.language;
+  language = language.split('-')[0]; // Get language code without region
+  
   const currencyMap = {
     en: 'USD', // English (assuming US English as default)
     'en-US': 'USD', // US English

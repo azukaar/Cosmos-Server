@@ -18,14 +18,6 @@ const DrawerHeader = ({ open }) => {
         <DrawerHeaderStyled theme={theme} open={open}>
             <Stack direction="row" spacing={1} alignItems="center">
                 <Logo />
-                <Chip
-                    label={version.replace('unstable', '')}
-                    size="small"
-                    sx={{ height: 16, '& .MuiChip-label': { fontSize: '0.55rem', py: 0.25 } }}
-                    component="a"
-                    href="/"
-                    clickable
-                />
             </Stack>
         </DrawerHeaderStyled>
     );

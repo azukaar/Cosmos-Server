@@ -20,6 +20,7 @@ import AnimateButton from '../../components/@extended/AnimateButton';
 import { Box } from '@mui/system';
 import { isDomain, redirectTo, redirectToLocal } from '../../utils/indexs';
 import { DnsChallengeComp } from '../../utils/dns-challenge-comp';
+import { LanguagesSelect } from '../../layout/MainLayout/Drawer/languages';
 // ================================|| LOGIN ||================================ //
 
 const debounce = (func, wait) => {
@@ -113,7 +114,7 @@ const NewInstall = () => {
         {
             label: t('newInstall.welcomeTitle'),
             component: <div>
-                {t('newInstall.welcomeText')}
+                <span style={{margin: '5px'}}><LanguagesSelect /></span> {t('newInstall.welcomeText')}
                 <br /><br />
                 <Checkbox checked={cleanInstall} onChange={(e) => setCleanInstall(e.target.checked)} />{t('newInstall.cleanInstallCheckbox')}
                 <br /><br />

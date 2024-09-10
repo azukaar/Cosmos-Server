@@ -3,13 +3,17 @@ import { useMemo } from 'react';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
-import { Box, Drawer, useMediaQuery } from '@mui/material';
+import { Box, Chip, Drawer, useMediaQuery } from '@mui/material';
 
 // project import
 import DrawerHeader from './DrawerHeader';
 import DrawerContent from './DrawerContent';
 import MiniDrawerStyled from './MiniDrawerStyled';
 import { drawerWidth } from '../../../config';
+import NavCard from './DrawerContent/NavCard';
+
+import {version} from '../../../../../package.json';
+import { LanguagesSelect } from './languages';
 
 // ==============================|| MAIN LAYOUT - DRAWER ||============================== //
 
@@ -23,13 +27,25 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
     // header content
     const drawerContent = useMemo(() => <DrawerContent />, []);
     const drawerHeader = useMemo(() => <DrawerHeader open={open} />, [open]);
+    const footer = <div style={{ margin: '10px', display: 'flex', justifyContent: 'center' }}>
+        <LanguagesSelect />
+        <Chip
+            label={version.replace('unstable', '')}
+            sx={{ marginLeft: '10px', height: 24, '& .MuiChip-label': { fontSize: '0.7rem', py: 0.25 } }}
+            component="a"
+            href="/"
+            clickable
+        />
+    </div>;
 
     return (
         <Box component="nav" sx={{ flexShrink: { md: 0 }, zIndex: 1300 }} aria-label="mailbox folders">
             {!matchDownMD ? (
-                <MiniDrawerStyled variant="permanent" open={open}>
+                <MiniDrawerStyled
+                    variant="permanent" open={open}>
                     {drawerHeader}
                     {drawerContent}
+                    {footer}
                 </MiniDrawerStyled>
             ) : (
                 <Drawer
@@ -51,6 +67,7 @@ const MainDrawer = ({ open, handleDrawerToggle, window }) => {
                 >
                     {open && drawerHeader}
                     {open && drawerContent}
+                    {open && footer}
                 </Drawer>
             )}
         </Box>
