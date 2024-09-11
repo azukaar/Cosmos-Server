@@ -1,5 +1,4 @@
 {
-  "Storage": "Storage",
   "auth.accountUnconfirmedError": "Nie zarejestrowałeś jeszcze swojego konta. Powinieneś mieć link zaproszeniowy w swoich e-mailach. Jeśli potrzebujesz nowego, skontaktuj się ze swoim administratorem.",
   "auth.confirmPassword": "Potwierdź hasło",
   "auth.enterPwd": "Wprowadź swoje hasło",

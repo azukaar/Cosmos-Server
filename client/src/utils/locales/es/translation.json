@@ -1,5 +1,4 @@
 {
-  "Storage": "Almacenamiento",
   "auth.accountUnconfirmedError": "Aún no has registrado tu cuenta. Deberías tener un enlace de invitación en tus correos electrónicos. Si necesitas uno nuevo, contacta a tu administrador.",
   "auth.confirmPassword": "Confirmar Contraseña",
   "auth.enterPwd": "Introduce tu contraseña",

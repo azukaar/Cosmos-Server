@@ -1,5 +1,4 @@
 {
-  "Storage": "Stockage",
   "auth.accountUnconfirmedError": "Vous n'avez pas encore enregistré votre compte. Vous devriez avoir un lien d'invitation dans vos emails. Si vous en avez besoin d'un nouveau, contactez votre administrateur.",
   "auth.confirmPassword": "Confirmer le mot de passe",
   "auth.enterPwd": "Entrez votre mot de passe",

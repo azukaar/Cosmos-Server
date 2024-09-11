@@ -1,5 +1,4 @@
 {
-  "Storage": "저장",
   "auth.accountUnconfirmedError": "아직 계정을 등록하지 않았습니다. 이메일에 초대 링크가 있어야 합니다. 새 링크가 필요하면 관리자에게 문의하십시오.",
   "auth.confirmPassword": "비밀번호 확인",
   "auth.enterPwd": "비밀번호 입력",
