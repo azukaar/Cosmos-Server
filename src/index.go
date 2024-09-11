@@ -58,6 +58,8 @@ func main() {
 		MigratePre013()
 		MigratePre014()
 
+		docker.isInsideContainer()
+
 		docker.CheckPuppetDB()
 
 		utils.InitDBBuffers()

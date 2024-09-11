@@ -133,9 +133,7 @@ const MFASetup = () => {
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Typography variant="h5">
-          <Trans i18nKey="mgmt.openid.newMfa.requires2faText"
-            components={[<Tooltip title=""></Tooltip>, <span style={{cursor: 'pointer', textDecoration:"underline dotted"}}></span>]}
-          />
+            {t("mgmt.openid.newMfa.requires2faText")} (FreeOTP(+), Google Authenticator, Microsoft Authenticator, ...)
         </Typography>
       </Grid>
       <Grid  item xs={12} textAlign={'center'}>

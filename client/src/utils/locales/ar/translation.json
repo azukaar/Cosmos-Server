@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "اللون الثانوي",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "يبدو أن المعاينة معطلة. يرجى إعادة التحميل.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "رفع الخلفية",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "المظهر",
   "mgmt.config.certRenewalLinktext": "هذا الرابط للوثائق",
   "mgmt.config.certRenewalText": "أنت تستخدم Let's Encrypt ولكنك لا تستخدم تحدي DNS مع شهادة النطاق الفرعي. هذا يعني أن الخادم يجب عليه تجديد الشهادة في كل مرة تضيف اسم مضيف جديد، مما يسبب بضع ثوانٍ من التوقف. لتجنب ذلك في المستقبل، يرجى الرجوع إلى",
   "mgmt.config.certRenewalTitle": "تجديد الشهادة",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "اسم المضيف للنفاذ من (ما هو اسم المضيف الموجه نحو المستخدم للنفق)",
   "mgmt.config.general.licenceInput.licenceLabel": "مفتاح الترخيص",
   "mgmt.config.general.licenceInput.manageLicenceButton": "إدارة الترخيص",
-  "language.selectLanguage": "اختر اللغة"
+  "language.selectLanguage": "اختر اللغة",
+  "mgmt.constellation.per_year": "سنويًا"
 }

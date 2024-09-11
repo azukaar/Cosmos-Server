@@ -36,7 +36,7 @@ func ListMounts() ([]MountPoint, error) {
 	finalMountPoints := map[string]MountPoint{}
 	for i := 0; i < len(mountPoints); i++ {
 		path := mountPoints[i].Path
-		if strings.HasPrefix(path, "/mnt/host") && os.Getenv("HOSTNAME") != "" {
+		if strings.HasPrefix(path, "/mnt/host") && utils.IsInsideContainer {
 			// remove the host path
 			path = strings.Replace(path, "/mnt/host", "", 1)
 		}

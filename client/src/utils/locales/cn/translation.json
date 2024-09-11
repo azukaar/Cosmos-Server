@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "次色调",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "预览似乎损坏。请重新上传。",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "上传壁纸",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "外观",
   "mgmt.config.certRenewalLinktext": "此文档链接",
   "mgmt.config.certRenewalText": "您正在使用Let's Encrypt，但没有使用带有通配符证书的DNS挑战。这意味着每次添加新的主机名时，服务器都必须更新证书，导致几秒钟的停机时间。为避免将来出现这种情况，请参阅",
   "mgmt.config.certRenewalTitle": "证书更新",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "隧道传输的主机名（用户面对的隧道主机名是什么）",
   "mgmt.config.general.licenceInput.licenceLabel": "许可证密钥",
   "mgmt.config.general.licenceInput.manageLicenceButton": "管理许可证",
-  "language.selectLanguage": "选择语言"
+  "language.selectLanguage": "选择语言",
+  "mgmt.constellation.per_year": "每年"
 }

@@ -85,7 +85,7 @@ func DB() error {
 		hostname = puppetHostname
 	}
 
-	if os.Getenv("HOSTNAME") == "" || IsHostNetwork {
+	if !utils.IsInsideContainer || IsHostNetwork {
 		Log("Getting Mongo DB IP from name : " + hostname + " (port " + port + ")")
 
 		ip, _ := GetContainerIPByName(hostname)

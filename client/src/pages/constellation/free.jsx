@@ -23,6 +23,11 @@ const VPNSalesPage = () => {
   const [isYearly, setIsYearly] = useState(true);
   const { t, i18n } = useTranslation();
   const currency = getCurrencyFromLanguage();
+  const currencyCode = {
+    "USD": "$",
+    "EUR": "€",
+    "GBP": "£"
+  }[currency];
 
   const monthlyPrices = {
     "USD": 10.30,
@@ -99,10 +104,10 @@ const VPNSalesPage = () => {
         <CardContent>
           <Box textAlign="center" mb={2}>
             <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-              ${isYearly ? yearlyPrice.toFixed(2) : monthlyPrice.toFixed(2)}
+              {currencyCode} {isYearly ? (yearlyPrice / 12).toFixed(2) : monthlyPrice.toFixed(2)}
             </Typography>
             <Typography variant="h3" color="primary">
-              ${isYearly ? discountedYearlyPrice : discountedMonthlyPrice}
+              {currencyCode} {isYearly ? ((discountedYearlyPrice / 12).toFixed(2)) : discountedMonthlyPrice}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               {t('mgmt.constellation.per_month')}

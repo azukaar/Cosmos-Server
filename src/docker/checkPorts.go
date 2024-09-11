@@ -114,7 +114,7 @@ func CheckPorts() error {
 func UpdatePorts(finalPorts []string) error {
 	utils.Log("SelUpdatePorts - Starting...")
 
-	if os.Getenv("HOSTNAME") == "" {
+	if !utils.IsInsideContainer {
 		utils.Error("SelUpdatePorts - not using Docker", nil)
 		return errors.New("SelUpdatePorts - not using Docker")
 	}

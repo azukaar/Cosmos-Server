@@ -177,7 +177,7 @@ export const PascalToSnake = (str) => {
 
 export const getCurrencyFromLanguage = () => {
   let language = window.navigator.userLanguage || window.navigator.language;
-  language = language.split('-')[0]; // Get language code without region
+  // language = language.split('-')[0]; // Get language code without region
   
   const currencyMap = {
     en: 'USD', // English (assuming US English as default)

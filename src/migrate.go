@@ -91,7 +91,7 @@ func MigratePre014() {
 
 		opts := options.Client().ApplyURI(mongoURL).SetRetryWrites(true).SetWriteConcern(writeconcern.New(writeconcern.WMajority()))
 		
-		if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork {
+		if !utils.IsInsideContainer || utils.IsHostNetwork {
 			hostname := opts.Hosts[0]
 			// split port
 			hostnameParts := strings.Split(hostname, ":")

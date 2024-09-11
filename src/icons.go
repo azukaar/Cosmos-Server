@@ -96,7 +96,7 @@ func GetFavicon(w http.ResponseWriter, req *http.Request) {
 			return
 	}
 	
-	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork && isServappMode != "" {
+	if !utils.IsInsideContainer || utils.IsHostNetwork && isServappMode != "" {
 		parsedURL, err := url.Parse(siteurl)
 		if err != nil {
 			utils.Error("Favicon: URL parse", err)
@@ -285,7 +285,7 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork && isServappMode != "" {
+	if !utils.IsInsideContainer || utils.IsHostNetwork && isServappMode != "" {
 		parsedURL, err := url.Parse(siteurl)
 		if err != nil {
 			utils.Error("Favicon: URL parse", err)

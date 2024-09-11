@@ -25,7 +25,7 @@ func GetSystemMetrics() {
 	ctx := context.Background()
 
 	// redirect docker monitoring
-	if os.Getenv("HOSTNAME") != "" {
+	if utils.IsInsideContainer {
 		// check if path /mnt/host exist
 		if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 			utils.Error("Metrics - Cannot start monitoring the server if you don't mount /mnt/host to /. Check the documentation for more information.", nil)
@@ -149,7 +149,7 @@ func GetSystemMetrics() {
 				realMount := part.Mountpoint
 				mountKey := strings.Replace(part.Mountpoint, ".", "_", -1)
 
-				if os.Getenv("HOSTNAME") != "" {
+				if utils.IsInsideContainer {
 					realMount = "/mnt/host" + part.Mountpoint
 				}
 

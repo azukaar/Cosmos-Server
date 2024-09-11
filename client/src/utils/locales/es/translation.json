@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Color secundario",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "la vista previa parece rota. Por favor, vuelva a subir.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Subir fondo de pantalla",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Apariencia",
   "mgmt.config.certRenewalLinktext": "este enlace a la documentación",
   "mgmt.config.certRenewalText": "Estás utilizando Let's Encrypt pero no estás utilizando el DNS Challenge con un certificado comodín. Esto significa que el servidor tiene que renovar el certificado cada vez que agregas un nuevo nombre de host, causando unos segundos de inactividad. Para evitarlo en el futuro, por favor consulta",
   "mgmt.config.certRenewalTitle": "Renovación de Certificado",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Nombre de host desde el cual se realizará el túnel (cuál es el nombre de host que enfrenta el túnel para el usuario)",
   "mgmt.config.general.licenceInput.licenceLabel": "Clave de licencia",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Gestionar licencia",
-  "language.selectLanguage": "Seleccionar Idioma"
+  "language.selectLanguage": "Seleccionar Idioma",
+  "mgmt.constellation.per_year": "por año"
 }

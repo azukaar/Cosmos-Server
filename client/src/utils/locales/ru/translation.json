@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Вторичный цвет",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "предварительный просмотр кажется сломанным. Пожалуйста, загрузите заново.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Загрузить обои",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Внешний вид",
   "mgmt.config.certRenewalLinktext": "эта ссылка на документацию",
   "mgmt.config.certRenewalText": "Вы используете Let's Encrypt, но не используете DNS Challenge с wildcard сертификатом. Это значит, что сервер должен обновлять сертификат каждый раз, когда вы добавляете новое доменное имя, что вызывает несколько секунд простоя. Чтобы избежать этого в будущем, пожалуйста, обратитесь к",
   "mgmt.config.certRenewalTitle": "Обновление сертификата",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Имя хоста для туннелирования (какое имя хоста пользователь видит при туннелировании)",
   "mgmt.config.general.licenceInput.licenceLabel": "Ключ лицензии",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Управление лицензией",
-  "language.selectLanguage": "Выберите язык"
+  "language.selectLanguage": "Выберите язык",
+  "mgmt.constellation.per_year": "в год"
 }

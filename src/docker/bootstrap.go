@@ -12,7 +12,7 @@ import (
 
 func BootstrapAllContainersFromTags() []error {
 	// no need to bootstrap if we are in host network
-	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork {
+	if !utils.IsInsideContainer || utils.IsHostNetwork {
 		return nil
 	}
 
@@ -49,7 +49,7 @@ func UnsecureContainer(container types.ContainerJSON) (string, error) {
 
 func BootstrapContainerFromTags(containerID string) error {
 	// no need to bootstrap if we are in host network
-	if os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork {
+	if !utils.IsInsideContainer || utils.IsHostNetwork {
 		return nil
 	}
 
@@ -59,7 +59,7 @@ func BootstrapContainerFromTags(containerID string) error {
 	}
 
 	selfContainer := types.ContainerJSON{}
-	if os.Getenv("HOSTNAME") != "" {
+	if utils.IsInsideContainer {
 		var errS error 
 		selfContainer, errS = DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
 		if errS != nil {

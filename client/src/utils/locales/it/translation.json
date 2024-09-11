@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Nome host dal quale fare tunneling (qual è il nome host rivolto agli utenti del tunnel)",
   "mgmt.config.general.licenceInput.licenceLabel": "Chiave di Licenza",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Gestisci Licenza",
-  "language.selectLanguage": "Seleziona Lingua"
+  "language.selectLanguage": "Seleziona Lingua",
+  "mgmt.constellation.per_year": "all'anno"
 }

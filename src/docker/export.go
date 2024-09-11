@@ -236,7 +236,7 @@ func ExportDocker() {
 	}
 
 	// remove cosmos from services
-	if os.Getenv("HOSTNAME") != "" {
+	if utils.IsInsideContainer {
 		cosmos := services[os.Getenv("HOSTNAME")]
 		delete(services, os.Getenv("HOSTNAME"))
 

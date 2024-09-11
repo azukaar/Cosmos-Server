@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Secondary Hued Paint",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "preview seemeth broken. Prithee re-upload.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Uploadeth Wallpaper",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Appearance",
   "mgmt.config.certRenewalLinktext": "this link to the documentation",
   "mgmt.config.certRenewalText": "Thou art using Let's Encrypt but thou art not using the DNS Challenge with a wildcard certificate. This meaneth the server must reneweth the certificate everytime thou addest a new hostname, causing a few seconds of downtime. To avoideth it in the future, prithee refer to",
   "mgmt.config.certRenewalTitle": "Certificate Renewaleth",
@@ -719,5 +719,7 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname to tunnel from (what is the user facing hostname of the tunnel)",
   "mgmt.config.general.licenceInput.licenceLabel": "Licence Key",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
-  "language.selectLanguage": "Selecteth Language"
+  "language.selectLanguage": "Selecteth Language",
+  "mgmt.constellation.per_year": "per annum",
+  "mgmt.servapps.newContainer.volumesTitle": "Volum'n Mounts"
 }

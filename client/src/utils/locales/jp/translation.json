@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "セカンダリカラー",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "プレビューが壊れているようです。再アップロードしてください。",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "壁紙をアップロード",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "外観",
   "mgmt.config.certRenewalLinktext": "ドキュメントへのリンク",
   "mgmt.config.certRenewalText": "Let's Encryptを使用していますが、ワイルドカード証明書を使用したDNSチャレンジは使用していません。これは、新しいホスト名を追加するたびにサーバーが証明書を更新する必要があり、数秒間のダウンタイムが発生することを意味します。今後これを回避するには、",
   "mgmt.config.certRenewalTitle": "証明書の更新",

@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Cor Secundária",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "a pré-visualização parece estar quebrada. Por favor, carregue novamente.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Carregar Papel de Parede",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Aparência",
   "mgmt.config.certRenewalLinktext": "este link para a documentação",
   "mgmt.config.certRenewalText": "Você está usando Let's Encrypt, mas não está usando o Desafio DNS com um certificado curinga. Isso significa que o servidor precisa renovar o certificado toda vez que você adicionar um novo nome de host, causando alguns segundos de inatividade. Para evitar isso no futuro, consulte",
   "mgmt.config.certRenewalTitle": "Renovação de Certificado",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Nome do host para tunelar (qual é o nome do host acessível pelo usuário do túnel)",
   "mgmt.config.general.licenceInput.licenceLabel": "Chave de Licença",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Gerenciar Licença",
-  "language.selectLanguage": "Selecionar Idioma"
+  "language.selectLanguage": "Selecionar Idioma",
+  "mgmt.constellation.per_year": "por ano"
 }

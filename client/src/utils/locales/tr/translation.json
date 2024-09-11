@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "İkincil Renk",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "ön izleme bozulmuş gibi görünüyor. Lütfen tekrar yükleyin.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Duvar Kağıdı Yükle",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Görünüm",
   "mgmt.config.certRenewalLinktext": "belgelere bu bağlantı",
   "mgmt.config.certRenewalText": "Let's Encrypt kullanıyorsunuz ancak DNS Challenge ile bir joker sertifikası kullanmıyorsunuz. Bu, sunucunun her yeni ana bilgisayar adı eklediğinizde sertifikayı yenilemesi gerektiği anlamına gelir ve bu da birkaç saniyelik kesintiye neden olur. Gelecekte bunu önlemek için lütfen başvurun",
   "mgmt.config.certRenewalTitle": "Sertifika Yenileme",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Tünel için ana bilgisayar adı (kullanıcının karşılaştığı tünel ana bilgisayar adı nedir)",
   "mgmt.config.general.licenceInput.licenceLabel": "Lisans Anahtarı",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Lisansı Yönet",
-  "language.selectLanguage": "Dili Seç"
+  "language.selectLanguage": "Dili Seç",
+  "mgmt.constellation.per_year": "yılda"
 }

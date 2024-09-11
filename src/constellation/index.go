@@ -33,6 +33,7 @@ func Init() {
 			// disable constellation
 			configFile := utils.ReadConfigFromFile()
 			configFile.ConstellationConfig.Enabled = false
+			configFile.AdminConstellationOnly = false
 			utils.SetBaseMainConfig(configFile)
 			return
 		}

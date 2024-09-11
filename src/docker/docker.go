@@ -85,7 +85,7 @@ func Connect() error {
 		}
 		
 		// if running in Docker, connect to main network
-		// if os.Getenv("HOSTNAME") != "" {
+		// if utils.IsInsideContainer {
 		// 	ConnectToNetwork(os.Getenv("HOSTNAME"))
 		// }
 	}
@@ -94,7 +94,7 @@ func Connect() error {
 }
 
 func RecreateContainer(containerID string, containerConfig types.ContainerJSON) (string, error) {
-	if os.Getenv("HOSTNAME") != ""  && os.Getenv("HOSTNAME") == containerID[1:] {
+	if utils.IsInsideContainer  && os.Getenv("HOSTNAME") == containerID[1:] {
 		err := SelfRecreate()
 		if err != nil {
 			return "", err
@@ -153,7 +153,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			if newmount.Type == mountType.TypeBind {
 				newSource := newmount.Source
 
-				if os.Getenv("HOSTNAME") != "" {
+				if utils.IsInsideContainer {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
 					} else {
@@ -623,7 +623,7 @@ func SelfRecreate() error {
 func SelfAction(action string) error {
 	utils.Log("SelfRecreate - Starting...")
 
-	if os.Getenv("HOSTNAME") == "" {
+	if !utils.IsInsideContainer {
 		utils.Error("SelfRecreate - not using Docker", nil)
 		return errors.New("SelfRecreate - not using Docker")
 	}
@@ -877,7 +877,7 @@ func RestartContainer(containerName string) {
 }
 
 func CheckDockerNetworkMode() string {
-	if os.Getenv("HOSTNAME") != "" {
+	if utils.IsInsideContainer {
 		errD := Connect()
 		if errD != nil {
 			utils.Error("Checking Host Network", errD)
@@ -917,4 +917,23 @@ func GetEnv(env []string, key string) string {
 			}
 	}
 	return ""
+}
+
+func isInsideContainer() {
+	if utils.IsInsideContainer {
+		errD := Connect()
+		if errD != nil {
+			utils.Error("isInsideContainer", errD)
+			return
+		}
+
+		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+
+		if err == nil {
+			// check image
+			if String.Contains(container.Config.Image, "cosmos") {
+				utils.IsInsideContainer = true
+			}
+		}
+	}
 }

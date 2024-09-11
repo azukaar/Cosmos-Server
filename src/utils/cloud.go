@@ -53,7 +53,7 @@ func InitFBL() {
 
 
 func _InitFBL() *FirebaseApiSdk {
-	res := NewFirebaseApiSdk("https://cosmos-cloud.io/licences")
+	res := NewFirebaseApiSdk("https://api.cosmos-cloud.io")
 	config := ReadConfigFromFile()
 	Licence := config.Licence
 	ServerToken := config.ServerToken

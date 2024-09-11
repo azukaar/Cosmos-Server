@@ -54,6 +54,8 @@ var LetsEncryptErrors = []string{}
 
 var CONFIGFOLDER = "/var/lib/cosmos/"
 
+var IsInsideContainer = false
+
 var DefaultConfig = Config{
 	LoggingLevel: "INFO",
 	NewInstall:   true,
@@ -352,7 +354,7 @@ func SanitizeSafe(s string) string {
 func GetConfigFileName() string {
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
 		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
-	} else if os.Getenv("HOSTNAME") != "" {
+	} else if utils.IsInsideContainer {
 		CONFIGFOLDER = "/config/"
 	}
 	

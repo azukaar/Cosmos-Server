@@ -30,7 +30,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 	// stop, start, restart, kill, remove, pause, unpause, recreate
 	action := utils.Sanitize(vars["action"])
 	
-	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") && action != "update" && action != "recreate" {
+	if utils.IsInsideContainer && containerName == os.Getenv("HOSTNAME") && action != "update" && action != "recreate" {
 		utils.Error("ManageContainer - Container cannot update itself", nil)
 		utils.HTTPError(w, "Container cannot update itself", http.StatusBadRequest, "DS003")
 		return

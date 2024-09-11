@@ -76,7 +76,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			utils.Log("NewInstall: Removing config file")
 			configFile := utils.GetConfigFileName()
 			os.Remove(configFile)
-			if(os.Getenv("HOSTNAME") != "") {
+			if(utils.IsInsideContainer) {
 				utils.Log("NewInstall: Emptying /config")
 				os.RemoveAll("/config")
 				os.Mkdir("/config", 0700)

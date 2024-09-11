@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "माध्यमिक रंग",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "पूर्वावलोकन टूटा हुआ लगता है। कृपया पुनः अपलोड करें।",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "वॉलपेपर अपलोड करें",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "उपस्थिति",
   "mgmt.config.certRenewalLinktext": "दस्तावेज़ीकरण के लिए यह लिंक",
   "mgmt.config.certRenewalText": "आप Let's Encrypt का उपयोग कर रहे हैं लेकिन आप DNS चुनौती के साथ एक वाइल्डकार्ड प्रमाणपत्र का उपयोग नहीं कर रहे हैं। इसका मतलब है कि प्रत्येक बार एक नया होस्टनेम जोड़ने पर सर्वर को प्रमाणपत्र नवीनीकृत करना होगा, जिससे कुछ सेकंड का डाउनटाइम होगा। भविष्य में इसे रोकने के लिए कृपया देखें",
   "mgmt.config.certRenewalTitle": "प्रमाणपत्र नवीनीकरण",
@@ -719,5 +719,7 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "जिस होस्टनाम से सुरंग करना है (सुरंग का उपयोगकर्ता सामना करने वाला होस्टनाम क्या है)",
   "mgmt.config.general.licenceInput.licenceLabel": "लाइसेंस कुंजी",
   "mgmt.config.general.licenceInput.manageLicenceButton": "लाइसेंस प्रबंधित करें",
-  "language.selectLanguage": "भाषा चुनें"
+  "language.selectLanguage": "भाषा चुनें",
+  "mgmt.constellation.per_year": "प्रति वर्ष",
+  "mgmt.servapps.newContainer.volumesTitle": "वॉल्यूम माउंट्स"
 }

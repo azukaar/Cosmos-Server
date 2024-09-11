@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Couleur secondaire",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "l'aperçu semble cassé. Veuillez re-télécharger.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Télécharger un fond d'écran",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Apparence",
   "mgmt.config.certRenewalLinktext": "ce lien vers la documentation",
   "mgmt.config.certRenewalText": "Vous utilisez Let's Encrypt mais vous n'utilisez pas le défi DNS avec un certificat à caractère générique. Cela signifie que le serveur doit renouveler le certificat chaque fois que vous ajoutez un nouveau nom d'hôte, ce qui cause quelques secondes d'indisponibilité. Pour éviter cela à l'avenir, veuillez vous référer à",
   "mgmt.config.certRenewalTitle": "Renouvellement du certificat",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Nom d'hôte à tunneliser (quel est le nom d'hôte visible par l'utilisateur du tunnel)",
   "mgmt.config.general.licenceInput.licenceLabel": "Clé de licence",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Gérer la licence",
-  "language.selectLanguage": "Sélectionnez la langue"
+  "language.selectLanguage": "Sélectionnez la langue",
+  "mgmt.constellation.per_year": "par an"
 }

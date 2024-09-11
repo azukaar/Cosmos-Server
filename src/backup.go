@@ -16,7 +16,7 @@ func RunBackup() {
 
 	if utils.GetMainConfig().BackupOutputDir != "" {
 		outputDir = utils.GetMainConfig().BackupOutputDir
-		if os.Getenv("HOSTNAME") != "" {
+		if utils.IsInsideContainer {
 			outputDir = "/mnt/host" + outputDir
 		}
 	}

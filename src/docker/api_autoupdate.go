@@ -22,7 +22,7 @@ func AutoUpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 	containerName := utils.SanitizeSafe(vars["containerId"])
 	status := utils.Sanitize(vars["status"])
 	
-	if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
+	if utils.IsInsideContainer && containerName == os.Getenv("HOSTNAME") {
 		config := utils.ReadConfigFromFile()
 		config.AutoUpdate = status == "true"
 		utils.SaveConfigTofile(config)

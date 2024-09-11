@@ -86,7 +86,7 @@ func RunDB(db utils.DatabaseConfig) (DockerServiceCreateRequest, error) {
 		},
 	};
 
-	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
+	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		newNetwork, errNC := CreateCosmosNetwork(db.Hostname)
 		if errNC != nil {
 			return DockerServiceCreateRequest{}, errNC

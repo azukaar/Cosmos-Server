@@ -178,7 +178,7 @@ func DetachNetwork(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if os.Getenv("HOSTNAME") != "" && networkID == "bridge" && containerID == os.Getenv("HOSTNAME") {
+		if utils.IsInsideContainer && networkID == "bridge" && containerID == os.Getenv("HOSTNAME") {
 			utils.Error("DetachNetwork - Cannot disconnect self from bridge", nil)
 			utils.HTTPError(w, "Cannot disconnect self from bridge", http.StatusBadRequest, "DS003")
 			return

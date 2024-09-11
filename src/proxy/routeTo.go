@@ -71,7 +71,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		req.URL.Scheme = url.Scheme
 		req.URL.Host = url.Host
 		
-		if route.Mode == "SERVAPP" && (os.Getenv("HOSTNAME") == "" || utils.IsHostNetwork) {
+		if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
 			targetHost := url.Hostname()
 
 			targetIP, err := docker.GetContainerIPByName(targetHost)
@@ -207,7 +207,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	destination := route.Target
 	routeType := route.Mode
 
-	if (routeType == "STATIC" || routeType == "SPA") && os.Getenv("HOSTNAME") != "" {
+	if (routeType == "STATIC" || routeType == "SPA") && utils.IsInsideContainer {
 		if _, err := os.Stat("/mnt/host"); err == nil {
 			destination = "/mnt/host" + destination
 		}

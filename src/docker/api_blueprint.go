@@ -192,7 +192,7 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 		case "network":
 			utils.Log(fmt.Sprintf("Removing network %s...", action.Name))
 
-			if os.Getenv("HOSTNAME") != "" {
+			if utils.IsInsideContainer {
 				DockerClient.NetworkDisconnect(DockerContext, action.Name, os.Getenv("HOSTNAME"), true)
 			}
 			err := DockerClient.NetworkRemove(DockerContext, action.Name)
@@ -617,7 +617,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			if newmount.Type == mount.TypeBind {
 				newSource := newmount.Source
 
-				if os.Getenv("HOSTNAME") != "" {
+				if utils.IsInsideContainer {
 					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
 						utils.Error("CreateService: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
 						OnLog(utils.DoErr("Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself: %s\n", err.Error()))

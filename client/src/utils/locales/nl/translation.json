@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Secundaire kleur",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "voorbeeld lijkt kapot. Gelieve opnieuw te uploaden.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Achtergrond uploaden",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Uiterlijk",
   "mgmt.config.certRenewalLinktext": "deze link naar de documentatie",
   "mgmt.config.certRenewalText": "Je gebruikt Let's Encrypt, maar je gebruikt niet de DNS-uitdaging met een wildcard-certificaat. Dit betekent dat de server het certificaat moet vernieuwen telkens wanneer je een nieuwe hostnaam toevoegt, wat enkele seconden downtime veroorzaakt. Om dit in de toekomst te vermijden, raadpleeg",
   "mgmt.config.certRenewalTitle": "Certificaatvernieuwing",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname om vanaf te tunnelen (wat is de user-facing hostname van de tunnel)",
   "mgmt.config.general.licenceInput.licenceLabel": "Licentiesleutel",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Beheer Licentie",
-  "language.selectLanguage": "Selecteer Taal"
+  "language.selectLanguage": "Selecteer Taal",
+  "mgmt.constellation.per_year": "per jaar"
 }

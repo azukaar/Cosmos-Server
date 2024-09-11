@@ -109,7 +109,7 @@
   "mgmt.config.appearance.secondaryColorSlider": "Kolor dodatkowy",
   "mgmt.config.appearance.uploadWallpaperButton.previewBrokenError": "podgląd wydaje się uszkodzony. Proszę wgrać ponownie.",
   "mgmt.config.appearance.uploadWallpaperButton.uploadWallpaperLabel": "Wgraj tapetę",
-  "mgmt.config.appearanceTitle": "mgmt.config.appearanceTitle",
+  "mgmt.config.appearanceTitle": "Wygląd",
   "mgmt.config.certRenewalLinktext": "ten link do dokumentacji",
   "mgmt.config.certRenewalText": "Używasz Let's Encrypt, ale nie używasz wyzwania DNS z certyfikatem wieloznacznego. Oznacza to, że serwer musi odnawiać certyfikat za każdym razem, gdy dodajesz nową nazwę hosta, co powoduje kilka sekund przestoju. Aby tego uniknąć w przyszłości, zapoznaj się z",
   "mgmt.config.certRenewalTitle": "Odnawianie certyfikatu",
@@ -720,5 +720,6 @@
   "mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Nazwa hosta do tunelowania (jaka jest nazwa hosta wystawiona użytkownikowi w tunelu)",
   "mgmt.config.general.licenceInput.licenceLabel": "Klucz licencyjny",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Zarządzaj licencją",
-  "language.selectLanguage": "Wybierz język"
+  "language.selectLanguage": "Wybierz język",
+  "mgmt.constellation.per_year": "rocznie"
 }

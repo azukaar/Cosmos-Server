@@ -46,7 +46,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 		vars := mux.Vars(req)
 		containerName := utils.SanitizeSafe(vars["containerId"])
 		
-		if os.Getenv("HOSTNAME") != "" && containerName == os.Getenv("HOSTNAME") {
+		if utils.IsInsideContainer && containerName == os.Getenv("HOSTNAME") {
 			utils.Error("SecureContainerRoute - Container cannot update itself", nil)
 			utils.HTTPError(w, "Container cannot update itself", http.StatusBadRequest, "DS003")
 			return

@@ -43,7 +43,7 @@ func startHTTPServer(router *mux.Router) error {
 		DisableGeneralOptionsHandler: true,
 	}
 	
-	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
+	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
 		proxy.InitInternalTCPProxy()
@@ -133,7 +133,7 @@ func startHTTPSServer(router *mux.Router) error {
 	}
 
 	// Redirect ports 
-	if os.Getenv("HOSTNAME") != "" && !utils.IsHostNetwork {
+	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
 		proxy.InitInternalTCPProxy()
