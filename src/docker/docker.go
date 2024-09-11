@@ -920,20 +920,18 @@ func GetEnv(env []string, key string) string {
 }
 
 func IsInsideContainer() {
-	if utils.IsInsideContainer {
-		errD := Connect()
-		if errD != nil {
-			utils.Error("isInsideContainer", errD)
-			return
-		}
+	errD := Connect()
+	if errD != nil {
+		utils.Error("isInsideContainer", errD)
+		return
+	}
 
-		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+	container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
 
-		if err == nil {
-			// check image
-			if strings.Contains(container.Config.Image, "cosmos") {
-				utils.IsInsideContainer = true
-			}
+	if err == nil {
+		// check image
+		if strings.Contains(container.Config.Image, "cosmos") {
+			utils.IsInsideContainer = true
 		}
 	}
 }
