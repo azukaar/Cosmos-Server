@@ -29,6 +29,8 @@ func main() {
 	rand.Seed(time.Now().UnixNano())
 
 	LoadConfig()
+	
+	docker.IsInsideContainer()
 
 	utils.CheckHostNetwork()
 	
@@ -57,8 +59,6 @@ func main() {
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
-
-		docker.IsInsideContainer()
 
 		docker.CheckPuppetDB()
 
