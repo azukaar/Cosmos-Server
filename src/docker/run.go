@@ -2,7 +2,6 @@ package docker
 
 import (
 	"github.com/azukaar/cosmos-server/src/utils" 
-	"os"
 	"net/http"
 	"fmt"
 	"errors"

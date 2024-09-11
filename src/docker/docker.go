@@ -919,7 +919,7 @@ func GetEnv(env []string, key string) string {
 	return ""
 }
 
-func isInsideContainer() {
+func IsInsideContainer() {
 	if utils.IsInsideContainer {
 		errD := Connect()
 		if errD != nil {
@@ -931,7 +931,7 @@ func isInsideContainer() {
 
 		if err == nil {
 			// check image
-			if String.Contains(container.Config.Image, "cosmos") {
+			if strings.Contains(container.Config.Image, "cosmos") {
 				utils.IsInsideContainer = true
 			}
 		}

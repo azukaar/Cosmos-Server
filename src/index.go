@@ -58,7 +58,7 @@ func main() {
 		MigratePre013()
 		MigratePre014()
 
-		docker.isInsideContainer()
+		docker.IsInsideContainer()
 
 		docker.CheckPuppetDB()
 
