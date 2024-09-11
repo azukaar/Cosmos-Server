@@ -1,5 +1,4 @@
 {
-  "Storage": "Depolama",
   "auth.accountUnconfirmedError": "Henüz hesabınızı kaydetmediniz. E-postalarınızda bir davet bağlantısı olmalı. Yeni bir tanesine ihtiyacınız varsa, yöneticinizle iletişime geçin.",
   "auth.confirmPassword": "Şifreyi Onayla",
   "auth.enterPwd": "Şifrenizi girin",

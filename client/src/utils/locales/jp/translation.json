@@ -1,5 +1,4 @@
 {
-  "Storage": "ストレージ",
   "auth.accountUnconfirmedError": "アカウントはまだ登録されていません。メールに招待リンクがあるはずです。新しいリンクが必要な場合は、管理者に連絡してください。",
   "auth.confirmPassword": "パスワード確認",
   "auth.enterPwd": "パスワードを入力",

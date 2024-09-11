@@ -1,5 +1,4 @@
 {
-  "Storage": "Armazenamento",
   "auth.accountUnconfirmedError": "Você ainda não registrou sua conta. Você deve ter um link de convite em seus e-mails. Se precisar de um novo, entre em contato com seu administrador.",
   "auth.confirmPassword": "Confirmar Senha",
   "auth.enterPwd": "Digite sua senha",

@@ -1,5 +1,4 @@
 {
-  "Storage": "Opslag",
   "auth.accountUnconfirmedError": "Je hebt je account nog niet geregistreerd. Je zou een uitnodigingslink in je e-mails moeten hebben. Als je een nieuwe nodig hebt, neem contact op met je beheerder.",
   "auth.confirmPassword": "Bevestig wachtwoord",
   "auth.enterPwd": "Voer je wachtwoord in",

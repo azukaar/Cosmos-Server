@@ -1,5 +1,4 @@
 {
-  "Storage": "存储",
   "auth.accountUnconfirmedError": "您尚未注册您的帐户。您的电子邮件中应有一个邀请链接。如果您需要新的，请联系您的管理员。",
   "auth.confirmPassword": "确认密码",
   "auth.enterPwd": "输入您的密码",

@@ -1,5 +1,4 @@
 {
-  "Storage": "Storage",
   "auth.accountUnconfirmedError": "Thou hast yet to register thy account. Thou shouldst have an invite parchment in thine emails. If thou needest a new one, summon thine administrator.",
   "auth.confirmPassword": "Confirmeth Password",
   "auth.enterPwd": "Entereth thy password",
