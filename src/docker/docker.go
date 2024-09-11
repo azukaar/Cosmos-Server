@@ -929,11 +929,11 @@ func IsInsideContainer() {
 
 		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
 
+		utils.Debug("isInsideContainer - Checking if inside container " + os.Getenv("HOSTNAME"))
+
 		if err == nil {
-			// check image
-			if strings.Contains(container.Config.Image, "cosmos") {
-				utils.IsInsideContainer = true
-			}
+			utils.Debug("isInsideContainer - Inside container " + os.Getenv("HOSTNAME"))
+			utils.IsInsideContainer = true
 		}
 	}
 }
