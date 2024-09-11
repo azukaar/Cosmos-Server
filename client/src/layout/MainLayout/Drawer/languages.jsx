@@ -9,7 +9,7 @@ const languages = [
   { code: 'ar', name: 'العربية', flag: 'sa' },
   { code: 'cn', name: '中文', flag: 'cn' },
   { code: 'de', name: 'Deutsch', flag: 'de' },
-  { code: 'de-CH', name: 'Schweizer', flag: 'ch' },
+  { code: 'de-CH', name: 'Deutsch (CH)', flag: 'ch' },
   { code: 'es', name: 'Español', flag: 'es' },
   { code: 'fr', name: 'Français', flag: 'fr' },
   { code: 'hi', name: 'हिन्दी', flag: 'in' },
