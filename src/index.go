@@ -28,9 +28,10 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
+	docker.IsInsideContainer()
+	
 	LoadConfig()
 	
-	docker.IsInsideContainer()
 
 	utils.CheckHostNetwork()
 	
