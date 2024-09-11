@@ -927,7 +927,7 @@ func IsInsideContainer() {
 			return
 		}
 
-		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+		_, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
 
 		utils.Debug("isInsideContainer - Checking if inside container " + os.Getenv("HOSTNAME"))
 
