@@ -354,7 +354,7 @@ func SanitizeSafe(s string) string {
 func GetConfigFileName() string {
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
 		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
-	} else if utils.IsInsideContainer {
+	} else if IsInsideContainer {
 		CONFIGFOLDER = "/config/"
 	}
 	
