@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"io"
+	"syscall"
 
 	"github.com/natefinch/lumberjack"
 )
@@ -109,7 +110,7 @@ func monitorNebulaProcess(proc *exec.Cmd) {
 	err := proc.Wait()
 	if err != nil {
 			if exitErr, ok := err.(*exec.ExitError); ok {
-				if strings.Contains(exitErr.Error(), "signal: killed") {
+				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() && status.Signal() == syscall.SIGKILL {
 					utils.Warn("Constellation process killed.")
 				}
 				NebulaFailedStarting = true
