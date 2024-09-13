@@ -279,7 +279,9 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 		for _, hostname := range strings.Split(l.PublicHostname, ",") {
 			hostname = strings.TrimSpace(hostname)
-			finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
+			if hostname != "" {
+				finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
+			}
 		}
 	}
 
