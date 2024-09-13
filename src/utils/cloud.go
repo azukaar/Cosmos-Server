@@ -51,7 +51,6 @@ func InitFBL() {
 	FBL = _InitFBL()
 }
 
-
 func _InitFBL() *FirebaseApiSdk {
 	res := NewFirebaseApiSdk("https://api.cosmos-cloud.io")
 	config := ReadConfigFromFile()

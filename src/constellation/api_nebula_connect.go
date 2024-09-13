@@ -67,14 +67,17 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 				"from": "Constellation",
 		})
 	
-		RestartNebula()
-		utils.RestartHTTPServer()
 
 		utils.Log("API_ConnectToExisting: connected to an external Constellation")
 		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})
+		
+		go func() {
+			RestartNebula()
+			utils.RestartHTTPServer()
+		}()
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

@@ -28,17 +28,17 @@ func Init() {
 	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {
-		if !utils.FBL.LValid {
-			utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
-			// disable constellation
-			configFile := utils.ReadConfigFromFile()
-			configFile.ConstellationConfig.Enabled = false
-			configFile.AdminConstellationOnly = false
-			utils.SetBaseMainConfig(configFile)
-			return
-		}
-
 		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			if !utils.FBL.LValid {
+				utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
+				// disable constellation
+				configFile := utils.ReadConfigFromFile()
+				configFile.ConstellationConfig.Enabled = false
+				configFile.AdminConstellationOnly = false
+				utils.SetBaseMainConfig(configFile)
+				return
+			}
+
 			InitConfig()
 			
 			utils.Log("Initializing Constellation module...")

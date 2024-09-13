@@ -17,6 +17,8 @@ import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
 import { Trans, useTranslation } from 'react-i18next';
 import ResyncDeviceModal from "./resyncDevice";
+import VPNSalesPage from "./free";
+import { autoBatchEnhancer } from "@reduxjs/toolkit";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -27,7 +29,7 @@ const getDefaultConstellationHostname = (config) => {
   }
 }
 
-export const ConstellationVPN = () => {
+export const ConstellationVPN = ({freeVersion}) => {
   const { t } = useTranslation();
   const [config, setConfig] = useState(null);
   const [users, setUsers] = useState(null);
@@ -35,6 +37,9 @@ export const ConstellationVPN = () => {
   const [resynDevice, setResyncDevice] = useState(null); // [nickname, deviceName]
   const {role} = useClientInfos();
   const isAdmin = role === "2";
+  let constellationEnabled = config && config.ConstellationConfig.Enabled;
+
+  console.log(constellationEnabled)
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();
@@ -74,21 +79,22 @@ export const ConstellationVPN = () => {
           () => setResyncDevice(null)
         } />
       }
-      <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      <Stack spacing={2} style={{maxWidth: "1000px", margin: freeVersion ? "auto" : 0}}>
       <div>
-        <Alert severity="info">
+        {!freeVersion &&<Alert severity="info">
           <Trans i18nKey="mgmt.constellation.setupText"
             components={[<a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank"></a>, <a href="https://cosmos-cloud.io/clients" target="_blank"></a>]}
           />
-        </Alert>
+        </Alert>}
         <MainCard title={t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
           <Stack spacing={2}>
-          {config.ConstellationConfig.Enabled && config.ConstellationConfig.SlaveMode && <>
+          {constellationEnabled && config.ConstellationConfig.SlaveMode && <>
             <Alert severity="info">
               {t('mgmt.constellation.externalText')}
             </Alert>
           </>}  
           <Formik
+            enableReinitialize
             initialValues={{
               Enabled: config.ConstellationConfig.Enabled,
               PrivateNode: config.ConstellationConfig.PrivateNode,
@@ -111,7 +117,7 @@ export const ConstellationVPN = () => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Stack spacing={2}>        
-                {formik.values.Enabled && <Stack spacing={2} direction="row">    
+                {constellationEnabled && <Stack spacing={2} direction="row">    
                   <Button
                       disableElevation
                       variant="outlined"
@@ -135,8 +141,10 @@ export const ConstellationVPN = () => {
                     }}
                   />
                   </Stack>}
+                  {!freeVersion && <>
                   <CosmosCheckbox formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
-                  {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
+                  
+                  {constellationEnabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
                       <CosmosCheckbox formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
                       <CosmosCheckbox formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
@@ -146,6 +154,7 @@ export const ConstellationVPN = () => {
                       </>}
                     </>}
                   </>}
+
                   <LoadingButton
                       disableElevation
                       loading={formik.isSubmitting}
@@ -155,6 +164,7 @@ export const ConstellationVPN = () => {
                     >
                       {t('global.saveAction')}
                   </LoadingButton>
+                  </>}
                   <UploadButtons
                     accept=".yml,.yaml"
                     label={config.ConstellationConfig.SlaveMode ?
@@ -231,5 +241,7 @@ export const ConstellationVPN = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
+
+    {freeVersion && config && !constellationEnabled &&  <VPNSalesPage />}
   </>
 };

@@ -34,6 +34,13 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 
+		if !utils.FBL.LValid {
+			utils.Error("ConstellationDeviceCreation: No valid licence found to use Constellation.", nil)
+			utils.HTTPError(w, "Device Creation Error: No valid licence found to use Constellation.",
+				http.StatusInternalServerError, "DC001")
+			return
+		}
+
 		errV := utils.Validate.Struct(request)
 		if errV != nil {
 			utils.Error("DeviceCreation: Invalid User Request", errV)

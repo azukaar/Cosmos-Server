@@ -63,7 +63,7 @@ const ConstellationIndex = () => {
 
   </div> : <ConstellationVPN />;
 
-  const pickFree = (coStatus && coStatus.Licence) ? ConstContent : <VPNSalesPage />;
+  const pickFree = (coStatus && coStatus.Licence) ? ConstContent : <><ConstellationVPN freeVersion /></>;
 
   return coStatus ? pickFree : <center><CircularProgress /></center>;
 }
