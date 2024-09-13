@@ -254,7 +254,9 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		for _, hostname := range hsraw {
 			// trim
 			hostname = strings.TrimSpace(hostname)
-			hostnames = append(hostnames, hostname + ":4242")
+			if hostname != "" {
+				hostnames = append(hostnames, hostname + ":4242")
+			}
 		}
 
 		finalConfig.StaticHostMap = map[string][]string{
@@ -368,7 +370,9 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			for _, hostname := range hsraw {
 				// trim
 				hostname = strings.TrimSpace(hostname)
-				hostnames = append(hostnames, hostname + ":4242")
+				if hostname != "" {
+					hostnames = append(hostnames, hostname + ":4242")
+				}
 			}
 
 			staticHostMap["192.168.201.1"] = hostnames
