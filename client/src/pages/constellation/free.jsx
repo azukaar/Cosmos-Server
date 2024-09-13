@@ -30,7 +30,7 @@ const VPNSalesPage = () => {
   }[currency];
 
   const monthlyPrices = {
-    "USD": 10.30,
+    "USD": 10.90,
     "EUR": 9.90,
     "GBP": 8.90
   }
