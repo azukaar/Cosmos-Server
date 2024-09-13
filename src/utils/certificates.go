@@ -14,6 +14,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"os"
+	"strings"
+	"net"
 	
 	"github.com/go-acme/lego/v4/certcrypto"
 	"github.com/go-acme/lego/v4/certificate"
@@ -22,6 +24,7 @@ import (
 	"github.com/go-acme/lego/v4/registration"
 	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
 	"github.com/go-acme/lego/v4/providers/dns"
+	"github.com/go-acme/lego/v4/challenge/dns01"
 )
 
 func GenerateRSAWebCertificates(domains []string) (string, string) {
@@ -156,6 +159,8 @@ func DoLetsEncrypt() (string, string) {
 	}
 
 	certConfig := lego.NewConfig(&myUser)
+	
+	domains := GetAllHostnames(true, true)
 
 	if os.Getenv("ACME_STAGING") == "true" {
 		certConfig.CADirURL = "https://acme-staging-v02.api.letsencrypt.org/directory"
@@ -180,7 +185,37 @@ func DoLetsEncrypt() (string, string) {
 			return "", ""
 		}
 
-		err = client.Challenge.SetDNS01Provider(provider)
+		// use the authoritative nameservers
+		resolvers := []string{}
+		processedDomains := map[string]bool{}
+
+		for _, domain := range domains {
+			levels := strings.Split(domain, ".")
+			if len(levels) >= 2 {
+				tld := strings.Join(levels[len(levels)-2:], ".")
+				if processedDomains[tld] {
+					continue
+				}
+
+				nameservers, err := net.LookupNS(tld)
+				
+				if err != nil {
+					continue
+				}
+				
+				for _, ns := range nameservers {
+					resolvers = append(resolvers, ns.Host)
+				}
+
+				processedDomains[tld] = true
+			}
+		}
+
+		// append the default resolvers
+		resolvers = append(resolvers, "8.8.8.8", "1.1.1.1")
+
+		err = client.Challenge.SetDNS01Provider(provider,
+			dns01.AddRecursiveNameservers(resolvers))
 	} else {
 		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 		if err != nil {
@@ -205,8 +240,6 @@ func DoLetsEncrypt() (string, string) {
 		return "", ""
 	}
 	myUser.Registration = reg
-
-	domains := GetAllHostnames(true, true)
 
 	request := certificate.ObtainRequest{
 		Domains: LetsEncryptValidOnly(domains, config.HTTPConfig.DNSChallengeProvider != ""),

@@ -1,9 +1,10 @@
 ## Version 0.16.0
  - Multilanguage support (Thanks @madejackson)
- - Improve offline mode with Constellation
  - Added automatic mDNS publishing for local network
+ - Improve offline mode with Constellation
  - Add automatic sync of Constellation nodes
  - Constellation is now paid
+ - Improve DNS Challenge with smarter resolution for faster and more reliable results (especially when using local nameservers)
  - Fix issues where it was impossible to login with insecure local IPs
  - Default networks to 16 Ips instead of 8
  - Further improving the docker-compose import to mimic naming and hostnaming convention
