@@ -201,6 +201,9 @@ func InitNATSClient() {
 		}),
 
 		nats.UserInfo(user, pwd),
+
+		// timeout
+		nats.Timeout(2*time.Second),
 	)
 
 	for err != nil {
@@ -220,6 +223,9 @@ func InitNATSClient() {
 			}),
 
 			nats.UserInfo(user, pwd),
+
+			// timeout
+			nats.Timeout(2*time.Second),
 		)
 		
 		if err != nil {
@@ -229,7 +235,7 @@ func InitNATSClient() {
 	}
 
 	if err != nil {
-		utils.MajorError("Error connecting to NATS server", err)
+		utils.MajorError("Error connecting to Constellation NATS server", err)
 	} else {
 		utils.Log("Connected to NATS server as " + user)
 		NATSClientTopic = "cosmos." + user
