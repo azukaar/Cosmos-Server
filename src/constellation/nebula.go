@@ -293,10 +293,12 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	
 	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
 
-	// add other lighthouses 
 	finalConfig.Lighthouse.Hosts = []string{}
-	for _, l := range lh {
-		finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
+	// add other lighthouses 
+	if !finalConfig.Lighthouse.AMLighthouse {
+		for _, l := range lh {
+			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
+		}
 	}
 
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
@@ -391,8 +393,10 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
 		
 		lighthouseMap["hosts"] = []string{}
-		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
+		if !device.IsLighthouse {
+			if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
+				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
+			}
 		}
 
 		for _, l := range lh {
@@ -414,6 +418,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	if relayMap, ok := configMap["relay"].(map[interface{}]interface{}); ok {
 		relayMap["am_relay"] = device.IsRelay && device.IsLighthouse
+		relayMap["use_relays"] = !(device.IsRelay && device.IsLighthouse)
 		relayMap["relays"] = []string{}
 		if utils.GetMainConfig().ConstellationConfig.NebulaConfig.Relay.AMRelay {
 			relayMap["relays"] = append(relayMap["relays"].([]string), "192.168.201.1")
