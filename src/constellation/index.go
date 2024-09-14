@@ -160,30 +160,32 @@ func Init() {
 		}
 		
 		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			InitNATSClient()
+			go (func() {
+				InitNATSClient()
 
-			var err error
-			retries := 0
-			needRestart := false
-			needRestart, err = SlaveConfigSync("")
-			for err != nil && retries < 4 {
-				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+				var err error
+				retries := 0
+				needRestart := false
 				needRestart, err = SlaveConfigSync("")
-				retries++
-				utils.Debug("Retrying to sync slave config")
-			}
-			if err != nil {
-				utils.MajorError("Failed to sync slave config", err)
-			} else {
-				utils.Log("Slave config synced")
-				if needRestart {
-					utils.Warn("Slave config has changed, restarting Nebula...")
-					ConstellationInitLock.Unlock()
-					RestartNebula()
-					ConstellationInitLock.Lock()
-					utils.RestartHTTPServer()
+				for err != nil && retries < 4 {
+					time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+					needRestart, err = SlaveConfigSync("")
+					retries++
+					utils.Debug("Retrying to sync slave config")
 				}
-			}
+				if err != nil {
+					utils.MajorError("Failed to sync slave config", err)
+				} else {
+					utils.Log("Slave config synced")
+					if needRestart {
+						utils.Warn("Slave config has changed, restarting Nebula...")
+						ConstellationInitLock.Unlock()
+						RestartNebula()
+						ConstellationInitLock.Lock()
+						utils.RestartHTTPServer()
+					}
+				}
+			})()
 		} else {
 			go InitDNS()
 			go StartNATS()

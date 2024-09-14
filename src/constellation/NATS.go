@@ -207,8 +207,12 @@ func InitNATSClient() {
 	)
 
 	for err != nil {
-		if retries >= 30 {
-			retries = 30
+		if retries == 10 {
+			utils.MajorError("Error connecting to Constellation NATS server (timeout) - will continue trying", err)
+		}
+		
+		if retries >= 11 {
+			retries = 11
 		}
 
 		if NebulaFailedStarting {
@@ -217,6 +221,7 @@ func InitNATSClient() {
 		}
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+
 		nc, err = natsClient.Connect("nats://192.168.201.1:4222",
 			nats.Secure(&tls.Config{
 				InsecureSkipVerify: true,
@@ -236,6 +241,7 @@ func InitNATSClient() {
 
 	if err != nil {
 		utils.MajorError("Error connecting to Constellation NATS server", err)
+		return
 	} else {
 		utils.Log("Connected to NATS server as " + user)
 		NATSClientTopic = "cosmos." + user
