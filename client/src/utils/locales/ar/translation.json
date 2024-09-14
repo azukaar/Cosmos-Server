@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "لم يتم تكوين مسارات.",
   "mgmt.config.proxy.originTitle": "الأصل",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "أنت أيضًا لا تستخدم اسم نطاق، قد يكون الخادم غير متصل لبضع ثوانٍ لإعادة تخصيص منافذ docker الخاصة بك.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "تحتاج إلى تحديث الصفحة لأنك تستخدم شهادة موقعة ذاتيًا، في حالة احتجت لقبول أي شهادات جديدة. لتجنب ذلك في المستقبل، من فضلك استخدم Let's Encrypt. {{isNotDomain && 'أنت أيضًا لا تستخدم اسم نطاق، قد يكون الخادم غير متصل لبضع ثوانٍ لإعادة تخصيص منافذ docker الخاصة بك.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "تحتاج إلى تحديث الصفحة لأنك تستخدم شهادة موقعة ذاتيًا، في حالة احتجت لقبول أي شهادات جديدة. لتجنب ذلك في المستقبل، من فضلك استخدم Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "حفظ التغييرات",
   "mgmt.config.proxy.urlTitle": "عنوان URL",
   "mgmt.config.restart.laterButton": "لاحقًا",

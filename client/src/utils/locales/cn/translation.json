@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "未配置路由。",
   "mgmt.config.proxy.originTitle": "来源",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "您也没有使用域名，服务器可能会离线几秒以重新映射您的docker端口。",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "您需要刷新页面，因为您使用的是自签名证书，以防您必须接受任何新证书。为避免将来出现这种情况，请使用Let's Encrypt。{{isNotDomain && '您也没有使用域名，服务器可能会离线几秒以重新映射您的docker端口。'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "您需要刷新页面，因为您使用的是自签名证书，以防您必须接受任何新证书。为避免将来出现这种情况，请使用Let's Encrypt。",
   "mgmt.config.proxy.saveChangesButton": "保存更改",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "稍后",

@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "No hay rutas configuradas.",
   "mgmt.config.proxy.originTitle": "Origen",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Tampoco estás usando un nombre de dominio, el servidor podría estar fuera de línea durante unos segundos para volver a asignar los puertos de su docker.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Necesita actualizar la página porque está utilizando un certificado autofirmado, en caso de que tenga que aceptar nuevos certificados. Para evitarlo en el futuro, use Let's Encrypt. {{isNotDomain && 'Tampoco está utilizando un nombre de dominio, el servidor podría estar fuera de línea durante unos segundos para volver a asignar los puertos de su docker.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Necesita actualizar la página porque está utilizando un certificado autofirmado, en caso de que tenga que aceptar nuevos certificados. Para evitarlo en el futuro, use Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Guardar Cambios",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Más Tarde",

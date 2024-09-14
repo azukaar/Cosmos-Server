@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "ルートが構成されていません。",
   "mgmt.config.proxy.originTitle": "オリジン",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "ドメイン名を使用していないため、サーバーが数秒間オフラインになる可能性があります。",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "自己署名証明書を使用しているため、ページを更新して新しい証明書を受け入れる必要があります。将来的にはLet's Encryptを使用してください。{{isNotDomain && 'ドメイン名を使用していないため、サーバーが数秒間オフラインになる可能性があります。'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "自己署名証明書を使用しているため、ページを更新して新しい証明書を受け入れる必要があります。将来的にはLet's Encryptを使用してください。",
   "mgmt.config.proxy.saveChangesButton": "変更を保存",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "後で",

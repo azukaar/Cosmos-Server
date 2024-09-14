@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Brak skonfigurowanych tras.",
   "mgmt.config.proxy.originTitle": "Źródło",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Nie używasz również nazwy domeny, serwer może być offline przez kilka sekund, aby ponownie przydzielić porty docker.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Musisz odświeżyć stronę, ponieważ używasz samopodpisanego certyfikatu, w przypadku konieczności zaakceptowania nowych certyfikatów. Aby tego uniknąć w przyszłości, użyj Let's Encrypt. {{isNotDomain && 'Nie używasz również nazwy domeny, serwer może być offline przez kilka sekund, aby ponownie przydzielić porty docker.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Musisz odświeżyć stronę, ponieważ używasz samopodpisanego certyfikatu, w przypadku konieczności zaakceptowania nowych certyfikatów. Aby tego uniknąć w przyszłości, użyj Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Zapisz zmiany",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Później",

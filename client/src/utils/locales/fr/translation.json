@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Aucune route configurée.",
   "mgmt.config.proxy.originTitle": "Origine",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Vous n'utilisez pas non plus de nom de domaine, le serveur pourrait être hors ligne pendant quelques secondes pour remapper vos ports Docker.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Vous devez rafraîchir la page car vous utilisez un certificat auto-signé, au cas où vous deviez accepter de nouveaux certificats. Pour éviter cela à l'avenir, veuillez utiliser Let's Encrypt. {{isNotDomain && 'Vous n'utilisez pas non plus de nom de domaine, le serveur pourrait être hors ligne pendant quelques secondes pour remapper vos ports Docker.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Vous devez rafraîchir la page car vous utilisez un certificat auto-signé, au cas où vous deviez accepter de nouveaux certificats. Pour éviter cela à l'avenir, veuillez utiliser Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Enregistrer les modifications",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Plus tard",

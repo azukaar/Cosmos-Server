@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Nessun percorso configurato.",
   "mgmt.config.proxy.originTitle": "Origine",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Non stai nemmeno usando un nome di dominio, il server potrebbe andare offline per qualche secondo per rimappare le porte docker.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Devi aggiornare la pagina perché stai usando un certificato autofirmato, nel caso tu debba accettare nuovi certificati. Per evitarlo in futuro, usa Let's Encrypt. {{isNotDomain && 'Non stai nemmeno usando un nome di dominio, il server potrebbe andare offline per qualche secondo per rimappare le porte docker.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Devi aggiornare la pagina perché stai usando un certificato autofirmato, nel caso tu debba accettare nuovi certificati. Per evitarlo in futuro, usa Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Salva Modifiche",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Più tardi",

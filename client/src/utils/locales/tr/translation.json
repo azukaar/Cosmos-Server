@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Herhangi bir rota yapılandırılmamış.",
   "mgmt.config.proxy.originTitle": "Kaynak",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Ayrıca bir alan adı kullanmıyorsunuz, sunucu docker portlarınızı yeniden eşlemek için birkaç saniye çevrimdışı olabilir.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Kendi imzaladığınız bir sertifika kullandığınız için sayfayı yenilemeniz ve yeni sertifikaları kabul etmeniz gerekebilir. Gelecekte bunu önlemek için, lütfen Let's Encrypt kullanın. {{isNotDomain && 'Ayrıca bir alan adı kullanmıyorsunuz, sunucu docker portlarınızı yeniden eşlemek için birkaç saniye çevrimdışı olabilir.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Kendi imzaladığınız bir sertifika kullandığınız için sayfayı yenilemeniz ve yeni sertifikaları kabul etmeniz gerekebilir. Gelecekte bunu önlemek için, lütfen Let's Encrypt kullanın.",
   "mgmt.config.proxy.saveChangesButton": "Değişiklikleri Kaydet",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Daha Sonra",

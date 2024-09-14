@@ -179,7 +179,7 @@
 	"mgmt.config.proxy.noRoutesConfiguredText": "No routes configured.",
 	"mgmt.config.proxy.originTitle": "Origin",
 	"mgmt.config.proxy.refreshNeededWarning.notDomain": "You are also not using a domain name, the server might go offline for a few seconds to remap your docker ports.",
-	"mgmt.config.proxy.refreshNeededWarning.selfSigned": "You need to refresh the page because you are using a self-signed certificate, in case you have to accept any new certificates. To avoid it in the future, please use Let's Encrypt. {{isNotDomain && 'You are also not using a domain name, the server might go offline for a few seconds to remap your docker ports.'}}",
+	"mgmt.config.proxy.refreshNeededWarning.selfSigned": "You need to refresh the page because you are using a self-signed certificate, in case you have to accept any new certificates. To avoid it in the future, please use Let's Encrypt.",
 	"mgmt.config.proxy.saveChangesButton": "Save Changes",
 	"mgmt.config.proxy.urlTitle": "URL",
 	"mgmt.config.restart.laterButton": "Later",

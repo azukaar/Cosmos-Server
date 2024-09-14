@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Geen routes geconfigureerd.",
   "mgmt.config.proxy.originTitle": "Oorsprong",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "U gebruikt ook geen domeinnaam, de server kan enkele seconden offline gaan om uw docker-poorten opnieuw in te stellen.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "U moet de pagina vernieuwen omdat u een zelfondertekend certificaat gebruikt, voor het geval u nieuwe certificaten moet accepteren. Om dit in de toekomst te voorkomen, gebruik Let's Encrypt. {{isNotDomain && 'U gebruikt ook geen domeinnaam, de server kan enkele seconden offline gaan om uw docker-poorten opnieuw in te stellen.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "U moet de pagina vernieuwen omdat u een zelfondertekend certificaat gebruikt, voor het geval u nieuwe certificaten moet accepteren. Om dit in de toekomst te voorkomen, gebruik Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Wijzigingen opslaan",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Later",

@@ -179,7 +179,7 @@
   "mgmt.config.proxy.noRoutesConfiguredText": "Маршруты не настроены.",
   "mgmt.config.proxy.originTitle": "Происхождение",
   "mgmt.config.proxy.refreshNeededWarning.notDomain": "Вы также не используете доменное имя, сервер может быть недоступен на несколько секунд для перенастройки портов docker.",
-  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Вам нужно обновить страницу, так как вы используете самоподписанный сертификат, на случай если вам нужно будет принять новые сертификаты. Чтобы избежать этого в будущем, используйте Let's Encrypt. {{isNotDomain && 'Вы также не используете доменное имя, сервер может быть недоступен на несколько секунд для перенастройки портов docker.'}}",
+  "mgmt.config.proxy.refreshNeededWarning.selfSigned": "Вам нужно обновить страницу, так как вы используете самоподписанный сертификат, на случай если вам нужно будет принять новые сертификаты. Чтобы избежать этого в будущем, используйте Let's Encrypt.",
   "mgmt.config.proxy.saveChangesButton": "Сохранить изменения",
   "mgmt.config.proxy.urlTitle": "URL",
   "mgmt.config.restart.laterButton": "Позже",
