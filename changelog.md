@@ -9,6 +9,7 @@
  - Default networks to 16 Ips instead of 8
  - Further improving the docker-compose import to mimic naming and hostnaming convention
  - Added hostname stickiness to compose network namespaces
+ - Added depends_on conditions to compose import
  - Fixed issues with container's monitoring when name contains a dot (Thanks @BearTS)
  - Added email on succesful login  (Thanks @BearTS)
  - Add support for runtime (Thanks @ryan-schubert)

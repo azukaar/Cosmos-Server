@@ -211,9 +211,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
 
             // convert devices
             if (doc.services[key].devices) {
-              console.log(1)
               if (Array.isArray(doc.services[key].devices)) {
-                console.log(2)
                 let devices = [];
                 doc.services[key].devices.forEach((device) => {
                   if(device.indexOf(':') === -1) {
@@ -237,8 +235,12 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             if (doc.services[key].depends_on) {
               if (Array.isArray(doc.services[key].depends_on)) {
                 let depends_on = {};
-                doc.services[key].depends_on.forEach((depend) => {
-                  depends_on['' + depend] = {}; 
+                doc.services[key].depends_on.forEach((depend, index) => {
+                  if (typeof depend === 'object') {
+                    depends_on[index] = depend;
+                  } else {
+                    depends_on['' + depend] = {}; 
+                  }
                 });
                 doc.services[key].depends_on = depends_on;
               }
@@ -290,11 +292,27 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                 Object.keys(doc.services).forEach((potentialMatch) => {
                   if (doc.services[potentialMatch].old_key === depend) {
                     let name = doc.services[potentialMatch].container_name || potentialMatch;
-                    doc.services[key].depends_on[name] = {};
-                    delete doc.services[key].depends_on[depend];
+                    doc.services[key].depends_on[name] = doc.services[key].depends_on[depend];
+                    if (name !== depend) {
+                      delete doc.services[key].depends_on[depend];
+                    }
                   }
                 });
               });
+            }
+          });
+
+          // ensure network mode names
+          Object.keys(doc.services).forEach((key) => {
+            if (doc.services[key].network_mode) {
+              if (doc.services[key].network_mode && doc.services[key].network_mode.startsWith('service:')) {
+                let service = doc.services[key].network_mode.split(':')[1];
+                Object.keys(doc.services).forEach((potentialMatch) => {
+                  if (doc.services[potentialMatch].old_key === service) {
+                    doc.services[key].network_mode = 'service:' + (doc.services[potentialMatch].container_name || potentialMatch);
+                  }
+                });
+              }
             }
           });
           

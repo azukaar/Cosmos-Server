@@ -112,6 +112,8 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
             fullValues = sanitizeRoute(fullValues);
 
+            console.log(fullValues)
+
             let op;
             if(newRoute) {
               op = API.config.newRoute(routeConfig.Name, fullValues)

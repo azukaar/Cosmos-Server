@@ -105,9 +105,11 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 		map[string]interface{}{
 	})
 	
-	utils.RestartHTTPServer()
-	constellation.RestartNebula()
-		
+	go (func () {
+		constellation.RestartNebula()
+		utils.RestartHTTPServer()
+	})()
+	
 	if updateReq.NewRoute != nil && updateReq.NewRoute.Mode == "SERVAPP" {
 		utils.Log("RouteSettingsUpdate: Service needs update: "+updateReq.NewRoute.Target)
 

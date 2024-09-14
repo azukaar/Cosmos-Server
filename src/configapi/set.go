@@ -53,9 +53,9 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		utils.InitFBL()
 		utils.DisconnectDB()
 		authorizationserver.Init()
-		utils.RestartHTTPServer()
-		constellation.RestartNebula()
 		go (func() {
+			constellation.RestartNebula()
+			utils.RestartHTTPServer()
 			cron.InitJobs()
 			cron.InitScheduler()
 		})()
