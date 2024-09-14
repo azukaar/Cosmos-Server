@@ -315,17 +315,22 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                   }
                 });
                 if (!found) {
-                  throw new Error('Service ' + service + ' not found for network_mode in ' + key);
+                  doc.services[key].network_mode = 'container:NOT_FOUND';
                 }
               }
             }
           });
 
-          // for each network mode that are container, add a label
+          // for each network mode that are container, add a label and remove hostname
           Object.keys(doc.services).forEach((key) => {
             if (doc.services[key].network_mode && doc.services[key].network_mode.startsWith('container:')) {
               doc.services[key].labels = doc.services[key].labels || {};
               doc.services[key].labels['cosmos-force-network-mode'] = doc.services[key].network_mode;
+              
+              // remove hostname
+              if (doc.services[key].hostname) {
+                delete doc.services[key].hostname;
+              }
             }
           });
           
