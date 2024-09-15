@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.licenceLabel": "Clave de licencia",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Gestionar licencia",
   "language.selectLanguage": "Seleccionar Idioma",
-  "mgmt.constellation.per_year": "por año"
+  "mgmt.constellation.per_year": "por año",
+  "mgmt.constellation.constStatus": "Estado",
+  "mgmt.constellation.constStatusConnected": "Conectado a Constellation",
+  "mgmt.constellation.constStatusDown": "Este servidor no está conectado a Constellation"
 }

@@ -37,9 +37,9 @@ export const ConstellationVPN = ({freeVersion}) => {
   const [resynDevice, setResyncDevice] = useState(null); // [nickname, deviceName]
   const {role} = useClientInfos();
   const isAdmin = role === "2";
-  let constellationEnabled = config && config.ConstellationConfig.Enabled;
+  const [ping, setPing] = useState(0);
 
-  console.log(constellationEnabled)
+  let constellationEnabled = config && config.ConstellationConfig.Enabled;
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();
@@ -49,6 +49,10 @@ export const ConstellationVPN = ({freeVersion}) => {
       setUsers((await API.users.list()).data || []);
     else 
       setUsers([]);
+
+    if(configAsync.data.ConstellationConfig.Enabled) {
+      setPing((await API.constellation.ping()) ? 2 : 1);
+    }
   };
 
   useEffect(() => {
@@ -141,6 +145,20 @@ export const ConstellationVPN = ({freeVersion}) => {
                     }}
                   />
                   </Stack>}
+                  <div>
+                  {t('mgmt.constellation.constStatus')}: {[
+                     <CircularProgress color="inherit" size={20} />,
+                     <span style={{color: "red"}}>{t('mgmt.constellation.constStatusDown')}</span>,
+                     <span style={{color: "green"}}>{t('mgmt.constellation.constStatusConnected')}</span>,
+                  ][ping]}
+
+                  <IconButton onClick={async () => {
+                    setPing(0);
+                    setPing((await API.constellation.ping()) ? 2 : 1);
+                  }}>
+                    <SyncOutlined />
+                  </IconButton>
+                  </div>
                   {!freeVersion && <>
                   <CosmosCheckbox formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
                   

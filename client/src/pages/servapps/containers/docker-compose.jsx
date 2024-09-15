@@ -305,7 +305,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
           // ensure network mode names
           Object.keys(doc.services).forEach((key) => {
             if (doc.services[key].network_mode) {
-              if (doc.services[key].network_mode && doc.services[key].network_mode.startsWith('service:')) {
+              if (doc.services[key].network_mode && (doc.services[key].network_mode.startsWith('service:') || doc.services[key].network_mode.startsWith('container:'))) {
                 let service = doc.services[key].network_mode.split(':')[1];
                 let found = false;
                 Object.keys(doc.services).forEach((potentialMatch) => {

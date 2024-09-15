@@ -443,6 +443,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
 	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
+	srapiAdmin.HandleFunc("/api/constellation/ping", constellation.API_Ping)
 	// device request config
 	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.GetDeviceConfigSync)
 	// user manually request constellation config for resync

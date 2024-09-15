@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.manageLicenceButton": "लाइसेंस प्रबंधित करें",
   "language.selectLanguage": "भाषा चुनें",
   "mgmt.constellation.per_year": "प्रति वर्ष",
-  "mgmt.servapps.newContainer.volumesTitle": "वॉल्यूम माउंट्स"
+  "mgmt.servapps.newContainer.volumesTitle": "वॉल्यूम माउंट्स",
+  "mgmt.constellation.constStatus": "स्थिति",
+  "mgmt.constellation.constStatusConnected": "कॉन्स्टेलेशन से जुड़ा हुआ है",
+  "mgmt.constellation.constStatusDown": "यह सर्वर कॉन्स्टेलेशन से जुड़ा नहीं है"
 }

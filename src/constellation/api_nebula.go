@@ -138,7 +138,26 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 			"data": string(logs),
 		})
 	} else {
-		utils.Error("SettingGet: Method not allowed" + req.Method, nil)
+		utils.Error("API_GetLogs: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+func API_Ping(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if(req.Method == "GET") {
+		isConnected := PingNATSClient()
+		
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data": isConnected,
+		})
+	} else {
+		utils.Error("API_Ping: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}

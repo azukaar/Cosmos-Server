@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
   "language.selectLanguage": "Selecteth Language",
   "mgmt.constellation.per_year": "per annum",
-  "mgmt.servapps.newContainer.volumesTitle": "Volum'n Mounts"
+  "mgmt.servapps.newContainer.volumesTitle": "Volum'n Mounts",
+  "mgmt.constellation.constStatus": "State of Affairs",
+  "mgmt.constellation.constStatusConnected": "Fettered to the Starry Court",
+  "mgmt.constellation.constStatusDown": "This knave's server hath severed ties with the Starry Court"
 }

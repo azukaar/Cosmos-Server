@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.licenceLabel": "مفتاح الترخيص",
   "mgmt.config.general.licenceInput.manageLicenceButton": "إدارة الترخيص",
   "language.selectLanguage": "اختر اللغة",
-  "mgmt.constellation.per_year": "سنويًا"
+  "mgmt.constellation.per_year": "سنويًا",
+  "mgmt.constellation.constStatus": "الحالة",
+  "mgmt.constellation.constStatusConnected": "متصل بـ Constellation",
+  "mgmt.constellation.constStatusDown": "هذا الخادم غير متصل بـ Constellation"
 }

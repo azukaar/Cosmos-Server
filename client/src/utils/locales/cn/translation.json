@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.licenceLabel": "许可证密钥",
   "mgmt.config.general.licenceInput.manageLicenceButton": "管理许可证",
   "language.selectLanguage": "选择语言",
-  "mgmt.constellation.per_year": "每年"
+  "mgmt.constellation.per_year": "每年",
+  "mgmt.constellation.constStatus": "状态",
+  "mgmt.constellation.constStatusConnected": "已连接到Constellation",
+  "mgmt.constellation.constStatusDown": "此服务器未连接到Constellation"
 }

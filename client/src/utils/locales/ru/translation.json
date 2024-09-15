@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.licenceLabel": "Ключ лицензии",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Управление лицензией",
   "language.selectLanguage": "Выберите язык",
-  "mgmt.constellation.per_year": "в год"
+  "mgmt.constellation.per_year": "в год",
+  "mgmt.constellation.constStatus": "Статус",
+  "mgmt.constellation.constStatusConnected": "Подключен к Constellation",
+  "mgmt.constellation.constStatusDown": "Этот сервер не подключен к Constellation"
 }

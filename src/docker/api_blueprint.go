@@ -906,7 +906,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	}
 
 	// re-order containers dpeneding on depends_on
-	startOrder, err := ReOrderServices(serviceRequest.Services)
+	startOrder, mustStart, err := ReOrderServices(serviceRequest.Services)
 	if err != nil {
 		utils.Error("CreateService: Rolling back changes because of -- Container", err)
 		OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
@@ -928,21 +928,34 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		utils.Log(fmt.Sprintf("Container %s initiated", container.Name))
 		OnLog(fmt.Sprintf("Container %s initiated", container.Name))
 
-		// if post install
-		if len(container.PostInstall) > 0 {
-			utils.Log(fmt.Sprintf("Waiting for container %s to start", container.Name))
-			OnLog(fmt.Sprintf("Waiting for container %s to start", container.Name))
+		utils.Log(fmt.Sprintf("Waiting for container %s to start", container.Name))
+		OnLog(fmt.Sprintf("Waiting for container %s to start", container.Name))
 
+		if len(container.PostInstall) > 0 || mustStart {
 			// wait for container to start
+			retries := 0
 			for {
 				time.Sleep(1 * time.Second)
 				inspect, _ := DockerClient.ContainerInspect(DockerContext, container.Name)
 				if inspect.State.Running {
 					break
 				}
-			}
-			time.Sleep(1 * time.Second)
 
+				retries++
+
+				if retries > 30 {
+					utils.Error("CreateService: Start Container", fmt.Errorf("Container %s did not start", container.Name))
+					OnLog(utils.DoErr("Rolling back changes because of -- Container start error" + container.Name + " : Container did not start"))
+					Rollback(rollbackActions, OnLog)
+					return fmt.Errorf("Container %s did not start", container.Name)
+				}
+			}
+		}
+
+		time.Sleep(1 * time.Second)
+
+		// if post install
+		if len(container.PostInstall) > 0 {
 			// run post install commands
 			for _, cmd := range container.PostInstall {
 				utils.Log(fmt.Sprintf("Running post install command: %s", cmd))
@@ -1022,8 +1035,9 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 	return nil
 }
 
-func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]ContainerCreateRequestContainer, error) {
+func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]ContainerCreateRequestContainer, bool, error) {
 	startOrder := []ContainerCreateRequestContainer{}
+	mustStart := false
 
 	for len(serviceMap) > 0 {
 		// Keep track of whether we've added any services in this iteration
@@ -1032,11 +1046,16 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		for name, service := range serviceMap {
 			// Check if all dependencies are already in startOrder
 			allDependenciesStarted := true
-			for dependency, _ := range service.DependsOn {
+			for dependency, dependencyDetails := range service.DependsOn {
 				dependencyStarted := false
 				for _, startedService := range startOrder {
 					if startedService.Name == dependency {
 						dependencyStarted = true
+
+						if dependencyDetails.Condition == "service_healthy" || dependencyDetails.Condition == "service_started" {
+							mustStart = true
+						}
+
 						break
 					}
 				}
@@ -1074,8 +1093,8 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 				}
 			}
 		}
-		return nil, errors.New(errorMessage)
+		return nil, false, errors.New(errorMessage)
 	}
 
-	return startOrder, nil
+	return startOrder, mustStart, nil
 }

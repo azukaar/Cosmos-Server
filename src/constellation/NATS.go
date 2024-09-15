@@ -317,8 +317,12 @@ func PublishNATSMessage(topic string, payload string) {
 }
 
 func MasterNATSClientRouter() {
-	utils.Log("Starting NATS Master client router...")
+	utils.Log("Starting NATS Master client router.")
 
+	nc.Subscribe("cosmos."+MASTERUSER+".ping", func(m *nats.Msg) {
+		utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
+		m.Respond([]byte("Pong"))
+	})
 
 	for _, devices := range CachedDevices {
 		localDevice := devices
@@ -327,6 +331,11 @@ func MasterNATSClientRouter() {
 		nc.Subscribe("cosmos."+username+".debug", func(m *nats.Msg) {
 			utils.Debug("[MQ] Received: " + string(m.Data))
 			m.Respond([]byte("Received: " + string(m.Data)))
+		})
+
+		nc.Subscribe("cosmos."+username+".ping", func(m *nats.Msg) {
+			utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
+			m.Respond([]byte("Pong"))
 		})
 
 		nc.Subscribe("cosmos."+username+".constellation.config", func(m *nats.Msg) {
@@ -343,7 +352,7 @@ func MasterNATSClientRouter() {
 }
 
 func SlaveNATSClientRouter() {
-	utils.Log("Starting NATS Master client router...")
+	utils.Log("Starting NATS Slave client router.")
 
 	username := sanitizeNATSUsername(DeviceName)
 
@@ -364,4 +373,27 @@ func SlaveNATSClientRouter() {
 			}
 		}
 	})
+}
+
+func PingNATSClient() bool {
+	user, _, err := GetNATSCredentials(!utils.GetMainConfig().ConstellationConfig.SlaveMode)
+	if err != nil {
+		utils.Error("Error getting constellation credentials", err)
+		return false
+	}
+
+	user = sanitizeNATSUsername(user)
+
+	response, err := SendNATSMessage("cosmos."+user+".ping", "Ping")
+	if err != nil {
+		utils.Error("Error pinging NATS client", err)
+		return false
+	}
+
+	if response != "" {
+		utils.Debug("NATS client response: " + response)
+		return true
+	}
+
+	return false
 }

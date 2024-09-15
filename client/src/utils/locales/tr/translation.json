@@ -721,5 +721,8 @@
   "mgmt.config.general.licenceInput.licenceLabel": "Lisans Anahtarı",
   "mgmt.config.general.licenceInput.manageLicenceButton": "Lisansı Yönet",
   "language.selectLanguage": "Dili Seç",
-  "mgmt.constellation.per_year": "yılda"
+  "mgmt.constellation.per_year": "yılda",
+  "mgmt.constellation.constStatus": "Durum",
+  "mgmt.constellation.constStatusConnected": "Constellation'a bağlı",
+  "mgmt.constellation.constStatusDown": "Bu sunucu Constellation'a bağlı değil"
 }
