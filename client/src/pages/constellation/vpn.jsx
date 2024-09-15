@@ -51,7 +51,7 @@ export const ConstellationVPN = ({freeVersion}) => {
       setUsers([]);
 
     if(configAsync.data.ConstellationConfig.Enabled) {
-      setPing((await API.constellation.ping()) ? 2 : 1);
+      setPing((await API.constellation.ping()).data ? 2 : 1);
     }
   };
 
@@ -154,7 +154,7 @@ export const ConstellationVPN = ({freeVersion}) => {
 
                   <IconButton onClick={async () => {
                     setPing(0);
-                    setPing((await API.constellation.ping()) ? 2 : 1);
+                    setPing((await API.constellation.ping()).data ? 2 : 1);
                   }}>
                     <SyncOutlined />
                   </IconButton>
