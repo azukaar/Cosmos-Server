@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json"
+	// "encoding/json"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -17,8 +17,8 @@ func LoadConfig() utils.Config {
 
 	utils.LoadBaseMainConfig(config)
 	
-	configJson, _ := json.MarshalIndent(config, "", "  ")
-	utils.Debug("Loaded Configuration " + (string)(configJson))
+	// configJson, _ := json.MarshalIndent(config, "", "  ")
+	// utils.Debug("Loaded Configuration " + (string)(configJson))
 
 	return config
 }
