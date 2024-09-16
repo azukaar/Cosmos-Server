@@ -31,7 +31,8 @@ func main() {
 	docker.IsInsideContainer()
 	
 	LoadConfig()
-	
+
+	utils.RemovePIDFile()
 
 	utils.CheckHostNetwork()
 	

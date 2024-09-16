@@ -161,6 +161,9 @@ func Init() {
 		
 		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
 			go (func() {
+				ConstellationInitLock.Lock()
+				defer ConstellationInitLock.Unlock()
+				
 				InitNATSClient()
 
 				var err error
