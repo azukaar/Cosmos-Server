@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     machine: # executor type
-      image: ubuntu-2204:current
+      image: ubuntu-2204:2024.05.1
 
     steps:
       - checkout
