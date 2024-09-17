@@ -907,12 +907,8 @@ func ListIps(skipNebula bool) ([]string, error) {
 }
 
 func RemovePIDFile() {
-	pidFile := CONFIGFOLDER + "/nebula.pid"
-	if FileExists(pidFile) {
-		err := os.Remove(pidFile)
-		if err != nil {
-			Error("Error removing PID file", err)
-		}
+	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+		os.Remove(utils.CONFIGFOLDER + "nebula.pid")
 	}
 }
 
