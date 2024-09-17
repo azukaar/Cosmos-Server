@@ -1,6 +1,8 @@
 // assets
 import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined} from '@ant-design/icons';
-import ConstellationIcon from '../assets/images/icons/constellation.png'
+import ConstellationIcon from '../assets/images/icons/constellation.png';
+import ConstellationWhiteIcon from '../assets/images/icons/constellation_white.png';
+import { DarkModeSwitch } from '../utils/indexs';
 
 // icons
 const icons = {
@@ -44,7 +46,10 @@ const pages = {
             title: 'menu-items.management.constellation',
             type: 'item',
             url: '/cosmos-ui/constellation',
-            icon: () => <img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />,
+            icon: () => <DarkModeSwitch
+                light={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />}
+                dark={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationWhiteIcon} />}
+            />,
             
         },
         {

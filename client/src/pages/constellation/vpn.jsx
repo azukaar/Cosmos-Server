@@ -42,6 +42,7 @@ export const ConstellationVPN = ({freeVersion}) => {
   let constellationEnabled = config && config.ConstellationConfig.Enabled;
 
   const refreshConfig = async () => {
+    setPing(0);
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
     setDevices((await API.constellation.list()).data || []);
@@ -145,20 +146,22 @@ export const ConstellationVPN = ({freeVersion}) => {
                     }}
                   />
                   </Stack>}
-                  <div>
-                  {t('mgmt.constellation.constStatus')}: {[
-                     <CircularProgress color="inherit" size={20} />,
-                     <span style={{color: "red"}}>{t('mgmt.constellation.constStatusDown')}</span>,
-                     <span style={{color: "green"}}>{t('mgmt.constellation.constStatusConnected')}</span>,
-                  ][ping]}
+                  
+                  {constellationEnabled && <div>
+                    {t('mgmt.constellation.constStatus')}: {[
+                      <CircularProgress color="inherit" size={20} />,
+                      <span style={{color: "red"}}>{t('mgmt.constellation.constStatusDown')}</span>,
+                      <span style={{color: "green"}}>{t('mgmt.constellation.constStatusConnected')}</span>,
+                    ][ping]}
 
-                  <IconButton onClick={async () => {
-                    setPing(0);
-                    setPing((await API.constellation.ping()).data ? 2 : 1);
-                  }}>
-                    <SyncOutlined />
-                  </IconButton>
-                  </div>
+                    <IconButton onClick={async () => {
+                      setPing(0);
+                      setPing((await API.constellation.ping()).data ? 2 : 1);
+                    }}>
+                      <SyncOutlined />
+                    </IconButton>
+                  </div>}
+
                   {!freeVersion && <>
                   <CosmosCheckbox formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
                   

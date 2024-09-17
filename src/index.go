@@ -62,6 +62,8 @@ func main() {
 		MigratePre013()
 		MigratePre014()
 
+		utils.CheckInternet()
+
 		docker.CheckPuppetDB()
 
 		utils.InitDBBuffers()

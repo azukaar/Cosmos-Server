@@ -915,3 +915,10 @@ func RemovePIDFile() {
 		}
 	}
 }
+
+func CheckInternet() {
+	_, err := http.Get("https://www.google.com")
+	if err != nil {
+		MajorError("Your server has no internet connection!", err)
+	}
+}

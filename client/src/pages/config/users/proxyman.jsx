@@ -28,7 +28,7 @@ import {
   Tooltip,
 
 } from '@mui/material';
-import ConstellationIcon from '../../../assets/images/icons/constellation.png'
+import ConstellationIcon from '../../../assets/images/icons/constellation_full.png'
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';

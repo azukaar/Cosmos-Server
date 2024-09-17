@@ -1,4 +1,5 @@
 import { Button } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 
 export const randomString = (length) => {
   let text = "";
@@ -63,18 +64,20 @@ export const crontabToText = (crontab, t) => {
   const parseField = (field, unit = "", date=false) => {
     const count = (nb) => {
       if(date) {
-        if(nb === 1) {
+        nb = parseInt(nb);
+
+        if(nb === 1 || nb === 21 || nb === 31) {
           return `${nb}st `
         }
-        if(nb === 2) {
+        if(nb === 2 || nb === 22) {
           return `${nb}nd `
         }
-        if(nb === 3) {
+        if(nb === 3 || nb === 23) {
           return `${nb}rd `
         }
         return `${nb}th `
       }
-      return " "
+      return `${nb} `;
     }
     
     const plur = (field, force=false) => {
@@ -100,7 +103,7 @@ export const crontabToText = (crontab, t) => {
         const [start, step] = field.split('/');
         return `every ${step} ${unit}${plur(step, true)}, starting at ${unit} ${start}`;
     } else {
-        return `${field}${count(field)}${unit}${plur(field)}`;
+        return `${count(field)}${unit}${plur(field)}`;
     }
   };
 
@@ -193,3 +196,11 @@ export const getCurrencyFromLanguage = () => {
 
   return currencyMap[language] || 'USD'; // Default to USD if no match
 };
+
+
+export const DarkModeSwitch = ({light, dark}) => {
+  const theme = useTheme();
+  const isLight = theme.palette.mode === 'light';
+
+  return isLight ? light : dark;
+}
