@@ -1,0 +1,90 @@
+.fib, .fi {
+  background-size: contain;
+  background-position: 50%;
+  background-repeat: no-repeat;
+}
+
+.fi {
+  position: relative;
+  display: inline-block;
+  width: 1.333333em;
+  line-height: 1em;
+}
+.fi:before {
+  content: " ";
+}
+.fi.fis {
+  width: 1em;
+}
+
+.fi-us {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/us.svg);
+}
+
+.fi-gb-eng {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/gb-eng.svg);
+}
+
+.fi-gb {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/gb.svg);
+}
+
+.fi-sa {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/sa.svg);
+}
+
+.fi-cn {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/cn.svg);
+}
+
+.fi-de {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/de.svg);
+}
+
+.fi-ch {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/ch.svg);
+}
+
+.fi-es {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/es.svg);
+}
+
+.fi-fr {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/fr.svg);
+}
+
+.fi-in {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/in.svg);
+}
+
+.fi-it {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/it.svg);
+}
+
+.fi-jp {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/jp.svg);
+}
+
+.fi-kr {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/kr.svg);
+}
+
+.fi-nl {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/nl.svg);
+}
+
+.fi-pl {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/pl.svg);
+}
+
+.fi-pt {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/pt.svg);
+}
+
+.fi-ru {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/ru.svg);
+}
+
+.fi-tr {
+  background-image: url(../../../../../node_modules/flag-icons/flags/4x3/tr.svg);
+}

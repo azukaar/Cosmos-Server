@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Chip, Stack } from '@mui/material';
-import "flag-icons/css/flag-icons.min.css";
+import "./flag.css";
 import { useTranslation } from 'react-i18next';
 
 const languages = [

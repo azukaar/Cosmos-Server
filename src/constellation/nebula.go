@@ -300,11 +300,11 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 
-	if !finalConfig.Lighthouse.AMLighthouse {
+	// if !finalConfig.Lighthouse.AMLighthouse {
 		for _, l := range lh {
 			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
 		}
-	}
+	// }
 
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
 
