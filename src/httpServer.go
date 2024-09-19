@@ -49,6 +49,11 @@ func startHTTPServer(router *mux.Router) error {
 		proxy.InitInternalTCPProxy()
 	}
 	
+	// Publish mDNS 
+	if utils.GetMainConfig().HTTPConfig.PublishMDNS {
+		proxy.PublishAllMDNSFromConfig()
+	}
+
 	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
 
 	return HTTPServer.ListenAndServe()
@@ -140,9 +145,9 @@ func startHTTPSServer(router *mux.Router) error {
 	}
 
 	// Publish mDNS 
-	// if config.HTTPConfig.PublishMDNS {
+	if config.HTTPConfig.PublishMDNS {
 		proxy.PublishAllMDNSFromConfig()
-	// }
+	}
 
 	utils.Log("Now listening to HTTPS on :" + serverPortHTTPS)
 
