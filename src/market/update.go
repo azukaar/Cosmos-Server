@@ -12,6 +12,7 @@ type appDefinition struct {
 	Description string `json:"description"`
 	Url string `json:"url"`
 	LongDescription string `json:"longDescription"`
+	Translation	languages `json:"translation"`
 	Tags []string 		`json:"tags"`
 	Repository string	`json:"repository"`
 	Image string		`json:"image"`
@@ -19,6 +20,32 @@ type appDefinition struct {
 	Icon string		`json:"icon"`
 	Compose string	`json:"compose"`
 	SupportedArchitectures []string	`json:"supported_architectures"`
+}
+
+type languages struct {
+	En		translationFields `json:"en"`
+	De 		translationFields `json:"de"`
+	DeCH	translationFields `json:"de-CH"`
+	EnGB 	translationFields `json:"en-GB"`
+	Cn 		translationFields `json:"cn"`
+	Es 		translationFields `json:"es"`
+	Fr 		translationFields `json:"fr"`
+	Hi 		translationFields `json:"hi"`
+	Ir 		translationFields `json:"it"`
+	Jp 		translationFields `json:"jp"`
+	Kr 		translationFields `json:"kr"`
+	Nl 		translationFields `json:"nl"`
+	Pl 		translationFields `json:"pl"`
+	Pt 		translationFields `json:"pt"`
+	Ru 		translationFields `json:"ru"`
+	Tr 		translationFields `json:"tr"`
+	Ar 		translationFields `json:"ar"`
+	EnFUNNYSHAKESPEARE	translationFields `json:"en-FUNNYSHAKESPEARE"`
+}
+
+type translationFields struct {
+	Description     string `json:"description"`
+	LongDescription string `json:"longDescription"`
 }
 
 type marketDefinition struct {
