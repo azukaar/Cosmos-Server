@@ -572,16 +572,16 @@ func TriggerClientResync() error {
 			}
 
 			err = PublishNATSMessage("cosmos."+username+".constellation.config.resync", (string)(body))
+			
 
 			if err != nil {
 				utils.Error("TriggerClientResync: Error sending resync message to client", err)
-				continue
 			}
 
 			if !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
 				SendSyncPayload(username)
 			}
-
+			
 			utils.Log("TriggerClientResync: Resync message sent to " + username)
 		}
 	}

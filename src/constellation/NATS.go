@@ -201,9 +201,6 @@ func InitNATSClient() {
 		}),
 
 		nats.UserInfo(user, pwd),
-
-		// timeout
-		nats.Timeout(2*time.Second),
 	)
 
 	for err != nil {
