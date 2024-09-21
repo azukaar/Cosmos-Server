@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"bytes"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -40,7 +41,18 @@ func MakeSyncPayload() string {
 		AuthPublicKey: AuthPublicKey,
 	}
 
-	payloadBytes, err := json.Marshal(payload)
+	//json encoder with SetEscapeHTML
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	err = encoder.Encode(payload)
+	if err != nil {
+		utils.Error("Constellation: MakeSyncPayload: Failed to encode payload", err)
+		return ""
+	}
+
+	payloadBytes := buf.Bytes()
+
 	if err != nil {
 		utils.Error("Constellation: MakeSyncPayload: Failed to marshal payload", err)
 		return ""
@@ -61,13 +73,24 @@ func ReceiveSyncPayload(rawPayload string) {
 
 	// write database file
 	dbPath := utils.CONFIGFOLDER + "database"
-	dbFile, err := os.Create(dbPath)
+	// if not exist 
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
+		dbFile, err := os.Create(dbPath)
+		if err != nil {
+			utils.Error("Constellation: ReceiveSyncPayload: Failed to create database file", err)
+			return
+		}
+		dbFile.Close()
+	}
+
+	// replace the database file with the new one
+	err = ioutil.WriteFile(dbPath, []byte(payload.Database), 0644)
 	if err != nil {
-		utils.Error("Constellation: ReceiveSyncPayload: Failed to create database file", err)
+		utils.Error("Constellation: ReceiveSyncPayload: Failed to write database file", err)
 		return
 	}
 
-	dbFile.Write([]byte(payload.Database))
+	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated : " + payload.Database)
 
 	// write auth key file
 	config := utils.ReadConfigFromFile()

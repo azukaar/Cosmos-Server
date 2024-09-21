@@ -255,6 +255,7 @@ func InitNATSClient() {
 		clientConfigLock.Unlock()
 		go SlaveNATSClientRouter()
 		SendNATSMessage("cosmos."+user+".debug", "NATS Client connected as " + user)
+		RequestSyncPayload()
 		clientConfigLock.Lock()
 	}
 }
