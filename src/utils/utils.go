@@ -441,6 +441,28 @@ func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
 	return validDomains
 }
 
+func RemoveStringFromSlice(slice []string, s string) []string {
+	for i, v := range slice {
+		if v == s {
+			return append(slice[:i], slice[i+1:]...)
+		}
+	}
+	return slice
+}
+
+func filterHostnamesByWildcard(hostnames []string, wildcards []string) []string {
+	for _, wildcard := range wildcards {
+		for _, hostname := range hostnames {
+			if strings.HasSuffix(hostname, wildcard[1:]) && hostname != wildcard[2:] {
+				// remove hostname
+				hostnames = RemoveStringFromSlice(hostnames, hostname)
+			}
+		}
+	}
+
+	return hostnames
+}
+
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
 	OverrideWildcardDomains := GetMainConfig().HTTPConfig.OverrideWildcardDomains
@@ -490,14 +512,40 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 			filteredHostnames = strings.Split(OverrideWildcardDomains, ",")
 		}
 
-		for _, hostname := range uniqueHostnames {
-			if hostname != bareMainHostname && !strings.HasSuffix(hostname, "." + bareMainHostname) {
-				filteredHostnames = append(filteredHostnames, hostname)
+		// hardcode wildcard for local domains
+		if(MainConfig.HTTPConfig.HTTPSCertificateMode == HTTPSCertModeList["SELFSIGNED"]) {
+			for _, domain := range append(uniqueHostnames, filteredHostnames...) {
+				if strings.HasSuffix(domain, ".local") {
+					filteredHostnames = append(filteredHostnames, "*.local")
+					break
+				}
 			}
 		}
 
-		uniqueHostnames = filteredHostnames
+		wildcards := []string{}
+		othersHostname := []string{}
+		for _, hostname := range append(uniqueHostnames, filteredHostnames...) {
+			if strings.HasPrefix(hostname, "*.") {
+				wildcards = append(wildcards, hostname)
+			} else {
+				othersHostname = append(othersHostname, hostname)
+			}
+		}
+
+		tempUniqueHostnames := append(wildcards, filterHostnamesByWildcard(othersHostname, wildcards)...)
+
+		// dedupe
+		seen = make(map[string]bool)
+		uniqueHostnames = []string{}
+		for _, hostname := range tempUniqueHostnames {
+			if _, ok := seen[hostname]; !ok {
+				seen[hostname] = true
+				uniqueHostnames = append(uniqueHostnames, hostname)
+			}
+		}
 	}
+
+	Debug("All Hostnames: " + fmt.Sprint(uniqueHostnames))
 
 	return uniqueHostnames
 }

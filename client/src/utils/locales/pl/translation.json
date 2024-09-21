@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "rocznie",
   "mgmt.constellation.constStatus": "Status",
   "mgmt.constellation.constStatusConnected": "Połączono z Konstelacją",
-  "mgmt.constellation.constStatusDown": "Ten serwer nie jest połączony z Konstelacją"
+  "mgmt.constellation.constStatusDown": "Ten serwer nie jest połączony z Konstelacją",
+  "mgmt.constellation.setup.dataSync.label": "Synchronizuj poświadczenia z innymi latarniami morskimi (Zalecane)"
 }

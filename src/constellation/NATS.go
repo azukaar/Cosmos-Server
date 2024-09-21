@@ -348,6 +348,13 @@ func MasterNATSClientRouter() {
 				m.Respond([]byte(res))
 			}
 		})
+
+		nc.Subscribe("cosmos."+username+".constellation.data.sync-request", func(m *nats.Msg) {
+			if !utils.GetMainConfig().ConstellationConfig.SlaveMode && !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
+				utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
+				m.Respond([]byte(MakeSyncPayload()))
+			}
+		})
 	}
 }
 
@@ -372,6 +379,14 @@ func SlaveNATSClientRouter() {
 				utils.RestartHTTPServer()
 			}
 		}
+	})
+	
+	nc.Subscribe("cosmos."+username+".constellation.data.sync-receive", func(m *nats.Msg) {
+		utils.Log("Constellation data sync received")
+		
+		payload := m.Data
+
+		ReceiveSyncPayload((string)(payload))
 	})
 }
 

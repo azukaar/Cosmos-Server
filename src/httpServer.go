@@ -246,6 +246,7 @@ func InitServer() *mux.Router {
 	var tlsKey= HTTPConfig.TLSKey
 
 	domains := utils.GetAllHostnames(true, true)
+
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	falledBack := false
 

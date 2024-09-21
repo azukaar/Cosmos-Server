@@ -17,6 +17,7 @@
  - Revamped the header and sidebar a little
  - Improve Docker VM detection
  - Fix a small UI bug with the constellation tab where UI falls behind
+ - Now supports multiple wildcards at the same time for the DNS challenge
 
 ## Version 0.15.7
  - Added "Allow insecure local connection" for HTTP ip:port access in the same network

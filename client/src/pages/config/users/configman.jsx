@@ -202,6 +202,7 @@ const ConfigManagement = () => {
               UseForwardedFor: values.UseForwardedFor,
               AllowSearchEngine: values.AllowSearchEngine,
               AllowHTTPLocalIPAccess: values.AllowHTTPLocalIPAccess,
+              PublishMDNS: values.PublishMDNS,
             },
             EmailConfig: {
               ...config.EmailConfig,

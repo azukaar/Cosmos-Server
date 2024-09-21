@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "par an",
   "mgmt.constellation.constStatus": "Statut",
   "mgmt.constellation.constStatusConnected": "Connecté à Constellation",
-  "mgmt.constellation.constStatusDown": "Ce serveur n'est pas connecté à Constellation"
+  "mgmt.constellation.constStatusDown": "Ce serveur n'est pas connecté à Constellation",
+  "mgmt.constellation.setup.dataSync.label": "Synchroniser les identifiants avec d'autres phares (Recommandé)"
 }

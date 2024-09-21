@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "매년",
   "mgmt.constellation.constStatus": "상태",
   "mgmt.constellation.constStatusConnected": "별자리와 연결됨",
-  "mgmt.constellation.constStatusDown": "이 서버는 별자리에 연결되어 있지 않습니다"
+  "mgmt.constellation.constStatusDown": "이 서버는 별자리에 연결되어 있지 않습니다",
+  "mgmt.constellation.setup.dataSync.label": "다른 라이트하우스와 자격 증명 동기화 (권장)"
 }

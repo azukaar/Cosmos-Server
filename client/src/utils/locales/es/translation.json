@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "por año",
   "mgmt.constellation.constStatus": "Estado",
   "mgmt.constellation.constStatusConnected": "Conectado a Constellation",
-  "mgmt.constellation.constStatusDown": "Este servidor no está conectado a Constellation"
+  "mgmt.constellation.constStatusDown": "Este servidor no está conectado a Constellation",
+  "mgmt.constellation.setup.dataSync.label": "Sincronizar credenciales con otros faros (Recomendado)"
 }

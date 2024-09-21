@@ -564,20 +564,26 @@ func TriggerClientResync() error {
 
 		// send message to client
 		username := sanitizeNATSUsername(d.DeviceName)
-		body, err := GetDeviceConfigForSync(d.Nickname, d.DeviceName)
-		if err != nil {
-			utils.Error("TriggerClientResync: Error getting device config for sync", err)
-			continue
+		if d.IsLighthouse {
+			body, err := GetDeviceConfigForSync(d.Nickname, d.DeviceName)
+			if err != nil {
+				utils.Error("TriggerClientResync: Error getting device config for sync", err)
+				continue
+			}
+
+			_, err = SendNATSMessage("cosmos."+username+".constellation.config.resync", (string)(body))
+
+			if err != nil {
+				utils.Error("TriggerClientResync: Error sending resync message to client", err)
+				continue
+			}
+
+			if !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
+				SendSyncPayload(username)
+			}
+
+			utils.Log("TriggerClientResync: Resync message sent to " + username)
 		}
-
-		_, err = SendNATSMessage("cosmos."+username+".constellation.config.resync", (string)(body))
-
-		if err != nil {
-			utils.Error("TriggerClientResync: Error sending resync message to client", err)
-			continue
-		}
-
-		utils.Log("TriggerClientResync: Resync message sent to " + username)
 	}
 
 	return nil

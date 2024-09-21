@@ -245,6 +245,7 @@
 	"mgmt.constellation.setup.ipTitle": "Constellation IP",
 	"mgmt.constellation.setup.owner.label": "Owner",
 	"mgmt.constellation.setup.privNode.label": "This server is not a lighthouse (you wont be able to connect to it directly without another lighthouse)",
+	"mgmt.constellation.setup.dataSync.label": "Synchronize credentials with other lighthouses (Recommended)",
 	"mgmt.constellation.setup.pubHostname.label": "Public Hostname",
 	"mgmt.constellation.setup.pubKey.label": "Public Key (Optional)",
 	"mgmt.constellation.setup.relayRequests.label": "Relay requests via this Node",

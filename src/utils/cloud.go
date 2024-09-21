@@ -78,7 +78,7 @@ func _InitFBL() *FirebaseApiSdk {
 			MajorError("Could not renew server token, check internet connection", err2)
 
 			if (ServerToken == "") {
-				MajorError("No server token. And coult not get one.", err2)
+				MajorError("No server token. And could not get one.", err2)
 				return res
 			}
 

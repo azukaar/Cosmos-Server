@@ -724,5 +724,6 @@
   "mgmt.servapps.newContainer.volumesTitle": "वॉल्यूम माउंट्स",
   "mgmt.constellation.constStatus": "स्थिति",
   "mgmt.constellation.constStatusConnected": "कॉन्स्टेलेशन से जुड़ा हुआ है",
-  "mgmt.constellation.constStatusDown": "यह सर्वर कॉन्स्टेलेशन से जुड़ा नहीं है"
+  "mgmt.constellation.constStatusDown": "यह सर्वर कॉन्स्टेलेशन से जुड़ा नहीं है",
+  "mgmt.constellation.setup.dataSync.label": "अन्य लाइटहाउस के साथ क्रेडेंशियल्स सिंक्रनाइज़ करें (अनुशंसित)"
 }

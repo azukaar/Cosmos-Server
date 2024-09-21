@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "pro Jahr",
   "mgmt.constellation.constStatus": "Status",
   "mgmt.constellation.constStatusConnected": "Mit Constellation verbunden",
-  "mgmt.constellation.constStatusDown": "Dieser Server ist nicht mit Constellation verbunden"
+  "mgmt.constellation.constStatusDown": "Dieser Server ist nicht mit Constellation verbunden",
+  "mgmt.constellation.setup.dataSync.label": "Anmeldedaten mit anderen Leuchttürmen synchronisieren (Empfohlen)"
 }

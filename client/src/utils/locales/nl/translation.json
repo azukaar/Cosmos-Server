@@ -724,5 +724,6 @@
   "mgmt.constellation.per_year": "per jaar",
   "mgmt.constellation.constStatus": "Status",
   "mgmt.constellation.constStatusConnected": "Verbonden met Constellation",
-  "mgmt.constellation.constStatusDown": "Deze server is niet verbonden met Constellation"
+  "mgmt.constellation.constStatusDown": "Deze server is niet verbonden met Constellation",
+  "mgmt.constellation.setup.dataSync.label": "Geloofsbrieven synchroniseren met andere vuurtorens (Aanbevolen)"
 }

@@ -104,6 +104,7 @@ export const ConstellationVPN = ({freeVersion}) => {
               Enabled: config.ConstellationConfig.Enabled,
               PrivateNode: config.ConstellationConfig.PrivateNode,
               IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
+              SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
               ConstellationHostname: (config.ConstellationConfig.ConstellationHostname && config.ConstellationConfig.ConstellationHostname != "") ? config.ConstellationConfig.ConstellationHostname :
                 getDefaultConstellationHostname(config)
             }}
@@ -113,6 +114,7 @@ export const ConstellationVPN = ({freeVersion}) => {
               newConfig.ConstellationConfig.PrivateNode = values.PrivateNode;
               newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
               newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
+              newConfig.ConstellationConfig.DoNotSyncNodes = !values.SyncNodes;
               setTimeout(() => {
                 refreshConfig();
               }, 1500);
@@ -169,6 +171,7 @@ export const ConstellationVPN = ({freeVersion}) => {
                     {formik.values.Enabled && <>
                       <CosmosCheckbox formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
                       <CosmosCheckbox formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
+                      <CosmosCheckbox formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} />
                       {!formik.values.PrivateNode && <>
                         <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
                         <CosmosInputText formik={formik} name="ConstellationHostname" label={'Constellation '+t('global.hostname')} />

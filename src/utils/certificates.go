@@ -62,7 +62,7 @@ func GenerateRSAWebCertificates(domains []string) (string, string) {
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 
-		DNSNames: []string{GetMainConfig().HTTPConfig.Hostname},
+		DNSNames: domains,
 
 		// IPAddresses: []net.IP{},
 
