@@ -81,6 +81,8 @@ func ReceiveSyncPayload(rawPayload string) {
 	config.HTTPConfig.AuthPublicKey = payload.AuthPublicKey
 	utils.SetBaseMainConfig(config)
 
+	utils.CloseEmbeddedDB()
+
 	utils.TriggerEvent(
 		"cosmos.settings",
 		"Settings updated",

@@ -135,6 +135,14 @@ func DisconnectDB() {
 var embeddedClient lungo.IClient
 var embeddedClientClose func()
 
+func CloseEmbeddedDB() {
+	if embeddedClientClose != nil {
+		embeddedClientClose()
+		embeddedClientClose = nil
+	}
+	embeddedClient = nil
+}
+
 func GetEmbeddedCollection(applicationId string, collection string) (lungo.ICollection, func(), error) {
 	opts := lungo.Options{
 		Store: lungo.NewFileStore(CONFIGFOLDER + "database", 0700),
