@@ -119,14 +119,9 @@ func RequestSyncPayload() {
 func SendSyncPayload(username string) {
 	payload := MakeSyncPayload()
 
-	response, err := SendNATSMessage("cosmos."+username+".constellation.data.sync-receive", payload)
+	err := PublishNATSMessage("cosmos."+username+".constellation.data.sync-receive", payload)
 
 	if err != nil {
-		utils.Error("Constellation: SendSyncPayload: Failed to send payload", err)
-		return
-	}
-
-	if string(response) != "OK" {
 		utils.Error("Constellation: SendSyncPayload: Failed to send payload", err)
 		return
 	}

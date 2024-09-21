@@ -304,17 +304,22 @@ func SendNATSMessage(topic string, payload string) (string, error) {
 	return string(msg.Data), nil
 }
 
-func PublishNATSMessage(topic string, payload string) {
+func PublishNATSMessage(topic string, payload string) error {
 	if !IsClientConnected() {
 		utils.Warn("NATS client not connected")
 		InitNATSClient()
 	}
 
+	utils.Debug("[MQ] Publishing message to topic: " + topic)
+
 	// Send a request and wait for a response
 	err := nc.Publish(topic, []byte(payload))
 	if err != nil {
 		utils.Error("Error sending request", err)
+		return err
 	}
+
+	return nil
 }
 
 func MasterNATSClientRouter() {
