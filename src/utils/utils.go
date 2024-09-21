@@ -453,16 +453,19 @@ func RemoveStringFromSlice(slice []string, s string) []string {
 }
 
 func filterHostnamesByWildcard(hostnames []string, wildcards []string) []string {
+	finalHostnames := make([]string, len(hostnames))
+	copy(finalHostnames, hostnames)
+
 	for _, wildcard := range wildcards {
 		for _, hostname := range hostnames {
 			if strings.HasSuffix(hostname, wildcard[1:]) && hostname != wildcard[2:] {
 				// remove hostname
-				hostnames = RemoveStringFromSlice(hostnames, hostname)
+				finalHostnames = RemoveStringFromSlice(finalHostnames, hostname)
 			}
 		}
 	}
 
-	return hostnames
+	return finalHostnames
 }
 
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
@@ -546,8 +549,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 			}
 		}
 	}
-
-	Debug("All Hostnames: " + fmt.Sprint(uniqueHostnames))
 
 	return uniqueHostnames
 }
