@@ -4,6 +4,7 @@
  - Improve offline mode with Constellation
  - Add automatic sync of Constellation nodes
  - Constellation is now paid
+ - Nodes in a constellation can now auto-sync credentials
  - Improve DNS Challenge with smarter resolution for faster and more reliable results (especially when using local nameservers)
  - Fix issues where it was impossible to login with insecure local IPs
  - Better suppoer for container/service network_mode when importing compose
