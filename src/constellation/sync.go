@@ -1,58 +1,45 @@
 package constellation
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"io/ioutil"
-	"os"
-	"bytes"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 type SyncPayload struct {
-	Database string 
-	AuthPrivateKey string 
-	AuthPublicKey string
+	Database       string `json:"database"`
+	AuthPrivateKey string `json:"authPrivateKey"`
+	AuthPublicKey  string `json:"authPublicKey"`
 }
 
 func MakeSyncPayload() string {
 	utils.Log("Constellation: MakeSyncPayload: Making sync payload")
-	// read database file
+	
+	// Read database file
 	dbPath := utils.CONFIGFOLDER + "database"
-	dbFile, err := os.Open(dbPath)
-	if err != nil {
-		utils.Error("Constellation: MakeSyncPayload: Failed to open database file", err)
-		return ""
-	}
-
-	dbData, err := ioutil.ReadAll(dbFile)
+	dbData, err := ioutil.ReadFile(dbPath)
 	if err != nil {
 		utils.Error("Constellation: MakeSyncPayload: Failed to read database file", err)
 		return ""
 	}
 
-	// read auth key file
+	// Encode database content to base64
+	dbBase64 := base64.StdEncoding.EncodeToString(dbData)
+
+	// Read auth keys
 	AuthPrivateKey := utils.GetMainConfig().HTTPConfig.AuthPrivateKey
 	AuthPublicKey := utils.GetMainConfig().HTTPConfig.AuthPublicKey
 
 	payload := SyncPayload{
-		Database: string(dbData),
+		Database:       dbBase64,
 		AuthPrivateKey: AuthPrivateKey,
-		AuthPublicKey: AuthPublicKey,
+		AuthPublicKey:  AuthPublicKey,
 	}
 
-	//json encoder with SetEscapeHTML
-	var buf bytes.Buffer
-	encoder := json.NewEncoder(&buf)
-	encoder.SetEscapeHTML(false)
-	err = encoder.Encode(payload)
-	if err != nil {
-		utils.Error("Constellation: MakeSyncPayload: Failed to encode payload", err)
-		return ""
-	}
-
-	payloadBytes := buf.Bytes()
-
+	// JSON encode the payload
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		utils.Error("Constellation: MakeSyncPayload: Failed to marshal payload", err)
 		return ""
@@ -63,53 +50,50 @@ func MakeSyncPayload() string {
 
 func ReceiveSyncPayload(rawPayload string) {
 	utils.Log("Constellation: ReceiveSyncPayload: Received sync payload")
-	payload := SyncPayload{}
-
+	
+	var payload SyncPayload
 	err := json.Unmarshal([]byte(rawPayload), &payload)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to unmarshal payload", err)
 		return
 	}
 
-	// write database file
-	dbPath := utils.CONFIGFOLDER + "database"
-	// if not exist 
-	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
-		dbFile, err := os.Create(dbPath)
-		if err != nil {
-			utils.Error("Constellation: ReceiveSyncPayload: Failed to create database file", err)
-			return
-		}
-		dbFile.Close()
+	// Decode base64 database content
+	dbData, err := base64.StdEncoding.DecodeString(payload.Database)
+	if err != nil {
+		utils.Error("Constellation: ReceiveSyncPayload: Failed to decode database content", err)
+		return
 	}
 
-	// replace the database file with the new one
-	err = ioutil.WriteFile(dbPath, []byte(payload.Database), 0644)
+	// Write database file
+	dbPath := utils.CONFIGFOLDER + "database"
+	err = ioutil.WriteFile(dbPath, dbData, 0644)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to write database file", err)
 		return
 	}
 
-	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated : " + payload.Database)
+	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated")
 
-	// write auth key file
+	// Update auth keys
 	config := utils.ReadConfigFromFile()
 	config.HTTPConfig.AuthPrivateKey = payload.AuthPrivateKey
 	config.HTTPConfig.AuthPublicKey = payload.AuthPublicKey
 	utils.SetBaseMainConfig(config)
-	
+
 	utils.TriggerEvent(
 		"cosmos.settings",
 		"Settings updated",
 		"success",
 		"",
-		map[string]interface{}{
-	})
-	
-	go (func () {
+		map[string]interface{}{},
+	)
+
+	go func() {
 		utils.RestartHTTPServer()
-	})()
+	}()
 }
+
 
 func RequestSyncPayload() {
 	user, _, err := GetNATSCredentials(!utils.GetMainConfig().ConstellationConfig.SlaveMode)
