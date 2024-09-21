@@ -254,11 +254,9 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	// only force hostname if network is bridge or default, otherwise it will fail
 	if newConfig.HostConfig.NetworkMode == "bridge" || newConfig.HostConfig.NetworkMode == "default" {
 		newConfig.Config.Hostname = newName[1:]
-	} else if newConfig.HostConfig.NetworkMode != "host"  && newConfig.HostConfig.NetworkMode != "none" {
-		// if not bridge, default, host or none, restore hostname
-		newConfig.Config.Hostname = oldContainer.Config.Hostname
 	}	else {
-		// if not, remove hostname because otherwise it will try to keep the old one
+		// if not, remove hostname because otherwise it will try to keep the old one but other network modes
+		// don't allow for hostnames!
 		newConfig.Config.Hostname = ""
 		// IDK Docker is weird, if you don't erase this it will break
 		newConfig.Config.ExposedPorts = nil
