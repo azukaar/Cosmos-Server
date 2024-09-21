@@ -50,6 +50,8 @@ var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
 
+var ResyncConstellationNodes = func() {}
+
 var LetsEncryptErrors = []string{}
 
 var CONFIGFOLDER = "/var/lib/cosmos/"

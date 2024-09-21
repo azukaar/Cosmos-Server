@@ -94,6 +94,8 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 					"registerKeyExp": RegisterKeyExp,
 				},
 			})
+			
+			go utils.ResyncConstellationNodes()
 		} else if err2 == nil {
 			utils.Error("UserCreation: User already exists", nil)
 			utils.HTTPError(w, "User already exists", http.StatusConflict, "UC002")

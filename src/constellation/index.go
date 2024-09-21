@@ -15,7 +15,17 @@ var CachedDevices = map[string]utils.ConstellationDevice{}
 var DeviceName = ""
 var APIKey = ""
 
+func resyncConstellationNodes() {
+	if utils.GetMainConfig().ConstellationConfig.Enabled {
+		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			TriggerClientResync()
+		}
+	}
+}
+
 func Init() {
+	utils.ResyncConstellationNodes = resyncConstellationNodes
+
 	ConstellationInitLock.Lock()
 	defer ConstellationInitLock.Unlock()
 	
