@@ -1,3 +1,6 @@
+## Version 0.16.1
+ - Added DNSChallengeResolvers config to allow using custom DNS resolvers for the DNS challenge
+
 ## Version 0.16.0
  - Multilanguage support (Thanks @madejackson)
  - Added automatic mDNS publishing for local network

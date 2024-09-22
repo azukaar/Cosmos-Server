@@ -80,29 +80,29 @@ jobs:
           name: Build and publish dockerfiles
           command: sh docker.sh
 
-      - run:
-          name: Install fpm for creating .deb package
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y ruby ruby-dev rubygems build-essential
-            sudo gem install --no-document fpm
+      # - run:
+      #     name: Install fpm for creating .deb package
+      #     command: |
+      #       sudo apt-get update
+      #       sudo apt-get install -y ruby ruby-dev rubygems build-essential
+      #       sudo gem install --no-document fpm
 
-      - run:
-          name: Create .deb package
-          command: |
-            VERSION=$(git describe --tags --always)
-            fpm -s dir -t deb -n your-package-name -v $VERSION \
-              --deb-no-default-config-files \
-              --prefix /usr/local/bin \
-              cosmos=/usr/local/bin/cosmos \
-      - run:
-          name: Create GitHub Release
-          command: |
-            VERSION=$(git describe --tags --always)
-            gh release create $VERSION \
-              your-package-name_${VERSION}_amd64.deb \
-              --title "Release $VERSION" \
-              --notes "$VERSION"
+      # - run:
+      #     name: Create .deb package
+      #     command: |
+      #       VERSION=$(git describe --tags --always)
+      #       fpm -s dir -t deb -n your-package-name -v $VERSION \
+      #         --deb-no-default-config-files \
+      #         --prefix /usr/local/bin \
+      #         cosmos=/usr/local/bin/cosmos \
+      # - run:
+      #     name: Create GitHub Release
+      #     command: |
+      #       VERSION=$(git describe --tags --always)
+      #       gh release create $VERSION \
+      #         your-package-name_${VERSION}_amd64.deb \
+      #         --title "Release $VERSION" \
+      #         --notes "$VERSION"
 
 workflows:
   version: 2
