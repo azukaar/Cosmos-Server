@@ -170,6 +170,7 @@ type HTTPConfig struct {
 	OverrideWildcardDomains string `validate:"omitempty,excludesall=/ "`
 	AcceptAllInsecureHostname bool
 	DNSChallengeConfig map[string]string `json:"DNSChallengeConfig,omitempty"`
+	DNSChallengeResolvers string
 	UseForwardedFor bool
 	AllowSearchEngine bool
 	PublishMDNS bool

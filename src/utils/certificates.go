@@ -187,32 +187,41 @@ func DoLetsEncrypt() (string, string) {
 
 		// use the authoritative nameservers
 		resolvers := []string{}
-		processedDomains := map[string]bool{}
 
-		for _, domain := range domains {
-			levels := strings.Split(domain, ".")
-			if len(levels) >= 2 {
-				tld := strings.Join(levels[len(levels)-2:], ".")
-				if processedDomains[tld] {
-					continue
-				}
+		if config.HTTPConfig.DNSChallengeResolvers == "" {
+			processedDomains := map[string]bool{}
 
-				nameservers, err := net.LookupNS(tld)
-				
-				if err != nil {
-					continue
-				}
-				
-				for _, ns := range nameservers {
-					resolvers = append(resolvers, ns.Host)
-				}
+			for _, domain := range domains {
+				levels := strings.Split(domain, ".")
+				if len(levels) >= 2 {
+					tld := strings.Join(levels[len(levels)-2:], ".")
+					if processedDomains[tld] {
+						continue
+					}
 
-				processedDomains[tld] = true
+					nameservers, err := net.LookupNS(tld)
+					
+					if err != nil {
+						continue
+					}
+					
+					for _, ns := range nameservers {
+						resolvers = append(resolvers, ns.Host)
+					}
+
+					processedDomains[tld] = true
+				}
+			}
+
+			// append the default resolvers
+			resolvers = append(resolvers, "8.8.8.8", "1.1.1.1")
+		} else {
+			resolvers = strings.Split(config.HTTPConfig.DNSChallengeResolvers, ",")
+			// trim
+			for i, r := range resolvers {
+				resolvers[i] = strings.TrimSpace(r)
 			}
 		}
-
-		// append the default resolvers
-		resolvers = append(resolvers, "8.8.8.8", "1.1.1.1")
 
 		err = client.Challenge.SetDNS01Provider(provider,
 			dns01.AddRecursiveNameservers(resolvers))
