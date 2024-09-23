@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import customParseFormat from 'dayjs/plugin/customParseFormat'; // import this if you need to parse custom formats
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat'; // import this for localized formatting
+import relativeTime from 'dayjs/plugin/relativeTime';
 
 // import i18n (needs to be bundled ;)) 
 import './utils/locales/i18n';
@@ -29,6 +30,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 dayjs.extend(customParseFormat); // if needed
 dayjs.extend(localizedFormat); // if needed
+dayjs.extend(relativeTime);
 
 /* // Dynamically loading the dayjs-locale does not work.
 import(`dayjs/locale/${getLanguage().toLowerCase()}.js`).then(() => dayjs.locale(language.toLowerCase()))

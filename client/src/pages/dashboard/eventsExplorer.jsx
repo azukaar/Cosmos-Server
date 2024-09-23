@@ -4,16 +4,14 @@ import * as API from '../../api';
 import { Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { CosmosCollapse, CosmosSelect } from "../config/users/formShortcuts";
 import MainCard from '../../components/MainCard';
-import { register, format } from 'timeago.js';
-import de from "timeago.js/lib/lang/de";
+import dayjs from 'dayjs';
 import { ExclamationOutlined, SettingOutlined } from "@ant-design/icons";
 import { Alert } from "@mui/material";
 import { DownloadFile } from "../../api/downloadButton";
 import { Trans, useTranslation } from 'react-i18next';
 
 const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''}) => {
-	register('de', de);
-	const { t, i18n } = useTranslation();
+	const { t } = useTranslation();
 	const [events, setEvents] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState(initSearch);
@@ -174,7 +172,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 									event.level == "debug" ? <SettingOutlined /> : event.level == "important" ? <ExclamationOutlined /> : undefined
 								}>
 									<div style={{fontWeight: 'bold', fontSize: '120%'}}>{event.label}</div>
-									<div>{(new Date(event.date)).toLocaleString()} - {format(event.date, i18n.resolvedLanguage)}</div>
+									<div>{(new Date(event.date)).toLocaleString()} - {dayjs(event.date).fromNow()}</div>
 									<div>{event.eventId} - {event.object}</div>
 								</Alert>}>
 								<div style={{overflow: 'auto'}}>
