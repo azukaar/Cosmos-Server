@@ -15,6 +15,7 @@ import HostChip from '../../components/hostChip';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewVolumeButton from './createVolumes';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 const VolumeManagementList = () => {
     const { t } = useTranslation();
@@ -76,7 +77,7 @@ const VolumeManagementList = () => {
                         {
                             title: t('global.createdAt'),
                             screenMin: 'lg', 
-                            field: (r) => new Date(r.CreatedAt).toLocaleString(),
+                            field: (r) => dayjs(new Date(r.CreatedAt)).format('L, LT'),
                         },
                         {
                             title: '',

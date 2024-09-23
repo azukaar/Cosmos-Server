@@ -30,6 +30,7 @@ import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import { MetricPicker } from './MetricsPicker';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 const DisplayOperator = (operator) => {
   switch (operator) {
@@ -482,7 +483,7 @@ const AlertPage = () => {
                 { 
                   title: t('navigation.monitoring.alerts.astTriggeredTitle'),
                   screenMin: 'md',
-                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : t('global.never'),
+                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? dayjs(new Date(r.LastTriggered)).format('L, LT') : t('global.never'),
                 },
                 { 
                   title: t('navigation.monitoring.alerts.actionsTitle'), 

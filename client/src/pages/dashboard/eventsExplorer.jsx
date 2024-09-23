@@ -160,7 +160,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 			</Stack>
 			<div>
 				{!loading &&
-					<Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: from.toLocaleString(), to: to.toLocaleString()}}/>
+					<Trans i18nKey="navigation.monitoring.events.eventsFound" count={total} values={{from: dayjs(from).format('L, LT'), to: dayjs(to).format('L, LT')}}/>
 				}
 			</div>
 			<div>
@@ -172,7 +172,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 									event.level == "debug" ? <SettingOutlined /> : event.level == "important" ? <ExclamationOutlined /> : undefined
 								}>
 									<div style={{fontWeight: 'bold', fontSize: '120%'}}>{event.label}</div>
-									<div>{(new Date(event.date)).toLocaleString()} - {dayjs(event.date).fromNow()}</div>
+									<div>{dayjs(event.date).format('L, LT')} - {dayjs(event.date).fromNow()}</div>
 									<div>{event.eventId} - {event.object}</div>
 								</Alert>}>
 								<div style={{overflow: 'auto'}}>

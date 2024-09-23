@@ -23,6 +23,7 @@ import MainCard from '../../../components/MainCard';
 import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { Trans, useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 const UserManagement = () => {
     const { t } = useTranslation();
@@ -265,14 +266,14 @@ const UserManagement = () => {
                 {
                     title: t('global.createdAt'),
                     screenMin: 'lg',
-                    field: (r) => new Date(r.createdAt).toLocaleString(),
+                    field: (r) => dayjs(new Date(r.createdAt)).format('L, LT'),
                 },
                 {
                     title: t('mgmt.usermgmt.lastLogin'),
                     screenMin: 'lg', 
                     field: (r) => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
-                        return <>{hasLastLogin ? new Date(r.lastLogin).toLocaleString() : t('global.never')}</>
+                        return <>{hasLastLogin ? dayjs(new Date(r.lastLogin)).format('L, LT') : t('global.never')}</>
                     },
                 },
                 {
