@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "Durum",
   "mgmt.constellation.constStatusConnected": "Constellation'a bağlı",
   "mgmt.constellation.constStatusDown": "Bu sunucu Constellation'a bağlı değil",
-  "mgmt.constellation.setup.dataSync.label": "Kimlik bilgilerini diğer deniz fenerleriyle senkronize et (Önerilen)"
+  "mgmt.constellation.setup.dataSync.label": "Kimlik bilgilerini diğer deniz fenerleriyle senkronize et (Önerilen)",
+  "newInstall.warnLocalhost": "Çoğu durumda localhost'u bir ana bilgisayar adı olarak kullanmamalısınız. Cosmos'u bir sunucuda çalıştırıyorsanız, sunucunun IP'sini veya bir alan adını kullanmalısınız.",
+  "newInstall.localDomains": "Cosmos yerel alan adlarını destekler. Yani sunucunuza erişmek için cosmos.local alan adını kullanabilirsiniz! Ancak kullanmadan önce, http://setup-cosmos.local ile bu sayfaya erişerek sizin için çalıştığından emin olun. Çalışmazsa, nedenini anlamak için dökümantasyonu ve günlükleri kontrol edebilirsiniz."
 }

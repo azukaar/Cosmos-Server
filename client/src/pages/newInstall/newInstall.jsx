@@ -283,22 +283,17 @@ const NewInstall = () => {
         {
             label: t('newInstall.httpsTitle'),
             component: (<Stack item xs={12} spacing={2}>
-            <div>
-                <QuestionCircleOutlined /> <Trans i18nKey="newInstall.httpsText" />
-                <Alert severity="info">
-                  {t('newInstall.httpsText.info')}
-                </Alert>
-                <Alert severity="warning">
-                    <Trans i18nKey="newInstall.httpsText.warning" />
-                </Alert>
-            </div>
+            <QuestionCircleOutlined /> <Trans i18nKey="newInstall.httpsText" />
+            <Alert severity="info">
+                <Trans i18nKey="newInstall.localDomains" />
+            </Alert>
             <div>
             <Formik
                 initialValues={{
                     SSLEmail: "",
                     TLSKey: "",
                     TLSCert: "",
-                    Hostname: "cosmos.local",
+                    Hostname: window.location.href.includes('setup-cosmos.local') ? "cosmos.local" : window.location.hostname,
                     HTTPSCertificateMode: "",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
@@ -365,6 +360,12 @@ const NewInstall = () => {
                               checkHost(e.target.value, setHostError, setHostIp);
                             }}
                         />
+                        
+                        {formik.values.Hostname && formik.values.Hostname == "localhost" && (
+                            <Alert severity="warning">
+                            <Trans i18nKey="newInstall.warnLocalhost" />
+                        </Alert>)}
+
                         {formik.values.Hostname && ((formik.values.Hostname.match(hostnameIsDomainReg) && !formik.values.Hostname.endsWith('.local')) ? 
                             <Alert severity="info">
                                 <Trans i18nKey="newInstall.fqdnAutoLetsEncryptInfo" />

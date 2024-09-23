@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "الحالة",
   "mgmt.constellation.constStatusConnected": "متصل بـ Constellation",
   "mgmt.constellation.constStatusDown": "هذا الخادم غير متصل بـ Constellation",
-  "mgmt.constellation.setup.dataSync.label": "مزامنة بيانات الاعتماد مع المنارات الأخرى (موصى به)"
+  "mgmt.constellation.setup.dataSync.label": "مزامنة بيانات الاعتماد مع المنارات الأخرى (موصى به)",
+  "newInstall.warnLocalhost": "في معظم الحالات لا يجب عليك استخدام localhost كاسم مضيف. إذا كنت تقوم بتشغيل Cosmos على خادم، فيجب عليك استخدام IP الخادم أو اسم نطاق.",
+  "newInstall.localDomains": "يدعم Cosmos المجالات المحلية. مما يعني أنه يمكنك استخدام cosmos.local كنطاق للوصول إلى الخادم الخاص بك! ولكن قبل استخدامه تحقق من أنه يعمل لديك من خلال الوصول إلى هذه الصفحة عبر http://setup-cosmos.local . إذا لم يعمل، يمكنك التحقق من الوثائق والسجلات للحصول على أي دلائل حول السبب."
 }

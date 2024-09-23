@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "Status",
   "mgmt.constellation.constStatusConnected": "Verbonden met Constellation",
   "mgmt.constellation.constStatusDown": "Deze server is niet verbonden met Constellation",
-  "mgmt.constellation.setup.dataSync.label": "Geloofsbrieven synchroniseren met andere vuurtorens (Aanbevolen)"
+  "mgmt.constellation.setup.dataSync.label": "Geloofsbrieven synchroniseren met andere vuurtorens (Aanbevolen)",
+  "newInstall.warnLocalhost": "In de meeste gevallen moet u localhost niet gebruiken als hostnaam. Als u Cosmos op een server uitvoert, moet u het IP-adres van de server of een domeinnaam gebruiken.",
+  "newInstall.localDomains": "Cosmos ondersteunt lokale domeinen. Dit betekent dat u cosmos.local kunt gebruiken als het domein om toegang te krijgen tot uw server! Maar voordat u het gebruikt, controleer of het voor u werkt door deze pagina te openen met http://setup-cosmos.local . Als dit niet werkt, kunt u de documentatie en de logs controleren voor aanwijzingen waarom."
 }

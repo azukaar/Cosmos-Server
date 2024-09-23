@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "State of Affairs",
   "mgmt.constellation.constStatusConnected": "Fettered to the Starry Court",
   "mgmt.constellation.constStatusDown": "This knave's server hath severed ties with the Starry Court",
-  "mgmt.constellation.setup.dataSync.label": "Synch thine credentials with other lighthouses (A most splendid suggestion)"
+  "mgmt.constellation.setup.dataSync.label": "Synch thine credentials with other lighthouses (A most splendid suggestion)",
+  "newInstall.warnLocalhost": "In most cases thou should not use localhost as a hostname. If thou art running Cosmos on a server, thou should use the server's IP or a domain name.",
+  "newInstall.localDomains": "Cosmos supports local domains. Meaning thou can use cosmos.local as the domain to access thy server! But ere using it check that it works for thee by accessing this page with http://setup-cosmos.local . If it doth not, thou can check the doc and the logs for any clues as to why."
 }

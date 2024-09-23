@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "状态",
   "mgmt.constellation.constStatusConnected": "已连接到Constellation",
   "mgmt.constellation.constStatusDown": "此服务器未连接到Constellation",
-  "mgmt.constellation.setup.dataSync.label": "与其他灯塔同步凭证（推荐）"
+  "mgmt.constellation.setup.dataSync.label": "与其他灯塔同步凭证（推荐）",
+  "newInstall.warnLocalhost": "在大多数情况下，您不应将localhost用作主机名。如果您在服务器上运行Cosmos，您应该使用服务器的IP或域名。",
+  "newInstall.localDomains": "Cosmos支持本地域名。这意味着您可以使用cosmos.local作为访问服务器的域名！但在使用之前，请通过http://setup-cosmos.local访问此页面以确保它对您有效。如果无效，您可以查看文档和日志以寻找任何线索。"
 }

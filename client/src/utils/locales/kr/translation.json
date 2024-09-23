@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "상태",
   "mgmt.constellation.constStatusConnected": "별자리와 연결됨",
   "mgmt.constellation.constStatusDown": "이 서버는 별자리에 연결되어 있지 않습니다",
-  "mgmt.constellation.setup.dataSync.label": "다른 라이트하우스와 자격 증명 동기화 (권장)"
+  "mgmt.constellation.setup.dataSync.label": "다른 라이트하우스와 자격 증명 동기화 (권장)",
+  "newInstall.warnLocalhost": "대부분의 경우 호스트 이름으로 localhost를 사용하지 않아야 합니다. 서버에서 Cosmos를 실행 중인 경우 서버의 IP 또는 도메인 이름을 사용해야 합니다.",
+  "newInstall.localDomains": "Cosmos는 로컬 도메인을 지원합니다. 즉, cosmos.local을 도메인으로 사용하여 서버에 액세스할 수 있습니다! 하지만 사용하기 전에 http://setup-cosmos.local을 통해 이 페이지에 접속하여 작동하는지 확인하세요. 작동하지 않는 경우 문서와 로그를 확인하여 이유를 찾아볼 수 있습니다."
 }

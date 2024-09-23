@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "Statut",
   "mgmt.constellation.constStatusConnected": "Connecté à Constellation",
   "mgmt.constellation.constStatusDown": "Ce serveur n'est pas connecté à Constellation",
-  "mgmt.constellation.setup.dataSync.label": "Synchroniser les identifiants avec d'autres phares (Recommandé)"
+  "mgmt.constellation.setup.dataSync.label": "Synchroniser les identifiants avec d'autres phares (Recommandé)",
+  "newInstall.warnLocalhost": "Dans la plupart des cas, vous ne devez pas utiliser localhost comme nom d'hôte. Si vous exécutez Cosmos sur un serveur, vous devez utiliser l'IP du serveur ou un nom de domaine.",
+  "newInstall.localDomains": "Cosmos prend en charge les domaines locaux. Cela signifie que vous pouvez utiliser cosmos.local comme domaine pour accéder à votre serveur ! Mais avant de l'utiliser, vérifiez que cela fonctionne pour vous en accédant à cette page avec http://setup-cosmos.local. Si ce n'est pas le cas, vous pouvez consulter la documentation et les journaux pour tout indice sur la raison."
 }

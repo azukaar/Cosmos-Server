@@ -725,5 +725,7 @@
   "mgmt.constellation.constStatus": "Status",
   "mgmt.constellation.constStatusConnected": "Połączono z Konstelacją",
   "mgmt.constellation.constStatusDown": "Ten serwer nie jest połączony z Konstelacją",
-  "mgmt.constellation.setup.dataSync.label": "Synchronizuj poświadczenia z innymi latarniami morskimi (Zalecane)"
+  "mgmt.constellation.setup.dataSync.label": "Synchronizuj poświadczenia z innymi latarniami morskimi (Zalecane)",
+  "newInstall.warnLocalhost": "W większości przypadków nie należy używać localhost jako nazwy hosta. Jeśli uruchamiasz Cosmos na serwerze, powinieneś użyć adresu IP serwera lub nazwy domeny.",
+  "newInstall.localDomains": "Cosmos wspiera lokalne domeny. Oznacza to, że możesz używać cosmos.local jako domeny, aby uzyskać dostęp do swojego serwera! Ale przed skorzystaniem z niej sprawdź, czy działa, uzyskując dostęp do tej strony za pomocą http://setup-cosmos.local. Jeśli nie działa, możesz sprawdzić dokumentację i dzienniki, aby znaleźć wskazówki, dlaczego."
 }

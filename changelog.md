@@ -1,3 +1,6 @@
+## Version 0.16.2
+ - Only propose cosmos.local as default to setup using local domains
+
 ## Version 0.16.1
  - Added DNSChallengeResolvers config to allow using custom DNS resolvers for the DNS challenge
 
