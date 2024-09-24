@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+	"net"
+	"strconv"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/holoplot/go-avahi"
@@ -26,6 +28,7 @@ type Publisher struct {
 	rdataField      []byte
 	mu              sync.Mutex
 	cnames          []string
+	published       bool
 }
 
 func NewPublisher() (*Publisher, error) {
@@ -74,30 +77,65 @@ func NewPublisher() (*Publisher, error) {
 func (p *Publisher) Fqdn() string {
 	return p.fqdn
 }
-
 func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+
+	// If the CNAMEs haven't changed and we've already published, do nothing
+	if p.published && stringSlicesEqual(p.cnames, cnames) {
+		return nil
+	}
 
 	if err := p.avahiEntryGroup.Reset(); err != nil {
 		utils.Error("[mDNS] failed to reset entry group", err)
 		return err
 	}
 
-	for _, cname := range cnames {
-		err := p.avahiEntryGroup.AddRecord(
-			avahi.InterfaceUnspec,
-			avahi.ProtoUnspec,
-			uint32(0),
-			cname,
-			AVAHI_DNS_CLASS_IN,
-			AVAHI_DNS_TYPE_CNAME,
-			ttl,
-			p.rdataField,
-		)
-		if err != nil {
-			utils.Error("[mDNS] failed to add record to entry group", err)
-			return err
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		utils.Error("[mDNS] failed to get network interfaces", err)
+		return err
+	}
+
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		portStr, _ := strconv.Atoi(utils.GetServerPort())
+
+		for _, cname := range cnames {
+			utils.Log(fmt.Sprintf("[mDNS] Adding service for: %s on interface %s", cname, iface.Name))
+			err := p.avahiEntryGroup.AddService(
+				int32(iface.Index),
+				avahi.ProtoUnspec,
+				0,
+				cname,
+				"_http._tcp",
+				"",
+				"",
+				uint16(portStr),
+				nil,
+			)
+			if err != nil {
+				utils.Error(fmt.Sprintf("[mDNS] failed to add service to entry group for interface %s", iface.Name), err)
+				continue
+			}
+
+			err = p.avahiEntryGroup.AddRecord(
+				int32(iface.Index),
+				avahi.ProtoUnspec,
+				0,
+				cname,
+				AVAHI_DNS_CLASS_IN,
+				AVAHI_DNS_TYPE_CNAME,
+				ttl,
+				p.rdataField,
+			)
+			if err != nil {
+				utils.Error(fmt.Sprintf("[mDNS] failed to add CNAME record to entry group for interface %s", iface.Name), err)
+				continue
+			}
 		}
 	}
 
@@ -107,11 +145,96 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 	}
 
 	p.cnames = cnames
+	p.published = true
 	return nil
 }
 
 func (p *Publisher) Close() {
-	p.avahiServer.Close()
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.avahiEntryGroup != nil {
+		err := p.avahiEntryGroup.Reset()
+		if err != nil {
+			utils.Error("[mDNS] failed to reset entry group during close", err)
+		}
+		p.avahiEntryGroup = nil
+	}
+	if p.avahiServer != nil {
+		p.avahiServer.Close()
+	}
+	if p.dbusConn != nil {
+		p.dbusConn.Close()
+	}
+	p.published = false
+}
+
+func stringSlicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func PublishAllMDNSFromConfig() {
+	config := utils.GetMainConfig()
+	utils.Log("[mDNS] Publishing routes to mDNS")
+
+	publisherMu.Lock()
+	defer publisherMu.Unlock()
+
+	var err error
+	if publisher == nil {
+		publisher, err = NewPublisher()
+		if err != nil {
+			utils.Error("[mDNS] failed to start mDNS (*.local domains). Install Avahi to solve this issue.", err)
+			return
+		}
+	}
+
+	routes := utils.GetAllHostnames(false, true)
+
+	localRoutes := []string{}
+
+	if config.NewInstall {
+		localRoutes = []string{
+			"setup-cosmos.local",
+		}
+	} else {
+		for _, route := range routes {
+			if len(route) > 6 && route[len(route)-6:] == ".local" {
+				localRoutes = append(localRoutes, route)
+			}
+		}
+	}
+
+	utils.Log("[mDNS] Publishing the following routes to mDNS: " + fmt.Sprint(localRoutes))
+
+	if len(localRoutes) == 0 {
+		utils.Log("[mDNS] No .local domains to publish")
+		return
+	}
+
+	err = publisher.UpdateCNAMES(localRoutes, 60)
+	if err != nil {
+		utils.Error("[mDNS] failed to update CNAMEs", err)
+	}
+}
+
+func RestartMDNS() {
+	publisherMu.Lock()
+	defer publisherMu.Unlock()
+
+	if publisher != nil {
+		publisher.Close()
+		publisher = nil
+	}
+
+	PublishAllMDNSFromConfig()
 }
 
 var publisher *Publisher
@@ -154,59 +277,5 @@ func publishing(ctx context.Context, publisher *Publisher, ttl, interval uint32)
 			publisher.Close()
 			return nil
 		}
-	}
-}
-
-func PublishAllMDNSFromConfig() {
-	config := utils.GetMainConfig()
-	utils.Log("[mDNS] Publishing routes to mDNS")
-
-	publisherMu.Lock()
-	defer publisherMu.Unlock()
-
-	var err error
-	if publisher == nil {
-		publisher, err = NewPublisher()
-		if err != nil {
-			utils.Error("[mDNS] failed to start mDNS (*.local domains). Install Avahi to solve this issue.", err)
-			return
-		}
-
-		go func() {
-			err := publishing(context.Background(), publisher, 60, 5)
-			if err != nil {
-				utils.Error("[mDNS] mDNS publishing loop failed", err)
-			}
-		}()
-	}
-
-	routes := utils.GetAllHostnames(false, true)
-
-	// only keep .local domains
-	localRoutes := []string{}
-
-	if config.NewInstall {
-		localRoutes = []string{
-			"setup-cosmos.local",
-		}
-	} else {
-		for _, route := range routes {
-			if len(route) > 6 && route[len(route)-6:] == ".local" {
-				localRoutes = append(localRoutes, route)
-			}
-		}
-	}
-
-	utils.Log("[mDNS] Publishing the following routes to mDNS: " + fmt.Sprint(localRoutes))
-
-	// if empty
-	if len(localRoutes) == 0 {
-		utils.Log("[mDNS] No .local domains to publish")
-		return
-	}
-
-	err = publisher.UpdateCNAMES(localRoutes, 60)
-	if err != nil {
-		utils.Error("[mDNS] failed to update CNAMEs", err)
 	}
 }

@@ -1,3 +1,8 @@
+## Version 0.16.3
+ - Local domains now produce services instead of CNAME for better compatibility
+ - DNS Lookup is now a warning
+ - DNS Lookup ignores local domains
+
 ## Version 0.16.2
  - Only propose cosmos.local as default to setup using local domains
 

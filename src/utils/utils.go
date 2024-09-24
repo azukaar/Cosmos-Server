@@ -643,6 +643,13 @@ func GetServerURL(overwriteHostname string) string {
 	return ServerURL + "/"
 }
 
+func GetServerPort() string {
+	if IsHTTPS {
+		return MainConfig.HTTPConfig.HTTPSPort
+	}
+	return MainConfig.HTTPConfig.HTTPPort
+}
+
 func ImageToBase64(path string) (string, error) {
 	imageFile, err := os.Open(path)
 	if err != nil {

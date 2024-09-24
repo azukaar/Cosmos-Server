@@ -24,12 +24,16 @@ func CheckDNSRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		errDNS := utils.CheckDNS(url)
+		// if ends with .local
+		if !strings.HasSuffix(url, ".local") {
 
-		if errDNS != nil {
-			utils.Error("CheckDNS", errDNS)
-			utils.HTTPError(w, "DNS Check error: " + errDNS.Error(), http.StatusInternalServerError, "DNS002")
-			return
+			errDNS := utils.CheckDNS(url)
+
+			if errDNS != nil {
+				utils.Error("CheckDNS", errDNS)
+				utils.HTTPError(w, "DNS Check error: " + errDNS.Error(), http.StatusInternalServerError, "DNS002")
+				return
+			}
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
