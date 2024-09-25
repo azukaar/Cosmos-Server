@@ -55,7 +55,7 @@ func checkVersion() {
 		return
 	}
 	
-	response, err := http.Get("https://api.cosmos-cloud.io/versions/" + myVersion)
+	response, err := http.Get("https://cosmos-cloud.io/versions/" + myVersion)
 	if err != nil {
 		utils.Error("checkVersion", err)
 		return
