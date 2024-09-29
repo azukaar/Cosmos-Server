@@ -7,8 +7,106 @@ function decodeUnicode(str) {
   });
 }
 
+const processANSISequences = (input) => {
+  const lines = [''];
+  let cursorX = 0;
+  let cursorY = 0;
+
+  const moveCursor = (x, y) => {
+    cursorX = Math.max(0, x);
+    cursorY = Math.max(0, y);
+    while (cursorY >= lines.length) {
+      lines.push('');
+    }
+  };
+
+  const eraseLine = (mode) => {
+    const line = lines[cursorY] || '';
+    switch (mode) {
+      case 0: // Erase from cursor to end of line
+        lines[cursorY] = line.slice(0, cursorX);
+        break;
+      case 1: // Erase from start of line to cursor
+        lines[cursorY] = ' '.repeat(cursorX) + line.slice(cursorX);
+        break;
+      case 2: // Erase entire line
+        lines[cursorY] = '';
+        break;
+    }
+  };
+
+  for (let i = 0; i < input.length; i++) {
+    if (input[i] === '\x1b' && input[i + 1] === '[') {
+      i += 2;
+      let sequence = '';
+      while (i < input.length && !'ABCDEFGHJKSTfmnu'.includes(input[i])) {
+        sequence += input[i++];
+      }
+      const command = input[i];
+
+      if (command === 'A') { // Cursor Up
+        moveCursor(cursorX, cursorY - parseInt(sequence || '1'));
+      } else if (command === 'B') { // Cursor Down
+        moveCursor(cursorX, cursorY + parseInt(sequence || '1'));
+      } else if (command === 'C') { // Cursor Forward
+        moveCursor(cursorX + parseInt(sequence || '1'), cursorY);
+      } else if (command === 'D') { // Cursor Back
+        moveCursor(cursorX - parseInt(sequence || '1'), cursorY);
+      } else if (command === 'E') { // Cursor Next Line
+        moveCursor(0, cursorY + parseInt(sequence || '1'));
+      } else if (command === 'F') { // Cursor Previous Line
+        moveCursor(0, cursorY - parseInt(sequence || '1'));
+      } else if (command === 'G') { // Cursor Horizontal Absolute
+        moveCursor(parseInt(sequence) - 1, cursorY);
+      } else if (command === 'H') { // Cursor Position
+        const [y, x] = sequence.split(';').map(n => parseInt(n) - 1);
+        moveCursor(x || 0, y || 0);
+      } else if (command === 'J') { // Erase in Display
+        const mode = parseInt(sequence || '0');
+        if (mode === 0) {
+          lines[cursorY] = lines[cursorY].slice(0, cursorX);
+          lines.splice(cursorY + 1);
+        } else if (mode === 1) {
+          lines[cursorY] = ' '.repeat(cursorX) + lines[cursorY].slice(cursorX);
+          for (let j = 0; j < cursorY; j++) {
+            lines[j] = ' '.repeat(lines[j].length);
+          }
+        } else if (mode === 2 || mode === 3) {
+          lines.fill('');
+          cursorX = 0;
+          cursorY = 0;
+        }
+      } else if (command === 'K') { // Erase in Line
+        eraseLine(parseInt(sequence || '0'));
+      }
+    } else if (input[i] === '\n') {
+      cursorY++;
+      cursorX = 0;
+      if (cursorY >= lines.length) {
+        lines.push('');
+      }
+    } else if (input[i] === '\r') {
+      cursorX = 0;
+    } else {
+      if (cursorX >= lines[cursorY].length) {
+        lines[cursorY] += ' '.repeat(cursorX - lines[cursorY].length) + input[i];
+      } else {
+        lines[cursorY] = lines[cursorY].slice(0, cursorX) + input[i] + lines[cursorY].slice(cursorX + 1);
+      }
+      cursorX++;
+    }
+  }
+
+  // Remove any empty lines at the end
+  while (lines.length > 0 && lines[lines.length - 1].trim() === '') {
+    lines.pop();
+  }
+
+  return lines.join('\n');
+};
+
 const LogLine = ({ message, docker, isMobile }) => {
-  let html = decodeUnicode(message)
+  let html = decodeUnicode(processANSISequences(message))
     .replace('\u0001\u0000\u0000\u0000\u0000\u0000\u0000', '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     .replace(/(?:\r\n|\r|\n)/g, '<br>')

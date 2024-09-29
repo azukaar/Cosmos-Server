@@ -62,7 +62,6 @@ const Logs = ({ containerInfo }) => {
             .map((log, index) => {
               if (log && log.length > 0) {
                 if (isFirstLine && !wasFirst) {
-                  console.log('YES 1');
                   isFirstLine = false;
                   return {
                     output: log,
@@ -92,12 +91,9 @@ const Logs = ({ containerInfo }) => {
           }
             
           if (newLogs.length > 0) {
-            console.log('newLogs', newLogs);
             (_newLogs => {
               setLogs((prevLogs) => {
-                console.log(prevLogs.length > 0, _newLogs.length > 0, _newLogs[0].needAppend)
                 if (prevLogs.length > 0 && _newLogs.length > 0 && _newLogs[0].needAppend) {
-                  console.log('_newLogs', _newLogs);
                   // if missing date, add 
                   if(!_newLogs[0].output.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/)) {
                     prevLogs[prevLogs.length - 1].output += (new Date()).toISOString() + ' ' + _newLogs[0].output;
@@ -133,7 +129,6 @@ const Logs = ({ containerInfo }) => {
       pingInterval.current = setInterval(() => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
           ws.current.send('_PING_');
-          console.log('Sent PING');
         }
       }, 30000); // Send a ping every 30 seconds
     };
@@ -151,7 +146,7 @@ const Logs = ({ containerInfo }) => {
   }, [containerInfo]);
 
   const scrollToBottom = () => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({  });
   };
 
   const fetchLogs = async (reset, ignoreState) => {
@@ -203,21 +198,31 @@ const Logs = ({ containerInfo }) => {
     fetchLogs();
   }, [fetching]);
 
+  const [lastLastline, setLastLastline] = useState(null);
   useEffect(() => {
+    console.log(hasScrolled)
     if (!hasScrolled) {
       scrollToBottom();
     } else if (terminalRef.current) {
-      const newScrollHeight = terminalRef.current.scrollHeight;
-      const heightDifference = newScrollHeight - oldScrollHeightRef.current;
-      terminalRef.current.scrollTop = oldScrollTopRef.current + heightDifference;
+      if(lastLastline === logs[logs.length - 1]) {
+        const newScrollHeight = terminalRef.current.scrollHeight;
+        const heightDifference = newScrollHeight - oldScrollHeightRef.current;
+        terminalRef.current.scrollTop = oldScrollTopRef.current + heightDifference;
+      }
     }
+    setLastLastline(logs[logs.length - 1]);
   }, [logs]);
 
   const handleScroll = (event) => {
-    const { scrollTop } = event.target;
-    setHasScrolled(true);
+    const { scrollTop, scrollHeight, clientHeight } = event.target;
+    
+    // Check if we're at the bottom of the scroll
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1; // -1 to account for potential rounding errors
+    
+    setHasScrolled(!isAtBottom);
+    
     if (scrollTop === 0) {
-      if(!hasMore) return;
+      if (!hasMore) return;
       setFetching(true);
       setHasMore(false);
     } else {
