@@ -7,19 +7,14 @@ function decodeUnicode(str) {
   });
 }
 
-function escapeHTMLWhiteSpaces(str) {
-  return str
-    .replace(/ /g, '&nbsp;')
-    .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
-    .replace(/\n/g, '<br>');
-}
-
 const LogLine = ({ message, docker, isMobile }) => {
   let html = decodeUnicode(message)
     .replace('\u0001\u0000\u0000\u0000\u0000\u0000\u0000', '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     .replace(/(?:\r\n|\r|\n)/g, '<br>')
     .replace(/�/g, '')
+    .replace(/ /g, '&nbsp;')
+    .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
     .replace(/\x1b\[([0-9]{1,2}(?:;[0-9]{1,2})*)?m/g, (match, p1) => {
       if (!p1) {
         return '</span>';
@@ -63,7 +58,7 @@ const LogLine = ({ message, docker, isMobile }) => {
   if(docker) {
     let parts = html.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/)
     if(!parts) {
-      return <div dangerouslySetInnerHTML={{ __html: escapeHTMLWhiteSpaces(html) }} />;
+      return <div dangerouslySetInnerHTML={{ __html: html }} />;
     }
     let restString = html.replace(parts[0], '')
     
@@ -71,11 +66,11 @@ const LogLine = ({ message, docker, isMobile }) => {
     <div style={{color:'#AAAAFF', fontStyle:'italic', whiteSpace: 'pre', background: '#393f48', padding: '0 0.5em', marginRight: '5px'}}>
       {parts[0].replace('T', ' ').split('.')[0]}
     </div>
-    <div dangerouslySetInnerHTML={{ __html: escapeHTMLWhiteSpaces(restString) }} />
+    <div dangerouslySetInnerHTML={{ __html: restString }} />
   </Stack>;
   }
     
-  return  <div dangerouslySetInnerHTML={{ __html: escapeHTMLWhiteSpaces(html)}} />;
+  return  <div dangerouslySetInnerHTML={{ __html: html}} />;
 };
 
 const getColor = (code) => {

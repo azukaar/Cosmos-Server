@@ -243,7 +243,7 @@ const Logs = ({ containerInfo }) => {
               setLastReceivedLogs('');
             }}
           />
-          <Box>
+          {/* <Box>
             <Checkbox
               checked={errorOnly}
               onChange={(e) => {
@@ -253,7 +253,7 @@ const Logs = ({ containerInfo }) => {
               }}
             />
             {t('mgmt.servApps.container.protocols.errorOnlyCheckbox')}
-          </Box>
+          </Box> */}
         </Stack>
         <Stack direction="row" spacing={3} alignItems="center">
           <Box>
