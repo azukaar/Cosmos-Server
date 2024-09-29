@@ -106,7 +106,7 @@ const processANSISequences = (input) => {
 };
 
 const LogLine = ({ message, docker, isMobile }) => {
-  let html = decodeUnicode(processANSISequences(message))
+  let html = decodeUnicode((message))
     .replace('\u0001\u0000\u0000\u0000\u0000\u0000\u0000', '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
     .replace(/(?:\r\n|\r|\n)/g, '<br>')
