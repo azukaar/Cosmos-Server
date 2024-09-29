@@ -173,6 +173,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 							return
 					default:
 							ws.SetReadDeadline(time.Now().Add(timeoutDuration))
+							ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
 							_, message, err := ws.ReadMessage()
 							if err != nil {
 									if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
@@ -219,14 +220,24 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 				utils.Debug("WSChan is closed, stopping writes to container")
 				return
 			}
-			utils.Debug("Writing message to container " + string(message))
-			_, err := resp.Conn.Write(message)
-			if err != nil {
-				utils.Error("Failed to write to container: ", err)
-				return
+			if string(message) == "_PING_" {
+				utils.Debug("Received PING from websocket")
+				ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
+				ws.SetReadDeadline(time.Now().Add(timeoutDuration))
+				err = ws.WriteMessage(websocket.TextMessage, []byte("_PONG_"))
+				if err != nil {
+					utils.Error("Failed to write to websocket: ", err)
+					return
+				}
+			} else {
+				utils.Debug("Writing message to container " + string(message))
+				_, err := resp.Conn.Write(message)
+				if err != nil {
+					utils.Error("Failed to write to container: ", err)
+					return
+				}
+				utils.Debug("Wrote message to container")
 			}
-			utils.Debug("Wrote message to container")
-	
 		case message, ok := <-DockerChan:
 			if !ok { // DockerChan is closed
 				utils.Debug("DockerChan is closed, stopping writes to websocket")
@@ -237,6 +248,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			messages := splitIntoChunks(string(message))
 
 			ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
+			ws.SetReadDeadline(time.Now().Add(timeoutDuration))
 			
 			for _, messageSplit := range messages {
 				err = ws.WriteMessage(websocket.TextMessage, []byte(messageSplit))

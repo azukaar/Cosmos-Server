@@ -400,11 +400,11 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
 		
 		lighthouseMap["hosts"] = []string{}
-		if !device.IsLighthouse {
+		// if !device.IsLighthouse {
 			if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 			}
-		}
+		// }
 
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {

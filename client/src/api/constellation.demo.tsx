@@ -119,6 +119,15 @@ function block(nickname, devicename, block) {
   });
 }
 
+function ping() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": 1
+    })
+  });
+}
+
 export {
   list,
   addDevice,
@@ -128,4 +137,5 @@ export {
   reset,
   connect,
   block,
+  ping,
 };

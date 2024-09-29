@@ -2,6 +2,15 @@
 	"data": {
 		"LoggingLevel": "INFO",
 		"MongoDB": "mongodb://cosmos-asda:fdhgaiodfiaushdfiuahsdf@cosmos-mongo-ASD:27017",
+		"Database": {
+			"PuppetMode": false,
+			"Hostname": "cosmos-mongo-IGF",
+			"DbVolume": "cosmos-mongo-data-IGF",
+			"ConfigVolume": "cosmos-mongo-config-IGF",
+			"Version": "6",
+			"Username": "cosmos-IDety",
+			"Password": "asdasfsdfadfadfsdfaf"
+		},
 		"DisableUserManagement": false,
 		"NewInstall": false,
 		"HTTPConfig": {

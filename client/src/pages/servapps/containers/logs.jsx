@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Checkbox, CircularProgress, Input, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
+import { Box, Button, Checkbox, CircularProgress, Input, Stack, TextField, Tooltip, Typography, useMediaQuery } from '@mui/material';
 import * as API from '../../../api';
 import LogLine from '../../../components/logLine';
 import { useTheme } from '@emotion/react';
 import { useTranslation } from 'react-i18next';
+import ResponsiveButton from '../../../components/responseiveButton';
+import { ArrowDownOutlined, SyncOutlined } from '@ant-design/icons';
+import { DownloadFile } from '../../../api/downloadButton';
 
 const Logs = ({ containerInfo }) => {
   const { t } = useTranslation();
@@ -12,25 +15,143 @@ const Logs = ({ containerInfo }) => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorOnly, setErrorOnly] = useState(false);
-  const [limit, setLimit] = useState(100);
+  const [limit, setLimit] = useState(200);
   const [searchTerm, setSearchTerm] = useState('');
-  const [page, setPage] = useState('');
   const [hasMore, setHasMore] = useState(true);
   const [hasScrolled, setHasScrolled] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [forceUpdate, setForceUpdate] = useState(false);
   const [lastReceivedLogs, setLastReceivedLogs] = useState('');
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [scrollToMe, setScrollToMe] = useState(null);
   const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
+  const pingInterval = useRef(null);
+  const [message, setMessage] = useState('');
+  const [output, setOutput] = useState([
+    {
+      output: 'Not Connected.',
+      type: 'stdout'
+    }
+  ]);
+  const ws = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   const bottomRef = useRef(null);
-  const topRef = useRef(null);
   const terminalRef = useRef(null);
+  const oldScrollHeightRef = useRef(0);
+  const oldScrollTopRef = useRef(0);
+  
+  const connect = () => {
+    let wasFirst = true;
+
+    if(ws.current) {
+      ws.current.close();
+    }
+
+    ws.current = API.docker.attachTerminal(Name.slice(1));
+
+    ws.current.onmessage = (event) => {
+      if(event.data === '_PONG_') {
+        return;
+      }
+
+      try {
+        let newLogs = event.data;
+        if (newLogs) {
+          let isFirstLine = true;
+          newLogs = newLogs.split('\n')
+            .map((log, index) => {
+              if (log && log.length > 0) {
+                if (isFirstLine && !wasFirst) {
+                  console.log('YES 1');
+                  isFirstLine = false;
+                  return {
+                    output: log,
+                    needAppend: true,
+                  };
+                } else {
+                  return {
+                    output: (new Date()).toISOString() + ' ' + log,
+                  };
+                }
+              }
+              return {
+                output: "",
+              }; // Explicitly return null for empty logs
+            })
+
+          // if last websocket was a clean cut, it needs to not append
+          if(newLogs.length > 2) {
+            if(newLogs[0].output === '' && newLogs[1].needAppend) {
+              newLogs = newLogs.slice(1);
+              newLogs[0].needAppend = false;
+              // it needs the date
+              if(!newLogs[0].output.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/)) {
+                newLogs[0].output = (new Date()).toISOString() + ' ' + newLogs[0].output;
+              }
+            }
+          }
+            
+          if (newLogs.length > 0) {
+            console.log('newLogs', newLogs);
+            (_newLogs => {
+              setLogs((prevLogs) => {
+                console.log(prevLogs.length > 0, _newLogs.length > 0, _newLogs[0].needAppend)
+                if (prevLogs.length > 0 && _newLogs.length > 0 && _newLogs[0].needAppend) {
+                  console.log('_newLogs', _newLogs);
+                  // if missing date, add 
+                  if(!_newLogs[0].output.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/)) {
+                    prevLogs[prevLogs.length - 1].output += (new Date()).toISOString() + ' ' + _newLogs[0].output;
+                  } else {
+                    prevLogs[prevLogs.length - 1].output += _newLogs[0].output;
+                  }
+                  _newLogs = _newLogs.slice(1);  // Create a new array without the first element
+                }
+                wasFirst = false;
+                return [...prevLogs, ..._newLogs];
+              });
+            })(newLogs);
+          }
+        }
+      } catch (error) {
+        console.error('Error processing logs:', error);
+      }
+    };
+
+    ws.current.onclose = () => {
+      setIsConnected(false);
+      let terminalBoldRed = '\x1b[1;31m';
+      let terminalReset = '\x1b[0m';
+      if(pingInterval.current)
+        clearInterval(pingInterval.current);
+    };
+    
+    ws.current.onopen = () => {
+      setIsConnected(true);
+      let terminalBoldGreen = '\x1b[1;32m';
+      let terminalReset = '\x1b[0m';
+
+      pingInterval.current = setInterval(() => {
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send('_PING_');
+          console.log('Sent PING');
+        }
+      }, 30000); // Send a ping every 30 seconds
+    };
+
+    return () => {
+      setIsConnected(false);
+      if(pingInterval.current)
+        clearInterval(pingInterval.current);
+      ws.current.close();
+    };
+  };
+
+  useEffect(() => {
+    return connect();
+  }, [containerInfo]);
 
   const scrollToBottom = () => {
-    bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const fetchLogs = async (reset, ignoreState) => {
@@ -60,13 +181,9 @@ const Logs = ({ containerInfo }) => {
       if(reset) {
         setLogs(data);
       } else {
-        // const current = topRef.current;
-        // setScrollToMe(() => current);
-        setLogs((logs) => [...data, ...logs]);
-        // calculate the height of the new logs and scroll to that position
-        // OK I will fix this later
-        // const newHeight = 999999999;
-        // terminalRef.current.scrollTop = newHeight;
+        oldScrollHeightRef.current = terminalRef.current.scrollHeight;
+        oldScrollTopRef.current = terminalRef.current.scrollTop;
+        setLogs((prevLogs) => [...data, ...prevLogs]);
       }
       setHasMore(true);
     } catch (err) {
@@ -89,9 +206,10 @@ const Logs = ({ containerInfo }) => {
   useEffect(() => {
     if (!hasScrolled) {
       scrollToBottom();
-    } else {
-      // scrollToMe && scrollToMe.scrollIntoView({ });
-      // setScrollToMe(null);
+    } else if (terminalRef.current) {
+      const newScrollHeight = terminalRef.current.scrollHeight;
+      const heightDifference = newScrollHeight - oldScrollHeightRef.current;
+      terminalRef.current.scrollTop = oldScrollTopRef.current + heightDifference;
     }
   }, [logs]);
 
@@ -137,7 +255,7 @@ const Logs = ({ containerInfo }) => {
             {t('mgmt.servApps.container.protocols.errorOnlyCheckbox')}
           </Box>
         </Stack>
-          <Stack direction="row" spacing={3}>
+        <Stack direction="row" spacing={3} alignItems="center">
           <Box>
             <TextField
               label="Limit"
@@ -150,7 +268,8 @@ const Logs = ({ containerInfo }) => {
               }}
             />
           </Box>
-          <Button
+          <ResponsiveButton
+            startIcon={<SyncOutlined />}
             variant="outlined"
             onClick={() => {
               setHasScrolled(false);
@@ -159,7 +278,29 @@ const Logs = ({ containerInfo }) => {
             }}
           >
             {t('global.refresh')}
-          </Button>
+          </ResponsiveButton>
+          <DownloadFile
+            filename={`${(new Date()).toISOString()} - ${containerName} - logs.txt`}
+            content={logs.map((log) => log.output).join('\n')}
+            label={t('global.downloadLogs')}
+          />
+          {isConnected ? (
+            <Tooltip title={t('mgmt.servApps.container.terminal.connected')}>
+              <div style={{ background: '#00ff00', borderRadius:'15px', width: '15px', height: '15px' }}></div>
+            </Tooltip>
+          ) : (
+            <>
+              <Tooltip title={t('mgmt.servApps.container.terminal.connected')}>
+                <div style={{ background: 'red', borderRadius:'15px', width: '15px', height: '15px' }}></div>
+              </Tooltip>
+              <ResponsiveButton
+                variant="contained"
+                onClick={connect}
+              >
+                {t('mgmt.servApps.container.terminal.reconnectButton')}
+              </ResponsiveButton>
+            </>
+          )}
         </Stack>
         </Stack>
         {loading && <CircularProgress />}
@@ -169,9 +310,6 @@ const Logs = ({ containerInfo }) => {
         sx={{
           maxHeight: 'calc(1vh * 80 - 200px)',
           overflow: 'auto',
-          paddingRight: '10px',
-          paddingLeft: '10px',
-          paddingBottom: '10px',
           wordBreak: 'break-all',
           background: '#272d36',
           color: '#fff',
@@ -180,9 +318,17 @@ const Logs = ({ containerInfo }) => {
         onScroll={handleScroll}
       >
         {logs.map((log, index) => (
-          <div key={log.index} style={{paddingTop: (!screenMin) ? '10px' : '2px'}}>
+          <Box key={index + log.output} sx={{
+            paddingTop: (!screenMin) ? '6px' : '2px',
+            paddingBottom: (!screenMin) ? '6px' : '2px',
+            paddingLeft: '10px',
+            background: index % 2 === 0 ? '#272d36' : '#1e222c',
+            '&:hover': {
+              background: '#222244',
+            }
+          }}>
             <LogLine message={log.output} docker isMobile={!screenMin} />
-          </div>
+          </Box>
         ))}
         {fetching && <CircularProgress sx={{ mt: 1, mb: 2 }} />}
         <div ref={bottomRef} />

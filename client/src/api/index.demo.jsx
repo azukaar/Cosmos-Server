@@ -12,6 +12,8 @@ export const getStatus = () => {
         "database": true,
         "docker": true,
         "domain": false,
+        "Licence": "true",
+        "hostmode": "true",
         "homepage": {
           "Background": "/cosmos/api/background/avif",
           "Widgets": null,

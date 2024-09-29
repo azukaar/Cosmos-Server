@@ -1,3 +1,8 @@
+## Version 0.17.0
+ - Fixed bug where lighthouses would not consider the home server as lighthouse in Constellation
+ - Improved keep alive in the Websocket for terminal (to prevent timeouts during long operations)
+ - Improve logs screen for containers (better colors, fix scrolling, auto-refresh, ...)
+
 ## Version 0.16.3
  - Local domains now produce services instead of CNAME for better compatibility
  - DNS Lookup is now a warning

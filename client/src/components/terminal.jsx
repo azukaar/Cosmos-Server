@@ -1,62 +1,234 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, Checkbox, CircularProgress, Input, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 import * as API from '../api';
-import LogLine from '../components/logLine';
-import { useTheme } from '@emotion/react';
+import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
+import { ApiOutlined, SendOutlined } from '@ant-design/icons';
+import ResponsiveButton from './responseiveButton';
+import { useTranslation } from 'react-i18next';
 
-const Terminal = ({ logs, setLogs, fetchLogs, docker }) => {
-  const [hasMore, setHasMore] = useState(true);
-  const [hasScrolled, setHasScrolled] = useState(false);
-  const [fetching, setFetching] = useState(false);
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-  const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
+import { Terminal } from '@xterm/xterm'
+import '@xterm/xterm/css/xterm.css'
+import { FitAddon } from '@xterm/addon-fit';
 
-  const bottomRef = useRef(null);
-  const terminalRef = useRef(null);
+const TerminalComponent = ({refresh, connectButtons}) => {
+  const { t } = useTranslation();
+  const pingInterval = useRef(null);
 
-  const scrollToBottom = () => {
-    bottomRef.current.scrollIntoView({});
+  const [terminal] = useState(new Terminal({
+    cursorBlink: true,
+    cursorStyle: 'block',
+    disableStdin: false,
+    fontFamily: 'monospace',
+    fontSize: 14,
+    fontWeight: 'normal',
+    letterSpacing: 0,
+    lineHeight: 1,
+    logLevel: 'info',
+    screenReaderMode: false,
+    scrollback: 1000,
+    tabStopWidth: 8,
+  }));
+
+  const xtermRef = useRef(null);
+
+  const [message, setMessage] = useState('');
+  const [output, setOutput] = useState([
+    {
+      output: 'Not Connected.',
+      type: 'stdout'
+    }
+  ]);
+  const ws = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const connect = (connectFunction, shellName) => {
+    if(ws.current) {
+      ws.current.close();
+    }
+
+    ws.current = connectFunction();
+
+    ws.current.onmessage = (event) => {
+      if(event.data === '_PONG_') {
+        return;
+      }
+
+      try {
+        terminal.write(event.data);
+      } catch (e) {
+        console.error("error", e);
+      }
+    };
+
+    ws.current.onclose = () => {
+      setIsConnected(false);
+      let terminalBoldRed = '\x1b[1;31m';
+      let terminalReset = '\x1b[0m';
+      terminal.write(terminalBoldRed + t('mgmt.servapps.containers.terminal.disconnectedFromText') + shellName + '\r\n' + terminalReset);
+      if(pingInterval.current)
+        clearInterval(pingInterval.current);
+    };
+    
+    ws.current.onopen = () => {
+      setIsConnected(true);
+      let terminalBoldGreen = '\x1b[1;32m';
+      let terminalReset = '\x1b[0m';
+      terminal.write(terminalBoldGreen + t('mgmt.servapps.containers.terminal.connectedToText') + shellName + '\r\n' + terminalReset);
+      // focus terminal
+      terminal.focus();
+
+
+      pingInterval.current = setInterval(() => {
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send('_PING_');
+          console.log('Sent PING');
+        }
+      }, 30000); // Send a ping every 30 seconds
+    };
+
+    return () => {
+      setIsConnected(false);
+      if(pingInterval.current)
+        clearInterval(pingInterval.current);
+      ws.current.close();
+    };
   };
+
+  const [SelectedText, setSelectedText] = useState('');
 
   useEffect(() => {
-    if (!hasScrolled) {
-      scrollToBottom();
-    }
-  }, [logs]);
+    // xtermRef.current.innerHTML = '';
+    terminal.open(xtermRef.current);
 
-  const handleScroll = (event) => {
-    if (event.target.scrollHeight - event.target.scrollTop === event.target.clientHeight) {
-      setHasScrolled(false);
-    }else {
-      setHasScrolled(true);
-    }
-  };
+    // const fitAddon = new FitAddon();
+    // terminal.loadAddon(fitAddon);
+    // fitAddon.fit();
+
+    // const onFocus = () => {
+    //   terminal.focus();
+    // }
+
+    // xtermRef.current.removeEventListener('touchstart', onFocus);
+
+    // xtermRef.current.addEventListener('touchstart', onFocus);
+
+    terminal.onSelectionChange((e) => {
+      let sel = terminal.getSelection();
+      if (typeof sel === 'string') {
+        console.log(sel);
+        setSelectedText(sel);
+      }
+    });
+
+    terminal.onData((data) => {
+      if (data.startsWith("\x1b[200~") && data.endsWith("\x1b[201~")) {
+        ws.current.send(data);
+      }
+    });    
+
+    terminal.attachCustomKeyEventHandler((e) => {
+      const codes = {
+        'Enter': '\r',
+        'Backspace': '\x7f',
+        'ArrowUp': '\x1b[A',
+        'ArrowDown': '\x1b[B',
+        'ArrowRight': '\x1b[C',
+        'ArrowLeft': '\x1b[D',
+        'Escape': '\x1b',
+        'Home': '\x1b[H',
+        'End': '\x1b[F',
+        'Tab': '\t',
+        'PageUp': '\x1b[5~',
+        'PageDown': '\x1b[6~',
+      };
+
+      const cancelKeys = [
+        'Shift',
+        'Meta',
+        'Alt',
+        'Control',
+        'CapsLock',
+        'NumLock',
+        'ScrollLock',
+        'Pause',
+      ]
+
+      const codesCtrl = {
+        'c': '\x03',
+        'd': '\x04',
+        'l': '\x0c',
+        'z': '\x1a',
+        'Backspace': '\x08',
+      };
+            
+      if (e.type === 'keydown') {
+        if (codesCtrl[e.key] && e.ctrlKey) {
+          ws.current.send(codesCtrl[e.key]);
+        } else if (codes[e.key]) {
+          ws.current.send(codes[e.key]);
+        } else if (cancelKeys.includes(e.key)) {
+          return false;
+        } else {
+          ws.current.send(e.key);
+        }
+      } else if (e.type === 'keyup') {
+      }
+
+      return true;
+    });   
+  }, []);
 
   return (
-      <Box
-        ref={terminalRef}
+    <div className="terminal-container" style={{
+      background: '#000',
+      width: '100%', 
+      maxWidth: '900px', 
+      position:'relative'
+    }}>
+      <div style={{
+        overflowX: 'auto',
+        width: '100%', 
+        maxWidth: '900px', 
+      }}>
+        <div ref={xtermRef}></div>
+        <br/>
+      </div>
+
+      <Stack 
+        direction="row"
+        spacing={1}
+        alignItems="center"
         sx={{
-          minHeight: '50px',
-          maxHeight: 'calc(1vh * 80 - 200px)',
-          overflow: 'auto',
-          padding: '10px',
-          wordBreak: 'break-all',
           background: '#272d36',
           color: '#fff',
-          borderTop: '3px solid ' + theme.palette.primary.main
+          padding: '10px',
+          width: '100%',
         }}
-        onScroll={handleScroll}
       >
-        {logs && logs.map((log, index) => (
-          <div key={index} style={{paddingTop: (!screenMin) ? '10px' : '2px'}}>
-            <LogLine message={log.output} docker isMobile={!screenMin} />
-          </div>
-        ))}
-        {fetching && <CircularProgress sx={{ mt: 1, mb: 2 }} />}
-        <div ref={bottomRef} />
-      </Box>
+      <div>{
+        isConnected ? (
+          <ApiOutlined style={{color: '#00ff00', margin: '0px 5px', fontSize: '20px'}} />
+        ) : (
+          <ApiOutlined style={{color: '#ff0000', margin: '0px 5px', fontSize: '20px'}} />
+        )
+      }</div>
+      
+      {isConnected ? (<>
+        <Button  variant="contained" onClick={() => ws.current.close()}>{t('mgmt.servapps.containers.terminal.disconnectButton')}</Button>
+        <Button  variant="outlined" onClick={() => ws.current.send('\t')}>TAB</Button>
+        <Button  variant="outlined" onClick={() => ws.current.send('\x03')}>Ctrl+C</Button>
+      </>
+      ) :
+        <>  
+          {connectButtons && connectButtons.map((button, index) => (
+            <ResponsiveButton key={index} variant="contained" onClick={() => button.onClick(connect)}>{button.label}</ResponsiveButton>
+          ))}
+        </>
+      }
+      </Stack>
+    </div>
   );
 };
 
-export default Terminal;
+export default TerminalComponent;

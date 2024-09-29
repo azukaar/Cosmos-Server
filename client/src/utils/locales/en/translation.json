@@ -727,5 +727,8 @@
 	"mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname to tunnel from (what is the user facing hostname of the tunnel)",
 	"mgmt.config.general.licenceInput.licenceLabel": "Licence Key",
 	"mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
-	"language.selectLanguage": "Select Language"
+	"language.selectLanguage": "Select Language",
+	"global.downloadLogs": "Download Logs",
+	"mgmt.servApps.container.terminal.connected": "Connected to the terminal. Will receive new logs as they come.",
+	"mgmt.servApps.container.terminal.reconnectButton": "Reconnect"
 }
