@@ -92,7 +92,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
-        validationSchema={ValidateRouteSchema}
+        validationSchema={ValidateRouteSchema(t)}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           if(!submitButton) {
             return false;
@@ -122,7 +122,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
             op.then((res) => {
               if (res.status == "OK") {
                 setStatus({ success: true });
-                snackit('Route updated successfully', 'success')
+                snackit(t('mgmt.urls.edit.updateSuccess'), 'success')
                 setSubmitting(false);
                 setOpenModal(true);
               } else {
@@ -149,7 +149,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
           // check name is unique
           if (newRoute && routeNames.includes(fullValues.Name)) {
-            return { Name: 'Name must be unique' }
+            return { Name: t('navigation.market.sources.nameNotUniqueValidation') }
           }
 
           setRouteConfig && debounce(() => setRouteConfig(fullValues), 500)();

@@ -79,49 +79,51 @@ export const getFaviconURL = (route) => {
   }
 }
 
-export const ValidateRouteSchema = Yup.object().shape({
-  Name: Yup.string().required('Name is required'),
-  Mode: Yup.string().required('Mode is required'),
-  Target: Yup.string().required('Target is required').when('Mode', {
-    is: 'SERVAPP',
-    then: Yup.string().matches(/:[0-9]+$/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.noPort" />),
-  }).when('Mode', {
-    is: 'PROXY',
-    then: Yup.string().matches(/^(https?:\/\/)/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.wrongProtocol" />),
-  }),
-
-  Host: Yup.string().when('UseHost', {
-    is: true,
-    then: Yup.string()
-      .required('Host is required')
-      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP (IPs won\'t work with Let\'s Encrypt!)')
-      .test('is-protocol', 'Do not add the protocol here!', (value) => {
-        return !value.match(/\:.*?[a-zA-Z]+/);
-      })
-  }),
-
-  PathPrefix: Yup.string().when('UsePathPrefix', {
-    is: true,
-    then: Yup.string().required('Path Prefix is required').matches(/^\//, 'Path Prefix must start with / (e.g. /api). Do not include a domain/subdomain in it, use the Host for this.')
-  }),
-
-  UseHost: Yup.boolean().when('UsePathPrefix',
-    {
-      is: false,
-      then: Yup.boolean().oneOf([true], 'Source must at least be either Host or Path Prefix')
+export const ValidateRouteSchema = (t) => {
+  return Yup.object().shape({
+    Name: Yup.string().required(t('global.name.validation')),
+    Mode: Yup.string().required(t('global.mode.validation')),
+    Target: Yup.string().required(t('global.target.validation')).when('Mode', {
+      is: 'SERVAPP',
+      then: Yup.string().matches(/:[0-9]+$/, t('mgmt.config.containerPicker.targetTypeValidation.noPort')),
+    }).when('Mode', {
+      is: 'PROXY',
+      then: Yup.string().matches(/^(https?:\/\/)/, t('mgmt.config.containerPicker.targetTypeValidation.wrongProtocol') ),
     }),
-})
 
-export const ValidateRoute = (routeConfig, config) => {
+    Host: Yup.string().when('UseHost', {
+      is: true,
+      then: Yup.string()
+        .required(t('mgmt.urls.edit.hostInput.HostRequired'))
+        .matches(/[\.|\:]/, t('mgmt.urls.edit.hostInput.HostValidation'))
+        .test('is-protocol', t('mgmt.urls.edit.hostInput.HostValidation.caseIsProtocol'), (value) => {
+          return !value.match(/\:.*?[a-zA-Z]+/);
+        })
+    }),
+
+    PathPrefix: Yup.string().when('UsePathPrefix', {
+      is: true,
+      then: Yup.string().required(t('mgmt.urls.edit.pathPrefixInput.pathPrefixRequired')).matches(/^\//, t('mgmt.urls.edit.pathPrefixInput.pathPrefixValidation'))
+    }),
+
+    UseHost: Yup.boolean().when('UsePathPrefix',
+      {
+        is: false,
+        then: Yup.boolean().oneOf([true], t('mgmt.urls.edit.pathPrefixInput.pathPrefixSource'))
+      }),
+  })
+};
+
+export const ValidateRoute = (routeConfig, config, t) => {
   let routeNames = config.HTTPConfig.ProxyConfig.Routes.map((r) => r.Name);
 
   try {
-    ValidateRouteSchema.validateSync(routeConfig);
+    ValidateRouteSchema(t).validateSync(routeConfig);
   } catch (e) {
     return e.errors;
   }
   if (routeNames.includes(routeConfig.Name)) {
-    return ['Route Name already exists. Name must be unique.'];
+    return [t('mgmt.urls.edit.nameValidation')];
   }
   return [];
 }
