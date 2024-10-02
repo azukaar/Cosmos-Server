@@ -8,6 +8,21 @@ jobs:
       - checkout
 
       - run:
+          name: Install GitHub CLI
+          command: |
+            type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install gh -y
+
+      - run:
+          name: Authenticate GitHub CLI
+          command: |
+            echo "$GITHUB_TOKEN" | gh auth login --with-token
+            
+      - run:
           name: Setup docker and buildx
           command: docker buildx create --use
 
@@ -107,6 +122,8 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}/debian
             echo "override_dh_auto_install:" >> rules
             echo "	dh_auto_install -- prefix=/usr/local/${PKG_NAME}" >> rules
@@ -118,6 +135,8 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}
             chmod 0755 debian
             find debian -type d -exec chmod 0755 {} \;
@@ -130,18 +149,28 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             mkdir -p ${PKG_NAME}-${VERSION}-arm64
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
             cd ${PKG_NAME}-${VERSION}-arm64
-            dh_make --createorig -s -y
+            dh_make --createorig -s -y -p ${PKG_NAME}_${VERSION} \
+              --email "$MAINTAINER_EMAIL" \
+              --packagename "$PKG_NAME"
 
       - run:
           name: Build ARM64 .deb package
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}-arm64
+            chmod 0755 debian
+            find debian -type d -exec chmod 0755 {} \;
+            find debian -type f -exec chmod 0644 {} \;
+            chmod 0755 debian/rules
             dpkg-buildpackage -us -uc -b -aarm64
 
       - run:
@@ -149,6 +178,8 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             zip -r ${PKG_NAME}-${VERSION}-amd64.zip ${PKG_NAME}-${VERSION}
             zip -r ${PKG_NAME}-${VERSION}-arm64.zip ${PKG_NAME}-${VERSION}-arm64
 
@@ -157,6 +188,8 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
+            MAINTAINER_NAME="Yann Stepienik"
+            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             gh release create v$VERSION \
               ../${PKG_NAME}_${VERSION}_amd64.deb \
               ../${PKG_NAME}_${VERSION}_arm64.deb \
