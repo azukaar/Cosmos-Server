@@ -80,11 +80,11 @@ jobs:
           name: Build and publish dockerfiles
           command: sh docker.sh
 
-       - run:
-          name: Install Debian packaging tools
-          command: |
-            sudo apt-get update
-            sudo apt-get install -y debhelper dh-make jq
+      - run:
+        name: Install Debian packaging tools
+        command: |
+          sudo apt-get update
+          sudo apt-get install -y debhelper dh-make jq
 
       - run:
           name: Prepare Debian package structure
