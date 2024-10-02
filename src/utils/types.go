@@ -18,13 +18,14 @@ const (
 )
 
 const (
-	DEBUG = 0
-	INFO = 1
-	WARNING = 2
-	ERROR = 3
+	DEBUG LogLevel = iota
+	INFO
+	WARNING
+	ERROR
+	FATAL
 )
 
-var LoggingLevelLabels = map[LoggingLevel]int{
+var LoggingLevelLabels = map[LoggingLevel]LogLevel{
 	"DEBUG": DEBUG,
 	"INFO": INFO,
 	"WARNING": WARNING,

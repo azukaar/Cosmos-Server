@@ -18,7 +18,6 @@ import (
 		"time"
 		"os"
 		"strings"
-		"github.com/go-chi/chi/middleware"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
 		"github.com/foomo/tlsconfig"
@@ -362,7 +361,7 @@ func InitServer() *mux.Router {
 	
 	router.Use(utils.BlockBannedIPs)
 
-	router.Use(middleware.Logger)
+	router.Use(utils.Logger)
 
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {
 		router.Use(utils.BlockByCountryMiddleware(config.BlockedCountries, config.CountryBlacklistIsWhitelist))
@@ -388,6 +387,8 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
 	srapi.HandleFunc("/api/mfa", user.API2FA)
 	srapi.HandleFunc("/api/status", StatusRoute)
+	srapi.HandleFunc("/api/restart-server", restartHostMachineRoute)
+	srapi.HandleFunc("/_logs", LogsRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/logout", user.UserLogout)

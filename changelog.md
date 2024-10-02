@@ -1,4 +1,6 @@
 ## Version 0.17.0
+ - Added zip and deb packages for distribution
+ - Added log file in the config folder and a download button in the config page
  - Fixed bug where lighthouses would not consider the home server as lighthouse in Constellation
  - Improved keep alive in the Websocket for terminal (to prevent timeouts during long operations)
  - Improve logs screen for containers (better colors, fix scrolling, auto-refresh, ...)

@@ -34,7 +34,7 @@ function checkIsOnline() {
     });
 }
 
-const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
+const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine }) => {
     const { t } = useTranslation();
     const [isRestarting, setIsRestarting] = useState(false);
     const [warn, setWarn] = useState(false);
@@ -43,6 +43,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
     const isNotDomain = config && !isDomain(config.HTTPConfig.Hostname);
     let newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
         (!config.HTTPConfig.DNSChallengeProvider || !config.HTTPConfig.UseWildcardCertificate))
+    const [errorRestart, setErrorRestart] = useState(null);
 
     return config ? (<>
         {needsRefresh && <>
@@ -81,26 +82,43 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute }) => {
             <DialogTitle>{!isRestarting ? t('mgmt.config.restart.restartTitle') : t('mgmt.config.restart.restartStatus')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {warn && <div>
+                    {errorRestart && <Alert severity="error" icon={<ExclamationCircleOutlined />}>
+                        {errorRestart}
+                    </Alert>}
+                    {warn && !errorRestart  && <div>
                         <Alert severity="warning" icon={<WarningOutlined />}>
                         {t('mgmt.config.restart.restartTimeoutWarning')}<br />{t('mgmt.config.restart.restartTimeoutWarningTip')}
                         </Alert>
                     </div>}
-                    {isRestarting ? 
+                    {isRestarting && !errorRestart && 
                     <div style={{textAlign: 'center', padding: '20px'}}>
                         <CircularProgress />
-                    </div>
-                    : t('mgmt.config.restart.restartQuestion')}
+                    </div>}
+                    {!isRestarting && t('mgmt.config.restart.restartQuestion')}
                 </DialogContentText>
             </DialogContent>
             {!isRestarting && <DialogActions>
                 <Button onClick={() => setOpenModal(false)}>{t('mgmt.config.restart.laterButton')}</Button>
                 <Button onClick={() => {
                     setIsRestarting(true);
-                    API.config.restart()
+                    setErrorRestart(null);
+
+                    if(isHostMachine) {
+                        API.restartServer()
+                        .then((res) => {
+                        }).catch((err) => {
+                            setErrorRestart(err.message);
+                        });
+                    } else {
+                        API.config.restart()
+                    }
+                    
                     setTimeout(() => {
-                        checkIsOnline();
-                    }, 1500)
+                        if(!errorRestart) {
+                            checkIsOnline();
+                        }
+                    }, 1500);
+
                     setTimeout(() => {
                         setWarn(true);
                     }, 20000)

@@ -212,6 +212,15 @@ let uploadImage = (file, name) => {
   }));
 };
 
+let restartServer = () => {
+  return wrap(fetch('/cosmos/api/restart-server', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }));
+}
+
 const isDemo = import.meta.env.MODE === 'demo';
 
 let auth = _auth;
@@ -236,6 +245,7 @@ if(isDemo) {
   checkHost = indexDemo.checkHost;
   getDNS = indexDemo.getDNS;
   uploadImage = indexDemo.uploadImage;
+  restartServer = indexDemo.restartServer;
   constellation = constellationDemo;
   metrics = metricsDemo;
   storage = storageDemo;
@@ -257,5 +267,6 @@ export {
   metrics,
   uploadImage,
   storage,
-  cron
+  cron,
+  restartServer
 };

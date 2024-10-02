@@ -19,7 +19,7 @@ import {
   Tooltip,
 } from '@mui/material';
 import RestartModal from './restart';
-import { DeleteOutlined, QuestionCircleOutlined, SyncOutlined, WarningFilled } from '@ant-design/icons';
+import { ArrowDownOutlined, DeleteOutlined, QuestionCircleOutlined, SyncOutlined, WarningFilled } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputPassword, CosmosInputText, CosmosSelect } from './formShortcuts';
 import CountrySelect from '../../../components/countrySelect';
 import { DnsChallengeComp } from '../../../utils/dns-challenge-comp';
@@ -37,6 +37,7 @@ import { DownloadFile } from '../../../api/downloadButton';
 import { isDomain } from '../../../utils/indexs';
 
 import { Trans, useTranslation } from 'react-i18next';
+import ResponsiveButton from '../../../components/responseiveButton';
 
 const ConfigManagement = () => {
   const { t } = useTranslation();
@@ -69,9 +70,10 @@ const ConfigManagement = () => {
           refresh();
       }}>{t('mgmt.config.header.refreshButton.refreshLabel')}</Button>
 
-      {isAdmin && <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-          setOpenRestartModal(true);
-      }}>{t('mgmt.config.header.restartButton.restartLabel')}</Button>}
+      {isAdmin && <Button variant="outlined" color="primary" 
+        startIcon={<ArrowDownOutlined />} href={"/cosmos/_logs"}>
+        {t('mgmt.config.header.downloadLogsButton.downloadLogsLabel')}
+      </Button>}
       
       <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
           API.metrics.reset().then((res) => {

@@ -10,6 +10,7 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { DashOutlined } from '@ant-design/icons';
+import { IconButton } from '@mui/material';
 
 const StyledMenu = styled((props) => (
   <Menu
@@ -52,7 +53,7 @@ const StyledMenu = styled((props) => (
   },
 }));
 
-export default function MenuButton({children}) {
+export default function MenuButton({children, size='large', icon=<DashOutlined  />}) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -64,7 +65,7 @@ export default function MenuButton({children}) {
 
   return (
     <div>
-      <Button
+      <IconButton
         id="demo-customized-button"
         aria-controls={open ? 'demo-customized-menu' : undefined}
         aria-haspopup="true"
@@ -72,14 +73,12 @@ export default function MenuButton({children}) {
         variant="outlined"
         disableElevation
         onClick={handleClick}
-        size='large'
+        size={size}
         sx={{
-          height: '60px',
-          width: '40px',
         }}
       >
-        <DashOutlined  />
-      </Button>
+        {icon}
+      </IconButton>
       <StyledMenu
         id="demo-customized-menu"
         MenuListProps={{

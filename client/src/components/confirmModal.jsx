@@ -51,6 +51,7 @@ const ConfirmModal = ({ callback, label, content, startIcon }) => {
 
 const ConfirmModalDirect = ({ callback, content, onClose }) => {
     const [openModal, setOpenModal] = useState(true);
+    const { t } = useTranslation();
 
     return <>
       <Dialog open={openModal} onClose={() => {

@@ -163,6 +163,7 @@
 	"mgmt.config.general.puppetMode.versionInput.versionLabel": "Puppet Mode Version",
 	"mgmt.config.general.puppetModeTitle": "Puppet Mode",
 	"mgmt.config.generalTitle": "General",
+	"mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Download Logs",
 	"mgmt.config.header.purgeMetricsButton.purgeMetricsLabel": "Purge Metrics Dashboard",
 	"mgmt.config.header.purgeMetricsButton.purgeMetricsPopUp.cofirmAction": "Are you sure you want to purge all the metrics data from the dashboards?",
 	"mgmt.config.header.refreshButton.refreshLabel": "Refresh",
@@ -729,6 +730,9 @@
 	"mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
 	"language.selectLanguage": "Select Language",
 	"global.downloadLogs": "Download Logs",
+	"global.restartCosmos": "Restart Cosmos Cloud",
+	"global.restartServer": "Restart Host Server",
+	"global.confirmRestartServer": "Are you sure you want to restart the host server?",
 	"mgmt.servApps.container.terminal.connected": "Connected to the terminal. Will receive new logs as they come.",
 	"mgmt.servApps.container.terminal.reconnectButton": "Reconnect"
 }

@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"context"
+	"os"
 
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -16,6 +17,22 @@ import (
 )
 
 func main() {
+	docker.IsInsideContainer()
+
+	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
+		utils.CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
+	} else if utils.IsInsideContainer {
+		utils.CONFIGFOLDER = "/config/"
+	}
+
+	utils.InitLogs()
+
+	if utils.IsInsideContainer {
+		utils.Log("Running inside Docker container")
+	} else {
+		utils.Log("Running outside Docker container")
+	}
+
 	utils.Log("------------------------------------------")
 	utils.Log("Starting Cosmos-Server version " + GetCosmosVersion())
 	utils.Log("------------------------------------------")
@@ -27,8 +44,6 @@ func main() {
 	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 
 	rand.Seed(time.Now().UnixNano())
-
-	docker.IsInsideContainer()
 	
 	LoadConfig()
 

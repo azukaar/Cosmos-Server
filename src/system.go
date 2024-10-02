@@ -6,6 +6,10 @@ import (
 	"runtime"
 	"bytes"
 	"encoding/gob"
+	"os"
+	"io"
+	"os/exec"
+	"fmt"
 
 	"golang.org/x/sys/cpu"
 
@@ -159,4 +163,99 @@ func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}
+}
+
+func LogsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if(req.Method == "GET") {
+		// read log file
+		logFile, err := os.Open(utils.CONFIGFOLDER + "cosmos.log")
+
+		if err != nil {
+			utils.Error("Logs: Error reading log file", err)
+			utils.HTTPError(w, "Internal server error: " + err.Error(), http.StatusInternalServerError, "HTTP001")
+			return
+		}
+
+		defer logFile.Close()
+
+		// read log file
+		logBytes, err := io.ReadAll(logFile)
+
+		if err != nil {
+			utils.Error("Logs: Error reading log file", err)
+			utils.HTTPError(w, "Internal server error: " + err.Error(), http.StatusInternalServerError, "HTTP001")
+			return
+		}
+
+		// send log file
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Disposition", "attachment; filename=cosmos.log")
+		w.Write(logBytes)
+	} else {
+		utils.Error("Logs: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+func restartHostMachineRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if(req.Method == "GET") {
+		utils.Log("API: Restarting host machine")
+
+		if utils.IsInsideContainer {
+			utils.Error("restartHostMachine: Restarting server from inside container is not possible", nil)
+			utils.HTTPError(w, "Restarting server from inside container is not possible", http.StatusForbidden, "HTTP001")
+			return
+		}
+
+		// restart host machine
+
+		err := restartHostMachine()
+		if err != nil {
+			utils.Error("restartHostMachine: Error restarting host machine (This usually means Cosmos does not have the permissions to restart your host server)", err)
+			utils.HTTPError(w, "Error restarting host machine (This usually means Cosmos does not have the permissions to restart your host server) - " + err.Error(), http.StatusInternalServerError, "HTTP001")
+			return
+		}
+
+	} else {
+		utils.Error("restartHostMachine: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+func restartHostMachine() error {
+	switch runtime.GOOS {
+	case "linux":
+			return restartLinux()
+	case "windows":
+			return restartWindows()
+	case "darwin":
+			return restartMacOS()
+	default:
+			return fmt.Errorf("unsupported operating system: %s", runtime.GOOS)
+	}
+}
+
+func restartLinux() error {
+	cmd := exec.Command("shutdown", "-r", "now")
+	return cmd.Run()
+}
+
+func restartWindows() error {
+	cmd := exec.Command("shutdown", "/r", "/t", "0")
+	return cmd.Run()
+}
+
+func restartMacOS() error {
+	cmd := exec.Command("shutdown", "-r", "now")
+	return cmd.Run()
 }

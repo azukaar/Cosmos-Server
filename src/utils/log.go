@@ -1,62 +1,113 @@
 package utils
 
 import (
-	"log"
 	"fmt"
+	"io"
+	"log"
+	"os"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-var Reset  = "\033[0m"
-var Red    = "\033[31m"
-var Green  = "\033[32m"
-var Yellow = "\033[33m"
-var Blue   = "\033[34m"
-var Purple = "\033[35m"
-var Cyan   = "\033[36m"
-var Gray   = "\033[37m"
-var White  = "\033[97m"
+var (
+	Reset    = "\033[0m"
+	Bold		 = "\033[1m"
+	nRed     = "\033[31m"
+	nGreen   = "\033[32m"
+	nYellow  = "\033[33m"
+	nBlue    = "\033[34m"
+	nPurple  = "\033[35m"
+	nCyan    = "\033[36m"
+	nGray    = "\033[37m"
+	nWhite   = "\033[97m"
+	nMagenta = "\033[95m"
+	nBlack   = "\033[30m"
+	bRed     = "\033[41m"
+	bGreen   = "\033[42m"
+	bYellow  = "\033[43m"
+	bBlue    = "\033[44m"
+	bMagenta = "\033[45m"
+	bCyan    = "\033[46m"
+	bGray    = "\033[47m"
+	bWhite   = "\033[107m"
+	bPurple  = "\033[45m"
+)
+
+type LogLevel int
+
+var (
+	logger      *log.Logger
+	errorLogger *log.Logger
+)
+
+func InitLogs() {
+	// Set up lumberjack log rotation
+	ljLogger := &lumberjack.Logger{
+		Filename:   CONFIGFOLDER + "cosmos.log",
+		MaxSize:    15, // megabytes
+		MaxBackups: 2,
+		MaxAge:     16, // days
+		Compress:   true,
+	}
+
+	// Create a multi-writer to log to both file and stdout
+	multiWriter := io.MultiWriter(ljLogger, os.Stdout)
+
+	// Create a multi-writer for errors to log to both file and stderr
+	errorWriter := io.MultiWriter(ljLogger, os.Stderr)
+
+	// Create loggers
+	logger = log.New(multiWriter, "", log.Ldate|log.Ltime)
+	errorLogger = log.New(errorWriter, "", log.Ldate|log.Ltime)
+
+	log.Println("Logging initialized") // shows
+	logger.Println("Logging initialized") // does not show
+}
+
+func logMessage(level LogLevel, prefix, prefixColor, color, message string) {
+	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
+	if ll <= level {
+		logString := prefixColor + Bold + prefix + Reset + " " + color + message + Reset
+		if level >= ERROR {
+			errorLogger.Println(logString)
+		} else {
+			logger.Println(logString)
+		}
+	}
+}
 
 func Debug(message string) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
-	if ll <= DEBUG {
-		log.Println(Purple + "[DEBUG] " + message + Reset)
-	}
+	logMessage(DEBUG, "[DEBUG]", bPurple, nPurple, message)
 }
 
 func Log(message string) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
-	if ll <= INFO {
-		log.Println(Blue + "[INFO] " + message + Reset)
-	}
+	logMessage(INFO, "[INFO]", bBlue, nBlue, message)
+}
+
+func LogReq(message string) {
+	logMessage(INFO, "[REQ]", bGreen, nGreen, message)
 }
 
 func Warn(message string) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
-	if ll <= WARNING {
-		log.Println(Yellow + "[WARN] " + message + Reset)
-	}
+	logMessage(WARNING, "[WARN]", bYellow, nYellow, message)
 }
 
 func Error(message string, err error) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
 	}
-	if ll <= ERROR {
-		log.Println(Red + "[ERROR] " + message + " : " + errStr + Reset)
-	}
+	logMessage(ERROR, "[ERROR]", bRed, nRed, message+" : "+errStr)
 }
 
 func MajorError(message string, err error) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
+	Error(message, err)
+
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
 	}
-	if ll <= ERROR {
-		log.Println(Red + "[ERROR] " + message + " : " + errStr + Reset)
-	}
-	
+
 	TriggerEvent(
 		"cosmos.error",
 		"Critical Error",
@@ -64,46 +115,37 @@ func MajorError(message string, err error) {
 		"",
 		map[string]interface{}{
 			"message": message,
-			"error": errStr,
-	})
+			"error":   errStr,
+		})
 
 	WriteNotification(Notification{
 		Recipient: "admin",
-		Title: "header.notification.title.serverError",
-		Message: message + " : " + errStr,
-		Vars: "",
-		Level: "error",
+		Title:     "header.notification.title.serverError",
+		Message:   message + " : " + errStr,
+		Vars:      "",
+		Level:     "error",
 	})
 }
 
 func Fatal(message string, err error) {
-	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
 	}
-	if ll <= ERROR {
-		log.Fatal(Red + "[FATAL] " + message + " : " + errStr + Reset)
-	}
+	errorLogger.Fatal(bRed + "[FATAL]" + Reset + " " + nRed + message + " : " + errStr + Reset)
 }
 
 func DoWarn(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	// \033[1;33m is the ANSI code for bold yellow
-	// \033[0m resets the color
-	return fmt.Sprintf("\033[1;33m[WARN] %s\033[0m", message)
+	return fmt.Sprintf("%s%s[WARN]%s %s%s%s", bYellow, nBlack, Reset, nYellow, message, Reset)
 }
 
 func DoErr(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	// \033[1;31m is the ANSI code for bold red
-	// \033[0m resets the color
-	return fmt.Sprintf("\033[1;31m[ERROR] %s\033[0m", message)
+	return fmt.Sprintf("%s%s[ERROR]%s %s%s%s", bRed, nWhite, Reset, nRed, message, Reset)
 }
 
 func DoSuccess(format string, a ...interface{}) string {
 	message := fmt.Sprintf(format, a...)
-	// \033[1;32m is the ANSI code for bold green
-	// \033[0m resets the color
-	return fmt.Sprintf("\033[1;32m[SUCCESS] %s\033[0m", message)
+	return fmt.Sprintf("%s%s[SUCCESS]%s %s%s%s", bGreen, nBlack, Reset, nGreen, message, Reset)
 }

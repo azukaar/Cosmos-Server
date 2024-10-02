@@ -9,6 +9,7 @@ import Notification from './Notification';
 import MobileSection from './MobileSection';
 import Jobs from './jobs';
 import { useTranslation } from 'react-i18next';
+import RestartMenu from './restartMenu';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -28,6 +29,7 @@ const HeaderContent = () => {
                 <Link href="/cosmos-ui/logout" underline="none">
                     <Chip label={t('global.logout')} />
                 </Link>
+                <RestartMenu />
             </Stack>
             {/* {!matchesXs && <Profile />}
             {matchesXs && <MobileSection />} */}

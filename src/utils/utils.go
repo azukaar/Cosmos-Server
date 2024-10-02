@@ -327,10 +327,6 @@ func LoadBaseMainConfig(config Config) {
 	if os.Getenv("COSMOS_SERVER_COUNTRY") != "" {
 		MainConfig.ServerCountry = os.Getenv("COSMOS_SERVER_COUNTRY")
 	}
-	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
-		Log("Overwriting config folder with " + os.Getenv("COSMOS_CONFIG_FOLDER"))
-		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
-	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
 		MainConfig.DockerConfig.DefaultDataPath = "/usr"
@@ -353,13 +349,7 @@ func SanitizeSafe(s string) string {
 	return strings.TrimSpace(s)
 }
 
-func GetConfigFileName() string {
-	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
-		CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
-	} else if IsInsideContainer {
-		CONFIGFOLDER = "/config/"
-	}
-	
+func GetConfigFileName() string {	
 	configFile := os.Getenv("CONFIG_FILE")
 
 	if configFile == "" {

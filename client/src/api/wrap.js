@@ -31,7 +31,7 @@ export default function wrap(apicall, noError = false) {
       return rep;
     } 
 
-    if (!noError) {
+    if (!noError && rep.message) {
       snackit(rep.message);
     }
     
