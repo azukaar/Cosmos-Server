@@ -185,6 +185,7 @@ jobs:
             PKG_NAME=cosmos-cloud
             MAINTAINER_NAME="Yann Stepienik"
             MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
+            GH_TOKEN=$GITHUB_TOKEN
             gh release create v$VERSION \
               ../${PKG_NAME}_${VERSION}_amd64.deb \
               ../${PKG_NAME}_${VERSION}_arm64.deb \
