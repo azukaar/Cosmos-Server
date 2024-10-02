@@ -1,4 +1,8 @@
 version: 2
+
+orbs:
+  gh: circleci/github-cli@2.2.0
+
 jobs:
   build:
     machine: # executor type
@@ -6,6 +10,26 @@ jobs:
 
     steps:
       - checkout
+
+      - run:
+          name: Set environment variables
+          command: |
+            echo 'export VERSION=$(jq -r .version package.json)' >> $BASH_ENV
+            echo 'export PKG_NAME=cosmos-cloud' >> $BASH_ENV
+            source $BASH_ENV
+            
+      - gh/setup
+
+      - gh/release:
+          name: Create GitHub Release
+          tag: v${VERSION}
+          files: |
+            ../${PKG_NAME}_${VERSION}_amd64.deb
+            ../${PKG_NAME}_${VERSION}_arm64.deb
+            ${PKG_NAME}-${VERSION}-amd64.zip
+            ${PKG_NAME}-${VERSION}-arm64.zip
+          title: Release $VERSION
+          notes: Release version $VERSION for x86_64 and ARM64 architectures
 
       - run:
           name: Install GitHub CLI
@@ -178,21 +202,21 @@ jobs:
             zip -r ${PKG_NAME}-${VERSION}-amd64.zip ${PKG_NAME}-${VERSION}
             zip -r ${PKG_NAME}-${VERSION}-arm64.zip ${PKG_NAME}-${VERSION}-arm64
 
-      - run:
-          name: Create GitHub Release
-          command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
-            GH_TOKEN=$GITHUB_TOKEN
-            gh release create v$VERSION \
-              ../${PKG_NAME}_${VERSION}_amd64.deb \
-              ../${PKG_NAME}_${VERSION}_arm64.deb \
-              ${PKG_NAME}-${VERSION}-amd64.zip \
-              ${PKG_NAME}-${VERSION}-arm64.zip \
-              --title "Release $VERSION" \
-              --notes "Release version $VERSION for x86_64 and ARM64 architectures"
+      # - run:
+      #     name: Create GitHub Release
+      #     command: |
+      #       VERSION=$(jq -r .version package.json)
+      #       PKG_NAME=cosmos-cloud
+      #       MAINTAINER_NAME="Yann Stepienik"
+      #       MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
+      #       GH_TOKEN=$GITHUB_TOKEN
+      #       gh release create v$VERSION \
+      #         ../${PKG_NAME}_${VERSION}_amd64.deb \
+      #         ../${PKG_NAME}_${VERSION}_arm64.deb \
+      #         ${PKG_NAME}-${VERSION}-amd64.zip \
+      #         ${PKG_NAME}-${VERSION}-arm64.zip \
+      #         --title "Release $VERSION" \
+      #         --notes "Release version $VERSION for x86_64 and ARM64 architectures"
 
 workflows:
   version: 2
