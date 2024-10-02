@@ -17,8 +17,6 @@ jobs:
             echo 'export VERSION=$(jq -r .version package.json)' >> $BASH_ENV
             echo 'export PKG_NAME=cosmos-cloud' >> $BASH_ENV
             source $BASH_ENV
-            
-      - gh/setup
 
       - gh/release:
           name: Create GitHub Release
