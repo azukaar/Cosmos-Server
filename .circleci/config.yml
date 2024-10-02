@@ -20,7 +20,8 @@ jobs:
       - run:
           name: Authenticate GitHub CLI
           command: |
-            echo "$GITHUB_TOKEN" | gh auth login --with-token
+            gh auth setup-git
+            echo "${GITHUB_TOKEN}" | gh auth login --with-token
             
       - run:
           name: Setup docker and buildx
