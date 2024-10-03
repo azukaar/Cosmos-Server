@@ -65,6 +65,12 @@ func logMessage(level LogLevel, prefix, prefixColor, color, message string) {
 	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
 	if ll <= level {
 		logString := prefixColor + Bold + prefix + Reset + " " + color + message + Reset
+		
+		if logger == nil || errorLogger == nil {
+			log.Println(logString)
+			return
+		}
+
 		if level >= ERROR {
 			errorLogger.Println(logString)
 		} else {
