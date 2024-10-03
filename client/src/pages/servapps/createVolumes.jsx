@@ -30,8 +30,8 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
       driver: 'local',
     },
     validationSchema: Yup.object({
-      name: Yup.string().required('Required'),
-      driver: Yup.string().required('Required'),
+      name: Yup.string().required(t('global.required')),
+      driver: Yup.string().required(t('global.required')),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);
