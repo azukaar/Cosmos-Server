@@ -167,10 +167,7 @@ jobs:
           name: Store artifacts
           command: |
             mkdir -p /tmp/artifacts
-            cp ../${PKG_NAME}_${VERSION}_amd64.deb /tmp/artifacts/${PKG_NAME}_${VERSION}_amd64.deb
-            cp ../${PKG_NAME}_${VERSION}_arm64.deb /tmp/artifacts/${PKG_NAME}_${VERSION}_arm64.deb
-            cp ${PKG_NAME}-${VERSION}-amd64.zip /tmp/artifacts/${PKG_NAME}-${VERSION}-amd64.zip
-            cp ${PKG_NAME}-${VERSION}-arm64.zip /tmp/artifacts/${PKG_NAME}-${VERSION}-arm64.zip
+            cp ../${PKG_NAME}* /tmp/artifacts/
       
       - store_artifacts:
           path: /tmp/artifacts

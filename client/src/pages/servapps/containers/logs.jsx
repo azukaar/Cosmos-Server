@@ -39,7 +39,17 @@ const Logs = ({ containerInfo }) => {
   const terminalRef = useRef(null);
   const oldScrollHeightRef = useRef(0);
   const oldScrollTopRef = useRef(0);
-  
+
+  function debConnect(func, timeout = 500){
+    let timer;
+    return (...args) => {
+      if(!timer) {
+        func.apply(this, args);
+        timer = setTimeout(() => { timer = null; }, timeout);
+      }
+    };
+  }
+
   const connect = () => {
     let wasFirst = true;
 
@@ -133,17 +143,27 @@ const Logs = ({ containerInfo }) => {
       }, 30000); // Send a ping every 30 seconds
     };
 
-    return () => {
-      setIsConnected(false);
-      if(pingInterval.current)
-        clearInterval(pingInterval.current);
-      ws.current.close();
-    };
   };
 
   useEffect(() => {
-    return connect();
+    if(containerInfo && !isConnected) {
+      debConnect(connect, 2000)();
+    
+      return () => {
+        setIsConnected(false);
+        if(pingInterval.current)
+          clearInterval(pingInterval.current);
+        if(ws.current)
+          ws.current.close();
+      };
+    }
   }, [containerInfo]);
+
+  useEffect(() => {
+    if (!isConnected) {
+      debConnect(connect, 2000)();
+    }
+  }, [isConnected]);
 
   const scrollToBottom = () => {
     bottomRef.current?.scrollIntoView({  });
@@ -200,7 +220,6 @@ const Logs = ({ containerInfo }) => {
 
   const [lastLastline, setLastLastline] = useState(null);
   useEffect(() => {
-    console.log(hasScrolled)
     if (!hasScrolled) {
       scrollToBottom();
     } else if (terminalRef.current) {
@@ -217,7 +236,7 @@ const Logs = ({ containerInfo }) => {
     const { scrollTop, scrollHeight, clientHeight } = event.target;
     
     // Check if we're at the bottom of the scroll
-    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 1; // -1 to account for potential rounding errors
+    const isAtBottom = scrollTop + clientHeight >= scrollHeight - 25;
     
     setHasScrolled(!isAtBottom);
     
