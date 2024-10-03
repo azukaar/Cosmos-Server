@@ -8,6 +8,15 @@ jobs:
       - checkout
 
       - run:
+          name: Set environment variables
+          command: |
+            echo 'export VERSION=$(jq -r .version package.json)' >> $BASH_ENV
+            echo 'export PKG_NAME=cosmos-cloud' >> $BASH_ENV
+            echo 'export MAINTAINER_NAME="Yann Stepienik"' >> $BASH_ENV
+            echo 'export MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"' >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
           name: Install GitHub CLI
           command: |
             type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
@@ -99,10 +108,6 @@ jobs:
       - run:
           name: Prepare Debian package structure
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             mkdir -p ${PKG_NAME}-${VERSION}
             cp -r build/* ${PKG_NAME}-${VERSION}/
             cd ${PKG_NAME}-${VERSION}
@@ -115,10 +120,6 @@ jobs:
       - run:
           name: Customize Debian control files
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}/debian
             echo "override_dh_auto_install:" >> rules
             echo "	dh_auto_install -- prefix=/usr/local/${PKG_NAME}" >> rules
@@ -128,10 +129,6 @@ jobs:
       - run:
           name: Build x86_64 .deb package
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}
             chmod 0755 debian
             find debian -type d -exec chmod 0755 {} \;
@@ -142,10 +139,6 @@ jobs:
       - run:
           name: Prepare ARM64 package structure
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             mkdir -p ${PKG_NAME}-${VERSION}-arm64
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
@@ -157,10 +150,6 @@ jobs:
       - run:
           name: Build ARM64 .deb package
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             cd ${PKG_NAME}-${VERSION}-arm64
             chmod 0755 debian
             find debian -type d -exec chmod 0755 {} \;
@@ -171,25 +160,21 @@ jobs:
       - run:
           name: Create .zip packages
           command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
             zip -r ${PKG_NAME}-${VERSION}-amd64.zip ${PKG_NAME}-${VERSION}
             zip -r ${PKG_NAME}-${VERSION}-arm64.zip ${PKG_NAME}-${VERSION}-arm64
 
+      - run:
+          name: Store artifacts
+          command: |
+            mkdir -p /tmp/artifacts
+            cp ../${PKG_NAME}_${VERSION}_amd64.deb /tmp/artifacts/${PKG_NAME}_${VERSION}_amd64.deb
+            cp ../${PKG_NAME}_${VERSION}_arm64.deb /tmp/artifacts/${PKG_NAME}_${VERSION}_arm64.deb
+            cp ${PKG_NAME}-${VERSION}-amd64.zip /tmp/artifacts/${PKG_NAME}-${VERSION}-amd64.zip
+            cp ${PKG_NAME}-${VERSION}-arm64.zip /tmp/artifacts/${PKG_NAME}-${VERSION}-arm64.zip
+      
       - store_artifacts:
-          path: ../${PKG_NAME}_${VERSION}_amd64.deb
-          destination: ${PKG_NAME}_${VERSION}_amd64.deb
-      - store_artifacts:
-          path: ../${PKG_NAME}_${VERSION}_arm64.deb
-          destination: ${PKG_NAME}_${VERSION}_arm64.deb
-      - store_artifacts:
-          path: ${PKG_NAME}-${VERSION}-amd64.zip
-          destination: ${PKG_NAME}-${VERSION}-amd64.zip
-      - store_artifacts:
-          path: ${PKG_NAME}-${VERSION}-arm64.zip
-          destination: ${PKG_NAME}-${VERSION}-arm64.zip
+          path: /tmp/artifacts
+          destination: packages
 
       # - run:
       #     name: Create GitHub Release
