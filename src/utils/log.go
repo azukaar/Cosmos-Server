@@ -59,9 +59,6 @@ func InitLogs() {
 	// Create loggers
 	logger = log.New(multiWriter, "", log.Ldate|log.Ltime)
 	errorLogger = log.New(errorWriter, "", log.Ldate|log.Ltime)
-
-	log.Println("Logging initialized") // shows
-	logger.Println("Logging initialized") // does not show
 }
 
 func logMessage(level LogLevel, prefix, prefixColor, color, message string) {

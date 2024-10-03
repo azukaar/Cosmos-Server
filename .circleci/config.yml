@@ -178,21 +178,34 @@ jobs:
             zip -r ${PKG_NAME}-${VERSION}-amd64.zip ${PKG_NAME}-${VERSION}
             zip -r ${PKG_NAME}-${VERSION}-arm64.zip ${PKG_NAME}-${VERSION}-arm64
 
-      - run:
-          name: Create GitHub Release
-          command: |
-            VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
-            MAINTAINER_NAME="Yann Stepienik"
-            MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
-            GH_TOKEN=$GITHUB_TOKEN
-            gh release create v$VERSION \
-              ../${PKG_NAME}_${VERSION}_amd64.deb \
-              ../${PKG_NAME}_${VERSION}_arm64.deb \
-              ${PKG_NAME}-${VERSION}-amd64.zip \
-              ${PKG_NAME}-${VERSION}-arm64.zip \
-              --title "Release $VERSION" \
-              --notes "Release version $VERSION for x86_64 and ARM64 architectures"
+      - store_artifacts:
+          path: ../${PKG_NAME}_${VERSION}_amd64.deb
+          destination: ${PKG_NAME}_${VERSION}_amd64.deb
+      - store_artifacts:
+          path: ../${PKG_NAME}_${VERSION}_arm64.deb
+          destination: ${PKG_NAME}_${VERSION}_arm64.deb
+      - store_artifacts:
+          path: ${PKG_NAME}-${VERSION}-amd64.zip
+          destination: ${PKG_NAME}-${VERSION}-amd64.zip
+      - store_artifacts:
+          path: ${PKG_NAME}-${VERSION}-arm64.zip
+          destination: ${PKG_NAME}-${VERSION}-arm64.zip
+
+      # - run:
+      #     name: Create GitHub Release
+      #     command: |
+      #       VERSION=$(jq -r .version package.json)
+      #       PKG_NAME=cosmos-cloud
+      #       MAINTAINER_NAME="Yann Stepienik"
+      #       MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"
+      #       GH_TOKEN=$GITHUB_TOKEN
+      #       gh release create v$VERSION \
+      #         ../${PKG_NAME}_${VERSION}_amd64.deb \
+      #         ../${PKG_NAME}_${VERSION}_arm64.deb \
+      #         ${PKG_NAME}-${VERSION}-amd64.zip \
+      #         ${PKG_NAME}-${VERSION}-arm64.zip \
+      #         --title "Release $VERSION" \
+      #         --notes "Release version $VERSION for x86_64 and ARM64 architectures"
 
 workflows:
   version: 2

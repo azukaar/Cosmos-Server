@@ -921,16 +921,13 @@ func IsInsideContainer() {
 	if os.Getenv("HOSTNAME") != "" {
 		errD := Connect()
 		if errD != nil {
-			utils.Error("isInsideContainer", errD)
 			return
 		}
 
 		_, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
 
-		utils.Debug("isInsideContainer - Checking if inside container " + os.Getenv("HOSTNAME"))
 
 		if err == nil {
-			utils.Debug("isInsideContainer - Inside container " + os.Getenv("HOSTNAME"))
 			utils.IsInsideContainer = true
 		}
 	}
