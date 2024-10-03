@@ -167,7 +167,8 @@ jobs:
           name: Store artifacts
           command: |
             mkdir -p /tmp/artifacts
-            cp ../${PKG_NAME}* /tmp/artifacts/
+            cp ${PKG_NAME}*.deb /tmp/artifacts/
+            cp ${PKG_NAME}*.zip /tmp/artifacts/
       
       - store_artifacts:
           path: /tmp/artifacts
