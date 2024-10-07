@@ -7,6 +7,7 @@ import * as API from '../../api';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewNetworkButton from './createNetwork';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 export const NetworksColumns = (theme, isDark, t) => [
   {
@@ -42,7 +43,7 @@ export const NetworksColumns = (theme, isDark, t) => [
   {
     title: t('global.createdAt'),
     screenMin: 'lg',
-    field: (r) => r.Created ? new Date(r.Created).toLocaleString() : '-',
+    field: (r) => r.Created ? dayjs(new Date(r.Created)).format('L, LT') : '-',
   },
 ];
 
