@@ -92,6 +92,7 @@ require (
 	github.com/cloudflare/cloudflare-go v0.86.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/cpu/goacmedns v0.1.1 // indirect
+	github.com/creack/pty v1.1.23 // indirect
 	github.com/cristalhq/jwt/v4 v4.0.2 // indirect
 	github.com/dave/jennifer v1.4.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
