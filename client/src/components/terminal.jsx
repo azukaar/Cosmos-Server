@@ -49,9 +49,7 @@ const TerminalComponent = ({refresh, connectButtons}) => {
 
     ws.current = connectFunction();
 
-    ws.current.onmessage = async (event) => {
-      console.log('Received:', event);
-    
+    ws.current.onmessage = async (event) => {    
       if (event.data === '_PONG_') {
         return;
       }
