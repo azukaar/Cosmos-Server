@@ -30,6 +30,7 @@ const TerminalHeader = () => {
 				aria-label="open profile"
 				aria-haspopup="true"
 				onClick={onopen}
+				disabled={!status || status.containerized}
 		>
 			<Tooltip title={(!status || status.containerized) ?
 				t('mgmt.servapps.containers.terminal.disabled') :
