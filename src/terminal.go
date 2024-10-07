@@ -1,14 +1,11 @@
 package main
 
 import (
-	// "context"
 	"net/http"
 	"os/exec"
-	// "syscall"
+	"syscall"
 	"time"
 	"io"
-	// "os"
-	// "os/signal"
 
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
@@ -56,6 +53,19 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 	
 	// Create arbitrary command.
 	c := exec.Command("bash")
+
+	// Specify the UID 
+
+	uid := uint32(1000)  // Replace with the desired UID
+	gid := uint32(1000)  // Replace with the primary GID of the user
+	
+	c.SysProcAttr = &syscall.SysProcAttr{
+			Credential: &syscall.Credential{
+					Uid: uid,
+					Gid: gid,
+			},
+	}
+
   // Set environment variables for better terminal emulation
 	// env := os.Environ()
 	env := []string{}
@@ -101,17 +111,6 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 	// go func() { _, _ = io.Copy(ptmx, os.Stdin) }()
 	// _, _ = io.Copy(os.Stdout, ptmx)
 
-	// Specify the UID you want to run the command as
-
-	// uid := uint32(1000)  // Replace with the desired UID
-	// gid := uint32(1000)  // Replace with the primary GID of the user
-	// Set the user and group ID of the process
-	// cmd.SysProcAttr = &syscall.SysProcAttr{
-	// 		Credential: &syscall.Credential{
-	// 				Uid: uid,
-	// 				Gid: gid,
-	// 		},
-	// }
 		
 	// stdin, err := cmd.StdinPipe()
 	// if err != nil {

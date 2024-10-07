@@ -5,11 +5,14 @@ import TerminalComponent from "../../../../components/terminal";
 
 import * as API from '../../../../api';
 import { useTranslation } from "react-i18next";
+import { useClientInfos } from "../../../../utils/hooks";
 
 const TerminalHeader = () => {
 	const [open, setOpen] = React.useState(false);
 	const [status, setStatus] = React.useState(false);
   const { t, Trans } = useTranslation();
+	const {role} = useClientInfos();
+	const isAdmin = role === "2";
 
 	useEffect(() => {
     API.getStatus().then((res) => {
@@ -21,8 +24,7 @@ const TerminalHeader = () => {
 			setOpen((prevOpen) => !prevOpen);
 	};
 
-	return (
-		<>
+	return isAdmin ? (<>
 	  <IconButton
 				disableRipple
 				color="secondary"
@@ -61,8 +63,7 @@ const TerminalHeader = () => {
             }}>Close</Button>
         </DialogActions>
 		</Dialog>
-		</>
-	);
+		</>) : null
 }
 
 export default TerminalHeader;
