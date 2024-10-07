@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Proszę wybrać kontener",
   "mgmt.config.containerPicker.containerPortInput": "Port kontenera",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Proszę wprowadzić port",
-  "mgmt.config.containerPicker.containerProtocolInput": "Protokół kontenera (użyj HTTP, jeśli nie masz pewności, lub tcp dla proxy nie-http)",
   "mgmt.config.containerPicker.targetTypePreview": "Podgląd wyniku celu",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "To zostanie wygenerowane automatycznie",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Nieprawidłowy cel, musi mieć port",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "Ten serwer nie jest połączony z Konstelacją",
   "mgmt.constellation.setup.dataSync.label": "Synchronizuj poświadczenia z innymi latarniami morskimi (Zalecane)",
   "newInstall.warnLocalhost": "W większości przypadków nie należy używać localhost jako nazwy hosta. Jeśli uruchamiasz Cosmos na serwerze, powinieneś użyć adresu IP serwera lub nazwy domeny.",
-  "newInstall.localDomains": "Cosmos wspiera lokalne domeny. Oznacza to, że możesz używać cosmos.local jako domeny, aby uzyskać dostęp do swojego serwera! Ale przed skorzystaniem z niej sprawdź, czy działa, uzyskując dostęp do tej strony za pomocą http://setup-cosmos.local. Jeśli nie działa, możesz sprawdzić dokumentację i dzienniki, aby znaleźć wskazówki, dlaczego."
+  "newInstall.localDomains": "Cosmos wspiera lokalne domeny. Oznacza to, że możesz używać cosmos.local jako domeny, aby uzyskać dostęp do swojego serwera! Ale przed skorzystaniem z niej sprawdź, czy działa, uzyskując dostęp do tej strony za pomocą http://setup-cosmos.local. Jeśli nie działa, możesz sprawdzić dokumentację i dzienniki, aby znaleźć wskazówki, dlaczego.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Protokół kontenera (użyj HTTP, jeśli nie jesteś pewien, lub tcp / udp dla innych protokołów)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Pobierz dzienniki",
+  "global.downloadLogs": "Pobierz dzienniki",
+  "global.restartCosmos": "Uruchom ponownie Cosmos Cloud",
+  "global.restartServer": "Uruchom ponownie serwer główny",
+  "global.connect": "Połącz",
+  "global.confirmRestartServer": "Czy na pewno chcesz uruchomić ponownie serwer główny?",
+  "mgmt.servApps.container.terminal.connected": "Połączony z terminalem. Otrzyma nowe dzienniki, gdy się pojawią.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Połącz ponownie",
+  "mgmt.servapps.containers.terminal.disabled": "Terminal serwera jest wyłączony, gdy używasz Cosmos jako kontenera",
+  "mgmt.servapps.containers.terminal.enabled": "Terminal serwera",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Docelowy URL powinien zaczynać się od http:// lub https://, jeśli chcesz używać serwera proxy HTTP (dla aplikacji internetowej). W większości przypadków to właśnie to, czego chcesz."
 }

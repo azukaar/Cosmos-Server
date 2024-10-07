@@ -22,30 +22,6 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-// func splitIntoChunks(input string, chunkSize int) [][]LogOutput {
-// 	lines := strings.Split(input, "\n")
-// 	var chunks [][]LogOutput
-
-// 	for i := 0; i < len(lines); i += chunkSize {
-// 			end := i + chunkSize
-
-// 			// Avoid going over the end of the array
-// 			if end > len(lines) {
-// 					end = len(lines)
-// 			}
-
-// 			var chunk []LogOutput
-// 			for j := i; j < end; j++ {
-// 				chunk = append(chunk, ParseDockerLogHeader(([]byte)(
-// 					lines[j],
-// 				)))
-// 			}
-// 			chunks = append(chunks, chunk)
-// 	}
-
-// 	return chunks
-// }
-
 func splitIntoChunks(input string) []string {
 	// split every 512 characters
 	chunkSize := 512

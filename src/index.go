@@ -14,6 +14,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/metrics"
 	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/cron"
+	"github.com/azukaar/cosmos-server/src/proxy"
 )
 
 func main() {
@@ -72,6 +73,8 @@ func main() {
 	}
 
 	config := utils.GetMainConfig()
+
+	proxy.InitSocketShield()
 	
 	if !config.NewInstall {
 		MigratePre013()

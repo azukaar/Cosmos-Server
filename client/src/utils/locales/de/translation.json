@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Bitte wählen Sie einen Container",
   "mgmt.config.containerPicker.containerPortInput": "Containerport",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Bitte geben Sie einen Port ein",
-  "mgmt.config.containerPicker.containerProtocolInput": "Container-Protokoll (verwenden Sie HTTP, wenn Sie unsicher sind, oder tcp für nicht-http Proxying)",
   "mgmt.config.containerPicker.targetTypePreview": "Ergebnisvorschau",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "Wird automatisch generiert",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Ungültiges Ziel, muss einen Port haben",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "Dieser Server ist nicht mit Constellation verbunden",
   "mgmt.constellation.setup.dataSync.label": "Anmeldedaten mit anderen Leuchttürmen synchronisieren (Empfohlen)",
   "newInstall.warnLocalhost": "In den meisten Fällen sollten Sie localhost nicht als Hostnamen verwenden. Wenn Sie Cosmos auf einem Server betreiben, sollten Sie die IP-Adresse des Servers oder einen Domainnamen verwenden.",
-  "newInstall.localDomains": "Cosmos unterstützt lokale Domains. Das bedeutet, dass Sie cosmos.local als Domain verwenden können, um auf Ihren Server zuzugreifen! Bevor Sie es jedoch verwenden, überprüfen Sie, ob es für Sie funktioniert, indem Sie diese Seite mit http://setup-cosmos.local aufrufen. Wenn nicht, können Sie die Dokumentation und die Protokolle überprüfen, um Hinweise darauf zu finden, warum es nicht funktioniert."
+  "newInstall.localDomains": "Cosmos unterstützt lokale Domains. Das bedeutet, dass Sie cosmos.local als Domain verwenden können, um auf Ihren Server zuzugreifen! Bevor Sie es jedoch verwenden, überprüfen Sie, ob es für Sie funktioniert, indem Sie diese Seite mit http://setup-cosmos.local aufrufen. Wenn nicht, können Sie die Dokumentation und die Protokolle überprüfen, um Hinweise darauf zu finden, warum es nicht funktioniert.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Container-Protokoll (verwenden Sie HTTP, wenn unsicher, oder tcp / udp für andere Protokolle)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Protokolle herunterladen",
+  "global.downloadLogs": "Protokolle herunterladen",
+  "global.restartCosmos": "Cosmos Cloud neu starten",
+  "global.restartServer": "Host-Server neu starten",
+  "global.connect": "Verbinden",
+  "global.confirmRestartServer": "Sind Sie sicher, dass Sie den Host-Server neu starten möchten?",
+  "mgmt.servApps.container.terminal.connected": "Mit dem Terminal verbunden. Neue Protokolle werden bei Eingang empfangen.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Erneut verbinden",
+  "mgmt.servapps.containers.terminal.disabled": "Server-Terminal ist deaktiviert, wenn Cosmos als Container verwendet wird",
+  "mgmt.servapps.containers.terminal.enabled": "Server-Terminal",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Die Ziel-URL sollte mit http:// oder https:// beginnen, wenn Sie den HTTP-Proxy verwenden möchten (für eine Web-App). In den meisten Fällen ist dies, was Sie möchten."
 }

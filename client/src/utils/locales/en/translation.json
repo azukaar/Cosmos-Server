@@ -117,7 +117,7 @@
 	"mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Please select a container",
 	"mgmt.config.containerPicker.containerPortInput": "Container Port",
 	"mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Please enter a port",
-	"mgmt.config.containerPicker.containerProtocolInput": "Container Protocol (use HTTP if unsure, or tcp for non-http proxying)",
+	"mgmt.config.containerPicker.containerProtocolInput2": "Container Protocol (use HTTP if unsure, or tcp / udp for other protocols)",
 	"mgmt.config.containerPicker.targetTypePreview": "Result Target Preview",
 	"mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "This will be generated automatically",
 	"mgmt.config.containerPicker.targetTypeValidation.noPort": "Invalid Target, must have a port",
@@ -732,7 +732,11 @@
 	"global.downloadLogs": "Download Logs",
 	"global.restartCosmos": "Restart Cosmos Cloud",
 	"global.restartServer": "Restart Host Server",
+	"global.connect": "Connect",
 	"global.confirmRestartServer": "Are you sure you want to restart the host server?",
 	"mgmt.servApps.container.terminal.connected": "Connected to the terminal. Will receive new logs as they come.",
-	"mgmt.servApps.container.terminal.reconnectButton": "Reconnect"
+	"mgmt.servApps.container.terminal.reconnectButton": "Reconnect",
+	"mgmt.servapps.containers.terminal.disabled": "Server Terminal is disabled when using Cosmos as a container",
+	"mgmt.servapps.containers.terminal.enabled": "Server Terminal",
+	"mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "The target URL should start with http:// or https:// if you want to use the HTTP proxy (for a web app). In most cases it is what you want."
 }

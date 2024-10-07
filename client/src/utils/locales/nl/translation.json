@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Selecteer een container",
   "mgmt.config.containerPicker.containerPortInput": "Containerpoort",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Voer een poort in",
-  "mgmt.config.containerPicker.containerProtocolInput": "Containerprotocol (gebruik HTTP als je het niet zeker weet, of tcp voor niet-http proxying)",
   "mgmt.config.containerPicker.targetTypePreview": "Resultaat doel voorbeeld",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "Dit wordt automatisch gegenereerd",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Ongeldig doel, moet een poort hebben",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "Deze server is niet verbonden met Constellation",
   "mgmt.constellation.setup.dataSync.label": "Geloofsbrieven synchroniseren met andere vuurtorens (Aanbevolen)",
   "newInstall.warnLocalhost": "In de meeste gevallen moet u localhost niet gebruiken als hostnaam. Als u Cosmos op een server uitvoert, moet u het IP-adres van de server of een domeinnaam gebruiken.",
-  "newInstall.localDomains": "Cosmos ondersteunt lokale domeinen. Dit betekent dat u cosmos.local kunt gebruiken als het domein om toegang te krijgen tot uw server! Maar voordat u het gebruikt, controleer of het voor u werkt door deze pagina te openen met http://setup-cosmos.local . Als dit niet werkt, kunt u de documentatie en de logs controleren voor aanwijzingen waarom."
+  "newInstall.localDomains": "Cosmos ondersteunt lokale domeinen. Dit betekent dat u cosmos.local kunt gebruiken als het domein om toegang te krijgen tot uw server! Maar voordat u het gebruikt, controleer of het voor u werkt door deze pagina te openen met http://setup-cosmos.local . Als dit niet werkt, kunt u de documentatie en de logs controleren voor aanwijzingen waarom.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Containerprotocol (gebruik HTTP als u het niet zeker weet, of tcp / udp voor andere protocollen)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Logboeken downloaden",
+  "global.downloadLogs": "Logboeken downloaden",
+  "global.restartCosmos": "Cosmos Cloud herstarten",
+  "global.restartServer": "Hostserver herstarten",
+  "global.connect": "Verbinden",
+  "global.confirmRestartServer": "Weet u zeker dat u de hostserver opnieuw wilt opstarten?",
+  "mgmt.servApps.container.terminal.connected": "Verbonden met de terminal. Nieuwe logboeken worden ontvangen zodra ze binnenkomen.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Opnieuw verbinden",
+  "mgmt.servapps.containers.terminal.disabled": "De serverterminal is uitgeschakeld bij gebruik van Cosmos als een container",
+  "mgmt.servapps.containers.terminal.enabled": "Serverterminal",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "De doellocatie-URL moet beginnen met http:// of https:// als u de HTTP-proxy wilt gebruiken (voor een webapp). In de meeste gevallen is dit wat u wilt."
 }

@@ -1,9 +1,16 @@
 ## Version 0.17.0
- - Added zip and deb packages for distribution
+ - Added zip and deb packages for docker-less distribution
+ - Added TCP/UDP socket proxying
+ - TCP/UDP proxying includes smart-shield protections, constellation support, geoblocking, and monitoring
+ - Added terminal shortcut on the top right header
+ - Added restart server and restart cosmos button on the top right header
  - Added log file in the config folder and a download button in the config page
  - Fixed bug where lighthouses would not consider the home server as lighthouse in Constellation
  - Improved keep alive in the Websocket for terminal (to prevent timeouts during long operations)
  - Improve logs screen for containers (better colors, fix scrolling, auto-refresh, ...)
+ - Fix bug with missing post-install instructs on service creation
+ - Added missing geo block events in monitoring
+ - Improved accessiblity of the menu for screen readers
 
 ## Version 0.16.3
  - Local domains now produce services instead of CNAME for better compatibility

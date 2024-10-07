@@ -6,7 +6,7 @@ import * as API from "../../api";
 import wallpaper from '../../assets/images/wallpaper2.jpg';
 import wallpaperLight from '../../assets/images/wallpaper2_light.jpg';
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { getFaviconURL } from "../../utils/routes";
+import { getFaviconURL, IsRouteSocketProxy } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
 import { ServAppIcon } from "../../utils/servapp-icon";
@@ -468,6 +468,10 @@ const HomePage = () => {
                 let skip = route.Mode == "REDIRECT";
                 let containerName;
                 let container;
+                const isSocketProxy = IsRouteSocketProxy(route);
+
+                console.log(route, isSocketProxy);
+
                 if (route.Mode == "SERVAPP") {
                     containerName = route.Target.split(':')[1].slice(2);
                     container = servApps.find((c) => c.Names.includes('/' + containerName));
@@ -477,8 +481,8 @@ const HomePage = () => {
                     // }
                 }
                 
-                if (route.HideFromDashboard) 
-                    skip = true;
+                if (route.HideFromDashboard || isSocketProxy)
+                    skip = true; 
 
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
                 

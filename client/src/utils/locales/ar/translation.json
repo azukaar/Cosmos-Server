@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "يرجى اختيار حاوية",
   "mgmt.config.containerPicker.containerPortInput": "منفذ الحاوية",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "يرجى إدخال منفذ",
-  "mgmt.config.containerPicker.containerProtocolInput": "بروتوكول الحاوية (استخدم HTTP إذا كنت غير متأكد، أو tcp للبروكسي غير http)",
   "mgmt.config.containerPicker.targetTypePreview": "معاينة الهدف الناتج",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "سيتم إنشاؤه تلقائيًا",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "الهدف غير صالح، يجب أن يحتوي على منفذ",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "هذا الخادم غير متصل بـ Constellation",
   "mgmt.constellation.setup.dataSync.label": "مزامنة بيانات الاعتماد مع المنارات الأخرى (موصى به)",
   "newInstall.warnLocalhost": "في معظم الحالات لا يجب عليك استخدام localhost كاسم مضيف. إذا كنت تقوم بتشغيل Cosmos على خادم، فيجب عليك استخدام IP الخادم أو اسم نطاق.",
-  "newInstall.localDomains": "يدعم Cosmos المجالات المحلية. مما يعني أنه يمكنك استخدام cosmos.local كنطاق للوصول إلى الخادم الخاص بك! ولكن قبل استخدامه تحقق من أنه يعمل لديك من خلال الوصول إلى هذه الصفحة عبر http://setup-cosmos.local . إذا لم يعمل، يمكنك التحقق من الوثائق والسجلات للحصول على أي دلائل حول السبب."
+  "newInstall.localDomains": "يدعم Cosmos المجالات المحلية. مما يعني أنه يمكنك استخدام cosmos.local كنطاق للوصول إلى الخادم الخاص بك! ولكن قبل استخدامه تحقق من أنه يعمل لديك من خلال الوصول إلى هذه الصفحة عبر http://setup-cosmos.local . إذا لم يعمل، يمكنك التحقق من الوثائق والسجلات للحصول على أي دلائل حول السبب.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "بروتوكول الحاوية (استخدم HTTP إذا كنت غير متأكد، أو tcp / udp للبروتوكولات الأخرى)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "تنزيل السجلات",
+  "global.downloadLogs": "تنزيل السجلات",
+  "global.restartCosmos": "إعادة تشغيل سحابة كوزموس",
+  "global.restartServer": "إعادة تشغيل خادم المضيف",
+  "global.connect": "اتصال",
+  "global.confirmRestartServer": "هل أنت متأكد أنك تريد إعادة تشغيل خادم المضيف؟",
+  "mgmt.servApps.container.terminal.connected": "متصل بالمحطة. ستتلقى سجلات جديدة عند وصولها.",
+  "mgmt.servApps.container.terminal.reconnectButton": "إعادة الاتصال",
+  "mgmt.servapps.containers.terminal.disabled": "تم تعطيل محطة الخادم عند استخدام كوزموس كحاوية",
+  "mgmt.servapps.containers.terminal.enabled": "محطة الخادم",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "يجب أن يبدأ عنوان URL الهدف بـ http:// أو https:// إذا كنت ترغب في استخدام الوكيل HTTP (لتطبيق ويب). في معظم الحالات هذا هو ما تريده."
 }

@@ -23,18 +23,24 @@ const (
 	TEMP = 1
 	PERM = 2
 )
-type userBan struct {
+
+type UserBan struct {
 	ClientID string
-	banType int
+	BanType int
 	time time.Time
 	reason string
 	shieldID string
 }
 
+type GlobalSmartShieldState struct {
+	sync.Mutex
+	bans []*UserBan
+}
+
+
 type smartShieldState struct {
 	sync.Mutex
 	requests []*SmartResponseWriterWrapper
-	bans []*userBan
 }
 
 type userUsedBudget struct {
@@ -46,16 +52,20 @@ type userUsedBudget struct {
 }
 
 var shield smartShieldState
+var globalShieldState GlobalSmartShieldState
 
 func GetShield() int {
-	return len(shield.requests) + len(shield.bans)
+	return len(shield.requests) + len(globalShieldState.bans)
 }
 
 func CleanUp() {
 	shield.Lock()
 	defer shield.Unlock()
 
-	shieldSize := len(shield.requests) + len(shield.bans)
+	globalShieldState.Lock()
+	defer globalShieldState.Unlock()
+
+	shieldSize := len(shield.requests) + len(globalShieldState.bans)
 
 	for i := len(shield.requests) - 1; i >= 0; i-- {
 		request := shield.requests[i]
@@ -64,17 +74,17 @@ func CleanUp() {
 		}
 	}
 
-	for i := len(shield.bans) - 1; i >= 0; i-- {
-		ban := shield.bans[i]
-		if(ban.banType == TEMP && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
-			shield.bans = append(shield.bans[:i], shield.bans[i+1:]...)
+	for i := len(globalShieldState.bans) - 1; i >= 0; i-- {
+		ban := globalShieldState.bans[i]
+		if(ban.BanType == TEMP && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
+			globalShieldState.bans = append(globalShieldState.bans[:i], globalShieldState.bans[i+1:]...)
 		}
-		if(ban.banType == STRIKE && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
-			shield.bans = append(shield.bans[:i], shield.bans[i+1:]...)
+		if(ban.BanType == STRIKE && ban.time.Add(72 * 3600 * time.Second).Before(time.Now())) {
+			globalShieldState.bans = append(globalShieldState.bans[:i], globalShieldState.bans[i+1:]...)
 		}
 	}
 
-	utils.Log("SmartShield: Cleaned up " + fmt.Sprintf("%d", shieldSize - (len(shield.requests) + len(shield.bans))) + " items")
+	utils.Log("SmartShield: Cleaned up " + fmt.Sprintf("%d", shieldSize - (len(shield.requests) + len(globalShieldState.bans))) + " items")
 }
 
 func (shield *smartShieldState) GetServerNbReq(shieldID string) int {
@@ -133,16 +143,16 @@ func (shield *smartShieldState) GetUserUsedBudgets(shieldID string, ClientID str
 	return userConsumed
 }
 
-func (shield *smartShieldState) GetLastBan(policy utils.SmartShieldPolicy, userConsumed userUsedBudget) *userBan {
-	shield.Lock()
-	defer shield.Unlock()
-
-	ClientID := userConsumed.ClientID
+func GetLastBan(clientID string, needLock bool) *UserBan {
+	if(needLock) {
+		globalShieldState.Lock()
+		defer globalShieldState.Unlock()
+	}
 
 	// Check for bans
-	for i := len(shield.bans) - 1; i >= 0; i-- {
-		ban := shield.bans[i]
-		if ban.banType == STRIKE && ban.ClientID == ClientID {
+	for i := len(globalShieldState.bans) - 1; i >= 0; i-- {
+		ban := globalShieldState.bans[i]
+		if ban.BanType == STRIKE && ban.ClientID == clientID {
 			return ban
 		}
 	}
@@ -153,6 +163,9 @@ func (shield *smartShieldState) GetLastBan(policy utils.SmartShieldPolicy, userC
 func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.SmartShieldPolicy, userConsumed userUsedBudget) bool {
 	shield.Lock()
 	defer shield.Unlock()
+
+	globalShieldState.Lock()
+	defer globalShieldState.Unlock()
 
 	ClientID := userConsumed.ClientID
 
@@ -167,18 +180,18 @@ func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.
 	nbStrikes := 0
 
 	// Check for bans
-	for i := len(shield.bans) - 1; i >= 0; i-- {
-		ban := shield.bans[i]
+	for i := len(globalShieldState.bans) - 1; i >= 0; i-- {
+		ban := globalShieldState.bans[i]
 
-		if ban.banType == PERM && ban.ClientID == ClientID {
+		if ban.BanType == PERM && ban.ClientID == ClientID {
 			return false
-		} else if ban.banType == TEMP && ban.ClientID == ClientID {
+		} else if ban.BanType == TEMP && ban.ClientID == ClientID {
 			if(ban.time.Add(4 * 3600 * time.Second).After(time.Now())) {
 				return false
 			} else if (ban.time.Add(72 * 3600 * time.Second).After(time.Now())) {
 				nbTempBans++
 			}
-		} else if ban.banType == STRIKE && ban.ClientID == ClientID {
+		} else if ban.BanType == STRIKE && ban.ClientID == ClientID {
 			if(ban.time.Add(3600 * time.Second).After(time.Now())) {
 				return false
 			} else if (ban.time.Add(24 * 3600 * time.Second).After(time.Now())) {
@@ -190,9 +203,9 @@ func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.
 	// Check for new bans
 	if nbTempBans >= 3 {
 		// perm ban
-		shield.bans = append(shield.bans, &userBan{
+		globalShieldState.bans = append(globalShieldState.bans, &UserBan{
 			ClientID: ClientID,
-			banType: PERM,
+			BanType: PERM,
 			time: time.Now(),
 		})
 
@@ -200,9 +213,9 @@ func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.
 		return false
 	} else if nbStrikes >= 3 {
 		// temp ban
-		shield.bans = append(shield.bans, &userBan{
+		globalShieldState.bans = append(globalShieldState.bans, &UserBan{
 			ClientID: ClientID,
-			banType: TEMP,
+			BanType: TEMP,
 			time: time.Now(),
 		})
 		utils.Warn("User " + ClientID + " has been banned temporarily: "+ fmt.Sprintf("%+v", userConsumed))
@@ -214,9 +227,9 @@ func (shield *smartShieldState) isAllowedToReqest(shieldID string, policy utils.
 		 (userConsumed.Requests > (policy.PerUserRequestLimit * policy.PolicyStrictness)) ||
 		 (userConsumed.Bytes > (policy.PerUserByteLimit * int64(policy.PolicyStrictness))) ||
 		 (userConsumed.Simultaneous > (policy.PerUserSimultaneous * policy.PolicyStrictness * 15)) {
-		shield.bans = append(shield.bans, &userBan{
+		globalShieldState.bans = append(globalShieldState.bans, &UserBan{
 			ClientID: ClientID,
-			banType: STRIKE,
+			BanType: STRIKE,
 			time: time.Now(),
 			reason: fmt.Sprintf("%+v out of %+v", userConsumed, policy),
 			shieldID: shieldID,
@@ -411,7 +424,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 			userConsumed := shield.GetUserUsedBudgets(shieldID, clientID)
 
 			if !isPrivileged(r, policy) && !shield.isAllowedToReqest(shieldID, policy, userConsumed) {
-				lastBan := shield.GetLastBan(policy, userConsumed)
+				lastBan := GetLastBan(clientID, true)
 				go metrics.PushShieldMetrics("smart-shield")
 				utils.IncrementIPAbuseCounter(clientID)
 

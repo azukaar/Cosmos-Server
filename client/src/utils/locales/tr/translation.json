@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Lütfen bir konteyner seçin",
   "mgmt.config.containerPicker.containerPortInput": "Konteyner Portu",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Lütfen bir port girin",
-  "mgmt.config.containerPicker.containerProtocolInput": "Konteyner Protokolü (emin değilseniz HTTP kullanın veya HTTP dışı proxy işlemeleri için tcp kullanın)",
   "mgmt.config.containerPicker.targetTypePreview": "Hedef Sonuç Önizlemesi",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "Bu otomatik olarak oluşturulacak",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Geçersiz Hedef, bir port olmalı",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "Bu sunucu Constellation'a bağlı değil",
   "mgmt.constellation.setup.dataSync.label": "Kimlik bilgilerini diğer deniz fenerleriyle senkronize et (Önerilen)",
   "newInstall.warnLocalhost": "Çoğu durumda localhost'u bir ana bilgisayar adı olarak kullanmamalısınız. Cosmos'u bir sunucuda çalıştırıyorsanız, sunucunun IP'sini veya bir alan adını kullanmalısınız.",
-  "newInstall.localDomains": "Cosmos yerel alan adlarını destekler. Yani sunucunuza erişmek için cosmos.local alan adını kullanabilirsiniz! Ancak kullanmadan önce, http://setup-cosmos.local ile bu sayfaya erişerek sizin için çalıştığından emin olun. Çalışmazsa, nedenini anlamak için dökümantasyonu ve günlükleri kontrol edebilirsiniz."
+  "newInstall.localDomains": "Cosmos yerel alan adlarını destekler. Yani sunucunuza erişmek için cosmos.local alan adını kullanabilirsiniz! Ancak kullanmadan önce, http://setup-cosmos.local ile bu sayfaya erişerek sizin için çalıştığından emin olun. Çalışmazsa, nedenini anlamak için dökümantasyonu ve günlükleri kontrol edebilirsiniz.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Kapsayıcı Protokolü (emin değilseniz HTTP kullanın veya diğer protokoller için tcp / udp kullanın)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Günlükleri İndir",
+  "global.downloadLogs": "Günlükleri İndir",
+  "global.restartCosmos": "Cosmos Bulutunu Yeniden Başlat",
+  "global.restartServer": "Ana Sunucuyu Yeniden Başlat",
+  "global.connect": "Bağlan",
+  "global.confirmRestartServer": "Ana sunucuyu yeniden başlatmak istediğinizden emin misiniz?",
+  "mgmt.servApps.container.terminal.connected": "Terminale bağlandı. Yeni günlükler geldikçe alınacaktır.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Yeniden Bağlan",
+  "mgmt.servapps.containers.terminal.disabled": "Cosmos'u bir kapsayıcı olarak kullanırken Sunucu Terminali devre dışıdır",
+  "mgmt.servapps.containers.terminal.enabled": "Sunucu Terminali",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Hedef URL'nin HTTP vekilini (bir web uygulaması için) kullanmak istiyorsanız http:// veya https:// ile başlaması gerekir. Çoğu durumda istediğiniz budur."
 }
