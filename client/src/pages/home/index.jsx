@@ -470,8 +470,6 @@ const HomePage = () => {
                 let container;
                 const isSocketProxy = IsRouteSocketProxy(route);
 
-                console.log(route, isSocketProxy);
-
                 if (route.Mode == "SERVAPP") {
                     containerName = route.Target.split(':')[1].slice(2);
                     container = servApps.find((c) => c.Names.includes('/' + containerName));

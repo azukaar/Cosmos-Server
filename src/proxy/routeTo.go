@@ -142,6 +142,12 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			req.Header.Set("Host", req.URL.Host)
 			req.Host = req.URL.Host
 		}
+
+		// Extra headers
+		for name, value := range route.ExtraHeaders {
+			req.Header.Del(name)
+			req.Header.Set(name, value)
+		}
 	}
 
 	customTransport :=  &http.Transport{}

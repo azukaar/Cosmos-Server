@@ -53,24 +53,7 @@ const TerminalComponent = ({refresh, connectButtons}) => {
       if (event.data === '_PONG_') {
         return;
       }
-    
-      try {
-        let data;
-        if (event.data instanceof Blob) {
-          // Handle Blob data
-          data = await event.data.text();
-        } else if (event.data instanceof ArrayBuffer) {
-          // Handle ArrayBuffer data
-          data = new TextDecoder().decode(event.data);
-        } else {
-          // Assume it's already a string
-          data = event.data;
-        }
-    
-        terminal.write(data);
-      } catch (e) {
-        console.error("Error processing message:", e);
-      }
+      terminal.write(event.data);
     };
 
     ws.current.onclose = () => {

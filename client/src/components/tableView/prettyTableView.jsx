@@ -92,7 +92,7 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
               })
               .map((row, key) => (
                 <TableRow
-                  key={getKey(row)}
+                  key={getKey(row, key)}
                   sx={{
                     cursor: 'pointer',
                     borderLeft: 'transparent solid 2px',

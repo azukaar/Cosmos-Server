@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "Reconnecteth, all's well!",
   "mgmt.servapps.containers.terminal.disabled": "Server Terminal is disabled when using Cosmos as a container, alas!",
   "mgmt.servapps.containers.terminal.enabled": "Server Terminal, huzzah!",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "The target URL should starteth with http:// or https:// if thou want to use the HTTP proxy (for a web app). In most cases it is what thou desireth, forsooth!"
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "The target URL should starteth with http:// or https:// if thou want to use the HTTP proxy (for a web app). In most cases it is what thou desireth, forsooth!",
+  "mgmt.servapps.networks.list.host-port": "Host Porticus",
+  "mgmt.storage.rclone.name": "Nameth",
+  "mgmt.storage.rclone.type": "Typeth",
+  "mgmt.storage.rclone.fullPath": "Fullest Pathway",
+  "mgmt.storage.rclone.status": "Statusth",
+  "mgmt.storage.rclone.create": "Addeth Remote",
+  "mgmt.storage.rclone.select": "Chooseth External Storehouse",
+  "mgmt.urls.edit.sourceInfoPort": "What PORT dost thou desire to accesseth thy target from?"
 }

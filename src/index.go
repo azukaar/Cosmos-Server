@@ -17,7 +17,25 @@ import (
 	"github.com/azukaar/cosmos-server/src/proxy"
 )
 
+func HandleCLIArgs() bool {
+	args := os.Args[1:]
+
+	if len(args) > 0 && args[0] == "rclone" {
+			args = args[1:]
+			
+			storage.RunRClone(args)
+
+			return true
+	}
+
+	return false
+}
+
 func main() {
+	if HandleCLIArgs() {
+		return
+	}
+
 	docker.IsInsideContainer()
 
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
@@ -75,7 +93,7 @@ func main() {
 	config := utils.GetMainConfig()
 
 	proxy.InitSocketShield()
-	
+
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
@@ -103,6 +121,8 @@ func main() {
 		utils.InitFBL()
 
 		constellation.Init()
+
+		utils.ProxyRClone = storage.InitRemoteStorage()
 
 		storage.InitSnapRAIDConfig()
 		

@@ -398,7 +398,8 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/favicon", GetFavicon)
 	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/me", user.Me)
-	srapi.HandleFunc("/api/terminal", HostTerminalRoute)
+	// srapi.HandleFunc("/api/terminal", HostTerminalRoute)
+	srapi.HandleFunc("/api/terminal/{route}", HostTerminalRoute)
 	
 	srapiAdmin := router.PathPrefix("/cosmos").Subrouter()
 	srapiAdmin.Use(utils.ContentTypeMiddleware("application/json"))
@@ -483,7 +484,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid", storage.SNAPRaidCRUDRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
-
+	
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		debugRouter := srapiAdmin.PathPrefix("/debug").Subrouter()
 		debugRouter.Use(utils.AdminOnlyMiddleware)
@@ -530,6 +531,7 @@ func InitServer() *mux.Router {
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		uirouter.Use(utils.EnsureHostname)
 	}
+
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	

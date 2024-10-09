@@ -25,22 +25,22 @@ const TerminalHeader = () => {
 	};
 
 	return isAdmin ? (<>
-	  <IconButton
-				disableRipple
-				color="secondary"
-				sx={{ color: 'text.primary' }}
-				aria-label="open profile"
-				aria-haspopup="true"
-				onClick={onopen}
-				disabled={!status || status.containerized}
-		>
-			<Tooltip title={(!status || status.containerized) ?
-				t('mgmt.servapps.containers.terminal.disabled') :
-				t('mgmt.servapps.containers.terminal.enabled')
-			 }>
-				<BorderOuterOutlined />
-			</Tooltip>
-		</IconButton>
+		<Tooltip title={(!status || status.containerized) ?
+			t('mgmt.servapps.containers.terminal.disabled') :
+			t('mgmt.servapps.containers.terminal.enabled')
+		 }>
+			<IconButton
+					disableRipple
+					color="secondary"
+					sx={{ color: 'text.primary' }}
+					aria-label="open profile"
+					aria-haspopup="true"
+					onClick={onopen}
+					disabled={!status || status.containerized}
+			>
+					<BorderOuterOutlined />
+			</IconButton>
+		</Tooltip>
 		
 		<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth={true}>
 			<DialogTitle>{t('mgmt.servapps.containers.terminal.enabled')}</DialogTitle>

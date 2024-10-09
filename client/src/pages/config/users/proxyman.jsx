@@ -190,7 +190,7 @@ const ProxyManagement = () => {
       
       {routes && <PrettyTableView 
         data={routes}
-        getKey={(r) => r.Name + r.Target + r.Mode}
+        getKey={(r, k) => k + r.Name + r.Target + r.Mode + (r._IsTunnel ? '_tunnel' : '')}
         linkTo={(r) => r._IsTunnel ? '' : ('/cosmos-ui/config-url/' + r.Name)}
         columns={[
           { 

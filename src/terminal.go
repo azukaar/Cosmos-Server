@@ -6,9 +6,12 @@ import (
 	"syscall"
 	"time"
 	"io"
+	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/creack/pty"
 	"github.com/gorilla/websocket"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -40,6 +43,9 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 	}
 	utils.Log("Attempting to attach to host terminal")
 
+	vars := mux.Vars(r)
+	route := vars["route"]
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		utils.Error("Failed to set websocket upgrade: ", err)
@@ -51,19 +57,33 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 	ws.SetReadDeadline(time.Now().Add(timeoutDuration))
 	ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
 	
+	var c *exec.Cmd
+	if route == "rclone-config" {
+		c = exec.Command(os.Args[0], "rclone", "config")
+	} else if route == "bash" {	
+		c = exec.Command("bash")
+	} else {
+		utils.Error("Invalid route: " + route, nil)
+		http.Error(w, "Invalid route: "+route, http.StatusBadRequest)
+		return
+	}
+
+	utils.Debug("Starting command: " + c.String())
+
 	// Create arbitrary command.
-	c := exec.Command("bash")
 
 	// Specify the UID 
 
-	uid := uint32(1000)  // Replace with the desired UID
-	gid := uint32(1000)  // Replace with the primary GID of the user
-	
-	c.SysProcAttr = &syscall.SysProcAttr{
-			Credential: &syscall.Credential{
-					Uid: uid,
-					Gid: gid,
-			},
+	if route == "bash" {
+		uid := uint32(1000)  // Replace with the desired UID
+		gid := uint32(1000)  // Replace with the primary GID of the user
+		
+		c.SysProcAttr = &syscall.SysProcAttr{
+				Credential: &syscall.Credential{
+						Uid: uid,
+						Gid: gid,
+				},
+		}
 	}
 
   // Set environment variables for better terminal emulation
@@ -80,8 +100,10 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-					return
+		utils.Error("Failed to start pty: ", err)
+		return
 	}
+
 	// Make sure to close the pty at the end.
 	defer func() { _ = ptmx.Close() }() // Best effort.
 
@@ -146,7 +168,8 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 					}
 					ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
 					ws.SetReadDeadline(time.Now().Add(timeoutDuration))
-					if err := ws.WriteMessage(websocket.BinaryMessage, buf[:n]); err != nil {
+					utils.Debug("Writing to websocket: " + string(buf[:n]))
+					if err := ws.WriteMessage(websocket.TextMessage, buf[:n]); err != nil {
 							utils.Error("Failed to write to websocket: ", err)
 							return
 					}
@@ -162,6 +185,8 @@ func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
 					}
 					break
 			}
+
+			utils.Debug("Received message: " + string(message))
 
 			ws.SetWriteDeadline(time.Now().Add(timeoutDuration))
 			ws.SetReadDeadline(time.Now().Add(timeoutDuration))

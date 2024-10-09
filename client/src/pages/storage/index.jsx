@@ -13,6 +13,8 @@ import { StorageDisks } from './disks';
 import { StorageMerges } from './merges';
 import { Parity } from './parity';
 import { useTranslation } from 'react-i18next';
+import RCloneConfig from './rclone/rclone_config';
+import RClonePage from './rclone/rclone_config';
 
 const StorageIndex = () => {
   const { t } = useTranslation();
@@ -34,9 +36,7 @@ const StorageIndex = () => {
         {
           title: t('mgmt.storage.externalStorage'),
           children: <div>
-            <Alert severity="info">
-              {t('mgmt.storage.externalStorageText')}
-            </Alert>
+            <RClonePage />
           </div>,
           path: 'external'
         },

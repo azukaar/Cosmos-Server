@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "Переподключиться",
   "mgmt.servapps.containers.terminal.disabled": "Терминал сервера отключен при использовании Cosmos в качестве контейнера",
   "mgmt.servapps.containers.terminal.enabled": "Терминал сервера",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Целевой URL должен начинаться с http:// или https://, если вы хотите использовать HTTP-прокси (для веб-приложения). В большинстве случаев это именно то, что вам нужно."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Целевой URL должен начинаться с http:// или https://, если вы хотите использовать HTTP-прокси (для веб-приложения). В большинстве случаев это именно то, что вам нужно.",
+  "mgmt.servapps.networks.list.host-port": "Порт хоста",
+  "mgmt.storage.rclone.name": "Имя",
+  "mgmt.storage.rclone.type": "Тип",
+  "mgmt.storage.rclone.fullPath": "Полный путь",
+  "mgmt.storage.rclone.status": "Статус",
+  "mgmt.storage.rclone.create": "Добавить удаленное хранилище",
+  "mgmt.storage.rclone.select": "Выбрать внешнее хранилище",
+  "mgmt.urls.edit.sourceInfoPort": "Какой ПОРТ вы хотите использовать для доступа к вашей цели?"
 }
