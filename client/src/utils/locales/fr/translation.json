@@ -174,7 +174,7 @@
   "mgmt.config.http.hostnameInput.HostnameLabel": "Nom d'hôte : Cela sera utilisé pour restreindre l'accès à votre serveur Cosmos (Votre IP, ou votre nom de domaine)",
   "mgmt.config.http.hostnameInput.HostnameValidation": "Le nom d'hôte est obligatoire",
   "mgmt.config.http.publishMDNSCheckbox": "Cela vous permet de publier votre serveur sur votre réseau local en utilisant mDNS. Cela signifie que tous vos domaines .local seront disponibles sur votre réseau local sans configuration supplémentaire.",
-  "mgmt.config.http.TrustedProxiesInput.TrustesProxiesLabel": "Proxy de confiance pour l'utilisation de l'entête X-Forwarded-For.",
+  "mgmt.config.http.TrustedProxiesInput.TrustesProxiesLabel": "IP/Plage IP des proxys de confiance (séparé par des virgules) pour l'utilisation de X-Forwarded-For.",
   "mgmt.config.http.TrustedProxiesInput.TrustesProxiesHelperText": "Utilisez ce paramètre lorsque vous avez un serveur proxy en amont pour éviter le blocage de celui-ci par le Shield. IP ou plage IP séparées par des virgules",
   "mgmt.config.email.notifyLoginCheckbox.notifyLoginLabel": "Notifier les utilisateurs en cas de connexion réussie",
   "mgmt.config.proxy.noRoutesConfiguredText": "Aucune route configurée.",
