@@ -106,7 +106,7 @@ const ConfigManagement = () => {
           GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
           HTTPPort: config.HTTPConfig.HTTPPort,
           HTTPSPort: config.HTTPConfig.HTTPSPort,
-          TrustedProxies: config.TrustedProxies && config.TrustedProxies.join(', '),
+          TrustedProxies: config.HTTPConfig.TrustedProxies && config.HTTPConfig.TrustedProxies.join(', '),
           SSLEmail: config.HTTPConfig.SSLEmail,
           UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
@@ -616,6 +616,17 @@ const ConfigManagement = () => {
                           {formik.errors.HTTPSPort}
                         </FormHelperText>
                       )}
+                    </Stack>
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Stack spacing={1}>
+					  <CosmosInputText
+						label={t('mgmt.config.http.TrustedProxiesInput.TrustesProxiesLabel')}
+						name="TrustedProxies"
+						formik={formik}
+						helperText={t('mgmt.config.http.TrustedProxiesInput.TrustesProxiesHelperText')}
+					  />
                     </Stack>
                   </Grid>
                   <Grid item xs={12}>
