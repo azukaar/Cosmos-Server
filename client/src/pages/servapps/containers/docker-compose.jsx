@@ -438,11 +438,9 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             }
           });
           
-          if(doc.services['x-post_install']) {
-            doc['cosmos-installer'] = {
-              post_install: doc.services['x-post_install'],
-            }
-            delete doc.services['x-post_install'];
+          if(doc.services['x-post-install']) {
+            doc['cosmos-installer'] = doc.services['x-post-install'];
+            delete doc.services['x-post-install'];
           }
         }
         
@@ -947,7 +945,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           </Stack>}
 
           {step === 1 && <Stack spacing={2}>
-            <NewDockerService service={cleanUpStore(service)} refresh={refresh} />
+            <NewDockerService service={service} refresh={refresh} />
           </Stack>}
         </DialogContentText>
       </DialogContent>

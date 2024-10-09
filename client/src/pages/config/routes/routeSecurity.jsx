@@ -13,9 +13,11 @@ import {
 import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { snackit } from '../../../api/wrap';
+import { IsRouteSocketProxy } from '../../../utils/routes';
 
 const RouteSecurity = ({ routeConfig, config }) => {
   const [openModal, setOpenModal] = React.useState(false);
+  const isNotSocketProxy = !IsRouteSocketProxy(routeConfig);
 
   return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
@@ -88,27 +90,29 @@ const RouteSecurity = ({ routeConfig, config }) => {
             <Stack spacing={2}>
               <MainCard name={routeConfig.Name} title={'Security'}>
                 <Grid container spacing={2}>
-                    <CosmosFormDivider title={'Authentication'} />
+                    {isNotSocketProxy && <>
+                      <CosmosFormDivider title={'Authentication'} />
 
-                    <CosmosCheckbox
-                      name="AuthEnabled"
-                      label="Authentication Required"
-                      formik={formik}
-                    />
+                      <CosmosCheckbox
+                        name="AuthEnabled"
+                        label="Authentication Required"
+                        formik={formik}
+                      />
 
-                    <CosmosCheckbox
-                      name="AdminOnly"
-                      label="Admin only"
-                      formik={formik}
-                    />
+                      <CosmosCheckbox
+                        name="AdminOnly"
+                        label="Admin only"
+                        formik={formik}
+                      />
 
-                    <CosmosFormDivider title={'Headers'} />
-
-                    <CosmosCheckbox
-                      name="DisableHeaderHardening"
-                      label="Disable Header Hardening"
-                      formik={formik}
-                    />
+                      <CosmosFormDivider title={'Headers'} />
+  
+                      <CosmosCheckbox
+                        name="DisableHeaderHardening"
+                        label="Disable Header Hardening"
+                        formik={formik}
+                      />
+                    </>}
 
                     <CosmosFormDivider title={'Smart Shield'} />
 
@@ -182,6 +186,8 @@ const RouteSecurity = ({ routeConfig, config }) => {
                       ]}
                       formik={formik}
                     />
+                    
+                    {isNotSocketProxy && <>
                     <CosmosFormDivider title={'Limits'} />
 
                     <CosmosInputText
@@ -226,6 +232,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
                       label="Block requests without Referer header"
                       formik={formik}
                     />
+                  </>}
                 </Grid>
               </MainCard>
               <MainCard ><Button

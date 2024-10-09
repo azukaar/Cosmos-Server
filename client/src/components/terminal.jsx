@@ -49,15 +49,27 @@ const TerminalComponent = ({refresh, connectButtons}) => {
 
     ws.current = connectFunction();
 
-    ws.current.onmessage = (event) => {
-      if(event.data === '_PONG_') {
+    ws.current.onmessage = async (event) => {    
+      if (event.data === '_PONG_') {
         return;
       }
-
+    
       try {
-        terminal.write(event.data);
+        let data;
+        if (event.data instanceof Blob) {
+          // Handle Blob data
+          data = await event.data.text();
+        } else if (event.data instanceof ArrayBuffer) {
+          // Handle ArrayBuffer data
+          data = new TextDecoder().decode(event.data);
+        } else {
+          // Assume it's already a string
+          data = event.data;
+        }
+    
+        terminal.write(data);
       } catch (e) {
-        console.error("error", e);
+        console.error("Error processing message:", e);
       }
     };
 

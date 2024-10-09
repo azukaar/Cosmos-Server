@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "请选择一个容器",
   "mgmt.config.containerPicker.containerPortInput": "容器端口",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "请输入一个端口",
-  "mgmt.config.containerPicker.containerProtocolInput": "容器协议（如果不确定请选择HTTP，对于非HTTP代理守则使用tcp）",
   "mgmt.config.containerPicker.targetTypePreview": "结果目标预览",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "这将自动生成",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "无效目标，必须有端口",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "此服务器未连接到Constellation",
   "mgmt.constellation.setup.dataSync.label": "与其他灯塔同步凭证（推荐）",
   "newInstall.warnLocalhost": "在大多数情况下，您不应将localhost用作主机名。如果您在服务器上运行Cosmos，您应该使用服务器的IP或域名。",
-  "newInstall.localDomains": "Cosmos支持本地域名。这意味着您可以使用cosmos.local作为访问服务器的域名！但在使用之前，请通过http://setup-cosmos.local访问此页面以确保它对您有效。如果无效，您可以查看文档和日志以寻找任何线索。"
+  "newInstall.localDomains": "Cosmos支持本地域名。这意味着您可以使用cosmos.local作为访问服务器的域名！但在使用之前，请通过http://setup-cosmos.local访问此页面以确保它对您有效。如果无效，您可以查看文档和日志以寻找任何线索。",
+  "mgmt.config.containerPicker.containerProtocolInput2": "容器协议（不确定时使用 HTTP，或对于其他协议使用 tcp / udp）",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "下载日志",
+  "global.downloadLogs": "下载日志",
+  "global.restartCosmos": "重启 Cosmos 云",
+  "global.restartServer": "重启主机服务器",
+  "global.connect": "连接",
+  "global.confirmRestartServer": "您确定要重启主机服务器吗？",
+  "mgmt.servApps.container.terminal.connected": "已连接到终端。将接收新日志。",
+  "mgmt.servApps.container.terminal.reconnectButton": "重新连接",
+  "mgmt.servapps.containers.terminal.disabled": "使用 Cosmos 作为容器时，服务器终端已禁用",
+  "mgmt.servapps.containers.terminal.enabled": "服务器终端",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "目标 URL 应以 http:// 或 https:// 开头，如果您要使用 HTTP 代理（用于 Web 应用）。大多数情况下，这是您想要的。"
 }

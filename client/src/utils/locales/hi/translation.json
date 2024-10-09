@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "कृपया एक कंटेनर चुनें",
   "mgmt.config.containerPicker.containerPortInput": "कंटेनर पोर्ट",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "कृपया एक पोर्ट दर्ज करें",
-  "mgmt.config.containerPicker.containerProtocolInput": "कंटेनर प्रोटोकॉल (यदि संदेह हो तो HTTP का उपयोग करें, या गैर-http प्रॉक्सी के लिए tcp)",
   "mgmt.config.containerPicker.targetTypePreview": "परिणाम लक्ष्य पूर्वावलोकन",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "यह स्वचालित रूप से उत्पन्न होगा",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "अवैध लक्ष्य, पोर्ट होना चाहिए",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "यह सर्वर कॉन्स्टेलेशन से जुड़ा नहीं है",
   "mgmt.constellation.setup.dataSync.label": "अन्य लाइटहाउस के साथ क्रेडेंशियल्स सिंक्रनाइज़ करें (अनुशंसित)",
   "newInstall.warnLocalhost": "अधिकांश मामलों में आपको होस्टनाम के रूप में लोचलहोस्ट का उपयोग नहीं करना चाहिए। यदि आप सर्भर पर कॉसमॉस चला रहे हैं, तो आपको सर्भर का IP या डोमेन नाम उपयोग करना चाहिए।",
-  "newInstall.localDomains": "कॉसमॉस लोकल डोमेन को सपोर्ट करता है। इसका मतलब है कि आप अपने सर्वर को एक्सेस करने के लिए cosmos.local का उपयोग कर सकते हैं! लेकिन इसे उपयोग करने से पहले यह सुनिश्चित करें कि यह आपके लिए काम करता है http://setup-cosmos.local पेज को एक्सेस करके। यदि यह कार्य नहीं करता है, तो आप किसी भी कारण के सुराग के लिए डॉक और लॉग चेक कर सकते हैं।"
+  "newInstall.localDomains": "कॉसमॉस लोकल डोमेन को सपोर्ट करता है। इसका मतलब है कि आप अपने सर्वर को एक्सेस करने के लिए cosmos.local का उपयोग कर सकते हैं! लेकिन इसे उपयोग करने से पहले यह सुनिश्चित करें कि यह आपके लिए काम करता है http://setup-cosmos.local पेज को एक्सेस करके। यदि यह कार्य नहीं करता है, तो आप किसी भी कारण के सुराग के लिए डॉक और लॉग चेक कर सकते हैं।",
+  "mgmt.config.containerPicker.containerProtocolInput2": "कंटेनर प्रोटोकॉल (यदि सुनिश्चित नहीं हैं तो HTTP का उपयोग करें, या अन्य प्रोटोकॉल के लिए tcp / udp)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "लॉग्स डाउनलोड करें",
+  "global.downloadLogs": "लॉग्स डाउनलोड करें",
+  "global.restartCosmos": "कॉसमॉस क्लाउड को पुनः प्रारंभ करें",
+  "global.restartServer": "होस्ट सर्वर को पुनः प्रारंभ करें",
+  "global.connect": "कनेक्ट करें",
+  "global.confirmRestartServer": "क्या आप वाकई होस्ट सर्वर को पुनः प्रारंभ करना चाहते हैं?",
+  "mgmt.servApps.container.terminal.connected": "टर्मिनल से जुड़ा हुआ है। जैसे ही नए लॉग्स आएंगे इन्हें प्राप्त करेगा।",
+  "mgmt.servApps.container.terminal.reconnectButton": "पुनः कनेक्ट करें",
+  "mgmt.servapps.containers.terminal.disabled": "जब कॉसमॉस को एक कंटेनर के रूप में उपयोग कर रहे हैं, तो सर्वर टर्मिनल निष्क्रिय होता है",
+  "mgmt.servapps.containers.terminal.enabled": "सर्वर टर्मिनल",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "लक्षित URL को HTTP प्रॉक्सी का उपयोग करना हो तो http:// या https:// से शुरू होना चाहिए (एक वेब ऐप के लिए)। अधिकतर मामलों में यही उचित है।"
 }

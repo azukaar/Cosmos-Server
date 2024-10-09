@@ -85,9 +85,6 @@ export const ValidateRouteSchema = Yup.object().shape({
   Target: Yup.string().required('Target is required').when('Mode', {
     is: 'SERVAPP',
     then: Yup.string().matches(/:[0-9]+$/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.noPort" />),
-  }).when('Mode', {
-    is: 'PROXY',
-    then: Yup.string().matches(/^(https?:\/\/)/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.wrongProtocol" />),
   }),
 
   Host: Yup.string().when('UseHost', {
@@ -212,4 +209,11 @@ export const getHostnameFromName = (name, route, config, overrideOrigin) => {
     return "NO MORE PORT AVAILABLE. PLEASE CLEAN YOUR URLS!";
   }
   return res;
+}
+
+export const IsRouteSocketProxy = (route) => {
+  console.log(route.Mode, route.Target)
+  console.log((route.Mode == "PROXY" || route.Mode == "SERVAPP") && !route.Target.startsWith('http://') && !route.Target.startsWith('https://'));
+ 
+  return (route.Mode == "PROXY" || route.Mode == "SERVAPP") && !route.Target.startsWith('http://') && !route.Target.startsWith('https://');
 }

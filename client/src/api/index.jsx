@@ -221,6 +221,14 @@ let restartServer = () => {
   }));
 }
 
+function terminal(containerId) {
+  let protocol = 'ws://';
+  if (window.location.protocol === 'https:') {
+    protocol = 'wss://';
+  }
+  return new WebSocket(protocol + window.location.host + '/cosmos/api/terminal');
+}
+
 const isDemo = import.meta.env.MODE === 'demo';
 
 let auth = _auth;
@@ -246,6 +254,7 @@ if(isDemo) {
   getDNS = indexDemo.getDNS;
   uploadImage = indexDemo.uploadImage;
   restartServer = indexDemo.restartServer;
+  terminal = indexDemo.terminal;
   constellation = constellationDemo;
   metrics = metricsDemo;
   storage = storageDemo;
@@ -267,6 +276,7 @@ export {
   metrics,
   uploadImage,
   storage,
+  terminal,
   cron,
   restartServer
 };

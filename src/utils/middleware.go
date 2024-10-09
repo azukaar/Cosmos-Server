@@ -249,6 +249,20 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 				} else {
 					for _, blockedCountry := range blockedCountries {
 						if config.ServerCountry != countryCode && countryCode == blockedCountry {
+							PushShieldMetrics("geo")
+							IncrementIPAbuseCounter(ip)
+	
+							TriggerEvent(
+								"cosmos.proxy.shield.geo",
+								"Proxy Shield  Geo blocked",
+								"warning",
+								"",
+								map[string]interface{}{
+								"clientID": ip,
+								"country": countryCode,
+								"url": r.URL.String(),
+							})
+
 							http.Error(w, "Access denied", http.StatusForbidden)
 							return
 						}

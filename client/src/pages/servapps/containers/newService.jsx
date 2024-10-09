@@ -69,11 +69,14 @@ const NewDockerService = ({service, refresh, edit}) => {
   const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
   const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
-  const [dockerCompose, setDockerCompose] = React.useState(JSON.stringify(service, null, 2));
 
-  const installer = {...service['cosmos-installer']};
+  let installer = {...service['cosmos-installer']};
   service = {...service};
   delete service['cosmos-installer'];
+  delete service['x-cosmos-installer'];
+
+  const [dockerCompose, setDockerCompose] = React.useState(JSON.stringify(service, null, 2));
+
 
   const refreshConfig = () => {
     API.config.get().then((res) => {
@@ -126,7 +129,11 @@ const NewDockerService = ({service, refresh, edit}) => {
       {isDone && <Stack spacing={1}>
         <Alert severity="success">{t('mgmt.servapps.container.compose.createServiceSuccess')}</Alert>
         {installer && installer['post-install'] && installer['post-install'].map(m =>{
-          return <Alert severity={m.type}>{ /*couldn't test this yet, but shoud work for max 1 msg*/ installer?.translation?.[i18n?.resolvedLanguage]?.['post-install.label'] || installer?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['post-install.label'] || m.label }</Alert>
+          return <Alert severity={m.type}>{
+              installer?.translation?.[i18n?.resolvedLanguage]?.[m.key] || 
+              installer?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.[m.key] || 
+              m.label
+          }</Alert>
         })}
       </Stack>}
       

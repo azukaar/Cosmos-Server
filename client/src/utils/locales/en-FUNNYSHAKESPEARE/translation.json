@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Prithee select a container",
   "mgmt.config.containerPicker.containerPortInput": "Container Porta",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Prithee entereth a port",
-  "mgmt.config.containerPicker.containerProtocolInput": "Container Protocol (use HTTP if unsure, or tcp for non-http proxying)",
   "mgmt.config.containerPicker.targetTypePreview": "Result Target Previeweth",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "This shalt be generated automatically",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Invalid Target, must have a port-eth",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "This knave's server hath severed ties with the Starry Court",
   "mgmt.constellation.setup.dataSync.label": "Synch thine credentials with other lighthouses (A most splendid suggestion)",
   "newInstall.warnLocalhost": "In most cases thou should not use localhost as a hostname. If thou art running Cosmos on a server, thou should use the server's IP or a domain name.",
-  "newInstall.localDomains": "Cosmos supports local domains. Meaning thou can use cosmos.local as the domain to access thy server! But ere using it check that it works for thee by accessing this page with http://setup-cosmos.local . If it doth not, thou can check the doc and the logs for any clues as to why."
+  "newInstall.localDomains": "Cosmos supports local domains. Meaning thou can use cosmos.local as the domain to access thy server! But ere using it check that it works for thee by accessing this page with http://setup-cosmos.local . If it doth not, thou can check the doc and the logs for any clues as to why.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Container Protocol (use HTTP if unsure, or tcp / udp for other protocols), forsooth!",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Downloadeth Logs, verily!",
+  "global.downloadLogs": "Downloadeth Logs, verily!",
+  "global.restartCosmos": "Henceforth, Restart Cosmos Cloud!",
+  "global.restartServer": "Henceforth, Restart Host Server!",
+  "global.connect": "Connecteth, thou shalt!",
+  "global.confirmRestartServer": "Art thou certain to restart the host server, my liege?",
+  "mgmt.servApps.container.terminal.connected": "Connected to the terminal, mayhaps thou shall receive new logs anon.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Reconnecteth, all's well!",
+  "mgmt.servapps.containers.terminal.disabled": "Server Terminal is disabled when using Cosmos as a container, alas!",
+  "mgmt.servapps.containers.terminal.enabled": "Server Terminal, huzzah!",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "The target URL should starteth with http:// or https:// if thou want to use the HTTP proxy (for a web app). In most cases it is what thou desireth, forsooth!"
 }

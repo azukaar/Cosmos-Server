@@ -45,7 +45,7 @@ func startHTTPServer(router *mux.Router) error {
 	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
-		proxy.InitInternalTCPProxy()
+		proxy.InitInternalSocketProxy()
 	}
 	
 	// Publish mDNS 
@@ -140,7 +140,7 @@ func startHTTPSServer(router *mux.Router) error {
 	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
-		proxy.InitInternalTCPProxy()
+		proxy.InitInternalSocketProxy()
 	}
 
 	// Publish mDNS 
@@ -398,6 +398,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/favicon", GetFavicon)
 	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/me", user.Me)
+	srapi.HandleFunc("/api/terminal", HostTerminalRoute)
 	
 	srapiAdmin := router.PathPrefix("/cosmos").Subrouter()
 	srapiAdmin.Use(utils.ContentTypeMiddleware("application/json"))

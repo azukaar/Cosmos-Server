@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "Пожалуйста, выберите контейнер",
   "mgmt.config.containerPicker.containerPortInput": "Порт контейнера",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "Пожалуйста, введите порт",
-  "mgmt.config.containerPicker.containerProtocolInput": "Протокол контейнера (используйте HTTP, если не уверены, или tcp для проксирования без http)",
   "mgmt.config.containerPicker.targetTypePreview": "Предварительный просмотр целевого результата",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "Это будет сгенерировано автоматически",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "Неверная цель, должен быть порт",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "Этот сервер не подключен к Constellation",
   "mgmt.constellation.setup.dataSync.label": "Синхронизировать учетные данные с другими маяками (Рекомендуется)",
   "newInstall.warnLocalhost": "В большинстве случаев не следует использовать localhost в качестве имени хоста. Если вы запускаете Cosmos на сервере, используйте IP-адрес сервера или доменное имя.",
-  "newInstall.localDomains": "Cosmos поддерживает локальные домены. Это означает, что вы можете использовать cosmos.local в качестве домена для доступа к вашему серверу! Но перед использованием проверьте, что это работает для вас, перейдя на эту страницу по адресу http://setup-cosmos.local . Если это не работает, вы можете проверить документацию и журналы для получения подсказок о причине."
+  "newInstall.localDomains": "Cosmos поддерживает локальные домены. Это означает, что вы можете использовать cosmos.local в качестве домена для доступа к вашему серверу! Но перед использованием проверьте, что это работает для вас, перейдя на эту страницу по адресу http://setup-cosmos.local . Если это не работает, вы можете проверить документацию и журналы для получения подсказок о причине.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "Протокол контейнера (используйте HTTP, если не уверены, или tcp / udp для других протоколов)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "Скачать логи",
+  "global.downloadLogs": "Скачать логи",
+  "global.restartCosmos": "Перезапустить Cosmos Cloud",
+  "global.restartServer": "Перезапустить хост-сервер",
+  "global.connect": "Подключиться",
+  "global.confirmRestartServer": "Вы уверены, что хотите перезапустить хост-сервер?",
+  "mgmt.servApps.container.terminal.connected": "Подключено к терминалу. Будут поступать новые логи по мере их появления.",
+  "mgmt.servApps.container.terminal.reconnectButton": "Переподключиться",
+  "mgmt.servapps.containers.terminal.disabled": "Терминал сервера отключен при использовании Cosmos в качестве контейнера",
+  "mgmt.servapps.containers.terminal.enabled": "Терминал сервера",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Целевой URL должен начинаться с http:// или https://, если вы хотите использовать HTTP-прокси (для веб-приложения). В большинстве случаев это именно то, что вам нужно."
 }

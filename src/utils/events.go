@@ -8,7 +8,6 @@ import (
 func TriggerEvent(eventId string, label string, level string, object string, data map[string]interface{}) {
 	Debug("Triggering event " + eventId)
 
-
 	// Marshal the data map into a JSON string
 	dataAsBytes, err := json.Marshal(data)
 	if err != nil {

@@ -117,7 +117,6 @@
   "mgmt.config.containerPicker.containerNameSelection.containerNameValidation": "컨테이너를 선택하세요",
   "mgmt.config.containerPicker.containerPortInput": "컨테이너 포트",
   "mgmt.config.containerPicker.containerPortSelection.containerPortValidation": "포트를 입력하세요",
-  "mgmt.config.containerPicker.containerProtocolInput": "컨테이너 프로토콜 (확실하지 않을 경우 HTTP 사용, 비HTTP 프록시의 경우 tcp 사용)",
   "mgmt.config.containerPicker.targetTypePreview": "결과 대상 미리보기",
   "mgmt.config.containerPicker.targetTypePreview.targetTypePreviewLabel": "자동으로 생성됩니다",
   "mgmt.config.containerPicker.targetTypeValidation.noPort": "잘못된 대상, 포트가 있어야 합니다",
@@ -727,5 +726,17 @@
   "mgmt.constellation.constStatusDown": "이 서버는 별자리에 연결되어 있지 않습니다",
   "mgmt.constellation.setup.dataSync.label": "다른 라이트하우스와 자격 증명 동기화 (권장)",
   "newInstall.warnLocalhost": "대부분의 경우 호스트 이름으로 localhost를 사용하지 않아야 합니다. 서버에서 Cosmos를 실행 중인 경우 서버의 IP 또는 도메인 이름을 사용해야 합니다.",
-  "newInstall.localDomains": "Cosmos는 로컬 도메인을 지원합니다. 즉, cosmos.local을 도메인으로 사용하여 서버에 액세스할 수 있습니다! 하지만 사용하기 전에 http://setup-cosmos.local을 통해 이 페이지에 접속하여 작동하는지 확인하세요. 작동하지 않는 경우 문서와 로그를 확인하여 이유를 찾아볼 수 있습니다."
+  "newInstall.localDomains": "Cosmos는 로컬 도메인을 지원합니다. 즉, cosmos.local을 도메인으로 사용하여 서버에 액세스할 수 있습니다! 하지만 사용하기 전에 http://setup-cosmos.local을 통해 이 페이지에 접속하여 작동하는지 확인하세요. 작동하지 않는 경우 문서와 로그를 확인하여 이유를 찾아볼 수 있습니다.",
+  "mgmt.config.containerPicker.containerProtocolInput2": "컨테이너 프로토콜 (확실하지 않은 경우 HTTP를 사용하거나 다른 프로토콜에 대해서는 tcp/udp를 사용하십시오)",
+  "mgmt.config.header.downloadLogsButton.downloadLogsLabel": "로그 다운로드",
+  "global.downloadLogs": "로그 다운로드",
+  "global.restartCosmos": "코스모스 클라우드 다시 시작",
+  "global.restartServer": "호스트 서버 다시 시작",
+  "global.connect": "연결",
+  "global.confirmRestartServer": "호스트 서버를 다시 시작하시겠습니까?",
+  "mgmt.servApps.container.terminal.connected": "터미널에 연결되었습니다. 새 로그가 들어오면 받을 것입니다.",
+  "mgmt.servApps.container.terminal.reconnectButton": "다시 연결",
+  "mgmt.servapps.containers.terminal.disabled": "서버 터미널은 코스모스를 컨테이너로 사용할 때 비활성화됩니다",
+  "mgmt.servapps.containers.terminal.enabled": "서버 터미널",
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "대상 URL은 http:// 또는 https://로 시작해야 HTTP 프록시를 사용할 수 있습니다 (웹 앱의 경우). 대부분의 경우 원하는 것이 이것입니다."
 }

@@ -1,3 +1,5 @@
+import React from 'react';
+
 // material-ui
 import { Box, Chip, IconButton, Link, Stack, useMediaQuery } from '@mui/material';
 import { GithubOutlined } from '@ant-design/icons';
@@ -10,6 +12,7 @@ import MobileSection from './MobileSection';
 import Jobs from './jobs';
 import { useTranslation } from 'react-i18next';
 import RestartMenu from './restartMenu';
+import TerminalHeader from './terminal';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -23,6 +26,7 @@ const HeaderContent = () => {
             {matchesXs && <Box sx={{ width: '100%', ml: 1 }} />}
 
             <Stack direction="row" spacing={2}>
+                <TerminalHeader />
                 <Jobs />
                 <Notification />
 

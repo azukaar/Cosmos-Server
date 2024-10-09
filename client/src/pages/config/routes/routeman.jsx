@@ -47,6 +47,10 @@ const checkHost = debounce((host, setHostError) => {
   }
 }, 500)
 
+const isHTTP = (url) => {
+  return url.startsWith('http://') || url.startsWith('https://');
+}
+
 const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = React.useState(false);
@@ -223,6 +227,11 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                       />
                   }
 
+                  
+                  {!(formik.values.Target.startsWith('http://') || formik.values.Target.startsWith('https://')) && <Grid item xs={12}>
+                    <Alert severity='warning'>{t('mgmt.urls.edit.targetSettings.targetUrlProtocolWarning')}</Alert>
+                  </Grid>}
+
                   {formik.values.Target.startsWith('https://') && <CosmosCheckbox
                     name="AcceptInsecureHTTPSTarget"
                     label={t('mgmt.urls.edit.insecureHttpsCheckbox.insecureHttpsLabel')}
@@ -257,6 +266,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   </>
                   )}
 
+                  {isHTTP(formik.values.Target) && <>
                   <CosmosCheckbox
                     name="UsePathPrefix"
                     label={t('mgmt.urls.edit.usePathPrefixCheckbox.usePathPrefixLabel')}
@@ -277,14 +287,16 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     formik={formik}
                     style={{ paddingLeft: '20px' }}
                   />}
+                  </>}
                   
                   <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurityTitle')} />
                   
+                  {isHTTP(formik.values.Target) && <>
                   <CosmosCheckbox
                     name="AuthEnabled"
                     label={t('mgmt.urls.edit.basicSecurity.authEnabledCheckbox.authEnabledLabel')}
                     formik={formik}
-                  />
+                  /></>}
                   
                   <CosmosCheckbox
                     name="_SmartShield_Enabled"
@@ -329,6 +341,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         formik={formik}
                       />
 
+                      {isHTTP(formik.values.Target) && <>
                       <CosmosFormDivider />
                       <Alert severity='info'>{t('mgmt.urls.edit.advancedSettings.advancedSettingsInfo')}</Alert>
                       <CosmosInputText
@@ -336,7 +349,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         label={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel')}
                         placeholder={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder')}
                         formik={formik}
-                      />
+                      /></>}
 
                       <Alert severity='warning'>
                         {t('mgmt.urls.edit.advancedSettings.filterIpWarning')}

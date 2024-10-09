@@ -42,13 +42,58 @@ func handleClient(client net.Conn, server net.Conn, stop chan bool) {
     }
 }
 
-func startProxy(listenAddr string, target string, stop chan bool) {
-    listener, err := net.Listen("tcp", listenAddr)
+var mapToTCPUDP = map[string]string{
+    "http":     "tcp",
+    "https":    "tcp",
+    "ftp":      "tcp",
+    "ssh":      "tcp",
+    "telnet":   "tcp",
+    "smtp":     "tcp",
+    "pop3":     "tcp",
+    "imap":     "tcp",
+    "dns":      "udp", // Note: DNS uses both UDP and TCP, but primarily UDP
+    "ntp":      "udp",
+    "snmp":     "udp",
+    "tftp":     "udp",
+    "dhcp":     "udp",
+    "rdp":      "tcp",
+    "sip":      "udp", // Note: SIP can use both UDP and TCP
+    "mysql":    "tcp",
+    "postgresql": "tcp",
+    "mongodb":  "tcp",
+    "ldap":     "tcp",
+    "vnc":      "tcp",
+    "rtsp":     "tcp", // Note: RTSP can use both TCP and UDP
+    "xmpp":     "tcp",
+    "irc":      "tcp",
+    "mqtt":     "tcp",
+    "quic":     "udp", // QUIC is a transport protocol that runs over UDP
+}
+
+
+func startProxy(listenAddr string, target string, stop chan bool, isHTTPProxy bool, route utils.ProxyRouteConfig) {
+    // remove any protocol
+    destinationArr := strings.Split(listenAddr, "://")
+    listenProtocol := "tcp"
+
+    if len(destinationArr) > 1 {
+        listenAddr = destinationArr[1]
+        listenProtocol = destinationArr[0]
+        if protocol, ok := mapToTCPUDP[listenProtocol]; ok {
+            listenProtocol = protocol
+        }
+    } else {
+        listenAddr = destinationArr[0]
+    }
+
+    listener, err := net.Listen(listenProtocol, listenAddr)
+
     if err != nil {
         utils.Error("Failed to listen on " + listenAddr, err)
         return
     }
     defer listener.Close()
+
 
     utils.Log("Proxy listening on "+listenAddr+", forwarding to " + target)
 
@@ -59,18 +104,31 @@ func startProxy(listenAddr string, target string, stop chan bool) {
         default:
             client, err := listener.Accept()
             if err != nil {
-                utils.Error("Failed to accept connection: %v", err)
+                utils.Error("Failed to accept connection", err)
                 continue
             }
 
-            server, err := net.Dial("tcp", target)
+            var shieldedClient net.Conn
+
+            if !isHTTPProxy {
+                // Apply TCP Smart Shield
+                shieldedClient = TCPSmartShieldMiddleware("proxy-"+listenAddr, route)(client)
+                if shieldedClient == nil {
+                    // Connection was blocked by the shield
+                    continue
+                }
+            } else {
+                shieldedClient = client
+            }
+
+            server, err := net.Dial(listenProtocol, target)
             if err != nil {
-                utils.Error("Failed to connect to server: %v", err)
-                client.Close()
+                utils.Error("Failed to connect to server", err)
+                shieldedClient.Close()
                 continue
             }
 
-            go handleClient(client, server, stop)
+            go handleClient(shieldedClient, server, stop)
         }
     }
 }
@@ -78,9 +136,11 @@ func startProxy(listenAddr string, target string, stop chan bool) {
 type PortsPair struct {
     From string
     To string
+    isHTTPProxy bool
+    route utils.ProxyRouteConfig
 }
 
-func initInternalPortProxy(ports []PortsPair, destination string) {
+func initInternalPortProxy(ports []PortsPair) {
     proxiesLock.Lock()
     defer proxiesLock.Unlock()
 
@@ -110,7 +170,7 @@ func initInternalPortProxy(ports []PortsPair, destination string) {
             utils.Log("Network Starting internal proxy for port " + port.From)
             stop := make(chan bool)
             activeProxies[port.From] = stop
-            go startProxy(":"+port.From, destination+":"+port.To, stop)
+            go startProxy(":"+port.From, port.To, stop, port.isHTTPProxy, port.route)
         }
     }
 }
@@ -125,8 +185,18 @@ func contains(slice []string, item string) bool {
     return false
 }
 
-func InitInternalTCPProxy() {
-    utils.Log("Network: Initializing internal TCP proxy")
+func StopAllProxies() {
+    proxiesLock.Lock()
+    defer proxiesLock.Unlock()
+
+    for _, stop := range activeProxies {
+        close(stop)
+    }
+    activeProxies = make(map[string]chan bool)
+}
+
+func InitInternalSocketProxy() {
+    utils.Log("Network: Initializing internal TCP/UDP proxy")
     
     config := utils.GetMainConfig()
     expectedPorts := []PortsPair{}
@@ -156,25 +226,27 @@ func InitInternalTCPProxy() {
 			port := strings.Split(hostname, ":")[1]
             // if port is a number
             if _, err := strconv.Atoi(port); err == nil {
-                portpair := PortsPair{port, targetPort}
-                if allowHTTPLocal && utils.IsLocalIP(route.Host) {
+                destination := ""
+                isHTTPProxy := strings.HasPrefix(route.Target, "http://") || strings.HasPrefix(route.Target, "https://")
+
+                if isHTTPProxy {
+                    destination = "localhost:" + targetPort
+                } else {
+                    destination = route.Target
+                }
+                
+                portpair := PortsPair{port, destination, isHTTPProxy, route}
+
+                if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
                     portpair.To = HTTPPort
                 }
+
     			expectedPorts = append(expectedPorts, portpair)
             }
 		}
 	}
 
-	// append hostname port (if it's not the same as the HTTP/HTTPS port?)
-    // Should this be removed?
-	hostname := config.HTTPConfig.Hostname
-	if strings.Contains(hostname, ":") {
-		hostnameport := strings.Split(hostname, ":")[1]
-        if hostnameport != targetPort {
-            portpair := PortsPair{hostnameport, targetPort}
-    		expectedPorts = append(expectedPorts, portpair)
-        }
-	}
-
-    initInternalPortProxy(expectedPorts, "localhost")
+    StopAllProxies()
+    
+    initInternalPortProxy(expectedPorts)
 }

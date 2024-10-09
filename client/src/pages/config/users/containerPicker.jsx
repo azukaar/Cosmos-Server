@@ -250,7 +250,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
         </FormHelperText>}
       
 
-      <InputLabel htmlFor={name + "-protocol"}>{t('mgmt.config.containerPicker.containerProtocolInput')}</InputLabel>
+      <InputLabel htmlFor={name + "-protocol"}>{t('mgmt.config.containerPicker.containerProtocolInput2')}</InputLabel>
       <TextField
         type="text"
         name={name + "-protocol"}
