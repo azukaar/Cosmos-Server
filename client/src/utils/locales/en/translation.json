@@ -176,6 +176,8 @@
 	"mgmt.config.http.hostnameInput.HostnameLabel": "Hostname: This will be used to restrict access to your Cosmos Server (Your IP, or your domain name)",
 	"mgmt.config.http.hostnameInput.HostnameValidation": "Hostname is required",
 	"mgmt.config.http.publishMDNSCheckbox": "This allows you to publish your server on your local network using mDNS. This means all your .local domains will be available on your local network with no additional config.",
+	"mgmt.config.http.TrustedProxiesInput.TrustesProxiesLabel": "Trusted proxies allow X-Forwarded-For from an IP/IP range.",
+	"mgmt.config.http.TrustedProxiesInput.TrustesProxiesHelperText": "Use this setting when you have an upstream proxy server to avoid it being blocked by Shield. IP or IP range separated by commas",
 	"mgmt.config.email.notifyLoginCheckbox.notifyLoginLabel": "Notify Users upon Successful Login",
 	"mgmt.config.proxy.noRoutesConfiguredText": "No routes configured.",
 	"mgmt.config.proxy.originTitle": "Origin",
