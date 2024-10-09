@@ -621,11 +621,13 @@ const ConfigManagement = () => {
 
                   <Grid item xs={12}>
                     <Stack spacing={1}>
+                    <Alert severity="info">
+                      {t('mgmt.config.http.TrustedProxiesInput.TrustesProxiesHelperText')}<br />
+                    </Alert>
 					  <CosmosInputText
 						label={t('mgmt.config.http.TrustedProxiesInput.TrustesProxiesLabel')}
 						name="TrustedProxies"
 						formik={formik}
-						helperText={t('mgmt.config.http.TrustedProxiesInput.TrustesProxiesHelperText')}
 					  />
                     </Stack>
                   </Grid>
