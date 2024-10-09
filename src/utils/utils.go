@@ -891,6 +891,25 @@ func IsConstellationIP(ip string) bool {
 	return false 
 }
 
+func IsTrustedProxy(ip string) bool {
+	ipAddr := osnet.ParseIP(ip)
+	for _, trustedProxy := range GetMainConfig().HTTPConfig.TrustedProxies {
+		_, cidr, err := osnet.ParseCIDR(trustedProxy)
+		if err != nil {
+			// If it's not a CIDR, check for exact match
+			if ip == trustedProxy {
+				return true
+			}
+		} else {
+			// Check if the IP is in the CIDR range
+			if cidr.Contains(ipAddr) {
+				return true
+			}
+		}
+	}
+	return false 
+}
+
 func SplitIP(ipPort string) (string, string) {
 	host, port, err := osnet.SplitHostPort(ipPort)
 	if err != nil {

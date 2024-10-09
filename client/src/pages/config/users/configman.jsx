@@ -106,6 +106,7 @@ const ConfigManagement = () => {
           GenerateMissingAuthCert: config.HTTPConfig.GenerateMissingAuthCert,
           HTTPPort: config.HTTPConfig.HTTPPort,
           HTTPSPort: config.HTTPConfig.HTTPSPort,
+          TrustedProxies: config.TrustedProxies && config.TrustedProxies.join(', '),
           SSLEmail: config.HTTPConfig.SSLEmail,
           UseWildcardCertificate: config.HTTPConfig.UseWildcardCertificate,
           HTTPSCertificateMode: config.HTTPConfig.HTTPSCertificateMode,
@@ -205,6 +206,8 @@ const ConfigManagement = () => {
               AllowSearchEngine: values.AllowSearchEngine,
               AllowHTTPLocalIPAccess: values.AllowHTTPLocalIPAccess,
               PublishMDNS: values.PublishMDNS,
+              TrustedProxies: (values.TrustedProxies && values.TrustedProxies != "") ?
+                values.TrustedProxies.split(',').map((x) => x.trim()) : [],
             },
             EmailConfig: {
               ...config.EmailConfig,

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
@@ -288,9 +289,9 @@ func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	isConstIP := utils.IsConstellationIP(remoteAddr)
 	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
+	if ((UseForwardedFor || utils.IsTrustedProxy(remoteAddr) ) && r.Header.Get("x-forwarded-for") != "") || 
 		 (isTunneledIp && isConstIP && isConstTokenValid) {
-		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
+		ip := strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]
 		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip
 	} else {
