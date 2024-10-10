@@ -484,6 +484,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid", storage.SNAPRaidCRUDRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
+	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
 	
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		debugRouter := srapiAdmin.PathPrefix("/debug").Subrouter()

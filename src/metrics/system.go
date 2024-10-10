@@ -265,4 +265,28 @@ func GetSystemMetrics() {
 			})
 		}
 	}
+
+	// RClone stats
+	rcloneStats, err := storage.RCloneStats()
+
+	if err != nil {
+		utils.Error("Metrics - Error fetching RClone stats:", err)
+	} else {
+		PushSetMetric("system.rclone.all.bytes", int(rcloneStats.Bytes), DataDef{
+			Period:    time.Second * 30,
+			Label:     "Remote Storage Bytes Transfered",
+			AggloType: "sum",
+			SetOperation: "max",
+			Unit:      "B",
+			Decumulate:   true,
+		})
+		PushSetMetric("system.rclone.all.errors", int(rcloneStats.Errors), DataDef{
+			Period:    time.Second * 30,
+			Label:     "Remote Storage Errors",
+			AggloType: "sum",
+			SetOperation: "max",
+			Unit:      "",
+			Decumulate:   true,
+		})
+	}
 }

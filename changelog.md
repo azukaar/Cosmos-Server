@@ -7,10 +7,11 @@
  - Added restart server and restart cosmos button on the top right header
  - Added log file in the config folder and a download button in the config page
  - Fixed bug where lighthouses would not consider the home server as lighthouse in Constellation
- - Improved keep alive in the Websocket for terminal (to prevent timeouts during long operations)
+ - Improved terminal with better UI and keep alive in the Websocket for  (to prevent timeouts during long operations)
  - Improve logs screen for containers (better colors, fix scrolling, auto-refresh, ...)
  - Fix bug with missing post-install instructs on service creation
  - Added missing geo block events in monitoring
+ - Added ExtraHeader to route config to add custom headers to the request
  - Improved accessiblity of the menu for screen readers
  - Update to Go 1.23.2
 

@@ -1,4 +1,4 @@
-import {wrapRClone} from './wrap';
+import wrap, {wrapRClone} from './wrap';
 
 function _setData(data) {
   if(!data) {
@@ -36,9 +36,9 @@ function list() {
 }
 
 // New function to update a provider
-function update(providerId, data) {
-  return wrapRClone(fetch(`/cosmos/rclone/config/update/${providerId}`, {
-    method: 'PUT',
+function update(data) {
+  return wrapRClone(fetch('/cosmos/rclone/config/update', {
+    method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
@@ -59,6 +59,30 @@ function pingStorage(remoteName) {
   }))
 }
 
+// New function to ping a storage
+function stats(remoteName) {
+  return wrapRClone(fetch('/cosmos/rclone/vfs/stats', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      "fs": remoteName + ":"
+    })
+  }))
+}
+
+// New function to ping a storage
+function coreStats(remoteName, remotePath) {
+  return wrapRClone(fetch('/cosmos/rclone/core/stats', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: "{}"
+  }))
+}
+
 function deleteRemote(remoteName) {
   return wrapRClone(fetch('/cosmos/rclone/config/delete', {
     method: 'POST',
@@ -71,10 +95,22 @@ function deleteRemote(remoteName) {
   }))
 }
 
+function restart() {
+  return wrap(fetch('/cosmos/api/rclone-restart', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+
 export {
   create,
   list,
   deleteRemote,
   update,
-  pingStorage
+  coreStats,
+  stats,
+  pingStorage,
+  restart
 };

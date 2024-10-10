@@ -249,4 +249,3 @@ func IsDiskMounted(diskPath string) (bool, error) {
 
 	return false, nil
 }
-
