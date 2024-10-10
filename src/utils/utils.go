@@ -32,6 +32,10 @@ import (
 var ConfigLock sync.Mutex
 var ConfigLockInternal sync.Mutex
 
+var ProxyRClone = false
+var ProxyRCloneUser = ""
+var ProxyRClonePwd = ""
+
 var BaseMainConfig Config
 var MainConfig Config
 var IsHTTPS = false
@@ -638,6 +642,10 @@ func GetServerPort() string {
 		return MainConfig.HTTPConfig.HTTPSPort
 	}
 	return MainConfig.HTTPConfig.HTTPPort
+}
+
+func Base64Encode(str string) string {
+	return base64.StdEncoding.EncodeToString([]byte(str))
 }
 
 func ImageToBase64(path string) (string, error) {

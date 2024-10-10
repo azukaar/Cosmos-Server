@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "다시 연결",
   "mgmt.servapps.containers.terminal.disabled": "서버 터미널은 코스모스를 컨테이너로 사용할 때 비활성화됩니다",
   "mgmt.servapps.containers.terminal.enabled": "서버 터미널",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "대상 URL은 http:// 또는 https://로 시작해야 HTTP 프록시를 사용할 수 있습니다 (웹 앱의 경우). 대부분의 경우 원하는 것이 이것입니다."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "대상 URL은 http:// 또는 https://로 시작해야 HTTP 프록시를 사용할 수 있습니다 (웹 앱의 경우). 대부분의 경우 원하는 것이 이것입니다.",
+  "mgmt.servapps.networks.list.host-port": "호스트 포트",
+  "mgmt.storage.rclone.name": "이름",
+  "mgmt.storage.rclone.type": "유형",
+  "mgmt.storage.rclone.fullPath": "전체 경로",
+  "mgmt.storage.rclone.status": "상태",
+  "mgmt.storage.rclone.create": "원격 추가",
+  "mgmt.storage.rclone.select": "외부 저장소 선택",
+  "mgmt.urls.edit.sourceInfoPort": "대상을 액세스하고 싶은 포트는 무엇입니까?"
 }

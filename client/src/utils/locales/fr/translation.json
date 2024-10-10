@@ -740,5 +740,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "Reconnecter",
   "mgmt.servapps.containers.terminal.disabled": "Le terminal du serveur est désactivé lors de l'utilisation de Cosmos comme conteneur",
   "mgmt.servapps.containers.terminal.enabled": "Terminal du serveur",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "L'URL cible doit commencer par http:// ou https:// si vous souhaitez utiliser le proxy HTTP (pour une application web). Dans la plupart des cas, c'est ce que vous voulez."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "L'URL cible doit commencer par http:// ou https:// si vous souhaitez utiliser le proxy HTTP (pour une application web). Dans la plupart des cas, c'est ce que vous voulez.",
+  "mgmt.servapps.networks.list.host-port": "Port hôte",
+  "mgmt.storage.rclone.name": "Nom",
+  "mgmt.storage.rclone.type": "Type",
+  "mgmt.storage.rclone.fullPath": "Chemin complet",
+  "mgmt.storage.rclone.status": "Statut",
+  "mgmt.storage.rclone.create": "Ajouter à distance",
+  "mgmt.storage.rclone.select": "Sélectionner le stockage externe",
+  "mgmt.urls.edit.sourceInfoPort": "Quel PORT souhaitez-vous utiliser pour accéder à votre cible ?"
 }

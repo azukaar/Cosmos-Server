@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "重新连接",
   "mgmt.servapps.containers.terminal.disabled": "使用 Cosmos 作为容器时，服务器终端已禁用",
   "mgmt.servapps.containers.terminal.enabled": "服务器终端",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "目标 URL 应以 http:// 或 https:// 开头，如果您要使用 HTTP 代理（用于 Web 应用）。大多数情况下，这是您想要的。"
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "目标 URL 应以 http:// 或 https:// 开头，如果您要使用 HTTP 代理（用于 Web 应用）。大多数情况下，这是您想要的。",
+  "mgmt.servapps.networks.list.host-port": "主机端口",
+  "mgmt.storage.rclone.name": "名称",
+  "mgmt.storage.rclone.type": "类型",
+  "mgmt.storage.rclone.fullPath": "完整路径",
+  "mgmt.storage.rclone.status": "状态",
+  "mgmt.storage.rclone.create": "添加远程",
+  "mgmt.storage.rclone.select": "选择外部存储",
+  "mgmt.urls.edit.sourceInfoPort": "您希望从哪个端口访问目标？"
 }

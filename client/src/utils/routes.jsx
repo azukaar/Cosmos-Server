@@ -87,26 +87,50 @@ export const ValidateRouteSchema = Yup.object().shape({
     then: Yup.string().matches(/:[0-9]+$/, <Trans i18nKey="mgmt.config.containerPicker.targetTypeValidation.noPort" />),
   }),
 
-  Host: Yup.string().when('UseHost', {
-    is: true,
-    then: Yup.string()
-      .required('Host is required')
-      .matches(/[\.|\:]/, 'Host must be full domain ([sub.]domain.com) or an IP (IPs won\'t work with Let\'s Encrypt!)')
-      .test('is-protocol', 'Do not add the protocol here!', (value) => {
-        return !value.match(/\:.*?[a-zA-Z]+/);
-      })
-  }),
+  Host: Yup.string()
+    .test('is-required', 'Host is required', function (value) {
+      if (this.parent.UseHost && !value) {
+        return false;
+      }
+      if (IsRouteSocketProxy(this.parent) && !value) {
+        return false;
+      }
+
+      return true;
+    })
+    .test('is-domain', 'Host must be full domain ([sub.]domain.com) or an IP (IPs won\'t work with Let\'s Encrypt!)', function (value) {
+      if (this.parent.UseHost && value && !IsRouteSocketProxy(this.parent) && !value.match(/[\.|\:]/)) {
+        return false;
+      }
+
+      return true;
+    })
+    .test('is-protocol', 'Do not add the protocol here!', function (value) {
+      if (this.parent.UseHost && value && value.match(/^([a-zA-Z]):\/\//)) {
+        return false;
+      }
+
+      return true;
+    })
+    .test('is-port', 'Must be a valid port', function (value) {
+      if (value && IsRouteSocketProxy(this.parent) && !value.match(/^(?:[a-zA-Z\-_\.]+\:)?[0-9]+$/)) {
+        return false;
+      }
+
+      return true;
+    }),
+
+
 
   PathPrefix: Yup.string().when('UsePathPrefix', {
     is: true,
     then: Yup.string().required('Path Prefix is required').matches(/^\//, 'Path Prefix must start with / (e.g. /api). Do not include a domain/subdomain in it, use the Host for this.')
   }),
 
-  UseHost: Yup.boolean().when('UsePathPrefix',
-    {
-      is: false,
-      then: Yup.boolean().oneOf([true], 'Source must at least be either Host or Path Prefix')
-    }),
+  UseHost: Yup.boolean().test('is-host-or-path', 'Source must be either Host or Path Prefix', function (value) {
+    const { UsePathPrefix, Target } = this.parent;
+    return (value === true || UsePathPrefix === true || IsRouteSocketProxy(Target));
+  }),
 })
 
 export const ValidateRoute = (routeConfig, config) => {
@@ -212,8 +236,6 @@ export const getHostnameFromName = (name, route, config, overrideOrigin) => {
 }
 
 export const IsRouteSocketProxy = (route) => {
-  console.log(route.Mode, route.Target)
-  console.log((route.Mode == "PROXY" || route.Mode == "SERVAPP") && !route.Target.startsWith('http://') && !route.Target.startsWith('https://'));
- 
+  if(!route.Target || route.Target == "") return false;
   return (route.Mode == "PROXY" || route.Mode == "SERVAPP") && !route.Target.startsWith('http://') && !route.Target.startsWith('https://');
 }

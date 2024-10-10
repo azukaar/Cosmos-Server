@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "Opnieuw verbinden",
   "mgmt.servapps.containers.terminal.disabled": "De serverterminal is uitgeschakeld bij gebruik van Cosmos als een container",
   "mgmt.servapps.containers.terminal.enabled": "Serverterminal",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "De doellocatie-URL moet beginnen met http:// of https:// als u de HTTP-proxy wilt gebruiken (voor een webapp). In de meeste gevallen is dit wat u wilt."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "De doellocatie-URL moet beginnen met http:// of https:// als u de HTTP-proxy wilt gebruiken (voor een webapp). In de meeste gevallen is dit wat u wilt.",
+  "mgmt.servapps.networks.list.host-port": "Hostpoort",
+  "mgmt.storage.rclone.name": "Naam",
+  "mgmt.storage.rclone.type": "Type",
+  "mgmt.storage.rclone.fullPath": "Volledig pad",
+  "mgmt.storage.rclone.status": "Status",
+  "mgmt.storage.rclone.create": "Externe opslag toevoegen",
+  "mgmt.storage.rclone.select": "Selecteer externe opslag",
+  "mgmt.urls.edit.sourceInfoPort": "Via welke POORT wilt u toegang tot uw doelwit verkrijgen?"
 }

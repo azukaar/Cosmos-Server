@@ -1,4 +1,5 @@
 ## Version 0.17.0
+ - Added RClone integration to manage and mount remote storage
  - Added zip and deb packages for docker-less distribution
  - Added TCP/UDP socket proxying
  - TCP/UDP proxying includes smart-shield protections, constellation support, geoblocking, and monitoring
@@ -11,6 +12,7 @@
  - Fix bug with missing post-install instructs on service creation
  - Added missing geo block events in monitoring
  - Improved accessiblity of the menu for screen readers
+ - Update to Go 1.23.2
 
 ## Version 0.16.3
  - Local domains now produce services instead of CNAME for better compatibility

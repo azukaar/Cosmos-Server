@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "Yeniden Bağlan",
   "mgmt.servapps.containers.terminal.disabled": "Cosmos'u bir kapsayıcı olarak kullanırken Sunucu Terminali devre dışıdır",
   "mgmt.servapps.containers.terminal.enabled": "Sunucu Terminali",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Hedef URL'nin HTTP vekilini (bir web uygulaması için) kullanmak istiyorsanız http:// veya https:// ile başlaması gerekir. Çoğu durumda istediğiniz budur."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "Hedef URL'nin HTTP vekilini (bir web uygulaması için) kullanmak istiyorsanız http:// veya https:// ile başlaması gerekir. Çoğu durumda istediğiniz budur.",
+  "mgmt.servapps.networks.list.host-port": "Ana bilgisayar Portu",
+  "mgmt.storage.rclone.name": "Ad",
+  "mgmt.storage.rclone.type": "Tür",
+  "mgmt.storage.rclone.fullPath": "Tam Yol",
+  "mgmt.storage.rclone.status": "Durum",
+  "mgmt.storage.rclone.create": "Uzaktan Ekle",
+  "mgmt.storage.rclone.select": "Harici Depolama Seç",
+  "mgmt.urls.edit.sourceInfoPort": "Hedefinize hangi PORT'tan erişmek istiyorsunuz?"
 }

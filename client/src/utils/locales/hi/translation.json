@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "पुनः कनेक्ट करें",
   "mgmt.servapps.containers.terminal.disabled": "जब कॉसमॉस को एक कंटेनर के रूप में उपयोग कर रहे हैं, तो सर्वर टर्मिनल निष्क्रिय होता है",
   "mgmt.servapps.containers.terminal.enabled": "सर्वर टर्मिनल",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "लक्षित URL को HTTP प्रॉक्सी का उपयोग करना हो तो http:// या https:// से शुरू होना चाहिए (एक वेब ऐप के लिए)। अधिकतर मामलों में यही उचित है।"
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "लक्षित URL को HTTP प्रॉक्सी का उपयोग करना हो तो http:// या https:// से शुरू होना चाहिए (एक वेब ऐप के लिए)। अधिकतर मामलों में यही उचित है।",
+  "mgmt.servapps.networks.list.host-port": "होस्ट पोर्ट",
+  "mgmt.storage.rclone.name": "नाम",
+  "mgmt.storage.rclone.type": "प्रकार",
+  "mgmt.storage.rclone.fullPath": "पूर्ण पथ",
+  "mgmt.storage.rclone.status": "स्थिति",
+  "mgmt.storage.rclone.create": "रिमोट जोड़ें",
+  "mgmt.storage.rclone.select": "बाहरी संग्रहण चुनें",
+  "mgmt.urls.edit.sourceInfoPort": "आप अपने लक्ष्य से किस पोर्ट पर पहुंचना चाहते हैं?"
 }

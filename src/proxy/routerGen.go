@@ -152,7 +152,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	timeout := route.Timeout
 
 	
-	if(!utils.GetMainConfig().HTTPConfig.AcceptAllInsecureHostname) {
+	if(!utils.GetMainConfig().HTTPConfig.AcceptAllInsecureHostname && route.UseHost) {
 		destination = utils.EnsureHostname(destination)
 	}
 

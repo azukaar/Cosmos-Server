@@ -7,6 +7,7 @@ import * as _constellation from './constellation';
 import * as _metrics from './metrics';
 import * as _storage from './storage';
 import * as _cron from './cron';
+import * as _rclone from './rclone';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -221,12 +222,12 @@ let restartServer = () => {
   }));
 }
 
-function terminal(containerId) {
+function terminal(startCmd = "bash") {
   let protocol = 'ws://';
   if (window.location.protocol === 'https:') {
     protocol = 'wss://';
   }
-  return new WebSocket(protocol + window.location.host + '/cosmos/api/terminal');
+  return new WebSocket(protocol + window.location.host + '/cosmos/api/terminal/'+startCmd)
 }
 
 const isDemo = import.meta.env.MODE === 'demo';
@@ -240,6 +241,7 @@ let constellation = _constellation;
 let metrics = _metrics;
 let storage = _storage;
 let cron = _cron;
+let rclone = _rclone;
 
 if(isDemo) {
   auth = authDemo;
@@ -278,5 +280,6 @@ export {
   storage,
   terminal,
   cron,
+  rclone,
   restartServer
 };

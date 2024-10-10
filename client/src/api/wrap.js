@@ -1,5 +1,19 @@
 let snackit;
 
+export function wrapRClone(apicall) {
+  return apicall.then(async (response) => {
+    let rep = await response.json();
+    if (response.status >= 400) {
+      snackit(rep.error);
+      const e = new Error(rep.error);
+      e.status = response.status;
+      e.code = response.status;
+      throw e;
+    }
+    return rep;
+  });
+};
+
 export default function wrap(apicall, noError = false) {
   return apicall.then(async (response) => {
     let rep;

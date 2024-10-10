@@ -84,15 +84,15 @@ func Debug(message string) {
 }
 
 func Log(message string) {
-	logMessage(INFO, "[INFO]", bBlue, nBlue, message)
+	logMessage(INFO, "[INFO ]", bBlue, nBlue, message)
 }
 
 func LogReq(message string) {
-	logMessage(INFO, "[REQ]", bGreen, nGreen, message)
+	logMessage(INFO, "[REQ  ]", bGreen, nGreen, message)
 }
 
 func Warn(message string) {
-	logMessage(WARNING, "[WARN]", bYellow, nYellow, message)
+	logMessage(WARNING, "[WARN ]", bYellow, nYellow, message)
 }
 
 func Error(message string, err error) {

@@ -6,8 +6,10 @@ import (
     "sync"
     "strings"
     "strconv"
+    "net/url"
 
     "github.com/azukaar/cosmos-server/src/utils"
+    "github.com/azukaar/cosmos-server/src/docker"
 )
 
 var (
@@ -233,6 +235,23 @@ func InitInternalSocketProxy() {
                     destination = "localhost:" + targetPort
                 } else {
                     destination = route.Target
+                    
+                    if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
+                        url, err := url.Parse(destination)
+                        if err != nil {
+                            utils.Error("Create socket Route", err)
+                        } else {
+                            targetHost := url.Hostname()
+    
+                            targetIP, err := docker.GetContainerIPByName(targetHost)
+                            if err != nil {
+                                utils.Error("Can't find container", err)
+                            } else {
+                                utils.Debug("Dockerless socket Target IP: " + targetIP)
+                                destination = targetIP + ":" + url.Port()
+                            }
+                        }
+                    }
                 }
                 
                 portpair := PortsPair{port, destination, isHTTPProxy, route}

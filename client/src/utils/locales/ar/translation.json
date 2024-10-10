@@ -738,5 +738,13 @@
   "mgmt.servApps.container.terminal.reconnectButton": "إعادة الاتصال",
   "mgmt.servapps.containers.terminal.disabled": "تم تعطيل محطة الخادم عند استخدام كوزموس كحاوية",
   "mgmt.servapps.containers.terminal.enabled": "محطة الخادم",
-  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "يجب أن يبدأ عنوان URL الهدف بـ http:// أو https:// إذا كنت ترغب في استخدام الوكيل HTTP (لتطبيق ويب). في معظم الحالات هذا هو ما تريده."
+  "mgmt.urls.edit.targetSettings.targetUrlProtocolWarning": "يجب أن يبدأ عنوان URL الهدف بـ http:// أو https:// إذا كنت ترغب في استخدام الوكيل HTTP (لتطبيق ويب). في معظم الحالات هذا هو ما تريده.",
+  "mgmt.servapps.networks.list.host-port": "منفذ المضيف",
+  "mgmt.storage.rclone.name": "الاسم",
+  "mgmt.storage.rclone.type": "النوع",
+  "mgmt.storage.rclone.fullPath": "المسار الكامل",
+  "mgmt.storage.rclone.status": "الحالة",
+  "mgmt.storage.rclone.create": "إضافة جهة خارجية",
+  "mgmt.storage.rclone.select": "اختر التخزين الخارجي",
+  "mgmt.urls.edit.sourceInfoPort": "ما هو المنفذ الذي تريد الوصول إلى الهدف منه؟"
 }

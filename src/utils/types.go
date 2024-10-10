@@ -79,11 +79,11 @@ type User struct {
 type Config struct {
 	LoggingLevel LoggingLevel `required,validate:"oneof=DEBUG INFO WARNING ERROR"`
 	MongoDB string
-	Database DatabaseConfig `validate:"dive"`
+	Database DatabaseConfig ``
 	DisableUserManagement bool
 	NewInstall bool `validate:"boolean"`
-	HTTPConfig HTTPConfig `validate:"required,dive,required"`
-	EmailConfig EmailConfig `validate:"required,dive,required"`
+	HTTPConfig HTTPConfig `validate:"required"`
+	EmailConfig EmailConfig `validate:"required"`
 	DockerConfig DockerConfig
 	BlockedCountries []string
 	CountryBlacklistIsWhitelist bool
@@ -105,6 +105,7 @@ type Config struct {
 	CRON map[string]CRONConfig
 	Licence string
 	ServerToken string
+	RemoteStorage RemoteStorageConfig
 }
 
 type CRONConfig struct {
@@ -241,6 +242,7 @@ type ProxyRouteConfig struct {
 	Icon                       string                      `yaml:"icon,omitempty"`
 	TunnelVia                  string                      `yaml:"tunnel_via,omitempty"`
 	TunneledHost							 string                      `yaml:"tunneled_host,omitempty"`
+	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
 }
 
 type EmailConfig struct {
@@ -411,4 +413,14 @@ type AlertMetricTrack struct {
 	Key string
 	Object string
 	Max uint64
+}
+
+type LocationRemoteStorageConfig struct {
+	Name     string
+	Type     string
+	Settings map[string]string
+}
+
+type RemoteStorageConfig struct {
+	Remotes []LocationRemoteStorageConfig
 }

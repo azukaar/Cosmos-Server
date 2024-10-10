@@ -16,7 +16,7 @@ import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
-import { ValidateRouteSchema, getHostnameFromName, sanitizeRoute } from '../../../utils/routes';
+import { IsRouteSocketProxy, ValidateRouteSchema, getHostnameFromName, sanitizeRoute } from '../../../utils/routes';
 import { isDomain } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
 
@@ -45,11 +45,7 @@ const checkHost = debounce((host, setHostError) => {
   } else {
     setHostError(null);
   }
-}, 500)
-
-const isHTTP = (url) => {
-  return url.startsWith('http://') || url.startsWith('https://');
-}
+}, 500);
 
 const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute }) => {
   const { t } = useTranslation();
@@ -80,7 +76,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           Name: routeConfig.Name,
           Description: routeConfig.Description,
           Mode: routeConfig.Mode || "SERVAPP",
-          Target: routeConfig.Target,
+          Target: routeConfig.Target || 'http://',
           UseHost: routeConfig.UseHost,
           Host: routeConfig.Host,
           AcceptInsecureHTTPSTarget: routeConfig.AcceptInsecureHTTPSTarget === true,
@@ -115,6 +111,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
             }
 
             fullValues = sanitizeRoute(fullValues);
+
+            if(IsRouteSocketProxy(fullValues)) {
+              if(!fullValues.Host.includes(':')) {
+                fullValues.Host = `localhost:${fullValues.Host}`;
+              }
+              fullValues.UseHost = true;
+            }
 
             let op;
             if(newRoute) {
@@ -154,6 +157,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           // check name is unique
           if (newRoute && routeNames.includes(fullValues.Name)) {
             return { Name: 'Name must be unique' }
+          }
+
+          if(IsRouteSocketProxy(fullValues)) {
+            if(!fullValues.Host.includes(':')) {
+              fullValues.Host = `localhost:${fullValues.Host}`;
+            }
+            fullValues.UseHost = true;
           }
 
           setRouteConfig && debounce(() => setRouteConfig(fullValues), 500)();
@@ -239,7 +249,22 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   />}
 
                   <CosmosFormDivider title={t('global.source')} />
+                  
+                  {IsRouteSocketProxy(formik.values) && <>
+                    <Grid item xs={12}>
+                      <Alert color='info'>{t('mgmt.urls.edit.sourceInfoPort')}</Alert>
+                    </Grid>
+                    <CosmosInputText
+                      name="Host"
+                      label={t('mgmt.servapps.networks.list.host-port')}
+                      placeholder={1234}
+                      formik={formik}
+                      onChange={(e) => {
+                      }}
+                    />
+                    </>}
 
+                  {!IsRouteSocketProxy(formik.values) && <>
                   <Grid item xs={12}>
                     <Alert color='info'>{t('mgmt.urls.edit.sourceInfo')}</Alert>
                   </Grid>
@@ -266,7 +291,6 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   </>
                   )}
 
-                  {isHTTP(formik.values.Target) && <>
                   <CosmosCheckbox
                     name="UsePathPrefix"
                     label={t('mgmt.urls.edit.usePathPrefixCheckbox.usePathPrefixLabel')}
@@ -291,7 +315,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   
                   <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurityTitle')} />
                   
-                  {isHTTP(formik.values.Target) && <>
+                  {!IsRouteSocketProxy(formik.values) && <>
                   <CosmosCheckbox
                     name="AuthEnabled"
                     label={t('mgmt.urls.edit.basicSecurity.authEnabledCheckbox.authEnabledLabel')}
@@ -341,7 +365,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         formik={formik}
                       />
 
-                      {isHTTP(formik.values.Target) && <>
+                      {!IsRouteSocketProxy(formik.values) && <>
                       <CosmosFormDivider />
                       <Alert severity='info'>{t('mgmt.urls.edit.advancedSettings.advancedSettingsInfo')}</Alert>
                       <CosmosInputText
