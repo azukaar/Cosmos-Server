@@ -136,8 +136,8 @@ const TerminalComponent = ({refresh, connectButtons}) => {
         'Tab': '\t',
         'PageUp': '\x1b[5~',
         'PageDown': '\x1b[6~',
+        'Delete': '\x1b[3~',
       };
-
       const cancelKeys = [
         'Shift',
         'Meta',
@@ -147,19 +147,24 @@ const TerminalComponent = ({refresh, connectButtons}) => {
         'NumLock',
         'ScrollLock',
         'Pause',
-      ]
-
+      ];
       const codesCtrl = {
+        'a': '\x01', // Beginning of line
+        'e': '\x05', // End of line
         'c': '\x03',
         'd': '\x04',
         'l': '\x0c',
         'z': '\x1a',
-        'Backspace': '\x08',
+        'Backspace': '\x17',     // CTRL + Backspace (delete word backward)
+        'Delete': '\x1b[3;5~',   // CTRL + Delete (delete word forward)
+        'ArrowLeft': '\x1b[1;5D',  // CTRL + Left Arrow
+        'ArrowRight': '\x1b[1;5C', // CTRL + Right Arrow
       };
-            
+           
       if (e.type === 'keydown') {
-        if (codesCtrl[e.key] && e.ctrlKey) {
+        if (e.ctrlKey && codesCtrl[e.key]) {
           ws.current.send(codesCtrl[e.key]);
+          e.preventDefault(); // Prevent default browser behavior
         } else if (codes[e.key]) {
           ws.current.send(codes[e.key]);
         } else if (cancelKeys.includes(e.key)) {
@@ -168,10 +173,15 @@ const TerminalComponent = ({refresh, connectButtons}) => {
           ws.current.send(e.key);
         }
       } else if (e.type === 'keyup') {
+        // Handle keyup events if needed
       }
-
       return true;
-    });   
+    });
+
+    // if there is only one butotn, connect to it
+    if(connectButtons && connectButtons.length === 1) {
+      connectButtons[0].onClick(connect);
+    }
   }, []);
 
   return (

@@ -15,11 +15,23 @@ import { Parity } from './parity';
 import { useTranslation } from 'react-i18next';
 import RCloneConfig from './rclone/rclone_config';
 import RClonePage from './rclone/rclone_config';
+import RemoteStorageSalesPage from './rclone/rclone-free';
 
 const StorageIndex = () => {
   const { t } = useTranslation();
   const {role} = useClientInfos();
   const isAdmin = role === "2";
+  const [coStatus, setCoStatus] = React.useState(null);
+
+  const refreshStatus = () => {
+    API.getStatus().then((res) => {
+      setCoStatus(res.data);
+    });
+  }
+
+  React.useEffect(() => {
+    refreshStatus();
+  }, []);
 
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
@@ -36,17 +48,15 @@ const StorageIndex = () => {
         {
           title: t('mgmt.storage.externalStorage'),
           children: <div>
-            <RClonePage />
+            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage /> : <RClonePage  coStatus={coStatus}/>}
           </div>,
           path: 'external'
         },
         {
           title: t('mgmt.storage.sharesTitle'),
-          children:  <div>
-          <Alert severity="info">
-            {t('mgmt.storage.sharesText')}
-          </Alert>
-        </div>,
+          children: <div>
+            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage /> : <RClonePage />}
+          </div>,
           path: 'shares'
         },
         {

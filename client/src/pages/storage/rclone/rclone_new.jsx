@@ -7,10 +7,14 @@ import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 import { useTranslation } from 'react-i18next';
 
-const RCloneNewConfig = ({ onClose }) => {
-  const [selectedProvider, setSelectedProvider] = useState('');
+const RCloneNewConfig = ({ onClose, initialValues }) => {
+  const isEdit = typeof initialValues === 'object';
+  const [selectedProvider, setSelectedProvider] = useState(isEdit ? initialValues.type : '');
   const [providerOptions, setProviderOptions] = useState([]);
   const { t } = useTranslation();
+
+  if (isEdit)
+    initialValues.named = initialValues.name;
 
   useEffect(() => {
     setProviderOptions(ProvConfig.map(config => ({
@@ -29,7 +33,17 @@ const RCloneNewConfig = ({ onClose }) => {
 
   const renderFormFields = (config, isSubmitting, setFieldValue) => {
     const standardFields = [];
-    const advancedFields = [];
+    const advancedFields = [
+      <Field
+        key="cosmos-chown"
+        as={TextField}
+        name="cosmos-chown"
+        label="Chown (permission will be 700)"
+        fullWidth
+        margin="normal"
+        required
+      />,
+    ];
 
     config.Options.forEach(option => {
       const field = (
@@ -57,7 +71,7 @@ const RCloneNewConfig = ({ onClose }) => {
     return (
       <>
         <Alert severity="info">
-          Documentation for this provider can be found <a href={`https://rclone.org/${config.Name}/`} target="_blank" rel="noreferrer">here</a>
+          {t('mgmt.storage.rclone.doclink')}&nbsp;<a href={`https://rclone.org/${config.Name}/`} target="_blank" rel="noreferrer">link</a>
         </Alert>
         <Field
           as={TextField}
@@ -67,11 +81,12 @@ const RCloneNewConfig = ({ onClose }) => {
           fullWidth
           margin="normal"
           required
+          disabled={isEdit}
         />
         {standardFields}
         {ProvAuth.includes(config.Name) && (<>
           <Alert severity="info">
-            This provider requires interactive authentication. In order to proceed do BLABLABLABLABLA
+            {t('mgmt.storage.rclone.tokenInfo')}&nbsp;<a href={`https://cosmos-cloud.io/doc/81%20Storage/#remote-storage`} target="_blank" rel="noreferrer">link</a> 
           </Alert>
           <Field
             as={TextField}
@@ -93,18 +108,30 @@ const RCloneNewConfig = ({ onClose }) => {
 
   return (
     <Dialog open={true} onClose={() => onClose()} fullWidth maxWidth="sm">
-      <DialogTitle>{t('mgmt.storage.rclone.create')}</DialogTitle>
+      <DialogTitle>{isEdit ? t('global.edit') : t('global.createAction')}</DialogTitle>
       <Formik
-        initialValues={{}}
+        initialValues={isEdit ? initialValues : {
+          "cosmos-chown": "1000:1000",
+        }}
         onSubmit={(values, { setSubmitting }) => {
+          let originalName;
+          if (isEdit) {
+            originalName = initialValues.name;
+          }
+
           let fullValues = {};
           fullValues.type = selectedProvider;
           fullValues.name = values.named + "";
-          delete values.named;
           fullValues.parameters = values;
+          delete fullValues.parameters.named;
+          delete fullValues.parameters.parameters;
+          delete fullValues.parameters.type;
+
           setSubmitting(false);
 
-          API.rclone.create(fullValues).then(() => {
+          (isEdit ? 
+            API.rclone.update(fullValues)
+            : API.rclone.create(fullValues)).then(() => {
             onClose();
           }).catch((err) => {
             onClose();
@@ -141,7 +168,7 @@ const RCloneNewConfig = ({ onClose }) => {
             </DialogContent>
             <DialogActions>
               <LoadingButton type="submit" variant="contained" color="primary" disabled={isSubmitting} loading={isSubmitting}>
-                {t('global.createAction')}
+                {isEdit ? t('global.edit') : t('global.createAction')}
               </LoadingButton>
               <Button onClick={() => onClose()}>{t('global.cancelAction')}</Button>
             </DialogActions>

@@ -1,32 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field } from 'formik';
-import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography, Stack, Alert, CircularProgress } from '@mui/material';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography, Stack, Alert, CircularProgress, LinearProgress, Tooltip, IconButton } from '@mui/material';
 import {ProvConfig, ProvAuth} from './rclone-providers';
 import { CosmosCollapse } from '../../config/users/formShortcuts';
 import * as API from '../../../api';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { useTranslation } from 'react-i18next';
-import { CheckOutlined, PlusCircleOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ArrowDownOutlined, ArrowUpOutlined, CheckOutlined, DownOutlined, EditOutlined, ExclamationCircleOutlined, PlusCircleOutlined, ReloadOutlined, SettingOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
 import RCloneNewConfig from './rclone_new';
-import { DeleteButton } from '../../../components/delete';
+import { DeleteButton, DeleteIconButton } from '../../../components/delete';
+import { simplifyNumber } from '../../dashboard/components/utils';
+import RCloneTransfers from './rclone-transfers';
+import MiniPlotComponent from '../../dashboard/components/mini-plot';
 
-const RClonePage = () => {
+const RClonePage = ({coStatus}) => {
   const { t } = useTranslation();
   const [selectedProvider, setSelectedProvider] = useState('');
   const [providerOptions, setProviderOptions] = useState([]);
   const [providers, setProviders] = useState([]);
   const [pings, setPings] = useState({});
+  const [provStats, setProvStats] = useState({});
   const [configModal, setConfigModal] = useState(null);
+  const [coreStats, setCoreStats] = useState({});
+
+  const isTransfering = coreStats.transferring && coreStats.transferring.length > 0;
+
+  const refreshStats = () => {
+    API.rclone.coreStats().then((response) => {
+      setCoreStats(response);
+    });
+  }
 
   const refresh = () => {
     API.rclone.list().then((response) => {
-      console.log(response);
       setProviders(response);
 
+      refreshStats();
+
       Object.keys(response).forEach(provider => {
+        API.rclone.stats(provider).then((stats) => {
+          setProvStats(provStats => ({...provStats, [provider]: stats}));
+        });
+
         API.rclone.pingStorage(provider).then((ping) => {
-          setPings(pings => ({...pings, [provider]: {status: "OK"}}));
+          setPings(pings => ({...pings, [provider]: {status: "OK", used: ping.used, total: ping.total}}));
         }).catch((err) => {
           setPings(pings => ({...pings, [provider]: {status: "error", error: err}}));
         });
@@ -39,8 +57,16 @@ const RClonePage = () => {
   }, []);
 
   return (<>
-    {configModal && <RCloneNewConfig onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
-
+    {configModal && <RCloneNewConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
+    {isTransfering && <Alert severity="warning">{t('mgmt.storage.rclone.transferWarning')}</Alert>}
+    <MiniPlotComponent  metrics={[
+      "cosmos.system.rclone.all.bytes",
+      "cosmos.system.rclone.all.errors",
+    ]} labels={{
+      "cosmos.system.rclone.all.bytes": "Bytes",
+      "cosmos.system.rclone.all.errors": "Errors",
+    }} />
+    <br/>
     {providers ? 
     <PrettyTableView 
     data={Object.keys(providers).map(key => ({name: key, ...providers[key]}))}
@@ -49,7 +75,11 @@ const RClonePage = () => {
       <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create')}</ResponsiveButton>,
       <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
         refresh();
-      }}>{t('global.refresh')}</ResponsiveButton>
+      }}>{t('global.refresh')}</ResponsiveButton>,    
+      <RCloneTransfers refreshStats={refreshStats} transferring={coreStats.transferring ? coreStats.transferring : []}/>,  
+      <ResponsiveButton variant="outlined" startIcon={<SettingOutlined />} onClick={() => {
+        API.rclone.restart()
+      }}>{t('mgmt.storage.rclone.remountAll')}</ResponsiveButton>
     ]}
     columns={[
       {
@@ -62,23 +92,73 @@ const RClonePage = () => {
       },
       { 
         title: t('mgmt.storage.rclone.fullPath'),
-        field: (r) => '/cosmos-storage/' + r.name,
+        screenMin: 'md',
+        field: (r) => '/mnt/cosmos-storage-' + r.name,
       },
       { 
         title: t('mgmt.storage.rclone.status'),
-        field: (r) => pings[r.name] ?
-           (pings[r.name].status === "OK" ? <CheckOutlined style={{color: "green"}}/> : <Alert severity="error">{pings[r.name].error.message}</Alert>)
-           : <CircularProgress />,
+        screenMin: 'md',
+        field: (r) => {
+          let percent = pings[r.name] ? pings[r.name].used / pings[r.name].total * 100 : 0;
+          return pings[r.name] ?
+           (pings[r.name].status === "OK" ? 
+           <Stack direction="row" alignItems="center" spacing={2}>
+            <CheckOutlined style={{color: "green"}}/>
+            {(pings[r.name].hasOwnProperty('used') && pings[r.name].hasOwnProperty('total')) ?
+            <Tooltip title={simplifyNumber(pings[r.name].used, 'B') + ' / ' + simplifyNumber(pings[r.name].total, 'B')}>
+              <LinearProgress
+              variant="determinate"
+              color={percent > 95 ? 'error' : (percent > 75 ? 'warning' : 'info')}
+              value={percent}
+              style={{width: 'calc(100% - 50px)'}} />
+              </Tooltip> : null}
+            {provStats[r.name] ? <>
+              {provStats[r.name].hasOwnProperty('diskCache') ? <>
+                <Tooltip title={t('mgmt.storage.rclone.uploadsInProgress') + ': ' + provStats[r.name].diskCache.uploadsInProgress + '\n' + t('mgmt.storage.rclone.uploadsQueued') + ': ' + provStats[r.name].diskCache.uploadsQueued}>  
+                  <Stack direction={'row'} alignItems="center" spacing={1}>
+                    <div>
+                      <ArrowUpOutlined />
+                    </div>
+                    <div>
+                      {provStats[r.name].diskCache.uploadsInProgress + provStats[r.name].diskCache.uploadsQueued}
+                    </div>
+                  </Stack>
+                </Tooltip>
+                {provStats[r.name].diskCache.outOfSpace	&& <Tooltip title={t('mgmt.storage.rclone.outOfSpace')}>
+                  <Stack direction={'row'} alignItems="center" spacing={1}>
+                    <div>
+                      <ExclamationCircleOutlined style={{color: 'red'}} />
+                    </div>
+                  </Stack>  
+                </Tooltip>}
+                {provStats[r.name].diskCache.erroredFiles	? <Tooltip title={t('mgmt.storage.rclone.erroredFiles', provStats[r.name].diskCache.erroredFiles)}>
+                  <Stack direction={'row'} alignItems="center" spacing={1}>
+                    <div>
+                      <ExclamationCircleOutlined style={{color: 'red'}} />
+                    </div>
+                  </Stack>  
+                </Tooltip> : ''}
+              </> : null}
+            </> : null}
+           </Stack>  : <Alert severity="error">{pings[r.name].error.message}</Alert>)
+           : <CircularProgress />
+        },
       },
       {
         title: '',
         field: (r) => <>
           <div style={{position: 'relative'}}>
-            <DeleteButton onDelete={() => {
+            <DeleteIconButton onDelete={() => {
               API.rclone.deleteRemote(r.name).then(() => {
                 refresh();
               });
             }} />
+            <IconButton variant="outlined"
+             onClick={() => {
+              setConfigModal(r);
+            }}>
+              <EditOutlined />
+            </IconButton>
           </div>
         </>,
       }

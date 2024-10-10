@@ -25,10 +25,7 @@ const TerminalHeader = () => {
 	};
 
 	return isAdmin ? (<>
-		<Tooltip title={(!status || status.containerized) ?
-			t('mgmt.servapps.containers.terminal.disabled') :
-			t('mgmt.servapps.containers.terminal.enabled')
-		 }>
+		<Tooltip title={t('mgmt.servapps.containers.terminal.enabled')}>
 			<IconButton
 					disableRipple
 					color="secondary"
@@ -36,7 +33,6 @@ const TerminalHeader = () => {
 					aria-label="open profile"
 					aria-haspopup="true"
 					onClick={onopen}
-					disabled={!status || status.containerized}
 			>
 					<BorderOuterOutlined />
 			</IconButton>
@@ -45,7 +41,7 @@ const TerminalHeader = () => {
 		<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth={true}>
 			<DialogTitle>{t('mgmt.servapps.containers.terminal.enabled')}</DialogTitle>
 			<DialogContent>
-          <DialogContentText>
+          {(!status || !status.containerized) ? <DialogContentText>
 						<div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
 							<TerminalComponent refresh={() => {}} connectButtons={
 								[
@@ -55,7 +51,12 @@ const TerminalHeader = () => {
 									},
 								]} />
 						</div>
-					</DialogContentText>
+					</DialogContentText> : <DialogContentText>
+						<div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
+							<MonitorOutlined style={{fontSize: 100, color: 'red'}} />
+							<h3>{t('mgmt.servapps.containers.terminal.disabled')}</h3>
+						</div>
+					</DialogContentText>}
         </DialogContent>
         <DialogActions>
             <Button onClick={() => {

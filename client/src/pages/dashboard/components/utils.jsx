@@ -14,13 +14,21 @@ export const simplifyNumber = (num, unit) => {
       } else if (Math.abs(num) >= 1e3) {
           return parseFloat((num / 1e3).toFixed(1)) + ' KB'; // Convert to Thousands
       } else {
-          return num.toString();
+          return num.toString() + ' B';
       }
     } else if (unit.toLowerCase() === "ms") {
-      if (Math.abs(num) >= 1e3) {
+      if (Math.abs(num) >= 1e3 * 60) {
+          return parseFloat((num / 1e3 / 60).toFixed(1)) + ' m'; // Convert to minutes
+      } else if (Math.abs(num) >= 1e3) {
           return parseFloat((num / 1e3).toFixed(1)) + ' s'; // Convert to Seconds
       } else {
           return num.toString() + ' ms';
+      }
+    }  else if (unit.toLowerCase() === "s") {
+      if (Math.abs(num) >= 60) {
+          return parseFloat((num / 60).toFixed(0)) + ' m'; // Convert to minutes
+      } else {
+          return num.toString() + ' s';
       }
     } else {
       if (Math.abs(num) >= 1e6) {
