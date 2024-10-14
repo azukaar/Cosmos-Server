@@ -28,7 +28,7 @@ const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContaine
       container: '',
     },
     validationSchema: Yup.object({
-      container: Yup.string().required('Required'),
+      container: Yup.string().required(t('global.required')),
     }),
     validate: (values) => {
       const errors = {};
