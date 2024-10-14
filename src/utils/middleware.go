@@ -54,8 +54,6 @@ func ClientRealIP(next http.Handler) http.Handler {
 		if(clientID == ""){
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
-		} else {
-			Debug("Add ClientID in context : " + clientID)
 		}
 		
 		ctx := context.WithValue(r.Context(), "ClientID", clientID)

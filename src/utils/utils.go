@@ -785,10 +785,8 @@ func GetClientIP(req *http.Request) string {
 
 	if ((UseForwardedFor || IsTrustedProxy(remoteAddr)) && req.Header.Get("x-forwarded-for") != "") {
 		ip := strings.TrimSpace(strings.Split(req.Header.Get("X-Forwarded-For"), ",")[0])
-		Debug("Client IP : " + ip)
 		return ip
 	} else {
-		Debug("Client IP : " + remoteAddr)
 		return remoteAddr
 	}
 }
