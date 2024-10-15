@@ -66,7 +66,7 @@ func ClientRealIP(next http.Handler) http.Handler {
 func BlockBannedIPs(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ip, ok := r.Context().Value("ClientID").(string)
-        if !ok {
+		if !ok {
 			if hj, ok := w.(http.Hijacker); ok {
 				conn, _, err := hj.Hijack()
 				if err == nil {
