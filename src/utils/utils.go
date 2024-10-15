@@ -781,14 +781,11 @@ func DownloadFile(url string) (string, error) {
 func GetClientIP(req *http.Request) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := SplitIP(req.RemoteAddr)
-	UseForwardedFor := GetMainConfig().HTTPConfig.UseForwardedFor
 
-	if ((UseForwardedFor || IsTrustedProxy(remoteAddr)) && req.Header.Get("x-forwarded-for") != "") {
-		ip := strings.TrimSpace(strings.Split(req.Header.Get("X-Forwarded-For"), ",")[0])
-		return ip
-	} else {
-		return remoteAddr
+	if req.Header.Get("x-forwarded-for") != "" && IsTrustedProxy(remoteAddr) {
+		remoteAddr, _ = SplitIP(strings.TrimSpace(strings.Split(req.Header.Get("X-Forwarded-For"), ",")[0]))
 	}
+	return remoteAddr
 }
 
 func IsDomain(domain string) bool {
@@ -905,22 +902,12 @@ func IsConstellationIP(ip string) bool {
 }
 
 func IsTrustedProxy(ip string) bool {
-	ipAddr := osnet.ParseIP(ip)
 	for _, trustedProxy := range GetMainConfig().HTTPConfig.TrustedProxies {
-		_, cidr, err := osnet.ParseCIDR(trustedProxy)
-		if err != nil {
-			// If it's not a CIDR, check for exact match
-			if ip == trustedProxy {
-				return true
-			}
-		} else {
-			// Check if the IP is in the CIDR range
-			if cidr.Contains(ipAddr) {
-				return true
-			}
+		if isInRange, _ := IPInRange(ip, trustedProxy); isInRange {
+			return true
 		}
 	}
-	return false 
+	return false
 }
 
 func SplitIP(ipPort string) (string, string) {

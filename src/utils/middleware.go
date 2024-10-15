@@ -481,14 +481,17 @@ func IsValidHostname(hostname string) bool {
 }
 
 func IPInRange(ipStr, cidrStr string) (bool, error) {
-	_, cidrNet, err := net.ParseCIDR(cidrStr)
-	if err != nil {
-		return false, fmt.Errorf("parse CIDR range: %w", err)
-	}
-
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
 		return false, fmt.Errorf("parse IP: invalid IP address")
+	}
+
+	_, cidrNet, err := net.ParseCIDR(cidrStr)
+	if err != nil {
+		if ipStr == cidrStr {
+			return true, nil
+		}
+		return false, fmt.Errorf("parse CIDR range: %w", err)
 	}
 
 	return cidrNet.Contains(ip), nil
