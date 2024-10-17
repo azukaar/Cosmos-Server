@@ -974,3 +974,15 @@ func CheckInternet() {
 		MajorError("Your server has no internet connection!", err)
 	}
 }
+
+func GetNextAvailableLocalPort(startPort int) (string, error) {
+	for port := startPort; port < 65535; port++ {
+			addr := fmt.Sprintf("127.0.0.1:%d", port)
+			listener, err := osnet.Listen("tcp", addr)
+			if err == nil {
+					listener.Close()
+					return addr, nil
+			}
+	}
+	return "", fmt.Errorf("no available ports")
+}

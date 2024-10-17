@@ -2,11 +2,16 @@ import { Typography } from "@mui/material";
 import PremiumSalesPage from "../../../utils/free"
 import { useTranslation } from "react-i18next";
 import { CosmosCollapse } from "../../config/users/formShortcuts";
+import VMWarning from "../vmWarning";
 
-const RemoteStorageSalesPage = () => {
+const RemoteStorageSalesPage = ({containerized}) => {
   const { t, i18n } = useTranslation();
 
-  return <PremiumSalesPage salesKey="remote" extra={
+  return <>
+  
+  {containerized && <VMWarning />}
+
+  <PremiumSalesPage salesKey="remote" extra={
     <CosmosCollapse title="Supported Storages">
       <table>
         <thead>
@@ -475,6 +480,7 @@ const RemoteStorageSalesPage = () => {
       </table>
     </CosmosCollapse>
   } />
+  </>;
 };
 
 export default RemoteStorageSalesPage;

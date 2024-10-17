@@ -179,8 +179,20 @@ const snapRAID = {
   },
 };
 
+
+const listDir = (storage, path) => {
+  return wrap(fetch(`/cosmos/api/list-dir?storage=${storage}&path=${path}`, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   mounts,
   disks,
   snapRAID,
+
+  listDir,
 };

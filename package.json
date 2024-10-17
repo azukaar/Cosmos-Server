@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.17.0-unstable12",
+  "version": "0.17.0-unstable13",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -17,6 +17,7 @@
     "@mui/lab": "^5.0.0-alpha.100",
     "@mui/material": "^5.10.6",
     "@mui/x-date-pickers": "^6.18.0",
+    "@mui/x-tree-view": "^6.17.0",
     "@reduxjs/toolkit": "^1.8.5",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",

@@ -28,13 +28,23 @@ import (
 )
 
 
-var (
-	rcloneCmd     *exec.Cmd
-	rcloneRestart chan bool
-	rcloneMutex   sync.Mutex
-	restartCount  int
-	lastRestart   time.Time
-)
+var rcloneMutex = &sync.Mutex{}
+
+type RCloneProcess struct {
+	RcloneCmd     *exec.Cmd
+	RcloneRestart chan bool
+	RestartCount  int
+	LastRestart   time.Time
+	Main bool
+}
+func (rp *RCloneProcess) SetRcloneRestartCount(v int) {
+	rp.RestartCount = v
+}
+func (rp *RCloneProcess) SetLastRestart(v time.Time) {
+	rp.LastRestart = v
+}
+
+var rcloneProcesses = make(map[int]*RCloneProcess)
 
 func RunRClone(args []string) {
 	cmd.Root.SetArgs(args)
@@ -43,6 +53,8 @@ func RunRClone(args []string) {
 
 func RunRCloneCommand(command []string) (*exec.Cmd, io.WriteCloser, *bytes.Buffer, *bytes.Buffer) {
 	utils.Log("[RemoteStorage] Running Rclone process")
+	utils.Debug("[RemoteStorage] Running Rclone process with command: " + strings.Join(command, " "))
+
 	args := []string{"rclone"}
 	args = append(args, command...)
 	cmd := exec.Command(os.Args[0], args...)
@@ -94,7 +106,9 @@ func RunRCloneCommand(command []string) (*exec.Cmd, io.WriteCloser, *bytes.Buffe
 	return cmd, stdin, &stdoutBuf, &stderrBuf
 }
 
-func monitorRCloneProcess(cmd *exec.Cmd) {
+func monitorRCloneProcess(cmd *exec.Cmd, args ...string) {
+	rcloneProcesses[cmd.Process.Pid].RcloneRestart = make(chan bool)
+
 	err := cmd.Wait()
 	if err != nil {
 		utils.Error("[RemoteStorage] RClone process exited with error", err)
@@ -103,37 +117,63 @@ func monitorRCloneProcess(cmd *exec.Cmd) {
 	}
 
 	rcloneMutex.Lock()
-	defer rcloneMutex.Unlock()
+	// stop monitoring if the process is not in the map
+	if _, ok := rcloneProcesses[cmd.Process.Pid]; !ok {
+		return
+	}
+	rcloneMutex.Unlock()
 
 	now := time.Now()
-	if now.Sub(lastRestart) < 10*time.Second {
-		restartCount++
+	if now.Sub(rcloneProcesses[cmd.Process.Pid].LastRestart) < 10*time.Second {
+		rcloneProcesses[cmd.Process.Pid].SetRcloneRestartCount(rcloneProcesses[cmd.Process.Pid].RestartCount + 1)
 	} else {
-		restartCount = 1
+		rcloneProcesses[cmd.Process.Pid].SetRcloneRestartCount(1)
 	}
-	lastRestart = now
+	rcloneProcesses[cmd.Process.Pid].SetLastRestart(now)
 
-	if restartCount <= 3 {
+	if rcloneProcesses[cmd.Process.Pid].RestartCount <= 3 {
 		utils.Log("[RemoteStorage] Restarting RClone process")
-		rcloneRestart <- true
+		rcloneProcesses[cmd.Process.Pid].RcloneRestart <- true
 	} else {
 		utils.MajorError("[RemoteStorage] RClone process restarted too many times in a short period. Stopping automatic restarts.", nil)
 	}
+	
+	// Monitor and restart RClone process if needed
+	go func() {
+		for {
+			select {
+			case <-rcloneProcesses[cmd.Process.Pid].RcloneRestart:
+				startRCloneProcess(args...)
+				return
+			}
+		}
+	}()
 }
 
-func startRCloneProcess() {
+func startRCloneProcess(args ...string) {
 	rcloneMutex.Lock()
 	defer rcloneMutex.Unlock()
 
 	configLocation := utils.CONFIGFOLDER + "rclone.conf"
-	rcloneCmd, _, _, _ = RunRCloneCommand([]string{"rcd", "--rc-user=" + utils.ProxyRCloneUser, "--rc-pass=" + utils.ProxyRClonePwd, "--config=" + configLocation, "--rc-baseurl=/cosmos/rclone"})
-	
-	go monitorRCloneProcess(rcloneCmd)
+
+	if len(args) == 0 {
+		rcloneCmd, _, _, _ := RunRCloneCommand([]string{"rcd", "--rc-user=" + utils.ProxyRCloneUser, "--rc-pass=" + utils.ProxyRClonePwd, "--config=" + configLocation, "--rc-baseurl=/cosmos/rclone"})
+		rcloneProcesses[rcloneCmd.Process.Pid] = &RCloneProcess{
+			RcloneCmd: rcloneCmd,
+			Main: true,
+		}
+		go monitorRCloneProcess(rcloneCmd)
+	} else {
+		rcloneCmd, _, _, _ := RunRCloneCommand(append(args, "--config=" + configLocation))
+		rcloneProcesses[rcloneCmd.Process.Pid] = &RCloneProcess{
+			RcloneCmd: rcloneCmd,
+		}
+		go monitorRCloneProcess(rcloneCmd, args...)
+	}
 }
 
 var isWaitingToStop = false
-
-func stopRCloneProcess() {
+func stopAllRCloneProcess() {
 	rcloneMutex.Lock()
 	defer rcloneMutex.Unlock()
 	
@@ -143,19 +183,27 @@ func stopRCloneProcess() {
 
 	isWaitingToStop = true
 
-	// wait for backups to finish
+	// TODO: wait for backups to finish
 
-	if rcloneCmd != nil && rcloneCmd.Process != nil {
-		utils.Log("[RemoteStorage] Stopping RClone process")
-
-		unmountAll()
-
-		err := rcloneCmd.Process.Signal(syscall.SIGTERM)
-		if err != nil {
-			utils.Error("[RemoteStorage] Error stopping RClone process", err)
+	for _, process := range rcloneProcesses {
+		if process.Main {
+			unmountAll()
 		}
-		// Wait for the process to exit
-		_, _ = rcloneCmd.Process.Wait()
+
+		if process.RcloneCmd != nil && process.RcloneCmd.Process != nil {
+			utils.Log("[RemoteStorage] Stopping RClone process")
+
+			err := process.RcloneCmd.Process.Signal(syscall.SIGTERM)
+			if err != nil {
+				utils.Error("[RemoteStorage] Error stopping RClone process", err)
+			}
+			// Wait for the process to exit
+			_, _ = process.RcloneCmd.Process.Wait()
+
+			if !process.Main {
+				delete(rcloneProcesses, process.RcloneCmd.Process.Pid)
+			}
+		}
 	}
 
 	isWaitingToStop = false
@@ -207,8 +255,8 @@ func unmountAll() error {
 }
 
 
-func restart() {
-	stopRCloneProcess()
+func Restart() {
+	stopAllRCloneProcess()
 
 	// wait for rclone to start
 	go func() {
@@ -396,6 +444,8 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 	return nil
 }
 
+var CachedRemoteStorageList []StorageInfo
+
 func getStorageList() ([]RemoteStorage, error) {
 	response, err := runRDC("/config/dump")
 	if err != nil {
@@ -428,6 +478,11 @@ func getStorageList() ([]RemoteStorage, error) {
 			}
 
 			storageList = append(storageList, storage)
+			
+			CachedRemoteStorageList = append(CachedRemoteStorageList, StorageInfo{
+				Name: storage.Name,
+				Path: "/mnt/cosmos-storage-" + storage.Name,
+			})
 		}
 	}
 
@@ -562,6 +617,27 @@ func remountAll() {
 			return
 		}
 	}
+
+	shares := utils.GetMainConfig().RemoteStorage.Shares
+	for _, share := range shares {
+		utils.Log("[RemoteStorage] Sharing " + share.Target)
+
+		argsShare := []string{"serve"}
+		addr, err := utils.GetNextAvailableLocalPort(12000)
+		if err != nil {
+			utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
+			return
+		}
+
+		argsShare = append(argsShare, "--addr=:"+addr)
+		argsShare = append(argsShare, share.Protocol)
+		for k,v := range share.Settings {
+			argsShare = append(argsShare, "--"+k+"="+v)
+		}
+		argsShare = append(argsShare, share.Target)
+
+		startRCloneProcess(argsShare...)
+	}
 }
 
 func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
@@ -570,7 +646,7 @@ func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == "GET" {
-		restart()
+		Restart()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
@@ -603,21 +679,11 @@ func InitRemoteStorage() bool {
 	}
 
 	utils.Log("[RemoteStorage] Initializing remote storage")
-	rcloneRestart = make(chan bool)
 	startRCloneProcess()
 
 	// Start watching the config file
-	go watchConfigFile(configLocation, restart)
+	go watchConfigFile(configLocation, Restart)
 
-	// Monitor and restart RClone process if needed
-	go func() {
-		for {
-			select {
-			case <-rcloneRestart:
-				startRCloneProcess()
-			}
-		}
-	}()
 
 	// wait for rclone to start
 	go func() {

@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import RCloneConfig from './rclone/rclone_config';
 import RClonePage from './rclone/rclone_config';
 import RemoteStorageSalesPage from './rclone/rclone-free';
+import RCloneServePage from './rclone/rclone_serve_config';
 
 const StorageIndex = () => {
   const { t } = useTranslation();
@@ -33,6 +34,8 @@ const StorageIndex = () => {
     refreshStatus();
   }, []);
 
+  let containerized = coStatus && coStatus.containerized;
+
   return <div>
     <PrettyTabbedView path="/cosmos-ui/storage/:tab" tabs={[
         {
@@ -48,14 +51,14 @@ const StorageIndex = () => {
         {
           title: t('mgmt.storage.externalStorage'),
           children: <div>
-            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage /> : <RClonePage  coStatus={coStatus}/>}
+            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage containerized={containerized}/> : <RClonePage containerized={containerized} coStatus={coStatus}/>}
           </div>,
           path: 'external'
         },
         {
           title: t('mgmt.storage.sharesTitle'),
           children: <div>
-            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage /> : <RClonePage />}
+            {(!coStatus || !coStatus.Licence) ? <RemoteStorageSalesPage /> : <RCloneServePage />}
           </div>,
           path: 'shares'
         },

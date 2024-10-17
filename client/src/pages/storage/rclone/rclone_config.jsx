@@ -13,8 +13,10 @@ import { DeleteButton, DeleteIconButton } from '../../../components/delete';
 import { simplifyNumber } from '../../dashboard/components/utils';
 import RCloneTransfers from './rclone-transfers';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
+import { FilePickerButton } from '../../../components/filePicker';
+import VMWarning from '../vmWarning';
 
-const RClonePage = ({coStatus}) => {
+const RClonePage = ({coStatus, containerized}) => {
   const { t } = useTranslation();
   const [selectedProvider, setSelectedProvider] = useState('');
   const [providerOptions, setProviderOptions] = useState([]);
@@ -56,6 +58,10 @@ const RClonePage = ({coStatus}) => {
     refresh();
   }, []);
 
+  if(containerized) {
+    return <VMWarning />;
+  }
+
   return (<>
     {configModal && <RCloneNewConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
     {isTransfering && <Alert severity="warning">{t('mgmt.storage.rclone.transferWarning')}</Alert>}
@@ -70,7 +76,7 @@ const RClonePage = ({coStatus}) => {
     {providers ? 
     <PrettyTableView 
     data={Object.keys(providers).map(key => ({name: key, ...providers[key]}))}
-    getKey={(r, k) => `${providers.Name + k}`}
+    getKey={(r, k) => `${r.name + k}`}
     buttons={[
       <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create')}</ResponsiveButton>,
       <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
@@ -159,6 +165,7 @@ const RClonePage = ({coStatus}) => {
             }}>
               <EditOutlined />
             </IconButton>
+            <FilePickerButton storage={r.name} />
           </div>
         </>,
       }

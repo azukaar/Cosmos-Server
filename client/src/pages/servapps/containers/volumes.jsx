@@ -20,6 +20,7 @@ import { LoadingButton } from "@mui/lab";
 import PrettyTableView from "../../../components/tableView/prettyTableView";
 import ResponsiveButton from "../../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
+import { FilePickerButton } from "../../../components/filePicker";
 
 const VolumeContainerSetup = ({
   noCard,
@@ -222,6 +223,11 @@ const VolumeContainerSetup = ({
                                   }}
                                 >
                                   {r.Type == "bind" ? (
+                                    <Stack direction={"row"} spacing={2}>
+                                    <FilePickerButton onPick={(path) => {
+                                      if(path)
+                                        formik.setFieldValue(`volumes[${k}].Source`, path);
+                                    }} size="150%" select="folder" />
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
@@ -234,6 +240,7 @@ const VolumeContainerSetup = ({
                                       value={r.Source}
                                       onChange={formik.handleChange}
                                     />
+                                    </Stack>
                                   ) : (
                                     <TextField
                                       className="px-2 my-2"
