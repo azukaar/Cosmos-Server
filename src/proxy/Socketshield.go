@@ -277,7 +277,7 @@ func (shield *TCPSmartShieldState) EnforceBudget() {
 	defer globalShieldState.Unlock()
 
 	for _, conn := range shield.Connections {
-		if conn.IsOver {
+		if conn.IsOver || !conn.Policy.Enabled {
 			continue
 		}
 

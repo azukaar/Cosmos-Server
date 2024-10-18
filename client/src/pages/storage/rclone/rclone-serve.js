@@ -3,6 +3,7 @@ export const ServeConfig = [
         "Name": "sftp",
         "Description": "SFTP server",
         "Prefix": "sftp",
+        "Proxy": "tcp",
         "Options": [
             {
                 "Name": "user",
@@ -101,6 +102,7 @@ export const ServeConfig = [
         "Name": "nfs",
         "Description": "NFS with NFSv3 server",
         "Prefix": "nfs",
+        "Proxy": "tcp",
         "Options": [
             {
                 "Name": "gid",
@@ -160,6 +162,7 @@ export const ServeConfig = [
         "Name": "s3",
         "Description": "Amazon S3 Compliant Storage Providers including AWS, Minio, Ceph, Digital Ocean Spaces, and more",
         "Prefix": "s3",
+        "Proxy": "http",
         "Options": [
             {
                 "Name": "auth-key",
@@ -233,6 +236,7 @@ export const ServeConfig = [
         "Name": "webdav",
         "Description": "Webdav server",
         "Prefix": "webdav",
+        "Proxy": "http",
         "Options": [
             {
                 "Name": "user",

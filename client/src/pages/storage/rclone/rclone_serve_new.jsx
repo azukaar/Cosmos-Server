@@ -116,9 +116,13 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
             originalName = initialValues.Name;
           }
 
+          console.log(values)
+
           let fullValues = {};
           fullValues.Protocol = selectedProvider;
           fullValues.Name = values.named + "";
+          fullValues.Target = values.Target;
+          fullValues.Source = values.Source;
           fullValues.Settings = values;
           delete fullValues.Settings.named;
           delete fullValues.Settings.Settings;
@@ -128,8 +132,6 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
           delete fullValues.Settings.Route;
           delete fullValues.Settings.Target;
 
-
-          
           return API.config.get().then(({data}) => {
             if(!data.RemoteStorage) data.RemoteStorage = {};
 
@@ -137,6 +139,36 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
             if (isEdit) {
               shares = shares.filter((s) => s.Name !== originalName);
             }
+
+            let nextFreePort = 12000;
+            let busyPorts = [];
+            shares.forEach((s) => {
+              if (s.Route && s.Route.Target) {
+                let port = parseInt(s.Route.Target.split(":")[s.Route.Target.split(":").length - 1]);
+                if (!port.isNaN) {
+                  busyPorts = [...busyPorts, port];
+                }
+              }
+            });
+            
+            while (busyPorts.includes(nextFreePort)) {
+              nextFreePort++;
+            }
+
+            let scheme = ServeConfig.find(config => config.Name === selectedProvider).Proxy;
+
+            fullValues.Route = {
+              Name: "netshare_" + fullValues.Name,
+              Target: scheme + "://127.0.0.1:" + nextFreePort,
+              Mode: "PROXY",
+              UseHost: true,
+              Host: fullValues.Source,
+              SmartShield: {
+                Enabled: true,
+              }
+            }
+
+            console.log(fullValues);
 
             shares.push(fullValues);
 

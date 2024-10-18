@@ -179,6 +179,7 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, _storage = '', _path 
               {(storages && files) ? <>
               <Stack direction="row" spacing={2}>
               {!explore && <div style={{background: 'rgba(0,0,0,0.1)'}}>
+                <Stack spacing={2} style={{padding: '10px'}}>
                     <List style={{padding: '10px', width: '130px', overflow: 'auto'}}>
                       <ListItem key={'asdads'} disablePadding>
                         <Typography variant="h6" component={'span'}>Storage</Typography>
@@ -192,6 +193,10 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, _storage = '', _path 
                         </ListItem>
                       ))}
                     </List>
+                    <Stack alignItems="center" spacing={2}>
+                      <Button href="/cosmos-ui/config-url" target="_blank" style={{width: '110px', textAlign:'center'}}>Add external storages</Button>
+                    </Stack>
+                    </Stack>
                 </div>}
                 <div style={{flexGrow: 1, minHeight: '300px'}}>
                 {!explore && <div style={{padding: '5px 5px 5px 10px', margin: '0px 0px 5px 0px', background: 'rgba(0,0,0,0.1)'}}

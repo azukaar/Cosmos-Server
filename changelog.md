@@ -1,5 +1,6 @@
 ## Version 0.17.0
  - Added RClone integration to manage and mount remote storage
+ - Added network shares for SFTP, NFS, WebDAV, and S3, with support for remote storages and smart-shield integration
  - Added zip and deb packages for docker-less distribution
  - Added TCP/UDP socket proxying
  - TCP/UDP proxying includes smart-shield protections, constellation support, geoblocking, and monitoring
@@ -14,6 +15,7 @@
  - Added ExtraHeader to route config to add custom headers to the request
  - Improved accessiblity of the menu for screen readers
  - Update to Go 1.23.2
+ - Added safeguard to prevent Docker from destroying stack containers hostnames
 
 ## Version 0.16.3
  - Local domains now produce services instead of CNAME for better compatibility

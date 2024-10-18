@@ -119,9 +119,22 @@ func monitorRCloneProcess(cmd *exec.Cmd, args ...string) {
 	rcloneMutex.Lock()
 	// stop monitoring if the process is not in the map
 	if _, ok := rcloneProcesses[cmd.Process.Pid]; !ok {
+		rcloneMutex.Unlock()
 		return
 	}
 	rcloneMutex.Unlock()
+
+	// Monitor and restart RClone process if needed
+	go func() {
+		for {
+			select {
+			case <-rcloneProcesses[cmd.Process.Pid].RcloneRestart:
+				utils.Debug("[RemoteStorage] RcloneRestart signal received")
+				startRCloneProcess(args...)
+				return
+			}
+		}
+	}()
 
 	now := time.Now()
 	if now.Sub(rcloneProcesses[cmd.Process.Pid].LastRestart) < 10*time.Second {
@@ -137,22 +150,13 @@ func monitorRCloneProcess(cmd *exec.Cmd, args ...string) {
 	} else {
 		utils.MajorError("[RemoteStorage] RClone process restarted too many times in a short period. Stopping automatic restarts.", nil)
 	}
-	
-	// Monitor and restart RClone process if needed
-	go func() {
-		for {
-			select {
-			case <-rcloneProcesses[cmd.Process.Pid].RcloneRestart:
-				startRCloneProcess(args...)
-				return
-			}
-		}
-	}()
 }
 
 func startRCloneProcess(args ...string) {
 	rcloneMutex.Lock()
 	defer rcloneMutex.Unlock()
+
+	utils.Log("[RemoteStorage] Starting RClone process")
 
 	configLocation := utils.CONFIGFOLDER + "rclone.conf"
 
@@ -602,7 +606,19 @@ func fileChanged(filePath string, lastHash *string, lastModTime *time.Time) bool
 	return false
 }
 
+type StorageRoutes struct {
+	Name string
+	Protocol string
+	Source string
+	Target string
+	SmartShield bool
+}
+
+var StorageRoutesList []StorageRoutes
+
 func remountAll() {
+	StorageRoutesList = []StorageRoutes{}
+
 	// Mount remote storages
 	storageList, err := getStorageList()
 	if err != nil {
@@ -623,13 +639,18 @@ func remountAll() {
 		utils.Log("[RemoteStorage] Sharing " + share.Target)
 
 		argsShare := []string{"serve"}
-		addr, err := utils.GetNextAvailableLocalPort(12000)
-		if err != nil {
-			utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
-			return
-		}
+		// addr, err := utils.GetNextAvailableLocalPort(12000)
+		// if err != nil {
+		// 	utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
+		// 	return
+		// }
+		urlN, _ := url.Parse(share.Route.Target)
+		addr := "127.0.0.1:" + urlN.Port()
+		// remote scehme
 
-		argsShare = append(argsShare, "--addr=:"+addr)
+		utils.Debug("[RemoteStorage] Sharing on port " + addr)
+
+		argsShare = append(argsShare, "--addr="+addr)
 		argsShare = append(argsShare, share.Protocol)
 		for k,v := range share.Settings {
 			argsShare = append(argsShare, "--"+k+"="+v)
