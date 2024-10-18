@@ -779,11 +779,13 @@ func DownloadFile(url string) (string, error) {
 }
 
 func GetClientIP(req *http.Request) string {
-	/*ip := req.Header.Get("X-Forwarded-For")
-	if ip == "" {
-		ip = req.RemoteAddr
-	}*/
-	return req.RemoteAddr
+	// when using Docker we need to get the real IP
+	remoteAddr, _ := SplitIP(req.RemoteAddr)
+
+	if req.Header.Get("x-forwarded-for") != "" && IsTrustedProxy(remoteAddr) {
+		remoteAddr, _ = SplitIP(strings.TrimSpace(strings.Split(req.Header.Get("X-Forwarded-For"), ",")[0]))
+	}
+	return remoteAddr
 }
 
 func IsDomain(domain string) bool {
@@ -897,6 +899,15 @@ func IsConstellationIP(ip string) bool {
 	}
 
 	return false 
+}
+
+func IsTrustedProxy(ip string) bool {
+	for _, trustedProxy := range GetMainConfig().HTTPConfig.TrustedProxies {
+		if isInRange, _ := IPInRange(ip, trustedProxy); isInRange {
+			return true
+		}
+	}
+	return false
 }
 
 func SplitIP(ipPort string) (string, string) {
