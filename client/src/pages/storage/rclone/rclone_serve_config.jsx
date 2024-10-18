@@ -33,7 +33,7 @@ const RCloneServePage = ({containerized}) => {
     <br/>
     {config ? 
     <PrettyTableView 
-    data={(config.RemoteStorage ? (config.RemoteStorage.Shares) : [])}
+    data={(config.RemoteStorage ? (config.RemoteStorage.Shares || []) : [])}
     getKey={(r, k) => `${r.name + k}`}
     buttons={[
       <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create-serve')}</ResponsiveButton>,

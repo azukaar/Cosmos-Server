@@ -177,7 +177,7 @@ Cosmos has a few key differences with other alternatives such as YunoHost, Unrai
                 <td>❌</td>
             </tr>
             <tr>
-                <td>Monitoring (includes historical data and alerts)</td>
+                <td>Monitoring (w/ historical data & alerts)</td>
                 <td>✅</td>
                 <td>❌</td>
                 <td>❌</td>
