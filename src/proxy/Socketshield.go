@@ -431,6 +431,10 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 	return func(conn net.Conn) net.Conn {
 		clientID, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
 
+		if(utils.GetIPAbuseCounter(clientID) > 275) {
+			return nil
+		}
+
 		whitelistInboundIPs := route.WhitelistInboundIPs
 		restrictToConstellation := route.RestrictToConstellation
 

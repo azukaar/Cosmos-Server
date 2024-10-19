@@ -87,13 +87,11 @@ var mapToTCPUDP = map[string]string{
     "quic":     "udp", // QUIC is a transport protocol that runs over UDP
 }
 
-
 func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig) {
     // remove any protocol
     destinationArr := strings.Split(target, "://")
     listenProtocol := "tcp"
-    
-
+   
     if len(destinationArr) > 1 {
         target = destinationArr[1]
         listenProtocol = destinationArr[0]
@@ -104,24 +102,48 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
         target = destinationArr[0]
     }
 
-    listener, err := net.Listen(listenProtocol, listenAddr)
+    var err error
+    var listener net.Listener
+    var packetConn net.PacketConn
+
+    switch listenProtocol {
+    case "tcp":
+        listener, err = net.Listen("tcp", listenAddr)
+    case "udp":
+        packetConn, err = net.ListenPacket("udp", listenAddr)
+    default:
+        utils.Error("[SocketProxy] Unsupported protocol: "+listenProtocol, nil)
+        return
+    }
 
     if err != nil {
-        utils.Error("[SocketProxy] Failed to listen on " + listenAddr, err)
+        utils.Error("[SocketProxy] Failed to listen on "+listenAddr, err)
         return
     }
 
     defer func() {
-        listener.Close()
+        if listener != nil {
+            listener.Close()
+        }
+        if packetConn != nil {
+            packetConn.Close()
+        }
         close(proxyInfo.stopped)
     }()
 
-    utils.Log("[SocketProxy] Proxy listening on "+listenAddr+", forwarding to " + listenProtocol + "://" + target)
+    utils.Log("[SocketProxy] Proxy listening on "+listenAddr+", forwarding to "+listenProtocol+"://"+target)
 
+    if listenProtocol == "tcp" {
+        handleTCPProxy(listener, target, proxyInfo, isHTTPProxy, route, listenAddr)
+    } else {
+        handleUDPProxy(packetConn, target, proxyInfo, route, listenAddr)
+    }
+}
+
+func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig, listenAddr string) {
     for {
         acceptChan := make(chan net.Conn)
         acceptErrChan := make(chan error)
-
         go func() {
             conn, err := listener.Accept()
             if err != nil {
@@ -133,15 +155,13 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
 
         select {
         case <-proxyInfo.stop:
-            utils.Log("[SocketProxy] Stopping proxy on " + listenAddr)
+            utils.Log("[SocketProxy] Stopping TCP proxy on " + listenAddr)
             return
         case <-time.After(5 * time.Minute):
-            utils.Log("[SocketProxy] No new connections in the last 5 minutes on " + listenAddr)
+            continue
         case err := <-acceptErrChan:
-            utils.Error("[SocketProxy] Failed to accept connection", err)
+            utils.Error("[SocketProxy] Failed to accept TCP connection", err)
         case client := <-acceptChan:
-            utils.Debug("[SocketProxy] New connection accepted on " + listenAddr)
-            // Handle the new connection (your existing code for handling goes here)
             var shieldedClient net.Conn
             if !isHTTPProxy {
                 shieldedClient = TCPSmartShieldMiddleware("proxy-"+listenAddr, route)(client)
@@ -152,13 +172,81 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
                 shieldedClient = client
             }
             
-            server, err := net.Dial(listenProtocol, target)
+            utils.Debug("[SocketProxy] New TCP connection accepted on " + listenAddr)
+           
+            server, err := net.Dial("tcp", target)
             if err != nil {
-                utils.Error("[SocketProxy] Failed to connect to server", err)
+                utils.Error("[SocketProxy] Failed to connect to TCP server", err)
                 shieldedClient.Close()
                 continue
             }
             go handleClient(shieldedClient, server, proxyInfo)
+        }
+    }
+}
+
+func handleUDPProxy(packetConn net.PacketConn, target string, proxyInfo *ProxyInfo, route utils.ProxyRouteConfig, listenAddr string) {
+    targetAddr, err := net.ResolveUDPAddr("udp", target)
+    if err != nil {
+        utils.Error("[SocketProxy] Failed to resolve UDP target address", err)
+        return
+    }
+
+    buffer := make([]byte, 65507) // Max UDP packet size
+
+    for {
+        select {
+        case <-proxyInfo.stop:
+            utils.Log("[SocketProxy] Stopping UDP proxy on " + listenAddr)
+            return
+        default:
+            packetConn.SetReadDeadline(time.Now().Add(5 * time.Second))
+            n, remoteAddr, err := packetConn.ReadFrom(buffer)
+            if err != nil {
+                if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+                    continue
+                }
+                utils.Error("[SocketProxy] Failed to read UDP packet", err)
+                continue
+            }
+
+            // utils.Debug("[SocketProxy] New UDP packet received on " + listenAddr)
+
+            // Apply UDP shield middleware if needed
+            shieldedBuffer := UDPSmartShieldMiddleware("proxy-"+listenAddr, route)(buffer[:n], remoteAddr)
+            if shieldedBuffer == nil {
+                continue
+            }
+
+            _, err = packetConn.WriteTo(buffer[:n], targetAddr)
+            if err != nil {
+                utils.Error("[SocketProxy] Failed to forward UDP packet to server", err)
+                continue
+            }
+
+            // Handle response from target
+            go handleUDPResponse(packetConn, remoteAddr, targetAddr, proxyInfo)
+        }
+    }
+}
+
+func handleUDPResponse(packetConn net.PacketConn, clientAddr net.Addr, targetAddr *net.UDPAddr, proxyInfo *ProxyInfo) {
+    buffer := make([]byte, 65507)
+    for {
+        packetConn.SetReadDeadline(time.Now().Add(30 * time.Second))
+        n, _, err := packetConn.ReadFrom(buffer)
+        if err != nil {
+            if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+                return // No more responses from target
+            }
+            utils.Error("[SocketProxy] Failed to read UDP response from target", err)
+            return
+        }
+
+        _, err = packetConn.WriteTo(buffer[:n], clientAddr)
+        if err != nil {
+            utils.Error("[SocketProxy] Failed to forward UDP response to client", err)
+            return
         }
     }
 }
@@ -181,8 +269,8 @@ func initInternalPortProxy(ports []PortsPair) {
             stopped: make(chan bool),
         }
         activeProxies[port.From] = proxyInfo
-        // TODO MISSING HOSTNAME!!!
-        go startProxy(":"+port.From, port.To, proxyInfo, port.isHTTPProxy, port.route)
+
+        go startProxy(port.From, port.To, proxyInfo, port.isHTTPProxy, port.route)
     }
 }
 
@@ -265,9 +353,10 @@ func InitInternalSocketProxy() {
             if _, err := strconv.Atoi(port); err == nil {
                 destination := ""
                 isHTTPProxy := strings.HasPrefix(route.Target, "http://") || strings.HasPrefix(route.Target, "https://")
-
+                sourceHostname := hostname
                 if isHTTPProxy {
                     destination = "localhost:" + targetPort
+                    sourceHostname = ":" + port
                 } else {
                     destination = route.Target
                     
@@ -292,7 +381,7 @@ func InitInternalSocketProxy() {
                     }
                 }
                 
-                portpair := PortsPair{port, destination, isHTTPProxy, route}
+                portpair := PortsPair{sourceHostname, destination, isHTTPProxy, route}
 
                 if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
                     portpair.To = HTTPPort

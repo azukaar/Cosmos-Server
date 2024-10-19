@@ -4,6 +4,7 @@ export const ServeConfig = [
         "Description": "SFTP server",
         "Prefix": "sftp",
         "Proxy": "tcp",
+        "DefaultSource": "0.0.0.0:2222",
         "Options": [
             {
                 "Name": "user",
@@ -103,6 +104,7 @@ export const ServeConfig = [
         "Description": "NFS with NFSv3 server",
         "Prefix": "nfs",
         "Proxy": "tcp",
+        "DefaultSource": "0.0.0.0:2049",
         "Options": [
             {
                 "Name": "gid",

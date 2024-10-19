@@ -113,12 +113,13 @@ export const ValidateRouteSchema = Yup.object().shape({
       return true;
     })
     .test('is-port', 'Must be a valid port', function (value) {
-      if (value && IsRouteSocketProxy(this.parent) && !value.match(/^(?:[a-zA-Z\-_\.]+\:)?[0-9]+$/)) {
+      if (value && IsRouteSocketProxy(this.parent) && !value.match(/^(?:[0-9a-zA-Z\-_\.]+\:)?[0-9]+$/)) {
         return false;
       }
 
       return true;
-    }),
+    })
+    ,
 
 
 

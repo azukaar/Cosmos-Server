@@ -36,7 +36,7 @@ func IncrementIPAbuseCounter(ip string) {
 	atomic.AddInt64(&counter.val, 1)
 }
 
-func getIPAbuseCounter(ip string) int64 {
+func GetIPAbuseCounter(ip string) int64 {
 	// Load the *safeInt
 	actual, ok := BannedIPs.Load(ip)
 	if !ok {
@@ -61,7 +61,7 @@ func BlockBannedIPs(next http.Handler) http.Handler {
 					return
         }
 
-				nbAbuse := getIPAbuseCounter(ip)
+				nbAbuse := GetIPAbuseCounter(ip)
 
         if nbAbuse > 275 {
 					Warn("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s) and will soon be banned.")

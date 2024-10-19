@@ -93,6 +93,7 @@ func main() {
 	config := utils.GetMainConfig()
 
 	proxy.InitSocketShield()
+	proxy.InitUDPShield()
 
 	if !config.NewInstall {
 		MigratePre013()

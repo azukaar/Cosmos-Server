@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field } from 'formik';
-import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography, Stack, Alert, Dialog, DialogTitle, DialogContentText, DialogContent, DialogActions } from '@mui/material';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Button, Typography, Stack, Alert, Dialog, DialogTitle, DialogContentText, DialogContent, DialogActions, Checkbox } from '@mui/material';
 import { ServeConfig } from './rclone-serve';
-import { CosmosCollapse } from '../../config/users/formShortcuts';
+import { CosmosCollapse, CosmosFormDivider } from '../../config/users/formShortcuts';
 import * as API from '../../../api';
 import { LoadingButton } from '@mui/lab';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,7 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
 
   if (isEdit) {
     initialValues.named = initialValues.Name;
+    initialValues.SmartShield = initialValues.Route.SmartShield.Enabled;
     let settings = initialValues.Settings;
     for (let key in settings) {
       initialValues[key] = settings[key];
@@ -39,7 +40,18 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
 
   const renderFormFields = (config, isSubmitting, setFieldValue) => {
     const standardFields = [];
-    const advancedFields = [];
+    const advancedFields = [
+      <Field
+        key="InternalTarget"
+        as={TextField}
+        name="InternalTarget"
+        label="Internal Server Hostname"
+        helperText="What port should the internal server listen on, do not change unless you know what you are doing"
+        fullWidth
+        margin="normal"
+        disabled={isSubmitting}
+      />
+    ];
 
     config.Options.forEach(option => {
       const field = (
@@ -89,9 +101,26 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
             fullWidth
             margin="normal"
             required
-            disabled={isEdit}
           />
         </Stack>
+          <Field
+            as={TextField}
+            name="Source"
+            label="Source Hostname"
+            helperText="Hostname or IP address of the source"
+            fullWidth
+            margin="normal"
+            required
+          />
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Field
+              type="checkbox"
+              name="SmartShield"
+              as={Checkbox}
+            />
+            <div>{t('Enable Smart Shield')}</div>
+          </Stack>
+          <CosmosFormDivider />
         {standardFields}
         {advancedFields.length > 0 && (
           <CosmosCollapse title="Advanced Options">
@@ -102,12 +131,17 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
     );
   };
 
+  let provConf = ServeConfig.find(config => config.Name === selectedProvider) || {};
+
   return (
     <Dialog open={true} onClose={() => onClose()} fullWidth maxWidth="sm">
       <DialogTitle>{isEdit ? t('global.edit') : t('global.createAction')}</DialogTitle>
       <Formik
         initialValues={isEdit ? initialValues : {
+          Source: provConf.DefaultSource,
+          SmartShield: true,
         }}
+        enableReinitialize={true}
         onSubmit={(values, { setSubmitting }) => {
           setSubmitting(true);
 
@@ -117,6 +151,8 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
           }
 
           console.log(values)
+
+          let smartShieldEnabled = values.SmartShield;
 
           let fullValues = {};
           fullValues.Protocol = selectedProvider;
@@ -131,6 +167,7 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
           delete fullValues.Settings.Source;
           delete fullValues.Settings.Route;
           delete fullValues.Settings.Target;
+          delete fullValues.Settings.SmartShield;
 
           return API.config.get().then(({data}) => {
             if(!data.RemoteStorage) data.RemoteStorage = {};
@@ -157,18 +194,18 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
 
             let scheme = ServeConfig.find(config => config.Name === selectedProvider).Proxy;
 
+            let calculatedInternalTarget = scheme + "://127.0.0.1:" + nextFreePort;
+
             fullValues.Route = {
               Name: "netshare_" + fullValues.Name,
-              Target: scheme + "://127.0.0.1:" + nextFreePort,
+              Target: calculatedInternalTarget,
               Mode: "PROXY",
               UseHost: true,
               Host: fullValues.Source,
               SmartShield: {
-                Enabled: true,
+                Enabled: smartShieldEnabled
               }
             }
-
-            console.log(fullValues);
 
             shares.push(fullValues);
 

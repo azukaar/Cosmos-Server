@@ -15,7 +15,6 @@
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/keyxmakerx"><img src="https://avatars.githubusercontent.com/keyxmakerx" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/kandykarter"><img src="https://avatars.githubusercontent.com/kandykarter" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/rdawman"><img src="https://avatars.githubusercontent.com/rdawman" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/madejackson"><img src="https://avatars.githubusercontent.com/madejackson" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 

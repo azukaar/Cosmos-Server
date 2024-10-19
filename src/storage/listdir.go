@@ -57,6 +57,9 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 		var basePath string
 		if storage == "local" {
 			basePath = "/"
+			if utils.IsInsideContainer {
+			basePath = "/mnt/host/"
+			}
 		} else {
 			found := false
 			for _, s := range storages {
