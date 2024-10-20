@@ -19,7 +19,7 @@ const FormatModal = ({ cb, OnClose }) => {
       format: 'ext4'
     },
     validationSchema: Yup.object({
-      password: Yup.string().required('Required'),
+      password: Yup.string().required(t('global.required')),
     }),
     onSubmit: async (values, { setErrors, setStatus, setSubmitting }) => {
       setSubmitting(true);

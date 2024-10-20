@@ -10,10 +10,12 @@ import { getFaviconURL } from '../../utils/routes';
 import { LoadingButton } from '@mui/lab';
 import { Field, useFormik } from 'formik';
 import { useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 
 // ================================|| LOGIN ||================================ //
 
 const OpenID = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const client_id = searchParams.get("client_id")
   const redirect_uri = searchParams.get("redirect_uri")
@@ -54,14 +56,13 @@ const OpenID = () => {
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Stack spacing={2}>
-          <Typography variant="h3">Login with OpenID - {client_id}</Typography>
+          <Typography variant="h3">{t('oidc.title', {client_id: client_id})}</Typography>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" spacing={2} style={{
             alignItems: 'center',
           }}>
             <img src={icon} alt={'icon'} width="64px" />
             <div>
-              You are about to login into <b>{client_id}</b>. <br />
-              Check which permissions you are giving to this application. <br />
+              <Trans i18nKey='oidc.loginDescription' values={{client_id: client_id}} />
             </div>
           </Stack>
         </Stack>
@@ -74,7 +75,7 @@ const OpenID = () => {
             return scope == "openid" ? <div>
               <input type="checkbox" name="scopes" value={scope} checked hidden />
               <Checkbox checked disabled />
-              account
+              {t('oidc.account')}
             </div>
               : <div>
                 <input type="checkbox" name="scopes" hidden value={scope} checked={checkedScopes.includes(scope)} />
@@ -89,7 +90,7 @@ const OpenID = () => {
             opacity: '0.8',
             fontStyle: 'italic',
           }}>
-            You will be redirected to <b>{redirect_uri}</b> after login. <br />
+            <Trans i18nkey='oidc.redirectInfo' values={{redirect_uri: redirect_uri}} />
           </div>
 
           <LoadingButton
@@ -100,7 +101,7 @@ const OpenID = () => {
             variant="contained"
             color="primary"
           >
-            OpenID Login
+            {t('oidc.loginTitle')}
           </LoadingButton>
         </form>
       </Grid>

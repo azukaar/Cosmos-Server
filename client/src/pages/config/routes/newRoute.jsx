@@ -81,7 +81,7 @@ const NewRouteCreate = ({ openNewModal, setOpenNewModal, config }) => {
             </Stack>}
             <Button onClick={() => setOpenNewModal(false)}>{t('global.cancelAction')}</Button>
             <Button onClick={() => {
-              let errors = ValidateRoute(newRoute, config);
+              let errors = ValidateRoute(newRoute, config, t);
               if (errors && errors.length > 0) {
                 setSubmitErrors(errors);
               } else {
