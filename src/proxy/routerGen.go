@@ -95,15 +95,17 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	if route.UseHost {
 		origin = origin.Host(route.Host)
 
-		// if Scheme is not http/https, discard
-		urlRoute, err := url.Parse(route.Target)
-		if err != nil {
-			utils.Error("Invalid target URL: "+route.Target, err)
-			return nil
-		}
+		if route.Mode == "SERVAP" || route.Mode == "PROXY" || route.Mode == "REDIRECT" {
+			// if Scheme is not http/https, discard
+			urlRoute, err := url.Parse(route.Target)
+			if err != nil {
+				utils.Error("Invalid target URL: "+route.Target, err)
+				return nil
+			}
 
-		if urlRoute.Scheme != "http" && urlRoute.Scheme != "https" {
-			return nil
+			if urlRoute.Scheme != "http" && urlRoute.Scheme != "https" {
+				return nil
+			}
 		}
 	}
 	

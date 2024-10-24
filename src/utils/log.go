@@ -41,6 +41,8 @@ var (
 )
 
 func InitLogs() {
+	RawLogMessage(DEBUG, "[DEBUG]", bPurple, nPurple, "Initializing logs in " + CONFIGFOLDER + "cosmos.log")
+
 	// Set up lumberjack log rotation
 	ljLogger := &lumberjack.Logger{
 		Filename:   CONFIGFOLDER + "cosmos.log",
@@ -61,7 +63,7 @@ func InitLogs() {
 	errorLogger = log.New(errorWriter, "", log.Ldate|log.Ltime)
 }
 
-func logMessage(level LogLevel, prefix, prefixColor, color, message string) {
+func RawLogMessage(level LogLevel, prefix, prefixColor, color, message string) {
 	ll := LoggingLevelLabels[GetMainConfig().LoggingLevel]
 	if ll <= level {
 		logString := prefixColor + Bold + prefix + Reset + " " + color + message + Reset
@@ -80,19 +82,19 @@ func logMessage(level LogLevel, prefix, prefixColor, color, message string) {
 }
 
 func Debug(message string) {
-	logMessage(DEBUG, "[DEBUG]", bPurple, nPurple, message)
+	RawLogMessage(DEBUG, "[DEBUG]", bPurple, nPurple, message)
 }
 
 func Log(message string) {
-	logMessage(INFO, "[INFO ]", bBlue, nBlue, message)
+	RawLogMessage(INFO, "[INFO ]", bBlue, nBlue, message)
 }
 
 func LogReq(message string) {
-	logMessage(INFO, "[REQ  ]", bGreen, nGreen, message)
+	RawLogMessage(INFO, "[REQ  ]", bGreen, nGreen, message)
 }
 
 func Warn(message string) {
-	logMessage(WARNING, "[WARN ]", bYellow, nYellow, message)
+	RawLogMessage(WARNING, "[WARN ]", bYellow, nYellow, message)
 }
 
 func Error(message string, err error) {
@@ -100,7 +102,7 @@ func Error(message string, err error) {
 	if err != nil {
 		errStr = err.Error()
 	}
-	logMessage(ERROR, "[ERROR]", bRed, nRed, message+" : "+errStr)
+	RawLogMessage(ERROR, "[ERROR]", bRed, nRed, message+" : "+errStr)
 }
 
 func MajorError(message string, err error) {

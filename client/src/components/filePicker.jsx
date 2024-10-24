@@ -81,10 +81,10 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, _storage = '', _path 
         setFiles((current) => {
           if(resetStorage) {
             current = {
-              [data.path]: data.directory
+              [data.path]: data.directory || []
             };
           } else {
-            current[data.path] = data.directory;
+            current[data.path] = data.directory || [];
           }
           
           setDirectoriesAsTree(transformToTree(current));
@@ -104,7 +104,7 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, _storage = '', _path 
     const renderTree = (node) => {
       nodeCounter++;
       return (
-        <TreeItem key={node.id} nodeId={node.id} label={node.label} expanded={node.opened} icon={(node.file && node.file.isDir) ? <FolderFilled /> : <FileOutlined />}>
+        <TreeItem key={node.id} nodeId={node.id} label={node.label} expanded={node.opened} icon={(node.file && node.file.isDir) ? (node.children == null ? <FolderFilled /> : null) : <FileOutlined />}>
           {Array.isArray(node.children)
             ? node.children.map((child) => renderTree(child))
             : (

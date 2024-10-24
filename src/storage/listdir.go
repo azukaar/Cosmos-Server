@@ -33,19 +33,21 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == "GET" {
-		config := utils.GetMainConfig()
+		//config := utils.GetMainConfig()
 		storage := req.URL.Query().Get("storage")
 		path := req.URL.Query().Get("path")
 
 		if storage == "" {
 			storage = "local"
-			if path == "" {
-				path = config.DockerConfig.DefaultDataPath
-			}
-		} else if path == "" {
+			// TODO: Restore when parent button implemented
+			// if path == "" {
+			// 	path = config.DockerConfig.DefaultDataPath
+			// }
+		} 
+
+		if path == "" {
 			path = "/"
 		}
-
 
 		storages, err := ListStorage()
 		if err != nil {
@@ -58,7 +60,7 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 		if storage == "local" {
 			basePath = "/"
 			if utils.IsInsideContainer {
-			basePath = "/mnt/host/"
+				basePath = "/mnt/host/"
 			}
 		} else {
 			found := false
