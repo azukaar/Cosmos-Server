@@ -17,6 +17,7 @@ type FirebaseApiSdk struct {
 	BaseURL string
 	LValid bool
 	ServerToken string
+	UserNumber int
 }
 
 var publicKeyPEM = []byte(`
@@ -49,6 +50,9 @@ var FBL *FirebaseApiSdk
 
 func InitFBL() {
 	FBL = _InitFBL()
+	if FBL.UserNumber == 0 {
+		FBL.UserNumber = 5
+	}
 }
 
 func _InitFBL() *FirebaseApiSdk {
@@ -59,7 +63,7 @@ func _InitFBL() *FirebaseApiSdk {
 
 	publicKey, err := parseECPublicKeyFromPEM(publicKeyPEM)
 	if err != nil {
-		Error("Failed to parse public key", err)
+		Error("[Cloud] Failed to parse public key", err)
 		return res
 	}
 
@@ -70,15 +74,15 @@ func _InitFBL() *FirebaseApiSdk {
 	_, statuscode1, err1 := res.RenewLicense(ServerToken)
 
 	if err1 != nil {
-		Error("Could not validate server token", err1)
+		Error("[Cloud] Could not validate server token", err1)
 
 		newToken, statuscode2, err2 := res.RenewLicense(Licence)
 		if err2 != nil || newToken == "" {
 
-			MajorError("Could not renew server token, check internet connection", err2)
+			MajorError("[Cloud] Could not renew server token, check internet connection", err2)
 
 			if (ServerToken == "") {
-				MajorError("No server token. And could not get one.", err2)
+				MajorError("[Cloud] No server token. And could not get one.", err2)
 				return res
 			}
 
@@ -92,15 +96,16 @@ func _InitFBL() *FirebaseApiSdk {
 				})
 
 				if (err != nil) || !token.Valid {
-					MajorError("Invalid Server license.", err)
+					MajorError("[Cloud] Invalid Server license.", err)
 					return res
 				}
 
 				res.LValid = true
 				res.ServerToken = ServerToken
+				res.UserNumber = GetNumberUsersFromToken(ServerToken)
 				return res
 			} else {
-				MajorError("Invalid license please check your original license email.", err)
+				MajorError("[Cloud] Invalid license please check your original license email.", err)
 				return res
 			}
 		}
@@ -113,10 +118,12 @@ func _InitFBL() *FirebaseApiSdk {
 
 		res.ServerToken = newToken
 		res.LValid = true
+		res.UserNumber = GetNumberUsersFromToken(newToken)
 		return res
 	} else {
 		res.ServerToken = ServerToken
 		res.LValid = true
+		res.UserNumber = GetNumberUsersFromToken(ServerToken)
 		return res
 	}
 }
@@ -198,4 +205,41 @@ func (sdk *FirebaseApiSdk) RenewLicense(oldToken string) (string, int, error) {
 	}
 
 	return result.Token, 0, nil
+}
+
+func GetNumberUsersFromToken(serverToken string) int {
+	Debug("[Cloud] GetNumberUsersFromToken")
+
+	// decode the token
+	token, _, err := new(jwt.Parser).ParseUnverified(serverToken, jwt.MapClaims{})
+	if err != nil {
+		Error("[Cloud] Could not parse server token", err)
+		return 5
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		Error("[Cloud] Could not parse server token", err)
+		return 5
+	}
+
+	// get the number of users
+	userNumber, ok := claims["nbUsers"].(float64)
+	if !ok {
+		Log("[Cloud] Could not get number of users from token, defaulting to 9")
+		return 9
+	}
+
+	Log("[Cloud] Number of users: " + fmt.Sprintf("%d", int(userNumber)))
+
+	return int(userNumber)
+}
+
+
+func GetNumberUsers() int {
+	if FBL.LValid {
+		return FBL.UserNumber
+	} else {
+		return 5
+	}
 }

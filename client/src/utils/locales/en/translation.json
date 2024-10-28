@@ -577,6 +577,7 @@
 	"mgmt.usermgmt.lastLogin": "Last Login",
 	"mgmt.usermgmt.reset2faButton": "Reset 2FA",
 	"mgmt.usermgmt.sendPasswordResetButton": "Send password reset",
+	"mgmt.usermgmt.userSeatsUsed": "Seats Used:",
 	"navigation.home.Avx": "AVX Supported",
 	"navigation.home.LetsEncryptEmailError": "You have enabled Let's Encrypt for automatic HTTPS Certificate. You need to provide the configuration with an email address to use for Let's Encrypt in the configs.",
 	"navigation.home.LetsEncryptError": "There are errors with your Let's Encrypt configuration or one of your routes, please fix them as soon as possible:",
