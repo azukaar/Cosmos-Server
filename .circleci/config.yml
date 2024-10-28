@@ -105,11 +105,11 @@ jobs:
       #       sudo apt-get update
       #       sudo apt-get install -y debhelper dh-make jq
 
-      # - run:
-      #     name: Prepare Debian package structure
-      #     command: |
-      #       mkdir -p ${PKG_NAME}-${VERSION}
-      #       cp -r build/* ${PKG_NAME}-${VERSION}/
+      - run:
+          name: Prepare Debian package structure
+          command: |
+            mkdir -p ${PKG_NAME}-${VERSION}
+            cp -r build/* ${PKG_NAME}-${VERSION}/
       #       cd ${PKG_NAME}-${VERSION}
       #       export DEBFULLNAME="$MAINTAINER_NAME"
       #       export DEBEMAIL="$MAINTAINER_EMAIL"
