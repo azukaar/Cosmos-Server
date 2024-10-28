@@ -179,12 +179,24 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
-            GH_TOKEN=${GITHUB_TOKEN_RELEASE}
-            gh release create v$VERSION \
-              ${PKG_NAME}-${VERSION}-amd64.zip \
-              ${PKG_NAME}-${VERSION}-arm64.zip \
-              --title "Release $VERSION" \
-              --notes "Release version $VERSION for x86_64 and ARM64 architectures"
+            
+            # Get current branch name
+            BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+            
+            if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+              gh release create v$VERSION \
+                ${PKG_NAME}-${VERSION}-amd64.zip \
+                ${PKG_NAME}-${VERSION}-arm64.zip \
+                --title "Release $VERSION" \
+                --notes "Release version $VERSION for x86_64 and ARM64 architectures"
+            else
+              gh release create v$VERSION \
+                ${PKG_NAME}-${VERSION}-amd64.zip \
+                ${PKG_NAME}-${VERSION}-arm64.zip \
+                --prerelease \
+                --title "Beta Release $VERSION" \
+                --notes "Beta release version $VERSION for x86_64 and ARM64 architectures from branch $BRANCH_NAME"
+            fi
 
 workflows:
   version: 2
