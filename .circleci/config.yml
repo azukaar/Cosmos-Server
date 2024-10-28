@@ -179,7 +179,7 @@ jobs:
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
-            GH_TOKEN=$GITHUB_TOKEN_RELEASE
+            GH_TOKEN=${GITHUB_TOKEN_RELEASE}
             gh release create v$VERSION \
               ${PKG_NAME}-${VERSION}-amd64.zip \
               ${PKG_NAME}-${VERSION}-arm64.zip \
