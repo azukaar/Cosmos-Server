@@ -99,63 +99,17 @@ jobs:
           name: Build and publish dockerfiles
           command: sh docker.sh
 
-      # - run:
-      #     name: Install Debian packaging tools
-      #     command: |
-      #       sudo apt-get update
-      #       sudo apt-get install -y debhelper dh-make jq
-
       - run:
           name: Prepare package structure
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}
             cp -r build/* ${PKG_NAME}-${VERSION}/
-      #       cd ${PKG_NAME}-${VERSION}
-      #       export DEBFULLNAME="$MAINTAINER_NAME"
-      #       export DEBEMAIL="$MAINTAINER_EMAIL"
-      #       dh_make --createorig -s -y -p ${PKG_NAME}_${VERSION} \
-      #         --email "$MAINTAINER_EMAIL" \
-      #         --packagename "$PKG_NAME"
-
-      # - run:
-      #     name: Customize Debian control files
-      #     command: |
-      #       cd ${PKG_NAME}-${VERSION}/debian
-      #       echo "override_dh_auto_install:" >> rules
-      #       echo "	dh_auto_install -- prefix=/usr/local/${PKG_NAME}" >> rules
-      #       echo "override_dh_link:" >> rules
-      #       echo "	dh_link usr/local/${PKG_NAME}/cosmos usr/local/bin/cosmos" >> rules
-
-      # - run:
-      #     name: Build x86_64 .deb package
-      #     command: |
-      #       cd ${PKG_NAME}-${VERSION}
-      #       chmod 0755 debian
-      #       find debian -type d -exec chmod 0755 {} \;
-      #       find debian -type f -exec chmod 0644 {} \;
-      #       chmod 0755 debian/rules
-      #       dpkg-buildpackage -us -uc -b
 
       - run:
           name: Prepare ARM64 package structure
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}-arm64
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
-      #       mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
-      #       cd ${PKG_NAME}-${VERSION}-arm64
-      #       dh_make --createorig -s -y -p ${PKG_NAME}_${VERSION} \
-      #         --email "$MAINTAINER_EMAIL" \
-      #         --packagename "$PKG_NAME"
-
-      # - run:
-      #     name: Build ARM64 .deb package
-      #     command: |
-      #       cd ${PKG_NAME}-${VERSION}-arm64
-      #       chmod 0755 debian
-      #       find debian -type d -exec chmod 0755 {} \;
-      #       find debian -type f -exec chmod 0644 {} \;
-      #       chmod 0755 debian/rules
-      #       dpkg-buildpackage -us -uc -b -aarm64
 
       - run:
           name: Create .zip packages
@@ -163,36 +117,35 @@ jobs:
             zip -r ${PKG_NAME}-${VERSION}-amd64.zip ${PKG_NAME}-${VERSION}
             zip -r ${PKG_NAME}-${VERSION}-arm64.zip ${PKG_NAME}-${VERSION}-arm64
 
-      # - run:
-      #     name: Store artifacts
-      #     command: |
-      #       mkdir -p /tmp/artifacts
-      #       cp ${PKG_NAME}*.deb /tmp/artifacts/
-      #       cp ${PKG_NAME}*.zip /tmp/artifacts/
-      
-      # - store_artifacts:
-      #     path: /tmp/artifacts
-      #     destination: packages
+      - run:
+          name: Generate MD5 hashes
+          command: |
+            md5sum ${PKG_NAME}-${VERSION}-amd64.zip > ${PKG_NAME}-${VERSION}-amd64.zip.md5
+            md5sum ${PKG_NAME}-${VERSION}-arm64.zip > ${PKG_NAME}-${VERSION}-arm64.zip.md5
 
       - run:
           name: Create GitHub Release
           command: |
             VERSION=$(jq -r .version package.json)
             PKG_NAME=cosmos-cloud
-            
+           
             # Get current branch name
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
-            
+           
             if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
               gh release create v$VERSION \
                 ${PKG_NAME}-${VERSION}-amd64.zip \
+                ${PKG_NAME}-${VERSION}-amd64.zip.md5 \
                 ${PKG_NAME}-${VERSION}-arm64.zip \
+                ${PKG_NAME}-${VERSION}-arm64.zip.md5 \
                 --title "Release $VERSION" \
                 --notes "Release version $VERSION for x86_64 and ARM64 architectures"
             else
               gh release create v$VERSION \
                 ${PKG_NAME}-${VERSION}-amd64.zip \
+                ${PKG_NAME}-${VERSION}-amd64.zip.md5 \
                 ${PKG_NAME}-${VERSION}-arm64.zip \
+                ${PKG_NAME}-${VERSION}-arm64.zip.md5 \
                 --prerelease \
                 --title "Beta Release $VERSION" \
                 --notes "Beta release version $VERSION for x86_64 and ARM64 architectures from branch $BRANCH_NAME"
