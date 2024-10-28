@@ -106,7 +106,7 @@ jobs:
       #       sudo apt-get install -y debhelper dh-make jq
 
       - run:
-          name: Prepare Debian package structure
+          name: Prepare package structure
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}
             cp -r build/* ${PKG_NAME}-${VERSION}/
@@ -136,11 +136,11 @@ jobs:
       #       chmod 0755 debian/rules
       #       dpkg-buildpackage -us -uc -b
 
-      # - run:
-      #     name: Prepare ARM64 package structure
-      #     command: |
-      #       mkdir -p ${PKG_NAME}-${VERSION}-arm64
-      #       cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
+      - run:
+          name: Prepare ARM64 package structure
+          command: |
+            mkdir -p ${PKG_NAME}-${VERSION}-arm64
+            cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
       #       mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
       #       cd ${PKG_NAME}-${VERSION}-arm64
       #       dh_make --createorig -s -y -p ${PKG_NAME}_${VERSION} \
