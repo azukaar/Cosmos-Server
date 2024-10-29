@@ -112,13 +112,14 @@ WantedBy=multi-user.target`
 			DisplayName: "Cosmos Cloud",
 			Description: "Cosmos Cloud service",
 			WorkingDirectory: workingDir,
+			Executable:  filepath.Join(workingDir, "start.sh"), 
 			EnvVars: getCosmosEnvVars(),
 			Option: service.KeyValue{
 				"SystemdScript": systemdScript,
 			},
 		}
 
-		fmt.Println("Service mode: ", svcConfig)
+		// fmt.Println("Service mode: ", svcConfig)
 
 		prg := &Program{}
 		s, err := service.New(prg, svcConfig)
