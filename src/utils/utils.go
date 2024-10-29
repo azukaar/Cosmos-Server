@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"encoding/base64"
 	"os"
+	"io"
 	"strconv"
 	"strings"
 	"io/ioutil"
@@ -776,6 +777,27 @@ func DownloadFile(url string) (string, error) {
 	}
 	
 	return string(body), nil
+}
+
+func DownloadFileToLocation(path, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetClientIP(req *http.Request) string {

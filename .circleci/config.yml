@@ -104,12 +104,20 @@ jobs:
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}
             cp -r build/* ${PKG_NAME}-${VERSION}/
+            rm ${PKG_NAME}-${VERSION}/cosmos-launcher-arm64
+            rm ${PKG_NAME}-${VERSION}/cosmos-arm64
+            rm ${PKG_NAME}-${VERSION}/nebula-arm
+            rm ${PKG_NAME}-${VERSION}/nebula-arm-cert
 
       - run:
           name: Prepare ARM64 package structure
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}-arm64
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
+            mv ${PKG_NAME}-${VERSION}-arm64/nebula-arm ${PKG_NAME}-${VERSION}-arm64/nebula
+            mv ${PKG_NAME}-${VERSION}-arm64/nebula-arm-cert ${PKG_NAME}-${VERSION}-arm64/nebula-cert
+            mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
+            mv ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher
 
       - run:
           name: Create .zip packages

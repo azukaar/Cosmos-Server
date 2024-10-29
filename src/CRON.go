@@ -2,14 +2,17 @@ package main
 
 import (
 	"io/ioutil"
+	"runtime"
 	"net/http"
+	"os"
+	"path/filepath"
+	"encoding/json"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/proxy"
-	"os"
-	"path/filepath"
-	"encoding/json"
+	
 
 	"github.com/jasonlvhit/gocron"
 )
@@ -86,6 +89,78 @@ func checkVersion() {
 
 func checkUpdatesAvailable() {
 	utils.UpdateAvailable = docker.CheckUpdatesAvailable()
+
+	if !utils.IsInsideContainer && utils.GetMainConfig().AutoUpdate {
+		useBeta := utils.GetMainConfig().BetaUpdates
+
+		currentVersion := GetCosmosVersion()
+		updates, err := GetLatestVersion(useBeta)
+		if err != nil {
+			utils.Error("checkUpdatesAvailable", err)
+			return
+		}
+
+		if updates != nil {
+			cp, errc := utils.CompareSemver(currentVersion, updates.Version)
+		
+			if errc != nil {
+				utils.Error("checkVersion", errc)
+				return
+			}
+		
+			if cp == -1 {
+				utils.Log("New version available: " + updates.Version)
+				
+				url := updates.AMDURL
+				if runtime.GOARCH == "arm64" {
+					url = updates.ARMURL
+				}
+
+				utils.Log("Downloading update from " + url)
+
+				execPath, err := os.Executable()
+				if err != nil {
+					utils.Error("checkUpdatesAvailable", err)
+					return
+				}
+				
+				currentFolder := filepath.Dir(execPath)
+
+				dlPath := currentFolder + "/cosmos-update.zip"
+				betaFile := currentFolder + "/.BETA"
+				
+				err = utils.DownloadFileToLocation(dlPath, url)
+
+				if err != nil {
+					utils.Error("checkUpdatesAvailable", err)
+					return
+				}
+
+				if useBeta && !utils.FileExists(betaFile) {
+					// save .BETA file
+					utils.Log("Saving BETA file")
+					err := ioutil.WriteFile(betaFile, []byte("BETA"), 0644)
+					if err != nil {
+						utils.Error("checkUpdatesAvailable", err)
+						return
+					}
+				} else if !useBeta && utils.FileExists(betaFile) {
+					// remove .BETA file
+					utils.Log("Removing BETA file")
+					err := os.Remove(betaFile)
+					if err != nil {
+						utils.Error("checkUpdatesAvailable", err)
+						return
+					}
+				}
+
+				utils.Log("Update downloaded, restarting server")
+				os.Exit(0)
+			} else {
+				utils.Log("No new version available")
+			}
+		}
+	}
 }
 
 func checkCerts() {

@@ -233,6 +233,8 @@ func cosmos() {
 	
 	go CRON()
 
+	cleanUpUpdateFiles()
+
 	docker.ExportDocker()
 
 	docker.DockerListenEvents()
@@ -243,7 +245,7 @@ func cosmos() {
 
 	go func() {
 		time.Sleep(180 * time.Second)
-		docker.CheckUpdatesAvailable()
+		checkUpdatesAvailable()
 	}()
 
 	version, err := docker.DockerClient.ServerVersion(context.Background())

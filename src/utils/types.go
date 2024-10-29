@@ -90,6 +90,7 @@ type Config struct {
 	ServerCountry string
 	RequireMFA bool
 	AutoUpdate bool
+	BetaUpdates bool
 	OpenIDClients []OpenIDClient
 	MarketConfig MarketConfig
 	HomepageConfig HomepageConfig
