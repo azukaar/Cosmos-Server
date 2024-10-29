@@ -98,7 +98,8 @@ func unzip(src string, dest string) error {
 
 
 func main() {
-	fmt.Println("Hello, World!")
+	fmt.Println("-- Cosmos Cloud Launcher --")
+	fmt.Println("Checking for updates to install...")
 
 	execPath, err := os.Executable()
 	if err != nil {
@@ -113,7 +114,7 @@ func main() {
 
 	// if there's no updates
 	if _, err := os.Stat(dlPath); err != nil {
-		fmt.Println("No update available")
+		fmt.Println("No updates to install, starting Cosmos...")
 		// start cosmos 
 		// TODO
 	}
@@ -137,6 +138,7 @@ func main() {
 	
 	// check md5
 	if hash != "" {
+		fmt.Println("Update found, checking MD5 hash...")
 		file, err := os.Open(dlPath)
 		if err != nil {
 			fmt.Println(err)
@@ -151,13 +153,14 @@ func main() {
 		}
 		
 		if hash != hex.EncodeToString(hasher.Sum(nil)) {
-			fmt.Println("MD5 mismatch - aborting update")
+			fmt.Println("[ERROR] MD5 mismatch - aborting update!")
 			// delete the file
 			os.Remove(dlPath)
 			return 
 		}
 
 		// extract the file
+		fmt.Println("MD5 hash matches, extracting update...")
 		err = unzip(dlPath, currentFolder)
 		if err != nil {
 			fmt.Println(err)
@@ -166,5 +169,7 @@ func main() {
 
 		// delete the file
 		os.Remove(dlPath)
+
+		fmt.Println("Update complete, starting Cosmos...")
 	}
 }
