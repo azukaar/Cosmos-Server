@@ -155,6 +155,7 @@ func checkUpdatesAvailable() {
 				}
 
 				utils.Log("Update downloaded, restarting server")
+				storage.StopAllRCloneProcess(true)
 				os.Exit(0)
 			} else {
 				utils.Log("No new version available")

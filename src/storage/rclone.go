@@ -177,7 +177,7 @@ func startRCloneProcess(args ...string) {
 }
 
 var isWaitingToStop = false
-func stopAllRCloneProcess() {
+func StopAllRCloneProcess(forever bool) {
 	rcloneMutex.Lock()
 	defer rcloneMutex.Unlock()
 	
@@ -204,7 +204,7 @@ func stopAllRCloneProcess() {
 			// Wait for the process to exit
 			_, _ = process.RcloneCmd.Process.Wait()
 
-			if !process.Main {
+			if !process.Main || forever {
 				delete(rcloneProcesses, process.RcloneCmd.Process.Pid)
 			}
 		}
@@ -260,7 +260,7 @@ func unmountAll() error {
 
 
 func Restart() {
-	stopAllRCloneProcess()
+	StopAllRCloneProcess(false)
 
 	// wait for rclone to start
 	go func() {
