@@ -1,7 +1,7 @@
 ## Version 0.17.0
  - Added RClone integration to manage and mount remote storage
  - Added network shares for SFTP, NFS, WebDAV, and S3, with support for remote storages and smart-shield integration
- - Added zip and deb packages for docker-less distribution
+ - Added zip packages for docker-less distribution
  - Added TCP/UDP socket proxying
  - TCP/UDP proxying includes smart-shield protections, constellation support, geoblocking, and monitoring
  - Added terminal shortcut on the top right header

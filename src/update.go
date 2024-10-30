@@ -9,6 +9,7 @@ import (
     "path/filepath"
     "bufio"
     "strings"
+    "syscall"
 )
 
 type ReleaseAsset struct {
@@ -136,6 +137,39 @@ func cleanUpUpdateFiles() {
     // if cosmos-laumcher.updated exists, rename it to cosmos-launcher
     updatedPath := currentFolder + "/cosmos-launcher.updated"
     if _, err := os.Stat(updatedPath); err == nil {
-        os.Rename(updatedPath, currentFolder + "/cosmos-launcher")
+        // get old permissions
+        var perms os.FileMode
+        if info, err := os.Stat(currentFolder + "/cosmos-launcher"); err == nil {
+            perms = info.Mode()
+        } else {
+            fmt.Println("Update: Failed to get old permissions:", err)
+        }
+        // get old owner
+        var owner int
+        if info, err := os.Stat(currentFolder + "/cosmos-launcher"); err == nil {
+            owner = int(info.Sys().(*syscall.Stat_t).Uid)
+        } else {
+            fmt.Println("Update: Failed to get old owner:", err)
+        }
+
+        err := os.Rename(updatedPath, currentFolder + "/cosmos-launcher")
+        if err != nil {
+            fmt.Println("Update: Failed to rename cosmos-launcher.updated:", err)
+        }
+
+        // set old permissions
+        if perms != 0 {
+            err = os.Chmod(currentFolder + "/cosmos-launcher", perms)
+            if err != nil {
+                fmt.Println("Update: Failed to set old permissions:", err)
+            }
+        }
+        // set old owner
+        if owner != 0 {
+            err = os.Chown(currentFolder + "/cosmos-launcher", owner, -1)
+            if err != nil {
+                fmt.Println("Update: Failed to set old owner:", err)
+            }
+        }
     }
 }

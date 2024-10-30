@@ -346,7 +346,7 @@ func InitInternalSocketProxy() {
     routesList = append(routesList, routes...)
 
 	for _, route := range routesList {
-		if route.UseHost && strings.Contains(route.Host, ":") {
+		if route.UseHost && strings.Contains(route.Host, ":") && !route.Disabled {
 			hostname := route.Host
 			port := strings.Split(hostname, ":")[1]
             // if port is a number

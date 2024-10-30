@@ -2,7 +2,6 @@ package utils
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 
@@ -53,14 +52,14 @@ func InitLogs() {
 	}
 
 	// Create a multi-writer to log to both file and stdout
-	multiWriter := io.MultiWriter(ljLogger, os.Stdout)
+	// multiWriter := io.MultiWriter(ljLogger, os.Stdout)
 
 	// Create a multi-writer for errors to log to both file and stderr
-	errorWriter := io.MultiWriter(ljLogger, os.Stderr)
+	// errorWriter := io.MultiWriter(ljLogger, os.Stderr)
 
 	// Create loggers
-	logger = log.New(multiWriter, "", log.Ldate|log.Ltime)
-	errorLogger = log.New(errorWriter, "", log.Ldate|log.Ltime)
+	logger = log.New(ljLogger, "", log.Ldate|log.Ltime)
+	errorLogger = log.New(ljLogger, "", log.Ldate|log.Ltime)
 }
 
 func RawLogMessage(level LogLevel, prefix, prefixColor, color, message string) {
@@ -68,8 +67,9 @@ func RawLogMessage(level LogLevel, prefix, prefixColor, color, message string) {
 	if ll <= level {
 		logString := prefixColor + Bold + prefix + Reset + " " + color + message + Reset
 		
+		log.Println(logString)
+
 		if logger == nil || errorLogger == nil {
-			log.Println(logString)
 			return
 		}
 
@@ -86,15 +86,15 @@ func Debug(message string) {
 }
 
 func Log(message string) {
-	RawLogMessage(INFO, "[INFO ]", bBlue, nBlue, message)
+	RawLogMessage(INFO, "[INFO] ", bBlue, nBlue, message)
 }
 
 func LogReq(message string) {
-	RawLogMessage(INFO, "[REQ  ]", bGreen, nGreen, message)
+	RawLogMessage(INFO, "[REQ]  ", bGreen, nGreen, message)
 }
 
 func Warn(message string) {
-	RawLogMessage(WARNING, "[WARN ]", bYellow, nYellow, message)
+	RawLogMessage(WARNING, "[WARN] ", bYellow, nYellow, message)
 }
 
 func Error(message string, err error) {
@@ -137,7 +137,9 @@ func Fatal(message string, err error) {
 	if err != nil {
 		errStr = err.Error()
 	}
-	errorLogger.Fatal(bRed + "[FATAL]" + Reset + " " + nRed + message + " : " + errStr + Reset)
+	RawLogMessage(FATAL, "[FATAL]", bRed, nRed, message+" : "+errStr)
+
+	os.Exit(1)
 }
 
 func DoWarn(format string, a ...interface{}) string {

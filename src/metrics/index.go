@@ -176,7 +176,7 @@ func PushSetMetric(key string, value int, def DataDef) {
 		defer func() { <-lock }()
 
 		if def.Decumulate || def.DecumulatePos {
-			if lastInserted[key] != 0 {
+			if lastInserted[key] != 0 && lastInserted[key] > value {
 				value = value - lastInserted[key]
 				if def.DecumulatePos && value < 0 {
 					value = 0
