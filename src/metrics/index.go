@@ -176,15 +176,15 @@ func PushSetMetric(key string, value int, def DataDef) {
 		defer func() { <-lock }()
 
 		if def.Decumulate || def.DecumulatePos {
-			if lastInserted[key] != 0 && lastInserted[key] > value {
+			if lastInserted[key] != 0 {
 				value = value - lastInserted[key]
 				if def.DecumulatePos && value < 0 {
 					value = 0
 				}
+			} else {
+				value = 0
 			}
 		}
-		
-
 
 		if dp, ok := dataBuffer[cacheKey]; ok {
 			value = MergeMetric(def.SetOperation, dp.Value, value, dp.AvgIndex)    
