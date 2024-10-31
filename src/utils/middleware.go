@@ -82,7 +82,7 @@ func BlockBannedIPs(next http.Handler) http.Handler {
 			Warn("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s) and will soon be banned.")
 		}
 
-        if nbAbuse > 300 {
+				if nbAbuse > 300 {
 			if hj, ok := w.(http.Hijacker); ok {
 				conn, _, err := hj.Hijack()
 				if err == nil {
