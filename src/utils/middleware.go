@@ -76,7 +76,7 @@ func BlockBannedIPs(next http.Handler) http.Handler {
 			return
         }
 
-		nbAbuse := getIPAbuseCounter(ip)
+				nbAbuse := getIPAbuseCounter(ip)
 
         if nbAbuse > 275 {
 			Warn("IP " + ip + " has " + fmt.Sprintf("%d", nbAbuse) + " abuse(s) and will soon be banned.")
