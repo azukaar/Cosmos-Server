@@ -1,6 +1,6 @@
 // material-ui
 import * as React from 'react';
-import { Button, Typography } from '@mui/material';
+import { Button, LinearProgress, Stack, Typography } from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -33,6 +33,7 @@ const UserManagement = () => {
     const [openEditEmail, setOpenEditEmail] = React.useState(false);
     const [toAction, setToAction] = React.useState(null);
     const [loadingRow, setLoadingRow] = React.useState(null);
+    const [status, setStatus] = React.useState(null);
 
     const roles = ['Guest', 'User', 'Admin']
 
@@ -46,6 +47,10 @@ const UserManagement = () => {
             setRows(data.data);
             setIsLoading(false);
         })
+
+        API.getStatus().then((res) => {
+          setStatus(res.data);
+        });
     }
 
     useEffect(() => {
@@ -192,12 +197,24 @@ const UserManagement = () => {
         </Dialog>
 
 
-        <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-                refresh();
-        }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
-        <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
-            setOpenCreateForm(true)
-        }}>{t('global.createAction')}</Button><br /><br />
+        <Stack direction="row" spacing={2}>
+            <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+                    refresh();
+            }}>{t('global.refresh')}</Button>
+
+            <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+                setOpenCreateForm(true)
+            }} disabled={(status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button>
+
+            <div>{t('mgmt.usermgmt.userSeatsUsed')} {rows ? rows.length : 0} / {status ? status.LicenceNumber : 0}
+                <LinearProgress style={{width: '100px'}} variant="determinate" value={(status && rows) ? (rows.length / status.LicenceNumber) * 100 : 0}
+                color={
+                    (status && rows) ? (rows.length >= status.LicenceNumber ? 'error' : 'primary') : 'primary'
+                } />
+            </div>
+        </Stack>
+        
+        <br /><br />
 
 
         {isLoading && <center><br /><CircularProgress /></center>}

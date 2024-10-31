@@ -90,6 +90,7 @@ type Config struct {
 	ServerCountry string
 	RequireMFA bool
 	AutoUpdate bool
+	BetaUpdates bool
 	OpenIDClients []OpenIDClient
 	MarketConfig MarketConfig
 	HomepageConfig HomepageConfig
@@ -416,11 +417,14 @@ type AlertMetricTrack struct {
 }
 
 type LocationRemoteStorageConfig struct {
-	Name     string
-	Type     string
-	Settings map[string]string
+	Name      string
+	Protocol  string
+	Target	  string
+	Source		string
+	Route     ProxyRouteConfig
+	Settings  map[string]string
 }
 
 type RemoteStorageConfig struct {
-	Remotes []LocationRemoteStorageConfig
+	Shares []LocationRemoteStorageConfig
 }

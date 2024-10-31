@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"encoding/base64"
 	"os"
+	"io"
 	"strconv"
 	"strings"
 	"io/ioutil"
@@ -778,6 +779,27 @@ func DownloadFile(url string) (string, error) {
 	return string(body), nil
 }
 
+func DownloadFileToLocation(path, url string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GetClientIP(req *http.Request) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := SplitIP(req.RemoteAddr)
@@ -984,4 +1006,16 @@ func CheckInternet() {
 	if err != nil {
 		MajorError("Your server has no internet connection!", err)
 	}
+}
+
+func GetNextAvailableLocalPort(startPort int) (string, error) {
+	for port := startPort; port < 65535; port++ {
+			addr := fmt.Sprintf("127.0.0.1:%d", port)
+			listener, err := osnet.Listen("tcp", addr)
+			if err == nil {
+					listener.Close()
+					return addr, nil
+			}
+	}
+	return "", fmt.Errorf("no available ports")
 }

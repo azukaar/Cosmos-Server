@@ -19,6 +19,7 @@ import { snackit } from '../../../api/wrap';
 import { IsRouteSocketProxy, ValidateRouteSchema, getHostnameFromName, sanitizeRoute } from '../../../utils/routes';
 import { isDomain } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
+import { FilePickerButton } from '../../../components/filePicker';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -114,7 +115,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
             if(IsRouteSocketProxy(fullValues)) {
               if(!fullValues.Host.includes(':')) {
-                fullValues.Host = `localhost:${fullValues.Host}`;
+                fullValues.Host = `0.0.0.0:${fullValues.Host}`;
               }
               fullValues.UseHost = true;
             }
@@ -161,7 +162,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
           if(IsRouteSocketProxy(fullValues)) {
             if(!fullValues.Host.includes(':')) {
-              fullValues.Host = `localhost:${fullValues.Host}`;
+              fullValues.Host = `0.0.0.0:${fullValues.Host}`;
             }
             fullValues.UseHost = true;
           }
@@ -229,12 +230,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                           setRouteConfig && setRouteConfig(formik.values);
                         }}
                       />
-                      : <CosmosInputText
+                      : <Grid item xs={12}><Stack direction="row" spacing={2} fullWidth alignItems="flex-end">
+                      {(formik.values.Mode == "STATIC" || formik.values.Mode == "SPA") && (
+                        <FilePickerButton onPick={(path) => {
+                          if(path)
+                            formik.setFieldValue('Target', path);
+                        }} size="150%" select="folder" />)}
+
+                      <CosmosInputText
+                        style={{  }}
                         name="Target"
                         label={formik.values.Mode == "PROXY" ? t('mgmt.urls.edit.targetSettings.targetUrlInput.targetUrlLabel') : t('mgmt.urls.edit.targetFolderPathInput.targetFolderPathLabel')}
                         placeholder={formik.values.Mode == "PROXY" ? "http://localhost:8080" : "/path/to/my/app"}
                         formik={formik}
-                      />
+                      /></Stack></Grid>
                   }
 
                   
@@ -252,11 +261,11 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   
                   {IsRouteSocketProxy(formik.values) && <>
                     <Grid item xs={12}>
-                      <Alert color='info'>{t('mgmt.urls.edit.sourceInfoPort')}</Alert>
+                      <Alert color='info'>{t('mgmt.urls.edit.sourceInfoPort2')}</Alert>
                     </Grid>
                     <CosmosInputText
                       name="Host"
-                      label={t('mgmt.servapps.networks.list.host-port')}
+                      label={t('mgmt.servapps.networks.list.host-port2')}
                       placeholder={1234}
                       formik={formik}
                       onChange={(e) => {

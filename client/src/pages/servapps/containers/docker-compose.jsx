@@ -35,6 +35,7 @@ import { HostnameChecker, getHostnameFromName } from '../../../utils/routes';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
 import { randomString } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
+import { FilePickerButton } from '../../../components/filePicker';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -836,18 +837,30 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                         setContext({ ...context, [formElement['name-container']]: name });
                       }}
                   />
-                : formElement.type === 'error' || formElement.type === 'info' || formElement.type === 'warning' ?
+                  : formElement.type === 'error' || formElement.type === 'info' || formElement.type === 'warning' ?
                   <Alert severity={formElement.type}>
                     { service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                   </Alert>
-                
-                : <TextField
-                  label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
-                  value={context[formElement.name]}
-                  onChange={(e) => {
-                    setContext({ ...context, [formElement.name]: e.target.value });
-                  }
-                  } />
+                  : formElement.type === 'path' ?
+                    <Stack direction={"row"} spacing={2}>
+                      <FilePickerButton onPick={(path) => {
+                        if(path)
+                          setContext({ ...context, [formElement.name]: path });
+                      }} size="150%" select="folder" />
+                      <TextField
+                      style={{ width: '100%' }}
+                      label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
+                      value={context[formElement.name]}
+                      onChange={(e) => {
+                        setContext({ ...context, [formElement.name]: e.target.value });
+                      }} />   
+                    </Stack>
+                  : <TextField
+                    label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
+                    value={context[formElement.name]}
+                    onChange={(e) => {
+                      setContext({ ...context, [formElement.name]: e.target.value });
+                    }} />
               })}
 
               {Object.keys(hostnames).map((serviceIndex) => {

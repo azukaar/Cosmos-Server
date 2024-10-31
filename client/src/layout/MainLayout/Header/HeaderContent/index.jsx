@@ -31,7 +31,7 @@ const HeaderContent = () => {
                 <Notification />
 
                 <Link href="/cosmos-ui/logout" underline="none">
-                    <Chip label={t('global.logout')} />
+                    <Chip label={t('global.logout')} style={{height: '36px'}} />
                 </Link>
                 <RestartMenu />
             </Stack>

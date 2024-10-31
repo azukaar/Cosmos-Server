@@ -38,6 +38,7 @@ import { isDomain } from '../../../utils/indexs';
 
 import { Trans, useTranslation } from 'react-i18next';
 import ResponsiveButton from '../../../components/responseiveButton';
+import { FilePickerButton } from '../../../components/filePicker';
 
 const ConfigManagement = () => {
   const { t } = useTranslation();
@@ -385,12 +386,20 @@ const ConfigManagement = () => {
                     </Stack>
                   </Grid>
 
-                  <CosmosInputText
-                    label={t('mgmt.config.general.backupDirInput.backupDirLabel')}
-                    name="BackupOutputDir"
-                    formik={formik}
-                    helperText={t('mgmt.config.general.backupDirInput.backupDirHelperText')}
-                  />
+                  <Grid item xs={12}>
+                    <Stack direction={"row"} spacing={2} alignItems="flex-end">
+                        <FilePickerButton onPick={(path) => {
+                          if(path)
+                              formik.setFieldValue('BackupOutputDir', path);
+                        }} size="150%" select="folder" />
+                      <CosmosInputText
+                        label={t('mgmt.config.general.backupDirInput.backupDirLabel')}
+                        name="BackupOutputDir"
+                        formik={formik}
+                        helperText={t('mgmt.config.general.backupDirInput.backupDirHelperText')}
+                      />
+                    </Stack>
+                  </Grid>
                   
                   <Grid item xs={12}>
                     <Stack spacing={1}>
@@ -742,12 +751,18 @@ const ConfigManagement = () => {
                     formik={formik}
                   />
 
-                  <CosmosInputText
-                    label={t('mgmt.config.docker.defaultDatapathInput.defaultDatapathLabel')}
-                    name="DefaultDataPath"
-                    formik={formik}
-                    placeholder={'/usr'}
-                  />
+                  <Stack direction={"row"} spacing={2} alignItems="flex-end">
+                    <FilePickerButton onPick={(path) => {
+                      if(path)
+                        formik.setFieldValue('DefaultDataPath', path);
+                    }} size="150%" select="folder" />
+                    <CosmosInputText
+                      label={t('mgmt.config.docker.defaultDatapathInput.defaultDatapathLabel')}
+                      name="DefaultDataPath"
+                      formik={formik}
+                      placeholder={'/usr'}
+                    />
+                  </Stack>
                 </Stack>
               </MainCard>
 

@@ -4,8 +4,7 @@
 
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
-<p align="center"><a href="https://github.com/dalekcoffee"><img src="https://avatars.githubusercontent.com/dalekcoffee" style="border-radius:48px" width="48" height="48" alt="Dalek" title="Dalek" /></a>
-<a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<p align="center"><a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Fortcraft"><img src="https://avatars.githubusercontent.com/Fortcraft" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Gordi90"><img src="https://avatars.githubusercontent.com/Gordi90" style="border-radius:48px" width="48" height="48" alt="Dér Kristóf Gordon" title="Dér Kristóf Gordon" /></a>
@@ -15,8 +14,6 @@
 <a href="https://github.com/riczescaran"><img src="https://avatars.githubusercontent.com/riczescaran" style="border-radius:48px" width="48" height="48" alt="Ricardo Escaran" title="Ricardo Escaran" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/keyxmakerx"><img src="https://avatars.githubusercontent.com/keyxmakerx" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/kandykarter"><img src="https://avatars.githubusercontent.com/kandykarter" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/rdawman"><img src="https://avatars.githubusercontent.com/rdawman" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/madejackson"><img src="https://avatars.githubusercontent.com/madejackson" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
@@ -76,12 +73,127 @@ And a **lot more planned features** are coming!
 # What are the differences with other alternatives?
 
 Cosmos has a few key differences with other alternatives such as YunoHost, Unraid, etc...
-
-<p align="center" style="color:grey">
-  <img src="./compare.png" /><br />
-  * Only containers created with their UI, with no customization, ** No alerts
-</p>
-
+<div style="text-align: center;">
+    <table border="1" cellpadding="10" cellspacing="0" style="margin-left: auto; margin-right: auto;">
+        <thead>
+            <tr>
+                <th>Feature</th>
+                <th>Cosmos</th>
+                <th>Unraid</th>
+                <th>Yunohost</th>
+                <th>CasaOS</th>
+                <th>Cloudron</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Reverse Proxy</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>~ *</td>
+            </tr>
+            <tr>
+                <td>Container Management</td>
+                <td>✅</td>
+                <td>~ *</td>
+                <td>❌</td>
+                <td>~ *</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Automatic HTTPS</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Multi-users</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>2FA</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>OpenID/SSO</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>~ *</td>
+            </tr>
+            <tr>
+                <td>App Store</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>Docker Compose support</td>
+                <td>✅</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+                <td>✅</td>
+            </tr>
+            <tr>
+                <td>File manager</td>
+                <td>❌</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>✅</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Anti-bot / anti-DDOS</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>VPN</td>
+                <td>✅</td>
+                <td>~ **</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Monitoring (w/ historical data & alerts)</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+            </tr>
+            <tr>
+                <td>Hard VM Management</td>
+                <td>❌</td>
+                <td>✅</td>
+                <td>❌</td>
+                <td>❌</td>
+                <td>❌</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>* denotes support limited to apps installed with the software itself<br>** Wireguard only. Does not support meshing or bypassing CGNAT</p>
+</div>
 
 * **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
 * **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who knows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!

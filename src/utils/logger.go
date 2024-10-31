@@ -130,14 +130,14 @@ func (l *DefaultLogFormatter) NewLogEntry(r *http.Request) LogEntry {
 	// 	fmt.Fprintf(entry.buf, Yellow, "[%s] ", reqID)
 	// }
 
-	cW(entry.buf, useColor, nCyan, "\"")
+	cW(entry.buf, useColor, nCyan, "")
 	cW(entry.buf, useColor, nMagenta, "%s ", r.Method)
 
 	scheme := "http"
 	if r.TLS != nil {
 		scheme = "https"
 	}
-	cW(entry.buf, useColor, nCyan, "%s://%s%s %s\" ", scheme, r.Host, r.RequestURI, r.Proto)
+	cW(entry.buf, useColor, nCyan, "%s://%s%s %s ", scheme, r.Host, r.RequestURI, r.Proto)
 
 	entry.buf.WriteString("from ")
 	entry.buf.WriteString(r.RemoteAddr)

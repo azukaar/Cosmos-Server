@@ -50,8 +50,10 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		licenceValid := false 
+		licenceNumber := 5
 		if utils.FBL != nil && utils.FBL.LValid {
 			licenceValid = true
+			licenceNumber = utils.FBL.UserNumber
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -59,7 +61,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 			"data": map[string]interface{}{
 				"homepage": config.HomepageConfig,
 				"theme": config.ThemeConfig,
-				"resources": map[string]interface{}{
+				"resources": map[string]interface{} {
 					// "ram": utils.GetRAMUsage(),
 					// "ramFree": utils.GetAvailableRAM(),
 					// "cpu": utils.GetCPUUsage(),
@@ -83,6 +85,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"LetsEncryptErrors": utils.LetsEncryptErrors,
 				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
 				"Licence": licenceValid,
+				"LicenceNumber": licenceNumber,
 			},
 		})
 	} else {

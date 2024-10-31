@@ -54,12 +54,54 @@ func joinURLPath(a, b *url.URL) (path, rawpath string) {
 
 // NewProxy takes target host and creates a reverse proxy
 func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHardening bool, CORSOrigin string, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
-	url, err := url.Parse(targetHost)
-	if err != nil {
-			return nil, err
-	}
+	var transport http.RoundTripper
+	var targetURL *url.URL
+	var err error
 
-	proxy := httputil.NewSingleHostReverseProxy(url)
+	// if strings.HasPrefix(targetHost, "http://unix://") {
+	// 	// Unix socket handling
+	// 	socketPath := strings.TrimPrefix(targetHost, "http://unix://")
+	// 	transport = &http.Transport{
+	// 		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
+	// 			return net.Dial("unix", socketPath)
+	// 		},
+	// 	}
+	// 	// Use a dummy URL for the director
+	// 	targetURL, _ = url.Parse("http://unix-socket")
+	// } else {
+		// Regular HTTP/HTTPS handling
+		targetURL, err = url.Parse(targetHost)
+		if err != nil {
+			return nil, err
+		}
+
+		customTransport := &http.Transport{}
+
+		if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
+			customTransport = &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout:   5 * time.Second,
+					KeepAlive: 5 * time.Second,
+					Resolver: &net.Resolver{
+						PreferGo: true,
+						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+							return net.Dial(network, "192.168.201.1:53")
+						},
+					},
+				}).DialContext,
+			}
+		}
+
+		if AcceptInsecureHTTPSTarget {
+			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+		}
+
+		transport = customTransport
+	// }
+
+	proxy := &httputil.ReverseProxy{
+		Transport: transport,
+	}
 	
 	proxy.Director = func(req *http.Request) {
 		originalScheme := "http"
@@ -67,24 +109,24 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			originalScheme = "https"
 		}
 		
-		urlQuery := url.RawQuery
-		req.URL.Scheme = url.Scheme
-		req.URL.Host = url.Host
+		urlQuery := targetURL.RawQuery
+		req.URL.Scheme = targetURL.Scheme
+		req.URL.Host = targetURL.Host
 		
 		if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
-			targetHost := url.Hostname()
+			targetHost := targetURL.Hostname()
 
 			targetIP, err := docker.GetContainerIPByName(targetHost)
 			if err != nil {
 				utils.Error("Create Route", err)
 			}
 			utils.Debug("Dockerless Target IP: " + targetIP)
-			req.URL.Host = targetIP + ":" + url.Port()
+			req.URL.Host = targetIP + ":" + targetURL.Port()
 		}
 
 		utils.Debug("Request to backend: " + req.URL.String())
 
-		req.URL.Path, req.URL.RawPath = joinURLPath(url, req.URL)
+		req.URL.Path, req.URL.RawPath = joinURLPath(targetURL, req.URL)
 		if urlQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = urlQuery + req.URL.RawQuery
 		} else {
@@ -150,31 +192,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		}
 	}
 
-	customTransport :=  &http.Transport{}
-
-	if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		customTransport = &http.Transport{
-			DialContext: (&net.Dialer{
-				Timeout:   5 * time.Second,
-				KeepAlive: 5 * time.Second,
-				Resolver: &net.Resolver{
-					PreferGo: true,
-					Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-						return net.Dial(network, "192.168.201.1:53")
-					},
-				},
-			}).DialContext,
-		}
-	}
-
-	if AcceptInsecureHTTPSTarget {
-		customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
-		// proxy.Transport = &http.Transport{
-		// 	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		// }
-	}
-
-	proxy.Transport = customTransport
+	proxy.Transport = transport
 
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)

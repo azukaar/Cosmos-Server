@@ -3,6 +3,7 @@ package proxy
 import (
 	"github.com/gorilla/mux"
 	"net/http"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -42,6 +43,12 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 				RouterGen(routeConfig, router, RouteTo(routeConfig))
 			}
 		}
+	}
+
+	remoteConfigs := utils.GetMainConfig().RemoteStorage
+	for _, shares := range remoteConfigs.Shares {
+			route := shares.Route
+			RouterGen(route, router, RouteTo(route))
 	}
 
 	for i := len(config.Routes)-1; i >= 0; i-- {
