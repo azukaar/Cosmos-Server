@@ -386,6 +386,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 					"clientID": wrapper.ClientID,
 					"time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
 					"bytes": wrapper.Bytes,
+					"hostname": r.Host,
 					"url": r.URL,
 				})
 
@@ -438,6 +439,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 					"consumed": userConsumed,
 					"lastBan": lastBan,
 					"clientID": clientID,
+					"hostname": r.Host,
 					"url": r.URL,
 				})
 
@@ -504,6 +506,7 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 						"clientID": wrapper.ClientID,
 						"time": wrapper.TimeEnded.Sub(wrapper.TimeStarted).Seconds(),
 						"bytes": wrapper.Bytes,
+						"hostname": r.Host,
 						"url": r.URL,
 					})
 

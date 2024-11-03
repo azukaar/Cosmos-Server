@@ -237,6 +237,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 								map[string]interface{}{
 								"clientID": ip,
 								"country": countryCode,
+								"hostname": r.Host,
 								"url": r.URL.String(),
 							})
 
@@ -260,6 +261,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 								map[string]interface{}{
 								"clientID": ip,
 								"country": countryCode,
+								"hostname": r.Host,
 								"url": r.URL.String(),
 							})
 
@@ -296,6 +298,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -519,6 +522,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -537,6 +541,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -557,6 +562,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 				"",
 				map[string]interface{}{
 				"clientID": ip,
+				"hostname": r.Host,
 				"url": r.URL.String(),
 			})
 
