@@ -231,7 +231,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 
 							TriggerEvent(
 								"cosmos.proxy.shield.geo",
-								"Proxy Shield  Geo blocked",
+								"Proxy Shield Geo blocked",
 								"warning",
 								"",
 								map[string]interface{}{
@@ -255,7 +255,7 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 	
 							TriggerEvent(
 								"cosmos.proxy.shield.geo",
-								"Proxy Shield  Geo blocked",
+								"Proxy Shield Geo blocked",
 								"warning",
 								"",
 								map[string]interface{}{
@@ -293,7 +293,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 				if ip != "" {
 					TriggerEvent(
 						"cosmos.proxy.shield.referer",
-						"Proxy Shield  Referer blocked",
+						"Proxy Shield Referer blocked",
 						"warning",
 						"",
 						map[string]interface{}{
