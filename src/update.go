@@ -73,7 +73,7 @@ func GetLatestVersion(includeBeta bool) (*VersionInfo, error) {
     }
 
     if latestRelease == nil {
-        return nil, fmt.Errorf("no suitable release found")
+        return nil, nil
     }
 
     // Initialize version info

@@ -33,6 +33,9 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
         } catch (err) {
           console.error(err);
         }
+
+        // DO I NEED THIS ???
+        // return;
       }
       return (unmount ? API.storage.mounts.unmount({
         mountPoint: values.path,

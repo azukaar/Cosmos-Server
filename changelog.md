@@ -14,6 +14,7 @@
  - Added missing geo block events in monitoring
  - Added ExtraHeader to route config to add custom headers to the request
  - Improved accessiblity of the menu for screen readers
+ - Formatter now creates GPT partition tables (instead of MBR, which has a 2TB limit)
  - Update to Go 1.23.2
  - Added safeguard to prevent Docker from destroying stack containers hostnames
 

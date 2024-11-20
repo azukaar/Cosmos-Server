@@ -99,6 +99,9 @@ func checkUpdatesAvailable() {
 			utils.Error("checkUpdatesAvailable", err)
 			return
 		}
+		if updates == nil {
+			return
+		}
 
 		if updates != nil {
 			cp, errc := utils.CompareSemver(currentVersion, updates.Version)

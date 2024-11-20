@@ -487,6 +487,14 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
 	
+	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
+	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")
+	// srapiAdmin.HandleFunc("/api/storage/raid/{name}", storage.RaidDeleteRoute).Methods("DELETE")
+	// srapiAdmin.HandleFunc("/api/storage/raid/{name}/status", storage.RaidStatusRoute).Methods("GET")
+	// srapiAdmin.HandleFunc("/api/storage/raid/{name}/device", storage.RaidAddDeviceRoute).Methods("POST")
+	// srapiAdmin.HandleFunc("/api/storage/raid/{name}/replace", storage.RaidReplaceDeviceRoute).Methods("POST")
+	// srapiAdmin.HandleFunc("/api/storage/raid/{name}/resize", storage.RaidResizeRoute).Methods("POST")
+
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		debugRouter := srapiAdmin.PathPrefix("/debug").Subrouter()
 		debugRouter.Use(utils.AdminOnlyMiddleware)

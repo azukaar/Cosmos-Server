@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"bufio"
+	"sync"
 	"os/exec"
 
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -39,11 +40,15 @@ func isDiskOrPartition(path string) (string, error) {
 	return "", fmt.Errorf("no output from lsblk")
 }
 
+var diskOpMutex sync.Mutex
+
 func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.AdminOnly(w, req) != nil {
 		return
 	}
-
+	
+	diskOpMutex.Lock()
+	defer diskOpMutex.Unlock()
 
 	if req.Method == "POST" {
 		// Enable streaming of response by setting appropriate headers
@@ -61,7 +66,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		err := json.NewDecoder(req.Body).Decode(&request)
 		if err != nil {
 			utils.Error("FormatDiskRoute: Invalid User Request", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] FormatDiskRoute  Syntax Error")
+			fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] FormatDiskRoute  Syntax Error"))
 			http.Error(w, "FormatDiskRoute  Syntax Error", http.StatusBadRequest)
 
 			return
@@ -72,7 +77,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		errp := utils.CheckPassword(nickname, request.Password)
 		if errp != nil {
 			utils.Error("FormatDiskRoute: Invalid User Request", errp)
-			fmt.Fprintf(w, "[OPERATION FAILED] Wrong password supplied. Try again")
+			fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] Wrong password supplied. Try again"))
 			http.Error(w, "Wrong password supplied. Try again", http.StatusUnauthorized)
 			return
 		}
@@ -80,7 +85,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		out, err := FormatDisk(request.Disk, request.Format)
 		if err != nil {
 			utils.Error("FormatDiskRoute: Error formatting disk", err)
-			fmt.Fprintf(w, "[OPERATION FAILED] Error formatting disk: " + err.Error())
+			fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] Error formatting disk: " + err.Error()))
 			http.Error(w, "Error formatting disk", http.StatusInternalServerError)
 			return
 		}
@@ -97,13 +102,35 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		utils.Debug("Checking if " + request.Disk + " is a partition: " + diskType)
 
 		if(diskType == "disk") {
+			utils.Log("FormatDiskRoute - formatted disk " + request.Disk + " creating GPT table and partition")
+			fmt.Fprintf(w, "Creating GPT table and partition...\n")
+
+			out, err = CreateGPTTable(request.Disk)
+			if err != nil {
+				utils.Error("FormatDiskRoute: Error creating GPT table", err)
+				fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] Error creating GPT table: " + err.Error()))
+				http.Error(w, "Error creating GPT table", http.StatusInternalServerError)
+				return
+			}
+			fmt.Fprintf(w, "GPT table created!\n")
+			fmt.Fprintf(w, "Creating partition...\n")
+	
+			scanner = bufio.NewScanner(out)
+			for scanner.Scan() {
+				utils.Log(scanner.Text())
+				fmt.Fprintf(w, scanner.Text() + "\n")
+				flusher.Flush()
+			}
+			
 			out, err = CreateSinglePartition(request.Disk)
 			if err != nil {
 				utils.Error("FormatDiskRoute: Error creating partition", err)
-				fmt.Fprintf(w, "[OPERATION FAILED] Error creating partition: " + err.Error())
+				fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] Error creating partition: " + err.Error()))
 				http.Error(w, "Error creating partition", http.StatusInternalServerError)
 				return
 			}
+			fmt.Fprintf(w, "Partition created!\n")
+			fmt.Fprintf(w, "Formatting partition...\n")
 	
 			scanner = bufio.NewScanner(out)
 			for scanner.Scan() {
@@ -115,7 +142,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 			out, err = FormatDisk(request.Disk + "1", request.Format)
 			if err != nil {
 				utils.Error("FormatDiskRoute: Error formatting partition", err)
-				fmt.Fprintf(w, "[OPERATION FAILED] Error formatting partition: " + err.Error())
+				fmt.Fprintf(w, utils.DoErr("[OPERATION FAILED] Error formatting partition: " + err.Error()))
 				http.Error(w, "Error formatting partition", http.StatusInternalServerError)
 				return
 			}
@@ -129,7 +156,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		utils.Log("FormatDiskRoute - formatted disk " + request.Disk + " with format " + request.Format)
-		fmt.Fprintf(w, "[OPERATION SUCCEEDED]")
+		fmt.Fprintf(w, utils.DoSuccess("[OPERATION SUCCEEDED]"))
 		flusher.Flush()
 		return
 	} else {

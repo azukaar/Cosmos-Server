@@ -9,6 +9,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useEffect, useState } from 'react';
 import { smartDockerLogConcat, tryParseProgressLog } from '../utils/docker';
+import LogLine from './logLine';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -88,7 +89,7 @@ const LogsInModal = ({title, request, OnSuccess, OnError, closeAnytime, OnClose,
                 <DialogContentText>
                   <pre style={preStyle} ref={preRef}>
                     {logs.map((l) => {
-                      return <div>{tryParseProgressLog(l)}</div>
+                      return <LogLine message={tryParseProgressLog(l)} />;
                     })}
                   </pre>
                 </DialogContentText>
