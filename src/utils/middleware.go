@@ -142,7 +142,15 @@ func SetSecurityHeaders(next http.Handler) http.Handler {
 		
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
-		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+		
+		var siblings string
+		if strings.SplitN(r.Host, ".", 3)[2] == "" {
+			siblings = " https://*." + r.Host + " https://*." + strings.SplitN(r.Host, ".", 2)[1]
+		} else {
+			siblings = " https://*." + r.Host + " https://*." + strings.SplitN(r.Host, ".", 2)[1] + " https://" + strings.SplitN(r.Host, ".", 2)[1]
+		}
+
+		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'"+siblings)
 		
 		w.Header().Set("X-Served-By-Cosmos", "1")
 		
