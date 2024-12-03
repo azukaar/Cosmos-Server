@@ -732,6 +732,8 @@
 	"mgmt.urls.edit.tunneledHostInput.tunneledHostLabel": "Hostname to tunnel from (what is the user facing hostname of the tunnel)",
 	"mgmt.config.general.licenceInput.licenceLabel": "Licence Key",
 	"mgmt.config.general.licenceInput.manageLicenceButton": "Manage Licence",
+	"mgmt.config.general.autoupdates": "Automatically update Cosmos",
+	"mgmt.config.general.betaupdate": "Include unstable beta updates",
 	"language.selectLanguage": "Select Language",
 	"global.downloadLogs": "Download Logs",
 	"global.restartCosmos": "Restart Cosmos Cloud",

@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.17.0-unstable26",
+  "version": "0.17.0-unstable27",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -138,6 +138,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.8",
     "eslint-plugin-react-hooks": "4.6.0",
-    "prettier": "2.7.1"
+    "prettier": "2.7.1",
+    "rollup-plugin-visualizer": "^5.12.0"
   }
 }

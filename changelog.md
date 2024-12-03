@@ -16,6 +16,8 @@
  - Improved accessiblity of the menu for screen readers
  - Formatter now creates GPT partition tables (instead of MBR, which has a 2TB limit)
  - Update to Go 1.23.2
+ - Fix 2-parity on Snapraid
+ - Fix mount/unmount request false error
  - Added safeguard to prevent Docker from destroying stack containers hostnames
 
 ## Version 0.16.3

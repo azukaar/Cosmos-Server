@@ -37,6 +37,8 @@ type ConfigJob struct {
 	Ctx context.Context `json:"-"`
 	CancelFunc context.CancelFunc `json:"-"`
 	Container string
+	Timeout time.Duration
+	MaxLogs int 
 }
 
 var jobsList = map[string]map[string]ConfigJob{}
@@ -73,43 +75,78 @@ func getJobsList() map[string]map[string]ConfigJob {
 
 func JobFromCommand(command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 	return func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
-		// Create a command that respects the provided context
-		cmd := exec.CommandContext(ctx, command, args...)
+			done := make(chan bool, 1)
+			var cmdErr error
 
-		// Getting the pipe for standard output
-		stdout, err := cmd.StdoutPipe()
-		if err != nil {
-				OnFail(err)
-				return
-		}
+			go func() {
+					defer func() {
+							if r := recover(); r != nil {
+									OnFail(fmt.Errorf("panic in command execution: %v", r))
+							}
+							done <- true
+					}()
 
-		// Getting the pipe for standard error
-		stderr, err := cmd.StderrPipe()
-		if err != nil {
-				OnFail(err)
-				return
-		}
+					cmd := exec.CommandContext(ctx, command, args...)
+					
+					stdout, err := cmd.StdoutPipe()
+					if err != nil {
+							cmdErr = err
+							return
+					}
 
-		utils.Debug("Running command: " + cmd.String())
-		
-		// Start the command
-		if err := cmd.Start(); err != nil {
-				OnFail(err)
-				return
-		}
+					stderr, err := cmd.StderrPipe()
+					if err != nil {
+							cmdErr = err
+							return
+					}
 
-		// Concurrently read from stdout and stderr
-		go streamLogs(stdout, OnLog)
-		go streamLogs(stderr, OnLog)
+					if err := cmd.Start(); err != nil {
+							cmdErr = err
+							return
+					}
 
-		// Wait for the command to finish
-		err = cmd.Wait()
-		if err != nil {
-				OnFail(err)
-				return
-		}
+					// Use buffered channels for log streaming
+					logsDone := make(chan bool, 2)
+					
+					go func() {
+							streamLogs(stdout, OnLog)
+							logsDone <- true
+					}()
+					
+					go func() {
+							streamLogs(stderr, OnLog)
+							logsDone <- true
+					}()
 
-		OnSuccess()
+					// Wait for both log streams to complete
+					<-logsDone
+					<-logsDone
+
+					if err := cmd.Wait(); err != nil {
+							cmdErr = err
+							return
+					}
+			}()
+
+			// Set default timeout if none specified
+			// timeout := 240 * time.Hour
+			// if job, ok := jobsList[schedulerName][jobName]; ok && job.Timeout > 0 {
+			// 		timeout = job.Timeout
+			// }
+
+			select {
+			case <-done:
+					if cmdErr != nil {
+							OnFail(cmdErr)
+					} else {
+							OnSuccess()
+					}
+			// case <-time.After(timeout):
+			// 		cancel() // Cancel the context
+			// 		OnFail(errors.New("job timed out after " + timeout.String()))
+			case <-ctx.Done():
+					OnFail(ctx.Err())
+			}
 	}
 }
 
@@ -232,17 +269,32 @@ func InitJobs() {
 }
 
 func jobRunner(schedulerName, jobName string) func(OnLog func(string), OnFail func(error), OnSuccess func()) {
-	return func (OnLog func(string), OnFail func(error), OnSuccess func()) {
-		CRONLock <- true
-		if job, ok := jobsList[schedulerName][jobName]; ok {
-			utils.Log("Starting CRON job: " + job.Name)
+	return func(OnLog func(string), OnFail func(error), OnSuccess func()) {
+			RunningLock <- true
+			defer func() { <-RunningLock }()
 
-			if job.Running {
-				utils.Error("Scheduler: job " + job.Name + " is already running", nil)
-				<-CRONLock
-				return
+			CRONLock <- true
+			var job ConfigJob
+			var ok bool
+			
+			if job, ok = jobsList[schedulerName][jobName]; !ok {
+					utils.Error("Scheduler: job "+jobName+" not found", nil)
+					<-CRONLock
+					return
 			}
 
+			if job.Running {
+					utils.Error("Scheduler: job "+job.Name+" is already running", nil)
+					<-CRONLock
+					return
+			}
+
+			// Create context with timeout
+			// if job.Timeout == 0 {
+			// 		job.Timeout = 240 * time.Hour
+			// }
+
+			// ctx, cancel := context.WithTimeout(context.Background(), )
 			ctx, cancel := context.WithCancel(context.Background())
 			job.Ctx = ctx
 			job.LastStarted = time.Now()
@@ -253,35 +305,45 @@ func jobRunner(schedulerName, jobName string) func(OnLog func(string), OnFail fu
 			jobsList[job.Scheduler][job.Name] = job
 			<-CRONLock
 
+			// Ensure cleanup happens
+			defer func() {
+					CRONLock <- true
+					if j, ok := jobsList[schedulerName][jobName]; ok {
+							j.Running = false
+							j.CancelFunc = nil
+							jobsList[schedulerName][jobName] = j
+					}
+					<-CRONLock
+					cancel()
+			}()
+
 			triggerJobUpdated("start", job.Name)
 
-			select {
-				case <-ctx.Done():
-					OnFail(errors.New("Scheduler: job was canceled."))
-					return
-				default:
-					job.Job(OnLog, OnFail, OnSuccess, ctx, cancel)
-			}
-		} else {
-			utils.Error("Scheduler: job " + jobName + " not found", nil)
-			<-CRONLock
-		}
+			job.Job(OnLog, OnFail, OnSuccess, ctx, cancel)
 	}
-
-	return nil
 }
+
 func jobRunner_OnLog(schedulerName, jobName string) func(log string) {
 	return func(log string) {
-		CRONLock <- true
-		if job, ok := jobsList[schedulerName][jobName]; ok {
-			job.Logs = append(job.Logs, log)
-			jobsList[job.Scheduler][job.Name] = job
-			utils.Debug(log)
-			triggerJobUpdated("log", job.Name, log)
-		}
-		<-CRONLock
+			CRONLock <- true
+			if job, ok := jobsList[schedulerName][jobName]; ok {
+					// Implement circular buffer for logs
+					maxlog := job.MaxLogs
+					if maxlog == 0 {
+							maxlog = 5000
+					}
+					if maxlog != 0 && len(job.Logs) >= maxlog {
+							job.Logs = job.Logs[1:]
+					}
+					job.Logs = append(job.Logs, log)
+					jobsList[job.Scheduler][job.Name] = job
+					utils.Debug(log)
+					triggerJobUpdated("log", job.Name, log)
+			}
+			<-CRONLock
 	}
 }
+
 func jobRunner_OnFail(schedulerName, jobName string) func(err error) {
 	return func(err error) {
 		CRONLock <- true

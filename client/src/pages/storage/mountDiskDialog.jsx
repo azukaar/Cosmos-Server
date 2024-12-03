@@ -98,9 +98,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
                 </DialogContent>
                 <DialogActions>
                   <Button onClick={() => setOpen(false)}>Cancel</Button>
-                  <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
-                    formik.handleSubmit();
-                  }}>{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
+                  <LoadingButton color="primary" variant="contained" type="submit">{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>

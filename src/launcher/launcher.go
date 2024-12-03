@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"crypto/md5"
+	"os/exec"
 	"encoding/hex"
 	"io"
 	"archive/zip"
@@ -100,6 +101,11 @@ func unzip(src string, dest string) error {
 func main() {
 	fmt.Println("-- Cosmos Cloud Launcher --")
 	fmt.Println("Checking for updates to install...")
+	
+	// killall cosmos procedss before updating
+	cmd := exec.Command("killall", "cosmos")
+	cmd.Run()
+
 
 	execPath, err := os.Executable()
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"os"
 	"errors"
 	"strings"
+	"strconv"
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/cron"
@@ -200,8 +201,13 @@ func InitSnapRAIDConfig() {
 		defer file.Close()
 
 		// write the configuration
-		for _, d := range raidOptions.Parity {
-			file.WriteString("parity " + d + "/snapraid.parity\n")
+		for _di, d := range raidOptions.Parity {
+			di := strconv.Itoa(_di)
+			if _di == 0 {
+				file.WriteString("parity " + d + "/snapraid.parity\n")
+			} else {
+				file.WriteString(di + "-parity " + d + "/snapraid."+di+"-parity\n")
+			}
 		}
 
 		// file.WriteString("content " + utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf\n")
