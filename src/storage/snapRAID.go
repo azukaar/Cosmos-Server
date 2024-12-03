@@ -202,7 +202,7 @@ func InitSnapRAIDConfig() {
 
 		// write the configuration
 		for _di, d := range raidOptions.Parity {
-			di := strconv.Itoa(_di)
+			di := strconv.Itoa(_di + 1)
 			if _di == 0 {
 				file.WriteString("parity " + d + "/snapraid.parity\n")
 			} else {

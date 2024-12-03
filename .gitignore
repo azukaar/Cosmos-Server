@@ -21,3 +21,4 @@ nebula
 nebula-cert
 vite.config.js
 src/launcher/update.go
+stats.html
