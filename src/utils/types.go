@@ -109,6 +109,7 @@ type Config struct {
 	RemoteStorage RemoteStorageConfig
 }
 
+
 type CRONConfig struct {
 	Enabled bool
 	Name string

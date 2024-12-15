@@ -33,6 +33,9 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
         } catch (err) {
           console.error(err);
         }
+
+        // DO I NEED THIS ???
+        // return;
       }
       return (unmount ? API.storage.mounts.unmount({
         mountPoint: values.path,
@@ -119,9 +122,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                 </DialogContent>
                 <DialogActions>
                   <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
-                  <LoadingButton color="primary" variant="contained" type="submit" onClick={() => {
-                    formik.handleSubmit();
-                  }}>{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
+                  <LoadingButton color="primary" variant="contained" type="submit">{unmount ? t('global.unmount') : t('global.mount')}</LoadingButton>
                 </DialogActions>
             </form>
         </FormikProvider>

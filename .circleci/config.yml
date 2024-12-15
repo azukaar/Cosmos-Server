@@ -114,8 +114,6 @@ jobs:
           command: |
             mkdir -p ${PKG_NAME}-${VERSION}-arm64
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
-            mv ${PKG_NAME}-${VERSION}-arm64/nebula-arm ${PKG_NAME}-${VERSION}-arm64/nebula
-            mv ${PKG_NAME}-${VERSION}-arm64/nebula-arm-cert ${PKG_NAME}-${VERSION}-arm64/nebula-cert
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher
 

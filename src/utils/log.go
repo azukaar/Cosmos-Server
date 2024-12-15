@@ -97,6 +97,10 @@ func Warn(message string) {
 	RawLogMessage(WARNING, "[WARN] ", bYellow, nYellow, message)
 }
 
+func VPN(message string) {
+	RawLogMessage(INFO, "[VPN]  ", bCyan, nCyan, message)
+}
+
 func Error(message string, err error) {
 	errStr := ""
 	if err != nil {

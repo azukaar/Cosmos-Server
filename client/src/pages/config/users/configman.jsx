@@ -98,6 +98,7 @@ const ConfigManagement = () => {
           GeoBlocking: config.BlockedCountries,
           CountryBlacklistIsWhitelist: config.CountryBlacklistIsWhitelist,
           AutoUpdate: config.AutoUpdate,
+          BetaUpdates: config.BetaUpdates,
 
           Licence: config.Licence,
           ServerToken: config.ServerToken,
@@ -182,7 +183,8 @@ const ConfigManagement = () => {
             },
             LoggingLevel: values.LoggingLevel,
             RequireMFA: values.RequireMFA,
-            // AutoUpdate: values.AutoUpdate,
+            AutoUpdate: values.AutoUpdate,
+            BetaUpdates: values.BetaUpdates,
             BlockedCountries: values.GeoBlocking,
             CountryBlacklistIsWhitelist: values.CountryBlacklistIsWhitelist,
             MonitoringDisabled: !values.MonitoringEnabled,
@@ -289,6 +291,20 @@ const ConfigManagement = () => {
                   <Grid item xs={12}>
                     <Alert severity="info">{t('mgmt.config.general.configFileInfo')}</Alert>
                   </Grid>
+
+                  <CosmosCheckbox
+                    label={t('mgmt.config.general.autoupdates')}
+                    name="AutoUpdate"
+                    formik={formik}
+                    helperText={t('mgmt.config.general.autoupdates')}
+                  />
+
+                  <CosmosCheckbox
+                    label={t('mgmt.config.general.betaupdate')}
+                    name="BetaUpdates"
+                    formik={formik}
+                    helperText={t('mgmt.config.general.betaupdate')}
+                  />
 
                   <CosmosCheckbox
                     label={t('mgmt.config.general.forceMfaCheckbox.forceMfaLabel')}

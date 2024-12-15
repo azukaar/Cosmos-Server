@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { 
   Button, 
   Card, 
+  Stack,
   CardContent, 
   CardHeader, 
   Switch, 
@@ -29,6 +30,7 @@ const PremiumSalesPage = ({salesKey, extra}) => {
   const [isYearly, setIsYearly] = useState(true);
   const { t, i18n } = useTranslation();
   const currency = getCurrencyFromLanguage();
+  
   const currencyCode = {
     "USD": "$",
     "EUR": "€",
@@ -47,18 +49,27 @@ const PremiumSalesPage = ({salesKey, extra}) => {
     "GBP": 88.00
   }
 
+  const lifePrices = {
+    "USD": 249.00,
+    "EUR": 229.00,
+    "GBP": 199.00
+  }
+
   const monthlyPrice = monthlyPrices[currency];
   const yearlyPrice = yearlyPrices[currency];
+  const lifePrice = lifePrices[currency];
 
   const discountedMonthlyPrice = (monthlyPrice * 0.85).toFixed(2);
   const discountedYearlyPrice = (yearlyPrice * 0.85).toFixed(2);
+  const discountedLifePrice = (lifePrice * 0.85).toFixed(2);
 
 
   const monthlyLink = "https://buy.stripe.com/5kAbMN4qrbkVcBGcMR?prefilled_promo_code=EARLY15";
   const yearlyLink = "https://buy.stripe.com/cN2bMN9KLbkV59e9AE?prefilled_promo_code=EARLY15";
+  const lifeLink = "https://buy.stripe.com/8wM1896yz74F59e6ov?prefilled_promo_code=LIFE15";
 
   const featureKeys = Array.from({ length: 6 }, (_, i) => `mgmt.sales.${salesKey}.features.${i}`);
-  const planFeatureKeys = Array.from({ length: 4 }, (_, i) => `mgmt.sales.plan_features.${i}`);
+  const planFeatureKeys = Array.from({ length: 5 }, (_, i) => `mgmt.sales.plan_features.${i}`);
 
   return (
     <Container maxWidth="md">
@@ -107,7 +118,8 @@ const PremiumSalesPage = ({salesKey, extra}) => {
         <Typography>{t('mgmt.sales.yearly')}</Typography>
       </Box>
 
-      <Card variant="outlined" sx={{ maxWidth: 400, margin: 'auto' }}>
+      <Stack spacing={2} direction="row" justifyContent="center" alignItems="center">
+      <Card variant="outlined" sx={{ width: 400, margin: 'auto' }}>
         <CardHeader 
           title={<Typography variant="h4" align="center">{t(isYearly ? 'mgmt.sales.yearly_plan' : 'mgmt.sales.monthly_plan')}</Typography>}
         />
@@ -142,12 +154,70 @@ const PremiumSalesPage = ({salesKey, extra}) => {
                 />
               </ListItem>
             ))}
+            <ListItem key={"last"}>
+              <ListItemIcon>
+                <CheckIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary={t('mgmt.sales.subs_pro')} 
+              />
+            </ListItem>
           </List>
           <Button variant="contained" color="primary" target='_blank' fullWidth href={isYearly ? yearlyLink : monthlyLink}>
             {t('mgmt.sales.upgrade_button')}
           </Button>
         </CardContent>
       </Card>
+      <Card variant="outlined" sx={{ width: 400, margin: 'auto' }}>
+        <CardHeader 
+          title={<Typography variant="h4" align="center">{t('mgmt.sales.life_plan')}</Typography>}
+        />
+        <CardContent>
+          <Box textAlign="center" mb={2}>
+            <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+              {currencyCode} {lifePrice.toFixed(2)}
+            </Typography>
+            <Typography variant="h3" color="primary">
+              {currencyCode} {discountedLifePrice}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              -
+            </Typography>
+            <Chip 
+              label={t('mgmt.sales.discount_chip')}
+              color="secondary" 
+              sx={{ mt: 1 }}
+            />
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              {t('mgmt.sales.early_adopter_offer2')}
+            </Typography>
+          </Box>
+          <List>
+            {planFeatureKeys.map((key, index) => (
+              <ListItem key={index}>
+                <ListItemIcon>
+                  <CheckIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={t(key)} 
+                />
+              </ListItem>
+            ))}
+            <ListItem key={"last"}>
+              <ListItemIcon>
+                <CheckIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary={t('mgmt.sales.life_pro')} 
+              />
+            </ListItem>
+          </List>
+          <Button variant="contained" color="primary" target='_blank' fullWidth href={lifeLink}>
+            {t('mgmt.sales.upgrade_button')}
+          </Button>
+        </CardContent>
+      </Card>
+      </Stack>
     </Container>
   );
 };

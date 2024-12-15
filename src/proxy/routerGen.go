@@ -151,7 +151,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 
 	originCORS := route.CORSOrigin
 
-	if originCORS == "" {
+	if originCORS == "" && !route.DisableHeaderHardening {
 		if route.UseHost {
 			originCORS = route.Host
 		} else {

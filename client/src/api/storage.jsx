@@ -40,7 +40,73 @@ const mounts = {
     }))
   },
 };
+const raid = {
+  list: () => {
+    return wrap(fetch('/cosmos/api/storage/raid', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }))
+  },
 
+  create: ({name, level, devices, spares, metadata}) => {
+    return wrap(fetch('/cosmos/api/storage/raid', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({name, level, devices, spares, metadata})
+    }))
+  },
+
+  delete: (name) => {
+    return wrap(fetch(`/cosmos/api/storage/raid/${name}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }))
+  },
+
+  status: (name) => {
+    return wrap(fetch(`/cosmos/api/storage/raid/${name}/status`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }))
+  },
+
+  addDevice: (name, device) => {
+    return wrap(fetch(`/cosmos/api/storage/raid/${name}/device`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({device})
+    }))
+  },
+
+  replaceDevice: (name, oldDevice, newDevice) => {
+    return wrap(fetch(`/cosmos/api/storage/raid/${name}/replace`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({oldDevice, newDevice})
+    }))
+  },
+
+  resize: (name) => {
+    return wrap(fetch(`/cosmos/api/storage/raid/${name}/resize`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }))
+  }
+};
 
 const disks = {
   list: () => {
@@ -193,6 +259,6 @@ export {
   mounts,
   disks,
   snapRAID,
-
+  raid,
   listDir,
 };

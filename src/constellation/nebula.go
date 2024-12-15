@@ -8,6 +8,7 @@ import (
 	"errors"
 	"runtime"
 	"sync"
+	"bufio"
 	"gopkg.in/yaml.v2"
 	"strings"
 	"io/ioutil"
@@ -41,68 +42,128 @@ func startNebulaInBackground() error {
 	defer ProcessMux.Unlock()
 
 	NebulaFailedStarting = false
-
 	if process != nil {
-		return errors.New("nebula is already running")
+			return errors.New("nebula is already running")
 	}
 
-	// if pid file, kill the process
-	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
-		// read pid
-		pid, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.pid")
-		if err != nil {
-			utils.Error("Constellation: Error reading pid file", err)
-		} else {
-			// kill process
-			pidInt, _ := strconv.Atoi(string(pid))
-			processToKill, err := os.FindProcess(pidInt)
-			if err != nil {
-				utils.Error("Constellation: Error finding process", err)
-			} else {
-				err = processToKill.Kill()
-				if err != nil {
-					utils.Error("Constellation: Error killing process", err)
-				}
+	// Handle existing PID file
+	pidFile := utils.CONFIGFOLDER + "nebula.pid"
+	if _, err := os.Stat(pidFile); err == nil {
+			if err := killExistingProcess(pidFile); err != nil {
+					utils.Error("Constellation: Failed to kill existing process", err)
+					// Continue execution as the process might not exist anymore
 			}
-		}
 	}
 
+	// Initialize log buffer
 	logBuffer = &lumberjack.Logger{
-		Filename:   utils.CONFIGFOLDER+"nebula.log",
-		MaxSize:    1, // megabytes
-		MaxBackups: 1,
-		MaxAge:     15, //days
-		Compress:   false,
+			Filename:   utils.CONFIGFOLDER + "nebula.log",
+			MaxSize:    1, // megabytes
+			MaxBackups: 1,
+			MaxAge:     15, //days
+			Compress:   false,
 	}
 
+	// Create and configure the process
 	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula.yml")
-
-	// Set up multi-writer for stderr
-	process.Stderr = io.MultiWriter(logBuffer, os.Stderr)
-
-	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
-		// Set up multi-writer for stdout if in debug mode
-		process.Stdout = io.MultiWriter(logBuffer, os.Stdout)
-	} else {
-		process.Stdout = io.MultiWriter(logBuffer)
+	
+	// Setup stdout and stderr pipes
+	stdout, err := process.StdoutPipe()
+	if err != nil {
+			return fmt.Errorf("failed to create stdout pipe: %s", err)
+	}
+	stderr, err := process.StderrPipe()
+	if err != nil {
+			return fmt.Errorf("failed to create stderr pipe: %s", err)
 	}
 
-	// Start the process in the background
+	// Start the process
 	if err := process.Start(); err != nil {
-		return err
+			return fmt.Errorf("failed to start nebula: %s", err)
 	}
 
+	// Handle process output
+	go handleProcessOutput(stdout, stderr, logBuffer)
+
+	// Set process state
 	NebulaStarted = true
 
+	// Monitor process
 	go monitorNebulaProcess(process)
 
-	// save PID
-	err := ioutil.WriteFile(utils.CONFIGFOLDER+"nebula.pid", []byte(fmt.Sprintf("%d", process.Process.Pid)), 0644)
-	if err != nil {
-		utils.Error("Constellation: Error writing PID file", err)
+	// Save PID
+	if err := savePID(process.Process.Pid); err != nil {
+			utils.Error("Constellation: Error writing PID file", err)
+			// Don't return error as process is already running
 	}
 
-	utils.Log(fmt.Sprintf("%s started with PID %d\n", binaryToRun(), process.Process.Pid))
+	utils.Log(fmt.Sprintf("%s started with PID %d", binaryToRun(), process.Process.Pid))
+	return nil
+}
+
+func handleProcessOutput(stdout, stderr io.ReadCloser, logBuffer *lumberjack.Logger) {
+	// Handle stdout
+	go func() {
+			scanner := bufio.NewScanner(stdout)
+			for scanner.Scan() {
+					line := scanner.Text()
+					utils.VPN(line)
+					if _, err := logBuffer.Write([]byte(line + "\n")); err != nil {
+							utils.Error("Failed to write to log buffer", err)
+					}
+			}
+	}()
+
+	// Handle stderr
+	go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+					line := scanner.Text()
+					utils.Error("Nebula error", errors.New(line))
+					if _, err := logBuffer.Write([]byte("ERROR: " + line + "\n")); err != nil {
+							utils.Error("Failed to write to log buffer", err)
+					}
+			}
+	}()
+}
+
+func killExistingProcess(pidFile string) error {
+	pidBytes, err := ioutil.ReadFile(pidFile)
+	if err != nil {
+			return fmt.Errorf("error reading pid file: %w", err)
+	}
+
+	pidInt, err := strconv.Atoi(strings.TrimSpace(string(pidBytes)))
+	if err != nil {
+			return fmt.Errorf("invalid pid format: %w", err)
+	}
+
+	process, err := os.FindProcess(pidInt)
+	if err != nil {
+			return fmt.Errorf("error finding process: %w", err)
+	}
+
+	if err := process.Kill(); err != nil {
+			return fmt.Errorf("error killing process: %w", err)
+	}
+
+	// Clean up PID file
+	if err := os.Remove(pidFile); err != nil {
+			utils.Error("Failed to remove old PID file", err)
+			// Continue as this is not critical
+	}
+
+	return nil
+}
+
+func savePID(pid int) error {
+	pidFile := utils.CONFIGFOLDER + "nebula.pid"
+	pidContent := []byte(fmt.Sprintf("%d", pid))
+	
+	if err := ioutil.WriteFile(pidFile, pidContent, 0644); err != nil {
+			return fmt.Errorf("failed to write PID file: %w", err)
+	}
+	
 	return nil
 }
 
@@ -688,20 +749,46 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 		defer os.Remove("./temp.key")
 	}
 
-	utils.Debug(cmd.String())
-
-	cmd.Stderr = os.Stderr
-	
-	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
-		cmd.Stdout = os.Stdout
-	} else {
-		cmd.Stdout = nil
+	// Get pipes for stdout and stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+			return "", "", "", fmt.Errorf("failed to create stdout pipe: %s", err)
 	}
-	
-	cmd.Run()
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+			return "", "", "", fmt.Errorf("failed to create stderr pipe: %s", err)
+	}
+
+	// Start command
+	err = cmd.Start()
+	if err != nil {
+			return "", "", "", fmt.Errorf("failed to start nebula-cert: %s", err)
+	}
+
+	// Create scanner for stdout
+	stdoutScanner := bufio.NewScanner(stdout)
+	go func() {
+			for stdoutScanner.Scan() {
+					utils.VPN(stdoutScanner.Text())
+			}
+	}()
+
+	// Create scanner for stderr
+	stderrScanner := bufio.NewScanner(stderr)
+	go func() {
+			for stderrScanner.Scan() {
+					utils.Error("nebula-cert error", errors.New(stderrScanner.Text()))
+			}
+	}()
+
+	// Wait for command to complete
+	err = cmd.Wait()
+	if err != nil {
+			return "", "", "", fmt.Errorf("nebula-cert failed: %s", err)
+	}
 
 	if cmd.ProcessState.ExitCode() != 0 {
-		return "", "", "", fmt.Errorf("nebula-cert exited with an error, check the Cosmos logs")
+			return "", "", "", fmt.Errorf("nebula-cert exited with an error, check the Cosmos logs")
 	}
 
 
@@ -744,37 +831,98 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 	return string(certContent), string(keyContent), fingerprint, nil
 }
 
-func generateNebulaCACert(name string) (error) {
-	// if ca.key exists, delete it
-	if _, err := os.Stat("./ca.key"); err == nil {
-		os.Remove("./ca.key")
+func generateNebulaCACert(name string) error {
+	// Clean up existing files
+	for _, file := range []string{"./ca.key", "./ca.crt"} {
+			if _, err := os.Stat(file); err == nil {
+					if err := os.Remove(file); err != nil {
+							return fmt.Errorf("failed to remove existing %s: %s", file, err)
+					}
+			}
 	}
-	if _, err := os.Stat("./ca.crt"); err == nil {
-		os.Remove("./ca.crt")
-	}
-	
-	// Run the nebula-cert command to generate CA certificate and key
-	cmd := exec.Command(binaryToRun() + "-cert", "ca", "-name", "\""+name+"\"")
 
+	// Run the nebula-cert command to generate CA certificate and key
+	cmd := exec.Command(binaryToRun()+"-cert", "ca", "-name", "\""+name+"\"")
 	utils.Debug(cmd.String())
 
-	cmd.Stderr = os.Stderr
-	
-	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
-		cmd.Stdout = os.Stdout
-	} else {
-		cmd.Stdout = nil
+	// Get pipes for stdout and stderr
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+			return fmt.Errorf("failed to create stdout pipe: %s", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+			return fmt.Errorf("failed to create stderr pipe: %s", err)
 	}
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("nebula-cert error: %s", err)
+	// Start command
+	if err := cmd.Start(); err != nil {
+			return fmt.Errorf("failed to start nebula-cert: %s", err)
 	}
-	
-	// copy to /config/ca.*
-	cmd = exec.Command("mv", "./ca.crt", utils.CONFIGFOLDER + "ca.crt")
-	cmd.Run()
-	cmd = exec.Command("mv", "./ca.key", utils.CONFIGFOLDER + "ca.key")
-	cmd.Run()
+
+	// Handle stdout based on logging level
+	go func() {
+			scanner := bufio.NewScanner(stdout)
+			for scanner.Scan() {
+				utils.VPN(scanner.Text())
+			}
+	}()
+
+	// Handle stderr
+	go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+					utils.Error("nebula-cert error", errors.New(scanner.Text()))
+			}
+	}()
+
+	// Wait for command to complete
+	if err := cmd.Wait(); err != nil {
+			return fmt.Errorf("nebula-cert failed: %s", err)
+	}
+
+	// Move files to config folder with error handling
+	for _, moveCmd := range []struct{src, dst string}{
+			{"./ca.crt", utils.CONFIGFOLDER + "ca.crt"},
+			{"./ca.key", utils.CONFIGFOLDER + "ca.key"},
+	} {
+			cmd := exec.Command("mv", moveCmd.src, moveCmd.dst)
+			
+			// Get pipes for move command
+			stdout, err := cmd.StdoutPipe()
+			if err != nil {
+					return fmt.Errorf("failed to create stdout pipe for move: %s", err)
+			}
+			stderr, err := cmd.StderrPipe()
+			if err != nil {
+					return fmt.Errorf("failed to create stderr pipe for move: %s", err)
+			}
+
+			// Start move command
+			if err := cmd.Start(); err != nil {
+					return fmt.Errorf("failed to start move command: %s", err)
+			}
+
+			// Handle stdout and stderr for move command
+			go func() {
+					scanner := bufio.NewScanner(stdout)
+					for scanner.Scan() {
+							utils.VPN(scanner.Text())
+					}
+			}()
+
+			go func() {
+					scanner := bufio.NewScanner(stderr)
+					for scanner.Scan() {
+							utils.Error("move command error", errors.New(scanner.Text()))
+					}
+			}()
+
+			// Wait for move command to complete
+			if err := cmd.Wait(); err != nil {
+					return fmt.Errorf("failed to move %s to %s: %s", moveCmd.src, moveCmd.dst, err)
+			}
+	}
 
 	return nil
 }

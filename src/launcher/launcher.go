@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"crypto/md5"
+	"os/exec"
 	"encoding/hex"
 	"io"
 	"archive/zip"
@@ -100,6 +101,11 @@ func unzip(src string, dest string) error {
 func main() {
 	fmt.Println("-- Cosmos Cloud Launcher --")
 	fmt.Println("Checking for updates to install...")
+	
+	// killall cosmos procedss before updating
+	cmd := exec.Command("killall", "cosmos")
+	cmd.Run()
+
 
 	execPath, err := os.Executable()
 	if err != nil {
@@ -115,8 +121,7 @@ func main() {
 	// if there's no updates
 	if _, err := os.Stat(dlPath); err != nil {
 		fmt.Println("No updates to install, starting Cosmos...")
-		// start cosmos 
-		// TODO
+		return
 	}
 
 	isBeta := false
@@ -130,7 +135,7 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-	
+
 	hash := v.AMDMD5
 	if runtime.GOARCH == "arm64" {
 		hash = v.ARMMD5

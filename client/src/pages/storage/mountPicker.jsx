@@ -41,7 +41,7 @@ export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
   };
 
   const refresh = async () => {
-    let mountsData = await API.storage.mounts.list();
+    let mountsData = diskMode ? await API.storage.disks.list() : await API.storage.mounts.list();
     setMounts(mountsData.data);
   };
 
@@ -79,9 +79,9 @@ export const MountPicker = ({diskMode, multiselect, value, onChange}) => {
           }}
         >
           {mounts.map((mount) => (
-            <option key={`${mount.device} - ${mount.path}`} value={mount.path} onClick={(e) => {handleClick(e, mount.path)}}>
-              <Checkbox checked={selectedMounts.indexOf(mount.path) > -1} />
-              <FolderOutlined/> {mount.device} - {mount.path} ({mount.type})
+            <option key={`${mount.device} - ${mount.path} - ${mount.name}`} value={(diskMode ? mount.name : mount.path)} onClick={(e) => {handleClick(e, (diskMode ? mount.name : mount.path))}}>
+              <Checkbox checked={selectedMounts.indexOf((diskMode ? mount.name : mount.path)) > -1} />
+              <FolderOutlined/> {diskMode ? `${mount.name} (${mount.type})` : `${mount.device} - ${mount.path} (${mount.type})`}
             </option>
           ))}
         </Select>

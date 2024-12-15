@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"io"
 	"errors"
+	"bytes"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/dell/csi-baremetal/pkg/base/linuxutils/lsblk"
@@ -41,7 +42,15 @@ func ListDisks() ([]BlockDevice, error) {
 			return nil, err
 	}
 
-	return GetRecursiveDiskUsageAndSMARTInfo(devices)
+	filteredDevices := make([]lsblk.BlockDevice, 0)
+	for _, device := range devices {
+		if strings.HasPrefix(device.MountPoint, "/snap") {
+			continue
+		}
+		filteredDevices = append(filteredDevices, device)
+	}
+
+	return GetRecursiveDiskUsageAndSMARTInfo(filteredDevices)
 }
 
 // Function to get recursive disk usage and SMART information
@@ -148,6 +157,22 @@ func GetDiskUsage(path string) (perc uint64, err error) {
 	return (used * 100) / (used+available), nil
 }
 
+func CreateGPTTable(diskPath string) (io.Reader, error) {
+	utils.Log("[STORAGE] Creating GPT table on " + diskPath)
+	
+	var outputBuffer bytes.Buffer
+	
+	// Create GPT table
+	parted := exec.Command("parted", "-s", diskPath, "mklabel", "gpt")
+	parted.Stdout = &outputBuffer
+	parted.Stderr = &outputBuffer
+	if err := parted.Run(); err != nil {
+			return &outputBuffer, fmt.Errorf("failed to create GPT table: %w", err)
+	}
+
+	return &outputBuffer, nil
+}
+
 func FormatDisk(diskPath string, filesystemType string) (io.Reader, error) {
 	utils.Log("[STORAGE] Formatting disk " + diskPath + " with filesystem " + filesystemType)
 
@@ -194,31 +219,32 @@ func FormatDisk(diskPath string, filesystemType string) (io.Reader, error) {
 }
 
 func CreateSinglePartition(diskPath string) (io.Reader, error) {
-	utils.Log("[STORAGE] Creating single partion for " + diskPath)
-
-	// check if the disk is mounted
+	utils.Log("[STORAGE] Creating single partition for " + diskPath)
+	
+	// Check if disk is mounted
 	mounted, err := IsDiskMounted(diskPath)
 	if err != nil {
-		return nil, err
+			return nil, err
 	}
 	if mounted {
-		return nil, errors.New("disk is mounted, please unmount it first")
+			return nil, errors.New("disk is mounted, please unmount it first")
 	}
 
-	cmd := exec.Command("sh", "-c", "echo 'type=83' | sudo sfdisk " + diskPath)
+	var outputBuffer bytes.Buffer
 
-	// stream the output of the command
-	out, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	cmd.Stderr = cmd.Stdout
-
-	// Start the command
-	err = cmd.Start()
-	if err != nil {
-		return nil, err
-	}
+	// Create partition using parted
+	// -s means script mode (no prompts)
+	// mkpart creates a partition spanning 0% to 100% of disk
+	cmd := exec.Command("parted", "-s", diskPath, "mkpart", "primary", "0%", "100%")
+	cmd.Stdout = &outputBuffer
+	cmd.Stderr = &outputBuffer
 	
-	return out, nil
+	if err := cmd.Run(); err != nil {
+			return &outputBuffer, fmt.Errorf("failed to create partition: %w", err)
+	}
+
+	// Force kernel to reread partition table
+	exec.Command("partprobe", diskPath).Run()
+	
+	return &outputBuffer, nil
 }

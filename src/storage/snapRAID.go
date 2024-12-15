@@ -4,6 +4,7 @@ import (
 	"os"
 	"errors"
 	"strings"
+	"strconv"
 	
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/cron"
@@ -200,8 +201,13 @@ func InitSnapRAIDConfig() {
 		defer file.Close()
 
 		// write the configuration
-		for _, d := range raidOptions.Parity {
-			file.WriteString("parity " + d + "/snapraid.parity\n")
+		for _di, d := range raidOptions.Parity {
+			di := strconv.Itoa(_di + 1)
+			if _di == 0 {
+				file.WriteString("parity " + d + "/snapraid.parity\n")
+			} else {
+				file.WriteString(di + "-parity " + d + "/snapraid."+di+"-parity\n")
+			}
 		}
 
 		// file.WriteString("content " + utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf\n")
@@ -218,7 +224,7 @@ func InitSnapRAIDConfig() {
 			Name: "SnapRAID sync " + raidOptions.Name,
 			Crontab: raidOptions.SyncCrontab,
 			Cancellable: true,
-			Job: cron.JobFromCommand("snapraid", "sync", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
+			Job: cron.JobFromCommand("snapraid", "-q", "sync", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
 		})
 		
 		cron.RegisterJob(cron.ConfigJob{
@@ -226,7 +232,7 @@ func InitSnapRAIDConfig() {
 			Name: "SnapRAID scrub " + raidOptions.Name,
 			Crontab: raidOptions.ScrubCrontab,
 			Cancellable: true,
-			Job: cron.JobFromCommand("snapraid", "scrub", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
+			Job: cron.JobFromCommand("snapraid", "-q", "scrub", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
 		})
 	}	
 }

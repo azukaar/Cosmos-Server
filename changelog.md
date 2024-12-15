@@ -9,13 +9,20 @@
  - Added log file in the config folder and a download button in the config page
  - Fixed bug where lighthouses would not consider the home server as lighthouse in Constellation
  - Improved terminal with better UI and keep alive in the Websocket for  (to prevent timeouts during long operations)
+ - Fixed bug with duplicated CORS headers
+ - Disabled CORS for routes that have hardening disabled
  - Improve logs screen for containers (better colors, fix scrolling, auto-refresh, ...)
  - Fix bug with missing post-install instructs on service creation
  - Added missing geo block events in monitoring
  - Added ExtraHeader to route config to add custom headers to the request
  - Improved accessiblity of the menu for screen readers
+ - Formatter now creates GPT partition tables (instead of MBR, which has a 2TB limit)
  - Update to Go 1.23.2
+ - Fix 2-parity on Snapraid
+ - Fix mount/unmount request false error
  - Added safeguard to prevent Docker from destroying stack containers hostnames
+ - Added hostname to some events for visibility (Thanks @InterN0te)
+ - Added missing content type in OAuth (Thanks @RaidMax)
 
 ## Version 0.16.3
  - Local domains now produce services instead of CNAME for better compatibility

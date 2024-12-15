@@ -5,7 +5,6 @@
 <!-- sponsors -->
 <h3 align="center">Thanks to the sponsors:</h3></br>
 <p align="center"><a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/DGAzr"><img src="https://avatars.githubusercontent.com/DGAzr" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Fortcraft"><img src="https://avatars.githubusercontent.com/Fortcraft" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Gordi90"><img src="https://avatars.githubusercontent.com/Gordi90" style="border-radius:48px" width="48" height="48" alt="Dér Kristóf Gordon" title="Dér Kristóf Gordon" /></a>
 <a href="https://github.com/lilkidsuave"><img src="https://avatars.githubusercontent.com/lilkidsuave" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
@@ -13,8 +12,7 @@
 <a href="https://github.com/AstroMando"><img src="https://avatars.githubusercontent.com/AstroMando" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/riczescaran"><img src="https://avatars.githubusercontent.com/riczescaran" style="border-radius:48px" width="48" height="48" alt="Ricardo Escaran" title="Ricardo Escaran" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/keyxmakerx"><img src="https://avatars.githubusercontent.com/keyxmakerx" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/madejackson"><img src="https://avatars.githubusercontent.com/madejackson" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
+<a href="https://github.com/factorten"><img src="https://avatars.githubusercontent.com/factorten" style="border-radius:48px" width="48" height="48" alt="Carr" title="Carr" /></a>
 </p><!-- /sponsors -->
 
 ---
@@ -48,6 +46,7 @@ Cosmos is:
 
  * **App Store** 📦📱 To easily install and manage your applications, with simple installers, automatic updates and security checks. This works alongside manual installation methods, such as importing docker-compose files, or the docker CLI
  * **Storage Manager** 📂🔐 To easily manage your disks, including **Parity Disks** and **MergerFS**
+ * **Network Storages** 📡📂 Based on RClone, To easily manage your network storages, including accessing remote ones (ex. Dropbox) or share NFS / FTP / ... from the UI, protected by the smart shield
  * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
  * **Authentication Server** 🔐👤 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Customizable Homepage** 🏠🖼 To access all your applications from a single place, with a beautiful and customizable UI
@@ -55,7 +54,7 @@ Cosmos is:
 * **VPN** 🌐🔒 To securely access your applications from anywhere, without having to open ports on your router.
  * **Monitoring** 📈📊 Fully persisting and real-time monitoring with customizable alerts and notifications, so you can be notified of any issue.
  * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
- * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies.
+ * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies. Now includes TCP protection (FTP, SSH, Games, ...)
  * **CRON** 🕒🔧 To easily schedule tasks on the server or inside containers
 
  It has been built to be:

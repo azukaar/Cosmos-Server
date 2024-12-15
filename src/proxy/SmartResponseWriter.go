@@ -94,6 +94,7 @@ func (w *SmartResponseWriterWrapper) Write(p []byte) (int, error) {
 	}
 
 	w.Bytes += int64(n)
+
 	return n, err
 }
 
