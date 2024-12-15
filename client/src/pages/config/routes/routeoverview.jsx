@@ -47,7 +47,7 @@ const RouteOverview = ({ routeConfig }) => {
           <Stack spacing={2} style={{ width: '100%' }}>
             <strong><ContainerOutlined /> {t('global.description')}</strong>
             <div style={info}>{routeConfig.Description}</div>
-            <strong><NodeExpandOutlined /> URL</strong>
+            <strong><NodeExpandOutlined /> {t('mgmt.config.proxy.urlTitle')}</strong>
             <div><HostChip route={routeConfig} /></div>
             <strong><InfoCircleOutlined /> {t('global.target')}</strong>
             <div><RouteMode route={routeConfig} /> <Chip label={routeConfig.Target} /></div>
