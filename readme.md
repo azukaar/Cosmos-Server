@@ -46,6 +46,7 @@ Cosmos is:
 
  * **App Store** 📦📱 To easily install and manage your applications, with simple installers, automatic updates and security checks. This works alongside manual installation methods, such as importing docker-compose files, or the docker CLI
  * **Storage Manager** 📂🔐 To easily manage your disks, including **Parity Disks** and **MergerFS**
+ * **Network Storages** 📡📂 Based on RClone, To easily manage your network storages, including accessing remote ones (ex. Dropbox) or share NFS / FTP / ... from the UI, protected by the smart shield
  * **Reverse-Proxy** 🔄🔗 Targeting containers, other servers, or serving static folders / SPA with **automatic HTTPS**, and a **nice UI**
  * **Authentication Server** 🔐👤 With strong security, **multi-factor authentication** and multiple strategies (**OpenId**, forward headers, HTML)
  * **Customizable Homepage** 🏠🖼 To access all your applications from a single place, with a beautiful and customizable UI
@@ -53,7 +54,7 @@ Cosmos is:
 * **VPN** 🌐🔒 To securely access your applications from anywhere, without having to open ports on your router.
  * **Monitoring** 📈📊 Fully persisting and real-time monitoring with customizable alerts and notifications, so you can be notified of any issue.
  * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
- * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies.
+ * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies. Now includes TCP protection (FTP, SSH, Games, ...)
  * **CRON** 🕒🔧 To easily schedule tasks on the server or inside containers
 
  It has been built to be:
