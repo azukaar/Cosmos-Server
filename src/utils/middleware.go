@@ -231,12 +231,13 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 
 							TriggerEvent(
 								"cosmos.proxy.shield.geo",
-								"Proxy Shield  Geo blocked",
+								"Proxy Shield Geo blocked",
 								"warning",
 								"",
 								map[string]interface{}{
 								"clientID": ip,
 								"country": countryCode,
+								"hostname": r.Host,
 								"url": r.URL.String(),
 							})
 
@@ -254,12 +255,13 @@ func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhite
 	
 							TriggerEvent(
 								"cosmos.proxy.shield.geo",
-								"Proxy Shield  Geo blocked",
+								"Proxy Shield Geo blocked",
 								"warning",
 								"",
 								map[string]interface{}{
 								"clientID": ip,
 								"country": countryCode,
+								"hostname": r.Host,
 								"url": r.URL.String(),
 							})
 
@@ -291,11 +293,12 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 				if ip != "" {
 					TriggerEvent(
 						"cosmos.proxy.shield.referer",
-						"Proxy Shield  Referer blocked",
+						"Proxy Shield Referer blocked",
 						"warning",
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -519,6 +522,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -537,6 +541,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 						"",
 						map[string]interface{}{
 						"clientID": ip,
+						"hostname": r.Host,
 						"url": r.URL.String(),
 					})
 
@@ -557,6 +562,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 				"",
 				map[string]interface{}{
 				"clientID": ip,
+				"hostname": r.Host,
 				"url": r.URL.String(),
 			})
 

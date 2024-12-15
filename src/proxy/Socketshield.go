@@ -517,7 +517,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 
 						utils.TriggerEvent(
 							"cosmos.proxy.shield.geo",
-							"Proxy Shield  Geo blocked",
+							"Proxy Shield Geo blocked",
 							"warning",
 							"",
 							map[string]interface{}{
@@ -542,7 +542,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 
 						utils.TriggerEvent(
 							"cosmos.proxy.shield.geo",
-							"Proxy Shield  Geo blocked",
+							"Proxy Shield Geo blocked",
 							"warning",
 							"",
 							map[string]interface{}{
