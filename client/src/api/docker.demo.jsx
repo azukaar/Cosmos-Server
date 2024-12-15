@@ -152,14 +152,12 @@ function getContainerLogs(containerId, searchQuery, limit, lastReceivedLogs, err
 }
 
 function attachTerminal(name) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      resolve({
-        "status": "ok",
-      })},
-      100
-    );
-  });
+  return {
+    send: (data) => {
+      onmessage("This is a demo, what did you expect?");
+    },
+    close: ()=>{}
+  };
 }
 
 function createTerminal(name) {

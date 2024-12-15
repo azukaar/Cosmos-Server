@@ -10827,8 +10827,252 @@ const snapRAID = {
   },
 };
 
+const listDir = (storage, path) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "data": {
+          "directory": [
+            {
+              "name": "bin",
+              "type": "file",
+              "size": 7,
+              "isDir": false,
+              "ext": "",
+              "created": 1686543832,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/bin"
+            },
+            {
+              "name": "boot",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1732516405,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/boot"
+            },
+            {
+              "name": "dev",
+              "type": "directory",
+              "size": 3020,
+              "isDir": true,
+              "ext": "",
+              "created": 1704722510,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/dev"
+            },
+            {
+              "name": "etc",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1731221224,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/etc"
+            },
+            {
+              "name": "home",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1677765300,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/home"
+            },
+            {
+              "name": "lib",
+              "type": "file",
+              "size": 7,
+              "isDir": false,
+              "ext": "",
+              "created": 1686543832,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/lib"
+            },
+            {
+              "name": "lib64",
+              "type": "file",
+              "size": 9,
+              "isDir": false,
+              "ext": "",
+              "created": 1686543832,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/lib64"
+            },
+            {
+              "name": "lost+found",
+              "type": "directory",
+              "size": 16384,
+              "isDir": true,
+              "ext": "",
+              "created": 1686543794,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/lost+found"
+            },
+            {
+              "name": "media",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1686543842,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/media"
+            },
+            {
+              "name": "mnt",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1686543842,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/mnt"
+            },
+            {
+              "name": "opt",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1688037646,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/opt"
+            },
+            {
+              "name": "proc",
+              "type": "directory",
+              "size": 0,
+              "isDir": true,
+              "ext": "",
+              "created": 1704722492,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/proc"
+            },
+            {
+              "name": "root",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1732203499,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/root"
+            },
+            {
+              "name": "run",
+              "type": "directory",
+              "size": 700,
+              "isDir": true,
+              "ext": "",
+              "created": 1734245739,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/run"
+            },
+            {
+              "name": "sbin",
+              "type": "file",
+              "size": 8,
+              "isDir": false,
+              "ext": "",
+              "created": 1686543832,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/sbin"
+            },
+            {
+              "name": "srv",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1686543842,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/srv"
+            },
+            {
+              "name": "sys",
+              "type": "directory",
+              "size": 0,
+              "isDir": true,
+              "ext": "",
+              "created": 1704722492,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/sys"
+            },
+            {
+              "name": "tmp",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1734277127,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/tmp"
+            },
+            {
+              "name": "usr",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1707633020,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/usr"
+            },
+            {
+              "name": "var",
+              "type": "directory",
+              "size": 4096,
+              "isDir": true,
+              "ext": "",
+              "created": 1686543842,
+              "uid": 0,
+              "gid": 0,
+              "fullPath": "/mnt/host/var"
+            }
+          ],
+          "path": "/",
+          "storage": "local",
+          "storages": [
+            {
+              "name": "local",
+              "path": "/"
+            }
+          ]
+        },
+        "status": "OK"
+      })},
+      1000
+    );
+  });
+}
+
 export {
   mounts,
   disks,
+  listDir,
   snapRAID,
 };
