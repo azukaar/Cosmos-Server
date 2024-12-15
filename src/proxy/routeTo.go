@@ -53,7 +53,7 @@ func joinURLPath(a, b *url.URL) (path, rawpath string) {
 
 
 // NewProxy takes target host and creates a reverse proxy
-func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHardening bool, CORSOrigin string, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
+func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHardening bool, route utils.ProxyRouteConfig) (*httputil.ReverseProxy, error) {
 	var transport http.RoundTripper
 	var targetURL *url.URL
 	var err error
@@ -198,12 +198,9 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
 
-		if CORSOrigin != "" {
+		if !DisableHeaderHardening {
 			resp.Header.Del("Access-Control-Allow-Origin")
 			resp.Header.Del("Access-Control-Allow-Credentials")
-		}
-		
-		if !DisableHeaderHardening {
 			resp.Header.Del("Strict-Transport-Security")
 			resp.Header.Del("X-Content-Type-Options")
 			resp.Header.Del("Content-Security-Policy")
@@ -238,7 +235,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	}
 
   if(routeType == "SERVAPP" || routeType == "PROXY") {
-		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route.CORSOrigin, route)
+		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
 		if err != nil {
 				utils.Error("Create Route", err)
 		}

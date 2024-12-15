@@ -12,13 +12,14 @@ export const getStatus = () => {
         "database": true,
         "docker": true,
         "domain": false,
-        "Licence": "true",
+        "Licence": true,
         "hostmode": "true",
         "homepage": {
           "Background": "/cosmos/api/background/avif",
           "Widgets": null,
           "Expanded": false
         },
+        "LicenceNumber": 9,
         "hostname": "yann-server.com",
         "letsencrypt": false,
         "needsRestart": false,
@@ -89,3 +90,10 @@ export const uploadImage = (file) => {
       })}, 100 );
     });
   }
+
+export const terminal = () => ({
+  send: (data) => {
+    onmessage("This is a demo, what did you expect?");
+  },
+  close: ()=>{}
+});
