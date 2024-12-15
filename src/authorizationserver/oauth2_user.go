@@ -91,5 +91,6 @@ func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {
 		baseToken.Role = "user"
 	}
 	
+	rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	json.NewEncoder(rw).Encode(baseToken)
 }
