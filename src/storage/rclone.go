@@ -705,7 +705,6 @@ func InitRemoteStorage() bool {
 	// Start watching the config file
 	go watchConfigFile(configLocation, Restart)
 
-
 	// wait for rclone to start
 	go func() {
 		retries := 0
@@ -736,6 +735,10 @@ type RcloneStatsObj struct {
 
 func RCloneStats() (RcloneStatsObj, error) {
 	utils.Debug("[RemoteStorage] Getting rclone stats")
+	
+	if !utils.FBL.LValid {
+		return RcloneStatsObj{0, 0}, nil
+	}
 
 	response, err := runRDC("/core/stats")
 	if err != nil {
