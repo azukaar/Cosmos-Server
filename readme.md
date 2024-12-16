@@ -13,6 +13,7 @@
 <a href="https://github.com/riczescaran"><img src="https://avatars.githubusercontent.com/riczescaran" style="border-radius:48px" width="48" height="48" alt="Ricardo Escaran" title="Ricardo Escaran" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/factorten"><img src="https://avatars.githubusercontent.com/factorten" style="border-radius:48px" width="48" height="48" alt="Carr" title="Carr" /></a>
+<a href="https://github.com/bgro82"><img src="https://avatars.githubusercontent.com/bgro82" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
 ---

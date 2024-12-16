@@ -1,3 +1,7 @@
+## Version 0.17.1
+ - Increase user limit to 19
+ - Add missing translations
+
 ## Version 0.17.0
  - Added RClone integration to manage and mount remote storage
  - Added network shares for SFTP, NFS, WebDAV, and S3, with support for remote storages and smart-shield integration
