@@ -11,7 +11,7 @@ jobs:
           name: Set environment variables
           command: |
             echo 'export VERSION=$(jq -r .version package.json)' >> $BASH_ENV
-            echo 'export PKG_NAME=cosmos-cloud' >> $BASH_ENV
+            echo 'export PKG_NAME=resiOS' >> $BASH_ENV
             echo 'export MAINTAINER_NAME="Yann Stepienik"' >> $BASH_ENV
             echo 'export MAINTAINER_EMAIL="cosmoscloudsup@gmail.com"' >> $BASH_ENV
             source $BASH_ENV
@@ -133,11 +133,13 @@ jobs:
           name: Create GitHub Release
           command: |
             VERSION=$(jq -r .version package.json)
-            PKG_NAME=cosmos-cloud
+            PKG_NAME=resiOS
            
             # Get current branch name
             BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
            
+            gh repo set-default aseracorp/resiOS
+
             if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
               gh release create v$VERSION \
                 ${PKG_NAME}-${VERSION}-amd64.zip \
