@@ -1,3 +1,6 @@
+## Version 0.17.2
+ - Fix RClone false error
+  
 ## Version 0.17.1
  - Increase user limit to 19
  - Add missing translations

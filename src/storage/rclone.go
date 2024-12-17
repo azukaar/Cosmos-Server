@@ -260,6 +260,10 @@ func unmountAll() error {
 
 
 func Restart() {
+	if !utils.FBL.LValid {
+		return
+	}
+
 	StopAllRCloneProcess(false)
 
 	// wait for rclone to start
