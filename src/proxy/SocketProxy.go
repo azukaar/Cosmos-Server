@@ -134,6 +134,7 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
     utils.Log("[SocketProxy] Proxy listening on "+listenAddr+", forwarding to "+listenProtocol+"://"+target)
 
     if listenProtocol == "tcp" {
+        utils.Debug("[SocketProxy] Starting TCP proxy on " + listenAddr + " -> " + target)
         handleTCPProxy(listener, target, proxyInfo, isHTTPProxy, route, listenAddr)
     } else {
         handleUDPProxy(packetConn, target, proxyInfo, route, listenAddr)

@@ -1,3 +1,6 @@
+## Version 0.17.3
+ - fix race condition with the monitoring
+
 ## Version 0.17.2
  - Fix RClone false error
   
