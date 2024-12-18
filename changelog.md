@@ -1,3 +1,7 @@
+## Version 0.17.4
+ - Hide update button in container
+ - Fix issue with allowHTTPLocal and the TCP Proxy
+
 ## Version 0.17.3
  - fix race condition with the monitoring
 

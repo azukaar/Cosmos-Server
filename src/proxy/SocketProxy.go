@@ -385,7 +385,7 @@ func InitInternalSocketProxy() {
                 portpair := PortsPair{sourceHostname, destination, isHTTPProxy, route}
 
                 if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
-                    portpair.To = HTTPPort
+                    portpair.To = "localhost:" + HTTPPort
                 }
 
     			expectedPorts = append(expectedPorts, portpair)
