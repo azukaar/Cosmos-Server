@@ -158,8 +158,6 @@ func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, 
         case <-proxyInfo.stop:
             utils.Log("[SocketProxy] Stopping TCP proxy on " + listenAddr)
             return
-        case <-time.After(5 * time.Minute):
-            continue
         case err := <-acceptErrChan:
             utils.Error("[SocketProxy] Failed to accept TCP connection", err)
         case client := <-acceptChan:
