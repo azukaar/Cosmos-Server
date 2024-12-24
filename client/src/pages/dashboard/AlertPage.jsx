@@ -43,16 +43,18 @@ const DisplayOperator = (operator) => {
       return '?';
   }
 }
-const AlertValidationSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  trackingMetric: Yup.string().required('Tracking metric is required'),
-  conditionOperator: Yup.string().required('Condition operator is required'),
-  conditionValue: Yup.number().required('Condition value is required'),
-  period: Yup.string().required('Period is required'),
-});
 
 const EditAlertModal = ({ open, onClose, onSave }) => {
   const { t } = useTranslation();
+
+  const AlertValidationSchema = Yup.object().shape({
+    name: Yup.string().required(t('global.name.validation')),
+    trackingMetric: Yup.string().required(t('navigation.monitoring.alerts.action.edit.trackingMetric.validation')),
+    conditionOperator: Yup.string().required(t('navigation.monitoring.alerts.action.edit.conditionOperator.validation')),
+    conditionValue: Yup.number().required(t('navigation.monitoring.alerts.action.edit.conditionValue.validation')),
+    period: Yup.string().required(t('navigation.monitoring.alerts.action.edit.period.validation')),
+  });
+
   const formik = useFormik({
     initialValues: {
       name: open.Name || t('navigation.monitoring.alerts.newAlertButton'),
