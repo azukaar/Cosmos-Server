@@ -179,7 +179,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
 
   return ( <Grid item xs={12}>
     <Stack spacing={1}>
-    <InputLabel htmlFor={name + "-autocomplete"}>{t('mgmt.config.containerPicker.containerPortInput')}</InputLabel>
+    <InputLabel htmlFor={name + "-autocomplete"}>{t('mgmt.config.containerPicker.containerNameSelection.containerNameLabel')}</InputLabel>
     {!loading && <Autocomplete
       id={name + "-autocomplete"}
       open={open}

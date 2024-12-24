@@ -203,11 +203,11 @@ const RouteMetrics = ({routeName}) => {
                 </Grid>
                 
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Requests'} data={[metrics[metricsKey.SUCCESS], metrics[metricsKey.ERROR]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('mgmt.urls.edit.resourceDashboard.requestsTitle')} data={[metrics[metricsKey.SUCCESS], metrics[metricsKey.ERROR]]}/>
                 </Grid>
                
                 <Grid item xs={12} xl={8}>
-                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={'Resources'} data={[metrics[metricsKey.TIME], metrics[metricsKey.BYTES]]}/>
+                    <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('mgmt.urls.edit.resourceDashboard.resourcesTitle')} data={[metrics[metricsKey.TIME], metrics[metricsKey.BYTES]]}/>
                 </Grid>
             </Grid>
         </div>}
