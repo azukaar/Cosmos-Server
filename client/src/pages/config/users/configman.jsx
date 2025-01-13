@@ -50,6 +50,7 @@ const ConfigManagement = () => {
   const [saveLabel, setSaveLabel] = React.useState(t('global.saveAction'));
   const {role} = useClientInfos();
   const isAdmin = role === "2";
+  const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(false);
 
   function refresh() {
     API.config.get().then((res) => {
@@ -295,6 +296,15 @@ const ConfigManagement = () => {
                   </Grid>
 
                   {status && !status.containerized && <>
+                    <Grid item xs={3}>
+                      <LoadingButton loading={isCheckingUpdate} variant="outlined" color="primary" onClick={() => {
+                        setIsCheckingUpdate(true);
+                        API.forceAutoUpdate().then(() => {
+                          setIsCheckingUpdate(false);
+                        })
+                      }}>{t('mgmt.config.general.forceAutoUpdateButton')}</LoadingButton>
+                    </Grid>
+
                     <CosmosCheckbox
                       label={t('mgmt.config.general.autoupdates')}
                       name="AutoUpdate"

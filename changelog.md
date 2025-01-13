@@ -1,3 +1,11 @@
+## Version 0.17.6
+ - Can now chose between plain or formatted logs
+ - Added "force update" button in service mode
+ - Fixed issues related to fstab management
+ 
+## Version 0.17.5
+ - Fixed issue with TCP proxy timeouts
+
 ## Version 0.17.4
  - Hide update button in container
  - Fix issue with allowHTTPLocal and the TCP Proxy

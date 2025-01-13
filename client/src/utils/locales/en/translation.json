@@ -137,6 +137,7 @@
 	"mgmt.config.email.tlsCheckbox.tlsLabel": "SMTP Uses TLS",
 	"mgmt.config.email.usernameInput.usernameHelperText": "SMTP Username",
 	"mgmt.config.email.usernameInput.usernameLabel": "SMTP Username",
+	"mgmt.config.general.forceAutoUpdateButton": "Check for update now",
 	"mgmt.config.general.backupDirInput.backupDirHelperText": "Directory where backups will be stored (relative to the host server `/`)",
 	"mgmt.config.general.backupDirInput.backupDirLabel": "Backup Output Directory (relative to the host server `/`)",
 	"mgmt.config.general.configFileInfo": "This page allow you to edit the configuration file. Any Environment Variable overwritting configuration won't appear here.",

@@ -67,7 +67,7 @@ func MountMergerFS(paths []string, mountpoint string, opts string, permanent boo
 		}
 
 		// Format the fstab entry
-		fstabEntry := fmt.Sprintf("%s %s mergerfs use_ino,cache.files=partial,dropcacheonclose=true,allow_other,category.create=mfs%s 0 0\n", strings.Join(paths, ":"), mountpoint, opts)
+		fstabEntry := fmt.Sprintf("\n%s %s mergerfs use_ino,cache.files=partial,dropcacheonclose=true,allow_other,category.create=mfs%s 0 0\n", strings.Join(paths, ":"), mountpoint, opts)
 
 		// Append to /etc/fstab
 		file, err := os.OpenFile("/etc/fstab", os.O_APPEND|os.O_WRONLY, 0644)

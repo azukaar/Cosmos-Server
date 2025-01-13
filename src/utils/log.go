@@ -37,6 +37,9 @@ type LogLevel int
 var (
 	logger      *log.Logger
 	errorLogger *log.Logger
+
+	loggerPlain      *log.Logger
+	errorLoggerPlain *log.Logger
 )
 
 func InitLogs() {
@@ -45,6 +48,14 @@ func InitLogs() {
 	// Set up lumberjack log rotation
 	ljLogger := &lumberjack.Logger{
 		Filename:   CONFIGFOLDER + "cosmos.log",
+		MaxSize:    15, // megabytes
+		MaxBackups: 2,
+		MaxAge:     16, // days
+		Compress:   true,
+	}
+
+	ljLoggerPlain := &lumberjack.Logger{
+		Filename:   CONFIGFOLDER + "cosmos.plain.log",
 		MaxSize:    15, // megabytes
 		MaxBackups: 2,
 		MaxAge:     16, // days
@@ -60,6 +71,9 @@ func InitLogs() {
 	// Create loggers
 	logger = log.New(ljLogger, "", log.Ldate|log.Ltime)
 	errorLogger = log.New(ljLogger, "", log.Ldate|log.Ltime)
+
+	loggerPlain = log.New(ljLoggerPlain, "", log.Ldate|log.Ltime)
+	errorLoggerPlain = log.New(ljLoggerPlain, "", log.Ldate|log.Ltime)
 }
 
 func RawLogMessage(level LogLevel, prefix, prefixColor, color, message string) {
@@ -69,14 +83,16 @@ func RawLogMessage(level LogLevel, prefix, prefixColor, color, message string) {
 		
 		log.Println(logString)
 
-		if logger == nil || errorLogger == nil {
+		if logger == nil || errorLogger == nil || loggerPlain == nil || errorLoggerPlain == nil {
 			return
 		}
 
 		if level >= ERROR {
 			errorLogger.Println(logString)
+			errorLoggerPlain.Println(prefix + " " + message)
 		} else {
 			logger.Println(logString)
+			loggerPlain.Println(prefix + " " + message)
 		}
 	}
 }
