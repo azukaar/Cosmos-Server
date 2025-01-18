@@ -66,13 +66,13 @@ func UserLogin(w http.ResponseWriter, req *http.Request) {
 			return
 		} else if user.Password == "" {
 			utils.Error("UserLogin: User not registered", nil)
-			utils.HTTPError(w, "User not registered", http.StatusUnauthorized, "UL002")
+			utils.HTTPError(w, "User not registered", http.StatusInternalServerError, "UL002")
 			return
 		} else {
 			err2 := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 			if err2 != nil {
 				utils.Error("UserLogin: Encryption error", err2)
-				utils.HTTPError(w, "User Logging Error", http.StatusUnauthorized, "UL001")
+				utils.HTTPError(w, "User Logging Error", http.StatusInternalServerError, "UL001")
 				return
 			}
 

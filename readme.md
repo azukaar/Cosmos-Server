@@ -6,12 +6,10 @@
 <h3 align="center">Thanks to the sponsors:</h3></br>
 <p align="center"><a href="https://github.com/soldier1"><img src="https://avatars.githubusercontent.com/soldier1" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/Fortcraft"><img src="https://avatars.githubusercontent.com/Fortcraft" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/lilkidsuave"><img src="https://avatars.githubusercontent.com/lilkidsuave" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/phobes"><img src="https://avatars.githubusercontent.com/phobes" style="border-radius:48px" width="48" height="48" alt="Phobes" title="Phobes" /></a>
 <a href="https://github.com/AstroMando"><img src="https://avatars.githubusercontent.com/AstroMando" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/riczescaran"><img src="https://avatars.githubusercontent.com/riczescaran" style="border-radius:48px" width="48" height="48" alt="Ricardo Escaran" title="Ricardo Escaran" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/bgro82"><img src="https://avatars.githubusercontent.com/bgro82" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 </p><!-- /sponsors -->
 
 ---

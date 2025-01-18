@@ -1,3 +1,6 @@
+## Version 0.17.7
+ - Fix error code on login screen
+
 ## Version 0.17.6
  - Can now chose between plain or formatted logs
  - Added "force update" button in service mode
