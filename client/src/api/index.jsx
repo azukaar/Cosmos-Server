@@ -230,6 +230,15 @@ function terminal(startCmd = "bash") {
   return new WebSocket(protocol + window.location.host + '/cosmos/api/terminal/'+startCmd)
 }
 
+function forceAutoUpdate() {
+  return wrap(fetch('/cosmos/api/force-server-update', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }));
+}
+
 const isDemo = import.meta.env.MODE === 'demo';
 
 let auth = _auth;
@@ -281,5 +290,6 @@ export {
   terminal,
   cron,
   rclone,
-  restartServer
+  restartServer,
+  forceAutoUpdate
 };

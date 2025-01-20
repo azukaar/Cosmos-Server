@@ -232,6 +232,10 @@ func GetNumberUsersFromToken(serverToken string) int {
 
 	Log("[Cloud] Number of users: " + fmt.Sprintf("%d", int(userNumber)))
 
+	if int(userNumber) < 19 {
+		return 19
+	}
+
 	return int(userNumber)
 }
 

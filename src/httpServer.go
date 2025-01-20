@@ -389,6 +389,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/restart-server", restartHostMachineRoute)
 	srapi.HandleFunc("/_logs", LogsRoute)
+	srapi.HandleFunc("/api/force-server-update", ForceUpdateRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
 	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/logout", user.UserLogout)

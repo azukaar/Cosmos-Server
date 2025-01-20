@@ -134,6 +134,7 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
     utils.Log("[SocketProxy] Proxy listening on "+listenAddr+", forwarding to "+listenProtocol+"://"+target)
 
     if listenProtocol == "tcp" {
+        utils.Debug("[SocketProxy] Starting TCP proxy on " + listenAddr + " -> " + target)
         handleTCPProxy(listener, target, proxyInfo, isHTTPProxy, route, listenAddr)
     } else {
         handleUDPProxy(packetConn, target, proxyInfo, route, listenAddr)
@@ -157,8 +158,6 @@ func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, 
         case <-proxyInfo.stop:
             utils.Log("[SocketProxy] Stopping TCP proxy on " + listenAddr)
             return
-        case <-time.After(5 * time.Minute):
-            continue
         case err := <-acceptErrChan:
             utils.Error("[SocketProxy] Failed to accept TCP connection", err)
         case client := <-acceptChan:
@@ -384,7 +383,7 @@ func InitInternalSocketProxy() {
                 portpair := PortsPair{sourceHostname, destination, isHTTPProxy, route}
 
                 if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
-                    portpair.To = HTTPPort
+                    portpair.To = "localhost:" + HTTPPort
                 }
 
     			expectedPorts = append(expectedPorts, portpair)
