@@ -43,16 +43,22 @@ import { FilePickerButton } from '../../../components/filePicker';
 const ConfigManagement = () => {
   const { t } = useTranslation();
   const [config, setConfig] = React.useState(null);
+  const [status, setStatus] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [uploadingBackground, setUploadingBackground] = React.useState(false);
   const [saveLabel, setSaveLabel] = React.useState(t('global.saveAction'));
   const {role} = useClientInfos();
   const isAdmin = role === "2";
+  const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(false);
 
   function refresh() {
     API.config.get().then((res) => {
       setConfig(res.data);
+    });
+
+    API.getStatus().then((res) => {
+      setStatus(res.data);
     });
   }
 
@@ -292,19 +298,29 @@ const ConfigManagement = () => {
                     <Alert severity="info">{t('mgmt.config.general.configFileInfo')}</Alert>
                   </Grid>
 
-                  <CosmosCheckbox
-                    label={t('mgmt.config.general.autoupdates')}
-                    name="AutoUpdate"
-                    formik={formik}
-                    helperText={t('mgmt.config.general.autoupdates')}
-                  />
+                  {status && !status.containerized && <>
+                    <Grid item xs={3}>
+                      <LoadingButton loading={isCheckingUpdate} variant="outlined" color="primary" onClick={() => {
+                        setIsCheckingUpdate(true);
+                        API.forceAutoUpdate().then(() => {
+                          setIsCheckingUpdate(false);
+                        })
+                      }}>{t('mgmt.config.general.forceAutoUpdateButton')}</LoadingButton>
+                    </Grid>
 
-                  <CosmosCheckbox
-                    label={t('mgmt.config.general.betaupdate')}
-                    name="BetaUpdates"
-                    formik={formik}
-                    helperText={t('mgmt.config.general.betaupdate')}
-                  />
+                    <CosmosCheckbox
+                      label={t('mgmt.config.general.autoupdates')}
+                      name="AutoUpdate"
+                      formik={formik}
+                      helperText={t('mgmt.config.general.autoupdates')}
+                    />
+
+                    <CosmosCheckbox
+                      label={t('mgmt.config.general.betaupdate')}
+                      name="BetaUpdates"
+                      formik={formik}
+                      helperText={t('mgmt.config.general.betaupdate')}
+                  /></>}
 
                   <CosmosCheckbox
                     label={t('mgmt.config.general.forceMfaCheckbox.forceMfaLabel')}

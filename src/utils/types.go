@@ -154,10 +154,16 @@ type ThemeConfig struct {
 }
 
 type HTTPConfig struct {
+	CACert string
+	CAPrivateKey  string
 	TLSCert string `validate:"omitempty,contains=\n`
 	TLSKey string
 	TLSKeyHostsCached []string
 	TLSValidUntil time.Time
+	SelfTLSCert string `validate:"omitempty,contains=\n`
+	SelfTLSKey string
+	SelfTLSKeyHostsCached []string
+	SelfTLSValidUntil time.Time
 	AuthPrivateKey string
 	AuthPublicKey string
 	GenerateMissingAuthCert bool

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // material-ui
 import { Grid, Stack, Typography } from '@mui/material';
@@ -10,6 +11,7 @@ import AuthWrapper from './AuthWrapper';
 // ================================|| REGISTER ||================================ //
 
 const Register = () => {
+    const { t } = useTranslation();
     const urlSearchParams = new URLSearchParams(window.location.search);
     const formType = urlSearchParams.get('t');
     const isInviteLink = formType === '2';
@@ -22,7 +24,7 @@ const Register = () => {
             <Grid item xs={12}>
                 <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
                     <Typography variant="h3">{
-                        isInviteLink ? 'Invitation' : 'Password Reset'
+                        isInviteLink ? t('auth.invite.isInvite') : t('auth.pwdReset.pwdResetTitle')
                     }</Typography>
                 </Stack>
             </Grid>

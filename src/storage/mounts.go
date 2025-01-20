@@ -129,7 +129,7 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		}
 
 		// Format the fstab entry
-		fstabEntry := fmt.Sprintf("%s %s auto defaults 0 0\n", path, mountpoint)
+		fstabEntry := fmt.Sprintf("\n%s %s auto defaults 0 0\n", path, mountpoint)
 
 		// Append to /etc/fstab
 		file, err := os.OpenFile("/etc/fstab", os.O_APPEND|os.O_WRONLY, 0644)
@@ -183,6 +183,8 @@ func Unmount(mountpoint string, permanent bool) error {
 
 // isMountPointInFstab checks if the given mountpoint is already in /etc/fstab.
 func isMountPointInFstab(mountpoint string) (bool, error) {
+	mountpoint = strings.Replace(mountpoint, "/var/mnt/", "/mnt/", 1)
+
 	file, err := os.Open("/etc/fstab")
 	if err != nil {
 		return false, err
@@ -191,7 +193,7 @@ func isMountPointInFstab(mountpoint string) (bool, error) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if strings.Contains(scanner.Text(), mountpoint) {
+		if strings.Contains(scanner.Text(), " " + mountpoint + " ") {
 			return true, nil
 		}
 	}
@@ -205,6 +207,8 @@ func isMountPointInFstab(mountpoint string) (bool, error) {
 
 // removeFstabEntry removes an entry for the specified mountpoint from /etc/fstab.
 func removeFstabEntry(mountpoint string) error {
+	mountpoint = strings.Replace(mountpoint, "/var/mnt/", "/mnt/", 1)
+
 	file, err := os.Open("/etc/fstab")
 	if err != nil {
 		return err
@@ -215,7 +219,11 @@ func removeFstabEntry(mountpoint string) error {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if !strings.Contains(line, mountpoint) {
+		
+		isComment := strings.HasPrefix(line, "#")
+		isEmpty := len(strings.TrimSpace(line)) == 0
+
+		if !isEmpty && (!strings.Contains(line, " " + mountpoint + " ") || isComment) {
 			lines = append(lines, line)
 		}
 	}
@@ -223,6 +231,8 @@ func removeFstabEntry(mountpoint string) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+
+	utils.Debug("[STORAGE] Writing new /etc/fstab")
 
 	return os.WriteFile("/etc/fstab", []byte(strings.Join(lines, "\n")), 0644)
 }

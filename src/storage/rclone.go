@@ -260,6 +260,10 @@ func unmountAll() error {
 
 
 func Restart() {
+	if !utils.FBL.LValid {
+		return
+	}
+
 	StopAllRCloneProcess(false)
 
 	// wait for rclone to start
@@ -736,7 +740,7 @@ type RcloneStatsObj struct {
 func RCloneStats() (RcloneStatsObj, error) {
 	utils.Debug("[RemoteStorage] Getting rclone stats")
 	
-	if !utils.FBL.LValid {
+	if utils.FBL == nil || !utils.FBL.LValid {
 		return RcloneStatsObj{0, 0}, nil
 	}
 

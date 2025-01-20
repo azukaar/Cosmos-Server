@@ -10,7 +10,6 @@ import (
 	"crypto/rsa"
 	"crypto/ed25519"
 	"crypto/x509/pkix"
-	"encoding/asn1"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"os"
@@ -27,79 +26,159 @@ import (
 	"github.com/go-acme/lego/v4/challenge/dns01"
 )
 
-func GenerateRSAWebCertificates(domains []string) (string, string) {
-	// generate self signed certificate
+type CAConfig struct {
+	Certificate *x509.Certificate
+	PrivateKey  *rsa.PrivateKey
+}
 
-	Log("Generating RSA Web Certificates for " + GetMainConfig().HTTPConfig.Hostname)
-
-	// generate private key
-	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+// generateCA creates a new CA certificate if it doesn't exist
+func generateCA() (*CAConfig, error) {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
-		Fatal("Generating RSA Key", err)
+		return nil, err
 	}
 
-	// generate public key
-	publicKey := &privateKey.PublicKey
-
-	// random SerialNumber
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
-		Fatal("Generating Serial Number", err)
+		return nil, err
 	}
 
-	// generate certificate
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Cosmos Personal Server CA"},
+			CommonName:   "Cosmos Root CA",
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().Add(100 * 365 * 24 * time.Hour),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		BasicConstraintsValid: true,
+		IsCA:                  true,
+		MaxPathLen:            1,
+	}
+
+	certBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &privateKey.PublicKey, privateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	cert, err := x509.ParseCertificate(certBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CAConfig{
+		Certificate: cert,
+		PrivateKey:  privateKey,
+	}, nil
+}
+
+func loadCA() (*CAConfig, error) {
+	config := GetMainConfig()
+	CACert := config.HTTPConfig.CACert
+	PAPrivateKey := config.HTTPConfig.CAPrivateKey
+	
+	if CACert == "" || PAPrivateKey == "" {
+		return nil, nil
+	}
+
+	certBlock, _ := pem.Decode([]byte(CACert))
+
+	if certBlock == nil {
+		return nil, nil
+	}
+
+	cert, err := x509.ParseCertificate(certBlock.Bytes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	keyBlock, _ := pem.Decode([]byte(PAPrivateKey))
+
+	if keyBlock == nil {
+		return nil, nil
+	}
+
+	key, err := x509.ParsePKCS1PrivateKey(keyBlock.Bytes)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &CAConfig{
+		Certificate: cert,
+		PrivateKey:  key,
+	}, nil
+}
+
+func saveCA(ca *CAConfig) error {
+	baseMainConfig := GetBaseMainConfig()
+
+	baseMainConfig.HTTPConfig.CACert = string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: ca.Certificate.Raw}))
+	baseMainConfig.HTTPConfig.CAPrivateKey = string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(ca.PrivateKey)}))
+
+	SetBaseMainConfig(baseMainConfig)
+	Log("Saved new CA certificate and private key")
+
+	return nil
+}
+
+func GenerateRSAWebCertificates(domains []string) (string, string, error) {	
+	// Try to load existing CA or generate new one
+	ca, err := loadCA()
+	if err != nil || ca == nil || ca.Certificate == nil || ca.PrivateKey == nil {
+		// If CA doesn't exist, generate and save it
+		ca, err = generateCA()
+		if err != nil {
+			return "", "", err
+		}
+		if err := saveCA(ca); err != nil {
+			return "", "", err
+		}
+	}
+
+	// Generate web server private key
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		return "", "", err
+	}
+
+	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
+	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	if err != nil {
+		return "", "", err
+	}
+
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
 			Organization: []string{"Cosmos Personal Server"},
+			CommonName:   domains[0], // Use first domain as CN
 		},
-		NotBefore: time.Now(),
-		NotAfter:  time.Now().Add(365 * 24 * time.Hour),
-
-		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(0, 0, 364),
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
-		IsCA:                  true,
-
-		DNSNames: domains,
-
-		// IPAddresses: []net.IP{},
-
-		SubjectKeyId: []byte{1, 2, 3, 4, 6},
-
-		AuthorityKeyId: []byte{1, 2, 3, 4, 5},
-
-		PermittedDNSDomainsCritical: false,
-
-		PermittedDNSDomains: domains,
-
-		// PermittedIPRanges: ,
-
-		ExcludedDNSDomains: []string{},
-
-		// ExcludedIPRanges:,
-
-		PermittedURIDomains: []string{},
-
-		ExcludedURIDomains: []string{},
-
-		CRLDistributionPoints: []string{},
-
-		PolicyIdentifiers: []asn1.ObjectIdentifier{},
-
+		IsCA:                  false,
+		DNSNames:             domains,
+		SubjectKeyId:         []byte{1, 2, 3, 4, 6},
+		AuthorityKeyId:       ca.Certificate.SubjectKeyId,
 	}
 
-	// create certificate
-
-	cert, err := x509.CreateCertificate(rand.Reader, &template, &template, publicKey, privateKey)
+	// Create certificate signed by CA
+	cert, err := x509.CreateCertificate(rand.Reader, &template, ca.Certificate, &privateKey.PublicKey, ca.PrivateKey)
 	if err != nil {
-		Fatal("Creating RSA Key", err)
+		return "", "", err
 	}
 
-	// return private , and public key
+	// Return certificate and private key PEM encoded
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)})
 
-	return string(pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: cert})), string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(privateKey)}))
+	return string(certPEM), string(keyPEM), nil
 }
 
 func GenerateEd25519Certificates() (string, string) {

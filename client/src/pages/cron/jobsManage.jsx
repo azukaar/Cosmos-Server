@@ -18,6 +18,7 @@ import MenuButton from "../../components/MenuButton";
 import JobLogsDialog from "./jobLogs";
 import NewJobDialog from "./newJob";
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 const getStatus = (job) => {
   if (job.Running) return 'running';
@@ -130,9 +131,9 @@ export const CronManager = () => {
                 title: t('global.statusTitle'),
                 field: (r) => {
                   return <div style={{maxWidth: '400px'}} >{{
-                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.runningSince')}{r.LastStarted}</Alert>,
-                    'success': <Alert severity={'success'} color={'success'}>{t('mgmt.scheduler.list.status.lastRunFinishedOn')} {r.LastRun}, {t('mgmt.scheduler.list.status.lastRunFinishedOn.duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
-                    'error': <Alert severity={'error'} color={'error'}>{t('mgmt.scheduler.list.status.lastRunExitedOn')} {r.LastRun}</Alert>,
+                    'running': <Alert icon={<LoadingOutlined />} severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.runningSince')}{dayjs(new Date(r.LastStarted)).format('L, LT')}</Alert>,
+                    'success': <Alert severity={'success'} color={'success'}>{t('mgmt.scheduler.list.status.lastRunFinishedOn')} {dayjs(new Date(r.LastRun)).format('L, LT')}, {t('mgmt.scheduler.list.status.lastRunFinishedOn.duration')} {(new Date(r.LastRun).getTime() - new Date(r.LastStarted).getTime()) / 1000}s</Alert>,
+                    'error': <Alert severity={'error'} color={'error'}>{t('mgmt.scheduler.list.status.lastRunExitedOn')} {dayjs(new Date(r.LastRun)).format('L, LT')}</Alert>,
                     'never': <Alert severity={'info'} color={'info'}>{t('mgmt.scheduler.list.status.neverRan')}</Alert>
                     
                   }[getStatus(r)]}</div>

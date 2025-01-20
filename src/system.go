@@ -76,6 +76,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"letsencrypt": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && utils.GetMainConfig().HTTPConfig.SSLEmail == "",
 				"domain": utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0",
 				"HTTPSCertificateMode": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode,
+				"CACert": utils.GetMainConfig().HTTPConfig.CACert,
 				"needsRestart": utils.NeedsRestart,
 				"newVersionAvailable": utils.NewVersionAvailable,
 				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,
@@ -144,8 +145,6 @@ func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if(req.Method == "GET") {
-
-
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": map[string]interface{}{
@@ -175,7 +174,7 @@ func LogsRoute(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "GET") {
 		// read log file
-		logFile, err := os.Open(utils.CONFIGFOLDER + "cosmos.log")
+		logFile, err := os.Open(utils.CONFIGFOLDER + "cosmos.plain.log")
 
 		if err != nil {
 			utils.Error("Logs: Error reading log file", err)
@@ -198,6 +197,21 @@ func LogsRoute(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Content-Disposition", "attachment; filename=cosmos.log")
 		w.Write(logBytes)
+	} else {
+		utils.Error("Logs: Method not allowed" + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}
+
+func ForceUpdateRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if(req.Method == "POST") {
+		utils.Log("API: Force update")
+		checkUpdatesAvailable()
 	} else {
 		utils.Error("Logs: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

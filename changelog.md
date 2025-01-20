@@ -1,3 +1,35 @@
+## Version 0.18.0
+ - Implements local HTTPS Certificate Authority, to locally trust self-signed certificates on devices
+ - Implements hybrid HTTPS with public and self-signed certificates switched on the fly
+ - Localizations improvements (Thanks @madejackson)
+ - Improved local IP detection (Thanks @r41d)
+ - Updated LEGO to 4.21.0
+
+## Version 0.17.7
+ - Fix error code on login screen
+
+## Version 0.17.6
+ - Can now chose between plain or formatted logs
+ - Added "force update" button in service mode
+ - Fixed issues related to fstab management
+ 
+## Version 0.17.5
+ - Fixed issue with TCP proxy timeouts
+
+## Version 0.17.4
+ - Hide update button in container
+ - Fix issue with allowHTTPLocal and the TCP Proxy
+
+## Version 0.17.3
+ - fix race condition with the monitoring
+
+## Version 0.17.2
+ - Fix RClone false error
+  
+## Version 0.17.1
+ - Increase user limit to 19
+ - Add missing translations
+
 ## Version 0.17.0
  - Added RClone integration to manage and mount remote storage
  - Added network shares for SFTP, NFS, WebDAV, and S3, with support for remote storages and smart-shield integration

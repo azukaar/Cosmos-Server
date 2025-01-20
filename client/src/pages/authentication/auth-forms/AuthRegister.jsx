@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 
 // material-ui
 import {
@@ -71,13 +71,13 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                     submit: null
                 }}
                 validationSchema={Yup.object().shape({
-                    nickname: Yup.string().max(255).required('Nickname is required'),
+                    nickname: Yup.string().max(255).required(t('global.nicknameRequiredValidation')),
                     password: Yup.string()
                         .max(255)
-                        .required('Password is required')
+                        .required(t('auth.pwdRequired'))
                         .matches(
                             /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[~!@#$%\^&\*\(\)_\+=\-\{\[\}\]:;"'<,>\/])(?=.{9,})/,
-                            'Must Contain 9 Characters, One Uppercase, One Lowercase, One Number and one special case Character (~!@#$%^&*()_+=-{[}]:;"\'<>.?/)'
+                            t('auth.pwd.validation')
                         ),
                 })}
                 onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -101,12 +101,12 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                         <Grid container spacing={3}>
                             {isInviteLink ? <Grid item xs={12}>
                                 <Alert severity="info">
-                                    <strong>Invite Link</strong> - You have been invited to join this Cosmos instance. This Nickname has been provided to us by your administrator. Keep note of it, you will need it to login. 
+                                     <Trans i18nKey='auth.invite.inviteTitle'/>
                                 </Alert>
                             </Grid> : ''}
                             {isInviteLink ? <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="nickname-signup">Nickname</InputLabel>
+                                    <InputLabel htmlFor="nickname-signup">{t('global.nicknameLabel')}</InputLabel>
                                     <OutlinedInput
                                         id="nickname-login"
                                         type="nickname"
@@ -128,7 +128,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                             </Grid> : ''}
                             <Grid item xs={12}>
                                 <Stack spacing={1}>
-                                    <InputLabel htmlFor="password-signup">Password</InputLabel>
+                                    <InputLabel htmlFor="password-signup">{t('auth.pwd')}</InputLabel>
                                     <OutlinedInput
                                         fullWidth
                                         error={Boolean(touched.password && errors.password)}
@@ -144,7 +144,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                                         endAdornment={
                                             <InputAdornment position="end">
                                                 <IconButton
-                                                    aria-label="toggle password visibility"
+                                                    aria-label={t('auth.pwd.visibilityToggle.visibilityToggleLabel')}
                                                     onClick={handleClickShowPassword}
                                                     onMouseDown={handleMouseDownPassword}
                                                     edge="end"
@@ -192,7 +192,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                                         color="primary"
                                     >
                                         {
-                                            isRegister ? 'Register' : 'Reset Password'
+                                            isRegister ? t('auth.invite.submitButton.register') : t('auth.forgotPassword.resetPassword')
                                         }
                                     </LoadingButton>
                             </Grid>

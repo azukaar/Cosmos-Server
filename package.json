@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.17.0-unstable30",
+  "version": "0.18.0-unstable2",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -71,7 +71,6 @@
     "semver-compare": "^1.0.0",
     "simplebar": "^5.3.8",
     "simplebar-react": "^2.4.1",
-    "timeago.js": "^4.0.2",
     "typescript": "4.8.3",
     "vite": "^4.2.0",
     "web-vitals": "^3.0.2",
@@ -90,7 +89,7 @@
     "client": "vite",
     "client-build": "vite build --base=/cosmos-ui/",
     "start": "build/cosmos-launcher && env COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
-    "build": "sh build.sh",
+    "build": "sh build-dev.sh",
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "docker build -f dockerfile.local --tag cosmos-dev .",
     "dockerdevrun": "docker stop cosmos-dev; docker rm cosmos-dev; docker run --cap-add NET_ADMIN -d -p 7200:443 -p 80:80 -p 53:53 -p 443:443 -p 4242:4242/udp -e DOCKER_HOST=tcp://host.docker.internal:2375 -e COSMOS_MONGODB=$MONGODB -e COSMOS_LOG_LEVEL=DEBUG -v /:/mnt/host  --restart=unless-stopped -h cosmos-dev --name cosmos-dev cosmos-dev",
