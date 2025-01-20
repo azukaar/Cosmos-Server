@@ -30,7 +30,7 @@ import * as API from '../../api';
 
 import QRCode from 'qrcode';
 import { useTheme } from '@mui/material/styles';
-import { Formik } from 'formik';
+import { useFormik, Formik } from 'formik';
 import { LoadingButton } from '@mui/lab';
 import { CosmosCollapse } from '../config/users/formShortcuts';
 import { redirectToLocal } from '../../utils/indexs';
@@ -39,25 +39,30 @@ const MFALoginForm = () => {
   const { t } = useTranslation();
   const urlSearchParams = new URLSearchParams(window.location.search);
   const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
+  const [isTokenFilled, setIsTokenFilled] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const delay = ms => new Promise(
+    resolve => setTimeout(resolve, ms)
+  );
 
   useEffect(() => {
     API.auth.me().then((data) => {
-        if(data.status == 'OK') {
-          redirectToLocal(redirectToURL);
-        } else if(data.status == 'NEW_INSTALL') {
-          redirectToLocal('/cosmos-ui/newInstall');
-        }
+      if(data.status == 'OK') {
+        redirectToLocal(redirectToURL);
+      } else if(data.status == 'NEW_INSTALL') {
+        redirectToLocal('/cosmos-ui/newInstall');
+      }
     });
-  });  
-  
-  return <Formik
-    initialValues={{
+  }, [redirectToURL]);  
+
+  const formik = useFormik({
+    initialValues: {
       token: '',
-    }}
-    validationSchema={Yup.object().shape({
+    },
+    validationSchema: Yup.object().shape({
       token: Yup.string().required(t('mgmt.openid.newMfa.tokenRequiredValidation')).min(6, t('mgmt.openid.newMfa.tokenmin6charValidation')).max(6, t('mgmt.openid.newMfa.tokenmax6charValidation')),
-    })}
-    onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
+    }),
+    onSubmit: (values, { setSubmitting, setStatus, setErrors }) => {
       API.users.check2FA(values.token).then((data) => {
         redirectToLocal(redirectToURL);
       }).catch((error) => {
@@ -66,40 +71,77 @@ const MFALoginForm = () => {
         setErrors({ submit: t('mgmt.openid.newMfa.wrongOtpValidation') });
         setSubmitting(false);
       });
-    }}
-  >
-    {(formik) => (
-      <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
-        <Stack spacing={3}>
-          <TextField
-            fullWidth
-            autoComplete="off"
-            type="text"
-            label="Token"
-            {...formik.getFieldProps('token')}
-            error={formik.touched.token && formik.errors.token && true}
-            helperText={formik.touched.token && formik.errors.token && formik.errors.token}
-            autoFocus
-          />
-          {formik.errors.submit && (
+    },
+  });
+
+  useEffect(() => {
+    const handleClipboard = async () => {
+      if (!isTokenFilled) {
+        try {
+          const clipboardData = await navigator.clipboard.readText();
+          if (clipboardData.length === 6) {
+            await delay(300);
+            formik.setFieldValue('token', clipboardData);
+            setIsTokenFilled(true);
+          }
+        } catch (err) {
+          console.error('Failed to read clipboard contents: ', err);
+        }
+      }
+    };
+
+    handleClipboard();
+
+    window.addEventListener('focus', handleClipboard);
+    return () => {
+      window.removeEventListener('focus', handleClipboard);
+    };
+  }, [formik, isTokenFilled]);
+
+  useEffect(() => {
+    if (!isSubmitted && formik.values.token.length === 6) {
+      formik.handleSubmit();
+      setIsSubmitted(true);
+    }
+  }, [formik.values.token, formik, isSubmitted]);
+
+  return (
+    <Formik {...formik}>
+      {() => (
+        <form autoComplete="off" noValidate onSubmit={formik.handleSubmit}>
+          <Stack spacing={3}>
+            <TextField
+              fullWidth
+              autoComplete="off"
+              type="text"
+              label="Token"
+              id="totp"
+              name="totp"
+              {...formik.getFieldProps('token')}
+              error={formik.touched.token && formik.errors.token}
+              helperText={formik.touched.token && formik.errors.token}
+              autoFocus
+            />
+            {formik.errors.submit && (
               <Grid item xs={12}>
-                  <FormHelperText error>{formik.errors.submit}</FormHelperText>
+                <FormHelperText error>{formik.errors.submit}</FormHelperText>
               </Grid>
-          )}
-          <LoadingButton
-            fullWidth
-            size="large"
-            type="submit"
-            variant="contained"
-            loading={formik.isSubmitting}
-          >
-            {t('auth.login')}
-          </LoadingButton>
-        </Stack>
-      </form>
-    )}
-  </Formik>;
-}
+            )}
+            <LoadingButton
+              fullWidth
+              size="large"
+              type="submit"
+              variant="contained"
+              loading={formik.isSubmitting}
+            >
+              {t('auth.login')}
+            </LoadingButton>
+          </Stack>
+        </form>
+      )}
+    </Formik>
+  );
+};
 
 const MFASetup = () => {
   const [mfaCode, setMfaCode] = useState('');
