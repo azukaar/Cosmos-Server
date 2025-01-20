@@ -898,17 +898,26 @@ func Exec(cmd string, args ...string) (string, error) {
 }
 
 func IsLocalIP(ip string) bool {
-	// IPv4 specific local addresses
-	if strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "172.") || ip == "127.0.0.1" || ip == "localhost" {
+	// explicit localhost
+	if ip == "localhost" {
 		return true
 	}
-	// IPv6 specific local addresses
-	if strings.HasPrefix(ip, "fe80:") || strings.HasPrefix(ip, "fc00:") || strings.HasPrefix(ip, "fd00:") || ip == "::1" {
+	parsed := osnet.ParseIP(ip)
+	// check for loopback or private address space using go std lib
+	if parsed.IsLoopback() || parsed.IsPrivate() {
 		return true
+	}
+	// more private IPv4 address ranges
+	if ip4 := parsed.To4(); ip4 != nil {
+		// https://en.wikipedia.org/wiki/Reserved_IP_addresses
+		//     100.64.0.0      -   100.127.255.255 (100.64/10 prefix)
+		//     192.0.0.0       -   192.0.0.255     (192.0.0.0/24 prefix)
+		return (ip4[0] == 100 && ip4[1]&0x40 == 64) ||
+		    (ip4[0] == 192 && ip4[1] == 0 && ip4[2] == 0)
 	}
 	// Handling cases where IPv6 might be enclosed in brackets
-	if strings.HasPrefix(ip, "[fe80:") || strings.HasPrefix(ip, "[fc00:") || strings.HasPrefix(ip, "[fd00:") || ip == "[::1]" {
-		return true
+	if strings.HasPrefix(ip, "[") && strings.HasSuffix(ip, "]") {
+		return IsLocalIP(strings.TrimSuffix(strings.TrimPrefix(ip, "["), "]"))
 	}
 	return false
 }
