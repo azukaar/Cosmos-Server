@@ -17,6 +17,7 @@ import (
 		"strconv"
 		"time"
 		"os"
+		"net"
 		"strings"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
@@ -56,6 +57,79 @@ func startHTTPServer(router *mux.Router) error {
 	utils.Log("Listening to HTTP on : 0.0.0.0:" + serverPortHTTP)
 
 	return HTTPServer.ListenAndServe()
+}
+
+// GetCertificate returns the appropriate certificate based on the client hello info
+func GetCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+	config := utils.GetMainConfig()
+	
+	if config.HTTPConfig.HTTPSCertificateMode == "PROVIDED" {
+			// If not in LETSENCRYPT mode, just return the main certificate
+			cert, err := tls.X509KeyPair([]byte(config.HTTPConfig.TLSCert), []byte(config.HTTPConfig.TLSKey))
+			if err != nil {
+					return nil, err
+			}
+			return &cert, nil
+	} else if config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" {
+		// If not in LETSENCRYPT mode, just return the main certificate
+		cert, err := tls.X509KeyPair([]byte(config.HTTPConfig.SelfTLSCert), []byte(config.HTTPConfig.SelfTLSKey))
+		if err != nil {
+				return nil, err
+		}
+		return &cert, nil
+	}
+
+	host := clientHello.ServerName
+	if host == "" {
+			// If SNI is not used, check the connection's IP
+			if clientHello.Conn != nil {
+					host = clientHello.Conn.RemoteAddr().String()
+					// Extract just the IP from the address
+					if h, _, err := net.SplitHostPort(host); err == nil {
+							host = h
+					}
+			}
+	}
+
+	// Check if we should use self-signed certificate
+	shouldUseSelfSigned := false
+
+	// Check for IP address
+	if ip := net.ParseIP(host); ip != nil {
+			shouldUseSelfSigned = true
+	}
+
+	// Check for .local domain
+	if strings.HasSuffix(host, ".local") {
+			shouldUseSelfSigned = true
+	}
+
+	// Check for localhost
+	if host == "localhost" {
+			shouldUseSelfSigned = true
+	}
+
+	if shouldUseSelfSigned {
+			utils.Debug("Using self-signed certificate for: " + host)
+			cert, err := tls.X509KeyPair([]byte(config.HTTPConfig.SelfTLSCert), []byte(config.HTTPConfig.SelfTLSKey))
+			if err != nil {
+					utils.Error("Error loading self-signed certificate, falling back to main cert: ", err)
+					// Fallback to main certificate
+					cert, err := tls.X509KeyPair([]byte(config.HTTPConfig.TLSCert), []byte(config.HTTPConfig.TLSKey))
+					if err != nil {
+							return nil, err
+					}
+					return &cert, nil
+			}
+			return &cert, nil
+	}
+
+	// Use main certificate for all other cases
+	cert, err := tls.X509KeyPair([]byte(config.HTTPConfig.TLSCert), []byte(config.HTTPConfig.TLSKey))
+	if err != nil {
+			return nil, err
+	}
+	return &cert, nil
 }
 
 func startHTTPSServer(router *mux.Router) error {
@@ -114,6 +188,11 @@ func startHTTPSServer(router *mux.Router) error {
 	var tlsCert = HTTPConfig.TLSCert
 	var tlsKey= HTTPConfig.TLSKey
 	
+	if (HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
+		tlsCert = HTTPConfig.SelfTLSCert
+		tlsKey = HTTPConfig.SelfTLSKey
+	}
+	
 	tlsConf := tlsconfig.NewServerTLSConfig(tlsconfig.TLSModeServerStrict)
 
 	cert, errCert := tls.X509KeyPair(([]byte)(tlsCert), ([]byte)(tlsKey))
@@ -126,7 +205,9 @@ func startHTTPSServer(router *mux.Router) error {
 	tlsConf.Certificates = []tls.Certificate{cert}
 
 	HTTPServer = &http.Server{
-		TLSConfig: tlsConf,
+    TLSConfig: &tls.Config{
+			GetCertificate: GetCertificate,
+		},
 		Addr: "0.0.0.0:" + serverPortHTTPS,
 		ReadTimeout: 0,
 		ReadHeaderTimeout: 10 * time.Second,
@@ -234,7 +315,6 @@ func CertificateIsExpired(validUntil time.Time) bool {
 
 func InitServer() *mux.Router {
 	utils.RestartHTTPServer = RestartServer
-
 	baseMainConfig := utils.GetBaseMainConfig()
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
@@ -242,117 +322,109 @@ func InitServer() *mux.Router {
 	serverPortHTTPS = HTTPConfig.HTTPSPort
 
 	var tlsCert = HTTPConfig.TLSCert
-	var tlsKey= HTTPConfig.TLSKey
+	var tlsKey = HTTPConfig.TLSKey
+	var selfTLSCert = HTTPConfig.SelfTLSCert
+	var selfTLSKey = HTTPConfig.SelfTLSKey
 
 	domains := utils.GetAllHostnames(true, true)
-
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
-	falledBack := false
+	// falledBack := false
 
-	NeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || (tlsCert == "" || tlsKey == "") || utils.HasAnyNewItem(domains, oldDomains) || !CertificateIsExpiredSoon(baseMainConfig.HTTPConfig.TLSValidUntil)
+	// Check if self-signed certificate needs refresh
+	selfSignedNeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal ||
+			(selfTLSCert == "" || selfTLSKey == "") ||
+			utils.HasAnyNewItem(domains, baseMainConfig.HTTPConfig.SelfTLSKeyHostsCached) ||
+			!CertificateIsExpiredSoon(baseMainConfig.HTTPConfig.SelfTLSValidUntil)
 	
+	// Always ensure we have a valid self-signed certificate
+	if selfSignedNeedsRefresh {
+			utils.Log("Generating new self-signed TLS certificate for domains: " + strings.Join(domains, ", "))
+			pub, priv, err := utils.GenerateRSAWebCertificates(domains)
+			baseMainConfig = utils.GetBaseMainConfig()
+
+			if err != nil {
+					utils.Error("Generating self-signed TLS certificate", err)
+			} else {
+					baseMainConfig.HTTPConfig.SelfTLSCert = pub
+					baseMainConfig.HTTPConfig.SelfTLSKey = priv
+					baseMainConfig.HTTPConfig.SelfTLSKeyHostsCached = domains
+					baseMainConfig.HTTPConfig.SelfTLSValidUntil = time.Now().AddDate(0, 0, 364)
+					utils.SetBaseMainConfig(baseMainConfig)
+					utils.Log("Saved new self-signed TLS certificate")
+					
+					selfTLSCert = pub
+					selfTLSKey = priv
+			}
+	}
+
+	// Check if Let's Encrypt certificate needs refresh
+	letsEncryptNeedsRefresh := baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal || 
+			(tlsCert == "" || tlsKey == "") || 
+			utils.HasAnyNewItem(domains, oldDomains) || 
+			!CertificateIsExpiredSoon(baseMainConfig.HTTPConfig.TLSValidUntil)
+
 	// If we have a certificate, we can fallback to it if necessary
 	CanFallback := tlsCert != "" && tlsKey != "" && 
 		len(config.HTTPConfig.TLSKeyHostsCached) > 0 && 
 		config.HTTPConfig.TLSKeyHostsCached[0] == config.HTTPConfig.Hostname  &&
 		CertificateIsExpired(baseMainConfig.HTTPConfig.TLSValidUntil)
 
-	if(NeedsRefresh && config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"]) {
-		if(config.HTTPConfig.DNSChallengeProvider != "") {
-			newEnv := config.HTTPConfig.DNSChallengeConfig
-			for key, value := range newEnv {
-				os.Setenv(key, value)
+	if letsEncryptNeedsRefresh && config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["LETSENCRYPT"] {
+			if config.HTTPConfig.DNSChallengeProvider != "" {
+					newEnv := config.HTTPConfig.DNSChallengeConfig
+					for key, value := range newEnv {
+							os.Setenv(key, value)
+					}
 			}
-		}
 
-		// Get Certificates 
-		pub, priv := utils.DoLetsEncrypt()
+			// Get Certificates
+			pub, priv := utils.DoLetsEncrypt()
 
-		if(pub == "" || priv == "") {
-			if(!CanFallback) {
-				utils.Error("Getting TLS certificate. Fallback to SELFSIGNED certificates", nil)
-				HTTPConfig.HTTPSCertificateMode = utils.HTTPSCertModeList["SELFSIGNED"]
-				falledBack = true
+			if pub == "" || priv == "" {
+				if(!CanFallback) {
+					utils.MajorError("Couldn't get TLS certificate. Fallback to SELFSIGNED certificates since none exists", nil)
+					HTTPConfig.HTTPSCertificateMode = utils.HTTPSCertModeList["SELFSIGNED"]
+					// falledBack = true
+				} else {
+					utils.MajorError("Couldn't get TLS certificate. Fallback to previous certificate", nil)
+				}
 			} else {
-				utils.Error("Getting TLS certificate. Fallback to previous certificate", nil)
+					baseMainConfig.HTTPConfig.TLSCert = pub
+					baseMainConfig.HTTPConfig.TLSKey = priv
+					baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
+					baseMainConfig.HTTPConfig.TLSValidUntil = time.Now().AddDate(0, 0, 90)
+					baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
+	
+					utils.SetBaseMainConfig(baseMainConfig)
+					utils.Log("Saved new LETSENCRYPT TLS certificate")
+	
+					utils.TriggerEvent(
+							"cosmos.proxy.certificate",
+							"Cosmos Certificate Renewed",
+							"important",
+							"",
+							map[string]interface{}{
+									"domains": domains,
+					})
+
+					utils.WriteNotification(utils.Notification{
+							Recipient: "admin",
+							Title: "header.notification.title.certificateRenewed",
+							Message: "header.notification.message.certificateRenewed",
+							Vars: strings.Join(domains, ", "),
+							Level: "info",
+					})
+
+					tlsCert = pub
+					tlsKey = priv
 			}
-		} else {
-			baseMainConfig.HTTPConfig.TLSCert = pub
-			baseMainConfig.HTTPConfig.TLSKey = priv
-			baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
-			baseMainConfig.HTTPConfig.TLSValidUntil = time.Now().AddDate(0, 0, 90)
-			baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
-	
-			utils.SetBaseMainConfig(baseMainConfig)
-			utils.Log("Saved new LETSENCRYPT TLS certificate")
-	
-			utils.TriggerEvent(
-				"cosmos.proxy.certificate",
-				"Cosmos Certificate Renewed",
-				"important",
-				"",
-				map[string]interface{}{
-					"domains": domains,
-			})
-
-			utils.WriteNotification(utils.Notification{
-				Recipient: "admin",
-				Title: "header.notification.title.certificateRenewed",
-				Message: "header.notification.message.certificateRenewed",
-				Vars: strings.Join(domains, ", "),
-				Level: "info",
-			})
-
-			tlsCert = pub
-			tlsKey = priv
-		}
 	}
 	
-	if(NeedsRefresh && HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
-		utils.Log("Generating new TLS certificate for domains: " + strings.Join(domains, ", "))
-		pub, priv := utils.GenerateRSAWebCertificates(domains)
-		
-		if !falledBack {
-			baseMainConfig.HTTPConfig.TLSCert = pub
-			baseMainConfig.HTTPConfig.TLSKey = priv
-			baseMainConfig.HTTPConfig.TLSKeyHostsCached = domains
-			baseMainConfig.HTTPConfig.TLSValidUntil = time.Now().AddDate(0, 0, 364)
-			baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
-
-			utils.SetBaseMainConfig(baseMainConfig)
-			utils.Log("Saved new SELFISGNED TLS certificate")
-
-			utils.TriggerEvent(
-				"cosmos.proxy.certificate",
-				"Cosmos Certificate Renewed",
-				"important",
-				"",
-				map[string]interface{}{
-					"domains": domains,
-			})
-
-			utils.WriteNotification(utils.Notification{
-				Recipient: "admin",
-				Title: "header.notification.title.certificateRenewed",
-				Message: "header.notification.message.certificateRenewed",
-				Vars: strings.Join(domains, ", "),
-				Level: "info",
-			})
-		}
-
-		tlsCert = pub
-		tlsKey = priv
-	}
-
-	if ((HTTPConfig.AuthPublicKey == "" || HTTPConfig.AuthPrivateKey == "") && HTTPConfig.GenerateMissingAuthCert) {
-		utils.Log("Generating new Auth ED25519 certificate")
-		pub, priv := utils.GenerateEd25519Certificates()
-		
-		baseMainConfig.HTTPConfig.AuthPublicKey = pub
-		baseMainConfig.HTTPConfig.AuthPrivateKey = priv
-		utils.SetBaseMainConfig(baseMainConfig)
-
-		utils.Log("Saved new Auth ED25519 certificate")
+	// Only update serving certificates when in SELFSIGNED mode
+	if config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] {
+			// Use the self-signed certificates for serving
+			tlsCert = selfTLSCert
+			tlsKey = selfTLSKey
 	}
 
 	utils.Log("Initialising HTTP(S) Router and all routes")
@@ -580,6 +652,11 @@ func StartServer() {
 
 		var tlsCert = HTTPConfig.TLSCert
 		var tlsKey= HTTPConfig.TLSKey
+
+		if (HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"]) {
+			tlsCert = HTTPConfig.SelfTLSCert
+			tlsKey = HTTPConfig.SelfTLSKey
+		}
 
 		if (
 			(

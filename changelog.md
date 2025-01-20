@@ -1,3 +1,8 @@
+## Version 0.18.0
+ - Implements local HTTPS Certificate Authority, to locally trust self-signed certificates on devices
+ - Implements hybrid HTTPS with public and self-signed certificates switched on the fly
+ - Updated LEGO to 4.21.0
+
 ## Version 0.17.7
  - Fix error code on login screen
 

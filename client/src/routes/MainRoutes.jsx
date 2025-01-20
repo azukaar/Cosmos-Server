@@ -17,6 +17,7 @@ import StorageIndex from '../pages/storage';
 import DashboardDefault from '../pages/dashboard';
 import { CronManager } from '../pages/cron/jobsManage';
 import PrivateRoute from '../PrivateRoute';
+import TrustPage from '../pages/config/trust';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -49,6 +50,10 @@ const MainRoutes = {
         {
             path: '/cosmos-ui/constellation',
             element: <ConstellationIndex />
+        },
+        {
+            path: '/cosmos-ui/trust',
+            element: <TrustPage />
         },
         {
             path: '/cosmos-ui/servapps',
