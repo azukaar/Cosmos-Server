@@ -48,10 +48,25 @@ func GetIPAbuseCounter(ip string) int64 {
 	return atomic.LoadInt64(&counter.val)
 }
 
+func ClientRealIP(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clientID := GetClientIP(r)
+		if(clientID == ""){
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "ClientID", clientID)
+		r = r.WithContext(ctx)
+
+        next.ServeHTTP(w, r)
+    })
+}
+
 func BlockBannedIPs(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        ip, _, err := net.SplitHostPort(r.RemoteAddr)
-        if err != nil {
+        ip, ok := r.Context().Value("ClientID").(string)
+        if !ok {
 					if hj, ok := w.(http.Hijacker); ok {
 							conn, _, err := hj.Hijack()
 							if err == nil {
@@ -204,8 +219,8 @@ func GetIPLocation(ip string) (string, error) {
 func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhitelist bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
+			ip, ok := r.Context().Value("ClientID").(string)
+			if !ok {
 				http.Error(w, "Invalid request", http.StatusBadRequest)
 				return
 			}
@@ -289,7 +304,7 @@ func BlockPostWithoutReferer(next http.Handler) http.Handler {
 				Error("Blocked POST request without Referer header", nil)
 				http.Error(w, "Bad Request: Invalid request.", http.StatusBadRequest)
 
-				ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+				ip, _ := r.Context().Value("ClientID").(string)
 				if ip != "" {
 					TriggerEvent(
 						"cosmos.proxy.shield.referer",
@@ -349,7 +364,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
 			
-			ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+			ip, _ := r.Context().Value("ClientID").(string)
 			if ip != "" {
 				TriggerEvent(
 					"cosmos.proxy.shield.hostname",
@@ -415,7 +430,7 @@ func EnsureHostnameCosmosAPI(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusBadRequest)
 			http.Error(w, "Bad Request: Invalid hostname. Use your domain instead of your IP to access your server. Check logs if more details are needed.", http.StatusBadRequest)
 			
-			ip, _, _ := net.SplitHostPort(r.RemoteAddr)
+			ip, _ := r.Context().Value("ClientID").(string)
 			if ip != "" {
 				TriggerEvent(
 					"cosmos.proxy.shield.hostname",
@@ -469,14 +484,17 @@ func IsValidHostname(hostname string) bool {
 }
 
 func IPInRange(ipStr, cidrStr string) (bool, error) {
-	_, cidrNet, err := net.ParseCIDR(cidrStr)
-	if err != nil {
-		return false, fmt.Errorf("parse CIDR range: %w", err)
-	}
-
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
 		return false, fmt.Errorf("parse IP: invalid IP address")
+	}
+
+	_, cidrNet, err := net.ParseCIDR(cidrStr)
+	if err != nil {
+		if ipStr == cidrStr {
+			return true, nil
+		}
+		return false, fmt.Errorf("parse CIDR range: %w", err)
 	}
 
 	return cidrNet.Contains(ip), nil
@@ -486,8 +504,9 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
+		remoteAddr, _, err := net.SplitHostPort(r.RemoteAddr)
+		ip, ok := r.Context().Value("ClientID").(string)
+		if (err != nil) || !ok {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
@@ -495,7 +514,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 		isUsingWhiteList := len(WhitelistInboundIPs) > 0
 
 		isInWhitelist := false
-		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
+		isInConstellation := strings.HasPrefix(remoteAddr, "192.168.201.") || strings.HasPrefix(remoteAddr, "192.168.202.")
 
 		for _, ipRange := range WhitelistInboundIPs {
 			Debug("Checking if " + ip + " is in " + ipRange)
