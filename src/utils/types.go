@@ -12,6 +12,7 @@ type ProxyMode string
 type LoggingLevel string
 
 const (
+	NOONE 			 = -1
 	GUEST 			 = 0
 	USER         = 1
 	ADMIN        = 2
@@ -107,6 +108,7 @@ type Config struct {
 	Licence string
 	ServerToken string
 	RemoteStorage RemoteStorageConfig
+	DisableOpenIDDirect bool
 }
 
 

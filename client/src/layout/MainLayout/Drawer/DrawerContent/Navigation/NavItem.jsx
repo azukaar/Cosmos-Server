@@ -23,6 +23,18 @@ const NavItem = ({ item, level }) => {
     const {role} = useClientInfos();
     const isAdmin = role === "2";
 
+    // active menu item on page load
+    useEffect(() => {
+        const currentIndex = document.location.pathname
+            .toString()
+            .split('/')
+            .findIndex((id) => id === item.id);
+        if (currentIndex > -1) {
+            dispatch(activeItem({ openItem: [item.id] }));
+        }
+        // eslint-disable-next-line
+    }, []);
+
     if (item.adminOnly && !isAdmin) {
         return null;
     }
@@ -47,18 +59,6 @@ const NavItem = ({ item, level }) => {
     const itemIcon = item.icon ? <Icon style={{ fontSize: drawerOpen ? '1rem' : '1.25rem' }} /> : false;
 
     const isSelected = openItem.findIndex((id) => id === item.id) > -1;
-
-    // active menu item on page load
-    useEffect(() => {
-        const currentIndex = document.location.pathname
-            .toString()
-            .split('/')
-            .findIndex((id) => id === item.id);
-        if (currentIndex > -1) {
-            dispatch(activeItem({ openItem: [item.id] }));
-        }
-        // eslint-disable-next-line
-    }, []);
 
     const textColor = 'text.primary';
     const iconSelectedColor = 'primary.main';

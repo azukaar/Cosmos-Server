@@ -306,6 +306,10 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     formik={formik}
                   />
 
+                  {formik.values.UsePathPrefix && <Grid item xs={12}>
+                    <Alert color='warning'>{t('mgmt.urls.edit.sourceWarningPathPrefix')}</Alert>
+                  </Grid>}
+
                   {formik.values.UsePathPrefix && <CosmosInputText
                     name="PathPrefix"
                     label={t('mgmt.urls.edit.pathPrefixInputx.pathPrefixLabel')}

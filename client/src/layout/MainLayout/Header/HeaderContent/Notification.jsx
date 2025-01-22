@@ -90,7 +90,7 @@ const Notification = () => {
 
         const interval = setInterval(() => {
             refreshNotifications();
-        }, 10000);
+        }, 20000);
 
         return () => clearInterval(interval);
     }, []);

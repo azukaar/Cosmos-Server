@@ -477,6 +477,7 @@ const ConfigManagement = () => {
                     name="Licence"
                     formik={formik}
                     helperText="Licence Key"
+                    autoComplete={'licence-key'}
                     onChange={(e) => {
                       formik.setFieldValue("ServerToken", "");
                     }}

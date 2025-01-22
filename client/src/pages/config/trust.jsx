@@ -47,6 +47,9 @@ const TrustPage = () => {
     <Stack spacing={4} sx={{ maxWidth: 800, mx: 'auto', p: 3 }}>
       {/* Introduction Section */}
       <Paper sx={{ p: 3 }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          This is only needed if you use a self-signed certificate, or if you have .local / IP based routes. Otherwise, you can ignore this!
+        </Alert>
         <Typography variant="h4" gutterBottom>
           Understanding Self-Signed Certificates
         </Typography>

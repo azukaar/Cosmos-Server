@@ -294,7 +294,7 @@ const NewInstall = () => {
                     TLSKey: "",
                     TLSCert: "",
                     Hostname: window.location.href.includes('setup-cosmos.local') ? "cosmos.local" : window.location.hostname,
-                    HTTPSCertificateMode: "",
+                    HTTPSCertificateMode: "SELFSIGNED",
                     UseWildcardCertificate: false,
                     DNSChallengeProvider: '',
                     DNSChallengeConfig: {},

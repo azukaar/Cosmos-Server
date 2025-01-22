@@ -89,7 +89,7 @@ const Jobs = () => {
 
         const interval = setInterval(() => {
             refreshJobs();
-        }, 15000);
+        }, 20000);
 
         return () => clearInterval(interval);
     }, []);

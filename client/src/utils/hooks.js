@@ -9,7 +9,8 @@ function useClientInfos() {
 
   if(isDemo) return {
     nickname: "Demo",
-    role: "2" 
+    role: "2",
+    userRole: "2"
   };
 
   let clientInfos = null;
@@ -17,10 +18,15 @@ function useClientInfos() {
   try {
     // Try to parse the cookie into a JavaScript object
     clientInfos = cookies['client-infos'].split(',');
+
+    if(clientInfos.length !== 3) {
+      window.location.href = '/cosmos-ui/logout';
+    }
     
     return {
       nickname: clientInfos[0],
-      role: clientInfos[1]
+      userRole: clientInfos[1],
+      role: clientInfos[2]
     };
   } catch (error) {
     console.error('Error parsing client-infos cookie:', error);

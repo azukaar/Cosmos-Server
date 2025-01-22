@@ -9,7 +9,7 @@ import AuthWrapper from './AuthWrapper';
 import { getFaviconURL } from '../../utils/routes';
 import { LoadingButton } from '@mui/lab';
 import { Field, useFormik } from 'formik';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 
 // ================================|| LOGIN ||================================ //
@@ -22,6 +22,15 @@ const OpenID = () => {
   const scope = searchParams.get("scope")
   const entireSearch = searchParams.toString()
   const [checkedScopes, setCheckedScopes] = useState(["openid"])
+  const formRef = useRef(null)
+
+  // if only 'account' as scope, auto redirect
+  useEffect(() => {
+    if (scope == "openid" && formRef && formRef.current) {
+      formRef.current.submit();
+    }
+  }, [formRef]);
+  
 
   let icon;
 
@@ -69,7 +78,7 @@ const OpenID = () => {
       </Grid>
       <Grid item xs={12}>
 			  <link rel="openid2.provider openid.server" href={selfHostname + "/oauth2/auth"} />
-        <form action={"/oauth2/auth?" + entireSearch} method="post">
+        <form action={"/oauth2/auth?" + entireSearch} method="post" ref={formRef}>
           <input type="hidden" name="client_id" value={client_id} />
           {scope.split(' ').map((scope) => {
             return scope == "openid" ? <div>
