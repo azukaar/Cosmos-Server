@@ -93,12 +93,22 @@ export const ConstellationVPN = ({freeVersion}) => {
         </Alert>}
         <MainCard title={t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
           <Stack spacing={2}>
-          {constellationEnabled && config.ConstellationConfig.SlaveMode && <>
+          {constellationEnabled && config.ConstellationConfig.SlaveMode && isAdmin && <>
+            <Alert severity="info">
+              {t('mgmt.constellation.externalTextSlaveNoAdmin')}
+            </Alert>
+          </>}
+          {constellationEnabled && config.ConstellationConfig.SlaveMode && isAdmin && <>
             <Alert severity="info">
               {t('mgmt.constellation.externalText')}
             </Alert>
           </>}  
-          <Formik
+          {!constellationEnabled && !isAdmin && <>
+            <Alert severity="info">
+              {t('mgmt.constellation.setupTextNoAdmin')}
+            </Alert>
+          </>}
+          {(isAdmin || constellationEnabled) && <Formik
             enableReinitialize
             initialValues={{
               Enabled: config.ConstellationConfig.Enabled,
@@ -124,7 +134,7 @@ export const ConstellationVPN = ({freeVersion}) => {
             {(formik) => (
               <form onSubmit={formik.handleSubmit}>
                 <Stack spacing={2}>        
-                {constellationEnabled && <Stack spacing={2} direction="row">    
+                {isAdmin && constellationEnabled && <Stack spacing={2} direction="row">    
                   <Button
                       disableElevation
                       variant="outlined"
@@ -165,21 +175,21 @@ export const ConstellationVPN = ({freeVersion}) => {
                   </div>}
 
                   {!freeVersion && <>
-                  <CosmosCheckbox formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
+                  <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
                   
                   {constellationEnabled && !config.ConstellationConfig.SlaveMode && <>
                     {formik.values.Enabled && <>
-                      <CosmosCheckbox formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
-                      <CosmosCheckbox formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
-                      <CosmosCheckbox formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} />
+                      <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
+                      <CosmosCheckbox disabled={!isAdmin} formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
+                      <CosmosCheckbox disabled={!isAdmin} formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} />
                       {!formik.values.PrivateNode && <>
                         <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
-                        <CosmosInputText formik={formik} name="ConstellationHostname" label={'Constellation '+t('global.hostname')} />
+                        <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={'Constellation '+t('global.hostname')} />
                       </>}
                     </>}
                   </>}
 
-                  <LoadingButton
+                  {isAdmin && <><LoadingButton
                       disableElevation
                       loading={formik.isSubmitting}
                       type="submit"
@@ -189,7 +199,8 @@ export const ConstellationVPN = ({freeVersion}) => {
                       {t('global.saveAction')}
                   </LoadingButton>
                   </>}
-                  <UploadButtons
+                  </>}
+                  {isAdmin && <><UploadButtons
                     accept=".yml,.yaml"
                     label={config.ConstellationConfig.SlaveMode ?
                       t('mgmt.constellation.setup.externalConfig.slaveMode.label')
@@ -203,11 +214,11 @@ export const ConstellationVPN = ({freeVersion}) => {
                         refreshConfig();
                       }, 1000);
                     }}
-                  />
+                  /></>}
                 </Stack>
               </form>
             )}
-          </Formik>
+          </Formik>}
           </Stack>
         </MainCard>
       </div>

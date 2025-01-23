@@ -42,12 +42,13 @@ export const getNestedValue = (values, path) => {
   }, values);
 };
 
-export const CosmosInputText = ({ name, style, value, errors, multiline, type, placeholder, onChange, label, formik }) => {
+export const CosmosInputText = ({ name, style, value, errors, multiline, type, placeholder, onChange, label, formik, disabled }) => {
   return <Grid item xs={12}>
     <Stack spacing={1} style={style}>
       {label && <InputLabel htmlFor={name}>{label}</InputLabel>}
       <OutlinedInput
         id={name}
+        disabled={disabled}
         type={type ? type : 'text'}
         value={value || (formik && getNestedValue(formik.values, name))}
         name={name}
@@ -187,12 +188,13 @@ export const CosmosSelect = ({ name, onChange, label, formik, disabled, options,
   );
 };
 
-export const CosmosCheckbox = ({ name, label, formik, style }) => {
+export const CosmosCheckbox = ({ name, label, formik, style, disabled }) => {
   return <Grid item xs={12}>
     <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
       <Field
         type="checkbox"
         name={name}
+        disabled={disabled}
         as={FormControlLabel}
         control={<Checkbox size="large" />}
         label={label}

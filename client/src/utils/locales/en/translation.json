@@ -235,6 +235,8 @@
 	"mgmt.config.security.geoBlockSelection.varBlock": "block",
 	"mgmt.config.security.geoblock.resetToDefaultButton": "Reset to default (most dangerous countries)",
 	"mgmt.config.security.invertBlacklistCheckbox.invertBlacklistLabel": "Use list as whitelist instead of blacklist",
+	"mgmt.constellation.externalTextSlaveNoAdmin": "This server is currently running as slave mode, you can only add your devices to the main server.",
+	"mgmt.constellation.setupTextNoAdmin": "Constellation is not enabled on this server. Only an admin can activate it.",
 	"mgmt.constellation.dns.resetButton": "Reset",
 	"mgmt.constellation.dnsBlocklistsTitle": "DNS Blocklists",
 	"mgmt.constellation.dnsTitle": "Constellation Internal DNS",

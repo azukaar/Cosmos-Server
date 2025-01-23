@@ -145,7 +145,7 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_Ping(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.LoggedInOnly(w, req) != nil {
 		return
 	}
 
