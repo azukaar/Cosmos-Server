@@ -1,5 +1,5 @@
 // assets
-import { HomeOutlined, AppstoreOutlined, DashboardOutlined, AppstoreAddOutlined } from '@ant-design/icons';
+import { HomeOutlined, AppstoreOutlined, DashboardOutlined, AppstoreAddOutlined, CheckOutlined } from '@ant-design/icons';
 
 // icons
 const icons = {
@@ -36,6 +36,14 @@ const dashboard = {
             type: 'item',
             url: '/cosmos-ui/market-listing',
             icon: AppstoreAddOutlined,
+            breadcrumbs: false
+        },
+        {
+            id: 'trust',
+            title: 'menu-items.navigation.trustTitle',
+            type: 'item',
+            url: '/cosmos-ui/trust',
+            icon: CheckOutlined,
             breadcrumbs: false
         },
     ]

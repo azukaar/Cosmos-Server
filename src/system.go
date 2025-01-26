@@ -76,6 +76,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"letsencrypt": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && utils.GetMainConfig().HTTPConfig.SSLEmail == "",
 				"domain": utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0",
 				"HTTPSCertificateMode": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode,
+				"CACert": utils.GetMainConfig().HTTPConfig.CACert,
 				"needsRestart": utils.NeedsRestart,
 				"newVersionAvailable": utils.NewVersionAvailable,
 				"hostname": utils.GetMainConfig().HTTPConfig.Hostname,

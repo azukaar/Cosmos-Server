@@ -77,7 +77,11 @@ func Check2FA(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		SendUserToken(w, req, userInBase, true)
+		role := userInBase.Role
+		if role >= utils.ADMIN {
+			role = utils.USER
+		}
+		SendUserToken(w, req, userInBase, true, role)
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

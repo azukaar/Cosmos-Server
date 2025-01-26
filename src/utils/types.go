@@ -12,6 +12,7 @@ type ProxyMode string
 type LoggingLevel string
 
 const (
+	NOONE 			 = -1
 	GUEST 			 = 0
 	USER         = 1
 	ADMIN        = 2
@@ -107,6 +108,7 @@ type Config struct {
 	Licence string
 	ServerToken string
 	RemoteStorage RemoteStorageConfig
+	DisableOpenIDDirect bool
 }
 
 
@@ -154,10 +156,16 @@ type ThemeConfig struct {
 }
 
 type HTTPConfig struct {
+	CACert string
+	CAPrivateKey  string
 	TLSCert string `validate:"omitempty,contains=\n`
 	TLSKey string
 	TLSKeyHostsCached []string
 	TLSValidUntil time.Time
+	SelfTLSCert string `validate:"omitempty,contains=\n`
+	SelfTLSKey string
+	SelfTLSKeyHostsCached []string
+	SelfTLSValidUntil time.Time
 	AuthPrivateKey string
 	AuthPublicKey string
 	GenerateMissingAuthCert bool

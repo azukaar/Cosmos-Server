@@ -17,9 +17,13 @@ import (
 	"errors"
 	"path/filepath"
 	"os/exec"
-
+	"encoding/hex"
+	"crypto/sha256"
+	_url "net/url"
 	osnet "net"
-
+	
+	
+	"github.com/ory/fosite"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -352,6 +356,13 @@ func Sanitize(s string) string {
 
 func SanitizeSafe(s string) string {
 	return strings.TrimSpace(s)
+}
+
+func SanitizeNoSpace(s string) string {
+	s1 := strings.ToLower(strings.TrimSpace(s))
+	s1 = strings.ReplaceAll(s1, " ", "-")
+	s1 = strings.ReplaceAll(s1, "@", "-")
+	return s1
 }
 
 func GetConfigFileName() string {	
@@ -898,17 +909,26 @@ func Exec(cmd string, args ...string) (string, error) {
 }
 
 func IsLocalIP(ip string) bool {
-	// IPv4 specific local addresses
-	if strings.HasPrefix(ip, "192.168.") || strings.HasPrefix(ip, "10.") || strings.HasPrefix(ip, "172.") || ip == "127.0.0.1" || ip == "localhost" {
+	// explicit localhost
+	if ip == "localhost" {
 		return true
 	}
-	// IPv6 specific local addresses
-	if strings.HasPrefix(ip, "fe80:") || strings.HasPrefix(ip, "fc00:") || strings.HasPrefix(ip, "fd00:") || ip == "::1" {
+	parsed := osnet.ParseIP(ip)
+	// check for loopback or private address space using go std lib
+	if parsed.IsLoopback() || parsed.IsPrivate() {
 		return true
+	}
+	// more private IPv4 address ranges
+	if ip4 := parsed.To4(); ip4 != nil {
+		// https://en.wikipedia.org/wiki/Reserved_IP_addresses
+		//     100.64.0.0      -   100.127.255.255 (100.64/10 prefix)
+		//     192.0.0.0       -   192.0.0.255     (192.0.0.0/24 prefix)
+		return (ip4[0] == 100 && ip4[1]&0x40 == 64) ||
+		    (ip4[0] == 192 && ip4[1] == 0 && ip4[2] == 0)
 	}
 	// Handling cases where IPv6 might be enclosed in brackets
-	if strings.HasPrefix(ip, "[fe80:") || strings.HasPrefix(ip, "[fc00:") || strings.HasPrefix(ip, "[fd00:") || ip == "[::1]" {
-		return true
+	if strings.HasPrefix(ip, "[") && strings.HasSuffix(ip, "]") {
+		return IsLocalIP(strings.TrimSuffix(strings.TrimPrefix(ip, "["), "]"))
 	}
 	return false
 }
@@ -1007,4 +1027,100 @@ func GetNextAvailableLocalPort(startPort int) (string, error) {
 			}
 	}
 	return "", fmt.Errorf("no available ports")
+}
+
+func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.DefaultClient {
+	// Generate deterministic client ID and secret from route info
+	config := GetMainConfig()
+	HTTPPort := config.HTTPConfig.HTTPPort
+	HTTPSPort := config.HTTPConfig.HTTPSPort
+	h := sha256.New()
+	h.Write([]byte(route.Host))
+	h.Write([]byte(config.HTTPConfig.AuthPrivateKey)) // Use existing key as salt
+	hash := h.Sum(nil)
+	fullhost := route.Host
+
+	// parse host
+	parsedURL, err := _url.Parse("http://" + route.Host)
+	if err == nil {
+			host, port := parsedURL.Hostname(), parsedURL.Port()
+			if port == "" {
+					if IsHTTPS && HTTPSPort != "443" {
+							fullhost = host + ":" + HTTPSPort
+					} else if !IsHTTPS && HTTPPort != "80" {
+							fullhost = host + ":" + HTTPPort
+					}
+			}
+	} else {
+			Error("Error parsing host: " + fullhost, err)
+	}
+
+	clientID := route.Name //SanitizeNoSpace(Route.Name) + "_" + hex.EncodeToString(hash[:8])
+	plainSecret := hex.EncodeToString(hash[8:24])
+
+
+	secret := plainSecret
+	if hashSecret {
+		// Hash the secret with bcrypt
+		hashedSecret, err := bcrypt.GenerateFromPassword([]byte(plainSecret), bcrypt.DefaultCost)
+		if err != nil {
+				Error("Failed to hash client secret", err)
+				// Return with unhashed secret as fallback
+				hashedSecret = []byte(plainSecret)
+		}
+
+		secret = string(hashedSecret)
+	}
+
+	callbackURL := fmt.Sprintf("https://%s/cosmos/oauth2/detect-callback", route.Host)
+	callbackURLClient := fmt.Sprintf("https://%s/oauth2/callback", route.Host)
+
+	redURls := []string{callbackURL, callbackURLClient}
+
+	if IsHTTPS && config.HTTPConfig.AllowHTTPLocalIPAccess {
+		callbackURL2 := fmt.Sprintf("http://%s/cosmos/oauth2/detect-callback", route.Host)
+		redURls = append(redURls, callbackURL2)
+	}
+	
+	return &fosite.DefaultClient{
+			ID:            clientID,
+			Secret: 			 []byte(secret),
+			RedirectURIs:  redURls,
+			Scopes:        []string{"openid", "email", "profile", "offline"},
+			ResponseTypes: []string{"code"},
+			GrantTypes:    []string{"authorization_code"},
+	}
+}
+
+func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
+	config := GetMainConfig()
+	HTTPPort := config.HTTPConfig.HTTPPort
+	HTTPSPort := config.HTTPConfig.HTTPSPort
+
+	parsedURL, err := _url.Parse("http://" + hostname)
+	
+	if err != nil {
+			Error("Failed to parse URL", err)
+			return hostname, nil
+	}
+	
+	host, port := parsedURL.Hostname(), parsedURL.Port()
+	
+	if port != "" {
+			if IsHTTPS && port == HTTPSPort {
+					hostname = host
+			} else if !IsHTTPS && port == HTTPPort {
+					hostname = host 
+			}
+	}
+	
+	var proxyRoute *ProxyRouteConfig
+	for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+			if route.Host == hostname {
+					proxyRoute = &route
+					break
+			}
+	}
+
+	return hostname, proxyRoute
 }

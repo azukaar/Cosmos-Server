@@ -30,6 +30,7 @@ import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../config/users/formShortcuts';
 import { MetricPicker } from './MetricsPicker';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 const DisplayOperator = (operator) => {
   switch (operator) {
@@ -43,16 +44,18 @@ const DisplayOperator = (operator) => {
       return '?';
   }
 }
-const AlertValidationSchema = Yup.object().shape({
-  name: Yup.string().required('Name is required'),
-  trackingMetric: Yup.string().required('Tracking metric is required'),
-  conditionOperator: Yup.string().required('Condition operator is required'),
-  conditionValue: Yup.number().required('Condition value is required'),
-  period: Yup.string().required('Period is required'),
-});
 
 const EditAlertModal = ({ open, onClose, onSave }) => {
   const { t } = useTranslation();
+
+  const AlertValidationSchema = Yup.object().shape({
+    name: Yup.string().required(t('global.name.validation')),
+    trackingMetric: Yup.string().required(t('navigation.monitoring.alerts.action.edit.trackingMetric.validation')),
+    conditionOperator: Yup.string().required(t('navigation.monitoring.alerts.action.edit.conditionOperator.validation')),
+    conditionValue: Yup.number().required(t('navigation.monitoring.alerts.action.edit.conditionValue.validation')),
+    period: Yup.string().required(t('navigation.monitoring.alerts.action.edit.period.validation')),
+  });
+
   const formik = useFormik({
     initialValues: {
       name: open.Name || t('navigation.monitoring.alerts.newAlertButton'),
@@ -482,7 +485,7 @@ const AlertPage = () => {
                 { 
                   title: t('navigation.monitoring.alerts.astTriggeredTitle'),
                   screenMin: 'md',
-                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? new Date(r.LastTriggered).toLocaleString() : t('global.never'),
+                  field: (r) => (r.LastTriggered != "0001-01-01T00:00:00Z") ? dayjs(new Date(r.LastTriggered)).format('L, LT') : t('global.never'),
                 },
                 { 
                   title: t('navigation.monitoring.alerts.actionsTitle'), 

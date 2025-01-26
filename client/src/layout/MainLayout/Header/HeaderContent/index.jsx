@@ -13,6 +13,7 @@ import Jobs from './jobs';
 import { useTranslation } from 'react-i18next';
 import RestartMenu from './restartMenu';
 import TerminalHeader from './terminal';
+import SudoModal from './sudoModal';
 
 // ==============================|| HEADER - CONTENT ||============================== //
 
@@ -30,6 +31,7 @@ const HeaderContent = () => {
                 <Jobs />
                 <Notification />
 
+                <SudoModal />
                 <Link href="/cosmos-ui/logout" underline="none">
                     <Chip label={t('global.logout')} style={{height: '36px'}} />
                 </Link>

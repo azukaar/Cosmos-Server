@@ -21,8 +21,7 @@ import {
     useMediaQuery,
     Button
 } from '@mui/material';
-import { register, format } from 'timeago.js';
-import de from "timeago.js/lib/lang/de";
+import dayjs from 'dayjs';
 
 // project import
 import MainCard from '../../../../components/MainCard';
@@ -60,7 +59,6 @@ const getStatus = (job) => {
 }
 
 const Jobs = () => {
-    register('de', de);
     const { t, i18n } = useTranslation();
     const {role} = useClientInfos();
     const isAdmin = role === "2";
@@ -91,7 +89,7 @@ const Jobs = () => {
 
         const interval = setInterval(() => {
             refreshJobs();
-        }, 15000);
+        }, 20000);
 
         return () => clearInterval(interval);
     }, []);
@@ -252,7 +250,7 @@ const Jobs = () => {
                                             }}>
                                             <Typography variant="caption" noWrap >
                                                 {job.LastStarted == '0001-01-01T00:00:00Z' ? t('mgmt.scheduler.list.status.neverRan') : (
-                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${format(job.LastStarted, i18n.resolvedLanguage)}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${format(job.LastRun, i18n.resolvedLanguage)}`
+                                                    job.Running ? <span><LoadingOutlined />{` `+t('mgmt.cron.list.state.running')+` ${dayjs(job.LastStarted).format('L, LT')}`}</span> : t('mgmt.cron.list.state.lastRan')+` ${dayjs(job.LastRun).fromNow()}`
                                                 )}
                                             </Typography>
                                             </ListItemButton>

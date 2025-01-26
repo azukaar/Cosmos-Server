@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import dayjs from 'dayjs';
 
 // material-ui
 import { useTheme } from '@mui/material/styles';
@@ -20,8 +21,6 @@ import {
     Typography,
     useMediaQuery
 } from '@mui/material';
-import { register, format } from 'timeago.js';
-import de from "timeago.js/lib/lang/de";
 
 // project import
 import MainCard from '../../../../components/MainCard';
@@ -52,7 +51,6 @@ const actionSX = {
 // ==============================|| HEADER CONTENT - NOTIFICATION ||============================== //
 
 const Notification = () => {
-    register('de', de);
     const { t, i18n } = useTranslation();
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
@@ -92,7 +90,7 @@ const Notification = () => {
 
         const interval = setInterval(() => {
             refreshNotifications();
-        }, 10000);
+        }, 20000);
 
         return () => clearInterval(interval);
     }, []);
@@ -256,7 +254,7 @@ const Notification = () => {
                                                 />
                                                 <ListItemSecondaryAction>
                                                     <Typography variant="caption" noWrap>
-                                                        {format(notification.Date, i18n.resolvedLanguage)}
+                                                        {dayjs(notification.Date).fromNow()}
                                                     </Typography>
                                                 </ListItemSecondaryAction>
                                             </ListItemButton>

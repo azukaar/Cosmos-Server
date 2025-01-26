@@ -130,7 +130,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
             op.then((res) => {
               if (res.status == "OK") {
                 setStatus({ success: true });
-                snackit('Route updated successfully', 'success')
+                snackit(t('mgmt.urls.edit.updateSuccess'), 'success')
                 setSubmitting(false);
                 setOpenModal(true);
               } else {
@@ -157,7 +157,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
           // check name is unique
           if (newRoute && routeNames.includes(fullValues.Name)) {
-            return { Name: 'Name must be unique' }
+            return { Name: t('navigation.market.sources.nameNotUniqueValidation')  }
           }
 
           if(IsRouteSocketProxy(fullValues)) {
@@ -305,6 +305,10 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     label={t('mgmt.urls.edit.usePathPrefixCheckbox.usePathPrefixLabel')}
                     formik={formik}
                   />
+
+                  {formik.values.UsePathPrefix && <Grid item xs={12}>
+                    <Alert color='warning'>{t('mgmt.urls.edit.sourceWarningPathPrefix')}</Alert>
+                  </Grid>}
 
                   {formik.values.UsePathPrefix && <CosmosInputText
                     name="PathPrefix"

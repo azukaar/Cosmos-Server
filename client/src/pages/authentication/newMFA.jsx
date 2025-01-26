@@ -106,7 +106,7 @@ const MFASetup = () => {
   const canvasRef = useRef(null);
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const { t, Trans } = useTranslation();
+  const { t } = useTranslation();
 
   const getCode = () => {
     return API.users.new2FA().then(({data}) => {

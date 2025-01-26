@@ -14,8 +14,10 @@ import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { snackit } from '../../../api/wrap';
 import { IsRouteSocketProxy } from '../../../utils/routes';
+import { useTranslation } from 'react-i18next';
 
 const RouteSecurity = ({ routeConfig, config }) => {
+  const { t } = useTranslation();
   const [openModal, setOpenModal] = React.useState(false);
   const isNotSocketProxy = !IsRouteSocketProxy(routeConfig);
 
@@ -74,7 +76,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
           API.config.replaceRoute(routeConfig.Name, fullValues).then((res) => {
             if (res.status == "OK") {
               setStatus({ success: true });
-              snackit('Route updated successfully', 'success');
+              snackit(t('mgmt.urls.edit.updateSuccess'), 'success');
               setSubmitting(false);
               setOpenModal(true);
             } else {
@@ -88,148 +90,148 @@ const RouteSecurity = ({ routeConfig, config }) => {
         {(formik) => (
           <form noValidate onSubmit={formik.handleSubmit}>
             <Stack spacing={2}>
-              <MainCard name={routeConfig.Name} title={'Security'}>
-                <Grid container spacing={2}>
+            <MainCard name={routeConfig.Name} title={t('global.securityTitle')}>
+            <Grid container spacing={2}>
                     {isNotSocketProxy && <>
-                      <CosmosFormDivider title={'Authentication'} />
+                      <CosmosFormDivider title={t('auth.authTitle')} />
 
                       <CosmosCheckbox
                         name="AuthEnabled"
-                        label="Authentication Required"
+                      label={t('mgmt.urls.edit.basicSecurity.authEnabledCheckbox.authEnabledLabel')}
                         formik={formik}
                       />
 
                       <CosmosCheckbox
                         name="AdminOnly"
-                        label="Admin only"
+                        label={t('mgmt.urls.edit.basicSecurity.adminOnlyCheckbox.adminOnlyLabel')}
                         formik={formik}
                       />
 
-                      <CosmosFormDivider title={'Headers'} />
+                      <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurity.headers.headersTitle')} />
   
                       <CosmosCheckbox
                         name="DisableHeaderHardening"
-                        label="Disable Header Hardening"
+                        label={t('mgmt.urls.edit.basicSecurity.disableHeaderHardeningCheckbox.disableHeaderHardeningLabel')}
                         formik={formik}
                       />
                     </>}
 
-                    <CosmosFormDivider title={'Smart Shield'} />
+                    <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurity.smartShield.smartShieldTitle')} />
 
                     <CosmosCheckbox
                       name="_SmartShield_Enabled"
-                      label="Smart Shield Protection"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShieldEnabledCheckbox.smartShieldEnabledLabel')}
                       formik={formik}
                     />
 
                     <CosmosSelect
                       name="_SmartShield_PolicyStrictness"
-                      label="Policy Strictness"
-                      placeholder="Policy Strictness"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShieldPolicyStrictness.smartShieldPolicySelectTitle')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShieldPolicyStrictness.smartShieldPolicySelectTitle')}
                       options={[
-                        [0, 'Default'],
-                        [1, 'Strict'],
-                        [2, 'Normal'],
-                        [3, 'Lenient'],
+                        [0, t('global.default')],
+                        [1, t('mgmt.urls.edit.basicSecurity.smartShieldPolicyStrictness.smartShieldPolicySelectChoice.strict')],
+                        [2, t('global.normal')],
+                        [3, t('mgmt.urls.edit.basicSecurity.smartShieldPolicyStrictness.smartShieldPolicySelectChoice.lenient')],
                       ]}
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="_SmartShield_PerUserTimeBudget"
-                      label="Per User Time Budget in milliseconds (0 for default)"
-                      placeholder="Per User Time Budget"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.timeBudget.timeBudgetLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.timeBudget.timeBudgetPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="_SmartShield_PerUserRequestLimit"
-                      label="Per User Request Limit (0 for default)"
-                      placeholder="Per User Request Limit"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.requestLimit.requestLimitLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.requestLimit.requestLimitPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="_SmartShield_PerUserByteLimit"
-                      label="Per User Byte Limit (0 for default)"
-                      placeholder="Per User Byte Limit"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.byteLimit.byteLimitLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.byteLimit.byteLimitPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="_SmartShield_PerUserSimultaneous"
-                      label="Per User Simultaneous Connections Limit (0 for default)"
-                      placeholder="Per User Simultaneous Connections Limit"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.connectionLimitUser.connectionLimitUserLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.connectionLimitUser.connectionLimitUserPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="_SmartShield_MaxGlobalSimultaneous"
-                      label="Max Global Simultaneous Connections Limit (0 for default)"
-                      placeholder="Max Global Simultaneous Connections Limit"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.connectionLimitGlobal.connectionLimitGlobalLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.connectionLimitGlobal.connectionLimitGlobalPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosSelect
                       name="_SmartShield_PrivilegedGroups"
-                      label="Privileged Groups "
-                      placeholder="Privileged Group"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.privilegedGroups.privilegedGroupsLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.privilegedGroups.privilegedGroupsPlaceholder')}
                       options={[
-                        [0, 'Default'],
-                        [1, 'Users & Admins'],
-                        [2, 'Admin Only'],
+                        [0, t('global.default')],
+                        [1, t('mgmt.urls.edit.basicSecurity.smartShield.privilegedGroups.privilegedGroupsSelection.usersAdmins')],
+                        [2, t('mgmt.urls.edit.basicSecurity.smartShield.privilegedGroups.privilegedGroupsSelection.adminsOnly')],
                       ]}
                       formik={formik}
                     />
                     
                     {isNotSocketProxy && <>
-                    <CosmosFormDivider title={'Limits'} />
+                    <CosmosFormDivider title={t('mgmt.urls.edit.basicSecurity.smartShield.limits.limitsTitle')} />
 
                     <CosmosInputText
                       name="Timeout"
-                      label="Timeout in milliseconds (0 for no timeout, at least 60000 or less recommended)"
-                      placeholder="Timeout"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.limits.timeout.timeoutLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.limits.timeout.timeoutPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="MaxBandwith"
-                      label="Maximum Bandwith limit per user in bytes per seconds (0 for no limit)"
-                      placeholder="Maximum Bandwith"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.limits.bandwidth.bandwidthLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.limits.bandwidth.bandwidthPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="ThrottlePerMinute"
-                      label="Maximum number of requests Per Minute (0 for no limit, at least 2000 or less recommended)"
-                      placeholder="Throttle Per Minute"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.limits.requests.requestsPlaceholder')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.limits.requests.requestsPlaceholder')}
                       type="number"
                       formik={formik}
                     />
 
                     <CosmosInputText
                       name="CORSOrigin"
-                      label="Custom CORS Origin (Recommended to leave blank)"
-                      placeholder="CORS Origin"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.cors.corsLabel')}
+                      placeholder={t('mgmt.urls.edit.basicSecurity.smartShield.cors.corsPlaceholder')}
                       formik={formik}
                     />
 
                     <CosmosCheckbox
                       name="BlockCommonBots"
-                      label="Block Common Bots (Recommended)"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.commonBotsCheckbox.commomBotsLabel')}
                       formik={formik}
                     />
 
                     <CosmosCheckbox
                       name="BlockAPIAbuse"
-                      label="Block requests without Referer header"
+                      label={t('mgmt.urls.edit.basicSecurity.smartShield.noReffererCheckbox.noReffererLabel')}
                       formik={formik}
                     />
                   </>}
@@ -243,7 +245,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
                 variant="contained"
                 color="primary"
               >
-                Save
+                {t('global.saveAction')}
               </Button></MainCard>
             </Stack>
           </form>

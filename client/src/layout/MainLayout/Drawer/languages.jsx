@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Grid, Chip, Stack } from '@mui/material';
 import "./flag.css";
 import { useTranslation } from 'react-i18next';
+import { dayjsLocale } from '../../../utils/locales/i18n';
 
 const languages = [
   { code: 'en', name: 'English (US)', flag: 'us' },
@@ -31,6 +32,7 @@ export const LanguagesSelectModal = ({ open, setOpen }) => {
   const handleLanguageChange = (langCode) => {
     setSelectedLanguage(langCode);
     i18n.changeLanguage(langCode);
+    dayjsLocale(langCode);
   };
 
   const handleClose = () => {

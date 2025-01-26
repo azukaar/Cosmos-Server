@@ -10,6 +10,16 @@ function login(values) {
   }))
 }
 
+function sudo(values) {
+  return wrap(fetch('/cosmos/api/sudo', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(values)
+  }))
+}
+
 function me() {
   return fetch('/cosmos/api/me', {
     method: 'GET',
@@ -32,5 +42,6 @@ function logout() {
 export {
   login,
   logout,
-  me
+  me,
+  sudo
 };

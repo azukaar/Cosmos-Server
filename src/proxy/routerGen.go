@@ -39,17 +39,19 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			
 			r.Header.Del("x-cosmos-user")
 			r.Header.Del("x-cosmos-role")
+			r.Header.Del("x-cosmos-user-role")
 			r.Header.Del("x-cosmos-mfa")
 			r.Header.Del("x-cstln-auth")
 
-			u, err := user.RefreshUserToken(w, r)
+			role, u, err := user.RefreshUserToken(w, r)
 
 			if err != nil {
 				return
 			}
 
 			r.Header.Set("x-cosmos-user", u.Nickname)
-			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(u.Role)))
+			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(role)))
+			r.Header.Set("x-cosmos-user-role", strconv.Itoa((int)(u.Role)))
 			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
 
 			ogcookies := r.Header.Get("Cookie")
@@ -61,11 +63,11 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			//r.Header.Set("x-cosmos-token", "1234567890")
 
 			if enabled && adminOnly {
-				if errT := utils.AdminOnlyWithRedirect(w, r); errT != nil {
+				if errT := AdminOnlyWithRedirect(w, r, route); errT != nil {
 					return
 				}
 			} else if enabled {
-				if errT := utils.LoggedInOnlyWithRedirect(w, r); errT != nil {
+				if errT := LoggedInOnlyWithRedirect(w, r, route); errT != nil {
 					return
 				}
 			}

@@ -9,7 +9,7 @@ import (
 
 func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	utils.Log("Token endpoint")
-
+	
 	// This context will be passed to all methods.
 	ctx := req.Context()
 

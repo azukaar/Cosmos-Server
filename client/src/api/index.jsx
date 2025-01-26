@@ -53,6 +53,7 @@ let getStatus = (initial) => {
 
     if(response.status != 'OK') {
       if( 
+          window.location.href.indexOf('/cosmos-ui/oauth/callback') == -1 && 
           window.location.href.indexOf('/cosmos-ui/newInstall') == -1 && 
           window.location.href.indexOf('/cosmos-ui/login') == -1 && 
           window.location.href.indexOf('/cosmos-ui/loginmfa') == -1 && 
