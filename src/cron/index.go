@@ -8,9 +8,11 @@ import (
 	"io"
 	"bufio"
 	"os/exec"
+	"os"
 	"fmt"
 
 	"github.com/go-co-op/gocron/v2"
+	"github.com/creack/pty"
 
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -74,6 +76,10 @@ func getJobsList() map[string]map[string]ConfigJob {
 }
 
 func JobFromCommand(command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+	return JobFromCommandWithEnv([]string{}, command, args...)
+}
+
+func JobFromCommandWithEnv(env []string, command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 	return func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 			done := make(chan bool, 1)
 			var cmdErr error
@@ -87,53 +93,50 @@ func JobFromCommand(command string, args ...string) func(OnLog func(string), OnF
 					}()
 
 					cmd := exec.CommandContext(ctx, command, args...)
+					cmd.Env = append(os.Environ(), env...)
 					
-					stdout, err := cmd.StdoutPipe()
+					// Create a pseudo-terminal (PTY)
+					ptmx, err := pty.Start(cmd)
 					if err != nil {
-							cmdErr = err
+							cmdErr = fmt.Errorf("failed to start pty: %v", err)
 							return
 					}
 
-					stderr, err := cmd.StderrPipe()
-					if err != nil {
-							cmdErr = err
-							return
-					}
+					// Create a single channel for log completion
+					logsDone := make(chan bool, 1)
 
-					if err := cmd.Start(); err != nil {
-							cmdErr = err
-							return
-					}
-
-					// Use buffered channels for log streaming
-					logsDone := make(chan bool, 2)
-					
+					// Stream both stdout and stderr through the PTY
 					go func() {
-							streamLogs(stdout, OnLog)
-							logsDone <- true
-					}()
-					
-					go func() {
-							streamLogs(stderr, OnLog)
-							logsDone <- true
+							buf := make([]byte, 1024)
+							for {
+									n, err := ptmx.Read(buf)
+									if err != nil {
+											// if err != io.EOF {
+											// 		cmdErr = fmt.Errorf("pty read error: %v", err)
+											// }
+											logsDone <- true
+											return
+									}
+									if n > 0 {
+											OnLog(string(buf[:n]))
+									}
+							}
 					}()
 
-					// Wait for both log streams to complete
-					<-logsDone
+					// Wait for log streaming to complete
 					<-logsDone
 
+					// Wait for the command to complete
 					if err := cmd.Wait(); err != nil {
-							cmdErr = err
+							ptmx.Close()
+							cmdErr = fmt.Errorf("command failed: %v", err)
 							return
 					}
+
+					ptmx.Close()
 			}()
 
-			// Set default timeout if none specified
-			// timeout := 240 * time.Hour
-			// if job, ok := jobsList[schedulerName][jobName]; ok && job.Timeout > 0 {
-			// 		timeout = job.Timeout
-			// }
-
+			// Handle completion and context cancellation
 			select {
 			case <-done:
 					if cmdErr != nil {
@@ -141,13 +144,18 @@ func JobFromCommand(command string, args ...string) func(OnLog func(string), OnF
 					} else {
 							OnSuccess()
 					}
-			// case <-time.After(timeout):
-			// 		cancel() // Cancel the context
-			// 		OnFail(errors.New("job timed out after " + timeout.String()))
 			case <-ctx.Done():
 					OnFail(ctx.Err())
 			}
 	}
+}
+
+// Optional: Add a helper function to set terminal size if needed
+func setTerminalSize(ptmx *os.File, rows, cols uint16) error {
+	return pty.Setsize(ptmx, &pty.Winsize{
+			Rows: rows,
+			Cols: cols,
+	})
 }
 
 func JobFromContainerCommand(containerID string, command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
@@ -458,6 +466,7 @@ func registerJob(job ConfigJob) {
 
 	jobsList[job.Scheduler][job.Name] = job
 }
+
 func RegisterJob(job ConfigJob) {
 	CRONLock <- true
 	

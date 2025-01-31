@@ -8,6 +8,7 @@ import * as _metrics from './metrics';
 import * as _storage from './storage';
 import * as _cron from './cron';
 import * as _rclone from './rclone';
+import * as _backups from './backup';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -252,6 +253,7 @@ let metrics = _metrics;
 let storage = _storage;
 let cron = _cron;
 let rclone = _rclone;
+let backups = _backups;
 
 if(isDemo) {
   auth = authDemo;
@@ -292,5 +294,6 @@ export {
   cron,
   rclone,
   restartServer,
-  forceAutoUpdate
+  forceAutoUpdate,
+  backups,
 };

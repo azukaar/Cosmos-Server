@@ -75,6 +75,9 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
             </TableRow>
           </TableHead>
           <TableBody>
+            {(!data || data.length === 0) && <TableRow>
+              <TableCell colSpan={columns.length} style={{textAlign: 'center'}}>{t('global.noData')}</TableCell>
+            </TableRow>}
             {data
               .filter((row) => {
                 if (!search || search.length <= 2) return true;

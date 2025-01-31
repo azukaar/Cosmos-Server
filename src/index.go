@@ -19,6 +19,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/proxy"
+	"github.com/azukaar/cosmos-server/src/backups"
 	
 	"github.com/kardianos/service"
 )
@@ -293,6 +294,8 @@ func cosmos() {
 		
 		// Has to be done last, so scheduler does not re-init
 		cron.Init()
+
+		backups.InitBackups()
 
 		utils.Log("Starting server...")
 	}

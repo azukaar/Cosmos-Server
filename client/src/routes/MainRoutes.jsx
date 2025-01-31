@@ -18,6 +18,7 @@ import DashboardDefault from '../pages/dashboard';
 import { CronManager } from '../pages/cron/jobsManage';
 import PrivateRoute from '../PrivateRoute';
 import TrustPage from '../pages/config/trust';
+import { Backups } from '../pages/backups';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -42,6 +43,10 @@ const MainRoutes = {
         {
             path: '/cosmos-ui/monitoring',
             element: <DashboardDefault />
+        },
+        {
+            path: '/cosmos-ui/backups',
+            element: <Backups />
         },
         {
             path: '/cosmos-ui/storage',

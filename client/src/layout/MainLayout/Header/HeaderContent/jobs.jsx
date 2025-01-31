@@ -77,14 +77,14 @@ const Jobs = () => {
     }
 
     const refreshJobs = () => {
+        if (!isAdmin) return;
+
         API.cron.list().then((res) => {
             setJobs(() => res.data);
         });
     };
 
     useEffect(() => {
-        if (!isAdmin) return;
-
         refreshJobs();
 
         const interval = setInterval(() => {

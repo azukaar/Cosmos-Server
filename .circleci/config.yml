@@ -92,6 +92,20 @@ jobs:
             tar -xzvf nebula-linux-amd64.tar.gz
 
       - run:
+          name: Download and Extract ARM Restic binary
+          command: |
+            curl -LO https://github.com/restic/restic/releases/download/v0.17.3/restic_0.17.3_linux_arm64.bz2
+            bunzip2 restic_0.17.3_linux_arm64.bz2
+            mv restic_0.17.3_linux_arm64 restic-arm
+
+      - run:
+          name: Download and Extract Restic binary
+          command: |
+            curl -LO https://github.com/restic/restic/releases/download/v0.17.3/restic_0.17.3_linux_amd64.bz2
+            bunzip2 restic_0.17.3_linux_amd64.bz2
+            mv restic_0.17.3_linux_amd64 restic
+            
+      - run:
           name: Build UI
           command: npm run client-build
 
@@ -108,6 +122,7 @@ jobs:
             rm ${PKG_NAME}-${VERSION}/cosmos-arm64
             rm ${PKG_NAME}-${VERSION}/nebula-arm
             rm ${PKG_NAME}-${VERSION}/nebula-arm-cert
+            rm ${PKG_NAME}-${VERSION}/restic-arm
 
       - run:
           name: Prepare ARM64 package structure
@@ -116,6 +131,7 @@ jobs:
             cp -r build/* ${PKG_NAME}-${VERSION}-arm64/
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos
             mv ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher-arm64 ${PKG_NAME}-${VERSION}-arm64/cosmos-launcher
+            mv ${PKG_NAME}-${VERSION}-arm64/restic-arm ${PKG_NAME}-${VERSION}-arm64/restic
 
       - run:
           name: Create .zip packages

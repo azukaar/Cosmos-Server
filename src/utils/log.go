@@ -121,8 +121,10 @@ func Error(message string, err error) {
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
+		RawLogMessage(ERROR, "[ERROR]", bRed, nRed, message+" : "+errStr)
+	} else {
+		RawLogMessage(ERROR, "[ERROR]", bRed, nRed, message)
 	}
-	RawLogMessage(ERROR, "[ERROR]", bRed, nRed, message+" : "+errStr)
 }
 
 func MajorError(message string, err error) {
@@ -156,8 +158,10 @@ func Fatal(message string, err error) {
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
+		RawLogMessage(FATAL, "[FATAL]", bRed, nRed, message+" : "+errStr)
+	} else {
+		RawLogMessage(FATAL, "[FATAL]", bRed, nRed, message)
 	}
-	RawLogMessage(FATAL, "[FATAL]", bRed, nRed, message+" : "+errStr)
 
 	os.Exit(1)
 }

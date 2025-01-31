@@ -13,6 +13,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/metrics"
 		"github.com/azukaar/cosmos-server/src/cron"
 		"github.com/azukaar/cosmos-server/src/storage"
+		"github.com/azukaar/cosmos-server/src/backups"
 		"github.com/gorilla/mux"
 		"strconv"
 		"time"
@@ -557,7 +558,13 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
-	
+
+	srapiAdmin.HandleFunc("/api/backups/{name}/snapshots", backups.ListSnapshotsRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}/folders", backups.ListFoldersRoute) 
+	srapiAdmin.HandleFunc("/api/backups/{name}/restore", backups.RestoreBackupRoute)
+	srapiAdmin.HandleFunc("/api/backups", backups.AddBackupRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}", backups.RemoveBackupRoute)
+
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")
 	// srapiAdmin.HandleFunc("/api/storage/raid/{name}", storage.RaidDeleteRoute).Methods("DELETE")

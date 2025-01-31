@@ -1,5 +1,5 @@
 // assets
-import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined} from '@ant-design/icons';
+import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined, CloudServerOutlined} from '@ant-design/icons';
 import ConstellationIcon from '../assets/images/icons/constellation.png';
 import ConstellationWhiteIcon from '../assets/images/icons/constellation_white.png';
 import { DarkModeSwitch } from '../utils/indexs';
@@ -25,6 +25,13 @@ const pages = {
             url: '/cosmos-ui/servapps',
             icon: AppstoreOutlined,
             adminOnly: true
+        },
+        {
+            id: 'backups',
+            title: 'menu-items.management.backups',
+            type: 'item',
+            url: '/cosmos-ui/backups',
+            icon: CloudServerOutlined,
         },
         {
             id: 'url',

@@ -109,6 +109,7 @@ type Config struct {
 	ServerToken string
 	RemoteStorage RemoteStorageConfig
 	DisableOpenIDDirect bool
+	Backup BackupConfig
 }
 
 
@@ -435,4 +436,17 @@ type LocationRemoteStorageConfig struct {
 
 type RemoteStorageConfig struct {
 	Shares []LocationRemoteStorageConfig
+}
+
+type BackupConfig struct {
+	Disable bool
+	Backups map[string]SingleBackupConfig
+}
+
+type SingleBackupConfig struct {
+	Name string
+	Repository string
+	Password string
+	Source string 
+	Crontab string
 }

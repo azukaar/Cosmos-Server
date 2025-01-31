@@ -22,3 +22,9 @@ nebula-cert
 vite.config.js
 src/launcher/update.go
 stats.html
+restic
+restic-arm
+rclone
+rclone-arm
+test-backup
+backups

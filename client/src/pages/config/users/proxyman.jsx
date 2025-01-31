@@ -43,6 +43,7 @@ import LazyLoad from 'react-lazyload';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 import { useTranslation } from 'react-i18next';
+import { useClientInfos } from '../../../utils/hooks';
 
 const stickyButton = {
   position: 'fixed',
@@ -70,6 +71,8 @@ const ProxyManagement = () => {
   const [needSave, setNeedSave] = React.useState(false);
   const [openNewModal, setOpenNewModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const {role} = useClientInfos();
+  const isAdmin = role === "2";
 
   function setRouteEnabled(key) {
     return (event) => {
@@ -179,9 +182,9 @@ const ProxyManagement = () => {
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
       }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
-      <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+      {isAdmin && <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setOpenNewModal(true);
-      }}>{t('global.createAction')}</Button>
+      }}>{t('global.createAction')}</Button>}
     </Stack>
 
     {config && <>
