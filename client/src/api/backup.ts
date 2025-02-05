@@ -26,12 +26,11 @@ function listSnapshots(name: string) {
 }
 
 function listFolders(name: string, snapshot: string, path?: string) {
-  return wrap(fetch(`/cosmos/api/backups/${name}/folders?path=${path || ''}`, {
+  return wrap(fetch(`/cosmos/api/backups/${name}/${snapshot}/folders?path=${path || '/'}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ snapshot })
   }))
 }
 

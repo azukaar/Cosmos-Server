@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"io/ioutil"
 	"syscall"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -132,6 +133,12 @@ func ListDirectory(path string) ([]DirectoryListing, error) {
 			}
 		}
 
+		fullPath := filepath.Join(path, file.Name())
+
+		if utils.IsInsideContainer {
+			fullPath = strings.TrimPrefix(fullPath, "/mnt/host")
+		}
+
 		listing := DirectoryListing{
 			Name:  file.Name(),
 			Ext:   filepath.Ext(file.Name()),
@@ -141,7 +148,7 @@ func ListDirectory(path string) ([]DirectoryListing, error) {
 			Created: file.ModTime().Unix(),
 			UID:   uid,
 			GID:   gid,
-			FullPath: filepath.Join(path, file.Name()),
+			FullPath: fullPath,
 		}
 		listings = append(listings, listing)
 	}

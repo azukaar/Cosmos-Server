@@ -8,6 +8,7 @@
  - Localizations improvements (Thanks @madejackson)
  - Improved local IP detection (Thanks @r41d)
  - Updated LEGO to 4.21.0
+ - Fixed file picker prefix issue in docker container
  - Fix RClone not starting
 
 ## Version 0.17.7

@@ -560,7 +560,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
 
 	srapiAdmin.HandleFunc("/api/backups/{name}/snapshots", backups.ListSnapshotsRoute)
-	srapiAdmin.HandleFunc("/api/backups/{name}/folders", backups.ListFoldersRoute) 
+	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/folders", backups.ListFoldersRoute) 
 	srapiAdmin.HandleFunc("/api/backups/{name}/restore", backups.RestoreBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups", backups.AddBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}", backups.RemoveBackupRoute)

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Tab, Tabs, Typography, MenuItem, Select, useMediaQuery, CircularProgress } from '@mui/material';
 import { styled } from '@mui/system';
+import { createPartiallyEmittedExpression } from 'typescript';
 
 const StyledTabs = styled(Tabs)`
   border-right: 1px solid ${({ theme }) => theme.palette.divider};
@@ -37,12 +38,34 @@ const a11yProps = (index) => {
   };
 };
 
-const PrettyTabbedView = ({ tabs, isLoading, currentTab, setCurrentTab }) => {
+const PrettyTabbedView = ({ rootURL, tabs, isLoading, currentTab, setCurrentTab }) => {
   const [value, setValue] = useState(0);
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('md'));
-  
+  const [initialMount, setInitialMount] = useState(true);
+
   if((currentTab != null && typeof currentTab === 'number') && value !== currentTab)
     setValue(currentTab);
+
+  useEffect(() => {
+    if (!rootURL) return;
+
+    if (initialMount) {
+      // On initial mount, check if URL matches any tab
+      const currentPath = decodeURIComponent(window.location.pathname).replace(/\/$/, '');
+      const matchingTabIndex = tabs.findIndex(tab => {
+        return tab.url != '/' && currentPath.startsWith(`${rootURL}${tab.url}`);
+      });
+      
+      if (matchingTabIndex !== -1) {
+        setValue(matchingTabIndex);
+      }
+
+      setInitialMount(false);
+    } else {
+      // After initial mount, update URL when value changes
+      window.history.pushState({}, '', `${rootURL}${tabs[value].url}`);
+    }
+  }, [rootURL, tabs, value]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
