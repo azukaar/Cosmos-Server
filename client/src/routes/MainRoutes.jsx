@@ -18,8 +18,9 @@ import DashboardDefault from '../pages/dashboard';
 import { CronManager } from '../pages/cron/jobsManage';
 import PrivateRoute from '../PrivateRoute';
 import TrustPage from '../pages/config/trust';
-import { Backups } from '../pages/backups';
+import AllBackupsIndex from '../pages/backups';
 import SingleBackupIndex from '../pages/backups/single-backup-index';
+import SingleRepoIndex from '../pages/backups/single-repo-index';
 
 // ==============================|| MAIN ROUTING ||============================== //
 
@@ -47,11 +48,15 @@ const MainRoutes = {
         },
         {
             path: '/cosmos-ui/backups',
-            element: <Backups />
+            element: <AllBackupsIndex />
         },
         {
             path: '/cosmos-ui/backups/:backupName/',
             element: <SingleBackupIndex />
+        },
+        {
+            path: '/cosmos-ui/backups/repo/:backupName/',
+            element: <SingleRepoIndex />
         },
         {
             path: '/cosmos-ui/backups/:backupName/:subpath',

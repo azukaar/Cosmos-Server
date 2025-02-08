@@ -100,6 +100,7 @@ type Config struct {
 	MonitoringDisabled bool
 	MonitoringAlerts map[string]Alert
 	BackupOutputDir string
+	IncrBackupOutputDir string
 	DisableHostModeWarning bool
 	AdminWhitelistIPs []string
 	AdminConstellationOnly bool
@@ -449,4 +450,6 @@ type SingleBackupConfig struct {
 	Password string
 	Source string 
 	Crontab string
+	CrontabForget string
+	RetentionPolicy string
 }

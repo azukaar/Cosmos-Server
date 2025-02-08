@@ -545,6 +545,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/jobs/run", cron.RunJobRoute)
 	srapiAdmin.HandleFunc("/api/jobs/get", cron.GetJobRoute)
 	srapiAdmin.HandleFunc("/api/jobs/delete", cron.DeleteJobRoute)
+	srapiAdmin.HandleFunc("/api/jobs/running", cron.GetRunningJobsRoute)
 
 	srapiAdmin.HandleFunc("/api/smart-def", storage.ListSmartDef)
 	srapiAdmin.HandleFunc("/api/disks", storage.ListDisksRoute)
@@ -558,12 +559,18 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
+	srapiAdmin.HandleFunc("/api/new-dir", storage.CreateFolderRoute)
 
+	srapiAdmin.HandleFunc("/api/backups-repository", backups.ListRepos)
+	srapiAdmin.HandleFunc("/api/backups-repository/{name}/snapshots", backups.ListSnapshotsRouteFromRepo)
 	srapiAdmin.HandleFunc("/api/backups/{name}/snapshots", backups.ListSnapshotsRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/folders", backups.ListFoldersRoute) 
 	srapiAdmin.HandleFunc("/api/backups/{name}/restore", backups.RestoreBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups", backups.AddBackupRoute)
+	srapiAdmin.HandleFunc("/api/backups/edit", backups.EditBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}", backups.RemoveBackupRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/forget", backups.ForgetSnapshotRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/subfolder-restore-size", backups.StatsRepositorySubfolderRoute)
 
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")

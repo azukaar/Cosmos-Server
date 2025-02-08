@@ -10,6 +10,7 @@ import (
 	"io"
 	"os/exec"
 	"fmt"
+	"path/filepath"
 
 	"golang.org/x/sys/cpu"
 
@@ -56,6 +57,9 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 			licenceNumber = utils.FBL.UserNumber
 		}
 
+		absoluteConfigPath := utils.CONFIGFOLDER
+		absoluteConfigPath, _ = filepath.Abs(utils.CONFIGFOLDER)
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": map[string]interface{}{
@@ -87,6 +91,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
 				"Licence": licenceValid,
 				"LicenceNumber": licenceNumber,
+				"ConfigFolder": absoluteConfigPath,
 			},
 		})
 	} else {
@@ -233,7 +238,7 @@ func restartHostMachineRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		// restart host machine
+		utils.WaitForAllJobs()
 
 		err := restartHostMachine()
 		if err != nil {

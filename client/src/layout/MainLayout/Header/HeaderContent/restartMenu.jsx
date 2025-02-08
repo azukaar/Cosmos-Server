@@ -6,12 +6,15 @@ import * as API  from "../../../../api";
 import React from "react";
 import RestartModal from "../../../../pages/config/users/restart";
 import { ConfirmModalDirect } from "../../../../components/confirmModal";
+import { useClientInfos } from "../../../../utils/hooks";
 
 const RestartMenu = () => {
   const { t } = useTranslation();
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [openRestartServerModal, setOpenRestartServerModal] = React.useState(false);
   const [status, setStatus] = React.useState({});
+  const {role} = useClientInfos();
+  const isAdmin = role === "2";
   
   React.useEffect(() => {
     API.getStatus().then((res) => {
@@ -21,7 +24,7 @@ const RestartMenu = () => {
 
   const restartServer = API.restartServer;
 
-  return <>
+  return isAdmin ? <>
   <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
   <RestartModal openModal={openRestartServerModal} setOpenModal={setOpenRestartModal} isHostMachine/>
 
@@ -33,7 +36,7 @@ const RestartMenu = () => {
       <ListItemText>{t('global.restartCosmos')}</ListItemText>
     </MenuItem>
   </MenuButton>
-  </>
+  </> : <></>;
 };
 
 export default RestartMenu;

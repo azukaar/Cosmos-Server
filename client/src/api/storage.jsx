@@ -255,10 +255,20 @@ const listDir = (storage, path) => {
   }))
 }
 
+const newFolder = (storage, path, folder) => {
+  return wrap(fetch(`/cosmos/api/new-dir?storage=${storage}&path=${path}&folder=${folder}`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   mounts,
   disks,
   snapRAID,
   raid,
+  newFolder,
   listDir,
 };

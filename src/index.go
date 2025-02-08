@@ -295,7 +295,7 @@ func cosmos() {
 		// Has to be done last, so scheduler does not re-init
 		cron.Init()
 
-		backups.InitBackups()
+		go backups.InitBackups()
 
 		utils.Log("Starting server...")
 	}

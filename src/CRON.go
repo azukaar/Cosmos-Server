@@ -12,6 +12,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/storage"
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/proxy"
+	"github.com/azukaar/cosmos-server/src/cron"
 	
 
 	"github.com/jasonlvhit/gocron"
@@ -156,6 +157,8 @@ func checkUpdatesAvailable() {
 						return
 					}
 				}
+
+				cron.WaitForAllJobs() // wait for all jobs to finish
 
 				utils.Log("Update downloaded, restarting server")
 				storage.StopAllRCloneProcess(true)

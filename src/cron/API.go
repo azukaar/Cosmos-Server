@@ -213,3 +213,22 @@ func GetJobRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
+func GetRunningJobsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		jobs := RunningJobs()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   jobs,
+		})
+		return
+	} else {
+		utils.Error("Listjobs: Method not allowed " + req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+}

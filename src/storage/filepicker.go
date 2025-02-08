@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"syscall"
 	"strings"
+	"os"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -154,4 +155,79 @@ func ListDirectory(path string) ([]DirectoryListing, error) {
 	}
 
 	return listings, nil
+}
+
+func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "POST" {
+		//config := utils.GetMainConfig()
+		storage := req.URL.Query().Get("storage")
+		path := req.URL.Query().Get("path")
+		folder := req.URL.Query().Get("folder")
+
+		if storage == "" {
+		} 
+
+		if path == "" {
+			path = "/"
+		}
+
+		storages, err := ListStorage()
+		if err != nil {
+			utils.Error("CreateFolderRoute: Error listing storages: "+err.Error(), nil)
+			utils.HTTPError(w, "Internal server error", http.StatusInternalServerError, "STO002")
+			return
+		}
+
+		var basePath string
+		if storage == "local" {
+			basePath = "/"
+			if utils.IsInsideContainer {
+				basePath = "/mnt/host/"
+			}
+		} else {
+			found := false
+			for _, s := range storages {
+				if s.Name == storage {
+					basePath = s.Path
+					found = true
+					break
+				}
+			}
+			if !found {
+				utils.Error("CreateFolderRoute: Storage not found: "+storage, nil)
+				utils.HTTPError(w, "Storage not found", http.StatusNotFound, "STO001")
+				return
+			}
+		}
+
+		fullPath := filepath.Join(basePath, path)
+		fullPath = filepath.Join(fullPath, folder)
+
+		utils.Log("CreateFolderRoute: Creating folder: "+fullPath)
+
+		err = os.MkdirAll(fullPath, 0700)
+		if err != nil {
+			utils.Error("CreateFolderRoute: Error listing directory: "+err.Error(), nil)
+			utils.HTTPError(w, "Internal server error", http.StatusInternalServerError, "STO003")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data": map[string]interface{}{
+				"storage":	 storage,
+				"path":    path,
+				"storages":  storages,
+				"created":  fullPath,
+			},
+		})
+	} else {
+		utils.Error("CreateFolderRoute: Method not allowed "+req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
 }

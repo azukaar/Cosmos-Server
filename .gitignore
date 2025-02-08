@@ -27,4 +27,4 @@ restic-arm
 rclone
 rclone-arm
 test-backup
-backups
+/backups

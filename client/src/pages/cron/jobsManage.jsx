@@ -103,6 +103,7 @@ export const CronManager = () => {
             "Custom": t('mgmt.scheduler.customJobsTitle'),
             "SnapRAID": t('mgmt.scheduler.parityDiskJobsTitle'),
             "__OT__SnapRAID": t('mgmt.scheduler.oneTimeJobsTitle'),
+            "Restic": t('mgmt.scheduler.restic'),
           }[scheduler])}</h4>
           <PrettyTableView 
             data={Object.values(cronJobs[scheduler])}

@@ -27,7 +27,7 @@ import dayjs from 'dayjs';
 import MainCard from '../../../../components/MainCard';
 import Transitions from '../../../../components/@extended/Transitions';
 // assets
-import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, LoadingOutlined, MessageOutlined, PlaySquareOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
+import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, ExclamationCircleOutlined, GiftOutlined, InfoCircleOutlined, LoadingOutlined, MessageOutlined, PlaySquareOutlined, ReloadOutlined, SettingOutlined, WarningOutlined } from '@ant-design/icons';
 
 import * as API from '../../../../api';
 import { redirectToLocal } from '../../../../utils/indexs';
@@ -66,6 +66,8 @@ const Jobs = () => {
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
     const [jobs, setJobs] = useState([]);
     const [from, setFrom] = useState('');
+    const anchorRef = useRef(null);
+    const [open, setOpen] = useState(false);
     
     const statusColor = (job) => {
         return {
@@ -76,8 +78,9 @@ const Jobs = () => {
         }[getStatus(job)]
     }
 
-    const refreshJobs = () => {
+    const refreshJobs = (force) => {
         if (!isAdmin) return;
+        if (!force && !open) return;
 
         API.cron.list().then((res) => {
             setJobs(() => res.data);
@@ -89,17 +92,19 @@ const Jobs = () => {
 
         const interval = setInterval(() => {
             refreshJobs();
-        }, 20000);
+        }, 5000);
 
         return () => clearInterval(interval);
     }, []);
 
-    const anchorRef = useRef(null);
-    const [open, setOpen] = useState(false);
     
     const handleToggle = () => {
-        refreshJobs();
+        refreshJobs(true);
         setOpen((prevOpen) => !prevOpen);
+    };
+    
+    const handleRefresh = () => {
+        refreshJobs(true);
     };
 
     const handleClose = (event) => {
@@ -117,10 +122,16 @@ const Jobs = () => {
     let flatList = [];
     jobs && Object.values(jobs).forEach((list) => list && Object.values(list).forEach(job => flatList.push(job)));
     flatList.sort((a, b) => {
+        const getTimestamp = (date) => new Date(date).getTime() || 0;
+    
         if (a.Running && !b.Running) return -1;
         if (!a.Running && b.Running) return 1;
-        if (a.Running && b.Running) return a.LastStarted - b.LastStarted;
-        return a.LastRun - b.LastRun;
+    
+        if (a.Running && b.Running) {
+            return getTimestamp(a.LastStarted) - getTimestamp(b.LastStarted);
+        }
+    
+        return getTimestamp(b.LastRun) - getTimestamp(a.LastRun);
     });
 
     if (!isAdmin) return null;
@@ -179,9 +190,12 @@ const Jobs = () => {
                                     border={false}
                                     content={false}
                                     secondary={
+                                        <><IconButton size="small" onClick={handleRefresh}>
+                                            <ReloadOutlined />
+                                        </IconButton>
                                         <IconButton size="small" onClick={handleToggle}>
                                             <CloseOutlined />
-                                        </IconButton>
+                                        </IconButton></>
                                     }
                                 >
                                     <List

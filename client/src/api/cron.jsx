@@ -68,6 +68,15 @@ function deleteJob(name) {
   }))
 }
 
+function runningJobs() {
+  return wrap(fetch('/cosmos/api/jobs/running', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }))
+}
+
 export {
   listen,
   list,
@@ -75,4 +84,5 @@ export {
   stop,
   get,
   deleteJob,
+  runningJobs
 }

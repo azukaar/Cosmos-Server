@@ -1,7 +1,7 @@
 // material-ui
 import * as React from 'react';
 import { Alert, Button, Stack, Typography } from '@mui/material';
-import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined, LoadingOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -34,6 +34,20 @@ function checkIsOnline() {
     });
 }
 
+const RunningJobs = ({jobs}) => {
+    return jobs ? (<>
+        {jobs.length > 0 ? <>
+            <Alert severity="warning" icon={<SyncOutlined />}>
+                There are jobs running, the server will only restart once all jobs are finished.
+                <ul>
+                    {jobs.map((job) =>  <li><LoadingOutlined /> {job}</li>)}
+                </ul>
+            </Alert>
+            
+        </> : <></>}
+    </>) : <></>;
+}
+
 const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine }) => {
     const { t } = useTranslation();
     const [isRestarting, setIsRestarting] = useState(false);
@@ -44,6 +58,53 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine 
     let newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
         (!config.HTTPConfig.DNSChallengeProvider || !config.HTTPConfig.UseWildcardCertificate))
     const [errorRestart, setErrorRestart] = useState(null);
+    const [whenJobsIsEmpty, setWhenJobsIsEmpty] = useState(null);
+
+    const [jobs, setJobs] = useState(null);
+
+    const refresh = () => {
+        if(!openModal) return;
+
+        API.cron.runningJobs().then((res) => {
+            setJobs(res.data);
+        });
+    }
+
+    useEffect(() => {
+        refresh();
+        const interval = setInterval(() => {
+            refresh();
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        refresh();
+    }, [openModal]);
+    
+    useEffect(() => {
+        if (isRestarting && jobs.length == 0) {
+            if(isHostMachine) {
+                API.restartServer()
+                .then((res) => {
+                }).catch((err) => {
+                    setErrorRestart(err.message);
+                });
+            } else {
+                API.config.restart()
+            }
+            
+            setTimeout(() => {
+                if(!errorRestart) {
+                    checkIsOnline();
+                }
+            }, 2500);
+
+            setTimeout(() => {
+                setWarn(true);
+            }, 25000)
+        }
+    }, [jobs]) 
 
     return config ? (<>
         {needsRefresh && <>
@@ -78,50 +139,37 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine 
         </>}
     </>)
     :(<>
-        <Dialog open={openModal} onClose={() => setOpenModal(false)}>
+        <Dialog open={openModal} onClose={() => {setJobs(null); return setOpenModal(false)}}>
             <DialogTitle>{!isRestarting ? t('mgmt.config.restart.restartTitle') : t('mgmt.config.restart.restartStatus')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {errorRestart && <Alert severity="error" icon={<ExclamationCircleOutlined />}>
-                        {errorRestart}
-                    </Alert>}
-                    {warn && !errorRestart  && <div>
-                        <Alert severity="warning" icon={<WarningOutlined />}>
-                        {t('mgmt.config.restart.restartTimeoutWarning')}<br />{t('mgmt.config.restart.restartTimeoutWarningTip')}
-                        </Alert>
-                    </div>}
-                    {isRestarting && !errorRestart && 
-                    <div style={{textAlign: 'center', padding: '20px'}}>
-                        <CircularProgress />
-                    </div>}
-                    {!isRestarting && t('mgmt.config.restart.restartQuestion')}
+                    <Stack spacing={2}>
+                        {errorRestart && <Alert severity="error" icon={<ExclamationCircleOutlined />}>
+                            {errorRestart}
+                        </Alert>}
+                        {warn && !errorRestart  && <div>
+                            <Alert severity="warning" icon={<WarningOutlined />}>
+                            {t('mgmt.config.restart.restartTimeoutWarning')}<br />{t('mgmt.config.restart.restartTimeoutWarningTip')}
+                            </Alert>
+                        </div>}
+                        <div>
+                            <RunningJobs jobs={jobs}/>
+                        </div>
+                        {isRestarting && !errorRestart && 
+                        <div style={{textAlign: 'center', padding: '20px'}}>
+                            <CircularProgress />
+                        </div>}
+                        <div>
+                            {!isRestarting && t('mgmt.config.restart.restartQuestion')}
+                        </div>
+                    </Stack>
                 </DialogContentText>
             </DialogContent>
             {!isRestarting && <DialogActions>
-                <Button onClick={() => setOpenModal(false)}>{t('mgmt.config.restart.laterButton')}</Button>
+                <Button onClick={() => {setJobs(null); return setOpenModal(false)}}>{t('mgmt.config.restart.laterButton')}</Button>
                 <Button onClick={() => {
                     setIsRestarting(true);
                     setErrorRestart(null);
-
-                    if(isHostMachine) {
-                        API.restartServer()
-                        .then((res) => {
-                        }).catch((err) => {
-                            setErrorRestart(err.message);
-                        });
-                    } else {
-                        API.config.restart()
-                    }
-                    
-                    setTimeout(() => {
-                        if(!errorRestart) {
-                            checkIsOnline();
-                        }
-                    }, 1500);
-
-                    setTimeout(() => {
-                        setWarn(true);
-                    }, 20000)
                 }}>{t('mgmt.servapps.actionBar.restart')}</Button>
             </DialogActions>}
         </Dialog>

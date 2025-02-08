@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os"
 	"fmt"
+	"strings"
 
 	"github.com/go-co-op/gocron/v2"
 	"github.com/creack/pty"
@@ -40,11 +41,13 @@ type ConfigJob struct {
 	CancelFunc context.CancelFunc `json:"-"`
 	Container string
 	Timeout time.Duration
-	MaxLogs int 
+	MaxLogs int
+	Resource string
 }
 
 var jobsList = map[string]map[string]ConfigJob{}
 var wasInit = false
+var InternalProcessTracker = NewProcessTracker()
 
 func GetJobsList() map[string]map[string]ConfigJob {
 	return getJobsList()
@@ -73,6 +76,18 @@ func streamLogs(r io.Reader, OnLog func(string)) {
 
 func getJobsList() map[string]map[string]ConfigJob {
 	return jobsList
+}
+
+func RunningJobs() []string {
+	runningJobs := []string{}
+	for _, schedulerList := range jobsList {
+		for _, job := range schedulerList {
+			if job.Running {
+				runningJobs = append(runningJobs, job.Name)
+			}
+		}
+	}
+	return runningJobs
 }
 
 func JobFromCommand(command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
@@ -282,6 +297,7 @@ func jobRunner(schedulerName, jobName string) func(OnLog func(string), OnFail fu
 			defer func() { <-RunningLock }()
 
 			CRONLock <- true
+			
 			var job ConfigJob
 			var ok bool
 			
@@ -325,8 +341,12 @@ func jobRunner(schedulerName, jobName string) func(OnLog func(string), OnFail fu
 					cancel()
 			}()
 
-			triggerJobUpdated("start", job.Name)
+			triggerJobEvent(job, "started", "CRON job " + job.Name + " started", "info", map[string]interface{}{})
 
+			triggerJobUpdated("start", job.Name)
+			
+			InternalProcessTracker.StartProcess()
+			
 			job.Job(OnLog, OnFail, OnSuccess, ctx, cancel)
 	}
 }
@@ -363,6 +383,12 @@ func jobRunner_OnFail(schedulerName, jobName string) func(err error) {
 			jobsList[job.Scheduler][job.Name] = job
 			triggerJobUpdated("fail", job.Name, err.Error())
 			utils.MajorError("CRON job " + job.Name + " failed", err)
+			
+			InternalProcessTracker.EndProcess()
+
+			triggerJobEvent(job, "fail", "CRON job " + job.Name + " failed", "error", map[string]interface{}{
+				"error": err.Error(),
+			})
 		}
 		<-CRONLock
 	}
@@ -377,12 +403,53 @@ func jobRunner_OnSuccess(schedulerName, jobName string) func() {
 			jobsList[job.Scheduler][job.Name] = job
 			triggerJobUpdated("success", job.Name)
 			utils.Log("CRON job " + job.Name + " finished")
+			
+			InternalProcessTracker.EndProcess()
+
+			triggerJobEvent(job, "success", "CRON job " + job.Name + " finished", "success", map[string]interface{}{})
 		}
 		<-CRONLock
 	}
 }
 
+func WaitForAllJobs() {
+	utils.Log("Waiting for " + strconv.Itoa(InternalProcessTracker.count) + " jobs to finish...")
+	InternalProcessTracker.WaitForZero()
+}
+
+func triggerJobEvent(job ConfigJob, eventId, eventTitle, eventLevel string, extra map[string]interface{}) {
+	utils.TriggerEvent(
+		"cosmos.cron." + strings.Replace(job.Scheduler, ".", "_", -1) + "." + strings.Replace(job.Name, ".", "_", -1) + "." + eventId,
+		eventTitle,
+		eventLevel,
+		"job@" + job.Scheduler + "@" + job.Name,
+		extra,
+	)
+
+	if job.Resource != "" {
+		utils.TriggerEvent(
+			"cosmos.cron-resource." + strings.Replace(job.Scheduler, ".", "_", -1) + "." + strings.Replace(job.Name, ".", "_", -1) + "." + eventId,
+			eventTitle,
+			eventLevel,
+			job.Resource,
+			extra,
+		)
+	}
+
+	if job.Container != "" {
+		utils.TriggerEvent(
+			"cosmos.cron-container." + strings.Replace(job.Scheduler, ".", "_", -1) + "." + strings.Replace(job.Name, ".", "_", -1) + "." + eventId,
+			eventTitle,
+			eventLevel,
+			"container@" + job.Container,
+			extra,
+		)
+	}
+}
+
 func InitScheduler() {
+	utils.WaitForAllJobs = WaitForAllJobs
+
 	var err error
 	
 	if !wasInit {

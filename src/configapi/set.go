@@ -8,6 +8,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/storage"
+	"github.com/azukaar/cosmos-server/src/backups"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
@@ -60,6 +61,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 			utils.RestartHTTPServer()
 			cron.InitJobs()
 			cron.InitScheduler()
+			backups.InitBackups()
 		})()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{

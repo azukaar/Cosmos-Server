@@ -460,6 +460,7 @@ func getStorageList() ([]RemoteStorage, error) {
 		return nil, fmt.Errorf("error getting config dump: %w", err)
 	}
 
+	CachedRemoteStorageList = []StorageInfo{}
 
 	var result map[string]interface{}
 	if err := json.Unmarshal(response, &result); err != nil {
@@ -621,6 +622,8 @@ type StorageRoutes struct {
 var StorageRoutesList []StorageRoutes
 
 func remountAll() {
+	utils.WaitForAllJobs() 
+	
 	StorageRoutesList = []StorageRoutes{}
 
 	// Mount remote storages
@@ -684,6 +687,8 @@ func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
 }
 
 func InitRemoteStorage() bool {
+	utils.StopAllRCloneProcess = StopAllRCloneProcess
+	
 	configLocation := utils.CONFIGFOLDER + "rclone.conf"
 	utils.ProxyRCloneUser = utils.GenerateRandomString(8)
 	utils.ProxyRClonePwd = utils.GenerateRandomString(16)

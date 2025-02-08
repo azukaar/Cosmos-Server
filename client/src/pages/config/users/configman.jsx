@@ -149,6 +149,7 @@ const ConfigManagement = () => {
           MonitoringEnabled: !config.MonitoringDisabled,
 
           BackupOutputDir: config.BackupOutputDir,
+          IncrBackupOutputDir: config.Backup.Backups && config.Backup.Backups["Cosmos Internal Backup"] ? config.Backup.Backups["Cosmos Internal Backup"].Repository : "",
 
           AdminWhitelistIPs: config.AdminWhitelistIPs && config.AdminWhitelistIPs.join(', '),
           AdminConstellationOnly: config.AdminConstellationOnly,
@@ -170,6 +171,10 @@ const ConfigManagement = () => {
 
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           setSubmitting(true);
+
+          if(!values.IncrBackupOutputDir) {
+            delete config.Backup.Backups["Cosmos Internal Backup"];
+          }
         
           let toSave = {
             ...config,
@@ -243,6 +248,21 @@ const ConfigManagement = () => {
               PrimaryColor: values.PrimaryColor,
               SecondaryColor: values.SecondaryColor
             },
+            Backup: {
+              ...config.Backup,
+              Backups: values.IncrBackupOutputDir ? {
+                ...config.Backup.Backups,
+                "Cosmos Internal Backup": {
+                  ...config.Backup.Backups["Cosmos Internal Backup"],
+                  "Crontab": "0 0 4 * * *",
+                  "CrontabForget": "0 0 12 * * *",
+                  "Source": status && status.ConfigFolder,
+                  "Password": "",
+                  "Name": "Cosmos Internal Backup",
+                  Repository: values.IncrBackupOutputDir
+                }
+              } : config.Backup.Backups
+            }
           }
           
           return API.config.set(toSave).then((data) => {
@@ -416,14 +436,34 @@ const ConfigManagement = () => {
                   </Grid>
 
                   <Grid item xs={12}>
+                      <Alert severity="info">{t('mgmt.config.general.backupInfo')}</Alert>
+                  </Grid>
+
+                  <Grid item xs={12}>
                     <Stack direction={"row"} spacing={2} alignItems="flex-end">
-                        <FilePickerButton onPick={(path) => {
+                        <FilePickerButton canCreate onPick={(path) => {
                           if(path)
                               formik.setFieldValue('BackupOutputDir', path);
                         }} size="150%" select="folder" />
                       <CosmosInputText
                         label={t('mgmt.config.general.backupDirInput.backupDirLabel')}
                         name="BackupOutputDir"
+                        formik={formik}
+                        helperText={t('mgmt.config.general.backupDirInput.backupDirHelperText')}
+                      />
+                    </Stack>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Stack direction={"row"} spacing={2} alignItems="flex-end">
+                        {status && status.Licence && <FilePickerButton canCreate onPick={(path) => {
+                          if(path)
+                              formik.setFieldValue('IncrBackupOutputDir', path);
+                        }} size="150%" select="folder" />}
+                      <CosmosInputText
+                        label={t('mgmt.config.general.backupDirInput.incrBackupDirLabel')}
+                        name="IncrBackupOutputDir"
+                        disabled={!status || !status.Licence}
                         formik={formik}
                         helperText={t('mgmt.config.general.backupDirInput.backupDirHelperText')}
                       />

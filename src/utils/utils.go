@@ -58,6 +58,8 @@ var RestartHTTPServer = func() {}
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
+var WaitForAllJobs func()
+var StopAllRCloneProcess func(bool)
 
 var ResyncConstellationNodes = func() {}
 
@@ -429,6 +431,8 @@ func SaveConfigTofile(config Config) {
 
 func RestartServer() {
 	Log("Restarting server...")
+	WaitForAllJobs() 
+	StopAllRCloneProcess(false)
 	os.Exit(0)
 }
 

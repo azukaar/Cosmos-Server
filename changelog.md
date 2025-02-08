@@ -3,6 +3,8 @@
  - Implements sudo mode - your normal token last longer, but you need to "sudo" to do admin tasks
  - Re-Implements the SSO using openID internally - fixes issue where you need to re-loging when app are on different domains (because of browser cookies limitations)
  - Implements local HTTPS Certificate Authority, to locally trust self-signed certificates on devices
+ - Added new folder button to file picker
+ - Fixed bug with RClone storage duplication in the UI
  - Implements hybrid HTTPS with public and self-signed certificates switched on the fly
  - OpenID now returns more info in case of errors when Cosmos is in debug mode
  - Localizations improvements (Thanks @madejackson)

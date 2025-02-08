@@ -49,7 +49,7 @@ const PrettyTabbedView = ({ rootURL, tabs, isLoading, currentTab, setCurrentTab 
   useEffect(() => {
     if (!rootURL) return;
 
-    if (initialMount) {
+    // if (initialMount) {
       // On initial mount, check if URL matches any tab
       const currentPath = decodeURIComponent(window.location.pathname).replace(/\/$/, '');
       const matchingTabIndex = tabs.findIndex(tab => {
@@ -61,18 +61,27 @@ const PrettyTabbedView = ({ rootURL, tabs, isLoading, currentTab, setCurrentTab 
       }
 
       setInitialMount(false);
-    } else {
+    // }
+    //  else {
       // After initial mount, update URL when value changes
-      window.history.pushState({}, '', `${rootURL}${tabs[value].url}`);
-    }
+      // window.history.pushState({}, '', `${rootURL}${tabs[value].url}`);
+    // }
   }, [rootURL, tabs, value]);
 
   const handleChange = (event, newValue) => {
+    if (rootURL) {
+      window.history.pushState({}, '', `${rootURL}${tabs[newValue].url}`);
+    }
+
     setValue(newValue);
     setCurrentTab && setCurrentTab(newValue);
   };
 
   const handleSelectChange = (event) => {
+    if (rootURL) {
+      window.history.pushState({}, '', `${rootURL}${tabs[event.target.value].url}`);
+    }
+    
     setValue(event.target.value);
     setCurrentTab && setCurrentTab(event.target.value);
   };

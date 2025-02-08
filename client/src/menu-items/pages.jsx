@@ -32,6 +32,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/backups',
             icon: CloudServerOutlined,
+            adminOnly: true
         },
         {
             id: 'url',

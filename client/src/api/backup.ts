@@ -25,6 +25,24 @@ function listSnapshots(name: string) {
   }))
 }
 
+function listSnapshotsFromRepo(name: string) {
+  return wrap(fetch(`/cosmos/api/backups-repository/${name}/snapshots`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
+function listRepo() {
+  return wrap(fetch(`/cosmos/api/backups-repository`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 function listFolders(name: string, snapshot: string, path?: string) {
   return wrap(fetch(`/cosmos/api/backups/${name}/${snapshot}/folders?path=${path || '/'}`, {
     method: 'GET',
@@ -54,6 +72,16 @@ function addBackup(config: BackupConfig) {
   }))
 }
 
+function editBackup(config: BackupConfig) {
+  return wrap(fetch('/cosmos/api/backups/edit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(config)
+  }))
+}
+
 function removeBackup(name: string, deleteRepo: boolean = false) {
   return wrap(fetch(`/cosmos/api/backups/${name}`, {
     method: 'DELETE',
@@ -64,6 +92,51 @@ function removeBackup(name: string, deleteRepo: boolean = false) {
   }))
 }
 
+function forgetSnapshot(name: string, snapshot: string, deleteRepo: boolean = false) {
+  return wrap(fetch(`/cosmos/api/backups/${name}/${snapshot}/forget`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ deleteRepo })
+  }))
+}
+
+function subfolderRestoreSize(name: string, snapshot: string, path: string) {
+  return wrap(fetch(`/cosmos/api/backups/${name}/${snapshot}/subfolder-restore-size?path=` +encodeURIComponent(path), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
+function backupNow(name: string) {
+  return wrap(fetch('/cosmos/api/jobs/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduler: "Restic",
+      name: "Restic backup " + name,
+    })
+  }))
+}
+
+function forgetNow(name: string) {
+  return wrap(fetch('/cosmos/api/jobs/run', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      scheduler: "Restic",
+      name: "Restic forget " + name,
+    })
+  }))
+}
+
 export {
   listSnapshots,
   listFolders,
@@ -71,5 +144,12 @@ export {
   addBackup,
   removeBackup,
   BackupConfig,
-  RestoreConfig
+  RestoreConfig,
+  listRepo,
+  listSnapshotsFromRepo,
+  forgetSnapshot,
+  editBackup,
+  backupNow,
+  forgetNow,
+  subfolderRestoreSize
 };
