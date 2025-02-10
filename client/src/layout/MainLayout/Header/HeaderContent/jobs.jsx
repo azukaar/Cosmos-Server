@@ -95,7 +95,7 @@ const Jobs = () => {
         }, 5000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [open, isAdmin]);
 
     
     const handleToggle = () => {

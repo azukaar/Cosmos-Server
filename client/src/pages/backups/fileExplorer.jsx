@@ -120,6 +120,7 @@ const BackupFileExplorer = ({ getFile, onSelect, selectedSnapshot, backupName, b
 
     if(forceNew) {
       setCandidatePaths([]);
+      setDirectoriesAsTree({});
     }
 
     try {

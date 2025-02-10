@@ -58,9 +58,26 @@ func SplitJSONObjects(input string) string {
 	return "[" + strings.Join(objects, ",") + "]"
 }
 
+func prependResticArgs(args []string) []string {
+	rcloneFilePath := utils.CONFIGFOLDER + "rclone.conf"
+	
+	execPath, _ := os.Executable()
+
+	prependArgs := []string{"-o", "rclone.program=" + execPath, "-o", "rclone.args=rclone serve --config=" + rcloneFilePath + " restic --stdio --b2-hard-delete --verbose"}
+
+	args = append(prependArgs, args...)
+
+	return args
+}
+
 // ExecRestic executes a restic command with the given arguments and environment variables
 func ExecRestic(args []string, env []string) (string, error) {
-	cmd := exec.Command("./restic", args...)
+	args = prependResticArgs(args)
+
+	cmd := exec.Command("./restic",  args...)
+
+	utils.Debug("[Restic] Executing command: restic " + strings.Join(cmd.Args, " "))
+	
 	cmd.Env = append(os.Environ(), env...)
 
 	// Start the command with a pseudo-terminal
@@ -118,9 +135,31 @@ func CreateRepository(repository, password string) error {
 
 // DeleteRepository removes a Restic repository
 func DeleteRepository(repository string) error {
+	// if repo starts with rclone:
+	if strings.HasPrefix(repository, "rclone:") {
+		// remove rclone config
+		rcloneConfig := strings.TrimPrefix(repository, "rclone:")
+
+		//extract rclone config name
+		rcloneConfigArr := strings.Split(rcloneConfig, ":")
+		rcloneConfigName := rcloneConfigArr[0]
+		rcPath := rcloneConfigArr[1]
+
+		repository = "/mnt/cosmos-storage-" + rcloneConfigName + "/" + rcPath
+	}
+		
 	// First, check if the repository exists
 	if _, err := os.Stat(repository); os.IsNotExist(err) {
 		return fmt.Errorf("[Restic] repository does not exist: %s", repository)
+	}
+
+	// list content, see if it matches a restic repository
+	files := []string{"data", "index", "keys", "locks", "snapshots", "config"}
+
+	for _, file := range files {
+		if _, err := os.Stat(repository + "/" + file); os.IsNotExist(err) {
+			return fmt.Errorf("[Restic] repository does not contain required files: %s", repository)
+		}
 	}
 
 	// Remove the repository directory
@@ -211,7 +250,7 @@ func CreateBackupOneTimeJob(config BackupConfig) {
 		Scheduler:   "Restic",
 		Name:       fmt.Sprintf("Restic backup %s", config.Name),
 		Cancellable: true,
-		Job:        cron.JobFromCommandWithEnv(env, "./restic", args...),
+		Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
 		Resource: "backup@" + config.Name,
 	})
 }
@@ -240,7 +279,7 @@ func CreateBackupJob(config BackupConfig, crontab string) {
 		Scheduler:   "Restic",
 		Name:       fmt.Sprintf("Restic backup %s", config.Name),
 		Cancellable: true,
-		Job:        cron.JobFromCommandWithEnv(env, "./restic", args...),
+		Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
 		Crontab: 		 crontab,
 		Resource:   "backup@" + config.Name,
 	})
@@ -272,7 +311,7 @@ func CreateForgetJob(config BackupConfig, crontab string) {
 		Scheduler:   "Restic",
 		Name:       fmt.Sprintf("Restic forget %s", config.Name),
 		Cancellable: true,
-		Job:        cron.JobFromCommandWithEnv(env, "./restic", args...),
+		Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
 		Crontab: 		 crontab,
 		Resource:   "backup@" + config.Name,
 	})
@@ -314,7 +353,7 @@ func CreateRestoreJob(config RestoreConfig) {
 			Scheduler:   "Restic",
 			Name:       fmt.Sprintf("Restic restore %s", config.Name),
 			Cancellable: true,
-			Job:        cron.JobFromCommandWithEnv(env, "./restic", args...),
+			Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
 			Resource: "backup@" + config.Name,
 		})
 	})()
@@ -436,7 +475,7 @@ func DeleteByTag(repository string, password string, tag string) error {
 	}
 	
 	// Create forget command with all snapshot IDs
-	args := append([]string{"forget", "--prune"}, ids...)
+	args := append([]string{"forget", "--repo", repository, "--prune"}, ids...)
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 	
 	// Execute the forget command

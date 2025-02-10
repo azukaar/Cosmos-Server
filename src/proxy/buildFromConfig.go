@@ -21,7 +21,7 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 			Name: "RClone",
 			Mode: "PROXY",
 			UseHost: false,
-			Target: "http://localhost:5572",
+			Target: "http://localhost:5573",
 			UsePathPrefix: true,
 			PathPrefix: "/cosmos/rclone",
 			AuthEnabled: true,

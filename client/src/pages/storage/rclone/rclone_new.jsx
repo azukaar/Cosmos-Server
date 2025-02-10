@@ -83,6 +83,7 @@ const RCloneNewConfig = ({ onClose, initialValues }) => {
           required
           disabled={isEdit}
         />
+        
         {standardFields}
         {ProvAuth.includes(config.Name) && (<>
           <Alert severity="info">
@@ -113,6 +114,15 @@ const RCloneNewConfig = ({ onClose, initialValues }) => {
         initialValues={isEdit ? initialValues : {
           "cosmos-chown": "1000:1000",
         }}
+        
+        validate={(values) => {
+          const errors = {};
+          if (values.named && values.named.match(/[^a-zA-Z0-9-]/)) {
+            errors.named = 'Only alphanumerics and - are allowed in the Name field';
+          }
+          return errors;
+        }}
+
         onSubmit={(values, { setSubmitting }) => {
           let originalName;
           if (isEdit) {
@@ -138,7 +148,7 @@ const RCloneNewConfig = ({ onClose, initialValues }) => {
           });
         }}
       >
-        {({ isSubmitting, setFieldValue }) => (
+        {({ isSubmitting, setFieldValue, errors }) => (
           <Form>
             <DialogContent>
               <DialogContentText>
@@ -167,6 +177,7 @@ const RCloneNewConfig = ({ onClose, initialValues }) => {
               </DialogContentText>
             </DialogContent>
             <DialogActions>
+              {errors.named && <Alert severity="error">{errors.named}</Alert>}&nbsp;&nbsp;
               <LoadingButton type="submit" variant="contained" color="primary" disabled={isSubmitting} loading={isSubmitting}>
                 {isEdit ? t('global.edit') : t('global.createAction')}
               </LoadingButton>

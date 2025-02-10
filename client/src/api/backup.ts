@@ -88,7 +88,6 @@ function removeBackup(name: string, deleteRepo: boolean = false) {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ deleteRepo })
   }))
 }
 

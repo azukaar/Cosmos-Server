@@ -76,7 +76,7 @@ export default function BackupOverview({backupName}) {
     return (
       <div className="p-4">
         <Typography variant="h6" className="text-red-500">
-          Backup not found: {backupName}
+          {t("mgmt.backup.notfound")}: {backupName}
         </Typography>
       </div>
     );
@@ -114,7 +114,7 @@ export default function BackupOverview({backupName}) {
             </div>
             <div>
               <strong>
-                Latest Backup: {snapshots.length > 0 ? new Date(snapshots[0].time).toLocaleDateString() : 'N/A'}
+                {t("mgmt.backup.latest")}: {snapshots.length > 0 ? new Date(snapshots[0].time).toLocaleDateString() : 'N/A'}
               </strong>
             </div>
           </Stack>
@@ -135,31 +135,31 @@ export default function BackupOverview({backupName}) {
                 startIcon={<UpCircleOutlined />}
                 onClick={backupNow}
               >
-                Backup Now
+                {t("mgmt.backup.now")}
               </ResponsiveButton>
               <ResponsiveButton
                 variant="outlined"
                 startIcon={<DeleteOutlined />}
                 onClick={forgetNow}
               >
-                Clean up Now
+                {t("mgmt.backup.cnow")}
               </ResponsiveButton>
-            </Stack> : <Stack style={{fontSize: '120%'}}>Task has been queued succesfuly</Stack>}
+            </Stack> : <Stack style={{fontSize: '120%'}}>{t("mgmt.backup.task")}</Stack>}
 
-            <strong><FolderOutlined /> Source</strong>
+            <strong><FolderOutlined /> {t("mgmt.backup.sourceTitle")}</strong>
             <div style={infoStyle}>{backup.Source}</div>
 
-            <strong><InfoCircleOutlined /> Repository</strong>
+            <strong><InfoCircleOutlined /> {t("mgmt.backup.repositoryTitle")}</strong>
             <div style={infoStyle}>{backup.Repository}</div>
 
-            <strong><CalendarOutlined /> Backup Schedule</strong>
+            <strong><CalendarOutlined /> {t("mgmt.backup.backupSchedule")}</strong>
             <div style={infoStyle}>{crontabToText(backup.Crontab)}</div>
 
-            <strong><CalendarOutlined /> Clean up Schedule</strong>
+            <strong><CalendarOutlined /> {t("mgmt.backup.cleanupSchedule")}</strong>
             <div style={infoStyle}>{crontabToText(backup.CrontabForget)}</div>
             
 
-            <strong><CloudServerOutlined /> Latest Snapshots</strong>
+            <strong><CloudServerOutlined /> {t("mgmt.backup.latestSnap")}</strong>
             <div>
               {snapshots.slice(0, 5).map((snapshot, index) => (
                 <Stack key={index} direction="row" spacing={2} alignItems="center" justifyContent="space-between">
@@ -169,12 +169,12 @@ export default function BackupOverview({backupName}) {
                     style={{ margin: '5px', width: '100%' }}
                   />
                   <Link to={`/cosmos-ui/backups/${backupName}/restore?s=${snapshot.id}`}>
-                    <Button variant="contained">Open</Button>
+                    <Button variant="contained">{t("global.open")}</Button>
                   </Link>
                 </Stack>
               ))}
               {snapshots.length === 0 && (
-                <div style={infoStyle}>No snapshots available</div>
+                <div style={infoStyle}>{t("mgmt.backup.noSnapAvail")}</div>
               )}
             </div>
 

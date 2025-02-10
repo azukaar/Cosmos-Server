@@ -24,7 +24,8 @@ import { getCurrencyFromLanguage } from './indexs';
 const PremiumSalesPage = ({salesKey, extra}) => {
   const banners = {
     "constellation": bannerConst,
-    "remote": bannerStor
+    "remote": bannerStor,
+    "backup": bannerStor,
   }
 
   const [isYearly, setIsYearly] = useState(true);

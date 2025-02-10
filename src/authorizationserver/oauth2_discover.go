@@ -78,6 +78,7 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 			EndSessionEndpoint:                     hostname + "/cosmos-ui/logout",
 			RequestObjectSigningAlgValuesSupported: []string{"RS256"},
 			CodeChallengeMethodsSupported:          []string{"plain", "S256"},
+			IDTokenSigningAlgValuesSupported:       []string{"RS256"},
 	}
 
 	configurationMap := map[string]interface{}{}

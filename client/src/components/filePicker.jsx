@@ -58,7 +58,7 @@ function transformToTree(data) {
   return root;
 }
 
-const FilePickerModal = ({ raw, open, cb, OnClose, onPick, canCreate, _storage = '', _path = '', select='any' }) => {
+const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _storage = '', _path = '', select='any' }) => {
   const { t } = useTranslation();
   const [selectedStorage, setSelectedStorage] = React.useState(_storage);
   const [selectedPath, setSelectedPath] = React.useState(_path);
@@ -136,6 +136,13 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, canCreate, _storage =
   const handleToggleNode = (event, nodePath) => {
     if (nodePath == "/") {
       updateFiles(selectedStorage, nodePath);
+      if(raw) {
+        let realSelected = restic ? ((selectedStorage == "local" || selectedStorage == "") ? selectedStorage : ("rclone" + ':' + selectedStorage)) : selectedStorage;
+        let realNodePath = restic && selectedStorage != "local" ? nodePath.replace(/^\//, '') : nodePath;
+        setSelectedFullPath(selectedStorage == "local" ? nodePath : (realSelected + ':' + realNodePath));
+      } else {
+        setSelectedFullPath(nodePath);
+      }
       return;
     }
 
@@ -159,7 +166,9 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, canCreate, _storage =
         (select == 'folder' && file.isDir)
       )) {
         if(raw) {
-          setSelectedFullPath(selectedStorage == "local" ? nodePath : (selectedStorage + ':' + nodePath));
+          let realSelected = restic ? ((selectedStorage == "local" || selectedStorage == "") ? selectedStorage : ("rclone" + ':' + selectedStorage)) : selectedStorage;
+          let realNodePath = restic && selectedStorage != "local" ? nodePath.replace(/^\//, '') : nodePath;
+          setSelectedFullPath(selectedStorage == "local" ? nodePath : (realSelected + ':' + realNodePath));
         } else {
           setSelectedFullPath(file.fullPath);
         }
@@ -241,7 +250,7 @@ const FilePickerModal = ({ raw, open, cb, OnClose, onPick, canCreate, _storage =
   );
 };
 
-const FilePickerButton = ({ disabled, raw, canCreate, onPick, size = '100%', storage = '', path = '', select="any" }) => {
+const FilePickerButton = ({ disabled, raw, canCreate, restic, onPick, size = '100%', storage = '', path = '', select="any" }) => {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -249,7 +258,7 @@ const FilePickerButton = ({ disabled, raw, canCreate, onPick, size = '100%', sto
       <IconButton onClick={() => setOpen(true)} disabled={disabled}>
         {onPick ? <><FolderAddFilled style={{fontSize: size}}/></> : <FolderViewOutlined style={{fontSize: size}}/>}
       </IconButton>
-      {open && <FilePickerModal canCreate={canCreate} raw={raw} select={select} open={open} onPick={onPick} OnClose={() => setOpen(false)} _storage={storage} _path={path} />}
+      {open && <FilePickerModal canCreate={canCreate} restic={restic} raw={raw} select={select} open={open} onPick={onPick} OnClose={() => setOpen(false)} _storage={storage} _path={path} />}
     </>
   );
 }

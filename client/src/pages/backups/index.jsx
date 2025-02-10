@@ -14,11 +14,31 @@ import BackupRestore from './restore';
 import EventExplorerStandalone from '../dashboard/eventsExplorerStandalone';
 import { Backups } from './backups';
 import { Repositories } from './repositories';
+import PremiumSalesPage from '../../utils/free';
+import VMWarning from '../storage/vmWarning';
 
 export default function AllBackupsIndex() {
   const { t } = useTranslation();
+  const [coStatus, setCoStatus] = React.useState(null);
+
+  const refreshStatus = () => {
+    API.getStatus().then((res) => {
+      setCoStatus(res.data);
+    });
+  }
+
+  React.useEffect(() => {
+    refreshStatus();
+  }, []);
   
-  return <div>
+  let containerized = coStatus && coStatus.containerized;
+  let free = coStatus && !coStatus.Licence;
+  
+  return free ? <>
+  {containerized && <VMWarning />}
+  <PremiumSalesPage salesKey="backup" />
+  </>
+  : <div>
     <Stack spacing={1}>
       <PrettyTabbedView
       tabs={[

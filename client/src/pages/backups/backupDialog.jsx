@@ -11,15 +11,15 @@ import { Trans, useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../components/filePicker';
 import { CosmosInputText } from "../config/users/formShortcuts";
 
-const isAbsolutePath = (path) => path.startsWith('/') || /^[a-zA-Z]:\\/.test(path); // Unix & Windows support
+const isAbsolutePath = (path) => path.startsWith('/') || path.startsWith('rclone:') || /^[a-zA-Z]:\\/.test(path); // Unix & Windows support
 
-const BackupDialogInternal = ({ refresh, open, setOpen, data = {} }) => {
+const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data = {} }) => {
   const { t } = useTranslation();
   const isEdit = Boolean(data.Name);
   const formik = useFormik({
     initialValues: {
-      name: data.Name || t('mgmt.backup.newBackup'),
-      source: data.Source || '',
+      name: preName || data.Name || t('mgmt.backup.newBackup'),
+      source: preSource || data.Source || '',
       repository: data.Repository || '/backups',
       crontab: data.Crontab || '0 0 4 * * *',
       crontabForget: data.CrontabForget || '0 0 12 * * *',
@@ -45,7 +45,6 @@ const BackupDialogInternal = ({ refresh, open, setOpen, data = {} }) => {
       crontabForget: yup.string().required(t('global.required')),
     }),
     onSubmit: (values, { setErrors, setStatus, setSubmitting }) => {
-      console.log(values);
       setSubmitting(true);
       (data.Name ? API.backups.editBackup({
         ...values
@@ -112,6 +111,8 @@ const BackupDialogInternal = ({ refresh, open, setOpen, data = {} }) => {
                       if(path)
                         formik.setFieldValue('repository', path);
                     }}
+                    restic
+                    raw
                     canCreate={true}
                     size="150%" 
                     select="folder" 
@@ -180,13 +181,13 @@ const BackupDialogInternal = ({ refresh, open, setOpen, data = {} }) => {
   );
 };
 
-const BackupDialog = ({ refresh, data }) => {
+const BackupDialog = ({ refresh, data, preSource, preName }) => {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {open && <BackupDialogInternal refresh={refresh} open={open} setOpen={setOpen} data={data} />}
+      {open && <BackupDialogInternal preSource={preSource} preName={preName} refresh={refresh} open={open} setOpen={setOpen} data={data} />}
       <div>
         {!data ? (
           <ResponsiveButton

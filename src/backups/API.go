@@ -15,7 +15,15 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if !utils.FBL.LValid {
+		utils.Warn("You need a premium licence to create backups.")
+		utils.HTTPError(w, "You need a premium licence to create backups.", http.StatusBadRequest, "BCK001")
+		return
+	}
+	
 	if req.Method == "POST" {
+		utils.Log("AddBackup: Adding backup")
+
 		var request utils.SingleBackupConfig
 		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
 			utils.Error("AddBackup: Invalid request", err)
@@ -37,6 +45,8 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		utils.Log("AddBackup: Checking repository")
+
 		var password string
 		isNewRepo := false
 
@@ -53,6 +63,7 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		if isNewRepo {
+			utils.Log("AddBackup: Creating new repository")
 			password = utils.GenerateRandomString(16)
 			if err := CreateRepository(request.Repository, password); err != nil {
 				utils.Error("AddBackup: Failed to create repository", err)
@@ -60,6 +71,7 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 		} else {
+			utils.Log("AddBackup: Repository exists")
 			found := false
 			for _, backup := range config.Backup.Backups {
 				if backup.Repository == request.Repository {
@@ -82,13 +94,15 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
+		utils.Log("AddBackup: Repository checked")
+
 		request.Password = password
 		if config.Backup.Backups == nil {
 			config.Backup.Backups = make(map[string]utils.SingleBackupConfig)
 		}
 		config.Backup.Backups[request.Name] = request
 		utils.SetBaseMainConfig(config)
-		InitBackups()
+		go InitBackups()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status":  "OK",
@@ -145,13 +159,6 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "DELETE" {
 		vars := mux.Vars(req)
 		name := vars["name"]
-		var request struct {
-			DeleteRepo bool `json:"deleteRepo"`
-		}
-		if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
-			utils.HTTPError(w, "Invalid request: " + err.Error(), http.StatusBadRequest, "BCK001")
-			return
-		}
 
 		config := utils.GetMainConfig()
 		backup, exists := config.Backup.Backups[name]
@@ -169,31 +176,50 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		if request.DeleteRepo {
-			if otherBackupsUsingRepo {
-				if err := DeleteByTag(backup.Repository, backup.Password, backup.Name); err != nil {
-					utils.Error("RemoveBackup: Failed to delete snapshots", err)
-					utils.HTTPError(w, "Failed to delete snapshots: " + err.Error(), http.StatusInternalServerError, "BCK005")
-					return
-				}
-			} else {
-				if err := DeleteRepository(backup.Repository); err != nil {
-					utils.Error("RemoveBackup: Failed to delete repository", err)
-					utils.HTTPError(w, "Failed to delete repository: " + err.Error(), http.StatusInternalServerError, "BCK006")
-					return
-				}
-			}
-		} else {
+		// if request.DeleteRepo {
+		// 	if otherBackupsUsingRepo {
+		// 		if err := DeleteByTag(backup.Repository, backup.Password, backup.Name); err != nil {
+		// 			utils.Error("RemoveBackup: Failed to delete snapshots", err)
+		// 			utils.HTTPError(w, "Failed to delete snapshots: " + err.Error(), http.StatusInternalServerError, "BCK005")
+		// 			return
+		// 		}
+		// 	} else {
+		// 		if err := DeleteRepository(backup.Repository); err != nil {
+		// 			utils.Error("RemoveBackup: Failed to delete repository", err)
+		// 			utils.HTTPError(w, "Failed to delete repository: " + err.Error(), http.StatusInternalServerError, "BCK006")
+		// 			return
+		// 		}
+		// 	}
+		// } else {
 			if err := DeleteByTag(backup.Repository, backup.Password, backup.Name); err != nil {
 				utils.Error("RemoveBackup: Failed to delete snapshots", err)
 				utils.HTTPError(w, "Failed to delete snapshots: " + err.Error(), http.StatusInternalServerError, "BCK005")
 				return
 			}
+		// }
+
+		// list snapshots, if none left, delete repo
+		if !otherBackupsUsingRepo {
+			output, err := ListSnapshots(backup.Repository, backup.Password)
+			if err == nil {
+				var outputJSON []map[string]interface{}
+				if err := json.Unmarshal([]byte(output), &outputJSON); err == nil {
+					if len(outputJSON) == 0 {
+						err = DeleteRepository(backup.Repository)
+						if err != nil {
+							utils.Error("RemoveBackup: Failed to delete repository", err)
+						}
+					}
+				} else {
+					utils.Error("RemoveBackup: Failed to delete repository", err)
+				}
+			}
 		}
+
 
 		delete(config.Backup.Backups, name)
 		utils.SetBaseMainConfig(config)
-		InitBackups()
+		go InitBackups()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

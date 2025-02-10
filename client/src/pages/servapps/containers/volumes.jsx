@@ -21,6 +21,8 @@ import PrettyTableView from "../../../components/tableView/prettyTableView";
 import ResponsiveButton from "../../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from "../../../components/filePicker";
+import { Backups } from "../../backups/backups";
+import BackupDialog from "../../backups/backupDialog";
 
 const VolumeContainerSetup = ({
   noCard,
@@ -53,6 +55,11 @@ const VolumeContainerSetup = ({
         setVolumes(res.data.Volumes);
       });
   };
+
+  const formatSource = (mount) => {
+    if (mount.startsWith("/")) return mount;
+    else return "/var/lib/docker/volumes/" + mount + "/_data";
+  }
 
   const wrapCard = (children) => {
     if (noCard) return children;
@@ -297,7 +304,8 @@ const VolumeContainerSetup = ({
                               title: "",
                               field: (r) => {
                                 return (
-                                  <Button
+                                  <Stack direction="row" spacing={2}>
+                                    <Button
                                     variant="outlined"
                                     color="primary"
                                     disabled={frozenVolumes.includes(r.Source)}
@@ -317,6 +325,8 @@ const VolumeContainerSetup = ({
                                   >
                                     {t('global.unmount')}
                                   </Button>
+                                  <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} />
+                                  </Stack>
                                 );
                               },
                             },
@@ -363,6 +373,19 @@ const VolumeContainerSetup = ({
             </form>
           )}
         </Formik>
+      </div>
+      <div
+        style={{
+          maxWidth: "1000px",
+          width: "100%",
+          margin: "",
+          position: "relative",
+      }}>
+        <MainCard title={t('mgmt.backup.backups')}>
+          <Backups pathFilters={
+            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source))
+          } />
+        </MainCard>
       </div>
     </Stack>
   );

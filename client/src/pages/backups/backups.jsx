@@ -2,7 +2,7 @@ import React from "react";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
-import { CloudOutlined, CloudServerOutlined, DeleteOutlined, EditOutlined, ReloadOutlined } from "@ant-design/icons";
+import { CloudOutlined, CloudServerOutlined, DeleteOutlined, EditOutlined, LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
 import { Checkbox, CircularProgress, ListItemIcon, ListItemText, MenuItem, Stack } from "@mui/material";
 import { crontabToText } from "../../utils/indexs";
 import MenuButton from "../../components/MenuButton";
@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { ConfirmModalDirect } from "../../components/confirmModal";
 import BackupDialog, { BackupDialogInternal } from "./backupDialog";
 
-export const Backups = () => {
+export const Backups = ({pathFilters}) => {
   const { t } = useTranslation();
   // const [isAdmin, setIsAdmin] = useState(false);
   let isAdmin = true;
@@ -25,15 +25,29 @@ export const Backups = () => {
     setLoading(true);
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
-    setBackups(configAsync.data.Backup.Backups || []);
+    let b = Object.values(configAsync.data.Backup.Backups || {});
+    b = pathFilters ? b.filter((b) => {
+      let found = false;
+      for (let i = 0; i < pathFilters.length; i++) {
+        if (b.Source.startsWith(pathFilters[i])) {
+          found = true;
+          break;
+        }
+      }
+      return found;
+    }) : b;
+    setBackups(b || []);
     setLoading(false);
   };
   
   const apiDeleteBackup = async (name) => {
-    setLoading(true);
-    await API.backups.removeBackup(name, true);
-    setLoading(false);
-    setDeleteBackup(null);
+    setLoading(name);
+    try {
+      await API.backups.removeBackup(name, true);
+    } catch(e) {
+      setLoading(false);
+      setDeleteBackup(null);
+    }
     refresh();
   }
 
@@ -54,12 +68,12 @@ export const Backups = () => {
         onClose={() => setDeleteBackup(null)}
       />}
       <Stack spacing={2}>
-        <Stack direction="row" spacing={2} justifyContent="flex-start">  
+        {!pathFilters && <Stack direction="row" spacing={2} justifyContent="flex-start">  
           <BackupDialog refresh={refresh}/>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={refresh}>
             {t('global.refresh')}
           </ResponsiveButton>
-        </Stack>
+        </Stack>}
       <div>
       {editOpened && <BackupDialogInternal 
         refresh={refresh} 
@@ -67,9 +81,10 @@ export const Backups = () => {
         setOpen={setEditOpened} 
         data={editOpened} 
       />}
+      
       {backups && <PrettyTableView 
         linkTo={r => '/cosmos-ui/backups/' + r.Name}
-        data={Object.values(backups)}
+        data={backups}
         getKey={(r) => r.Name}
         columns={[
           { 
@@ -87,18 +102,19 @@ export const Backups = () => {
           },
           {
             title: t('mgmt.backup.sourceTitle'),
-            field: (r) => r.Source,
+            field: (r) => (loading && r.Name == loading) ? <div><LoadingOutlined /> Deleting...</div> : r.Source,
+            screenMin: 'sm',
             underline: true,
           },
           {
             title: t('mgmt.backup.repositoryTitle'),
-            field: (r) => r.Repository,
+            field: (r) => (loading && r.Name == loading) ? '' : r.Repository,
             underline: true,
           },
           {
             title: t('mgmt.backup.scheduleTitle'),
-            screenMin: 'sm',
-            field: (r) => crontabToText(r.Crontab, t),
+            screenMin: 'md',
+            field: (r) => (loading && r.Name == loading) ? '' : crontabToText(r.Crontab, t),
             underline: true,
           },
           {
@@ -121,7 +137,7 @@ export const Backups = () => {
                     </ListItemIcon>
                     <ListItemText>{t('global.edit')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.name)}>
+                  <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.Name)}>
                     <ListItemIcon>
                       <DeleteOutlined fontSize="small" />
                     </ListItemIcon>

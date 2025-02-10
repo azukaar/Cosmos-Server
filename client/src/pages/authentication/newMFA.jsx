@@ -74,7 +74,9 @@ const MFALoginForm = () => {
     },
   });
 
-  useEffect(() => {
+  // Currently broken, especially if clipboard req. rejected
+  // also second part is flooding server with req.
+  /*useEffect(() => {
     const handleClipboard = async () => {
       if (!isTokenFilled) {
         try {
@@ -103,7 +105,7 @@ const MFALoginForm = () => {
       formik.handleSubmit();
       setIsSubmitted(true);
     }
-  }, [formik.values.token, formik, isSubmitted]);
+  }, [formik.values.token, formik, isSubmitted]);*/
 
   return (
     <Formik {...formik}>

@@ -76,7 +76,7 @@ export default function BackupRestore({backupName}) {
     return (
       <div className="p-4">
         <Typography variant="h6">
-          Backup not found: {backupName}
+          {t("mgmt.backup.notfound")}: {backupName}
         </Typography>
       </div>
     );
@@ -93,7 +93,7 @@ export default function BackupRestore({backupName}) {
           ))}
         </Select>
       </div>
-      <MainCard name={"Files in Snapshot"} title={<div>{"Files in Snapshot"}</div>}>
+      <MainCard name={t("mgmt.backup.files")} title={<div>{t("mgmt.backup.files")}</div>}>
           {selectedSnapshot && <BackupFileExplorer backup={backup} backupName={backupName} selectedSnapshot={selectedSnapshot} getFile={(path) => API.backups.listFolders(backupName, selectedSnapshot, path)} />}
       </MainCard>
     </Stack>

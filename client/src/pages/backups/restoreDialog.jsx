@@ -46,13 +46,15 @@ const RestoreDialogInternal = ({ refresh, open, setOpen, candidatePaths, origina
       <FormikProvider value={formik}>
         <form onSubmit={formik.handleSubmit}>
           <DialogTitle>
-            Restore Snapshot
+            {t("mgmt.backup.restore.snap")}
           </DialogTitle>
           <DialogContent>
             <DialogContentText>
               {!done ? <Stack spacing={3} style={{ marginTop: '10px', width: '500px', maxWidth: '100%' }}>
                 <Alert severity="info">
-                  You are about to restore {candidatePaths.length ? candidatePaths.length : "every"} file(s)/folder(s). This will overwrite existing files.
+                  {t("mgmt.backup.restore.summary", { 
+                      count: candidatePaths.length ? candidatePaths.length : "every" 
+                  })}
                 </Alert>
                 
                 <Stack direction="row" spacing={2} alignItems="flex-end">
@@ -80,21 +82,21 @@ const RestoreDialogInternal = ({ refresh, open, setOpen, candidatePaths, origina
                 )}
               </Stack> : <Stack>
                 <Alert severity="success">
-                  Restore operation has been queued. You can monitor the progress in the <strong>Tasks</strong> log on the top right.
+                  {t("mgmt.backup.restore.success")}
                 </Alert>
               </Stack>}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
-            <LoadingButton 
+            {!done && <LoadingButton 
               color="primary" 
               variant="contained" 
               type="submit" 
               loading={formik.isSubmitting}
             >
-              Restore
-            </LoadingButton>
+              {t("mgmt.backup.restore")}
+            </LoadingButton>}
           </DialogActions>
         </form>
       </FormikProvider>

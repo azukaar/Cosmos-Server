@@ -13,13 +13,15 @@ import {
 import { useClientInfos } from '../../../../utils/hooks';
 import * as API from '../../../../api';
 import { CosmosInputPassword } from '../../../../pages/config/users/formShortcuts';
+import { useTranslation } from 'react-i18next';
 
 const SudoModal = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const {userRole, role} = useClientInfos();
   const canSudo = role !== "2" && userRole === "2";
-
+  const {t} = useTranslation();
+  
   const formik = useFormik({
     initialValues: {
       password: ''
@@ -75,10 +77,10 @@ const SudoModal = () => {
           p: 4
         }}>
           <Typography variant="h6" component="h2" gutterBottom>
-            Enable Admin Privileges
+            {t("sudo.title")}
           </Typography>
           <Alert severity="info" sx={{ mt: 2 }}>
-            You are about to enable admin privileges. Please enter your password to continue. This will expire after 2h of inactivity.
+            {t("sudo.description")}
           </Alert>
           <form onSubmit={formik.handleSubmit}>
             <CosmosInputPassword
@@ -90,7 +92,7 @@ const SudoModal = () => {
             />
             <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
               <Button onClick={handleClose}>
-                Cancel
+                {t("global.cancelAction")}
               </Button>
               <Button 
                 type="submit" 
