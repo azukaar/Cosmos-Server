@@ -172,7 +172,7 @@ const ConfigManagement = () => {
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
           setSubmitting(true);
 
-          if(!values.IncrBackupOutputDir) {
+          if(!values.IncrBackupOutputDir && config.Backup.Backups && config.Backup.Backups["Cosmos Internal Backup"]) {
             delete config.Backup.Backups["Cosmos Internal Backup"];
           }
         
