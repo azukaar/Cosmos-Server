@@ -1,4 +1,5 @@
 node translate.js cn
+node translate.js cn-tw
 node translate.js de
 node translate.js es
 node translate.js fr

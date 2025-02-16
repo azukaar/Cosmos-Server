@@ -73,7 +73,7 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
     let resetStorage = storage != selectedStorage;
 
     // if already loaded, just update the tree
-    if(!force && files[path]) {
+    if(!resetStorage && (!force && files[path])) {
       setSelectedStorage(storage);
       setSelectedPath(path);
       return;
@@ -95,6 +95,7 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
         setStorages(data.storages);
         setSelectedStorage(data.storage);
         setSelectedPath(data.path);
+        setPath(data.storage, data.path || '/', data.fullpath || '/');
       });
     }
   }
@@ -133,16 +134,20 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
     );
   }
 
+  const setPath = (selectedStorage, p, fullPath) => {
+    if(raw) {
+      let realSelected = restic ? ((selectedStorage == "local" || selectedStorage == "") ? selectedStorage : ("rclone" + ':' + selectedStorage)) : selectedStorage;
+      let realNodePath = restic && selectedStorage != "local" ? p.replace(/^\//, '') : p;
+      setSelectedFullPath(selectedStorage == "local" ? p : (realSelected + ':' + realNodePath));
+    } else {
+      setSelectedFullPath(fullPath);
+    }
+  }
+
   const handleToggleNode = (event, nodePath) => {
     if (nodePath == "/") {
       updateFiles(selectedStorage, nodePath);
-      if(raw) {
-        let realSelected = restic ? ((selectedStorage == "local" || selectedStorage == "") ? selectedStorage : ("rclone" + ':' + selectedStorage)) : selectedStorage;
-        let realNodePath = restic && selectedStorage != "local" ? nodePath.replace(/^\//, '') : nodePath;
-        setSelectedFullPath(selectedStorage == "local" ? nodePath : (realSelected + ':' + realNodePath));
-      } else {
-        setSelectedFullPath(nodePath);
-      }
+      setPath(selectedStorage, nodePath, nodePath);
       return;
     }
 
@@ -165,13 +170,7 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
         (select == 'file' && !file.isDir) ||
         (select == 'folder' && file.isDir)
       )) {
-        if(raw) {
-          let realSelected = restic ? ((selectedStorage == "local" || selectedStorage == "") ? selectedStorage : ("rclone" + ':' + selectedStorage)) : selectedStorage;
-          let realNodePath = restic && selectedStorage != "local" ? nodePath.replace(/^\//, '') : nodePath;
-          setSelectedFullPath(selectedStorage == "local" ? nodePath : (realSelected + ':' + realNodePath));
-        } else {
-          setSelectedFullPath(file.fullPath);
-        }
+        setPath(selectedStorage, nodePath, file.fullPath);
       }
     }
   }
@@ -197,7 +196,7 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
                       {storages.map((storage) => (
                         <ListItem key={storage.name} disablePadding >
                            <ListItemButton
-                            onClick={() => updateFiles(storage.name, '')}
+                            onClick={() => {updateFiles(storage.name, '');}}
                             style={{background: selectedStorage === storage.name ? 'rgba(0,0,0,0.1)' : 'transparent' }}
                             >{storage.name}</ListItemButton>
                         </ListItem>
@@ -210,14 +209,15 @@ const FilePickerModal = ({ raw, open, cb, restic, OnClose, onPick, canCreate, _s
                 </div>}
                 <div style={{flexGrow: 1, minHeight: '300px'}}>
                   {!explore && <Stack style={{padding: '5px 5px 5px 10px', margin: '0px 0px 5px 0px', background: 'rgba(0,0,0,0.1)'}} direction="row" spacing={2} alignContent={'center'} alignItems={'center'}>
-                    <div>{canCreate ? <NewFolderButton cb={
-                      (res) => {
+                    <div>{canCreate ?  <NewFolderButton cb={
+                      (fullpath, filename) => {
                         updateFiles(selectedStorage, selectedPath, true);
                         setTimeout(() => {
-                          setSelectedFullPath(res);
+                          setPath(selectedStorage, selectedPath + "/" + filename, fullpath);
+                          setSelectedPath(selectedPath + "/" + filename);
                         }, 1000);
                       }
-                    } storage={selectedStorage} path={selectedFullPath}/> : null}</div>
+                    } storage={selectedStorage} path={selectedPath}/> : null}</div>
                     <div>{t('mgmt.storage.selected')}: {selectedFullPath}</div>
                   </Stack>}
                   {convertToTreeView(directoriesAsTree)}

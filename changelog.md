@@ -14,6 +14,7 @@
  - Fixed file picker prefix issue in docker container
  - Added OpenID IDTokenSigningAlgValuesSupported
  - Fix RClone not starting (hopefully)
+ - Added traditional Chinese translation
 
 ## Version 0.17.7
  - Fix error code on login screen

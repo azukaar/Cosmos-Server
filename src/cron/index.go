@@ -173,6 +173,15 @@ func setTerminalSize(ptmx *os.File, rows, cols uint16) error {
 	})
 }
 
+func WrapJobExecution(
+	jobExecuter func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc),
+	wrapFunc func(func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc)) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc),
+) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+	return func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+			wrapFunc(jobExecuter)(OnLog, OnFail, OnSuccess, ctx, cancel)
+	}
+}
+
 func JobFromContainerCommand(containerID string, command string, args ...string) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 	return func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 			// Connect to Docker

@@ -9,6 +9,7 @@ const languages = [
   { code: 'en-GB', name: 'English (UK)', flag: 'gb' },
   { code: 'ar', name: 'العربية', flag: 'sa' },
   { code: 'cn', name: '中文', flag: 'cn' },
+  { code: 'cn-TW', name: '中文 (正體字)', flag: 'cn' },
   { code: 'de', name: 'Deutsch', flag: 'de' },
   { code: 'de-CH', name: 'Deutsch (CH)', flag: 'ch' },
   { code: 'es', name: 'Español', flag: 'es' },

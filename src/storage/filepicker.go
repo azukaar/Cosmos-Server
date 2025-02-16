@@ -61,9 +61,6 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 		var basePath string
 		if storage == "local" {
 			basePath = "/"
-			if utils.IsInsideContainer {
-				basePath = "/mnt/host/"
-			}
 		} else {
 			found := false
 			for _, s := range storages {
@@ -80,7 +77,12 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		fullPath := filepath.Join(basePath, path)
+		fullPathRaw := filepath.Join(basePath, path)
+		fullPath := fullPathRaw
+		
+		if utils.IsInsideContainer {
+			fullPath = filepath.Join("/mnt/host/", fullPathRaw)
+		}
 
 		directory, err := ListDirectory(fullPath)
 		if err != nil {
@@ -95,6 +97,7 @@ func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 				"storage":	 storage,
 				"path":    path,
 				"storages":  storages,
+				"fullpath": fullPathRaw,
 				"directory": directory,
 			},
 		})
@@ -185,9 +188,6 @@ func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
 		var basePath string
 		if storage == "local" {
 			basePath = "/"
-			if utils.IsInsideContainer {
-				basePath = "/mnt/host/"
-			}
 		} else {
 			found := false
 			for _, s := range storages {
@@ -204,8 +204,13 @@ func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		fullPath := filepath.Join(basePath, path)
-		fullPath = filepath.Join(fullPath, folder)
+		fullPathRaw := filepath.Join(basePath, path)
+		fullPathRaw = filepath.Join(fullPathRaw, folder)
+		fullPath := fullPathRaw
+		
+		if utils.IsInsideContainer {
+			fullPath = filepath.Join("/mnt/host/", fullPathRaw)
+		}
 
 		utils.Log("CreateFolderRoute: Creating folder: "+fullPath)
 
@@ -221,6 +226,7 @@ func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
 			"data": map[string]interface{}{
 				"storage":	 storage,
 				"path":    path,
+				"fullpath": fullPathRaw,
 				"storages":  storages,
 				"created":  fullPath,
 			},

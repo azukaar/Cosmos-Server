@@ -452,4 +452,5 @@ type SingleBackupConfig struct {
 	Crontab string
 	CrontabForget string
 	RetentionPolicy string
+	AutoStopContainers bool
 }

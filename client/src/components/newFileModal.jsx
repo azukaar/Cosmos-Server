@@ -26,7 +26,7 @@ const NewFolderModal = ({ raw, open, cb, OnClose, onPick, canCreate, storage = '
     onSubmit: (values) => {
       API.storage.newFolder(storage, path, values.name).then((res) => {
         OnClose();
-        cb && cb(res.data.created);
+        cb && cb(res.data.created, values.name);
       });
     },
   });

@@ -12,6 +12,11 @@ func InitBackups() {
 		utils.Warn("InitBackups: No valid licence found, not starting module.")
 		return
 	}
+	
+	if utils.IsInsideContainer {
+		utils.Warn("InitBackups: Currently running in a docker container, disabling backups.")
+		return
+	}
 
 	Repositories := config.Backup.Backups
 
@@ -74,6 +79,7 @@ func InitBackups() {
 				Password:   repo.Password,
 				Source:     repo.Source,
 				Name:       repo.Name,
+				AutoStopContainers: repo.AutoStopContainers,
 				Tags:       []string{repo.Name},
 				// Exclude:    repo.Exclude,
 			}, repo.Crontab)

@@ -21,6 +21,12 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
+	if utils.IsInsideContainer {
+		utils.Warn("Currently running in a docker container, cannot create backups. Please run Cosmos as a service")
+		utils.HTTPError(w, "Currently running in a docker container, cannot create backups. Please run Cosmos as a service", http.StatusBadRequest, "BCK002")
+		return
+	}
+
 	if req.Method == "POST" {
 		utils.Log("AddBackup: Adding backup")
 
@@ -374,6 +380,7 @@ func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 			Name:       backup.Name,
 			Include:    request.Include,
 			OriginalSource: backup.Source,
+			AutoStopContainers: backup.AutoStopContainers,
 		})
 
 		json.NewEncoder(w).Encode(map[string]interface{}{

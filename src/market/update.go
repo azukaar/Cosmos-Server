@@ -28,6 +28,7 @@ type languages struct {
 	DeCH	translationFields `json:"de-CH"`
 	EnGB 	translationFields `json:"en-GB"`
 	Cn 		translationFields `json:"cn"`
+	CnTW 		translationFields `json:"cn-TW"`
 	Es 		translationFields `json:"es"`
 	Fr 		translationFields `json:"fr"`
 	Hi 		translationFields `json:"hi"`

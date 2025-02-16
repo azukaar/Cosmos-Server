@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"context"
 
 	"github.com/creack/pty"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -87,8 +88,11 @@ func ExecRestic(args []string, env []string) (string, error) {
 	}
 	defer f.Close()
 
+	filters := []string{"unable to open cache: unable to locate cache directory: neither $XDG_CACHE_HOME nor $HOME are defined"}
+
 	// Create a buffer to store all output
 	var output bytes.Buffer
+	var tempBuffer bytes.Buffer
 	done := make(chan error, 1)
 
 	// Start a goroutine to read the output
@@ -100,11 +104,19 @@ func ExecRestic(args []string, env []string) (string, error) {
 				done <- err
 				return
 			}
-			output.Write(buf[:n])
-			b := string(buf[:n])
-			b = stripAnsi.ReplaceAllString(b, "")
-			b = strings.TrimSuffix(b, "\n")
-			utils.Debug("[Restic] " + b)
+			
+			// output.Write(buf[:n])
+			tempBuffer.Write(buf[:n])
+			
+			// if not in filters, write to output
+			if strings.TrimSpace(tempBuffer.String()) != filters[0] {
+				output.Write(buf[:n])
+				b := string(buf[:n])
+				b = stripAnsi.ReplaceAllString(b, "")
+				b = strings.TrimSuffix(b, "\n")
+			}
+			
+			utils.Debug("[Restic] " + tempBuffer.String())
 		}
 	}()
 
@@ -224,35 +236,7 @@ type BackupConfig struct {
 	Tags       []string
 	Exclude    []string
 	Retention	 string
-}
-
-// CreateBackupJob creates a backup job configuration
-func CreateBackupOneTimeJob(config BackupConfig) {
-	utils.Log("Creating backup job for " + config.Name)
-
-	args := []string{"backup", "--repo", config.Repository, config.Source}
-
-	// Add tags if specified
-	for _, tag := range config.Tags {
-		args = append(args, "--tag", tag)
-	}
-
-	// Add exclude patterns if specified
-	for _, exclude := range config.Exclude {
-		args = append(args, "--exclude", exclude)
-	}
-
-	env := []string{
-		fmt.Sprintf("RESTIC_PASSWORD=%s", config.Password),
-	}
-
-	cron.RunOneTimeJob(cron.ConfigJob{
-		Scheduler:   "Restic",
-		Name:       fmt.Sprintf("Restic backup %s", config.Name),
-		Cancellable: true,
-		Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
-		Resource: "backup@" + config.Name,
-	})
+	AutoStopContainers bool
 }
 
 // CreateBackupJob creates a backup job configuration
@@ -325,6 +309,7 @@ type RestoreConfig struct {
 	Name        string
 	Include     []string
 	OriginalSource string
+	AutoStopContainers bool
 }
 
 // CreateRestoreJob creates a restore job configuration
@@ -350,10 +335,12 @@ func CreateRestoreJob(config RestoreConfig) {
 
 	go (func() {
 		cron.RunOneTimeJob(cron.ConfigJob{
-			Scheduler:   "Restic",
-			Name:       fmt.Sprintf("Restic restore %s", config.Name),
-			Cancellable: true,
-			Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
+			Scheduler:    "Restic",
+			Name:         fmt.Sprintf("Restic restore %s", config.Name),
+			Cancellable:  true,
+			Job:          func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+											return cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
+										},
 			Resource: "backup@" + config.Name,
 		})
 	})()
