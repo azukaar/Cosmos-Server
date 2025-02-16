@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"context"
 
 	"github.com/creack/pty"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -338,9 +337,7 @@ func CreateRestoreJob(config RestoreConfig) {
 			Scheduler:    "Restic",
 			Name:         fmt.Sprintf("Restic restore %s", config.Name),
 			Cancellable:  true,
-			Job:          func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
-											return cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
-										},
+			Job:          cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
 			Resource: "backup@" + config.Name,
 		})
 	})()

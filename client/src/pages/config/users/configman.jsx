@@ -149,7 +149,7 @@ const ConfigManagement = () => {
           MonitoringEnabled: !config.MonitoringDisabled,
 
           BackupOutputDir: config.BackupOutputDir,
-          IncrBackupOutputDir: config.Backup.Backups && config.Backup.Backups["Cosmos Internal Backup"] ? config.Backup.Backups["Cosmos Internal Backup"].Repository : "",
+          IncrBackupOutputDir: config.Backup && config.Backup.Backups && config.Backup.Backups["Cosmos Internal Backup"] ? config.Backup.Backups["Cosmos Internal Backup"].Repository : "",
 
           AdminWhitelistIPs: config.AdminWhitelistIPs && config.AdminWhitelistIPs.join(', '),
           AdminConstellationOnly: config.AdminConstellationOnly,
@@ -251,9 +251,9 @@ const ConfigManagement = () => {
             Backup: {
               ...config.Backup,
               Backups: values.IncrBackupOutputDir ? {
-                ...config.Backup.Backups,
+                ...(config.Backup.Backups || {}),
                 "Cosmos Internal Backup": {
-                  ...config.Backup.Backups["Cosmos Internal Backup"],
+                  ...(config.Backup.Backups ? config.Backup.Backups["Cosmos Internal Backup"] : {}),
                   "Crontab": "0 0 4 * * *",
                   "CrontabForget": "0 0 12 * * *",
                   "Source": status && status.ConfigFolder,
@@ -261,7 +261,7 @@ const ConfigManagement = () => {
                   "Name": "Cosmos Internal Backup",
                   Repository: values.IncrBackupOutputDir
                 }
-              } : config.Backup.Backups
+              } : (config.Backup.Backups || {})
             }
           }
           
