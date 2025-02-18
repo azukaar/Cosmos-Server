@@ -8,6 +8,7 @@ interface BackupConfig {
   crontab?: string;
   tags?: string[];
   exclude?: string[];
+  autoStopContainers?: boolean;
 }
 
 interface RestoreConfig {

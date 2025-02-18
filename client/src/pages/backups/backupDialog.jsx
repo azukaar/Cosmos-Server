@@ -9,7 +9,7 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import { crontabToText } from "../../utils/indexs";
 import { Trans, useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../components/filePicker';
-import { CosmosInputText } from "../config/users/formShortcuts";
+import { CosmosCheckbox, CosmosInputText } from "../config/users/formShortcuts";
 
 const isAbsolutePath = (path) => path.startsWith('/') || path.startsWith('rclone:') || /^[a-zA-Z]:\\/.test(path); // Unix & Windows support
 
@@ -23,7 +23,8 @@ const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data
       repository: data.Repository || '/backups',
       crontab: data.Crontab || '0 0 4 * * *',
       crontabForget: data.CrontabForget || '0 0 12 * * *',
-      retentionPolicy: data.RetentionPolicy || '--keep-last 3 --keep-daily 7 --keep-weekly 8 --keep-yearly 3'
+      retentionPolicy: data.RetentionPolicy || '--keep-last 3 --keep-daily 7 --keep-weekly 8 --keep-yearly 3',
+      autoStopContainers: isEdit ? data.AutoStopContainers : true,
     },
     validationSchema: yup.object({
       name: yup
@@ -155,6 +156,13 @@ const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data
                   error={formik.touched.retentionPolicy && Boolean(formik.errors.retentionPolicy)}
                   helperText={formik.touched.retentionPolicy && formik.errors.retentionPolicy}
                 />
+
+                <CosmosCheckbox
+                  name="autoStopContainers"
+                    label={t('mgmt.backup.autoStopContainers')}
+                    formik={formik}
+                  />
+
 
                 {formik.errors.submit && (
                   <Grid item xs={12}>

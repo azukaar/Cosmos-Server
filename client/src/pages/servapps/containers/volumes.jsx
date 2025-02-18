@@ -325,7 +325,7 @@ const VolumeContainerSetup = ({
                                   >
                                     {t('global.unmount')}
                                   </Button>
-                                  {r.Target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null}
+                                  {!newContainer && containerInfo.Name && (r.Target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null)}
                                   </Stack>
                                 );
                               },
@@ -374,19 +374,19 @@ const VolumeContainerSetup = ({
           )}
         </Formik>
       </div>
-      <div
+      {!newContainer && <div
         style={{
           maxWidth: "1000px",
           width: "100%",
           margin: "",
           position: "relative",
       }}>
-        <MainCard title={t('mgmt.backup.backups')}>
+        {containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.Mounts && <MainCard title={t('mgmt.backup.backups')}>
           <Backups pathFilters={
             containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source))
           } />
-        </MainCard>
-      </div>
+        </MainCard>}
+      </div>}
     </Stack>
   );
 };

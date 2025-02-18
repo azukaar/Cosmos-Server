@@ -143,6 +143,7 @@ func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 		current.Crontab = request.Crontab
 		current.CrontabForget = request.CrontabForget
 		current.RetentionPolicy = request.RetentionPolicy
+		current.AutoStopContainers = request.AutoStopContainers
 
 		config.Backup.Backups[request.Name] = current
 		utils.SetBaseMainConfig(config)

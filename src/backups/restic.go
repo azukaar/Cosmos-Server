@@ -7,10 +7,12 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"context"
 
 	"github.com/creack/pty"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/cron"
+	"github.com/azukaar/cosmos-server/src/docker"
 	"encoding/json"
 )
 
@@ -262,7 +264,42 @@ func CreateBackupJob(config BackupConfig, crontab string) {
 		Scheduler:   "Restic",
 		Name:       fmt.Sprintf("Restic backup %s", config.Name),
 		Cancellable: true,
-		Job:        cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
+		Job:  func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+			var containers []string
+			var err error
+
+			if config.AutoStopContainers {
+				containers, err = docker.GetContainersUsingPath(config.Source)
+				if err != nil {
+					OnFail(err)
+					return
+				}
+
+				OnLog("Found container(s) using path: " + strings.Join(containers, ", "))
+
+
+				// Stop all containers
+				err = docker.StopContainers(containers)
+				if err != nil {
+					docker.StartContainers(containers)
+					OnFail(err)
+					return
+				}
+
+				OnLog("Stopped containers, starting backup")
+			}
+
+			cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
+		
+			if config.AutoStopContainers {
+				// Start all containers
+				err = docker.StartContainers(containers)
+				if err != nil {
+					OnFail(err)
+					return
+				}
+			}
+		},
 		Crontab: 		 crontab,
 		Resource:   "backup@" + config.Name,
 	})
@@ -337,7 +374,42 @@ func CreateRestoreJob(config RestoreConfig) {
 			Scheduler:    "Restic",
 			Name:         fmt.Sprintf("Restic restore %s", config.Name),
 			Cancellable:  true,
-			Job:          cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...),
+			Job:            func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
+				var containers []string
+				var err error
+	
+				if config.AutoStopContainers {
+					containers, err = docker.GetContainersUsingPath(config.OriginalSource)
+					if err != nil {
+						OnFail(err)
+						return
+					}
+	
+					OnLog("Found container(s) using path: " + strings.Join(containers, ", "))
+	
+	
+					// Stop all containers
+					err = docker.StopContainers(containers)
+					if err != nil {
+						docker.StartContainers(containers)
+						OnFail(err)
+						return
+					}
+	
+					OnLog("Stopped containers, starting backup")
+				}
+	
+				cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
+			
+				if config.AutoStopContainers {
+					// Start all containers
+					err = docker.StartContainers(containers)
+					if err != nil {
+						OnFail(err)
+						return
+					}
+				}
+			},
 			Resource: "backup@" + config.Name,
 		})
 	})()

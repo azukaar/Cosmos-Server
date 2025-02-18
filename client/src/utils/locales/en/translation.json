@@ -912,6 +912,7 @@
 	"mgmt.backup.files": "Files in Snapshot",
 	"mgmt.backup.restore.success": "Restore operation has been queued. You can monitor the progress in the tasks log on the top right.",
 	"mgmt.backup.restore.summary": "You are about to restore {count} file(s)/folder(s). This will overwrite existing files.",
+	"mgmt.backup.autoStopContainers": "Automatically Stop Containers using that folder before backup/restore operations",
 	"global.noData": "No Data To Show",
 	"global.open": "Open",
 	"global.absolutePath": "Must be an absolute path",

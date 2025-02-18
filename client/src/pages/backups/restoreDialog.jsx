@@ -88,7 +88,7 @@ const RestoreDialogInternal = ({ refresh, open, setOpen, candidatePaths, origina
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpen(false)}>{t('global.cancelAction')}</Button>
+            <Button onClick={() => setOpen(false)}>{done ? t('global.close') : t('global.cancelAction')}</Button>
             {!done && <LoadingButton 
               color="primary" 
               variant="contained" 
