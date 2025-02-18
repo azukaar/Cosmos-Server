@@ -1,5 +1,6 @@
 // assets
 import { HomeOutlined, AppstoreOutlined, DashboardOutlined, AppstoreAddOutlined, CheckOutlined } from '@ant-design/icons';
+import { isDomain } from '../utils/indexs';
 
 // icons
 const icons = {
@@ -8,11 +9,13 @@ const icons = {
 
 // ==============================|| MENU ITEMS - DASHBOARD ||============================== //
 
+const isLocal = !isDomain(window.location.hostname) || window.location.hostname.endsWith('.local');
+
 const dashboard = {
     id: 'group-dashboard',
     title: 'menu-items.navigation',
     type: 'group',
-    children: [
+    children: ([
         {
             id: 'home',
             title: 'menu-items.navigation.home',
@@ -38,15 +41,15 @@ const dashboard = {
             icon: AppstoreAddOutlined,
             breadcrumbs: false
         },
-        {
+        isLocal ? {
             id: 'trust',
             title: 'menu-items.navigation.trustTitle',
             type: 'item',
             url: '/cosmos-ui/trust',
             icon: CheckOutlined,
             breadcrumbs: false
-        },
-    ]
+        } : [],
+    ]).flat(),
 };
 
 export default dashboard;
