@@ -959,6 +959,33 @@ func SplitIP(ipPort string) (string, string) {
 	return host, port
 }
 
+func ListInterfaces(skipNebula bool) ([]string, error) {
+	result := []string{}
+
+	// Get a list of all network interfaces.
+	interfaces, err := osnet.Interfaces()
+	if err != nil {
+		return []string{}, err
+	}
+
+	// Iterate over all interfaces.
+	for _, iface := range interfaces {
+		// skip nebula1 interface 
+		if skipNebula && strings.HasPrefix(iface.Name, "nebula") {
+			continue
+		}
+
+		// skip docker interfaces
+		if strings.HasPrefix(iface.Name, "docker") || strings.HasPrefix(iface.Name, "br-") || strings.HasPrefix(iface.Name, "veth") || strings.HasPrefix(iface.Name, "virbr") {
+			continue
+		}
+
+		result = append(result, iface.Name)
+	}
+
+	return result, nil
+}
+
 func ListIps(skipNebula bool) ([]string, error) {
 	// Get a list of all network interfaces.
 	interfaces, err := osnet.Interfaces()

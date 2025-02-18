@@ -207,6 +207,9 @@ func cosmos() {
 	} else {
 		utils.Log("Running outside Docker container")
 	}
+
+	i, _ := utils.ListInterfaces(false)
+	utils.Log("Interfaces are: " + strings.Join(i, ", "))
 	
 	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
 		err := os.MkdirAll(utils.CONFIGFOLDER, os.ModePerm)

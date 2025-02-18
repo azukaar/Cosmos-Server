@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 	"net"
+	"strings"
 	"strconv"
 
 	"github.com/godbus/dbus/v5"
@@ -99,6 +100,10 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 
 	for _, iface := range ifaces {
 		if iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		if strings.HasPrefix(iface.Name, "docker") || strings.HasPrefix(iface.Name, "br-") || strings.HasPrefix(iface.Name, "veth") || strings.HasPrefix(iface.Name, "virbr") {
 			continue
 		}
 

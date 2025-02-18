@@ -15,6 +15,7 @@
  - Added OpenID IDTokenSigningAlgValuesSupported
  - Fix RClone not starting (hopefully)
  - Added traditional Chinese translation
+ - Avahi now ignores virtual interfaces
 
 ## Version 0.17.7
  - Fix error code on login screen
