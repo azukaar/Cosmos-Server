@@ -68,7 +68,7 @@ func GetCertificate(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) 
 	config := utils.GetMainConfig()
 	
 	if config.HTTPConfig.HTTPSCertificateMode == "PROVIDED" {
-			return primaryCert, nil
+		return primaryCert, nil
 	} else if config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" {
 		return secondaryCert, nil
 	}
