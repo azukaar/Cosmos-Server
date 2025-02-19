@@ -540,14 +540,14 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		tempUniqueHostnames := append(wildcards, filterHostnamesByWildcard(othersHostname, wildcards)...)
 
 		// hardcode wildcard for local domains
-		if(MainConfig.HTTPConfig.HTTPSCertificateMode == HTTPSCertModeList["SELFSIGNED"]) {
-			for _, hostname := range tempUniqueHostnames {
-				if strings.HasSuffix(hostname, ".local") {
-					tempUniqueHostnames = append(tempUniqueHostnames, "*.local")
-					break
-				}
-			}
-		}
+		// if(MainConfig.HTTPConfig.HTTPSCertificateMode == HTTPSCertModeList["SELFSIGNED"]) {
+		// 	for _, hostname := range tempUniqueHostnames {
+		// 		if strings.HasSuffix(hostname, ".local") {
+		// 			tempUniqueHostnames = append(tempUniqueHostnames, "*.local")
+		// 			break
+		// 		}
+		// 	}
+		// }
 
 		// dedupe
 		seen = make(map[string]bool)
