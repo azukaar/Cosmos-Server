@@ -981,5 +981,5 @@
   "mgmt.backup.date": "日期",
   "mgmt.backup.data": "數據",
   "mgmt.backup.scheduleForget": "Crontab 忘記排程（多久清理舊備份）",
-  "mgmt.backup.autoStopContainers": "在備份/還原操作前自動停止使用該資料夾的容器"
+  "mgmt.backup.autoStopContainers2": "自動停止使用該資料夾的容器以進行備份/還原操作（建議用於數據庫資料夾和配置資料夾，媒體和文檔則不需要）"
 }

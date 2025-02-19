@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Dateien im Snapshot",
   "mgmt.backup.restore.success": "Die Wiederherstellungsoperation wurde in die Warteschlange gestellt. Sie können den Fortschritt im Aufgabenprotokoll oben rechts überwachen.",
   "mgmt.backup.restore.summary": "Sie sind dabei, {count} Datei(en)/Ordner zu wiederherstellen. Dies überschreibt vorhandene Dateien.",
-  "mgmt.backup.autoStopContainers": "Container mit diesem Ordner vor Backup/Wiederherstellungsoperationen automatisch stoppen",
   "global.noData": "Keine Daten zum Anzeigen",
   "global.open": "Öffnen",
   "global.absolutePath": "Muss ein absoluter Pfad sein",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Plattform-spezifische Anweisungen nicht verfügbar. Bitte überprüfen Sie die Anweisungen unten für Ihre Plattform.",
   "sudo.title": "Admin-Berechtigungen aktivieren",
-  "sudo.description": "Sie sind dabei, Admin-Berechtigungen zu aktivieren. Bitte geben Sie Ihr Passwort ein, um fortzufahren. Dies läuft nach 2 Stunden Inaktivität ab."
+  "sudo.description": "Sie sind dabei, Admin-Berechtigungen zu aktivieren. Bitte geben Sie Ihr Passwort ein, um fortzufahren. Dies läuft nach 2 Stunden Inaktivität ab.",
+  "mgmt.backup.autoStopContainers2": "Container, die diesen Ordner verwenden, vor Sicherungs-/Wiederherstellungsvorgängen automatisch stoppen (Empfohlen für Datenbanken und Konfigurationsordner, nicht erforderlich für Medien und Dokumente)"
 }

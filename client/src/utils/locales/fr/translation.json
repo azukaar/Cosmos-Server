@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Fichiers dans la capture instantanée",
   "mgmt.backup.restore.success": "L'opération de restauration a été mise en file d'attente. Vous pouvez suivre la progression dans le journal des tâches en haut à droite.",
   "mgmt.backup.restore.summary": "Vous êtes sur le point de restaurer {count} fichier(s)/dossier(s). Cela écrasera les fichiers existants.",
-  "mgmt.backup.autoStopContainers": "Arrêter automatiquement les conteneurs utilisant ce dossier avant les opérations de sauvegarde/restauration",
   "global.noData": "Aucune donnée à afficher",
   "global.open": "Ouvrir",
   "global.absolutePath": "Doit être un chemin absolu",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Instructions spécifiques à la plateforme non disponibles. Veuillez vérifier les instructions ci-dessous pour votre plateforme.",
   "sudo.title": "Activer les privilèges administrateur",
-  "sudo.description": "Vous êtes sur le point d'activer les privilèges administrateur. Veuillez saisir votre mot de passe pour continuer. Cela expirera après 2h d'inactivité."
+  "sudo.description": "Vous êtes sur le point d'activer les privilèges administrateur. Veuillez saisir votre mot de passe pour continuer. Cela expirera après 2h d'inactivité.",
+  "mgmt.backup.autoStopContainers2": "Arrête automatiquement les conteneurs utilisant ce dossier avant les opérations de sauvegarde/restauration (Recommandé pour les dossiers de données de base de données et les dossiers de configuration, non requis pour les médias et les documents)"
 }

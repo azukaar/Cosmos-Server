@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Scrolls in Snappeth",
   "mgmt.backup.restore.success": "Restoration operation hath been queued. Monitor thou quest in the tasketh log topmost right.",
   "mgmt.backup.restore.summary": "Thou art about to restoreth {count} scroll(s)/fortress(es). This shalt overwriteth existing scrolls.",
-  "mgmt.backup.autoStopContainers": "Automatically ceaseth Containers using that fortress before backupeth/restoration operations commenceth",
   "global.noData": "Nay Data To Showeth",
   "global.open": "Openth Sesame",
   "global.absolutePath": "Must be yon absolute trajectory",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Yonder instructions for the exact platform not available. Seek others below for unknown platform.",
   "sudo.title": "Maketh Admin Power Unfurled",
-  "sudo.description": "Thou art about to maketh admin powers availed. Cast thy password thus. Expiration will beset after 2h of idleness."
+  "sudo.description": "Thou art about to maketh admin powers availed. Cast thy password thus. Expiration will beset after 2h of idleness.",
+  "mgmt.backup.autoStopContainers2": "Ye must automatically let the containers taketh a nap useth 'ere folder afore thy backup or restore operations commence (Tis a wise choice fer folders of data from databases and config-scrolls, but heed me, 'tis not a must for media treasures and parchment scrolls)"
 }

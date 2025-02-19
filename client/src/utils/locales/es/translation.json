@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Archivos en la Instantánea",
   "mgmt.backup.restore.success": "La operación de restauración ha sido puesta en cola. Puedes seguir el progreso en el registro de tareas en la parte superior derecha.",
   "mgmt.backup.restore.summary": "Estás a punto de restaurar {count} archivo(s)/carpeta(s). Esto sobrescribirá los archivos existentes.",
-  "mgmt.backup.autoStopContainers": "Detener automáticamente los contenedores que utilizan esa carpeta antes de las operaciones de copia/restauración",
   "global.noData": "No hay datos para mostrar",
   "global.open": "Abrir",
   "global.absolutePath": "Debe ser una ruta absoluta",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Instrucciones específicas de la plataforma no disponibles. Por favor, verifica las instrucciones a continuación para tu plataforma.",
   "sudo.title": "Habilitar Privilegios de Administrador",
-  "sudo.description": "Estás a punto de habilitar los privilegios de administrador. Por favor, introduce tu contraseña para continuar. Esto expirará después de 2 horas de inactividad."
+  "sudo.description": "Estás a punto de habilitar los privilegios de administrador. Por favor, introduce tu contraseña para continuar. Esto expirará después de 2 horas de inactividad.",
+  "mgmt.backup.autoStopContainers2": "Detener automáticamente los contenedores que utilizan esa carpeta antes de las operaciones de copia de seguridad/restauración (Recomendado para carpetas de datos de bases de datos y carpetas de configuración, no es necesario para medios y documentos)"
 }

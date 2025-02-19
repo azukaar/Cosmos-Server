@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Bestanden in Snapshot",
   "mgmt.backup.restore.success": "Het herstelproces is in de wachtrij geplaatst. U kunt de voortgang volgen in het taaklogboek rechtsboven.",
   "mgmt.backup.restore.summary": "U staat op het punt {count} bestand(en)/map(pen) te herstellen. Dit zal bestaande bestanden overschrijven.",
-  "mgmt.backup.autoStopContainers": "Containers met die map automatisch stoppen vóór backup/hersteloperaties",
   "global.noData": "Geen gegevens om te tonen",
   "global.open": "Open",
   "global.absolutePath": "Moet een absoluut pad zijn",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Specifieke instructies voor platform niet beschikbaar. Raadpleeg de onderstaande instructies voor uw platform.",
   "sudo.title": "Beheerrechten Inschakelen",
-  "sudo.description": "U staat op het punt om beheerrechten in te schakelen. Voer uw wachtwoord in om door te gaan. Dit verloopt na 2 uur van inactiviteit."
+  "sudo.description": "U staat op het punt om beheerrechten in te schakelen. Voer uw wachtwoord in om door te gaan. Dit verloopt na 2 uur van inactiviteit.",
+  "mgmt.backup.autoStopContainers2": "Containers automatisch stoppen die die map gebruiken vóór back-up/herstelbewerkingen (Aanbevolen voor databasegegevensmappen en configuratiemappen, niet vereist voor media en documenten)"
 }

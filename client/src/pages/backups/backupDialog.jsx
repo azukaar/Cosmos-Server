@@ -159,10 +159,9 @@ const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data
 
                 <CosmosCheckbox
                   name="autoStopContainers"
-                    label={t('mgmt.backup.autoStopContainers')}
+                    label={t('mgmt.backup.autoStopContainers2')}
                     formik={formik}
                   />
-
 
                 {formik.errors.submit && (
                   <Grid item xs={12}>

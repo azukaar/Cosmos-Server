@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Anlık Görüntüdeki Dosyalar",
   "mgmt.backup.restore.success": "Geri yükleme işlemi sıraya alındı. İlerlemeyi sağ üstteki görev günlüğünde izleyebilirsiniz.",
   "mgmt.backup.restore.summary": "{count} dosya/dizin geri yüklemek üzeresiniz. Bu var olan dosyaları üzerine yazacaktır.",
-  "mgmt.backup.autoStopContainers": "Yedekleme/geri yükleme işlemlerinden önce bu klasörü kullanan kapları otomatik durdur",
   "global.noData": "Gösterilecek Veri Yok",
   "global.open": "Aç",
   "global.absolutePath": "Mutlak bir yol olmalıdır",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Plarformozel talimatlar mevcut değil. Lütfen platformunuz için aşağıdaki talimatları kontrol edin.",
   "sudo.title": "Yönetici Yetkilerini Etkinleştir",
-  "sudo.description": "Yönetici ayrıcalıklarını etkinleştirmek üzeresiniz. Devam etmek için lütfen şifrenizi girin. Bu, 2 saatlik etkinliksizlikten sonra sona erecektir."
+  "sudo.description": "Yönetici ayrıcalıklarını etkinleştirmek üzeresiniz. Devam etmek için lütfen şifrenizi girin. Bu, 2 saatlik etkinliksizlikten sonra sona erecektir.",
+  "mgmt.backup.autoStopContainers2": "Yedekleme/geri yükleme işlemlerinden önce bu klasörü kullanan kapsayıcıları otomatik olarak durdur (Veritabanı veri klasörleri ve yapılandırma klasörleri için önerilir, medya ve belgeler için gerekli değildir)"
 }

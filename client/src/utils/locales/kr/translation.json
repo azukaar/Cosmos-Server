@@ -910,7 +910,6 @@
   "mgmt.backup.files": "스냅샷의 파일",
   "mgmt.backup.restore.success": "복원 작업이 큐에 추가되었습니다. 오른쪽 상단의 작업 로그에서 진행 상황을 모니터링 할 수 있습니다.",
   "mgmt.backup.restore.summary": "{count}개의 파일/폴더를 복원하려고 합니다. 기존 파일이 덮어쓰기됩니다.",
-  "mgmt.backup.autoStopContainers": "백업/복원 작업 전에 해당 폴더를 사용하는 컨테이너 자동 중지",
   "global.noData": "표시할 데이터 없음",
   "global.open": "열기",
   "global.absolutePath": "절대 경로여야 함",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "플랫폼별 지침을 사용할 수 없습니다. 아래 지침을 확인하여 해당 플랫폼에 대한 정보 제공을 확인하십시오.",
   "sudo.title": "관리자 권한 활성화",
-  "sudo.description": "관리자 권한을 활성화하려고 합니다. 계속하려면 비밀번호를 입력하십시오. 이것은 2시간의 비활성화 후 만료됩니다."
+  "sudo.description": "관리자 권한을 활성화하려고 합니다. 계속하려면 비밀번호를 입력하십시오. 이것은 2시간의 비활성화 후 만료됩니다.",
+  "mgmt.backup.autoStopContainers2": "백업/복원 작업 전에 해당 폴더를 사용하는 컨테이너를 자동으로 중지합니다 (데이터베이스 데이터 폴더와 구성 폴더에 권장, 미디어와 문서에는 필요하지 않음)"
 }

@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Arquivos no Snapshot",
   "mgmt.backup.restore.success": "A operação de restauração foi enfileirada. Você pode monitorar o progresso no registro de tarefas no canto superior direito.",
   "mgmt.backup.restore.summary": "Você está prestes a restaurar {count} arquivo(s)/pasta(s). Isso substituirá arquivos existentes.",
-  "mgmt.backup.autoStopContainers": "Parar automaticamente os Contêineres que usam essa pasta antes das operações de backup/restauração",
   "global.noData": "Sem Dados Para Mostrar",
   "global.open": "Abrir",
   "global.absolutePath": "Deve ser um caminho absoluto",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Instruções específicas para a plataforma não disponíveis. Por favor, verifique as instruções abaixo para a sua plataforma.",
   "sudo.title": "Habilitar Privilégios de Administrador",
-  "sudo.description": "Você está prestes a habilitar privilégios de administrador. Por favor, insira sua senha para continuar. Isso expirará após 2h de inatividade."
+  "sudo.description": "Você está prestes a habilitar privilégios de administrador. Por favor, insira sua senha para continuar. Isso expirará após 2h de inatividade.",
+  "mgmt.backup.autoStopContainers2": "Parar automaticamente os contêineres que utilizam essa pasta antes das operações de backup/restauração (Recomendado para pastas de dados de banco de dados e pastas de configuração, não é necessário para mídia e documentos)"
 }

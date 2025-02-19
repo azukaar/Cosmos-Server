@@ -910,7 +910,6 @@
   "mgmt.backup.files": "Pliki w migawce",
   "mgmt.backup.restore.success": "Operacja przywracania została dodana do kolejki. Możesz monitorować postęp w dzienniku zadań w prawym górnym rogu.",
   "mgmt.backup.restore.summary": "Masz zamiar przywrócić {count} plik(ów)/folder(ów). Spowoduje to nadpisanie istniejących plików.",
-  "mgmt.backup.autoStopContainers": "Automatycznie zatrzymaj kontenery używające tego folderu przed operacjami tworzenia/przywracania kopii zapasowej",
   "global.noData": "Brak danych do wyświetlenia",
   "global.open": "Otwórz",
   "global.absolutePath": "Musi być ścieżką bezwzględną",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Instrukcje specyficzne dla platformy nie są dostępne. Sprawdź poniższe instrukcje dla swojej platformy.",
   "sudo.title": "Włącz uprawnienia administratora",
-  "sudo.description": "Masz zamiar włączyć uprawnienia administratora. Wprowadź swoje hasło, aby kontynuować. To wygaśnie po 2 godzinach nieaktywności."
+  "sudo.description": "Masz zamiar włączyć uprawnienia administratora. Wprowadź swoje hasło, aby kontynuować. To wygaśnie po 2 godzinach nieaktywności.",
+  "mgmt.backup.autoStopContainers2": "Automatyczne zatrzymywanie kontenerów używających tego folderu przed operacjami tworzenia/odtwarzania kopii zapasowej (Zalecane dla folderów danych baz danych i folderów konfiguracyjnych, niewymagane dla mediów i dokumentów)"
 }

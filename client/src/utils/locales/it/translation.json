@@ -910,7 +910,6 @@
   "mgmt.backup.files": "File nello Snapshot",
   "mgmt.backup.restore.success": "L'operazione di ripristino è stata messa in coda. Puoi monitorare il progresso nel registro delle attività in alto a destra.",
   "mgmt.backup.restore.summary": "Stai per ripristinare {count} file/cartella. Questo sovrascriverà i file esistenti.",
-  "mgmt.backup.autoStopContainers": "Arresta automaticamente i container che utilizzano quella cartella prima delle operazioni di backup/ripristino",
   "global.noData": "Nessun Dato da Mostrare",
   "global.open": "Apri",
   "global.absolutePath": "Deve essere un percorso assoluto",
@@ -981,5 +980,6 @@
   ],
   "trust.platforms.notAvailable": "Istruzioni specifiche per piattaforma non disponibili. Controlla le istruzioni qui sotto per la tua piattaforma.",
   "sudo.title": "Abilita Privilegi di Amministratore",
-  "sudo.description": "Stai per abilitare i privilegi di amministratore. Inserisci la tua password per continuare. Questo scadrà dopo 2h di inattività."
+  "sudo.description": "Stai per abilitare i privilegi di amministratore. Inserisci la tua password per continuare. Questo scadrà dopo 2h di inattività.",
+  "mgmt.backup.autoStopContainers2": "Arresta automaticamente i container che utilizzano quella cartella prima delle operazioni di backup/ripristino (Consigliato per cartelle dati dei database e cartelle di configurazione, non necessario per media e documenti)"
 }
