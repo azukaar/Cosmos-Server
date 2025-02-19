@@ -16,6 +16,7 @@
  - Fix RClone not starting (hopefully)
  - Added traditional Chinese translation
  - Avahi now ignores virtual interfaces
+ - Fixed bug preventing the local mDNS broadcaster from publishing over 17 entries
 
 ## Version 0.17.7
  - Fix error code on login screen

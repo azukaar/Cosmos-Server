@@ -19,12 +19,13 @@ import (
 const (
 	AVAHI_DNS_CLASS_IN   = uint16(0x01)
 	AVAHI_DNS_TYPE_CNAME = uint16(0x05)
+	MAX_ENTRIES_PER_GROUP = 15
 )
 
 type Publisher struct {
 	dbusConn        *dbus.Conn
 	avahiServer     *avahi.Server
-	avahiEntryGroup *avahi.EntryGroup
+	entryGroups     []*avahi.EntryGroup
 	fqdn            string
 	rdataField      []byte
 	mu              sync.Mutex
@@ -51,11 +52,11 @@ func NewPublisher() (*Publisher, error) {
 		return nil, err
 	}
 
-	group, err := server.EntryGroupNew()
-	if err != nil {
-		utils.Error("[mDNS] failed to create entry group", err)
-		return nil, err
-	}
+	// group, err := server.EntryGroupNew()
+	// if err != nil {
+	// 	utils.Error("[mDNS] failed to create entry group", err)
+	// 	return nil, err
+	// }
 
 	fqdn := dns.Fqdn(avahiFqdn)
 
@@ -69,7 +70,7 @@ func NewPublisher() (*Publisher, error) {
 	return &Publisher{
 		dbusConn:        conn,
 		avahiServer:     server,
-		avahiEntryGroup: group,
+		entryGroups:     make([]*avahi.EntryGroup, 0),
 		fqdn:            fqdn,
 		rdataField:      rdataField,
 	}, nil
@@ -78,6 +79,17 @@ func NewPublisher() (*Publisher, error) {
 func (p *Publisher) Fqdn() string {
 	return p.fqdn
 }
+
+func (p *Publisher) createNewGroup() (*avahi.EntryGroup, error) {
+	group, err := p.avahiServer.EntryGroupNew()
+	if err != nil {
+		utils.Error("[mDNS] failed to create new entry group", err)
+		return nil, err
+	}
+	p.entryGroups = append(p.entryGroups, group)
+	return group, nil
+}
+
 func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -87,10 +99,14 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 		return nil
 	}
 
-	if err := p.avahiEntryGroup.Reset(); err != nil {
-		utils.Error("[mDNS] failed to reset entry group", err)
-		return err
+	// Reset all existing groups
+	for _, group := range p.entryGroups {
+		if err := group.Reset(); err != nil {
+			utils.Error("[mDNS] failed to reset entry group", err)
+			return err
+		}
 	}
+	p.entryGroups = make([]*avahi.EntryGroup, 0)
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -98,20 +114,39 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 		return err
 	}
 
+	var currentGroup *avahi.EntryGroup
+	entriesInCurrentGroup := 0
+
 	for _, iface := range ifaces {
 		if iface.Flags&net.FlagLoopback != 0 {
 			continue
 		}
 
-		if strings.HasPrefix(iface.Name, "docker") || strings.HasPrefix(iface.Name, "br-") || strings.HasPrefix(iface.Name, "veth") || strings.HasPrefix(iface.Name, "virbr") {
+		if strings.HasPrefix(iface.Name, "docker") || 
+		   strings.HasPrefix(iface.Name, "br-") || 
+		   strings.HasPrefix(iface.Name, "veth") || 
+		   strings.HasPrefix(iface.Name, "virbr") {
 			continue
 		}
 
 		portStr, _ := strconv.Atoi(utils.GetServerPort())
 
 		for _, cname := range cnames {
-			utils.Log(fmt.Sprintf("[mDNS] Adding service for: %s on interface %s", cname, iface.Name))
-			err := p.avahiEntryGroup.AddService(
+			// Create new group if needed
+			if currentGroup == nil || entriesInCurrentGroup >= MAX_ENTRIES_PER_GROUP {
+				var err error
+				currentGroup, err = p.createNewGroup()
+				if err != nil {
+					return err
+				}
+				entriesInCurrentGroup = 0
+				utils.Log(fmt.Sprintf("[mDNS] Created new entry group, total groups: %d", len(p.entryGroups)))
+			}
+
+			utils.Log(fmt.Sprintf("[mDNS] Adding service for: %s on interface %s (group %d, entry %d)", 
+				cname, iface.Name, len(p.entryGroups)-1, entriesInCurrentGroup))
+
+			err := currentGroup.AddService(
 				int32(iface.Index),
 				avahi.ProtoUnspec,
 				0,
@@ -126,8 +161,9 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 				utils.Error(fmt.Sprintf("[mDNS] failed to add service to entry group for interface %s", iface.Name), err)
 				continue
 			}
+			entriesInCurrentGroup++
 
-			err = p.avahiEntryGroup.AddRecord(
+			err = currentGroup.AddRecord(
 				int32(iface.Index),
 				avahi.ProtoUnspec,
 				0,
@@ -141,12 +177,24 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 				utils.Error(fmt.Sprintf("[mDNS] failed to add CNAME record to entry group for interface %s", iface.Name), err)
 				continue
 			}
+			entriesInCurrentGroup++
+
+			// Commit group if it's full
+			if entriesInCurrentGroup >= MAX_ENTRIES_PER_GROUP {
+				if err := currentGroup.Commit(); err != nil {
+					utils.Error("[mDNS] failed to commit full entry group", err)
+					return err
+				}
+			}
 		}
 	}
 
-	if err := p.avahiEntryGroup.Commit(); err != nil {
-		utils.Error("[mDNS] failed to commit entry group", err)
-		return err
+	// Commit the last group if it has any entries
+	if currentGroup != nil && entriesInCurrentGroup > 0 {
+		if err := currentGroup.Commit(); err != nil {
+			utils.Error("[mDNS] failed to commit final entry group", err)
+			return err
+		}
 	}
 
 	p.cnames = cnames
@@ -154,16 +202,19 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 	return nil
 }
 
+
 func (p *Publisher) Close() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	if p.avahiEntryGroup != nil {
-		err := p.avahiEntryGroup.Reset()
+	
+	for _, group := range p.entryGroups {
+		err := group.Reset()
 		if err != nil {
 			utils.Error("[mDNS] failed to reset entry group during close", err)
 		}
-		p.avahiEntryGroup = nil
 	}
+	p.entryGroups = nil
+	
 	if p.avahiServer != nil {
 		p.avahiServer.Close()
 	}
