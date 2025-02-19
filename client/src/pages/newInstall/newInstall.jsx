@@ -433,7 +433,7 @@ const NewInstall = () => {
                             </Alert>
                         )}
                         
-                        {(formik.values.HTTPSCertificateMode === "LETSENCRYPT" || formik.values.HTTPSCertificateMode === "SELFSIGNED") && formik.values.Hostname && formik.values.Hostname.match(hostnameIsDomainReg) && (
+                        {(formik.values.HTTPSCertificateMode === "LETSENCRYPT" || formik.values.HTTPSCertificateMode === "SELFSIGNED") && formik.values.Hostname && formik.values.Hostname.match(hostnameIsDomainReg) && (!formik.values.Hostname.endsWith('.local')) && (
                         <CosmosCheckbox
                             label={t('newInstall.wildcardLetsEncryptCheckbox.wildcardLetsEncryptLabel') + (formik.values.Hostname ||  "")}
                             name="UseWildcardCertificate"

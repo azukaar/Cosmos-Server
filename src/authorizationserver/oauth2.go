@@ -82,8 +82,9 @@ func Init() {
 	// Add proxy route clients
 	for _, route := range config.HTTPConfig.ProxyConfig.Routes {
 		if route.AuthEnabled && route.UseHost && !route.Disabled {
-				client := utils.GetProxyOIDCredentials(route, true)
-				store.Clients[client.ID] = client
+			utils.Log("Registering OpenID client for route: " + route.Hostname)
+			client := utils.GetProxyOIDCredentials(route, true)
+			store.Clients[client.ID] = client
 		}
 	}
 

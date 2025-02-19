@@ -702,6 +702,8 @@ func RestartServer() {
 	utils.Log("Restarting HTTP Server...")
 	LoadConfig()
 
+	authorizationserver.Init()
+
 	docker.BootstrapAllContainersFromTags()
 
 	go func() {
