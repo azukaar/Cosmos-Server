@@ -104,7 +104,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine 
                 setWarn(true);
             }, 25000)
         }
-    }, [jobs]) 
+    }, [jobs, isRestarting]) 
 
     return config ? (<>
         {needsRefresh && <>

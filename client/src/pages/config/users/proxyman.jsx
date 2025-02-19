@@ -233,12 +233,12 @@ const ProxyManagement = () => {
             </>
           },
           { title: t('global.network'), screenMin: 'lg', clickable:false, field: (r) => 
-            <div style={{width: '400px', marginLeft: '-200px', marginBottom: '10px'}}>
+            isAdmin ? <div style={{width: '400px', marginLeft: '-200px', marginBottom: '10px'}}>
               <MiniPlotComponent  metrics={[
                 "cosmos.proxy.route.bytes." + r.Name,
                 "cosmos.proxy.route.time." + r.Name,
               ]} noLabels noBackground/>
-            </div>
+            </div> : <div></div>
           },
           { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
           { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },

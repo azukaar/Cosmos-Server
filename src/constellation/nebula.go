@@ -706,6 +706,50 @@ func GetCertFingerprint(certPath string) (string, error) {
 	return fingerprint, nil
 }
 
+func GetConfigAttribute(configPath string, attr string) (string, error) {
+	// Read the YAML file
+	yamlFile, err := os.ReadFile(configPath)
+	if err != nil {
+			utils.Error("Error reading config file: "+configPath, err)
+			return "", err
+	}
+
+	// Parse YAML into a map
+	var config map[string]interface{}
+	err = yaml.Unmarshal(yamlFile, &config)
+	if err != nil {
+			utils.Error("Error parsing YAML file: "+configPath, err)
+			return "", err
+	}
+
+	// Split the attribute path by dots to support nested attributes
+	attrs := strings.Split(attr, ".")
+	
+	// Navigate through the nested structure
+	var value interface{} = config
+	for _, key := range attrs {
+			// Convert current value to map for nested navigation
+			m, ok := value.(map[string]interface{})
+			if !ok {
+					return "", fmt.Errorf("invalid path: %s is not a map", key)
+			}
+			
+			// Get next value
+			value, ok = m[key]
+			if !ok {
+					return "", fmt.Errorf("attribute not found: %s", attr)
+			}
+	}
+
+	// Convert final value to string
+	strValue, ok := value.(string)
+	if !ok {
+			return "", fmt.Errorf("attribute %s is not a string", attr)
+	}
+
+	return strValue, nil
+}
+
 func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd

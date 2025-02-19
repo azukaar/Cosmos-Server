@@ -79,8 +79,11 @@ func Init() {
 	// Build a fosite instance with all OAuth2 and OpenID Connect handlers enabled, plugging in our configurations as specified above.
 	oauth2 = compose.ComposeAllEnabled(foconfig, store, AuthPrivateKey)
 
+	routes := config.HTTPConfig.ProxyConfig.Routes
+	routes = append(routes, config.ConstellationConfig.Tunnels...)
+
 	// Add proxy route clients
-	for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+	for _, route := range routes {
 		if route.AuthEnabled && route.UseHost && !route.Disabled {
 			utils.Log("Registering OpenID client for route: " + route.Host)
 			client := utils.GetProxyOIDCredentials(route, true)

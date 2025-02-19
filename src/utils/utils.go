@@ -67,6 +67,8 @@ var LetsEncryptErrors = []string{}
 
 var CONFIGFOLDER = "/var/lib/cosmos/"
 
+var ConstellationSlaveIPWarning = ""
+
 var IsInsideContainer = false
 
 var DefaultConfig = Config{

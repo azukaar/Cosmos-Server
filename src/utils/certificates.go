@@ -44,11 +44,13 @@ func generateCA() (*CAConfig, error) {
 		return nil, err
 	}
 
+	id := GenerateRandomString(5)
+
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{"Cosmos Personal Server CA"},
-			CommonName:   "Cosmos Root CA",
+			Organization: []string{"Cosmos Personal Server CA " + id},
+			CommonName:   "Cosmos Root CA " + id,
 		},
 		NotBefore:             time.Now(),
 		NotAfter:              time.Now().Add(100 * 365 * 24 * time.Hour),

@@ -11,12 +11,14 @@
  - Localizations improvements (Thanks @madejackson)
  - Improved local IP detection (Thanks @r41d)
  - Updated LEGO to 4.21.0
+ - Largely improved the experience of non-admin users (extra errors should all be gone)
  - Fixed file picker prefix issue in docker container
  - Added OpenID IDTokenSigningAlgValuesSupported
  - Fix RClone not starting (hopefully)
  - Added traditional Chinese translation
  - Avahi now ignores virtual interfaces
  - Fixed bug preventing the local mDNS broadcaster from publishing over 17 entries
+ - Fixed bug with restarting slave Constellation node's Nebula process
 
 ## Version 0.17.7
  - Fix error code on login screen

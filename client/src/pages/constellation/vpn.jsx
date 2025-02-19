@@ -38,11 +38,19 @@ export const ConstellationVPN = ({freeVersion}) => {
   const {role} = useClientInfos();
   const isAdmin = role === "2";
   const [ping, setPing] = useState(0);
+  const [coStatus, setCoStatus] = React.useState(null);
+
+  const refreshStatus = () => {
+    API.getStatus().then((res) => {
+      setCoStatus(res.data);
+    });
+  }
 
   let constellationEnabled = config && config.ConstellationConfig.Enabled;
 
   const refreshConfig = async () => {
     setPing(0);
+    refreshStatus();
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
     setDevices((await API.constellation.list()).data || []);
@@ -86,7 +94,11 @@ export const ConstellationVPN = ({freeVersion}) => {
       }
       <Stack spacing={2} style={{maxWidth: "1000px", margin: freeVersion ? "auto" : 0}}>
       <div>
-        {!freeVersion &&<Alert severity="info">
+        {constellationEnabled && coStatus.ConstellationSlaveIPWarning && <Alert severity="error">
+          {coStatus.ConstellationSlaveIPWarning}
+        </Alert>}
+
+        {!freeVersion && <Alert severity="info">
           <Trans i18nKey="mgmt.constellation.setupText"
             components={[<a href="https://cosmos-cloud.io/doc/61 Constellation VPN/" target="_blank"></a>, <a href="https://cosmos-cloud.io/clients" target="_blank"></a>]}
           />

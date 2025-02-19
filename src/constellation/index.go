@@ -25,6 +25,7 @@ func resyncConstellationNodes() {
 
 func Init() {
 	utils.ResyncConstellationNodes = resyncConstellationNodes
+	utils.ConstellationSlaveIPWarning = ""
 
 	ConstellationInitLock.Lock()
 	defer ConstellationInitLock.Unlock()
@@ -162,6 +163,20 @@ func Init() {
 			APIKey = ""
 		}
 
+		// Does not work because of Digital Ocean's floating IP's gateway system
+		// if utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		// 	// check if the IP
+		// 	absoluteConfigPath, _ := filepath.Abs(utils.CONFIGFOLDER + "nebula.yml")
+		// 	cip, _ := GetConfigAttribute(absoluteConfigPath, "cstln_public_hostname")
+		// 	myIps, _ := utils.ListIps(true)
+		// 	contained := utils.StringArrayContains(myIps, cip)
+
+		// 	if cip != "" && !contained {
+		// 		utils.ConstellationSlaveIPWarning = "This device's public IP is NOT the IP the server is currently using! Hostname: " + cip + " - But only those IPs are associated with this server: " + strings.Join(myIps, ", ") + ". If you are using a public VPS with a floating IP, that IP has not been setup in your netplan config!"
+		// 		utils.MajorError("Constellation: " + utils.ConstellationSlaveIPWarning, nil)
+		// 	}
+		// }
+
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
 		err = startNebulaInBackground()
@@ -170,10 +185,7 @@ func Init() {
 		}
 		
 		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			go (func() {
-				ConstellationInitLock.Lock()
-				defer ConstellationInitLock.Unlock()
-				
+			go (func() {				
 				InitNATSClient()
 
 				var err error
@@ -192,10 +204,11 @@ func Init() {
 					utils.Log("Slave config synced")
 					if needRestart {
 						utils.Warn("Slave config has changed, restarting Nebula...")
-						ConstellationInitLock.Unlock()
-						RestartNebula()
-						ConstellationInitLock.Lock()
-						utils.RestartHTTPServer()
+						go (func() {		
+							time.Sleep(1 * time.Second)		
+							RestartNebula()
+							utils.RestartHTTPServer()
+						})()
 					}
 				}
 			})()
