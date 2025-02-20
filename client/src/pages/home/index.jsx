@@ -162,7 +162,7 @@ const HomePage = () => {
         return () => {
             clearInterval(interval);
         };
-    }, []);
+    }, [isAdmin]);
 
     const refreshConfig = () => {
         if(isAdmin) {

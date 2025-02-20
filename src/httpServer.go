@@ -432,6 +432,12 @@ func InitServer() *mux.Router {
 			tlsKey = selfTLSKey
 	}
 
+	if baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal {
+		baseMainConfig.HTTPConfig.ForceHTTPSCertificateRenewal = false
+		utils.SetBaseMainConfig(baseMainConfig)
+		utils.Log("Certificate renewal forced")
+	}
+
 	utils.Log("Initialising HTTP(S) Router and all routes")
 
 	router := mux.NewRouter().StrictSlash(true)
