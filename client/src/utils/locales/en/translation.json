@@ -320,6 +320,7 @@
 	"mgmt.scheduler.list.action.logs": "Logs",
 	"mgmt.scheduler.list.action.run": "Run",
 	"mgmt.scheduler.list.scheduleTitle": "Schedule",
+	"mgmt.scheduler.list.status.jobsInProgress": "There are {{number}} job(s) in progress. Any change you make to the schedule will only take effect after the current jobs are done executing!",
 	"mgmt.scheduler.list.status.lastRunExitedOn": "Last run exited with an error on",
 	"mgmt.scheduler.list.status.lastRunFinishedOn": "Last run finished on",
 	"mgmt.scheduler.list.status.lastRunFinishedOn.duration": "Duration",

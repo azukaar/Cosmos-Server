@@ -11060,6 +11060,10 @@ const listDir = (storage, path) => {
             {
               "name": "local",
               "path": "/"
+            },
+            {
+              "name": "dropbox",
+              "path": "/"
             }
           ]
         },

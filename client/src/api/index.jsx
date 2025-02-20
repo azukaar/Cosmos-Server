@@ -20,6 +20,7 @@ import * as constellationDemo from './constellation.demo';
 import * as metricsDemo from './metrics.demo';
 import * as storageDemo from './storage.demo';
 import * as cronDemo from './cron.demo';
+import * as backupDemo from './backup.demo';
 
 import wrap from './wrap';
 import { redirectToLocal } from '../utils/indexs';
@@ -273,6 +274,7 @@ if(isDemo) {
   metrics = metricsDemo;
   storage = storageDemo;
   cron = cronDemo;
+  backups = backupDemo;
 }
 
 export {

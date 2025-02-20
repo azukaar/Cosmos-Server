@@ -81,6 +81,8 @@ export const CronManager = () => {
     refresh();
   }, []);
 
+  const jobsInProgress = cronJobs && Object.values(cronJobs).map((jobs) => Object.values(jobs).filter((job) => job.Running)).flat();
+
   return <>
     {(config && cronJobs) ? <>
       {jobLogs && <JobLogsDialog job={jobLogs} OnClose={() => {
@@ -98,6 +100,7 @@ export const CronManager = () => {
             refresh();
           }}>{t('global.refresh')}</ResponsiveButton>
         </Stack>
+        {(jobsInProgress && jobsInProgress.length) ? <Alert severity={'warning'} color={'warning'}>{t('mgmt.scheduler.list.status.jobsInProgress', {number: jobsInProgress.length})}</Alert> : null}
         {Object.keys(cronJobs).map(scheduler => <div>
           <h4>{({
             "Custom": t('mgmt.scheduler.customJobsTitle'),

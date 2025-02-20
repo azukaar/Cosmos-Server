@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "没有特定平台的说明。请查看以下说明以适应您的平台。",
   "sudo.title": "启用管理员权限",
   "sudo.description": "您即将启用管理员权限。请输入您的密码以继续。2小时内无活动后将过期。",
-  "mgmt.backup.autoStopContainers2": "在备份/还原操作之前自动停止使用该文件夹的容器（推荐用于数据库数据文件夹和配置文件夹，不需要用于媒体和文档）"
+  "mgmt.backup.autoStopContainers2": "在备份/还原操作之前自动停止使用该文件夹的容器（推荐用于数据库数据文件夹和配置文件夹，不需要用于媒体和文档）",
+  "mgmt.scheduler.list.status.jobsInProgress": "当前有 {{number}} 个任务正在进行中。您对计划的任何更改只有在当前任务执行完毕后才会生效！"
 }

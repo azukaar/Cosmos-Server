@@ -416,6 +416,13 @@ func InitServer() *mux.Router {
 					tlsCert = pub
 					tlsKey = priv
 			}
+	} else if letsEncryptNeedsRefresh && config.HTTPConfig.HTTPSCertificateMode == utils.HTTPSCertModeList["SELFSIGNED"] {
+		baseMainConfig.HTTPConfig.TLSCert = HTTPConfig.SelfTLSCert
+		baseMainConfig.HTTPConfig.TLSKey = HTTPConfig.SelfTLSKey
+		baseMainConfig.HTTPConfig.TLSKeyHostsCached = HTTPConfig.SelfTLSKeyHostsCached
+		baseMainConfig.HTTPConfig.TLSValidUntil = HTTPConfig.SelfTLSValidUntil
+		utils.SetBaseMainConfig(baseMainConfig)
+		utils.Log("Saved new self-signed TLS certificate")
 	}
 	
 	// Only update serving certificates when in SELFSIGNED mode

@@ -9,7 +9,7 @@ const icons = {
 
 // ==============================|| MENU ITEMS - DASHBOARD ||============================== //
 
-const isLocal = !isDomain(window.location.hostname) || window.location.hostname.endsWith('.local');
+const isLocal = !isDomain(window.location.hostname) || window.location.hostname.endsWith('.local') || window.location.hostname == "cosmos-cloud.io";
 
 const dashboard = {
     id: 'group-dashboard',

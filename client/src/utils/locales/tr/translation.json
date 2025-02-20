@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Plarformozel talimatlar mevcut değil. Lütfen platformunuz için aşağıdaki talimatları kontrol edin.",
   "sudo.title": "Yönetici Yetkilerini Etkinleştir",
   "sudo.description": "Yönetici ayrıcalıklarını etkinleştirmek üzeresiniz. Devam etmek için lütfen şifrenizi girin. Bu, 2 saatlik etkinliksizlikten sonra sona erecektir.",
-  "mgmt.backup.autoStopContainers2": "Yedekleme/geri yükleme işlemlerinden önce bu klasörü kullanan kapsayıcıları otomatik olarak durdur (Veritabanı veri klasörleri ve yapılandırma klasörleri için önerilir, medya ve belgeler için gerekli değildir)"
+  "mgmt.backup.autoStopContainers2": "Yedekleme/geri yükleme işlemlerinden önce bu klasörü kullanan kapsayıcıları otomatik olarak durdur (Veritabanı veri klasörleri ve yapılandırma klasörleri için önerilir, medya ve belgeler için gerekli değildir)",
+  "mgmt.scheduler.list.status.jobsInProgress": "{{number}} iş yürütülüyor. Programda yapacağınız herhangi bir değişiklik, yalnızca mevcut işler tamamlandıktan sonra etkili olacaktır!"
 }

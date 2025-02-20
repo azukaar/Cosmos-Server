@@ -14,6 +14,7 @@
  - Largely improved the experience of non-admin users (extra errors should all be gone)
  - Fixed file picker prefix issue in docker container
  - Added OpenID IDTokenSigningAlgValuesSupported
+ - Added protocol in openid discovery endpoint
  - Fix RClone not starting (hopefully)
  - Added traditional Chinese translation
  - Avahi now ignores virtual interfaces

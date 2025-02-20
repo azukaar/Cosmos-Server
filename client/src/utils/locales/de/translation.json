@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Plattform-spezifische Anweisungen nicht verfügbar. Bitte überprüfen Sie die Anweisungen unten für Ihre Plattform.",
   "sudo.title": "Admin-Berechtigungen aktivieren",
   "sudo.description": "Sie sind dabei, Admin-Berechtigungen zu aktivieren. Bitte geben Sie Ihr Passwort ein, um fortzufahren. Dies läuft nach 2 Stunden Inaktivität ab.",
-  "mgmt.backup.autoStopContainers2": "Container, die diesen Ordner verwenden, vor Sicherungs-/Wiederherstellungsvorgängen automatisch stoppen (Empfohlen für Datenbanken und Konfigurationsordner, nicht erforderlich für Medien und Dokumente)"
+  "mgmt.backup.autoStopContainers2": "Container, die diesen Ordner verwenden, vor Sicherungs-/Wiederherstellungsvorgängen automatisch stoppen (Empfohlen für Datenbanken und Konfigurationsordner, nicht erforderlich für Medien und Dokumente)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Es gibt {{number}} laufende(r) Aufgabe(n). Jede Änderung, die Sie am Zeitplan vornehmen, wird erst wirksam, wenn die aktuellen Aufgaben abgeschlossen sind!"
 }

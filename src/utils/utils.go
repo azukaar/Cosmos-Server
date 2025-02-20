@@ -480,6 +480,46 @@ func filterHostnamesByWildcard(hostnames []string, wildcards []string) []string 
 	return finalHostnames
 }
 
+var nonWildcardableDomains = []string{
+	"localhost",
+	".local",
+	".invalid",
+	".test",
+	".example",
+	".onion",
+}
+
+// canDomainWildcard checks if a domain can be wildcarded
+func canDomainWildcard(domain string) bool {
+	// Normalize domain (convert to lowercase)
+	domain = strings.ToLower(strings.TrimSpace(domain))
+
+	// check if IP
+	if osnet.ParseIP(domain) != nil {
+		return false
+	}
+
+	// Direct match for localhost
+	if domain == "localhost" {
+		return false
+	}
+
+	// Check if the domain ends with any non-wildcardable suffix
+	for _, suffix := range nonWildcardableDomains {
+		if strings.HasSuffix(domain, suffix) {
+			return false
+		}
+	}
+
+	// Domains without a dot cannot be wildcarded (e.g., single-word hostnames)
+	if !strings.Contains(domain, ".") {
+		return false
+	}
+
+	// Valid wildcardable domain
+	return true
+}
+
 func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
 	OverrideWildcardDomains := GetMainConfig().HTTPConfig.OverrideWildcardDomains
@@ -515,8 +555,10 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		}
 	}
 
-	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate {
-		bareMainHostname, _ := publicsuffix.EffectiveTLDPlusOne(mainHostname)
+	bareMainHostname, _ := publicsuffix.EffectiveTLDPlusOne(mainHostname)
+	canWildcard := canDomainWildcard(bareMainHostname) || (OverrideWildcardDomains != "")
+
+	if applyWildCard && MainConfig.HTTPConfig.UseWildcardCertificate && canWildcard {
 
 		Debug("bareMainHostname: " + bareMainHostname)
 
@@ -555,9 +597,11 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		seen = make(map[string]bool)
 		uniqueHostnames = []string{}
 		for _, hostname := range tempUniqueHostnames {
-			if _, ok := seen[hostname]; !ok {
-				seen[hostname] = true
-				uniqueHostnames = append(uniqueHostnames, hostname)
+			if hostname != "" {
+				if _, ok := seen[hostname]; !ok {
+					seen[hostname] = true
+					uniqueHostnames = append(uniqueHostnames, hostname)
+				}
 			}
 		}
 	}

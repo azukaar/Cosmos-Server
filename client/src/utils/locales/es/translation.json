@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Instrucciones específicas de la plataforma no disponibles. Por favor, verifica las instrucciones a continuación para tu plataforma.",
   "sudo.title": "Habilitar Privilegios de Administrador",
   "sudo.description": "Estás a punto de habilitar los privilegios de administrador. Por favor, introduce tu contraseña para continuar. Esto expirará después de 2 horas de inactividad.",
-  "mgmt.backup.autoStopContainers2": "Detener automáticamente los contenedores que utilizan esa carpeta antes de las operaciones de copia de seguridad/restauración (Recomendado para carpetas de datos de bases de datos y carpetas de configuración, no es necesario para medios y documentos)"
+  "mgmt.backup.autoStopContainers2": "Detener automáticamente los contenedores que utilizan esa carpeta antes de las operaciones de copia de seguridad/restauración (Recomendado para carpetas de datos de bases de datos y carpetas de configuración, no es necesario para medios y documentos)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Hay {{number}} trabajo(s) en progreso. ¡Cualquier cambio que realice en el programa solo tendrá efecto después de que los trabajos actuales terminen de ejecutarse!"
 }

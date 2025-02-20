@@ -458,6 +458,10 @@ func InitScheduler() {
 		return
 	}
 
+	utils.Log("Waiting for jobs to be finished to restart scheduler...")
+
+	WaitForAllJobs()
+
 	utils.Log("Initializing CRON jobs to scheduler...")
 	
 	CRONLock <- true

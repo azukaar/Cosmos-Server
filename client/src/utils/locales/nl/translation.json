@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Specifieke instructies voor platform niet beschikbaar. Raadpleeg de onderstaande instructies voor uw platform.",
   "sudo.title": "Beheerrechten Inschakelen",
   "sudo.description": "U staat op het punt om beheerrechten in te schakelen. Voer uw wachtwoord in om door te gaan. Dit verloopt na 2 uur van inactiviteit.",
-  "mgmt.backup.autoStopContainers2": "Containers automatisch stoppen die die map gebruiken vóór back-up/herstelbewerkingen (Aanbevolen voor databasegegevensmappen en configuratiemappen, niet vereist voor media en documenten)"
+  "mgmt.backup.autoStopContainers2": "Containers automatisch stoppen die die map gebruiken vóór back-up/herstelbewerkingen (Aanbevolen voor databasegegevensmappen en configuratiemappen, niet vereist voor media en documenten)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Er zijn {{number}} job(s) in uitvoering. Elke verandering die u aan het schema maakt, gaat pas in nadat de huidige taken zijn uitgevoerd!"
 }

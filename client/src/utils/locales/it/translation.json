@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Istruzioni specifiche per piattaforma non disponibili. Controlla le istruzioni qui sotto per la tua piattaforma.",
   "sudo.title": "Abilita Privilegi di Amministratore",
   "sudo.description": "Stai per abilitare i privilegi di amministratore. Inserisci la tua password per continuare. Questo scadrà dopo 2h di inattività.",
-  "mgmt.backup.autoStopContainers2": "Arresta automaticamente i container che utilizzano quella cartella prima delle operazioni di backup/ripristino (Consigliato per cartelle dati dei database e cartelle di configurazione, non necessario per media e documenti)"
+  "mgmt.backup.autoStopContainers2": "Arresta automaticamente i container che utilizzano quella cartella prima delle operazioni di backup/ripristino (Consigliato per cartelle dati dei database e cartelle di configurazione, non necessario per media e documenti)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Ci sono {{number}} lavoro/i in corso. Qualsiasi modifica apportata al programma avrà effetto solo dopo che i lavori attuali saranno completati!"
 }

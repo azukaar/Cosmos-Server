@@ -560,6 +560,31 @@
 				"Command": "ls",
 				"Container": "memos"
 			}
+		},
+		"Backup": {
+			"Disable": false,
+			"Backups": {
+				"My First Backup": {
+					"Name": "My First Backup",
+					"Repository": "rclone:dropbox/myBackup",
+					"Password": "GjjPHZrmki6OSyfz",
+					"Source": "/home",
+					"Crontab": "0 0 4 * * *",
+					"CrontabForget": "0 0 12 * * *",
+					"RetentionPolicy": "--keep-last 3 --keep-daily 7 --keep-weekly 8 --keep-yearly 3",
+					"AutoStopContainers": false
+				},
+				"My Second Backup": {
+					"Name": "My Second Backup",
+					"Repository": "rclone:dropbox/myBackup",
+					"Password": "GjjPHZrmki6OSyfz",
+					"Source": "/my-data/",
+					"Crontab": "0 0 4 * * *",
+					"CrontabForget": "0 0 12 * * *",
+					"RetentionPolicy": "--keep-last 3 --keep-daily 7 --keep-weekly 8 --keep-yearly 3",
+					"AutoStopContainers": false
+				}
+			}
 		}
 	},
 	"updates": {

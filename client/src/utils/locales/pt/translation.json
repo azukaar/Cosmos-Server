@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Instruções específicas para a plataforma não disponíveis. Por favor, verifique as instruções abaixo para a sua plataforma.",
   "sudo.title": "Habilitar Privilégios de Administrador",
   "sudo.description": "Você está prestes a habilitar privilégios de administrador. Por favor, insira sua senha para continuar. Isso expirará após 2h de inatividade.",
-  "mgmt.backup.autoStopContainers2": "Parar automaticamente os contêineres que utilizam essa pasta antes das operações de backup/restauração (Recomendado para pastas de dados de banco de dados e pastas de configuração, não é necessário para mídia e documentos)"
+  "mgmt.backup.autoStopContainers2": "Parar automaticamente os contêineres que utilizam essa pasta antes das operações de backup/restauração (Recomendado para pastas de dados de banco de dados e pastas de configuração, não é necessário para mídia e documentos)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Existe(m) {{number}} trabalho(s) em andamento. Qualquer alteração que você fizer na programação só entrará em vigor após a conclusão dos trabalhos atuais!"
 }

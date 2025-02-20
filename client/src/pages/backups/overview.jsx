@@ -155,7 +155,7 @@ export default function BackupOverview({backupName}) {
             <strong><CalendarOutlined /> {t("mgmt.backup.backupSchedule")}</strong>
             <div style={infoStyle}>{crontabToText(backup.Crontab)}</div>
 
-            <strong><CalendarOutlined /> {t("mgmt.backup.cleanupSchedule")}</strong>
+            <strong><CalendarOutlined /> {t("mgmt.backup.scheduleForget")}</strong>
             <div style={infoStyle}>{crontabToText(backup.CrontabForget)}</div>
             
 

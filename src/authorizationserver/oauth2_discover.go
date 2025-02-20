@@ -47,8 +47,10 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 	realHostname := config.HTTPConfig.Hostname
 	if utils.IsHTTPS {
 			realHostname = "https://" + realHostname
+			hostname = "https://" + hostname
 	} else {
 			realHostname = "http://" + realHostname
+			hostname = "http://" + hostname
 	}
 
 	rw.Header().Del("Content-Type")

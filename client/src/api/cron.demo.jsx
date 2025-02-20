@@ -103,6 +103,34 @@ function list() {
               "Logs": null,
               "Container": ""
             }
+          },
+          "Restic": {
+            "Backup My First Backup": {
+              "Disabled": false,
+              "Scheduler": "Restic",
+              "Name": "Backup My First Backup",
+              "Cancellable": true,
+              "Crontab": "5 0 1 */2 * *",
+              "Running": false,
+              "LastStarted": "0001-01-01T00:00:00Z",
+              "LastRun": "0001-01-01T00:00:00Z",
+              "LastRunSuccess": false,
+              "Logs": null,
+              "Container": ""
+            },
+            "Backup My Second Backup": {
+              "Disabled": false,
+              "Scheduler": "Restic",
+              "Name": "Backup My Second Backup",
+              "Cancellable": true,
+              "Crontab": "1 0 4 * * *",
+              "Running": false,
+              "LastStarted": "0001-01-01T00:00:00Z",
+              "LastRun": "0001-01-01T00:00:00Z",
+              "LastRunSuccess": false,
+              "Logs": null,
+              "Container": ""
+            }
           }
         },
         "status": "OK"

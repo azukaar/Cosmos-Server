@@ -52,7 +52,7 @@ func generateCA() (*CAConfig, error) {
 			Organization: []string{"Cosmos Personal Server CA " + id},
 			CommonName:   "Cosmos Root CA " + id,
 		},
-		NotBefore:             time.Now(),
+		NotBefore:             time.Now().Add(-24 * time.Hour),
 		NotAfter:              time.Now().Add(100 * 365 * 24 * time.Hour),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
 		BasicConstraintsValid: true,
@@ -159,7 +159,7 @@ func GenerateRSAWebCertificates(domains []string) (string, string, error) {
 			Organization: []string{"Cosmos Personal Server"},
 			CommonName:   domains[0], // Use first domain as CN
 		},
-		NotBefore:             time.Now(),
+		NotBefore:             time.Now().Add(-24 * time.Hour),
 		NotAfter:              time.Now().AddDate(0, 0, 364),
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},

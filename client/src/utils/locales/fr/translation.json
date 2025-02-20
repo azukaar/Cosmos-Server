@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Instructions spécifiques à la plateforme non disponibles. Veuillez vérifier les instructions ci-dessous pour votre plateforme.",
   "sudo.title": "Activer les privilèges administrateur",
   "sudo.description": "Vous êtes sur le point d'activer les privilèges administrateur. Veuillez saisir votre mot de passe pour continuer. Cela expirera après 2h d'inactivité.",
-  "mgmt.backup.autoStopContainers2": "Arrête automatiquement les conteneurs utilisant ce dossier avant les opérations de sauvegarde/restauration (Recommandé pour les dossiers de données de base de données et les dossiers de configuration, non requis pour les médias et les documents)"
+  "mgmt.backup.autoStopContainers2": "Arrête automatiquement les conteneurs utilisant ce dossier avant les opérations de sauvegarde/restauration (Recommandé pour les dossiers de données de base de données et les dossiers de configuration, non requis pour les médias et les documents)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Il y a {{number}} tâche(s) en cours. Toute modification que vous apportez à l'horaire ne prendra effet qu'après l'exécution des tâches en cours!"
 }

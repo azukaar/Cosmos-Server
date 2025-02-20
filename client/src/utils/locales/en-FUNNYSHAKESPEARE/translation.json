@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Yonder instructions for the exact platform not available. Seek others below for unknown platform.",
   "sudo.title": "Maketh Admin Power Unfurled",
   "sudo.description": "Thou art about to maketh admin powers availed. Cast thy password thus. Expiration will beset after 2h of idleness.",
-  "mgmt.backup.autoStopContainers2": "Ye must automatically let the containers taketh a nap useth 'ere folder afore thy backup or restore operations commence (Tis a wise choice fer folders of data from databases and config-scrolls, but heed me, 'tis not a must for media treasures and parchment scrolls)"
+  "mgmt.backup.autoStopContainers2": "Ye must automatically let the containers taketh a nap useth 'ere folder afore thy backup or restore operations commence (Tis a wise choice fer folders of data from databases and config-scrolls, but heed me, 'tis not a must for media treasures and parchment scrolls)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Yon doth hath {{number}} job(s) in progresseth. Any changeth thou maketh to yond schedule shall taketh effect only at which hour yon current jobs art complete'd executing!"
 }

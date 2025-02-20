@@ -13,6 +13,7 @@ export const getStatus = () => {
         "docker": true,
         "domain": false,
         "Licence": true,
+        "CACert": true,
         "hostmode": "true",
         "homepage": {
           "Background": "/cosmos/api/background/avif",

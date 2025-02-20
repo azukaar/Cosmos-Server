@@ -981,5 +981,6 @@
   "trust.platforms.notAvailable": "Instrukcje specyficzne dla platformy nie są dostępne. Sprawdź poniższe instrukcje dla swojej platformy.",
   "sudo.title": "Włącz uprawnienia administratora",
   "sudo.description": "Masz zamiar włączyć uprawnienia administratora. Wprowadź swoje hasło, aby kontynuować. To wygaśnie po 2 godzinach nieaktywności.",
-  "mgmt.backup.autoStopContainers2": "Automatyczne zatrzymywanie kontenerów używających tego folderu przed operacjami tworzenia/odtwarzania kopii zapasowej (Zalecane dla folderów danych baz danych i folderów konfiguracyjnych, niewymagane dla mediów i dokumentów)"
+  "mgmt.backup.autoStopContainers2": "Automatyczne zatrzymywanie kontenerów używających tego folderu przed operacjami tworzenia/odtwarzania kopii zapasowej (Zalecane dla folderów danych baz danych i folderów konfiguracyjnych, niewymagane dla mediów i dokumentów)",
+  "mgmt.scheduler.list.status.jobsInProgress": "Trwają {{number}} zadanie(a). Wszelkie zmiany w harmonogramie zostaną wprowadzone dopiero po zakończeniu bieżących zadań!"
 }
