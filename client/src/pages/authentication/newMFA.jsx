@@ -39,8 +39,8 @@ const MFALoginForm = () => {
   const { t } = useTranslation();
   const urlSearchParams = new URLSearchParams(window.location.search);
   const redirectToURL = urlSearchParams.get('redirect') ? urlSearchParams.get('redirect') : '/cosmos-ui';
-  const [isTokenFilled, setIsTokenFilled] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const hasFilledToken = useRef(false);
+  const hasSubmitted = useRef(false);
   const delay = ms => new Promise(
     resolve => setTimeout(resolve, ms)
   );
@@ -74,17 +74,15 @@ const MFALoginForm = () => {
     },
   });
 
-  // Currently broken, especially if clipboard req. rejected
-  // also second part is flooding server with req.
-  /*useEffect(() => {
+  useEffect(() => {
     const handleClipboard = async () => {
-      if (!isTokenFilled) {
+      if (!hasFilledToken.current) {
+        hasFilledToken.current = true;
         try {
           const clipboardData = await navigator.clipboard.readText();
           if (clipboardData.length === 6) {
             await delay(300);
             formik.setFieldValue('token', clipboardData);
-            setIsTokenFilled(true);
           }
         } catch (err) {
           console.error('Failed to read clipboard contents: ', err);
@@ -98,14 +96,14 @@ const MFALoginForm = () => {
     return () => {
       window.removeEventListener('focus', handleClipboard);
     };
-  }, [formik, isTokenFilled]);
+  }, [formik]);
 
   useEffect(() => {
-    if (!isSubmitted && formik.values.token.length === 6) {
+    if (!formik.isSubmitting && !hasSubmitted.current && formik.values.token.length === 6) {
+      hasSubmitted.current = true;
       formik.handleSubmit();
-      setIsSubmitted(true);
     }
-  }, [formik.values.token, formik, isSubmitted]);*/
+  }, [formik.values.token]);
 
   return (
     <Formik {...formik}>
