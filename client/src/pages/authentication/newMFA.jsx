@@ -19,6 +19,7 @@ import {
   TextField,
   Tooltip
 } from '@mui/material';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
 // project import
 import AuthWrapper from './AuthWrapper';
@@ -105,6 +106,15 @@ const MFALoginForm = () => {
     }
   }, [formik.values.token]);
 
+  const handlePasteFromClipboard = async () => {
+    try {
+      const clipboardData = await navigator.clipboard.readText();
+      formik.setFieldValue('token', clipboardData);
+    } catch (err) {
+      console.error('Failed to read clipboard contents :', err);
+    }
+  };
+ 
   return (
     <Formik {...formik}>
       {() => (
@@ -121,6 +131,19 @@ const MFALoginForm = () => {
               error={formik.touched.token && formik.errors.token}
               helperText={formik.touched.token && formik.errors.token}
               autoFocus
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="Paste from clipboard"
+                      onClick={handlePasteFromClipboard}
+                      edge="end"
+                    >
+                      <ContentPasteIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             {formik.errors.submit && (
               <Grid item xs={12}>
