@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Input, InputAdornment, Stack, Tooltip } from "@mui/material";
+import { Box, CircularProgress, Input, InputAdornment, Stack, Tooltip, Alert } from "@mui/material";
 import { HomeBackground, TransparentHeader } from "../home";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
@@ -104,7 +104,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             }}>
               <Button className="CheckButton" color="primary" variant="outlined">
                 {t('navigation.market.viewButton')}
-              </Button>
+              </Button> 
             </Link>
           </Stack>
         </Stack>
@@ -295,9 +295,12 @@ const MarketPage = () => {
 
           <div dangerouslySetInnerHTML={{ __html: openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription }}></div>
 
-          {isAdmin && <div>
+          {isAdmin ? <div>
             <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
-          </div>}
+          </div> : <div style={{
+            color: 'orange',
+            fontStyle: 'italic',
+          }}>{t('navigation.market.mustBeAdmin')}</div>}
         </Stack>
       </Stack>
     </Box>}

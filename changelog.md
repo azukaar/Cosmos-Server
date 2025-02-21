@@ -1,3 +1,6 @@
+## Version 0.18.2
+ - Add tooltip about admin in the market
+
 ## Version 0.18.1
  - Fix missing signing key generation
 

@@ -665,6 +665,7 @@
 	"navigation.home.usedRam": "used",
 	"navigation.market.applicationsTitle": "Applications",
 	"navigation.market.compose": "compose",
+	"navigation.market.mustBeAdmin": "You must be an admin to install an application",
 	"navigation.market.filterDuplicateCheckbox": "Filter Duplicates",
 	"navigation.market.image": "image",
 	"navigation.market.newSources.additionalMarketsInfo": "This allows you to add additional 3rd party repos to the App-Store.",
