@@ -324,6 +324,17 @@ func InitServer() *mux.Router {
 	var selfTLSCert = HTTPConfig.SelfTLSCert
 	var selfTLSKey = HTTPConfig.SelfTLSKey
 
+	if ((HTTPConfig.AuthPublicKey == "" || HTTPConfig.AuthPrivateKey == "") && HTTPConfig.GenerateMissingAuthCert) {
+		utils.Log("Generating new Auth ED25519 certificate")
+		pub, priv := utils.GenerateEd25519Certificates()
+		
+		baseMainConfig.HTTPConfig.AuthPublicKey = pub
+		baseMainConfig.HTTPConfig.AuthPrivateKey = priv
+		utils.SetBaseMainConfig(baseMainConfig)
+
+		utils.Log("Saved new Auth ED25519 certificate")
+	}
+
 	domains := utils.GetAllHostnames(true, true)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	// falledBack := false

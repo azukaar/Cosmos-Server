@@ -1,3 +1,6 @@
+## Version 0.18.1
+ - Fix missing signing key generation
+
 ## Version 0.18.0
  - UI to backup and restore containers/folders/volumes using Restic
  - Implements sudo mode - your normal token last longer, but you need to "sudo" to do admin tasks
