@@ -1,3 +1,6 @@
+## Version 0.18.3
+ - Fix Cosmos not creating repository for internal config
+
 ## Version 0.18.2
  - Add tooltip about admin in the market
 

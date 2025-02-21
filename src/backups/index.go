@@ -49,6 +49,7 @@ func InitBackups() {
 		if !created {
 			utils.Log("[Backup] Password not found. Creating one")
 			password = utils.GenerateRandomString(16)
+			CreateRepository(internalBackup, password)
 		}
 
 		
