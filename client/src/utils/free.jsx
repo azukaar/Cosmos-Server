@@ -126,23 +126,24 @@ const PremiumSalesPage = ({salesKey, extra}) => {
         />
         <CardContent>
           <Box textAlign="center" mb={2}>
-            <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+            <Typography variant="h3" color="primary">
+            {/* <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}> */}
               {currencyCode} {isYearly ? (yearlyPrice / 12).toFixed(2) : monthlyPrice.toFixed(2)}
             </Typography>
-            <Typography variant="h3" color="primary">
+            {/* <Typography variant="h3" color="primary">
               {currencyCode} {isYearly ? ((discountedYearlyPrice / 12).toFixed(2)) : discountedMonthlyPrice}
-            </Typography>
+            </Typography> */}
             <Typography variant="body2" color="text.secondary">
               {t('mgmt.sales.per_month')}
             </Typography>
-            <Chip 
+            {/* <Chip 
               label={t('mgmt.sales.discount_chip')}
               color="secondary" 
               sx={{ mt: 1 }}
-            />
-            <Typography variant="body2" color="text.secondary" mt={1}>
+            /> */}
+            {/* <Typography variant="body2" color="text.secondary" mt={1}>
               {t('mgmt.sales.early_adopter_offer')}
-            </Typography>
+            </Typography> */}
           </Box>
           <List>
             {planFeatureKeys.map((key, index) => (
@@ -175,23 +176,25 @@ const PremiumSalesPage = ({salesKey, extra}) => {
         />
         <CardContent>
           <Box textAlign="center" mb={2}>
-            <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+            
+            <Typography variant="h3" color="primary">
+            {/* <Typography variant="h3" style={{ textDecoration: 'line-through', color: 'text.secondary' }}> */}
               {currencyCode} {lifePrice.toFixed(2)}
             </Typography>
-            <Typography variant="h3" color="primary">
+            {/* <Typography variant="h3" color="primary">
               {currencyCode} {discountedLifePrice}
-            </Typography>
+            </Typography> */}
             <Typography variant="body2" color="text.secondary">
               -
             </Typography>
-            <Chip 
+            {/* <Chip 
               label={t('mgmt.sales.discount_chip')}
               color="secondary" 
               sx={{ mt: 1 }}
             />
             <Typography variant="body2" color="text.secondary" mt={1}>
               {t('mgmt.sales.early_adopter_offer2')}
-            </Typography>
+            </Typography> */}
           </Box>
           <List>
             {planFeatureKeys.map((key, index) => (

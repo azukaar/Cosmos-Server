@@ -31,10 +31,7 @@ const SudoModal = () => {
         setLoading(true);
         await API.auth.sudo(values);
         
-        // if on /cosmos-ui/config-general refresh page because we need new infos
-        if (window.location.pathname.includes('/cosmos-ui/config-general')) {
-          window.location.reload();
-        }
+        window.location.reload();
         
         setOpen(false);
         resetForm();

@@ -9,8 +9,6 @@
 <a href="https://github.com/phobes"><img src="https://avatars.githubusercontent.com/phobes" style="border-radius:48px" width="48" height="48" alt="Phobes" title="Phobes" /></a>
 <a href="https://github.com/AstroMando"><img src="https://avatars.githubusercontent.com/AstroMando" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
 <a href="https://github.com/AKAHackoon"><img src="https://avatars.githubusercontent.com/AKAHackoon" style="border-radius:48px" width="48" height="48" alt="null" title="null" /></a>
-<a href="https://github.com/jwr1"><img src="https://avatars.githubusercontent.com/jwr1" style="border-radius:48px" width="48" height="48" alt="jwr1" title="jwr1" /></a>
-<a href="https://github.com/jkri-ch"><img src="https://avatars.githubusercontent.com/jkri-ch" style="border-radius:48px" width="48" height="48" alt="John Richardson" title="John Richardson" /></a>
 </p><!-- /sponsors -->
 
 ---

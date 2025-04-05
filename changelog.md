@@ -1,3 +1,7 @@
+## Version 0.18.4
+ - Fix issue with DB credentials dissapearing
+ - Remove expired discount
+
 ## Version 0.18.3
  - Fix Cosmos not creating repository for internal config
 
