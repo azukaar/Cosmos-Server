@@ -50,7 +50,7 @@ Cosmos is:
  * **VPN** 🌐🔒 To securely access your applications from anywhere, without having to open ports on your router.
  * **Backups** 📦🔒 To easily backup your applications, with **incremental backups**, **encryption**, and **remote backups**. Using Restic under the hood
  * **Monitoring** 📈📊 Fully persisting and real-time monitoring with customizable alerts and notifications, so you can be notified of any issue.
- * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
+ * **Identity Provider** 👦👩 To easily manage your users, **invite your friends and family** to your applications without awkwardly sharing credentials. Let them request a password change with an email rather than having you unlock their account manually!
  * **SmartShield technology** 🧠🛡 Automatically secure your applications without manual adjustments (see below for more details). Includes anti-bot and anti-DDOS strategies. Now includes TCP protection (FTP, SSH, Games, ...)
  * **CRON** 🕒🔧 To easily schedule tasks on the server or inside containers
 
