@@ -89,7 +89,7 @@ var DefaultConfig = Config{
 		},
 	},
 	DockerConfig: DockerConfig{
-		DefaultDataPath: "/usr",
+		DefaultDataPath: "/cosmos-storage",
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{

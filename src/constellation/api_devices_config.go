@@ -396,13 +396,16 @@ func SlaveConfigSync(newConfig string) (bool, error) {
 		return false, err
 	}
 
-	endpoint := configMap["cstln_config_endpoint"]
+	rawEndpoint := configMap["cstln_config_endpoint"]
 	apiKey := configMap["cstln_api_key"]
 
-	if endpoint == nil  || apiKey == nil {
+	if rawEndpoint == nil  || apiKey == nil {
 		utils.Error("SlaveConfigSync: Invalid slave config file for resync", nil)
 		return false, errors.New("Invalid slave config file for resync")
 	}
+
+	endpoint := rawEndpoint.(string)
+	endpoint += "cosmos/api/constellation/config-sync"
 
 	// utils.Log("SlaveConfigSync: Fetching config from " + endpoint.(string))
 

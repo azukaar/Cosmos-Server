@@ -75,6 +75,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           PublicHostname: '',
           IsRelay: true,
           isLighthouse: false,
+          invisible: false,
         }}
 
         validationSchema={yup.object({
@@ -184,6 +185,12 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                       label="VPN Port (default: 4242)"
                       formik={formik}
                     /> */}
+
+                    <CosmosCheckbox
+                      name="invisible"
+                      label="Invisible (Other clients won't be able to discover this device)"
+                      formik={formik}
+                    />
 
                     {formik.values.isLighthouse && <>
                       <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />

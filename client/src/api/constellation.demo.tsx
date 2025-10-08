@@ -128,6 +128,15 @@ function ping() {
   });
 }
 
+function pingDevice() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": 1
+    })
+  });
+}
+
 export {
   list,
   addDevice,
@@ -138,4 +147,5 @@ export {
   connect,
   block,
   ping,
+  pingDevice
 };

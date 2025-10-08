@@ -130,15 +130,13 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 
-	if(newConfig.HostConfig.NetworkMode != "bridge" &&
-		 newConfig.HostConfig.NetworkMode != "default" &&
-		 newConfig.HostConfig.NetworkMode != "host" &&
-		 newConfig.HostConfig.NetworkMode != "none") {
-			if(!HasLabel(newConfig, "cosmos-force-network-mode")) {
+	if !HasLabel(newConfig, "cosmos-force-network-mode") {
+		if (strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
+			strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:")) {
 				AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
-			} else {
-				newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
-			}
+		}
+	} else {
+		newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
 	}
 	
 	newName := newConfig.Name

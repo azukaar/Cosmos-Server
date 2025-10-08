@@ -281,9 +281,11 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 	claims["mfaDone"] = mfaDone
 	claims["forDomain"] = reqHostNoPort
 
+	sudoUntil :=  time.Now().Add(time.Hour * 2).Unix()
+	
 	// if role is ADMIN, add a timeout
 	if tokenRole == utils.ADMIN {
-		claims["sudo-until"] = time.Now().Add(time.Hour * 2).Unix()
+		claims["sudo-until"] = sudoUntil
 	}
 
 	key, err5 := jwt.ParseEdPrivateKeyFromPEM([]byte(utils.GetPrivateAuthKey()))
@@ -313,7 +315,7 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 
 	clientCookie := http.Cookie{
 		Name: "client-infos",
-		Value: user.Nickname + "," + strconv.Itoa(int(user.Role)) + "," + strconv.Itoa(int(tokenRole)),
+		Value: user.Nickname + "," + strconv.Itoa(int(user.Role)) + "," + strconv.Itoa(int(tokenRole)) + "," + strconv.Itoa(int(sudoUntil - 1)),
 		Expires: expiration,
 		Path: "/",
 		Secure: shouldCookieBeSecured(req.RemoteAddr),

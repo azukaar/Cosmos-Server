@@ -124,7 +124,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             if(doc.services[key].volumes)
               Object.values(doc.services[key].volumes).forEach((volume) => {
                 if (volume.source && volume.source[0] === '.') {
-                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr"
+                  let defaultPath = (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/cosmos-storage"
                   volume.source = defaultPath + volume.source.replace('.', '');
                 }
               });
@@ -324,7 +324,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
 
           // for each network mode that are container, add a label and remove hostname
           Object.keys(doc.services).forEach((key) => {
-            if (doc.services[key].network_mode && doc.services[key].network_mode.startsWith('container:')) {
+            if (doc.services[key].network_mode && (doc.services[key].network_mode.startsWith('service:') || doc.services[key].network_mode.startsWith('container:'))) {
               doc.services[key].labels = doc.services[key].labels || {};
               doc.services[key].labels['cosmos-force-network-mode'] = doc.services[key].network_mode;
               
@@ -549,7 +549,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         Passwords: passwords,
         CPU_ARCH: API.CPU_ARCH,
         CPU_AVX: API.CPU_AVX,
-        DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/usr",
+        DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/cosmos-storage",
       });
 
       let jsoned;

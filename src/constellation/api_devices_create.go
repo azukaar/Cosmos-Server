@@ -21,6 +21,7 @@ type DeviceCreateRequestJSON struct {
 	IsRelay bool `json:"isRelay",omitempty`
 	PublicHostname string `json:"PublicHostname",omitempty`
 	Port string `json:"port",omitempty`
+	Invisible bool `json:"invisible",omitempty`
 }
 
 func DeviceCreate(w http.ResponseWriter, req *http.Request) {
@@ -114,6 +115,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"Fingerprint": fingerprint,
 				"APIKey": APIKey,
 				"Blocked": false,
+				"Invisible": request.Invisible,
 			})
 
 			if err3 != nil {
@@ -185,6 +187,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"PublicHostname": request.PublicHostname,
 					"Port": request.Port,
 					"LighthousesList": lightHousesList,
+					"Invisible": request.Invisible,
 				},
 			})
 			

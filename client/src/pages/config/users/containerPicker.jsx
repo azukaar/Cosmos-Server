@@ -34,7 +34,7 @@ import defaultport from '../../servapps/defaultport.json';
 
 import * as API  from '../../../api';
 
-export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange, label = "Container Name", name = "Target"}) {
+export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetContainer, onTargetChange, label, name = "Target"}) {
   const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [containers, setContainers] = React.useState([]);
@@ -179,7 +179,7 @@ export function CosmosContainerPicker({formik, nameOnly, lockTarget, TargetConta
 
   return ( <Grid item xs={12}>
     <Stack spacing={1}>
-    <InputLabel htmlFor={name + "-autocomplete"}>{t('mgmt.config.containerPicker.containerNameSelection.containerNameLabel')}</InputLabel>
+    <InputLabel htmlFor={name + "-autocomplete"}>{label || t('mgmt.config.containerPicker.containerNameSelection.containerNameLabel')}</InputLabel>
     {!loading && <Autocomplete
       id={name + "-autocomplete"}
       open={open}
