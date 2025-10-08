@@ -111,6 +111,8 @@ type Config struct {
 	RemoteStorage RemoteStorageConfig
 	DisableOpenIDDirect bool
 	Backup BackupConfig
+	Mpdu_ string
+	Mpdn_ string
 }
 
 
@@ -299,6 +301,7 @@ type ConstellationConfig struct {
 	NebulaConfig NebulaConfig
 	ConstellationHostname string
 	Tunnels []ProxyRouteConfig
+	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
 }
 
 type ConstellationDNSEntry struct {
@@ -319,6 +322,7 @@ type ConstellationDevice struct {
 	Blocked bool `json:"blocked" bson:"Blocked"`
 	Fingerprint string `json:"fingerprint" 	bson:"Fingerprint"`
 	APIKey string `json:"-" bson:"APIKey"`
+	Invisible bool `json:"invisible" bson:"Invisible"`
 }
 
 type NebulaFirewallRule struct {

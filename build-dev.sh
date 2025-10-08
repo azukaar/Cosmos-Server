@@ -2,6 +2,10 @@
 
 echo " ---- Build Cosmos ----"
 
+# Set target architecture for ARM64
+# export GOOS=linux
+# export GOARCH=arm64
+
 rm -rf build
 
 cp src/update.go src/launcher/update.go

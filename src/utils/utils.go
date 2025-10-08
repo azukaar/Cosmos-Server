@@ -91,7 +91,7 @@ var DefaultConfig = Config{
 		DNSChallengePropagationWait: 30,
 	},
 	DockerConfig: DockerConfig{
-		DefaultDataPath: "/usr",
+		DefaultDataPath: "/cosmos-storage",
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{

@@ -494,6 +494,7 @@ func NetworkCleanUp() {
 	
 	if(!config.DockerConfig.SkipPruneImages) {
 		pruneFilters := filters.NewArgs()
+		pruneFilters.Add("dangling", "false")
 		report, err := DockerClient.ImagesPrune(DockerContext, pruneFilters)
 		if err != nil {
 			utils.Error("[DOCKER] Error pruning images", err)

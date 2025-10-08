@@ -423,6 +423,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 
 	// Create containers
+	tempServiceList := make(map[string]ContainerCreateRequestContainer)
 	for serviceName, container := range serviceRequest.Services {
 		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
@@ -489,10 +490,6 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			StopTimeout:  &container.StopGracePeriod,
 			Tty:          container.Tty,
 			OpenStdin:    container.StdinOpen,
-		}
-
-		if container.StopGracePeriod == 0 {
-			containerConfig.StopTimeout = nil
 		}
 
 		// check if there's an empty TZ env, if so, replace it with the host's TZ
@@ -699,6 +696,18 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			CapDrop:     container.CapDrop,
 		}
 
+		// cosmos-force-network-mode logic
+		if containerConfig.Labels["cosmos-force-network-mode"] == "" {
+			if (strings.HasPrefix(string(hostConfig.NetworkMode), "service:") ||
+				strings.HasPrefix(string(hostConfig.NetworkMode), "container:")) {
+					containerConfig.Labels["cosmos-force-network-mode"] = string(hostConfig.NetworkMode)
+			}
+		} else {
+			hostConfig.NetworkMode = conttype.NetworkMode(containerConfig.Labels["cosmos-force-network-mode"])
+			utils.Debug("Forcing network mode to " + string(hostConfig.NetworkMode))
+		}
+
+
 		if container.Runtime != "" {
 			hostConfig.Runtime = strings.Join(strings.Fields(container.Runtime), " ")
 		}		
@@ -903,10 +912,16 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		// Write a response to the client
 		utils.Log(fmt.Sprintf("Container %s created", container.Name))
 		OnLog(fmt.Sprintf("Container %s created", container.Name))
+
+		tempServiceList[serviceName] = ContainerCreateRequestContainer{
+			Name:        container.Name,
+			DependsOn:   container.DependsOn,
+			NetworkMode: string(hostConfig.NetworkMode),
+		}
 	}
 
 	// re-order containers dpeneding on depends_on
-	startOrder, mustStart, err := ReOrderServices(serviceRequest.Services)
+	startOrder, mustStart, err := ReOrderServices(tempServiceList)
 	if err != nil {
 		utils.Error("CreateService: Rolling back changes because of -- Container", err)
 		OnLog(utils.DoErr("Rolling back changes because of -- Container creation error: "+err.Error()))
@@ -1044,9 +1059,23 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		changed := false
 
 		for name, service := range serviceMap {
+			dependencies := service.DependsOn
+			if dependencies == nil {
+				dependencies = make(map[string]ContainerCreateRequestContainerDependsOnCont)
+			}
+			
+			// if network_mode is container: then we need to add a dependency
+			if strings.HasPrefix(string(service.NetworkMode), "container:") {
+				depService := strings.TrimPrefix(string(service.NetworkMode), "container:")
+				dependencies[depService] = ContainerCreateRequestContainerDependsOnCont{
+					Condition: "service_started",
+				}
+			}
+
+			// If there are no dependencies, we can add this service to startOrder
 			// Check if all dependencies are already in startOrder
 			allDependenciesStarted := true
-			for dependency, dependencyDetails := range service.DependsOn {
+			for dependency, dependencyDetails := range dependencies {
 				dependencyStarted := false
 				for _, startedService := range startOrder {
 					if startedService.Name == dependency {
@@ -1086,6 +1115,13 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		for name, _ := range serviceMap {
 			errorMessage += "Could not start service: " + name + "\n"
 			errorMessage += "Unsatisfied dependencies:\n"
+
+			// if network_mode is container: then we need to add a dependency
+			if strings.HasPrefix(string(serviceMap[name].NetworkMode), "container:") {
+				depService := strings.TrimPrefix(string(serviceMap[name].NetworkMode), "container:")
+				errorMessage += depService + " (network_mode)\n"
+			}
+
 			for dependency, _ := range serviceMap[name].DependsOn {
 				_, ok := serviceMap[dependency]
 				if ok {

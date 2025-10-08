@@ -542,6 +542,8 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
 
 	srapiAdmin.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
+	srapiAdmin.HandleFunc("/api/constellation/public-devices", constellation.DevicePublicList)
+	srapiAdmin.HandleFunc("/api/constellation/devices/{id}/ping", constellation.DevicePing)
 	srapiAdmin.HandleFunc("/api/constellation/restart", constellation.API_Restart)
 	srapiAdmin.HandleFunc("/api/constellation/reset", constellation.API_Reset)
 	srapiAdmin.HandleFunc("/api/constellation/connect", constellation.API_ConnectToExisting)

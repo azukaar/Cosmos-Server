@@ -18,6 +18,15 @@ function ping() {
   }))
 }
 
+function pingDevice(deviceId) {
+  return wrap(fetch(`/cosmos/api/constellation/devices/${deviceId}/ping`, {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 function addDevice(device) {
   return wrap(fetch('/cosmos/api/constellation/devices', {
     method: 'POST',
@@ -128,4 +137,5 @@ export {
   connect,
   block,
   ping,
+  pingDevice,
 };

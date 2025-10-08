@@ -141,7 +141,7 @@ const ConfigManagement = () => {
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
           SkipPruneImages: config.DockerConfig.SkipPruneImages,
-          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/usr",
+          DefaultDataPath: config.DockerConfig.DefaultDataPath || "/cosmos-storage",
 
           Background: config && config.HomepageConfig && config.HomepageConfig.Background,
           Expanded: config && config.HomepageConfig && config.HomepageConfig.Expanded,
@@ -821,7 +821,7 @@ const ConfigManagement = () => {
                       label={t('mgmt.config.docker.defaultDatapathInput.defaultDatapathLabel')}
                       name="DefaultDataPath"
                       formik={formik}
-                      placeholder={'/usr'}
+                      placeholder={'/cosmos-storage'}
                     />
                   </Stack>
                 </Stack>

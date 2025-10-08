@@ -125,6 +125,11 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 				 form.NetworkMode != "default" {
 					container.Config.MacAddress = ""
 			}
+			// update cosmos-force-network-mode label
+			if container.Config.Labels == nil {
+				container.Config.Labels = make(map[string]string)
+			}
+			container.Config.Labels["cosmos-force-network-mode"] = form.NetworkMode
 		}
 
 		_, err = EditContainer(container.ID, container, false)

@@ -12,6 +12,7 @@ import { NetworksColumns } from '../networks';
 import NewNetworkButton from '../createNetwork';
 import LinkContainersButton from '../linkContainersButton';
 import { useTranslation } from 'react-i18next';
+import { CosmosContainerPicker } from '../../config/users/containerPicker';
 
 const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange, OnConnect, OnDisconnect }) => {
   const { t } = useTranslation();
@@ -93,6 +94,11 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
         initialValues={{
           networkMode: containerInfo.HostConfig.NetworkMode,
           ports: getPortBindings(),
+          Container: (() => {
+            if(!containerInfo || !containerInfo.HostConfig || !containerInfo.HostConfig.NetworkMode) return "";
+            if(!containerInfo.HostConfig.NetworkMode.startsWith("container:")) return "";
+            return containerInfo.HostConfig.NetworkMode.replace("container:", "");
+          })()
         }}
         validate={(values) => {
           const errors = {};
@@ -142,16 +148,29 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                       {t('mgmt.servApps.networks.containerotRunningWarning')}
                     </Alert>
                   )}
-                  {isForceSecure && (
+                  {/* {isForceSecure && (
                     <Alert severity="warning" style={{ marginBottom: '0px' }}>
                       {t('mgmt.servApps.networks.forcedSecurityWarning')}          
                     </Alert>
-                  )}
+                  )} */}
                   <CosmosInputText
                     label={t('mgmt.servApps.networks.modeInput.modeLabel')}
                     name="networkMode"
                     placeholder={'default'}
                     formik={formik}
+                    onChange={(e) => {
+                      formik.setFieldValue('Container', '');
+                    }}
+                  />
+                  <CosmosContainerPicker
+                    formik={formik}
+                    onTargetChange={(_, name) => {
+                      if(!name) return;
+                      formik.setFieldValue('networkMode', `container:${name}`);
+                    }}
+                    name='Container'
+                    label={t('mgmt.servApps.networks.useAsVPN')}
+                    nameOnly
                   />
                   <CosmosFormDivider title={t('mgmt.servApps.networks.exposePortsTitle')} />
                   <div>
