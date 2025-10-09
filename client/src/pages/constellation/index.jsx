@@ -44,14 +44,6 @@ const ConstellationIndex = () => {
           path: 'dns'
         },
         {
-          title: 'Firewall',
-          children: <div>
-            <Alert severity="info">
-              {t('mgmt.constellation.setup.firewallInfo')}
-            </Alert>
-          </div>,
-        },
-        {
           title: t('mgmt.constellation.setup.unsafeRoutesTitle'),
           children: <div>
             <Alert severity="info">

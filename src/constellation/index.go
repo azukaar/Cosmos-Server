@@ -177,6 +177,9 @@ func Init() {
 		// 	}
 		// }
 
+		// read isExitNode from config, if true, add masquerade to iptable
+		populateIPTableMasquerade()
+
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
 		err = startNebulaInBackground()

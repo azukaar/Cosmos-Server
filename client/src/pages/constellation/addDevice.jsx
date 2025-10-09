@@ -18,8 +18,9 @@ import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
 import { useTranslation } from 'react-i18next';
+import { json } from 'react-router';
 
-const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
+const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse }) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
@@ -74,7 +75,8 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           Port: "4242",
           PublicHostname: '',
           IsRelay: true,
-          isLighthouse: false,
+          IsExitNode: true,
+          isLighthouse: forceLighthouse,
           invisible: false,
         }}
 
@@ -138,12 +140,14 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
             </DialogContent> : <DialogContent>
               <DialogContentText>
                 <p>{t('mgmt.constellation.setup.addDeviceText')}</p>
+                {forceLighthouse && <Alert severity="warning">{t('mgmt.constellation.setup.createLighthouse')}</Alert>}
                 <div>
                   <Stack spacing={2} style={{}}>
                   <CosmosCheckbox
                     name="isLighthouse"
                     label="Lighthouse"
                     formik={formik}
+                    disabled={forceLighthouse}
                   />
                   {!formik.values.isLighthouse &&
                     (isAdmin ? <CosmosSelect
@@ -186,11 +190,13 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                       formik={formik}
                     /> */}
 
-                    <CosmosCheckbox
-                      name="invisible"
-                      label="Invisible (Other clients won't be able to discover this device)"
-                      formik={formik}
-                    />
+                    {!formik.values.isLighthouse && <>   
+                      <CosmosCheckbox
+                        name="invisible"
+                        label={t('mgmt.constellation.setup.invisible.label')}
+                        formik={formik}
+                      />
+                    </>}
 
                     {formik.values.isLighthouse && <>
                       <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />
@@ -204,6 +210,12 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                       <CosmosCheckbox
                         name="IsRelay"
                         label={t('mgmt.constellation.isRelay.label')}
+                        formik={formik}
+                      />
+
+                      <CosmosCheckbox
+                        name="IsExitNode"
+                        label={t('mgmt.constellation.isExitNode.label')}
                         formik={formik}
                       />
                     </>}

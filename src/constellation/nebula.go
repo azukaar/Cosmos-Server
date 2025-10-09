@@ -906,6 +906,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
 			"-subnets", "0.0.0.0/0",
+			"-duration", "87600h", // 10 years
 			"-name", name,
 			"-ip", ip,
 		)
@@ -920,6 +921,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
 			"-subnets", "0.0.0.0/0",
+			"-duration", "87600h", // 10 years
 			"-name", name,
 			"-ip", ip,
 			"-in-pub", "./temp.key",
@@ -1108,4 +1110,107 @@ func generateNebulaCACert(name string) error {
 
 func GetDeviceIp(device string) string {
 	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
+}
+
+func populateIPTableMasquerade() {
+	config := utils.GetMainConfig()
+
+	if config.ConstellationConfig.IsExitNode {
+		utils.Log("Constellation: Exit node enabled, configuring iptables masquerade...")
+
+		// Enable IP forwarding
+		cmd := exec.Command("sysctl", "-w", "net.ipv4.ip_forward=1")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Failed to enable IP forwarding", err)
+			// Continue anyway
+		} else {
+			utils.Log("Constellation: IP forwarding enabled")
+		}
+
+		// Detect network interface
+		var iface string
+		if config.ConstellationConfig.OverrideNebulaExitNodeInterface != "" {
+			iface = config.ConstellationConfig.OverrideNebulaExitNodeInterface
+			utils.Log("Constellation: Using manual interface override: " + iface)
+		} else {
+			// Detect default interface using ip route
+			cmd := exec.Command("sh", "-c", "ip route get 1.1.1.1 | grep -oP 'dev \\K\\S+'")
+			output, err := cmd.Output()
+			if err != nil {
+				utils.Error("Constellation: Failed to detect network interface", err)
+				return
+			}
+			iface = strings.TrimSpace(string(output))
+			utils.Log("Constellation: Detected network interface: " + iface)
+		}
+
+		if iface == "" {
+			utils.Error("Constellation: No network interface detected", nil)
+			return
+		}
+
+		// Check if rules already exist
+		cmd = exec.Command("iptables-save")
+		output, err := cmd.Output()
+		if err != nil {
+			utils.Error("Constellation: Failed to check existing iptables rules", err)
+			// Continue anyway
+		} else if strings.Contains(string(output), "COSMOS-CLOUD-EXIT-NODE") {
+			utils.Log("Constellation: IPTables rules already exist, skipping")
+			return
+		}
+
+		// Add iptables rules with comment markers
+		// Using a unique comment for easy identification and removal
+		rules := []string{
+			fmt.Sprintf("iptables -t nat -A POSTROUTING -s 192.168.201.0/24 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
+			fmt.Sprintf("iptables -A FORWARD -i nebula1 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
+			fmt.Sprintf("iptables -A FORWARD -i %s -o nebula1 -m state --state RELATED,ESTABLISHED -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
+		}
+
+		for _, rule := range rules {
+			cmd := exec.Command("sh", "-c", rule)
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Failed to add iptables rule: "+rule, err)
+				// Continue anyway
+			}
+		}
+
+		utils.Log("Constellation: IPTables masquerade rules added")
+	} else {
+		// Remove rules with our comment marker
+		utils.Log("Constellation: Exit node disabled, removing iptables masquerade rules...")
+
+		// Get current rules
+		cmd := exec.Command("iptables-save")
+		output, err := cmd.Output()
+		if err != nil {
+			utils.Error("Constellation: Failed to get iptables rules", err)
+			return
+		}
+
+		rules := string(output)
+
+		// Check if our rules exist
+		if !strings.Contains(rules, "COSMOS-CLOUD-EXIT-NODE") {
+			utils.Log("Constellation: No masquerade rules found, nothing to remove")
+			return
+		}
+
+		// Remove rules with our comment marker from nat table
+		cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Error removing NAT rules", err)
+		} else {
+			utils.Log("Constellation: NAT rules removed")
+		}
+
+		// Remove rules with our comment marker from filter table
+		cmd = exec.Command("sh", "-c", "iptables-save | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Error removing FORWARD rules", err)
+		} else {
+			utils.Log("Constellation: FORWARD rules removed")
+		}
+	}
 }

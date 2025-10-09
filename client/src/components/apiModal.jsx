@@ -40,7 +40,7 @@ const preStyle = {
   opacity: '1',
 }
 
-const ApiModal = ({ callback, label }) => {
+const ApiModal = ({ callback, label, processContent }) => {
     const { t } = useTranslation();
     const [openModal, setOpenModal] = useState(false);
     const [content, setContent] = useState("");
@@ -64,7 +64,7 @@ const ApiModal = ({ callback, label }) => {
           <DialogContent>
               <DialogContentText>
                 <pre style={preStyle}>
-                  {content}
+                  {processContent ? processContent(content) : content}
                 </pre>
               </DialogContentText>
           </DialogContent>
@@ -72,7 +72,7 @@ const ApiModal = ({ callback, label }) => {
               <LoadingButton
                   loading={loading}
               onClick={() => {   
-                  getContent();         
+                  getContent()
               }}>{t('global.refresh')}</LoadingButton>
               <Button onClick={() => {
                   setOpenModal(false);           
