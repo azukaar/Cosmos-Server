@@ -4,7 +4,7 @@ import * as API from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { CloudOutlined, CompassOutlined, DesktopOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
+import { ApiOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
 import { Alert, Button, Chip, CircularProgress, IconButton, Stack, Switch, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -194,6 +194,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   Enabled: config.ConstellationConfig.Enabled,
                   PrivateNode: config.ConstellationConfig.PrivateNode,
                   IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
+                  IsExitNode: config.ConstellationConfig.IsExitNode,
                   SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
                   ConstellationHostname: (config.ConstellationConfig.ConstellationHostname && config.ConstellationConfig.ConstellationHostname != "") ? config.ConstellationConfig.ConstellationHostname :
                     getDefaultConstellationHostname(config)
@@ -203,6 +204,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   newConfig.ConstellationConfig.Enabled = values.Enabled;
                   newConfig.ConstellationConfig.PrivateNode = values.PrivateNode;
                   newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
+                  newConfig.ConstellationConfig.IsExitNode = values.IsExitNode;
                   newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
                   newConfig.ConstellationConfig.DoNotSyncNodes = !values.SyncNodes;
                   setTimeout(() => {
@@ -225,7 +227,70 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         >
                           {t('mgmt.constellation.restartButton')}
                         </Button>
-                        <ApiModal callback={API.constellation.getLogs} label={t('mgmt.constellation.showLogsButton')} />
+                        <ApiModal 
+                          callback={API.constellation.getLogs} 
+                          label={t('mgmt.constellation.showLogsButton')} 
+                          processContent={(logs) => {
+                            const result = [];
+                            
+                            logs.split("\n").forEach((line, lineIndex) => {
+                              if (!line.trim()) return;
+                              
+                              const levelMatch = line.match(/level=(\w+)/);
+                              const level = levelMatch?.[1]?.toLowerCase();
+                              
+                              const color = {
+                                error: "red",
+                                warn: "orange", 
+                                debug: "purple"
+                              }[level] || "white";
+                              
+                              const elements = [];
+                              let lastIndex = 0;
+                              
+                              line.replace(/([a-z]+=)([^\s]+)/g, (match, key, value, offset) => {
+                                // Add text before this match
+                                if (offset > lastIndex) {
+                                  elements.push(line.slice(lastIndex, offset));
+                                }
+                                
+                                // Style differently based on the key
+                                if (key === 'msg=') {
+                                  elements.push(
+                                    <span key={offset}>
+                                      <span style={{ fontWeight: 'bold', color: '#52a5d8ff' }}>{key}</span>
+                                      <span style={{ }}>{value}</span>
+                                    </span>
+                                  );
+                                } else {
+                                  elements.push(
+                                    <span key={offset}>
+                                      <span style={{ color: '#81bbdfff' }}>{key}</span>
+                                      {value}
+                                    </span>
+                                  );
+                                }
+                                
+                                lastIndex = offset + match.length;
+                                return match;
+                              });
+                              
+                              // Add any remaining text
+                              if (lastIndex < line.length) {
+                                elements.push(line.slice(lastIndex));
+                              }
+                              
+                              result.push(
+                                <div key={lineIndex} style={{ color }}>
+                                  ● {elements}
+                                </div>
+                              );
+                            });
+                            
+                            return result;
+                          }}
+
+                        />
                         <ApiModal callback={API.constellation.getConfig} label={t('mgmt.constellation.showConfigButton')} />
                         <ConfirmModal
                           variant="outlined"
@@ -262,6 +327,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                             <CosmosCheckbox disabled={!isAdmin} formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} />
                             {devices.length > 0 && <Alert severity="warning">{t('mgmt.constellation.setup.deviceConnectedWarn')}</Alert>}
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
+                            <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsExitNode" label={t('mgmt.constellation.setup.exitNode.label')} />
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
                             {!formik.values.PrivateNode && <>
                               <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
@@ -303,13 +369,15 @@ export const ConstellationVPN = ({ freeVersion }) => {
             </Stack>
           </MainCard>
         </div>
-        {config.ConstellationConfig.Enabled && !config.ConstellationConfig.SlaveMode && <>
+        {config.ConstellationConfig.Enabled && <>
           <CosmosFormDivider title={"Devices"} />
           <PrettyTableView
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
             buttons={[
-              <AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} />,
+              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} forceLighthouse={
+                config && config.ConstellationConfig.PrivateNode && !(devices.filter(d=>d.isLighthouse && !d.blocked).length)
+              } />),
               <Button
                 disableElevation
                 variant="outlined"
@@ -351,6 +419,26 @@ export const ConstellationVPN = ({ freeVersion }) => {
               {
                 title: t('mgmt.storage.typeTitle'),
                 field: (r) => <strong>{r.isLighthouse ? "Lighthouse" : "Client"}</strong>,
+              },
+              {
+                title: '',
+                field: (r) => {
+                  if (!r.isLighthouse) return null;
+                  return (
+                    <Stack direction="row" spacing={1}>
+                      {r.isRelay && (
+                        <Tooltip title={t('mgmt.constellation.isRelay.label')}>
+                          <ApiOutlined style={{ color: '#1976d2' }} />
+                        </Tooltip>
+                      )}
+                      {r.isExitNode && (
+                        <Tooltip title={t('mgmt.constellation.isExitNode.label')}>
+                          <ExportOutlined style={{ color: '#2e7d32' }} />
+                        </Tooltip>
+                      )}
+                    </Stack>
+                  );
+                },
               },
               {
                 title: t('mgmt.constellation.setup.ipTitle'),
@@ -414,7 +502,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 title: '',
                 clickable: true,
                 field: (r) => {
-                  return <>
+                  return !config.ConstellationConfig.SlaveMode ? <>
                     <Tooltip title="Resync Device">
                       <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
                         <SyncOutlined />
@@ -424,7 +512,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       await API.constellation.block(r.nickname, r.deviceName, true);
                       refreshConfig();
                     }}></DeleteButton>
-                  </>
+                  </> : null
                 }
               }
             ]}

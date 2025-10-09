@@ -293,6 +293,7 @@ type ConstellationConfig struct {
 	DNSDisabled bool
 	DNSPort string
 	DNSFallback string
+	IsExitNode bool
 	DNSBlockBlacklist bool
 	DNSAdditionalBlocklists []string
 	CustomDNSEntries []ConstellationDNSEntry
@@ -300,6 +301,7 @@ type ConstellationConfig struct {
 	ConstellationHostname string
 	Tunnels []ProxyRouteConfig
 	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
+	OverrideNebulaExitNodeInterface string
 }
 
 type ConstellationDNSEntry struct {
@@ -315,6 +317,7 @@ type ConstellationDevice struct {
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
+	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`
 	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`
 	Port string `json:"port" bson:"Port"`
 	Blocked bool `json:"blocked" bson:"Blocked"`

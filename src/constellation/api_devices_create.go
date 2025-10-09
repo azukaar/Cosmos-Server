@@ -15,13 +15,15 @@ type DeviceCreateRequestJSON struct {
 	
 	// for devices only
 	Nickname string `json:"nickname",validate:"max=32,alphanum",omitempty`
+	Invisible bool `json:"invisible",omitempty`
 	
 	// for lighthouse only
 	IsLighthouse bool `json:"isLighthouse",omitempty`
 	IsRelay bool `json:"isRelay",omitempty`
+	IsExitNode bool `json:"isExitNode",omitempty`
 	PublicHostname string `json:"PublicHostname",omitempty`
 	Port string `json:"port",omitempty`
-	Invisible bool `json:"invisible",omitempty`
+	
 }
 
 func DeviceCreate(w http.ResponseWriter, req *http.Request) {
@@ -109,13 +111,14 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"PublicKey": key,
 				"IP": request.IP,
 				"IsLighthouse": request.IsLighthouse,
-				"IsRelay": request.IsRelay,
+				"IsRelay": request.IsLighthouse && request.IsRelay,
+				"IsExitNode": request.IsLighthouse && request.IsExitNode,
 				"PublicHostname": request.PublicHostname,
 				"Port": request.Port,
 				"Fingerprint": fingerprint,
 				"APIKey": APIKey,
 				"Blocked": false,
-				"Invisible": request.Invisible,
+				"Invisible": request.Invisible && !request.IsLighthouse,
 			})
 
 			if err3 != nil {
@@ -146,7 +149,8 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				PublicKey: key,
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
-				IsRelay: request.IsRelay,
+				IsRelay: request.IsLighthouse && request.IsRelay,
+				IsExitNode: request.IsLighthouse && request.IsExitNode,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
@@ -183,11 +187,12 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"Config": configYml,
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
-					"IsRelay": request.IsRelay,
+					"IsRelay": request.IsLighthouse && request.IsRelay,
+					"IsExitNode": request.IsLighthouse && request.IsExitNode,
 					"PublicHostname": request.PublicHostname,
 					"Port": request.Port,
 					"LighthousesList": lightHousesList,
-					"Invisible": request.Invisible,
+					"Invisible": request.Invisible && !request.IsLighthouse,
 				},
 			})
 			

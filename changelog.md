@@ -8,6 +8,7 @@
  - Fixed issue with exporting hostname when it would be incompatible to re-importing it
  - Updating network mode now also updates the network-mode label
  - Default storage path is now /cosmos-storage instead of /usr
+ - Fixed bug where you cant delete the same device twice from Constellation
 
 ## Version 0.18.4
  - Fix issue with DB credentials dissapearing

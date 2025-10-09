@@ -8,8 +8,8 @@ import (
 )
 
 type DeviceBlockRequestJSON struct {
-	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
-	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
+  Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
+  DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
   Block bool `json:"block",omitempty`
 }
 
@@ -42,7 +42,8 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceBlocking: Blocking Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  	defer closeDb()
+  		defer closeDb()
+		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -55,16 +56,14 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		
 		err2 := c.FindOne(nil, map[string]interface{}{
 			"DeviceName": deviceName,
-			"Nickname": nickname,
 			"Blocked": false,
 		}).Decode(&device)
 
 		if err2 == nil {
 			utils.Debug("ConstellationDeviceBlocking: Found Device " + deviceName)
-
-			_, err3 := c.UpdateOne(nil, map[string]interface{}{
+			
+			_, err3 := c.UpdateMany(nil, map[string]interface{}{
 				"DeviceName": deviceName,
-				"Nickname": nickname,
 			}, map[string]interface{}{
 				"$set": map[string]interface{}{
 					"Blocked": request.Block,

@@ -14,6 +14,11 @@ type PublicDeviceInfo struct {
 	DeviceName string `json:"name"`
 	User       string `json:"user"`
 	IP         string `json:"ip"`
+	IsLighthouse bool `json:"isLighthouse"`
+	IsRelay bool `json:"isRelay"`
+	IsExitNode bool `json:"isExitNode"`
+	PublicHostname string `json:"publicHostname"`
+	Port string `json:"port"`
 }
 
 func DevicePublicList(w http.ResponseWriter, req *http.Request) {
@@ -66,10 +71,16 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Always add the cosmos lighthouse device
+	config := utils.GetMainConfig()
 	cosmosDevice := utils.ConstellationDevice{
 		DeviceName: "cosmos",
 		Nickname:   "cosmos",
 		IP:         "192.168.201.1",
+		IsLighthouse: true,
+		IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
+		IsExitNode: config.ConstellationConfig.IsExitNode,
+		PublicHostname: config.ConstellationConfig.ConstellationHostname,
+		Port: "4242",
 	}
 	devices = append([]utils.ConstellationDevice{cosmosDevice}, devices...)
 
@@ -81,6 +92,11 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 			DeviceName: device.DeviceName,
 			User:       device.Nickname,
 			IP:         cleanIp(device.IP),
+			IsLighthouse: device.IsLighthouse,
+			IsRelay: device.IsRelay,
+			IsExitNode: device.IsExitNode,
+			PublicHostname: device.PublicHostname,
+			Port: device.Port,
 		}
 	}
 
