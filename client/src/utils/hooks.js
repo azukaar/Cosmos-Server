@@ -29,12 +29,16 @@ function useClientInfos() {
       role: clientInfos[2]
     };
 
+    console.log("CACA Client infos:", res);
+
+    // If role is admin, check if the timeout has expired
+
     if(clientInfos.length > 3) {
       let roleUntil = new Date(parseInt(clientInfos[3], 10) * 1000);
       let currentDate = new Date();
 
-      if(roleUntil < currentDate && res.userRole == "2") {
-        res.userRole = "1";
+      if(roleUntil < currentDate && res.role == "2") {
+        res.role = "1";
       }
     }
 
