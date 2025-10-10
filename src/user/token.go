@@ -281,7 +281,7 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 	claims["mfaDone"] = mfaDone
 	claims["forDomain"] = reqHostNoPort
 
-	sudoUntil :=  time.Now().Add(time.Second * 5).Unix()
+	sudoUntil :=  time.Now().Add(time.Hour * 2).Unix()
 	
 	// if role is ADMIN, add a timeout
 	if tokenRole == utils.ADMIN {
