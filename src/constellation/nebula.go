@@ -906,7 +906,6 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
 			"-subnets", "0.0.0.0/0",
-			"-duration", "87600h", // 10 years
 			"-name", name,
 			"-ip", ip,
 		)
@@ -921,7 +920,6 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
 			"-subnets", "0.0.0.0/0",
-			"-duration", "87600h", // 10 years
 			"-name", name,
 			"-ip", ip,
 			"-in-pub", "./temp.key",
@@ -1023,7 +1021,13 @@ func generateNebulaCACert(name string) error {
 	}
 
 	// Run the nebula-cert command to generate CA certificate and key
-	cmd := exec.Command(binaryToRun()+"-cert", "ca", "-name", "\""+name+"\"")
+	cmd := exec.Command(
+		binaryToRun()+"-cert",
+		"ca",
+		"-name",
+		"-duration", "87600h", // 10 years
+		"\""+name+"\"",
+	)
 	utils.Debug(cmd.String())
 
 	// Get pipes for stdout and stderr
