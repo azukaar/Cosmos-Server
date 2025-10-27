@@ -192,7 +192,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 enableReinitialize
                 initialValues={{
                   Enabled: config.ConstellationConfig.Enabled,
-                  PrivateNode: config.ConstellationConfig.PrivateNode,
                   IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
                   IsExitNode: config.ConstellationConfig.IsExitNode,
                   SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
@@ -202,7 +201,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 onSubmit={(values) => {
                   let newConfig = { ...config };
                   newConfig.ConstellationConfig.Enabled = values.Enabled;
-                  newConfig.ConstellationConfig.PrivateNode = values.PrivateNode;
                   newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
                   newConfig.ConstellationConfig.IsExitNode = values.IsExitNode;
                   newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
@@ -328,11 +326,8 @@ export const ConstellationVPN = ({ freeVersion }) => {
                             {devices.length > 0 && <Alert severity="warning">{t('mgmt.constellation.setup.deviceConnectedWarn')}</Alert>}
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsExitNode" label={t('mgmt.constellation.setup.exitNode.label')} />
-                            <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="PrivateNode" label={t('mgmt.constellation.setup.privNode.label')} />
-                            {!formik.values.PrivateNode && <>
-                              <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
-                              <CosmosInputText disabled={!isAdmin || devices.length > 0} formik={formik} name="ConstellationHostname" label={'Constellation ' + t('global.hostname')} />
-                            </>}
+                            <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
+                            <CosmosInputText disabled={!isAdmin || devices.length > 0} formik={formik} name="ConstellationHostname" label={'Constellation ' + t('global.hostname')} />
                           </>}
                         </>}
 
@@ -375,9 +370,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
             buttons={[
-              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} forceLighthouse={
-                config && config.ConstellationConfig.PrivateNode && !(devices.filter(d=>d.isLighthouse && !d.blocked).length)
-              } />),
+              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} />),
               <Button
                 disableElevation
                 variant="outlined"

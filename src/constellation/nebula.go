@@ -40,8 +40,37 @@ var NebulaFailedStarting = false
 func startNebulaInBackground() error {
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
-	
+
+	// copy nebula.yml to nebula-temp.yml
+    source, err := os.Open(utils.CONFIGFOLDER + "nebula.yml")
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+    defer source.Close()
+
+    destination, err := os.Create(utils.CONFIGFOLDER + "nebula-temp.yml")
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+    defer destination.Close()
+
+    _, err = io.Copy(destination, source)
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+
+	// Initialize log buffer
+	logBuffer = &lumberjack.Logger{
+			Filename:   utils.CONFIGFOLDER + "nebula.log",
+			MaxSize:    1, // megabytes
+			MaxBackups: 1,
+			MaxAge:     15, //days
+			Compress:   false,
+	}
+
 	UpdateFirewallBlockedClients()
+	AdjustDNS(logBuffer)
+	ValidateStaticHosts(logBuffer)
 
 	NebulaFailedStarting = false
 	if process != nil {
@@ -57,17 +86,8 @@ func startNebulaInBackground() error {
 			}
 	}
 
-	// Initialize log buffer
-	logBuffer = &lumberjack.Logger{
-			Filename:   utils.CONFIGFOLDER + "nebula.log",
-			MaxSize:    1, // megabytes
-			MaxBackups: 1,
-			MaxAge:     15, //days
-			Compress:   false,
-	}
-
 	// Create and configure the process
-	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula.yml")
+	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula-temp.yml")
 	
 	// Setup stdout and stderr pipes
 	stdout, err := process.StdoutPipe()
@@ -313,22 +333,18 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
-	if !overwriteConfig.PrivateNode {
-		hostnames := []string{}
-		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-		for _, hostname := range hsraw {
-			// trim
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				hostnames = append(hostnames, hostname + ":4242")
-			}
+	hostnames := []string{}
+	hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+	for _, hostname := range hsraw {
+		// trim
+		hostname = strings.TrimSpace(hostname)
+		if hostname != "" {
+			hostnames = append(hostnames, hostname + ":4242")
 		}
+	}
 
-		finalConfig.StaticHostMap = map[string][]string{
-			"192.168.201.1": hostnames,
-		}
-	} else {
-		finalConfig.StaticHostMap = map[string][]string{}
+	finalConfig.StaticHostMap = map[string][]string{
+		"192.168.201.1": hostnames,
 	}
 
 	// for each lighthouse
@@ -360,7 +376,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 
-	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
+	finalConfig.Lighthouse.AMLighthouse = true
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 
@@ -405,136 +421,6 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	return nil
 }
 
-func UpdateFirewallBlockedClients() error {
-	nebulaYmlPath := utils.CONFIGFOLDER + "nebula.yml"
-
-	// Read the existing nebula.yml file
-	yamlData, err := ioutil.ReadFile(nebulaYmlPath)
-	if err != nil {
-		return fmt.Errorf("failed to read nebula.yml: %w", err)
-	}
-
-	// Unmarshal the YAML data into a map
-	var configMap map[string]interface{}
-	err = yaml.Unmarshal(yamlData, &configMap)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal nebula.yml: %w", err)
-	}
-
-	// Get the firewall configuration
-	firewallMap, ok := configMap["firewall"].(map[interface{}]interface{})
-	if !ok {
-		return errors.New("firewall not found in nebula.yml")
-	}
-
-	// Get all devices from the database to map names to IPs
-	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-	if errCo != nil {
-		return errCo
-	}
-	defer closeDb()
-
-	var devices []utils.ConstellationDevice
-	cursor, err := c.Find(nil, map[string]interface{}{})
-	if err != nil {
-		return err
-	}
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
-	// Always add the cosmos lighthouse device
-	cosmosDevice := utils.ConstellationDevice{
-		DeviceName: "cosmos",
-		Nickname:   "cosmos",
-		IP:         "192.168.201.1",
-	}
-	devices = append([]utils.ConstellationDevice{cosmosDevice}, devices...)
-
-	// Create a map of device names to IPs
-	deviceIPs := make(map[string]string)
-	for _, device := range devices {
-		deviceIPs[device.DeviceName] = cleanIp(device.IP)
-	}
-
-	// Get the blocked clients list from config
-	blockedClients := utils.GetMainConfig().ConstellationConfig.FirewallBlockedClients
-	blockedIPs := make(map[string]bool)
-	for _, clientName := range blockedClients {
-		if ip, exists := deviceIPs[clientName]; exists && ip != "" {
-			blockedIPs[ip] = true
-			utils.Log("Constellation: Blocking device " + clientName + " (" + ip + ") in firewall")
-		}
-	}
-
-	// Build new firewall rules
-	newInboundRules := []interface{}{}
-	newOutboundRules := []interface{}{}
-
-	// Always allow ICMP (ping) from any
-	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
-		"port":  "any",
-		"proto": "icmp",
-		"host":  "any",
-	})
-
-	// Always allow port 4222 (NATS) from any
-	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
-		"port":  4222,
-		"proto": "any",
-		"host":  "any",
-	})
-
-	// Always allow port 53 (DNS) from any
-	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
-		"port":  53,
-		"proto": "any",
-		"host":  "any",
-	})
-
-	// Always allow lighthouse (cosmos)
-	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
-		"port":  "any",
-		"proto": "any",
-		"host":  "cosmos",
-	})
-
-	// Allow outbound to any
-	newOutboundRules = append(newOutboundRules, map[interface{}]interface{}{
-		"port":  "any",
-		"proto": "any",
-		"host":  "any",
-	})
-
-	for _, device := range devices {
-		if device.DeviceName != "" && !blockedIPs[cleanIp(device.IP)] && device.DeviceName != "cosmos" {
-			// Allow inbound from this device using its hostname
-			newInboundRules = append(newInboundRules, map[interface{}]interface{}{
-				"port":  "any",
-				"proto": "any",
-				"host":  device.DeviceName,
-			})
-		}
-	}
-
-	firewallMap["inbound"] = newInboundRules
-	firewallMap["outbound"] = newOutboundRules
-
-	// Marshal back to YAML
-	updatedYaml, err := yaml.Marshal(configMap)
-	if err != nil {
-		return fmt.Errorf("failed to marshal updated config: %w", err)
-	}
-
-	// Write back to nebula.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write nebula.yml: %w", err)
-	}
-
-	utils.Log("Updated firewall rules in nebula.yml")
-	return nil
-}
-
 func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, device utils.ConstellationDevice, lite bool, getLicence bool) (string, error) {
 	utils.Log("Exporting YAML config for " + name + " with file " + configPath)
 
@@ -557,23 +443,17 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			// staticHostMap["192.168.201.1"] = []string{
-			// 	utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
-			// }
-
-			hostnames := []string{}
-			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-			for _, hostname := range hsraw {
-				// trim
-				hostname = strings.TrimSpace(hostname)
-				if hostname != "" {
-					hostnames = append(hostnames, hostname + ":4242")
-				}
+		hostnames := []string{}
+		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		for _, hostname := range hsraw {
+			// trim
+			hostname = strings.TrimSpace(hostname)
+			if hostname != "" {
+				hostnames = append(hostnames, hostname + ":4242")
 			}
-
-			staticHostMap["192.168.201.1"] = hostnames
 		}
+
+		staticHostMap["192.168.201.1"] = hostnames
 		
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
@@ -594,11 +474,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
 		
 		lighthouseMap["hosts"] = []string{}
-		// if !device.IsLighthouse {
-			if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
-			}
-		// }
+		lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {

@@ -3,6 +3,7 @@ import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
+import { decodeJwt, importSPKI, jwtVerify } from 'jose';
 import {
   Alert,
   Button,
@@ -51,6 +52,36 @@ const ConfigManagement = () => {
   const {role} = useClientInfos();
   const isAdmin = role === "2";
   const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(false);
+  const [licenseValidation, setLicenseValidation] = React.useState({ checked: false, valid: null });
+
+  // License issuer's public key for signature verification
+  const LICENSE_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8QolLbFdVfU3XPkC01NwsS94bv1W
+Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
+-----END PUBLIC KEY-----`;
+
+  // Function to validate and decode JWT using jose
+  const validateAndDecodeJWT = (token) => {
+    try {
+      const payload = decodeJwt(token);
+      return { error: null, data: payload };
+    } catch (error) {
+      console.error('Failed to decode JWT:', error);
+      return { error: 'parse', data: null };
+    }
+  };
+
+  // Function to verify JWT signature using jose
+  const verifyJWTSignature = async (token) => {
+    try {
+      const publicKey = await importSPKI(LICENSE_PUBLIC_KEY, 'ES256');
+      await jwtVerify(token, publicKey);
+      return true;
+    } catch (error) {
+      console.error('Failed to verify JWT signature:', error);
+      return false;
+    }
+  };
 
   function refresh() {
     API.config.get().then((res) => {
@@ -526,15 +557,87 @@ const ConfigManagement = () => {
                       formik.setFieldValue("ServerToken", "");
                     }}
                   />
-                  {formik.values.Licence && 
-                  <Grid item xs={12}>
-                    <Stack spacing={1}><Button 
-                      href='https://billing.stripe.com/p/login/28obMlc7X1jgeqY144'
-                      target="_blank"
-                      variant="outlined">{t('mgmt.config.general.licenceInput.manageLicenceButton')}</Button>
-                    </Stack>
-                  </Grid>
-                  }
+                  {(() => {
+                    const licenseResult = React.useMemo(() => {
+                      if (!formik.values.Licence) return null;
+                      return validateAndDecodeJWT(formik.values.Licence);
+                    }, [formik.values.Licence]);
+
+                    // Verify signature when license changes
+                    React.useEffect(() => {
+                      if (licenseResult && !licenseResult.error) {
+                        setLicenseValidation({ checked: false, valid: null });
+                        verifyJWTSignature(formik.values.Licence).then((isValid) => {
+                          setLicenseValidation({ checked: true, valid: isValid });
+                        });
+                      }
+                    }, [formik.values.Licence]);
+
+                    if (!licenseResult) return null;
+
+                    // Show parse error
+                    if (licenseResult.error === 'parse') {
+                      return (
+                        <Grid item xs={12}>
+                          <Alert severity="error">
+                            {t('mgmt.config.general.licenceInput.licenseInvalid')}
+                          </Alert>
+                        </Grid>
+                      );
+                    }
+
+                    // Show signature error
+                    if (licenseValidation.checked && !licenseValidation.valid) {
+                      return (
+                        <Grid item xs={12}>
+                          <Alert severity="error">
+                            {t('mgmt.config.general.licenceInput.licenseSignatureInvalid')}
+                          </Alert>
+                        </Grid>
+                      );
+                    }
+
+                    const licenseData = licenseResult.data;
+                    const isExpired = licenseData.lifetime === false &&
+                      licenseData.expiresAt &&
+                      new Date(licenseData.expiresAt * 1000) < new Date();
+
+                    return (
+                      <>
+                        {licenseData.email && (
+                          <Grid item xs={12}>
+                            <Alert severity="info">
+                              {t('mgmt.config.general.licenceInput.licenseEmail', { email: licenseData.email })} <br/>
+                              {t('mgmt.config.general.licenceInput.licenseType', { type: licenseData.subscriptionType })}
+                            </Alert>
+                          </Grid>
+                        )}
+
+                        {licenseData.lifetime === false && isExpired && (
+                          <Grid item xs={12}>
+                            <Alert severity="warning" icon={<WarningFilled />}>
+                              {t('mgmt.config.general.licenceInput.licenseExpired', {
+                                date: new Date(licenseData.expiresAt * 1000).toLocaleDateString()
+                              })}
+                            </Alert>
+                          </Grid>
+                        )}
+
+                        {licenseData.lifetime === false && (
+                          <Grid item xs={12}>
+                            <Stack spacing={1}>
+                              <Button
+                                href='https://billing.stripe.com/p/login/28obMlc7X1jgeqY144'
+                                target="_blank"
+                                variant="outlined">
+                                {t('mgmt.config.general.licenceInput.manageLicenceButton')}
+                              </Button>
+                            </Stack>
+                          </Grid>
+                        )}
+                      </>
+                    );
+                  })()}
                 </Grid>
               </MainCard>
               

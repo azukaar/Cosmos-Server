@@ -55,6 +55,14 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
 		APIKey := utils.GenerateRandomString(32)
+
+		// name cannot be "cosmos"
+		if deviceName == "cosmos" {
+			utils.Error("DeviceCreation: Device name cannot be 'cosmos'", nil)
+			utils.HTTPError(w, "Device Creation Error: Device name cannot be 'cosmos'",
+				http.StatusBadRequest, "DC008")
+			return
+		}
 		
 		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 			return
@@ -63,7 +71,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-    defer closeDb()
+        defer closeDb()
 		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)

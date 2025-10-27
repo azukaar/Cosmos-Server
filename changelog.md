@@ -2,6 +2,7 @@
  - Constellation allows nodes to see and ping each others
  - Constellation now has a firewall!
  - Constellation now has exit nodes
+ - Constellation now automatically resolve the mesh before connecting
  - Improve docker image cleanup efficiency
  - Improve support for container network modes in import/export
  - Fixed the annoying "user unauthenticated" error when opening the homepage after the admin token expired
@@ -9,6 +10,7 @@
  - Updating network mode now also updates the network-mode label
  - Default storage path is now /cosmos-storage instead of /usr
  - Fixed bug where you cant delete the same device twice from Constellation
+ - New licence field in the UI, more comprehensible
 
 ## Version 0.18.4
  - Fix issue with DB credentials dissapearing
