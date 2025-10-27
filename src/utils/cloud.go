@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 	"github.com/golang-jwt/jwt"
-	
+
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -133,6 +134,17 @@ func NewFirebaseApiSdk(baseURL string) *FirebaseApiSdk {
 }
 
 func (sdk *FirebaseApiSdk) CreateClientLicense(clientID string) (string, error) {
+	// Check if token is expired or expiring within 1 day
+	if isTokenExpiringWithin(sdk.ServerToken, 24*time.Hour) {
+		Log("[Cloud] Server token is expired or expiring soon, renewing...")
+		InitFBL()
+		if FBL != nil {
+			sdk.ServerToken = FBL.ServerToken
+			sdk.LValid = FBL.LValid
+			sdk.UserNumber = FBL.UserNumber
+		}
+	}
+
 	payload := map[string]string{
 		"serverToken":	sdk.ServerToken,
 		"clientId":    clientID,
@@ -246,4 +258,31 @@ func GetNumberUsers() int {
 	} else {
 		return 5
 	}
+}
+
+func isTokenExpiringWithin(token string, duration time.Duration) bool {
+	if token == "" {
+		return true
+	}
+
+	parsedToken, _, err := new(jwt.Parser).ParseUnverified(token, jwt.MapClaims{})
+	if err != nil {
+		Error("[Cloud] Could not parse token for expiration check", err)
+		return true
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		Error("[Cloud] Could not parse token claims for expiration check", nil)
+		return true
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		Log("[Cloud] Token does not have expiration claim, assuming expired")
+		return true
+	}
+
+	expirationTime := time.Unix(int64(exp), 0)
+	return time.Now().Add(duration).After(expirationTime)
 }

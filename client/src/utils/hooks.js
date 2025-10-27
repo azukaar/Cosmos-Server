@@ -29,8 +29,6 @@ function useClientInfos() {
       role: clientInfos[2]
     };
 
-    console.log("CACA Client infos:", res);
-
     // If role is admin, check if the timeout has expired
 
     if(clientInfos.length > 3) {

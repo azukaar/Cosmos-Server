@@ -181,18 +181,25 @@ func ExportDocker() {
 		return
 	}
 
-	
+
 	// Convert the containers into your custom format
 	var services = make(map[string]ContainerCreateRequestContainer)
 
-	for _, container := range containers {	
+	for _, container := range containers {
 		service, err := ExportContainer(container.ID)
 		if err != nil {
 			utils.MajorError("ExportDocker - Cannot export container", err)
 			return
 		}
 
-		services[strings.TrimPrefix(service.Name, "/")] = service
+		// Skip database container in puppet mode
+		containerName := strings.TrimPrefix(service.Name, "/")
+		if config.Database.PuppetMode && containerName == config.Database.Hostname {
+			utils.Log("Skipping database container in puppet mode: " + containerName)
+			continue
+		}
+
+		services[containerName] = service
 	}
 
 	// List networks
