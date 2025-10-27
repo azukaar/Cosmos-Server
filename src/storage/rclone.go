@@ -388,7 +388,31 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 	}
 
 	if len(files) > 0 {
-		return fmt.Errorf("[RemoteStorage] mount point directory is not empty")
+		utils.Warn(fmt.Sprintf("[RemoteStorage] Mount point %s is not empty. Moving to backup location.", mountPoint))
+
+		// Find an available backup name
+		backupPath := mountPoint + ".old"
+		counter := 1
+		for {
+			if _, err := os.Stat(backupPath); os.IsNotExist(err) {
+				break
+			}
+			backupPath = fmt.Sprintf("%s.old%d", mountPoint, counter)
+			counter++
+		}
+
+		// Move the existing directory to backup
+		utils.Log(fmt.Sprintf("[RemoteStorage] Moving %s to %s", mountPoint, backupPath))
+		if err := os.Rename(mountPoint, backupPath); err != nil {
+			return fmt.Errorf("[RemoteStorage] error moving mount point to backup: %w", err)
+		}
+
+		// Recreate empty folder
+		if err := os.MkdirAll(mountPoint, 0755); err != nil {
+			return fmt.Errorf("[RemoteStorage] error recreating mount point directory: %w", err)
+		}
+
+		utils.Log(fmt.Sprintf("[RemoteStorage] Successfully backed up to %s and recreated mount point", backupPath))
 	}
 
 	chown := remoteStorage.Chown

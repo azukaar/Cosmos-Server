@@ -57,6 +57,11 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 			licenceNumber = utils.FBL.UserNumber
 		}
 
+		licenceNodeNumber := 1
+		if utils.FBL != nil && utils.FBL.LValid {
+			licenceNodeNumber = utils.FBL.CosmosNodeNumber
+		}
+
 		absoluteConfigPath := utils.CONFIGFOLDER
 		absoluteConfigPath, _ = filepath.Abs(utils.CONFIGFOLDER)
 
@@ -91,6 +96,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"MonitoringDisabled": utils.GetMainConfig().MonitoringDisabled,
 				"Licence": licenceValid,
 				"LicenceNumber": licenceNumber,
+				"LicenceNodeNumber": licenceNodeNumber,
 				"ConfigFolder": absoluteConfigPath,
 				"ConstellationSlaveIPWarning": utils.ConstellationSlaveIPWarning,
 			},

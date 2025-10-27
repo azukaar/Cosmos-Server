@@ -153,6 +153,7 @@ func GetDeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 				PublicKey: "",
 				IP: d.IP,
 				IsLighthouse: d.IsLighthouse,
+				IsCosmosNode: d.IsCosmosNode,
 				IsRelay: d.IsRelay,
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
@@ -225,6 +226,7 @@ func GetDeviceConfigForSync(nickname, deviceName string) ([]byte, error) {
 			PublicKey: "",
 			IP: d.IP,
 			IsLighthouse: d.IsLighthouse,
+			IsCosmosNode: d.IsCosmosNode,
 			IsRelay: d.IsRelay,
 			PublicHostname: d.PublicHostname,
 			Port: d.Port,
@@ -317,6 +319,7 @@ func GetDeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 				PublicKey: "",
 				IP: d.IP,
 				IsLighthouse: d.IsLighthouse,
+				IsCosmosNode: d.IsCosmosNode,
 				IsRelay: d.IsRelay,
 				PublicHostname: d.PublicHostname,
 				Port: d.Port,
@@ -461,7 +464,6 @@ func SlaveConfigSync(newConfig string) (bool, error) {
 
 	configMapNew["cstln_api_key"] = apiKey
 
-	
 	pkiMap, ok := configMapNew["pki"].(map[string]interface{})
 	if !ok {
 		pkiMap = make(map[string]interface{})
@@ -493,6 +495,12 @@ func SlaveConfigSync(newConfig string) (bool, error) {
 	}
 
 	config.ConstellationConfig.Tunnels = tunnels
+
+	// extract cstln_is_cosmos_node from config
+	isCosmosNode, ok := configMapNew["cstln_is_cosmos_node"].(bool)
+	if ok && isCosmosNode {
+		utils.SetIsCosmosNode(isCosmosNode)
+	}
 
 	// write the new config back to file
 

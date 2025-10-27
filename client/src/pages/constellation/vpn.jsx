@@ -5,7 +5,7 @@ import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
 import { ApiOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, Chip, CircularProgress, IconButton, Stack, Switch, Tooltip } from "@mui/material";
+import { Alert, Button, Chip, CircularProgress, IconButton, LinearProgress, Stack, Switch, Tooltip } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -366,6 +366,29 @@ export const ConstellationVPN = ({ freeVersion }) => {
         </div>
         {config.ConstellationConfig.Enabled && <>
           <CosmosFormDivider title={"Devices"} />
+
+          <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
+            <div>
+              <div>{t('mgmt.constellation.deviceSeatsUsed')}: {devices ? devices.filter(d => !d.blocked).length : 0} / {coStatus ? coStatus.LicenceNumber * 10 : 0}</div>
+              <LinearProgress
+                style={{width: '150px'}}
+                variant="determinate"
+                value={(coStatus && devices) ? (devices.filter(d => !d.blocked).length / (coStatus.LicenceNumber * 10)) * 100 : 0}
+                color={(coStatus && devices) ? (devices.filter(d => !d.blocked).length >= coStatus.LicenceNumber * 10 ? 'error' : 'primary') : 'primary'}
+              />
+            </div>
+
+            <div>
+              <div>{t('mgmt.constellation.cosmosNodeSeatsUsed')}: {devices ? devices.filter(d => !d.blocked && d.isCosmosNode).length : 0} / {coStatus ? coStatus.LicenceNodeNumber : 0}</div>
+              <LinearProgress
+                style={{width: '150px'}}
+                variant="determinate"
+                value={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length / coStatus.LicenceNodeNumber) * 100 : 0}
+                color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length >= coStatus.LicenceNodeNumber ? 'error' : 'primary') : 'primary'}
+              />
+            </div>
+          </Stack>
+
           <PrettyTableView
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
@@ -411,7 +434,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
               },
               {
                 title: t('mgmt.storage.typeTitle'),
-                field: (r) => <strong>{r.isLighthouse ? "Lighthouse" : "Client"}</strong>,
+                field: (r) => <strong>{r.isCosmosNode ? "Cosmos Node" : (r.isLighthouse ? "Lighthouse" : "Client")}</strong>,
               },
               {
                 title: '',
@@ -419,6 +442,11 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   if (!r.isLighthouse) return null;
                   return (
                     <Stack direction="row" spacing={1}>
+                      {r.isCosmosNode && (
+                        <Tooltip title="Cosmos Node">
+                          <CloudOutlined style={{ color: '#9c27b0' }} />
+                        </Tooltip>
+                      )}
                       {r.isRelay && (
                         <Tooltip title={t('mgmt.constellation.isRelay.label')}>
                           <ApiOutlined style={{ color: '#1976d2' }} />

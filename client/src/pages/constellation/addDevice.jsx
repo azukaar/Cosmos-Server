@@ -76,7 +76,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
           PublicHostname: '',
           IsRelay: true,
           IsExitNode: true,
-          isLighthouse: forceLighthouse,
+          deviceType: forceLighthouse ? 'lighthouse' : 'client',
           invisible: false,
         }}
 
@@ -84,9 +84,19 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
         })}
 
         onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
-          if(values.isLighthouse) values.nickname = null;
+          // Convert deviceType to boolean flags
+          const isLighthouse = values.deviceType === 'lighthouse' || values.deviceType === 'cosmos';
+          const isCosmosNode = values.deviceType === 'cosmos';
 
-          return API.constellation.addDevice(values).then(({data}) => {
+          if(isLighthouse) values.nickname = null;
+
+          const payload = {
+            ...values,
+            isLighthouse,
+            isCosmosNode,
+          };
+
+          return API.constellation.addDevice(payload).then(({data}) => {
             setIsDone(data);
             refreshConfig();
             renderCanvas(data.Config);
@@ -143,13 +153,18 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
                 {forceLighthouse && <Alert severity="warning">{t('mgmt.constellation.setup.createLighthouse')}</Alert>}
                 <div>
                   <Stack spacing={2} style={{}}>
-                  <CosmosCheckbox
-                    name="isLighthouse"
-                    label="Lighthouse"
+                  <CosmosSelect
+                    name="deviceType"
+                    label={t('mgmt.constellation.setup.deviceType.label')}
                     formik={formik}
                     disabled={forceLighthouse}
+                    options={[
+                      ['client', t('mgmt.constellation.setup.deviceType.client')],
+                      ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
+                      ['cosmos', t('mgmt.constellation.setup.deviceType.cosmos')],
+                    ]}
                   />
-                  {!formik.values.isLighthouse &&
+                  {formik.values.deviceType === 'client' &&
                     (isAdmin ? <CosmosSelect
                       name="nickname"
                       label={t('mgmt.constellation.setup.owner.label')}
@@ -190,7 +205,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
                       formik={formik}
                     /> */}
 
-                    {!formik.values.isLighthouse && <>   
+                    {formik.values.deviceType === 'client' && <>
                       <CosmosCheckbox
                         name="invisible"
                         label={t('mgmt.constellation.setup.invisible.label')}
@@ -198,7 +213,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
                       />
                     </>}
 
-                    {formik.values.isLighthouse && <>
+                    {(formik.values.deviceType === 'lighthouse' || formik.values.deviceType === 'cosmos') && <>
                       <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />
 
                       <CosmosInputText
