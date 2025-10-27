@@ -43,6 +43,7 @@ const ResyncDeviceModal = ({ nickname, deviceName, OnClose }) => {
   const getData = () => {
     return API.constellation.resyncDevice({nickname, deviceName}).then(({data}) => {
       renderCanvas(data);
+      console.log(data);
       setData(data);
     })
   }

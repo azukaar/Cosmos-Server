@@ -559,6 +559,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_api_key"] = APIKey
 	configMap["cstln_config_endpoint"] = configEndpoint
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
+	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
 
 	if getLicence {
 		// get client licence

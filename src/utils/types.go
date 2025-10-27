@@ -315,6 +315,7 @@ type ConstellationDevice struct {
 	PublicKey string `json:"publicKey" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
+	IsCosmosNode bool `json:"isCosmosNode" bson:"IsCosmosNode"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
 	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`
 	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`

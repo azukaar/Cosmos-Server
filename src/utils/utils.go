@@ -61,6 +61,17 @@ var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
 
+// late init of advanced features for cosmos slaves nodes
+var InitRemoteStorage func() bool
+var InitBackups func()
+
+func InitializeSlaveLicence() {
+	if FBL.LValid && FBL.IsCosmosNode {
+		ProxyRClone = InitRemoteStorage()
+		go InitBackups()
+	}
+}
+
 var ResyncConstellationNodes = func() {}
 
 var LetsEncryptErrors = []string{}

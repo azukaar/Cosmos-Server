@@ -19,6 +19,8 @@ type FirebaseApiSdk struct {
 	LValid bool
 	ServerToken string
 	UserNumber int
+	CosmosNodeNumber int
+	IsCosmosNode bool
 }
 
 var publicKeyPEM = []byte(`
@@ -27,6 +29,18 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8QolLbFdVfU3XPkC01NwsS94bv1W
 Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
 -----END PUBLIC KEY-----
 `)
+
+func SetIsCosmosNode(isCosmosNode bool) {
+	if FBL != nil {
+		FBL.IsCosmosNode = isCosmosNode
+		FBL.LValid = isCosmosNode || FBL.LValid
+
+		if isCosmosNode {
+			Log("[Cloud] This server is now a Cosmos Node, re-initializing licence based features.")
+			InitializeSlaveLicence()
+		}
+	}
+}
 
 func parseECPublicKeyFromPEM(publicKeyPEM []byte) (*ecdsa.PublicKey, error) {
 	block, _ := pem.Decode(publicKeyPEM)
@@ -53,6 +67,9 @@ func InitFBL() {
 	FBL = _InitFBL()
 	if FBL.UserNumber == 0 {
 		FBL.UserNumber = 5
+	}
+	if FBL.CosmosNodeNumber == 0 {
+		FBL.CosmosNodeNumber = 1
 	}
 }
 
@@ -103,7 +120,7 @@ func _InitFBL() *FirebaseApiSdk {
 
 				res.LValid = true
 				res.ServerToken = ServerToken
-				res.UserNumber = GetNumberUsersFromToken(ServerToken)
+				res.UserNumber, res.CosmosNodeNumber = GetNumberUsersFromToken(ServerToken)
 				return res
 			} else {
 				MajorError("[Cloud] Invalid license please check your original license email.", err)
@@ -119,12 +136,12 @@ func _InitFBL() *FirebaseApiSdk {
 
 		res.ServerToken = newToken
 		res.LValid = true
-		res.UserNumber = GetNumberUsersFromToken(newToken)
+		res.UserNumber, res.CosmosNodeNumber = GetNumberUsersFromToken(newToken)
 		return res
 	} else {
 		res.ServerToken = ServerToken
 		res.LValid = true
-		res.UserNumber = GetNumberUsersFromToken(ServerToken)
+		res.UserNumber,res.CosmosNodeNumber = GetNumberUsersFromToken(ServerToken)
 		return res
 	}
 }
@@ -142,6 +159,7 @@ func (sdk *FirebaseApiSdk) CreateClientLicense(clientID string) (string, error) 
 			sdk.ServerToken = FBL.ServerToken
 			sdk.LValid = FBL.LValid
 			sdk.UserNumber = FBL.UserNumber
+			sdk.CosmosNodeNumber = FBL.CosmosNodeNumber
 		}
 	}
 
@@ -219,36 +237,47 @@ func (sdk *FirebaseApiSdk) RenewLicense(oldToken string) (string, int, error) {
 	return result.Token, 0, nil
 }
 
-func GetNumberUsersFromToken(serverToken string) int {
+func GetNumberUsersFromToken(serverToken string) (int, int) {
 	Debug("[Cloud] GetNumberUsersFromToken")
 
 	// decode the token
 	token, _, err := new(jwt.Parser).ParseUnverified(serverToken, jwt.MapClaims{})
 	if err != nil {
 		Error("[Cloud] Could not parse server token", err)
-		return 5
+		return 5, 1
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		Error("[Cloud] Could not parse server token", err)
-		return 5
+		return 5, 1
 	}
 
+	nbUser := 20
+	nbNodes := 1
+	
 	// get the number of users
 	userNumber, ok := claims["nbUsers"].(float64)
 	if !ok {
-		Log("[Cloud] Could not get number of users from token, defaulting to 9")
-		return 9
+		Log("[Cloud] Could not get number of users from token, defaulting to 20")
+	} else {
+		nbUser = int(userNumber)
+	}
+
+	cosmosNodeNumber, ok := claims["nbCosmosNodes"].(float64)
+	if !ok {
+		Log("[Cloud] Could not get number of cosmos nodes from token, defaulting to 1")
+	} else {
+		nbNodes = int(cosmosNodeNumber)
 	}
 
 	Log("[Cloud] Number of users: " + fmt.Sprintf("%d", int(userNumber)))
 
-	if int(userNumber) < 19 {
-		return 19
+	if int(nbUser) < 20 {
+		nbUser = 20
 	}
 
-	return int(userNumber)
+	return int(nbUser), nbNodes
 }
 
 
@@ -257,6 +286,14 @@ func GetNumberUsers() int {
 		return FBL.UserNumber
 	} else {
 		return 5
+	}
+}
+
+func GetNumberCosmosNode() int {
+	if FBL.LValid {
+		return FBL.CosmosNodeNumber
+	} else {
+		return 1
 	}
 }
 

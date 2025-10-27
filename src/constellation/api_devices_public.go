@@ -15,6 +15,7 @@ type PublicDeviceInfo struct {
 	User       string `json:"user"`
 	IP         string `json:"ip"`
 	IsLighthouse bool `json:"isLighthouse"`
+	IsCosmosNode bool `json:"isCosmosNode"`
 	IsRelay bool `json:"isRelay"`
 	IsExitNode bool `json:"isExitNode"`
 	PublicHostname string `json:"publicHostname"`
@@ -77,6 +78,7 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		Nickname:   "cosmos",
 		IP:         "192.168.201.1",
 		IsLighthouse: true,
+		IsCosmosNode: true,
 		IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
 		IsExitNode: config.ConstellationConfig.IsExitNode,
 		PublicHostname: config.ConstellationConfig.ConstellationHostname,
@@ -93,6 +95,7 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 			User:       device.Nickname,
 			IP:         cleanIp(device.IP),
 			IsLighthouse: device.IsLighthouse,
+			IsCosmosNode: device.IsCosmosNode,
 			IsRelay: device.IsRelay,
 			IsExitNode: device.IsExitNode,
 			PublicHostname: device.PublicHostname,
