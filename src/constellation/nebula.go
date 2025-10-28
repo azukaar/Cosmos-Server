@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"io"
+	"time"
 	"syscall"
 
 	"github.com/natefinch/lumberjack"
@@ -560,6 +561,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_config_endpoint"] = configEndpoint
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
+	configMap["cstln_is_exit_node"] = device.IsExitNode
 
 	if getLicence {
 		// get client licence
@@ -1093,5 +1095,39 @@ func populateIPTableMasquerade() {
 		} else {
 			utils.Log("Constellation: FORWARD rules removed")
 		}
+	}
+}
+
+func InitPingLighthouses() {
+	for {
+		PingLighthouses()
+		time.Sleep(1 * time.Minute)
+	}
+}
+
+func PingLighthouses() {
+	lighthouses, err := GetAllLightHouses()
+	if err != nil {
+		utils.Error("Constellation: Failed to get lighthouses for pinging", err)
+		return
+	}
+
+	for _, lh := range lighthouses {
+		go pingLighthouse(lh, 0)
+	}
+}
+
+func pingLighthouse(lh utils.ConstellationDevice, retries int) {
+	cmd := exec.Command("ping", "-c", "1", "-W", "2", cleanIp(lh.IP))
+	err := cmd.Run()
+	if err != nil {
+		if retries < 5 {
+			time.Sleep(10 * time.Second)
+			pingLighthouse(lh, retries+1)
+		} else {
+			utils.Warn("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is unreachable after 10 retries")
+		}
+	} else {
+		utils.Debug("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is reachable")
 	}
 }

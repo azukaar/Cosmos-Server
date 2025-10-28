@@ -219,6 +219,8 @@ func Init() {
 			go InitDNS()
 			go StartNATS()
 		}
+		
+		go InitPingLighthouses()
 
 		utils.Log("Constellation module initialized")
 	}

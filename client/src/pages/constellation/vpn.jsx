@@ -367,7 +367,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
         {config.ConstellationConfig.Enabled && <>
           <CosmosFormDivider title={"Devices"} />
 
-          <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
+          {!config.ConstellationConfig.SlaveMode && <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
             <div>
               <div>{t('mgmt.constellation.deviceSeatsUsed')}: {devices ? devices.filter(d => !d.blocked).length : 0} / {coStatus ? coStatus.LicenceNumber * 10 : 0}</div>
               <LinearProgress
@@ -387,7 +387,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length >= coStatus.LicenceNodeNumber ? 'error' : 'primary') : 'primary'}
               />
             </div>
-          </Stack>
+          </Stack>}
 
           <PrettyTableView
             data={devices.filter((d) => !d.blocked)}

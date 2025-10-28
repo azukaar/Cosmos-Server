@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="511.966" height="511.966" viewBox="0 0 1358 1358">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: none;
+        stroke: #000;
+        stroke-width: 88.62px;
+        fill-rule: evenodd;
+      }
+    </style>
+  </defs>
+  <path id="Line_1" data-name="Line 1" class="cls-1" d="M242,646.991S243.488,104.31,687.668,107.01C1121.97,109.649,1118,636.167,1118,636.167"/>
+  <circle cx="678.5" cy="854.5" r="100.5"/>
+  <path id="Line_2" data-name="Line 2" class="cls-1" d="M679,1094V791.01"/>
+  <path class="cls-1" d="M1027,1240l-745,2c-156.556-2.19-286.792-356.993,30-443,112.811-442.592,613.112-292.953,653-50C1363.88,690.981,1304.07,1241.9,1027,1240Z"/>
+</svg>

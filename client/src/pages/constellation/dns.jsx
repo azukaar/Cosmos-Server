@@ -31,6 +31,12 @@ export const ConstellationDNS = () => {
     refreshConfig();
   }, []);
 
+  if(config && config.ConstellationConfig.SlaveMode) {
+    return <>
+      <Alert severity="info" style={{marginBottom: "20px"}}>{t('mgmt.constellation.dns.slaveModeInfo')}</Alert>
+    </>
+  }
+
   return <>
     {(config) ? <>
       <Stack spacing={2} style={{maxWidth: "1000px"}}>
