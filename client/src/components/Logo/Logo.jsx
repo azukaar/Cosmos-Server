@@ -5,6 +5,8 @@ import { fontWeight } from '@mui/system';
 import logo from '../../assets/images/icons/cosmos_simple_black.png';
 import logoDark from '../../assets/images/icons/cosmos_simple_white.png';
 
+import logoSvg from '../../assets/images/icons/logo.svg';
+
 // ==============================|| LOGO SVG ||============================== //
 
 const Logo = () => {
@@ -19,7 +21,16 @@ const Logo = () => {
          *
          */
         <>
-            <img src={isLight ? logo : logoDark} alt="Cosmos" width="40" />
+            <img
+                src={logoSvg}
+                alt="Cosmos"
+                width="40"
+                style={{
+                filter: !isLight
+                    ? "brightness(0) invert(1)" // white
+                    : "brightness(0)" // black
+                }}
+            />
             <span style={{fontWeight: 'bold', fontSize: '160%', paddingLeft:'10px'}}> Cosmos Cloud</span>
         </>
     );

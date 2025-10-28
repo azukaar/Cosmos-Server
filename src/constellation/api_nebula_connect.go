@@ -55,6 +55,15 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 
 		// output utils.CONFIGFOLDER + "nebula.yml"
 		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configMapString, 0644)
+
+		// read values into main config
+		if exitNodeVal, ok := configMap["cstln_is_exit_node"]; ok {
+			if exitNodeStr, ok := exitNodeVal.(string); ok {
+				config.ConstellationConfig.IsExitNode = (exitNodeStr == "true")
+			} else if exitNodeBool, ok := exitNodeVal.(bool); ok {
+				config.ConstellationConfig.IsExitNode = exitNodeBool
+			}
+		}
 		
 		utils.SetBaseMainConfig(config)
 		
