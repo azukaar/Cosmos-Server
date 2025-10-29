@@ -377,7 +377,8 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 
-	finalConfig.Lighthouse.AMLighthouse = true
+	// TODO: This should be true but it breaks everything with the client manipulating lighthouses
+	finalConfig.Lighthouse.AMLighthouse = false
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 

@@ -65,8 +65,11 @@ var StopAllRCloneProcess func(bool)
 var InitRemoteStorage func() bool
 var InitBackups func()
 
+var slaveInitialized = false
+
 func InitializeSlaveLicence() {
-	if FBL.LValid && FBL.IsCosmosNode {
+	if !slaveInitialized && FBL.LValid && FBL.IsCosmosNode {
+		slaveInitialized = true
 		ProxyRClone = InitRemoteStorage()
 		go InitBackups()
 	}
