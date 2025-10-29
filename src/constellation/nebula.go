@@ -377,8 +377,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 
-	// TODO: This should be true but it breaks everything with the client manipulating lighthouses
-	finalConfig.Lighthouse.AMLighthouse = false
+	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 
@@ -445,18 +444,20 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		hostnames := []string{}
-		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-		for _, hostname := range hsraw {
-			// trim
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				hostnames = append(hostnames, hostname + ":4242")
+		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
+			hostnames := []string{}
+			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+			for _, hostname := range hsraw {
+				// trim
+				hostname = strings.TrimSpace(hostname)
+				if hostname != "" {
+					hostnames = append(hostnames, hostname + ":4242")
+				}
 			}
+
+			staticHostMap["192.168.201.1"] = hostnames
 		}
 
-		staticHostMap["192.168.201.1"] = hostnames
-		
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
 				// l.PublicHostname + ":" + l.Port,
@@ -474,9 +475,11 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	// set lightHouse
 	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
-		
+
 		lighthouseMap["hosts"] = []string{}
-		lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
+		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
+			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
+		}
 
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {
