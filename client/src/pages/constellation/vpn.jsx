@@ -398,9 +398,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
             buttons={[
-              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} forceLighthouse={
-                config && config.ConstellationConfig.PrivateNode && !(devices.filter(d=>d.isLighthouse && !d.blocked).length)
-              } />),
+              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} forceLighthouse={false} />),
               <Button
                 disableElevation
                 variant="outlined"
