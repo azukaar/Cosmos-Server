@@ -20,7 +20,7 @@ import { useClientInfos } from '../../utils/hooks';
 import { useTranslation } from 'react-i18next';
 import { json } from 'react-router';
 
-const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse }) => {
+const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
@@ -76,7 +76,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
           PublicHostname: '',
           IsRelay: true,
           IsExitNode: true,
-          deviceType: forceLighthouse ? 'lighthouse' : 'client',
+          deviceType: 'client',
           invisible: false,
         }}
 
@@ -150,14 +150,12 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, forceLighthouse
             </DialogContent> : <DialogContent>
               <DialogContentText>
                 <p>{t('mgmt.constellation.setup.addDeviceText')}</p>
-                {forceLighthouse && <Alert severity="warning">{t('mgmt.constellation.setup.createLighthouse')}</Alert>}
                 <div>
                   <Stack spacing={2} style={{}}>
                   <CosmosSelect
                     name="deviceType"
                     label={t('mgmt.constellation.setup.deviceType.label')}
                     formik={formik}
-                    disabled={forceLighthouse}
                     options={[
                       ['client', t('mgmt.constellation.setup.deviceType.client')],
                       ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
