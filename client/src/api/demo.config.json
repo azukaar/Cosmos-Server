@@ -463,7 +463,6 @@
 		"ConstellationConfig": {
 			"Enabled": true,
 			"SlaveMode": false,
-			"PrivateNode": false,
 			"DNSDisabled": false,
 			"DNSPort": "",
 			"DNSFallback": "8.8.8.8:53",

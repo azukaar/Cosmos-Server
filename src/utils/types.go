@@ -291,7 +291,6 @@ type ConstellationConfig struct {
 	Enabled bool
 	SlaveMode bool
 	DoNotSyncNodes bool
-	PrivateNode bool
 	DNSDisabled bool
 	DNSPort string
 	DNSFallback string

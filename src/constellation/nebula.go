@@ -377,7 +377,6 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
 
-	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 
@@ -386,6 +385,9 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
 		}
 	// }
+
+	// if no lighthouses, be one
+	finalConfig.Lighthouse.AMLighthouse = len(finalConfig.Lighthouse.Hosts) == 0
 
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
 
@@ -444,19 +446,17 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			hostnames := []string{}
-			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-			for _, hostname := range hsraw {
-				// trim
-				hostname = strings.TrimSpace(hostname)
-				if hostname != "" {
-					hostnames = append(hostnames, hostname + ":4242")
-				}
+		hostnames := []string{}
+		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		for _, hostname := range hsraw {
+			// trim
+			hostname = strings.TrimSpace(hostname)
+			if hostname != "" {
+				hostnames = append(hostnames, hostname + ":4242")
 			}
-
-			staticHostMap["192.168.201.1"] = hostnames
 		}
+
+		staticHostMap["192.168.201.1"] = hostnames
 
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
@@ -477,14 +477,16 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
 
 		lighthouseMap["hosts"] = []string{}
-		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
-		}
 
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))
 			}
+		}
+
+		// if no lighthouse, be one
+		if len(lighthouseMap["hosts"].([]string)) == 0 {
+			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
