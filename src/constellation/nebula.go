@@ -71,7 +71,7 @@ func startNebulaInBackground() error {
 
 	UpdateFirewallBlockedClients()
 	AdjustDNS(logBuffer)
-	ValidateStaticHosts(logBuffer)
+	//ValidateStaticHosts(logBuffer)
 
 	NebulaFailedStarting = false
 	if process != nil {
@@ -485,7 +485,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		}
 
 		// if no lighthouse, be one
-		if len(lighthouseMap["hosts"].([]string)) == 0 {
+		if len(lighthouseMap["hosts"].([]string)) == 0 && !device.IsLighthouse {
 			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
 	} else {
