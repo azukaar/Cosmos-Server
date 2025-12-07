@@ -173,6 +173,8 @@ type HTTPConfig struct {
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
 	DNSChallengeProvider string
+	DisablePropagationChecks bool
+	DNSChallengePropagationWait int
 	ForceHTTPSCertificateRenewal bool
 	HTTPPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	HTTPSPort string `validate:"required,containsany=0123456789,min=1,max=6"`
