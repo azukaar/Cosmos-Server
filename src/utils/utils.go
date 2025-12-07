@@ -89,6 +89,8 @@ var DefaultConfig = Config{
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},
+		DisablePropagationChecks:    false,
+		DNSChallengePropagationWait: 30,
 	},
 	DockerConfig: DockerConfig{
 		DefaultDataPath: "/cosmos-storage",
