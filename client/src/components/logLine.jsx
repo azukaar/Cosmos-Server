@@ -1,5 +1,5 @@
 import { Stack } from '@mui/material';
-import React from 'react';
+import DOMPurify from 'dompurify';
 
 function decodeUnicode(str) {
   return str.replace(/\\u([0-9a-fA-F]{4})/g, (match, p1) => {
@@ -46,7 +46,7 @@ const LogLine = ({ message, docker, isMobile }) => {
   if (docker) {
     let parts = html.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/);
     if (!parts) {
-      return <div dangerouslySetInnerHTML={{ __html: html }} />;
+      return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
     }
     let restString = html.replace(parts[0], '');
    
@@ -55,12 +55,12 @@ const LogLine = ({ message, docker, isMobile }) => {
         <div style={{color:'#AAAAFF', fontStyle:'italic', whiteSpace: 'pre', background: '#393f48', padding: '0 0.5em', marginRight: '5px'}}>
           {parts[0].replace('T', ' ').split('.')[0]}
         </div>
-        <div dangerouslySetInnerHTML={{ __html: restString }} />
+        <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(restString) }} />
       </Stack>
     );
   }
    
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
 };
 
 const getColor = (code) => {

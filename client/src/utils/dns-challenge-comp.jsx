@@ -1,5 +1,6 @@
 import dnsList from './dns-list.json';
 import dnsConfig from './dns-config.json';
+import DOMPurify from 'dompurify';
 
   import * as React from 'react';
   import {
@@ -65,7 +66,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
             Doc link: <a href={dnsConfig[formik.values[name]].url} rel="noopener noreferrer" target="_blank">{dnsConfig[formik.values[name]].url}</a>
           </Alert>
           <div className="raw-table">
-            <div dangerouslySetInnerHTML={{__html: dnsConfig[formik.values[name]].docs}}></div>
+            <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(dnsConfig[formik.values[name]].docs)}}></div>
           </div>
           {dnsConfig[formik.values[name]].vars.map((dnsVar) => <div>
             {dnsVar}:

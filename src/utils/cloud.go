@@ -151,8 +151,8 @@ func NewFirebaseApiSdk(baseURL string) *FirebaseApiSdk {
 }
 
 func (sdk *FirebaseApiSdk) CreateClientLicense(clientID string) (string, error) {
-	// Check if token is expired or expiring within 1 day
-	if isTokenExpiringWithin(sdk.ServerToken, 24*time.Hour) {
+	// Check if token is expired or expiring within 45 days
+	if isTokenExpiringWithin(sdk.ServerToken, 45*24*time.Hour) {
 		Log("[Cloud] Server token is expired or expiring soon, renewing...")
 		InitFBL()
 		if FBL != nil {
