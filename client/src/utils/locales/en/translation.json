@@ -229,8 +229,6 @@
 	"mgmt.config.security.encryption.sslLetsEncryptDnsSelection.sslLetsEncryptDnsLabel": "Pick a DNS provider (if you are using a DNS Challenge, otherwise leave empty)",
 	"mgmt.config.security.encryption.sslLetsEncryptEmailInput.sslLetsEncryptEmailLabel": "Email address for Let's Encrypt",
 	"mgmt.config.security.encryption.wildcardCheckbox.wildcardLabel": "Use Wildcard Certificate for the root domain of ",
-	"mgmt.config.security.encryption.dnsChallengeCheckbox.disablePropagationChecksLabel": "Disables all the propagation checks of the TXT record and uses a wait duration instead (useful if your ISP is redirecting your dns requests",
-	"mgmt.config.security.encryption.dnsChallengeCheckbox.waitDurationLabel": "Wait duration in seconds (Default: 30)",
 	"mgmt.config.security.encryptionTitle": "Encryption",
 	"mgmt.config.security.geoBlockSelection": "Choose which countries you want to {{blockAllow}}",
 	"mgmt.config.security.geoBlockSelection.geoBlockLabel": "Geo-Blocking: (Those countries will be {{blockAllow}})",
