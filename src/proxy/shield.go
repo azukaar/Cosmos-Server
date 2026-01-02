@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
@@ -296,14 +297,19 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
-	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
-	isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
-	isConstIP := utils.IsConstellationIP(remoteAddr)
-	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
+	useForwardedForHeader := false
+	if r.Header.Get("x-forwarded-for") != "" {
+		useForwardedForHeader = utils.IsTrustedProxy(remoteAddr)
+		if !useForwardedForHeader {
+			isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
+			isConstIP := utils.IsConstellationIP(remoteAddr)
+			isConstTokenValid := constellation.CheckConstellationToken(r) == nil
+			useForwardedForHeader = isTunneledIp && isConstIP && isConstTokenValid
+		}
+	}
 
-	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
-		 (isTunneledIp && isConstIP && isConstTokenValid) {
-		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
+	if useForwardedForHeader {
+		ip, _ := utils.SplitIP(strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]))
 		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip
 	} else {

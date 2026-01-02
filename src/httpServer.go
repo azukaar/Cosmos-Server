@@ -453,6 +453,8 @@ func InitServer() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true)
 	
+	router.Use(utils.ClientRealIP)
+	
 	router.Use(utils.BlockBannedIPs)
 
 	router.Use(utils.Logger)
