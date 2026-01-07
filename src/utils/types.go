@@ -111,6 +111,8 @@ type Config struct {
 	RemoteStorage RemoteStorageConfig
 	DisableOpenIDDirect bool
 	Backup BackupConfig
+	Mpdu_ string
+	Mpdn_ string
 }
 
 
@@ -287,16 +289,18 @@ type ConstellationConfig struct {
 	Enabled bool
 	SlaveMode bool
 	DoNotSyncNodes bool
-	PrivateNode bool
 	DNSDisabled bool
 	DNSPort string
 	DNSFallback string
+	IsExitNode bool
 	DNSBlockBlacklist bool
 	DNSAdditionalBlocklists []string
 	CustomDNSEntries []ConstellationDNSEntry
 	NebulaConfig NebulaConfig
 	ConstellationHostname string
 	Tunnels []ProxyRouteConfig
+	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
+	OverrideNebulaExitNodeInterface string
 }
 
 type ConstellationDNSEntry struct {
@@ -311,12 +315,15 @@ type ConstellationDevice struct {
 	PublicKey string `json:"publicKey" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
+	IsCosmosNode bool `json:"isCosmosNode" bson:"IsCosmosNode"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
+	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`
 	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`
 	Port string `json:"port" bson:"Port"`
 	Blocked bool `json:"blocked" bson:"Blocked"`
 	Fingerprint string `json:"fingerprint" 	bson:"Fingerprint"`
 	APIKey string `json:"-" bson:"APIKey"`
+	Invisible bool `json:"invisible" bson:"Invisible"`
 }
 
 type NebulaFirewallRule struct {

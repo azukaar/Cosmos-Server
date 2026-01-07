@@ -28,7 +28,7 @@ func InitConfig() {
 			Hosts        []string `yaml:"hosts"`
 		}{
 			AMLighthouse: true,
-			Interval:     60,
+			Interval:     10,
 			Hosts:        []string{},
 		},
 		Listen: struct {

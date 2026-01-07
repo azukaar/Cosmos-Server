@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"encoding/json"
 	"io"
+	"time"
 	"syscall"
 
 	"github.com/natefinch/lumberjack"
@@ -41,6 +42,37 @@ func startNebulaInBackground() error {
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 
+	// copy nebula.yml to nebula-temp.yml
+    source, err := os.Open(utils.CONFIGFOLDER + "nebula.yml")
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+    defer source.Close()
+
+    destination, err := os.Create(utils.CONFIGFOLDER + "nebula-temp.yml")
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+    defer destination.Close()
+
+    _, err = io.Copy(destination, source)
+    if err != nil {
+        utils.MajorError("Starting Nebula", err)
+    }
+
+	// Initialize log buffer
+	logBuffer = &lumberjack.Logger{
+			Filename:   utils.CONFIGFOLDER + "nebula.log",
+			MaxSize:    1, // megabytes
+			MaxBackups: 1,
+			MaxAge:     15, //days
+			Compress:   false,
+	}
+
+	UpdateFirewallBlockedClients()
+	AdjustDNS(logBuffer)
+	//ValidateStaticHosts(logBuffer)
+
 	NebulaFailedStarting = false
 	if process != nil {
 			return errors.New("nebula is already running")
@@ -55,17 +87,8 @@ func startNebulaInBackground() error {
 			}
 	}
 
-	// Initialize log buffer
-	logBuffer = &lumberjack.Logger{
-			Filename:   utils.CONFIGFOLDER + "nebula.log",
-			MaxSize:    1, // megabytes
-			MaxBackups: 1,
-			MaxAge:     15, //days
-			Compress:   false,
-	}
-
 	// Create and configure the process
-	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula.yml")
+	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula-temp.yml")
 	
 	// Setup stdout and stderr pipes
 	stdout, err := process.StdoutPipe()
@@ -249,6 +272,7 @@ func ResetNebula() error {
 	config.ConstellationConfig.Enabled = false
 	config.ConstellationConfig.SlaveMode = false
 	config.ConstellationConfig.DNSDisabled = false
+	config.ConstellationConfig.FirewallBlockedClients = []string{}
 
 	utils.SetBaseMainConfig(config)
 
@@ -310,22 +334,18 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// Combine defaultConfig and overwriteConfig
 	finalConfig := NebulaDefaultConfig
 
-	if !overwriteConfig.PrivateNode {
-		hostnames := []string{}
-		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-		for _, hostname := range hsraw {
-			// trim
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				hostnames = append(hostnames, hostname + ":4242")
-			}
+	hostnames := []string{}
+	hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+	for _, hostname := range hsraw {
+		// trim
+		hostname = strings.TrimSpace(hostname)
+		if hostname != "" {
+			hostnames = append(hostnames, hostname + ":4242")
 		}
+	}
 
-		finalConfig.StaticHostMap = map[string][]string{
-			"192.168.201.1": hostnames,
-		}
-	} else {
-		finalConfig.StaticHostMap = map[string][]string{}
+	finalConfig.StaticHostMap = map[string][]string{
+		"192.168.201.1": hostnames,
 	}
 
 	// for each lighthouse
@@ -356,8 +376,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	for _, d := range blockedDevices {
 		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
 	}
-	
-	finalConfig.Lighthouse.AMLighthouse = !overwriteConfig.PrivateNode
+
 
 	finalConfig.Lighthouse.Hosts = []string{}
 	// add other lighthouses 
@@ -366,6 +385,9 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
 		}
 	// }
+
+	// if no lighthouses, be one
+	finalConfig.Lighthouse.AMLighthouse = len(finalConfig.Lighthouse.Hosts) == 0
 
 	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
 
@@ -424,24 +446,18 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-			// staticHostMap["192.168.201.1"] = []string{
-			// 	utils.GetMainConfig().ConstellationConfig.ConstellationHostname + ":4242",
-			// }
-
-			hostnames := []string{}
-			hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-			for _, hostname := range hsraw {
-				// trim
-				hostname = strings.TrimSpace(hostname)
-				if hostname != "" {
-					hostnames = append(hostnames, hostname + ":4242")
-				}
+		hostnames := []string{}
+		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		for _, hostname := range hsraw {
+			// trim
+			hostname = strings.TrimSpace(hostname)
+			if hostname != "" {
+				hostnames = append(hostnames, hostname + ":4242")
 			}
-
-			staticHostMap["192.168.201.1"] = hostnames
 		}
-		
+
+		staticHostMap["192.168.201.1"] = hostnames
+
 		for _, l := range lh {
 			staticHostMap[cleanIp(l.IP)] = []string{
 				// l.PublicHostname + ":" + l.Port,
@@ -459,18 +475,18 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	// set lightHouse
 	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
 		lighthouseMap["am_lighthouse"] = device.IsLighthouse
-		
+
 		lighthouseMap["hosts"] = []string{}
-		// if !device.IsLighthouse {
-			if !utils.GetMainConfig().ConstellationConfig.PrivateNode {
-				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
-			}
-		// }
 
 		for _, l := range lh {
 			if cleanIp(l.IP) != cleanIp(device.IP) {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))
 			}
+		}
+
+		// if no lighthouse, be one
+		if len(lighthouseMap["hosts"].([]string)) == 0 && !device.IsLighthouse {
+			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
@@ -525,7 +541,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		configHost += "/"
 	}
 
-	configEndpoint := configHost + "cosmos/api/constellation/config-sync"
+	configEndpoint := configHost
 
 	configHostname := strings.Split(configHost, "://")[1]
 	configHostname = strings.Split(configHostname, ":")[0]
@@ -550,6 +566,8 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_api_key"] = APIKey
 	configMap["cstln_config_endpoint"] = configEndpoint
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
+	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
+	configMap["cstln_is_exit_node"] = device.IsExitNode
 
 	if getLicence {
 		// get client licence
@@ -772,6 +790,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"sign",
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
+			"-subnets", "0.0.0.0/0",
 			"-name", name,
 			"-ip", ip,
 		)
@@ -785,6 +804,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 			"sign",
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
+			"-subnets", "0.0.0.0/0",
 			"-name", name,
 			"-ip", ip,
 			"-in-pub", "./temp.key",
@@ -886,7 +906,13 @@ func generateNebulaCACert(name string) error {
 	}
 
 	// Run the nebula-cert command to generate CA certificate and key
-	cmd := exec.Command(binaryToRun()+"-cert", "ca", "-name", "\""+name+"\"")
+	cmd := exec.Command(
+		binaryToRun()+"-cert",
+		"ca",
+		"-name",
+		"-duration", "87600h", // 10 years
+		"\""+name+"\"",
+	)
 	utils.Debug(cmd.String())
 
 	// Get pipes for stdout and stderr
@@ -973,4 +999,141 @@ func generateNebulaCACert(name string) error {
 
 func GetDeviceIp(device string) string {
 	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
+}
+
+func populateIPTableMasquerade() {
+	config := utils.GetMainConfig()
+
+	if config.ConstellationConfig.IsExitNode {
+		utils.Log("Constellation: Exit node enabled, configuring iptables masquerade...")
+
+		// Enable IP forwarding
+		cmd := exec.Command("sysctl", "-w", "net.ipv4.ip_forward=1")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Failed to enable IP forwarding", err)
+			// Continue anyway
+		} else {
+			utils.Log("Constellation: IP forwarding enabled")
+		}
+
+		// Detect network interface
+		var iface string
+		if config.ConstellationConfig.OverrideNebulaExitNodeInterface != "" {
+			iface = config.ConstellationConfig.OverrideNebulaExitNodeInterface
+			utils.Log("Constellation: Using manual interface override: " + iface)
+		} else {
+			// Detect default interface using ip route
+			cmd := exec.Command("sh", "-c", "ip route get 1.1.1.1 | grep -oP 'dev \\K\\S+'")
+			output, err := cmd.Output()
+			if err != nil {
+				utils.Error("Constellation: Failed to detect network interface", err)
+				return
+			}
+			iface = strings.TrimSpace(string(output))
+			utils.Log("Constellation: Detected network interface: " + iface)
+		}
+
+		if iface == "" {
+			utils.Error("Constellation: No network interface detected", nil)
+			return
+		}
+
+		// Check if rules already exist
+		cmd = exec.Command("iptables-save")
+		output, err := cmd.Output()
+		if err != nil {
+			utils.Error("Constellation: Failed to check existing iptables rules", err)
+			// Continue anyway
+		} else if strings.Contains(string(output), "COSMOS-CLOUD-EXIT-NODE") {
+			utils.Log("Constellation: IPTables rules already exist, skipping")
+			return
+		}
+
+		// Add iptables rules with comment markers
+		// Using a unique comment for easy identification and removal
+		rules := []string{
+			fmt.Sprintf("iptables -t nat -A POSTROUTING -s 192.168.201.0/24 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
+			fmt.Sprintf("iptables -A FORWARD -i nebula1 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
+			fmt.Sprintf("iptables -A FORWARD -i %s -o nebula1 -m state --state RELATED,ESTABLISHED -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
+		}
+
+		for _, rule := range rules {
+			cmd := exec.Command("sh", "-c", rule)
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Failed to add iptables rule: "+rule, err)
+				// Continue anyway
+			}
+		}
+
+		utils.Log("Constellation: IPTables masquerade rules added")
+	} else {
+		// Remove rules with our comment marker
+		utils.Log("Constellation: Exit node disabled, removing iptables masquerade rules...")
+
+		// Get current rules
+		cmd := exec.Command("iptables-save")
+		output, err := cmd.Output()
+		if err != nil {
+			utils.Error("Constellation: Failed to get iptables rules", err)
+			return
+		}
+
+		rules := string(output)
+
+		// Check if our rules exist
+		if !strings.Contains(rules, "COSMOS-CLOUD-EXIT-NODE") {
+			utils.Log("Constellation: No masquerade rules found, nothing to remove")
+			return
+		}
+
+		// Remove rules with our comment marker from nat table
+		cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Error removing NAT rules", err)
+		} else {
+			utils.Log("Constellation: NAT rules removed")
+		}
+
+		// Remove rules with our comment marker from filter table
+		cmd = exec.Command("sh", "-c", "iptables-save | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables")
+		if err := cmd.Run(); err != nil {
+			utils.Error("Constellation: Error removing FORWARD rules", err)
+		} else {
+			utils.Log("Constellation: FORWARD rules removed")
+		}
+	}
+}
+
+func InitPingLighthouses() {
+	for {
+		PingLighthouses()
+		time.Sleep(1 * time.Minute)
+	}
+}
+
+func PingLighthouses() {
+	lighthouses, err := GetAllLightHouses()
+	if err != nil {
+		utils.Error("Constellation: Failed to get lighthouses for pinging", err)
+		return
+	}
+
+	for _, lh := range lighthouses {
+		go pingLighthouse(lh, 0)
+	}
+}
+
+func pingLighthouse(lh utils.ConstellationDevice, retries int) {
+	cmd := exec.Command("ping", "-c", "1", "-W", "2", cleanIp(lh.IP))
+	err := cmd.Run()
+	if err != nil {
+		if retries < 5 {
+			time.Sleep(10 * time.Second)
+			pingLighthouse(lh, retries+1)
+		} else {
+			utils.Warn("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is unreachable after 10 retries")
+		}
+	} else {
+		utils.Debug("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is reachable")
+	}
 }

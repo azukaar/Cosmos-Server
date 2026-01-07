@@ -16,6 +16,7 @@ import { useClientInfos } from "../../utils/hooks";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
 import { useTranslation } from 'react-i18next'; 
+import DOMPurify from 'dompurify';
 
 function Screenshots({ screenshots }) {
   const aspectRatioContainerStyle = {
@@ -92,7 +93,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             <img src={item.icon} style={{ width: '36px', height: '36px' }} />
             <h2>{item.name}</h2>
           </Stack>
-          <p dangerouslySetInnerHTML={{ __html: item?.translation?.[i18n?.resolvedLanguage]?.longDescription || item?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || item.longDescription }} style={{
+          <p dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item?.translation?.[i18n?.resolvedLanguage]?.longDescription || item?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || item.longDescription) }} style={{
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
@@ -293,7 +294,7 @@ const MarketPage = () => {
             <div><strong>{t('navigation.market.compose')}:</strong> <LinkMUI href={openedApp.compose}>{openedApp.compose}</LinkMUI></div>
           </div>
 
-          <div dangerouslySetInnerHTML={{ __html: openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription }}></div>
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription) }}></div>
 
           {isAdmin ? <div>
             <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />

@@ -1,3 +1,20 @@
+## Version 0.19.0
+ - Constellation allows nodes to see and ping each others
+ - Constellation now has a firewall!
+ - Constellation now has exit nodes
+ - Constellation now automatically resolve the mesh before connecting
+ - Improve docker image cleanup efficiency
+ - Improve support for container network modes in import/export
+ - Fixed the annoying "user unauthenticated" error when opening the homepage after the admin token expired
+ - Fixed issue with exporting hostname when it would be incompatible to re-importing it
+ - Updating network mode now also updates the network-mode label
+ - Default storage path is now /cosmos-storage instead of /usr
+ - Fixed bug where you cant delete the same device twice from Constellation
+ - Export all containers do not export puppet containers anymore
+ - container edits now respect the force network label
+ - New licence field in the UI, more comprehensible
+ - Licence change: Licence accomodates 20 users, 200 constellation devices but also TWO cosmos server (as long as they are in the same constellation. Do not use the licence twice, instead let constellation create a second licence)
+
 ## Version 0.18.4
  - Fix issue with DB credentials dissapearing
  - Remove expired discount

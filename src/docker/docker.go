@@ -130,15 +130,13 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 
-	if(newConfig.HostConfig.NetworkMode != "bridge" &&
-		 newConfig.HostConfig.NetworkMode != "default" &&
-		 newConfig.HostConfig.NetworkMode != "host" &&
-		 newConfig.HostConfig.NetworkMode != "none") {
-			if(!HasLabel(newConfig, "cosmos-force-network-mode")) {
+	if !HasLabel(newConfig, "cosmos-force-network-mode") {
+		if (strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
+			strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:")) {
 				AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
-			} else {
-				newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
-			}
+		}
+	} else {
+		newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
 	}
 	
 	newName := newConfig.Name
@@ -357,7 +355,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	utils.Debug("Unlocking EDIT Container")
 
 	if oldContainerID != "" {
-		RecreateDepedencies(oldContainerID)
+		RecreateDepedencies(oldContainerID, newName)
 	}
 
 	utils.Log("EditContainer - Container started. All done! " + createResponse.ID)
@@ -365,7 +363,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 	return createResponse.ID, nil
 }
 
-func RecreateDepedencies(containerID string) {
+func RecreateDepedencies(containerID, containerName string) {
 	containers, err := ListContainers()
 	if err != nil {
 		utils.Error("RecreateDepedencies", err)
@@ -385,6 +383,15 @@ func RecreateDepedencies(containerID string) {
 
 		// check if network mode contains containerID
 		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
+			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
+			_, err := EditContainer(container.ID, fullContainer, true)
+			if err != nil {
+				utils.Error("RecreateDepedencies - Failed to update - ", err)
+			}
+		}
+
+		// check if network_mode force 's label contains the container name
+		if GetLabel(fullContainer, "cosmos-force-network-mode") == "container:" + containerName[1:] {
 			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
 			_, err := EditContainer(container.ID, fullContainer, true)
 			if err != nil {

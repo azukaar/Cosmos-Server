@@ -12,15 +12,19 @@ type DeviceCreateRequestJSON struct {
 	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
 	IP string `json:"ip",validate:"required,ipv4"`
 	PublicKey string `json:"publicKey",omitempty`
-	
+
 	// for devices only
 	Nickname string `json:"nickname",validate:"max=32,alphanum",omitempty`
-	
+	Invisible bool `json:"invisible",omitempty`
+
 	// for lighthouse only
 	IsLighthouse bool `json:"isLighthouse",omitempty`
+	IsCosmosNode bool `json:"isCosmosNode",omitempty`
 	IsRelay bool `json:"isRelay",omitempty`
+	IsExitNode bool `json:"isExitNode",omitempty`
 	PublicHostname string `json:"PublicHostname",omitempty`
 	Port string `json:"port",omitempty`
+
 }
 
 func DeviceCreate(w http.ResponseWriter, req *http.Request) {
@@ -34,7 +38,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 
-		if !utils.FBL.LValid {
+		if !utils.FBL.LValid && !utils.FBL.IsCosmosNode {
 			utils.Error("ConstellationDeviceCreation: No valid licence found to use Constellation.", nil)
 			utils.HTTPError(w, "Device Creation Error: No valid licence found to use Constellation.",
 				http.StatusInternalServerError, "DC001")
@@ -52,6 +56,14 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
 		APIKey := utils.GenerateRandomString(32)
+
+		// name cannot be "cosmos"
+		if deviceName == "cosmos" {
+			utils.Error("DeviceCreation: Device name cannot be 'cosmos'", nil)
+			utils.HTTPError(w, "Device Creation Error: Device name cannot be 'cosmos'",
+				http.StatusBadRequest, "DC008")
+			return
+		}
 		
 		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
 			return
@@ -60,7 +72,7 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-    defer closeDb()
+        defer closeDb()
 		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
@@ -88,6 +100,47 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
+			// Cosmos nodes are also lighthouses
+			if request.IsCosmosNode {
+				request.IsLighthouse = true
+			}
+
+			// Check cosmos node and devices limit
+			if request.IsCosmosNode {
+				totalClientLimit := 10 * int64(utils.GetNumberUsers())
+
+				count, errCount := c.CountDocuments(nil, map[string]interface{}{
+					"IsCosmosNode": true,
+					"Blocked": false,
+				})
+				if errCount != nil {
+					utils.Error("DeviceCreation: Error while counting cosmos nodes", errCount)
+					utils.HTTPError(w, "Device Creation Error", http.StatusInternalServerError, "DC009")
+					return
+				}
+
+				countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
+					"Blocked": false,
+				})
+				if errCountDevices != nil {
+					utils.Error("DeviceCreation: Error while counting devices", errCountDevices)
+					utils.HTTPError(w, "Device Creation Error", http.StatusInternalServerError, "DC011")
+					return
+				}
+
+				if countDevices >= totalClientLimit {
+					utils.Error("DeviceCreation: Device limit reached", nil)
+					utils.HTTPError(w, "Device limit reached", http.StatusConflict, "DC012")
+					return
+				}
+
+				if count >= int64(utils.GetNumberCosmosNode()) {
+					utils.Error("DeviceCreation: Cosmos node limit reached", nil)
+					utils.HTTPError(w, "Cosmos node limit reached", http.StatusConflict, "DC010")
+					return
+				}
+			}
+
 			if request.IsLighthouse && request.Nickname != "" {
 				utils.Error("DeviceCreation: Lighthouse cannot belong to a user", nil)
 				utils.HTTPError(w, "Device Creation Error: Lighthouse cannot have a nickname",
@@ -108,12 +161,15 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				"PublicKey": key,
 				"IP": request.IP,
 				"IsLighthouse": request.IsLighthouse,
-				"IsRelay": request.IsRelay,
+				"IsCosmosNode": request.IsCosmosNode,
+				"IsRelay": request.IsLighthouse && request.IsRelay,
+				"IsExitNode": request.IsLighthouse && request.IsExitNode,
 				"PublicHostname": request.PublicHostname,
 				"Port": request.Port,
 				"Fingerprint": fingerprint,
 				"APIKey": APIKey,
 				"Blocked": false,
+				"Invisible": request.Invisible && !request.IsLighthouse,
 			})
 
 			if err3 != nil {
@@ -144,7 +200,9 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				PublicKey: key,
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
-				IsRelay: request.IsRelay,
+				IsCosmosNode: request.IsCosmosNode,
+				IsRelay: request.IsLighthouse && request.IsRelay,
+				IsExitNode: request.IsLighthouse && request.IsExitNode,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
@@ -181,10 +239,13 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"Config": configYml,
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
-					"IsRelay": request.IsRelay,
+					"IsCosmosNode": request.IsCosmosNode,
+					"IsRelay": request.IsLighthouse && request.IsRelay,
+					"IsExitNode": request.IsLighthouse && request.IsExitNode,
 					"PublicHostname": request.PublicHostname,
 					"Port": request.Port,
 					"LighthousesList": lightHousesList,
+					"Invisible": request.Invisible && !request.IsLighthouse,
 				},
 			})
 			

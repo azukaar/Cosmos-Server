@@ -291,14 +291,21 @@ func cosmos() {
 
 		constellation.Init()
 
-		utils.ProxyRClone = storage.InitRemoteStorage()
+		utils.InitRemoteStorage = storage.InitRemoteStorage
+		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
+			utils.ProxyRClone = storage.InitRemoteStorage()
+		}
 
 		storage.InitSnapRAIDConfig()
 		
 		// Has to be done last, so scheduler does not re-init
 		cron.Init()
 
-		go backups.InitBackups()
+		
+		utils.InitBackups = backups.InitBackups
+		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
+			go backups.InitBackups()
+		}
 
 		utils.Log("Starting server...")
 	}

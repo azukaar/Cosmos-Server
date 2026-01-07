@@ -61,6 +61,20 @@ var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
 
+// late init of advanced features for cosmos slaves nodes
+var InitRemoteStorage func() bool
+var InitBackups func()
+
+var slaveInitialized = false
+
+func InitializeSlaveLicence() {
+	if !slaveInitialized && FBL.LValid && FBL.IsCosmosNode {
+		slaveInitialized = true
+		ProxyRClone = InitRemoteStorage()
+		go InitBackups()
+	}
+}
+
 var ResyncConstellationNodes = func() {}
 
 var LetsEncryptErrors = []string{}
@@ -89,7 +103,7 @@ var DefaultConfig = Config{
 		},
 	},
 	DockerConfig: DockerConfig{
-		DefaultDataPath: "/usr",
+		DefaultDataPath: "/cosmos-storage",
 	},
   MarketConfig: MarketConfig{
     Sources: []MarketSource{

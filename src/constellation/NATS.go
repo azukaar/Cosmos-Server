@@ -352,12 +352,14 @@ func MasterNATSClientRouter() {
 			}
 		})
 
-		nc.Subscribe("cosmos."+username+".constellation.data.sync-request", func(m *nats.Msg) {
-			if !utils.GetMainConfig().ConstellationConfig.SlaveMode && !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
-				utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
-				m.Respond([]byte(MakeSyncPayload()))
-			}
-		})
+		if localDevice.IsCosmosNode {
+			nc.Subscribe("cosmos."+username+".constellation.data.sync-request", func(m *nats.Msg) {
+				if !utils.GetMainConfig().ConstellationConfig.SlaveMode && !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
+					utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
+					m.Respond([]byte(MakeSyncPayload()))
+				}
+			})
+		}
 	}
 }
 

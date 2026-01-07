@@ -46,6 +46,13 @@ func Init() {
 		Name: "cosmos-cloud",
 	}
 
+	if config.Mpdu_ != "" && config.Mpdn_ != ""  {
+		defaultMarket = utils.MarketSource{
+			Url: config.Mpdu_,
+			Name: config.Mpdn_,
+		}
+	}
+
 	sources = append([]utils.MarketSource{defaultMarket}, sources...)
 
 	for _, marketDef := range sources {

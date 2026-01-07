@@ -41,7 +41,12 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			User:         detailedInfo.Config.User,
 			Tty:          detailedInfo.Config.Tty,
 			StdinOpen:    detailedInfo.Config.OpenStdin,
-			Hostname:     detailedInfo.Config.Hostname,
+			Hostname:     func () string { 
+				if string(detailedInfo.HostConfig.NetworkMode) == "bridge" || string(detailedInfo.HostConfig.NetworkMode) == "default" {
+					return detailedInfo.Config.Hostname
+				}
+				return ""
+			}(),
 			Domainname:   detailedInfo.Config.Domainname,
 			MacAddress:   detailedInfo.NetworkSettings.MacAddress,
 			NetworkMode:  string(detailedInfo.HostConfig.NetworkMode),
@@ -176,18 +181,25 @@ func ExportDocker() {
 		return
 	}
 
-	
+
 	// Convert the containers into your custom format
 	var services = make(map[string]ContainerCreateRequestContainer)
 
-	for _, container := range containers {	
+	for _, container := range containers {
 		service, err := ExportContainer(container.ID)
 		if err != nil {
 			utils.MajorError("ExportDocker - Cannot export container", err)
 			return
 		}
 
-		services[strings.TrimPrefix(service.Name, "/")] = service
+		// Skip database container in puppet mode
+		containerName := strings.TrimPrefix(service.Name, "/")
+		if config.Database.PuppetMode && containerName == config.Database.Hostname {
+			utils.Log("Skipping database container in puppet mode: " + containerName)
+			continue
+		}
+
+		services[containerName] = service
 	}
 
 	// List networks
