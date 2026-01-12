@@ -162,7 +162,9 @@ func GetEmbeddedCollection(applicationId string, collection string) (lungo.IColl
 	// open database
 	client, engine, err := lungo.Open(nil, opts)
 	if err != nil {
-		return nil, nil, err
+		return nil, func() {
+			//engine.Close()
+		}, err
 	}
 
 	// ensure engine is closed

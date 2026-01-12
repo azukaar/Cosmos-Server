@@ -131,6 +131,7 @@ const AuthLogin = () => {
                                         type="nickname"
                                         value={values.nickname}
                                         name="nickname"
+                                        autoComplete="username"
                                         onBlur={handleBlur}
                                         onChange={handleChange}
                                         placeholder={t('auth.usernameInput')}
