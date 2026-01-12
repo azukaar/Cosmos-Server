@@ -283,7 +283,7 @@ func ResetNebula() error {
 
 func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
@@ -306,7 +306,7 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 
 func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
