@@ -198,15 +198,6 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
 
-		if !DisableHeaderHardening {
-			resp.Header.Del("Access-Control-Allow-Origin")
-			resp.Header.Del("Access-Control-Allow-Credentials")
-			resp.Header.Del("Strict-Transport-Security")
-			resp.Header.Del("X-Content-Type-Options")
-			resp.Header.Del("Content-Security-Policy")
-			resp.Header.Del("X-XSS-Protection")
-		}
-
 		// if 502
 		if resp.StatusCode == 502 {
 			// set body

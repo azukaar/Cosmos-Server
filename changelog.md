@@ -3,6 +3,7 @@
  - Support for hardware constraint (CPU/Mem/...) on Docker containers
  - Installer now installs fuse3 for Rclone
  - Fix issue with Rclone cache duration
+ - Enable CORS passthrought when hardening is OFF
  - Added autocomplete on login for password managers
  - Updated Lego to v4.31.0
  - Fix crash when the authentication database is un-openable
