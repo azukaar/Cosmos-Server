@@ -64,7 +64,24 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			CapAdd:           detailedInfo.HostConfig.CapAdd,
 			CapDrop:          detailedInfo.HostConfig.CapDrop,
 			Privileged:       detailedInfo.HostConfig.Privileged,
-			
+
+			// Resource constraints
+			MemLimit: func() string {
+				if detailedInfo.HostConfig.Resources.Memory > 0 {
+					return strconv.FormatInt(detailedInfo.HostConfig.Resources.Memory, 10)
+				}
+				return ""
+			}(),
+			MemReservation: func() string {
+				if detailedInfo.HostConfig.Resources.MemoryReservation > 0 {
+					return strconv.FormatInt(detailedInfo.HostConfig.Resources.MemoryReservation, 10)
+				}
+				return ""
+			}(),
+			CPUs:       float64(detailedInfo.HostConfig.Resources.NanoCPUs) / 1e9,
+			CPUShares:  detailedInfo.HostConfig.Resources.CPUShares,
+			CpusetCpus: detailedInfo.HostConfig.Resources.CpusetCpus,
+
 			// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
 			
 			// Ports

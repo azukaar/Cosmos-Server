@@ -446,7 +446,7 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 		"mountType":  "mount",
 		"vfsOpt": map[string]interface{}{
 			"CacheMode":         "full",
-			"CacheMaxAge":       "24h",
+			"CacheMaxAge":       86400000000000,
 			"ReadChunkSize":     "10M",
 			"ReadChunkSizeLimit": "100M",
 			"UID":               uid,
