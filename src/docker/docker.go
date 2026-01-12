@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"runtime"
 	"github.com/azukaar/cosmos-server/src/utils" 
-	"github.com/docker/cli/cli/config"
+	dockerConfig "github.com/docker/cli/cli/config"
 
 	"github.com/docker/docker/client"
 	// natting "github.com/docker/go-connections/nat"
@@ -719,36 +719,45 @@ func redirectLogs(containerName string, logFile string) {
 	}
 }
 
+func resolveRegistry(image string) string {
+	slashIndex := strings.Index(image, "/")
+
+	// Explicit registry (contains . or :)
+	if slashIndex > 0 && strings.ContainsAny(image[:slashIndex], ".:") {
+		return image[:slashIndex]
+	}
+
+	// Default Docker Hub
+	return "https://index.docker.io/v1/"
+}
+
 func DockerPullImage(image string) (io.ReadCloser, error) {
 	utils.Debug("DockerPull - Preparing Pulling image " + image)
 
 	options := types.ImagePullOptions{}
 
-	configfile, err := config.Load(config.Dir())
+	configfile, err := dockerConfig.Load(dockerConfig.Dir())
 	if err != nil {
-			utils.Error("DockerPull - Read config file error -", err)
+		utils.Error("DockerPull - Read config file error -", err)
 	} else {
-		slashIndex := strings.Index(image, "/")
-		
-		if slashIndex >= 1 && strings.ContainsAny(image[:slashIndex], ".:") {
-			repoURL := strings.Split(image, "/")[0]
-			creds, err := configfile.GetCredentialsStore(repoURL).Get(repoURL)
-			
-			if err != nil {
-				utils.Error("DockerPull - Read config file error -", err)
-				} else {	
-				encodedJSON, _ := json.Marshal(creds)
-				options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
-			}
-		} 
+		registry := resolveRegistry(image)
+
+		utils.Debug("DockerPull - resolved registry: " + registry)
+
+		creds, err := configfile.GetAuthConfig(registry)
+		if err != nil {
+			utils.Error("DockerPull - GetAuthConfig error -", err)
+		} else if creds.Username != "" {
+			encodedJSON, _ := json.Marshal(creds)
+			options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
+		}
 	}
-	
+
 	utils.Debug("DockerPull - Starting Pulling image " + image)
 
-	out, errPull := DockerClient.ImagePull(DockerContext, image, options)
-
-	return out, errPull
+	return DockerClient.ImagePull(DockerContext, image, options)
 }
+
 
 type ContainerStats struct {
 	Name      string

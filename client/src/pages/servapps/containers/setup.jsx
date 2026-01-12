@@ -47,6 +47,7 @@ const containerInfoFrom = (values) => {
     envVars: envVars,
     labels: labels,
     devices: devices,
+    cpus: parseFloat(values.cpus) || 0,
   };
 
   realvalues.interactive = realvalues.interactive ? 2 : 1;
@@ -106,6 +107,12 @@ const DockerContainerSetup = ({
           })
         : [],
       interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
+      memLimit: containerInfo.HostConfig.Memory
+        ? String(containerInfo.HostConfig.Memory)
+        : '',
+      cpus: containerInfo.HostConfig.NanoCpus
+        ? containerInfo.HostConfig.NanoCpus / 1e9
+        : 0,
     };
   }, [
     containerInfo.Config.Env,
@@ -437,6 +444,24 @@ const DockerContainerSetup = ({
                         {t('global.addAction')}
                       </ResponsiveButton>
                     </Grid>
+
+                    {!installer && (
+                      <>
+                        <CosmosFormDivider title={t('mgmt.servapps.newContainer.resourceLimitsTitle')} />
+                        <CosmosInputText
+                          name="memLimit"
+                          label={t('mgmt.servapps.newContainer.memoryLimit')}
+                          placeholder="e.g. 512m, 1g, or leave empty for unlimited"
+                          formik={formik}
+                        />
+                        <CosmosInputText
+                          name="cpus"
+                          label={t('mgmt.servapps.newContainer.cpuLimit')}
+                          placeholder="e.g. 0.5, 1, 2, or 0 for unlimited"
+                          formik={formik}
+                        />
+                      </>
+                    )}
                   </Grid>
                 </>
               )}

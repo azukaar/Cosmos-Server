@@ -13,6 +13,7 @@ import (
 	"os/user"
 	"errors"
 	"github.com/docker/go-connections/nat"
+	"github.com/docker/go-units"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	conttype "github.com/docker/docker/api/types/container"
@@ -86,7 +87,14 @@ type ContainerCreateRequestContainer struct {
 	CapAdd []string `json:"cap_add,omitempty"`
 	CapDrop []string `json:"cap_drop,omitempty"`
 
-	PostInstall []string `json:"post_install,omitempty"`	 
+	// Resource constraints
+	MemLimit string `json:"mem_limit,omitempty"`
+	MemReservation string `json:"mem_reservation,omitempty"`
+	CPUs float64 `json:"cpus,omitempty"`
+	CPUShares int64 `json:"cpu_shares,omitempty"`
+	CpusetCpus string `json:"cpuset_cpus,omitempty"`
+
+	PostInstall []string `json:"post_install,omitempty"`
 }
 
 type ContainerCreateRequestVolume struct {
@@ -677,6 +685,27 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 
+		// Parse resource constraints
+		var memLimit, memReservation int64
+		if container.MemLimit != "" {
+			memLimit, err = units.RAMInBytes(container.MemLimit)
+			if err != nil {
+				utils.Error("CreateService: Invalid mem_limit", err)
+				OnLog(utils.DoErr("Invalid mem_limit value: %s\n", err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+		}
+		if container.MemReservation != "" {
+			memReservation, err = units.RAMInBytes(container.MemReservation)
+			if err != nil {
+				utils.Error("CreateService: Invalid mem_reservation", err)
+				OnLog(utils.DoErr("Invalid mem_reservation value: %s\n", err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+		}
+
 		hostConfig := &conttype.HostConfig{
 			PortBindings: PortBindings,
 			Mounts:       container.Volumes,
@@ -694,6 +723,13 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Isolation:   conttype.Isolation(container.Isolation),
 			CapAdd:      container.CapAdd,
 			CapDrop:     container.CapDrop,
+			Resources: conttype.Resources{
+				Memory:            memLimit,
+				MemoryReservation: memReservation,
+				NanoCPUs:          int64(container.CPUs * 1e9),
+				CPUShares:         container.CPUShares,
+				CpusetCpus:        container.CpusetCpus,
+			},
 		}
 
 		// cosmos-force-network-mode logic

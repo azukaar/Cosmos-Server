@@ -1,3 +1,9 @@
+## Version 0.20.0
+ - Improved handling of Docker login
+ - Support for hardware constraint (CPU/Mem/...) on Docker containers
+ - Installer now installs fuse3 for Rclone
+ - Fix issue with Rclone cache duration
+
 ## Version 0.19.1
  - Updated to Mongo 8 by default
  - Fixed update error for docker-container installations of Cosmos
