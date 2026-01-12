@@ -538,6 +538,7 @@ func CheckUpdatesAvailable() map[string]bool {
 			}
 		}
 
+
 		// no new image to pull, see if local image is matching
 		if !result[container.Names[0]] && !needsUpdate {
 			// check sum of local vs container image

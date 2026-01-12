@@ -46,8 +46,8 @@ func RunDB(db utils.DatabaseConfig) (DockerServiceCreateRequest, error) {
 	
 	//if ARM use arm64v8/mongo
 	if runtime.GOARCH == "arm64" {
-		utils.Warn("ARM64 detected. Using ARM mongo 4.4.18")
-		imageName = "arm64v8/mongo:4.4.18"
+		utils.Warn("ARM64 detected. Using ARM mongo")
+		imageName = "arm64v8/mongo:" + db.Version
 	// if CPU is missing AVX, use 4.4
 	} else if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
 		utils.Warn("CPU does not support AVX. Using mongo 4.4")
@@ -118,7 +118,7 @@ func NewDB(w http.ResponseWriter, req *http.Request) (utils.DatabaseConfig, erro
 	mongoPass := utils.GenerateRandomString(24)
 	monHost := "cosmos-mongo-" + id
 	
-	imageVersion := "6"
+	imageVersion := "8"
 
 	dbConf := utils.DatabaseConfig {
 		PuppetMode: true,

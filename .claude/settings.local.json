@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git log:*)"
-    ],
-    "deny": [],
-    "ask": []
-  }
-}
