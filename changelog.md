@@ -3,6 +3,9 @@
  - Support for hardware constraint (CPU/Mem/...) on Docker containers
  - Installer now installs fuse3 for Rclone
  - Fix issue with Rclone cache duration
+ - Added autocomplete on login for password managers
+ - Updated Lego to v4.31.0
+ - Fix crash when the authentication database is un-openable
 
 ## Version 0.19.1
  - Updated to Mongo 8 by default
