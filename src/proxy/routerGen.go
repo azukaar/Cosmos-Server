@@ -196,10 +196,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	}
 
 	if !route.DisableHeaderHardening {
-		destination = utils.SetSecurityHeaders(destination)
+		destination = utils.SetSecurityHeaders(utils.CORSHeader(originCORS)(destination))
 	}
 
-	destination = tokenMiddleware(route)(utils.CORSHeader(originCORS)((destination)))
+	destination = tokenMiddleware(route)(utils.SetCosmosHeader(destination))
 
 	origin.Handler(destination)
 
