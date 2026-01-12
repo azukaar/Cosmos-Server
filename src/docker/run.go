@@ -46,8 +46,8 @@ func RunDB(db utils.DatabaseConfig) (DockerServiceCreateRequest, error) {
 	
 	//if ARM use arm64v8/mongo
 	if runtime.GOARCH == "arm64" {
-		utils.Warn("ARM64 detected. Using ARM mongo")
-		imageName = "arm64v8/mongo:" + db.Version
+		utils.Warn("ARM64 detected. Using ARM mongo 4.4.18")
+		imageName = "arm64v8/mongo:4.4.18"
 	// if CPU is missing AVX, use 4.4
 	} else if runtime.GOARCH == "amd64" && !cpu.X86.HasAVX {
 		utils.Warn("CPU does not support AVX. Using mongo 4.4")

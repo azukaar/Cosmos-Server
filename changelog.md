@@ -11,7 +11,6 @@
 ## Version 0.19.1
  - Updated to Mongo 8 by default
  - Fixed update error for docker-container installations of Cosmos
- - Dropped support for 32 bit Raspberry as Mongo dropped the support too
 
 ## Version 0.19.0
  - Constellation allows nodes to see and ping each others
