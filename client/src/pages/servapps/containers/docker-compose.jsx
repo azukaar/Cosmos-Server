@@ -473,6 +473,71 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   const [context, setContext] = useState({});
   const [installer, setInstaller] = useState(installerInit);
   const [config, setConfig] = useState({});
+  const [envContent, setEnvContent] = useState('');
+  const [detectedEnvVars, setDetectedEnvVars] = useState([]);
+
+  // Extract ${VAR} patterns from docker compose
+  const extractEnvVars = (compose) => {
+    const regex = /\$\{([^}:]+)(?::-[^}]*)?\}/g;
+    const vars = new Set();
+    let match;
+    while ((match = regex.exec(compose)) !== null) {
+      vars.add(match[1]);
+    }
+    return Array.from(vars).sort();
+  };
+
+  // Parse .env content into key-value object
+  const parseEnvContent = (content) => {
+    const envMap = {};
+    content.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const eqIndex = trimmed.indexOf('=');
+        if (eqIndex > 0) {
+          const key = trimmed.substring(0, eqIndex).trim();
+          const value = trimmed.substring(eqIndex + 1).trim();
+          envMap[key] = value;
+        }
+      }
+    });
+    return envMap;
+  };
+
+  // Apply env substitution to compose
+  const applyEnvSubstitution = (compose, envMap) => {
+    return compose.replace(/\$\{([^}:]+)(:-([^}]*))?\}/g, (match, varName, defaultPart, defaultValue) => {
+      if (envMap[varName] !== undefined && envMap[varName] !== '') {
+        return envMap[varName];
+      }
+      if (defaultValue !== undefined) {
+        return defaultValue;
+      }
+      return match;
+    });
+  };
+
+  // Update detected env vars when compose changes
+  useEffect(() => {
+    if (dockerCompose) {
+      const vars = extractEnvVars(dockerCompose);
+      if (JSON.stringify(vars) !== JSON.stringify(detectedEnvVars)) {
+        setDetectedEnvVars(vars);
+        // Generate placeholder .env content for new vars
+        const currentEnv = parseEnvContent(envContent);
+        const newEnvLines = vars.map(v => {
+          if (currentEnv[v] !== undefined) {
+            return `${v}=${currentEnv[v]}`;
+          }
+          return `${v}=`;
+        });
+        setEnvContent(newEnvLines.join('\n'));
+      }
+    } else {
+      setDetectedEnvVars([]);
+      setEnvContent('');
+    }
+  }, [dockerCompose]);
 
   let hostnameErrors = () => {
     let broken = false;
@@ -539,10 +604,16 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         return;
       }
     
-    let isJson = dockerCompose && dockerCompose.trim().startsWith('{') && dockerCompose.trim().endsWith('}');
-
     try {
-      const rendered = whiskers.render(dockerCompose.replace(/{StaticServiceName}/ig, serviceName), {
+      // Apply env substitution
+      const envMap = parseEnvContent(envContent);
+      const envSubstitutedCompose = applyEnvSubstitution(dockerCompose, envMap);
+
+      console.log('envSubstitutedCompose', envSubstitutedCompose);
+
+      let isJson = envSubstitutedCompose && envSubstitutedCompose.trim().startsWith('{') && envSubstitutedCompose.trim().endsWith('}');
+
+      const rendered = whiskers.render(envSubstitutedCompose.replace(/{StaticServiceName}/ig, serviceName), {
         ServiceName: serviceName,
         Hostnames: hostnames,
         Context: context,
@@ -552,11 +623,14 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/cosmos-storage",
       });
 
+      console.log('rendered', rendered);
+
       let jsoned;
       if(isJson) {
         jsoned = JSON.parse(rendered);
       } else {
         jsoned = convertDockerCompose(config, serviceName, rendered, setYmlError);
+        console.log('jsoned', jsoned);
       }
       
       if(!serviceName && !Object.keys(service).length) {
@@ -699,17 +773,13 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
         setService(jsoned);
       } else {
-        if(!isJson) {
-          setService(convertDockerCompose(config, serviceName, dockerCompose, setYmlError));
-        } else {
-          setService(JSON.parse(dockerCompose));
-        }
+        setService(jsoned);
       }
     } catch (e) {
       setYmlError(e.message);
       return;
     }
-  }, [openModal, dockerCompose, serviceName, hostnames, overrides, installer, config]);
+  }, [openModal, dockerCompose, serviceName, hostnames, overrides, installer, config, envContent]);
 
   const openModalFunc = () => {
     setOpenModal(true);
@@ -733,21 +803,53 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           {step === 0 && !installer && <><Stack spacing={2}>
 
 
-            <UploadButtons
-              accept='.yml,.yaml,.json'
-              OnChange={(e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  setDockerCompose(e.target.result);
-                };
-                reader.readAsText(file);
-              }}
-            />
+            <Stack direction="row" spacing={2}>
+              <UploadButtons
+                accept='.yml,.yaml,.json'
+                label={t('mgmt.servapps.compose.uploadCompose')}
+                OnChange={(e) => {
+                  const file = e.target.files[0];
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    setDockerCompose(e.target.result);
+                  };
+                  reader.readAsText(file);
+                }}
+              />
+
+              {detectedEnvVars.length > 0 && <UploadButtons
+                label={t('mgmt.servapps.compose.uploadEnv')}
+                OnChange={(e) => {
+                  const file = e.target.files[0];
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
+                    setEnvContent(e.target.result);
+                  };
+                  reader.readAsText(file);
+                }}
+              />}
+            </Stack>
 
             <div style={{ color: 'red' }}>
               {ymlError}
             </div>
+
+            {detectedEnvVars.length > 0 && (<>
+              <div>{t('mgmt.servapps.compose.envVarsDetected')}</div>
+              <TextField
+                multiline
+                placeholder="VAR=value"
+                fullWidth
+                value={envContent}
+                onChange={(e) => setEnvContent(e.target.value)}
+                sx={{...preStyle, maxHeight: '200px'}}
+                InputProps={{
+                  sx: {
+                    color: '#EEE',
+                  }
+                }}
+                minRows={Math.min(detectedEnvVars.length, 5)}></TextField>
+            </>)}
 
             <TextField
               multiline
@@ -755,13 +857,13 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
               fullWidth
               value={dockerCompose}
               onChange={(e) => setDockerCompose(e.target.value)}
-              sx={preStyle}
+              sx={{...preStyle, maxHeight: detectedEnvVars.length > 0 ? '400px' : '520px'}}
               InputProps={{
                 sx: {
                   color: '#EEE',
                 }
               }}
-              minRows={20}></TextField>
+              minRows={detectedEnvVars.length > 0 ? 15 : 20}></TextField>
           </Stack></>}
 
           {step === 0 && installer && <><Stack spacing={2}>

@@ -34,11 +34,16 @@ const RClonePage = ({coStatus, containerized}) => {
     });
   }
 
-  const refresh = () => {
+  const refresh = (delay = false) => {
     API.rclone.list().then((response) => {
       setProviders(response);
-
-      refreshStats();
+      if(delay) {
+        setTimeout(() => {
+          refreshStats();
+        }, 2000);
+      } else {
+        refreshStats();
+      }
 
       Object.keys(response).forEach(provider => {
         API.rclone.stats(provider).then((stats) => {
@@ -63,7 +68,7 @@ const RClonePage = ({coStatus, containerized}) => {
   }
 
   return (<>
-    {configModal && <RCloneNewConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
+    {configModal && <RCloneNewConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh(true);}} open={configModal} setOpen={setConfigModal} />}
     {isTransfering && <Alert severity="warning">{t('mgmt.storage.rclone.transferWarning')}</Alert>}
     <MiniPlotComponent  metrics={[
       "cosmos.system.rclone.all.bytes",

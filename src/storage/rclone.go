@@ -27,7 +27,6 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
-
 var rcloneMutex = &sync.Mutex{}
 
 type RCloneProcess struct {
@@ -188,6 +187,15 @@ func StopAllRCloneProcess(forever bool) {
 	isWaitingToStop = true
 
 	// TODO: wait for backups to finish
+
+	utils.Log("[RemoteStorage] Restarting Samba service to remove shares")
+
+	_, err := utils.Exec("smbcontrol", "all", "reload-config")
+	if err != nil {
+		utils.MajorError("[RemoteStorage] Error restarting Samba service", err)
+	}
+
+	utils.Log("[RemoteStorage] Stopping all RClone processes")
 
 	for _, process := range rcloneProcesses {
 		if process.Main {
@@ -634,7 +642,6 @@ func fileChanged(filePath string, lastHash *string, lastModTime *time.Time) bool
 
 	return false
 }
-
 type StorageRoutes struct {
 	Name string
 	Protocol string
@@ -649,6 +656,8 @@ func remountAll() {
 	utils.WaitForAllJobs() 
 	
 	StorageRoutesList = []StorageRoutes{}
+
+    cleanupCosmosSambaShares()
 
 	// Mount remote storages
 	storageList, err := getStorageList()
@@ -666,30 +675,49 @@ func remountAll() {
 	}
 
 	shares := utils.GetMainConfig().RemoteStorage.Shares
+
+	// Collect samba shares and set up passwords
+	var sambaShares []utils.LocationRemoteStorageConfig
 	for _, share := range shares {
 		utils.Log("[RemoteStorage] Sharing " + share.Target)
 
-		argsShare := []string{"serve"}
-		// addr, err := utils.GetNextAvailableLocalPort(12000)
-		// if err != nil {
-		// 	utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
-		// 	return
-		// }
-		urlN, _ := url.Parse(share.Route.Target)
-		addr := "127.0.0.1:" + urlN.Port()
-		// remote scehme
+        if share.Protocol == "smb" || share.Protocol == "samba" {
+			if err := startSambaShare(share); err != nil {
+				utils.MajorError("[RemoteStorage] [SAMBA] Error setting up Samba user", err)
+				continue
+			}
+			sambaShares = append(sambaShares, share)
+        } else {
+			argsShare := []string{"serve"}
+			// addr, err := utils.GetNextAvailableLocalPort(12000)
+			// if err != nil {
+			// 	utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
+			// 	return
+			// }
+			urlN, _ := url.Parse(share.Route.Target)
+			addr := "127.0.0.1:" + urlN.Port()
+			// remote scehme
 
-		utils.Debug("[RemoteStorage] Sharing on port " + addr)
+			utils.Debug("[RemoteStorage] Sharing on port " + addr)
 
-		argsShare = append(argsShare, "--addr="+addr)
-		argsShare = append(argsShare, share.Protocol)
-		for k,v := range share.Settings {
-			argsShare = append(argsShare, "--"+k+"="+v)
+			argsShare = append(argsShare, "--addr="+addr)
+			argsShare = append(argsShare, share.Protocol)
+			for k,v := range share.Settings {
+				argsShare = append(argsShare, "--"+k+"="+v)
+			}
+			argsShare = append(argsShare, share.Target)
+
+			startRCloneProcess(argsShare...)
 		}
-		argsShare = append(argsShare, share.Target)
-
-		startRCloneProcess(argsShare...)
 	}
+
+    if len(sambaShares) > 0 {
+        if err := writeCosmosSambaShares(sambaShares); err != nil {
+            utils.MajorError("[RemoteStorage] [SAMBA] Error writing Samba config", err)
+        } else {
+            utils.Exec("smbcontrol", "all", "reload-config")
+        }
+    }
 }
 
 func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {

@@ -92,6 +92,15 @@ function getBackup() {
   }))
 }
 
+function getDashboard() {
+  return wrap(fetch('/cosmos/api/dashboard', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   get,
   set,
@@ -104,4 +113,5 @@ export {
   addRoute,
   canSendEmail,
   getBackup,
+  getDashboard,
 };

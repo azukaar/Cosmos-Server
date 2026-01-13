@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -115,6 +116,35 @@ func Warn(message string) {
 
 func VPN(message string) {
 	RawLogMessage(INFO, "[VPN]  ", bCyan, nCyan, message)
+}
+
+// VPNWithLevel parses Nebula log lines (which contain level=info/debug/warning/error)
+// and logs them at level-1 (so info lines only show if log level is DEBUG)
+func VPNWithLevel(line string) {
+	level := INFO // default
+
+	// Parse level from nebula log line (format: level=info, level=debug, etc.)
+	if idx := strings.Index(line, "level="); idx != -1 {
+		start := idx + 6
+		end := start
+		for end < len(line) && line[end] != ' ' && line[end] != '\t' {
+			end++
+		}
+		levelStr := strings.ToUpper(line[start:end])
+
+		switch levelStr {
+		case "DEBUG":
+			level = DEBUG
+		case "INFO":
+			level = DEBUG // info -> debug (level-1)
+		case "WARNING", "WARN":
+			level = INFO // warning -> info (level-1)
+		case "ERROR":
+			level = WARNING // error -> warning (level-1)
+		}
+	}
+
+	RawLogMessage(level, "[VPN]  ", bCyan, nCyan, line)
 }
 
 func Error(message string, err error) {

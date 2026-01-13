@@ -92,7 +92,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             </div>
             <UploadButtons
               accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
-              label="icon"
+              label={t('global.icon')}
               OnChange={(e) => {
                 const file = e.target.files[0];
                 setIsUpdating(true);

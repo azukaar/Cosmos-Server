@@ -199,7 +199,7 @@ const ProxyManagement = () => {
           { 
             title: '', 
             field: (r) => <LazyLoad width={"64px"} height={"64px"}>
-              <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(r)} width="64px" height="64px"/>
+              <ImageWithPlaceholder className="loading-image" alt="" src={r.Icon || getFaviconURL(r)} width="64px" height="64px"/>
             </LazyLoad>,
             style: {
               textAlign: 'center',

@@ -11,3 +11,13 @@ export const ServAppIcon = ({route, container, width, ...pprops}) => {
           : <ImageWithPlaceholder src={logogray} {...pprops} width={width} height={width}></ImageWithPlaceholder>)}
   </LazyLoad>;
 };
+
+export const DashboardIcon = ({route, containerIcon, width, ...pprops}) => {
+  const icon = route.Icon || containerIcon;
+  return <LazyLoad width={width} height={width}>
+    {icon ? 
+      <ImageWithPlaceholder src={icon} {...pprops} width={width} height={width}></ImageWithPlaceholder> :(
+        route ? <ImageWithPlaceholder src={getFaviconURL(route)} {...pprops} width={width} height={width}></ImageWithPlaceholder>
+          : <ImageWithPlaceholder src={logogray} {...pprops} width={width} height={width}></ImageWithPlaceholder>)}
+  </LazyLoad>;
+};

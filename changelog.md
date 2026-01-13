@@ -1,5 +1,10 @@
 ## Version 0.20.0
- - Improved handling of Docker login
+ - Added Samba for both remote storage and serve share
+ - Added .env file upload when uploading compose files
+ - You can now upload a custom icon on URLs
+ - Fixed issue with non-admin users not seeing custom container icon
+ - Fixed issue with non-admin users seeing stopped containers URLs on the dashboard
+ - Improved handling of Docker login for private docker images
  - Support for hardware constraint (CPU/Mem/...) on Docker containers
  - Installer now installs fuse3 for Rclone
  - Fix issue with Rclone cache duration
@@ -7,6 +12,7 @@
  - Added autocomplete on login for password managers
  - Updated Lego to v4.31.0
  - Fix crash when the authentication database is un-openable
+ - Make VPN less verbose in logs
 
 ## Version 0.19.1
  - Updated to Mongo 8 by default
