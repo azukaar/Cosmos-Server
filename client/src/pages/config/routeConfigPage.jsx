@@ -46,7 +46,7 @@ const RouteConfigPage = () => {
       {config && currentRoute && <PrettyTabbedView tabs={[
         {
           title: t('mgmt.servapps.overview'),
-          children: <RouteOverview routeConfig={currentRoute} />
+          children: <RouteOverview routeConfig={currentRoute} refreshConfig={refreshConfig} />
         },
         {
           title: t('mgmt.servapps.routeConfig.setup'),

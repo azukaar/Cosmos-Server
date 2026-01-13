@@ -9,7 +9,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { getFaviconURL, IsRouteSocketProxy } from "../../utils/routes";
 import { Link } from "react-router-dom";
 import { getFullOrigin } from "../../utils/routes";
-import { ServAppIcon } from "../../utils/servapp-icon";
+import { DashboardIcon } from "../../utils/servapp-icon";
 import Chart from 'react-apexcharts';
 import { useClientInfos } from "../../utils/hooks";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
@@ -165,20 +165,16 @@ const HomePage = () => {
     }, [isAdmin]);
 
     const refreshConfig = () => {
-        if(isAdmin) {
-            API.docker.list().then((res) => {
-                setServApps(res.data);
-            });
-        } else {
-            setServApps([]);
-        }
+        API.config.getDashboard().then((res) => {
+            setServApps(res.data);
+        });
         API.config.get().then((res) => {
             setConfig(res.data);
         });
     };
 
 
-    let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
+    let routes = servApps || [];
 
     useEffect(() => {
         refreshConfig();
@@ -265,7 +261,6 @@ const HomePage = () => {
     let latestCPU, latestRAM, latestRAMRaw, maxRAM, maxRAMRaw = 0;
 
     if(isAdmin && metrics) {
-    
         if(metrics["cosmos.system.cpu.0"] && metrics["cosmos.system.cpu.0"].Values && metrics["cosmos.system.cpu.0"].Values.length > 0)
             latestCPU = metrics["cosmos.system.cpu.0"].Values[metrics["cosmos.system.cpu.0"].Values.length - 1].Value;
         
@@ -464,21 +459,10 @@ const HomePage = () => {
                 </>)}
             </>)}
             
-            {config && servApps && routes.map((route) => {
+            {config && routes.map((route) => {
                 let skip = route.Mode == "REDIRECT";
-                let containerName;
-                let container;
                 const isSocketProxy = IsRouteSocketProxy(route);
 
-                if (route.Mode == "SERVAPP") {
-                    containerName = route.Target.split(':')[1].slice(2);
-                    container = servApps.find((c) => c.Names.includes('/' + containerName));
-                    // TOOD: rework, as it prevents users from seeing the apps
-                    // if (!container || container.State != "running") {
-                    //     skip = true
-                    // }
-                }
-                
                 if (route.HideFromDashboard || isSocketProxy)
                     skip = true; 
 
@@ -488,7 +472,7 @@ const HomePage = () => {
                     <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="row" spacing={2} alignItems="center">
-                                <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
+                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
                                 <div style={{ minWidth: 0 }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                     <p style={blockStyle}>{route.Description}</p>
@@ -503,7 +487,7 @@ const HomePage = () => {
                     <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
                             <Stack direction="column" spacing={2} alignItems="center">
-                                <ServAppIcon container={container} route={route} className="loading-image" width="70px" />
+                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
                                 <div style={{ minWidth: 0 }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                 </div>

@@ -15,6 +15,14 @@ function _setData(data) {
   return data;
 }
 
+function save() {
+  return wrapRClone(fetch('/cosmos/rclone/config/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}'
+  }))
+}
+
 function create(data) {
   return wrapRClone(fetch('/cosmos/rclone/config/create', {
     method: 'POST',

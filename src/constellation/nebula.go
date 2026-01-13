@@ -130,7 +130,7 @@ func handleProcessOutput(stdout, stderr io.ReadCloser, logBuffer *lumberjack.Log
 			scanner := bufio.NewScanner(stdout)
 			for scanner.Scan() {
 					line := scanner.Text()
-					utils.VPN(line)
+					utils.VPNWithLevel(line)
 					if _, err := logBuffer.Write([]byte(line + "\n")); err != nil {
 							utils.Error("Failed to write to log buffer", err)
 					}

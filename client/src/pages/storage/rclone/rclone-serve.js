@@ -1,5 +1,53 @@
 export const ServeConfig = [
     {
+        "Name": "samba",
+        "Description": "Samba / SMB/CIFS Share",
+        "Prefix": "smb",
+        "Proxy": "tcp",
+        "DefaultSource": "0.0.0.0:445",
+        "Options": [
+            {
+                "Name": "user",
+                "Help": "User name for authentication",
+                "Provider": "",
+                "Default": "",
+                "Value": null,
+                "ShortOpt": "",
+                "Hide": 0,
+                "Required": true,
+                "IsPassword": false,
+                "NoPrefix": false,
+                "Advanced": false
+            },
+            {
+                "Name": "pass",
+                "Help": "Password for authentication",
+                "Provider": "",
+                "Default": "",
+                "Value": null,
+                "ShortOpt": "",
+                "Hide": 0,
+                "Required": true,
+                "IsPassword": true,
+                "NoPrefix": false,
+                "Advanced": false
+            },
+            {
+                "Name": "permission",
+                "Help": "Permission level: R (read), F (full/write), D (deny)",
+                "Provider": "",
+                "Default": "F",
+                "Value": null,
+                "ShortOpt": "",
+                "Hide": 0,
+                "Required": false,
+                "IsPassword": false,
+                "NoPrefix": false,
+                "Advanced": true
+            }
+        ]
+    },
+    {
         "Name": "sftp",
         "Description": "SFTP server",
         "Prefix": "sftp",

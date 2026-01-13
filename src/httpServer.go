@@ -491,6 +491,7 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/favicon", GetFavicon)
 	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/me", user.Me)
+	srapi.HandleFunc("/api/dashboard", configapi.DashboardApiGet)
 
 	srapi.HandleFunc("/api/terminal/{route}", HostTerminalRoute)
 	

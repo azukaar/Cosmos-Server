@@ -21,10 +21,11 @@ const info = {
   borderRadius: '5px',
 }
 
-const RouteOverview = ({ routeConfig }) => {
+const RouteOverview = ({ routeConfig, refreshConfig }) => {
   const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [isUpdating, setIsUpdating] = React.useState(false);
 
   function deleteRoute(event) {
     event.stopPropagation();
@@ -41,9 +42,26 @@ const RouteOverview = ({ routeConfig }) => {
         {confirmDelete && (<Chip label={<CheckOutlined />} color="error" onClick={(event) => deleteRoute(event)}/>)}
       </div>}>
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
-          <div>
-            <ImageWithPlaceholder className="loading-image" alt="" src={getFaviconURL(routeConfig)} width="128px" />
-          </div>
+          <Stack spacing={1} alignItems="center">
+            <ImageWithPlaceholder className="loading-image" alt="" src={routeConfig.Icon || getFaviconURL(routeConfig)} width="128px" />
+            <UploadButtons
+              accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
+              label={t('global.icon')}
+              OnChange={(e) => {
+                const file = e.target.files[0];
+                setIsUpdating(true);
+                API.uploadImage(file, "route-" + routeConfig.Name.replace(/[^a-zA-Z0-9]/g, '-')).then((data) => {
+                  API.config.replaceRoute(routeConfig.Name, {
+                    ...routeConfig,
+                    Icon: data.data.path,
+                  }).then(() => {
+                    setIsUpdating(false);
+                    if (refreshConfig) refreshConfig();
+                  });
+                });
+              }}
+            />
+          </Stack>
           <Stack spacing={2} style={{ width: '100%' }}>
             <strong><ContainerOutlined /> {t('global.description')}</strong>
             <div style={info}>{routeConfig.Description}</div>

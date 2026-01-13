@@ -4088,6 +4088,85 @@ export const ProvConfig = [
       ]
   },
   {
+    "Name": "smb",
+    "Description": "SMB / CIFS Connection",
+    "Prefix": "smb",
+    "Options": [
+        {
+            "Name": "host",
+            "Help": "SMB host to connect to",
+            "Provider": "",
+            "Default": "",
+            "Value": null,
+            "Examples": [
+                {
+                    "Value": "example.com",
+                    "Help": "Connect to example.com",
+                    "Provider": ""
+                }
+            ],
+            "ShortOpt": "",
+            "Hide": 0,
+            "Required": true,
+            "IsPassword": false,
+            "NoPrefix": false,
+            "Advanced": false
+        },
+        {
+            "Name": "user",
+            "Help": "SMB username, leave blank for anonymous access",
+            "Provider": "",
+            "Default": "",
+            "Value": null,
+            "ShortOpt": "",
+            "Hide": 0,
+            "Required": false,
+            "IsPassword": false,
+            "NoPrefix": false,
+            "Advanced": false
+        },
+        {
+            "Name": "pass",
+            "Help": "SMB password, leave blank for anonymous access",
+            "Provider": "",
+            "Default": "",
+            "Value": null,
+            "ShortOpt": "",
+            "Hide": 0,
+            "Required": false,
+            "IsPassword": true,
+            "NoPrefix": false,
+            "Advanced": false
+        },
+        {
+            "Name": "port",
+            "Help": "SMB port, leave blank to use default (445)",
+            "Provider": "",
+            "Default": "",
+            "Value": null,
+            "ShortOpt": "",
+            "Hide": 0,
+            "Required": false,
+            "IsPassword": false,
+            "NoPrefix": false,
+            "Advanced": false
+        },
+        {
+            "Name": "domain",
+            "Help": "SMB domain, leave blank if not needed",
+            "Provider": "",
+            "Default": "",
+            "Value": null,
+            "ShortOpt": "",
+            "Hide": 0,
+            "Required": false,
+            "IsPassword": false,
+            "NoPrefix": false,
+            "Advanced": false
+        }
+    ]
+  },
+  {
       "Name": "union",
       "Description": "A stackable unification remote, which can appear to merge the contents of several remotes",
       "Prefix": "union",
