@@ -13,6 +13,7 @@
  - Updated Lego to v4.31.0
  - Fix crash when the authentication database is un-openable
  - Make VPN less verbose in logs
+ - Redirect URLs now show on the dashboard (use the "hide from dashboard" option on URLs to hide them yourself)
 
 ## Version 0.19.1
  - Updated to Mongo 8 by default

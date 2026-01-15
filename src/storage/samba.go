@@ -50,6 +50,14 @@ func ensureSambaUser(user, pass string) error {
         if err != nil {
             return fmt.Errorf("failed to create user: %w", err)
         }
+        
+        // Set Linux password to unlock the account
+        utils.Debug(fmt.Sprintf("[RemoteStorage] [SAMBA] Setting Linux password for user %s", user))
+        cmd := exec.Command("chpasswd")
+        cmd.Stdin = strings.NewReader(user + ":" + pass + "\n")
+        if err := cmd.Run(); err != nil {
+            return fmt.Errorf("failed to set Linux password: %w", err)
+        }
     }
 
     // Set samba password
@@ -106,12 +114,20 @@ func writeCosmosSambaShares(shares []utils.LocationRemoteStorageConfig) error {
             readOnly = "yes"
         }
 
+        forceUser := ""
+        if fu, ok := share.Settings["force user"]; ok && fu != "" {
+            forceUser = fu
+        }
+
         shareName := sambaSharePrefix + share.Name
         fmt.Fprintf(&buf, "[%s]\n", shareName)
         fmt.Fprintf(&buf, "   path = %s\n", share.Target)
         fmt.Fprintf(&buf, "   browseable = yes\n")
         fmt.Fprintf(&buf, "   read only = %s\n", readOnly)
         fmt.Fprintf(&buf, "   valid users = %s\n", user)
+        if forceUser != "" {
+            fmt.Fprintf(&buf, "   force user = %s\n", forceUser)
+        }
         fmt.Fprintf(&buf, "   guest ok = no\n")
         buf.WriteString("\n")
     }

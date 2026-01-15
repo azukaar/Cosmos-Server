@@ -48,6 +48,9 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 	remoteConfigs := utils.GetMainConfig().RemoteStorage
 	for _, shares := range remoteConfigs.Shares {
 			route := shares.Route
+			if route.Disabled {
+				continue
+			}
 			RouterGen(route, router, RouteTo(route))
 	}
 

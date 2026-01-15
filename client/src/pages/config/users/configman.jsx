@@ -166,7 +166,6 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
           Email_UseTLS : config.EmailConfig.UseTLS,
           Email_AllowInsecureTLS : config.EmailConfig.AllowInsecureTLS,
           Email_NotifyLogin: config.EmailConfig.NotifyLogin,
-          
 
           SkipPruneNetwork: config.DockerConfig.SkipPruneNetwork,
           SkipPruneImages: config.DockerConfig.SkipPruneImages,

@@ -4094,7 +4094,7 @@ export const ProvConfig = [
     "Options": [
         {
             "Name": "host",
-            "Help": "SMB host to connect to",
+            "Help": "SMB host to connect to (do not add a port)",
             "Provider": "",
             "Default": "",
             "Value": null,
@@ -4139,21 +4139,8 @@ export const ProvConfig = [
             "Advanced": false
         },
         {
-            "Name": "port",
-            "Help": "SMB port, leave blank to use default (445)",
-            "Provider": "",
-            "Default": "",
-            "Value": null,
-            "ShortOpt": "",
-            "Hide": 0,
-            "Required": false,
-            "IsPassword": false,
-            "NoPrefix": false,
-            "Advanced": false
-        },
-        {
             "Name": "domain",
-            "Help": "SMB domain, leave blank if not needed",
+            "Help": "SMB domain (not a web domain name!), leave blank if not needed / not understood",
             "Provider": "",
             "Default": "",
             "Value": null,
@@ -4162,7 +4149,7 @@ export const ProvConfig = [
             "Required": false,
             "IsPassword": false,
             "NoPrefix": false,
-            "Advanced": false
+            "Advanced": true
         }
     ]
   },

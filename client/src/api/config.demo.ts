@@ -64,6 +64,39 @@ async function addRoute(newRoute: Route): Promise<void> {
   return rawUpdateRoute("", 'add', newRoute);
 }
 
+function getDashboard() {
+  return new Promise((resolve, reject) => {
+    const routes = configDemo.data.HTTPConfig.ProxyConfig.Routes;
+    const dashboardRoutes = routes.map((route: any) => ({
+      Name: route.Name,
+      Description: route.Description,
+      Target: route.Target,
+      Mode: route.Mode,
+      Host: route.Host,
+      UseHost: route.UseHost,
+      UsePathPrefix: route.UsePathPrefix,
+      PathPrefix: route.PathPrefix,
+      Icon: route.Icon || "",
+      HideFromDashboard: route.HideFromDashboard || false,
+      ContainerRunning: route.Mode === "SERVAPP" ? true : false,
+      ContainerIcon: "",
+    }));
+    resolve({
+      status: "OK",
+      data: dashboardRoutes,
+    });
+  });
+}
+
+function getBackup() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      status: "OK",
+      data: {},
+    });
+  });
+}
+
 export {
   get,
   set,
@@ -75,4 +108,6 @@ export {
   deleteRoute,
   addRoute,
   canSendEmail,
+  getDashboard,
+  getBackup,
 };

@@ -8,7 +8,7 @@ export const ServeConfig = [
         "Options": [
             {
                 "Name": "user",
-                "Help": "User name for authentication",
+                "Help": "User name for authentication (Samba requires a Linux user account. Cosmos will create it if it does not exist)",
                 "Provider": "",
                 "Default": "",
                 "Value": null,
@@ -33,8 +33,21 @@ export const ServeConfig = [
                 "Advanced": false
             },
             {
+                "Name": "force user",
+                "Help": "Force files to be manipulated as this linux user (use this to fix permission issues)",
+                "Provider": "",
+                "Default": "",
+                "Value": null,
+                "ShortOpt": "",
+                "Hide": 0,
+                "Required": false,
+                "IsPassword": false,
+                "NoPrefix": false,
+                "Advanced": true
+            },
+            {
                 "Name": "permission",
-                "Help": "Permission level: R (read), F (full/write), D (deny)",
+                "Help": "Permission level: R (read), F (full/write) [Default: F]",
                 "Provider": "",
                 "Default": "F",
                 "Value": null,

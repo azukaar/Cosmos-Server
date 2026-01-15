@@ -460,10 +460,10 @@ const HomePage = () => {
             </>)}
             
             {config && routes.map((route) => {
-                let skip = route.Mode == "REDIRECT";
+                let skip = false;
                 const isSocketProxy = IsRouteSocketProxy(route);
 
-                if (route.HideFromDashboard || isSocketProxy)
+                if (route.HideFromDashboard || (route.Mode == "SERVAPP" && !route.ContainerRunning) || isSocketProxy)
                     skip = true; 
 
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
