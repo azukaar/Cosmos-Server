@@ -657,7 +657,6 @@ func remountAll() {
 	
 	StorageRoutesList = []StorageRoutes{}
 
-    cleanupCosmosSambaShares()
 
 	// Mount remote storages
 	storageList, err := getStorageList()
@@ -676,7 +675,8 @@ func remountAll() {
 
 	shares := utils.GetMainConfig().RemoteStorage.Shares
 
-	// Collect samba shares and set up passwords
+	cleanupCosmosSambaShares()
+
 	var sambaShares []utils.LocationRemoteStorageConfig
 	for _, share := range shares {
 		utils.Log("[RemoteStorage] Sharing " + share.Target)
@@ -717,7 +717,9 @@ func remountAll() {
         } else {
             utils.Exec("smbcontrol", "all", "reload-config")
         }
-    }
+    } else {
+		utils.Exec("smbcontrol", "all", "reload-config")
+	}
 }
 
 func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {

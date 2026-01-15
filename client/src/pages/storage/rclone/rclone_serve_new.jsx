@@ -103,23 +103,27 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
             required
           />
         </Stack>
-          <Field
-            as={TextField}
-            name="Source"
-            label="Source Hostname"
-            helperText="Hostname or IP address of the source"
-            fullWidth
-            margin="normal"
-            required
-          />
-          <Stack direction="row" spacing={2} alignItems="center">
+          {selectedProvider === "samba" ? (<Alert severity="info">
+            {t('mgmt.storage.rclone.samba_notice')}
+          </Alert>) : <>
             <Field
-              type="checkbox"
-              name="SmartShield"
-              as={Checkbox}
+              as={TextField}
+              name="Source"
+              label="Source Hostname"
+              helperText="Hostname or IP address of the source"
+              fullWidth
+              margin="normal"
+              required
             />
-            <div>{t('Enable Smart Shield')}</div>
-          </Stack>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Field
+                type="checkbox"
+                name="SmartShield"
+                as={Checkbox}
+              />
+              <div>{t('Enable Smart Shield')}</div>
+            </Stack>
+          </>}
           <CosmosFormDivider />
         {standardFields}
         {advancedFields.length > 0 && (
@@ -176,35 +180,42 @@ const RCloneNewServeConfig = ({ onClose, initialValues }) => {
             if (isEdit) {
               shares = shares.filter((s) => s.Name !== originalName);
             }
+            
+            // if samba we do not add a route
+            const isSamba = selectedProvider === "samba";
 
-            let nextFreePort = 12000;
-            let busyPorts = [];
-            shares.forEach((s) => {
-              if (s.Route && s.Route.Target) {
-                let port = parseInt(s.Route.Target.split(":")[s.Route.Target.split(":").length - 1]);
-                if (!port.isNaN) {
-                  busyPorts = [...busyPorts, port];
+            if (!isSamba) {
+              let nextFreePort = 12000;
+              let busyPorts = [];
+              shares.forEach((s) => {
+                if (s.Route && s.Route.Target) {
+                  let port = parseInt(s.Route.Target.split(":")[s.Route.Target.split(":").length - 1]);
+                  if (!port.isNaN) {
+                    busyPorts = [...busyPorts, port];
+                  }
+                }
+              });
+              
+              while (busyPorts.includes(nextFreePort)) {
+                nextFreePort++;
+              }
+
+              let scheme = ServeConfig.find(config => config.Name === selectedProvider).Proxy;
+
+              let calculatedInternalTarget = scheme + "://127.0.0.1:" + nextFreePort;
+
+              fullValues.Route = {
+                Name: "netshare_" + fullValues.Name,
+                Target: calculatedInternalTarget,
+                Mode: "PROXY",
+                UseHost: true,
+                Host: fullValues.Source,
+                SmartShield: {
+                  Enabled: smartShieldEnabled
                 }
               }
-            });
-            
-            while (busyPorts.includes(nextFreePort)) {
-              nextFreePort++;
-            }
-
-            let scheme = ServeConfig.find(config => config.Name === selectedProvider).Proxy;
-
-            let calculatedInternalTarget = scheme + "://127.0.0.1:" + nextFreePort;
-
-            fullValues.Route = {
-              Name: "netshare_" + fullValues.Name,
-              Target: calculatedInternalTarget,
-              Mode: "PROXY",
-              UseHost: true,
-              Host: fullValues.Source,
-              SmartShield: {
-                Enabled: smartShieldEnabled
-              }
+            } else {
+              fullValues.Route = {Disabled: true};
             }
 
             shares.push(fullValues);
