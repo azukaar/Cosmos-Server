@@ -970,7 +970,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		err = DockerClient.ContainerStart(DockerContext, container.Name, conttype.StartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
-			OnLog(utils.DoErr("Rolling back changes because of -- Container start error" + container.Name + " : "+err.Error()))
+			OnLog(utils.DoErr("Rolling back changes because of -- Container start error " + container.Name + " : "+err.Error()))
 			Rollback(rollbackActions, OnLog)
 			return err
 		}
