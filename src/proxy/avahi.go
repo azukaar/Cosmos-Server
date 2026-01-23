@@ -136,7 +136,7 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 
 		for _, cname := range cnames {
 			// Create new group if needed
-			if currentGroup == nil || entriesInCurrentGroup >= MAX_ENTRIES_PER_GROUP {
+			if currentGroup == nil || entriesInCurrentGroup >= MAX_ENTRIES_PER_GROUP-1 {
 				var err error
 				currentGroup, err = p.createNewGroup()
 				if err != nil {
@@ -181,21 +181,13 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 				continue
 			}
 			entriesInCurrentGroup++
-
-			// Commit group if it's full
-			if entriesInCurrentGroup >= MAX_ENTRIES_PER_GROUP {
-				if err := currentGroup.Commit(); err != nil {
-					utils.Error("[mDNS] failed to commit full entry group", err)
-					return err
-				}
-			}
 		}
 	}
 
-	// Commit the last group if it has any entries
-	if currentGroup != nil && entriesInCurrentGroup > 0 {
-		if err := currentGroup.Commit(); err != nil {
-			utils.Error("[mDNS] failed to commit final entry group", err)
+	// Commit all groups at the end
+	for _, group := range p.entryGroups {
+		if err := group.Commit(); err != nil {
+			utils.Error("[mDNS] failed to commit entry group", err)
 			return err
 		}
 	}
@@ -211,11 +203,14 @@ func (p *Publisher) Close() {
 	defer p.mu.Unlock()
 	
 	for _, group := range p.entryGroups {
-		err := group.Reset()
-		if err != nil {
-			utils.Error("[mDNS] failed to reset entry group during close", err)
+		if err := group.Reset(); err != nil {
+			if err2 := group.Free(); err2 != nil {
+				utils.Error("[mDNS] failed to reset entry group", err)
+				utils.Error("[mDNS] failed to free entry group ", err2)
+			}
 		}
 	}
+	
 	p.entryGroups = nil
 	
 	if p.avahiServer != nil {
