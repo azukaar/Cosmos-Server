@@ -102,10 +102,13 @@ func (p *Publisher) UpdateCNAMES(cnames []string, ttl uint32) error {
 	// Reset all existing groups
 	for _, group := range p.entryGroups {
 		if err := group.Reset(); err != nil {
-			utils.Error("[mDNS] failed to reset entry group", err)
-			return err
+			if err2 := group.Free(); err2 != nil {
+				utils.Error("[mDNS] failed to reset entry group", err)
+				utils.Error("[mDNS] failed to free entry group ", err2)
+			}
 		}
 	}
+
 	p.entryGroups = make([]*avahi.EntryGroup, 0)
 
 	ifaces, err := net.Interfaces()

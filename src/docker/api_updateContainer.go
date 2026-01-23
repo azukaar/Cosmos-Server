@@ -17,16 +17,16 @@ import (
 
 type ContainerForm struct {
 	Image          string            `json:"image"`
-	User 				   string            `json:"user"`
+	User 				   string    `json:"user"`
 	RestartPolicy  string            `json:"restartPolicy"`
 	Env            []string          `json:"envVars"`
-	Devices        []string `json:"devices"`
+	Devices        []string          `json:"devices"`
 	Labels         map[string]string `json:"labels"`
 	PortBindings   nat.PortMap       `json:"portBindings"`
 	Volumes        []mount.Mount     `json:"Volumes"`
 	// we make this a int so that we can ignore 0
 	Interactive    int               `json:"interactive"`
-	NetworkMode 	 string            `json:"networkMode"`
+	NetworkMode 	 string           `json:"networkMode"`
 	MemLimit       string            `json:"memLimit"`
 	CPUs           float64           `json:"cpus"`
 }
@@ -146,6 +146,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.HostConfig.Resources.Memory = memLimit
 		} else {
 			container.HostConfig.Resources.Memory = 0
+			container.HostConfig.Resources.MemorySwap = 0
 		}
 
 		if form.CPUs > 0 {

@@ -1,3 +1,7 @@
+## Version 0.20.1
+ - Fix Avahi not working issue
+ - Fix issue with resetting mem limit to 0
+
 ## Version 0.20.0
  - Added Samba for both remote storage and serve share
  - Added .env file upload when uploading compose files
