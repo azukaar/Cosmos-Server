@@ -156,6 +156,20 @@ func UpdateFirewallBlockedClients() error {
 		"proto": "any",
 		"host":  "any",
 	})
+	
+	// Always allow port 6222 (NATS Cluster) from any
+	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
+		"port":  6222,
+		"proto": "any",
+		"host":  "any",
+	})
+	
+	// Always allow port 7422 (NATS Leaf) from any
+	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
+		"port":  7422,
+		"proto": "any",
+		"host":  "any",
+	})
 
 	// Always allow port 53 (DNS) from any
 	newInboundRules = append(newInboundRules, map[interface{}]interface{}{

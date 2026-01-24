@@ -126,7 +126,7 @@ func GetDeviceConfigSync(w http.ResponseWriter, req *http.Request) {
 		utils.Log("DeviceConfigSync: Fetching devices for IP " + ip)
 
 		cursor, err := c.Find(nil, map[string]interface{}{
-			"IP": ip + "/24",
+			"IP": ip,
 			"APIKey": auth,
 			"Blocked": false,
 		})
@@ -354,29 +354,15 @@ func GetNATSCredentials(isMaster bool) (string, string, error) {
 	if isMaster {
 		return MASTERUSER, MASTERPWD, nil
 	}
-	
-	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
-	if err != nil {
-		utils.Error("GetNATSCredentials: error while reading nebula.yml", err)
-		return "", "", err
-	}
 
-	configMap := make(map[string]interface{})
-	err = yaml.Unmarshal(nebulaFile, &configMap)
-	if err != nil {
-		utils.Error("GetNATSCredentials: Invalid slave config file for resync", err)
-		return "", "", err
-	}
+	currentDevice := GetCurrentDevice()
 
-	if configMap["cstln_api_key"] == nil || configMap["cstln_device_name"] == nil {
+	if currentDevice.APIKey == "" || currentDevice.DeviceName == "" {
 		utils.Error("GetNATSCredentials: Invalid slave config file for resync", nil)
 		return "", "", errors.New("Invalid slave config file for resync")
 	}
 
-	apiKey := configMap["cstln_api_key"].(string)
-	deviceName := configMap["cstln_device_name"].(string)
-
-	return deviceName, apiKey, nil
+	return currentDevice.DeviceName, currentDevice.APIKey, nil
 }
 
 func SlaveConfigSync(newConfig string) (bool, error) {
@@ -409,15 +395,6 @@ func SlaveConfigSync(newConfig string) (bool, error) {
 
 	endpoint := rawEndpoint.(string)
 	endpoint += "cosmos/api/constellation/config-sync"
-
-	// utils.Log("SlaveConfigSync: Fetching config from " + endpoint.(string))
-
-	// fetch the config from the endpoint with Authorization header
-	// req, err := http.NewRequest("GET", endpoint.(string), nil)
-	// if err != nil {
-	// 	utils.Error("SlaveConfigSync: Error creating request", err)
-	// 	return false, err
-	// }
 
 	body := newConfig
 

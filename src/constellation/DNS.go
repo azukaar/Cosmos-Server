@@ -68,7 +68,6 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		for _, q := range r.Question {
 			for hostname, _destination := range remoteHostnames {
 				destination := CachedDeviceNames[_destination]
-				destination = strings.ReplaceAll(destination, "/24", "")
 
 				if destination != "" {
 					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
@@ -103,7 +102,6 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			utils.Debug("DNS Question " + q.Name)
 			for deviceName, ip := range CachedDeviceNames {
 				procDeviceName := strings.ReplaceAll(deviceName, " ", "-")
-				ip = strings.ReplaceAll(ip, "/24", "")
 				
 				if strings.HasSuffix(q.Name, procDeviceName + ".") && q.Qtype == dns.TypeA {
 					utils.Debug("DNS Overwrite " + procDeviceName + " with its IP")

@@ -292,15 +292,18 @@ type ConstellationConfig struct {
 	DNSDisabled bool
 	DNSPort string
 	DNSFallback string
-	IsExitNode bool
 	DNSBlockBlacklist bool
 	DNSAdditionalBlocklists []string
 	CustomDNSEntries []ConstellationDNSEntry
-	NebulaConfig NebulaConfig
-	ConstellationHostname string
 	Tunnels []ProxyRouteConfig
 	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
 	OverrideNebulaExitNodeInterface string
+	ThisDeviceName string
+
+	// TODO REMOVE
+	ConstellationHostname string
+	IsExitNode bool
+	IsRelayNode bool
 }
 
 type ConstellationDNSEntry struct {

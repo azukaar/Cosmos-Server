@@ -37,7 +37,7 @@ func CheckConstellationToken(req *http.Request) error {
 	utils.Log("DeviceConfigSync: Fetching devices for IP " + ip)
 
 	cursor, err := c.Find(nil, map[string]interface{}{
-		"IP": ip + "/24",
+		"IP": ip,
 		"APIKey": auth,
 		"Blocked": false,
 	})

@@ -71,6 +71,9 @@ func startNebulaInBackground() error {
 
 	UpdateFirewallBlockedClients()
 	AdjustDNS(logBuffer)
+	// removed because cannot use multiple hostnames
+	// AdjustConfigHostname()
+	// removed because no retry logic if a node is disconnected: let Nebula handle it
 	//ValidateStaticHosts(logBuffer)
 
 	NebulaFailedStarting = false
@@ -273,6 +276,7 @@ func ResetNebula() error {
 	config.ConstellationConfig.SlaveMode = false
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
+	config.ConstellationConfig.ThisDeviceName = ""
 
 	utils.SetBaseMainConfig(config)
 
@@ -389,7 +393,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// if no lighthouses, be one
 	finalConfig.Lighthouse.AMLighthouse = len(finalConfig.Lighthouse.Hosts) == 0
 
-	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
+	finalConfig.Relay.AMRelay = overwriteConfig.IsRelayNode
 
 	finalConfig.Relay.Relays = []string{}
 	for _, l := range lh {
@@ -504,7 +508,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		relayMap["am_relay"] = device.IsRelay && device.IsLighthouse
 		relayMap["use_relays"] = !(device.IsRelay && device.IsLighthouse)
 		relayMap["relays"] = []string{}
-		if utils.GetMainConfig().ConstellationConfig.NebulaConfig.Relay.AMRelay {
+		if utils.GetMainConfig().ConstellationConfig.IsRelayNode {
 			relayMap["relays"] = append(relayMap["relays"].([]string), "192.168.201.1")
 		}
 
@@ -771,6 +775,8 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
+
+	ip = ip + "/24"
 	
 	// Read the generated certificate and key files
 	certPath := fmt.Sprintf("./%s.crt", name)
@@ -998,7 +1004,7 @@ func generateNebulaCACert(name string) error {
 }
 
 func GetDeviceIp(device string) string {
-	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
+	return CachedDeviceNames[device]
 }
 
 func populateIPTableMasquerade() {
@@ -1136,4 +1142,28 @@ func pingLighthouse(lh utils.ConstellationDevice, retries int) {
 	} else {
 		utils.Debug("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is reachable")
 	}
+}
+
+func GetCurrentDevice() utils.ConstellationDevice {
+	config := utils.GetMainConfig()
+	name := config.ConstellationConfig.ThisDeviceName
+	return CachedDevices[name]
+}	
+
+func GetCurrentDeviceName() string {
+	config := utils.GetMainConfig()
+	name := config.ConstellationConfig.ThisDeviceName
+	return name
+}
+
+func GetCurrentDeviceAPIKey() string {
+	config := utils.GetMainConfig()
+	name := config.ConstellationConfig.ThisDeviceName
+	return CachedDevices[name].APIKey
+}
+
+func GetCurrentDeviceIP() string {
+	config := utils.GetMainConfig()
+	name := config.ConstellationConfig.ThisDeviceName
+	return CachedDevices[name].IP
 }

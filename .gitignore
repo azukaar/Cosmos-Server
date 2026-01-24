@@ -28,3 +28,4 @@ rclone
 rclone-arm
 test-backup
 /backups
+ca.pem

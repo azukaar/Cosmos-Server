@@ -79,7 +79,7 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		IP:         "192.168.201.1",
 		IsLighthouse: true,
 		IsCosmosNode: true,
-		IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
+		IsRelay: config.ConstellationConfig.IsRelayNode,
 		IsExitNode: config.ConstellationConfig.IsExitNode,
 		PublicHostname: config.ConstellationConfig.ConstellationHostname,
 		Port: "4242",

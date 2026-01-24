@@ -114,6 +114,18 @@ function connect(file) {
   });
 }
 
+function create(deviceName) {
+  return wrap(fetch(`/cosmos/api/constellation/create`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      deviceName
+    }),
+  }))
+}
+
 function block(nickname, devicename, block) {
   return wrap(fetch(`/cosmos/api/constellation/block`, {
     method: 'POST',
@@ -137,5 +149,6 @@ export {
   connect,
   block,
   ping,
+  create,
   pingDevice,
 };

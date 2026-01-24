@@ -2,18 +2,13 @@ package constellation
 
 import (
 	"github.com/azukaar/cosmos-server/src/utils" 
-	"os"
 	"time"
 	"strings"
-	"io/ioutil"
-	"gopkg.in/yaml.v2"
 )
 
 var NebulaStarted = false
 var CachedDeviceNames = map[string]string{}
 var CachedDevices = map[string]utils.ConstellationDevice{}
-var DeviceName = ""
-var APIKey = ""
 
 func resyncConstellationNodes() {
 	if utils.GetMainConfig().ConstellationConfig.Enabled {
@@ -24,6 +19,25 @@ func resyncConstellationNodes() {
 }
 
 func Init() {
+	InitConfig()
+	
+	// if no hostname yet, set default one
+	if utils.GetMainConfig().ConstellationConfig.ConstellationHostname == "" {
+		utils.Log("Constellation: no hostname found, setting default one...")
+		hostnames, _ := utils.ListIps(true)
+		httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
+		if(utils.IsDomain(httpHostname)) {
+			hostnames = append(hostnames, "vpn." + httpHostname)
+		} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
+			hostnames = append(hostnames, httpHostname)
+		}
+		configFile := utils.ReadConfigFromFile()
+		configFile.ConstellationConfig.ConstellationHostname = strings.Join(hostnames, ", ")
+		utils.SetBaseMainConfig(configFile)
+	} else {
+		utils.Log("Constellation: hostname found: " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+	}
+
 	utils.ResyncConstellationNodes = resyncConstellationNodes
 	utils.ConstellationSlaveIPWarning = ""
 
@@ -50,47 +64,7 @@ func Init() {
 				return
 			}
 
-			InitConfig()
-			
 			utils.Log("Initializing Constellation module...")
-
-			// if no hostname yet, set default one
-			if utils.GetMainConfig().ConstellationConfig.ConstellationHostname == "" {
-				utils.Log("Constellation: no hostname found, setting default one...")
-				hostnames, _ := utils.ListIps(true)
-				httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
-				if(utils.IsDomain(httpHostname)) {
-					hostnames = append(hostnames, "vpn." + httpHostname)
-				} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
-					hostnames = append(hostnames, httpHostname)
-				}
-				configFile := utils.ReadConfigFromFile()
-				configFile.ConstellationConfig.ConstellationHostname = strings.Join(hostnames, ", ")
-				utils.SetBaseMainConfig(configFile)
-			} else {
-				utils.Log("Constellation: hostname found: " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
-			}
-
-			// check if ca.crt exists
-			if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
-				utils.Log("Constellation: ca.crt not found, generating...")
-				// generate ca.crt
-				
-				errG := generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
-				if errG != nil {
-					utils.Error("Constellation: error while generating ca.crt", errG)
-				}
-			}
-
-			// check if cosmos.crt exists
-			if _, err := os.Stat(utils.CONFIGFOLDER + "cosmos.crt"); os.IsNotExist(err) {
-				utils.Log("Constellation: cosmos.crt not found, generating...")
-				// generate cosmos.crt
-				_,_,_,errG := generateNebulaCert("cosmos", "192.168.201.1/24", "", true)
-				if errG != nil {
-					utils.Error("Constellation: error while generating cosmos.crt", errG)
-				}
-			}
 
 			// export nebula.yml
 			utils.Log("Constellation: exporting nebula.yml...")
@@ -140,29 +114,6 @@ func Init() {
 			}
 		}
 
-		// cache device name and api key
-		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
-		if err == nil {
-			configMap := make(map[string]interface{})
-			err = yaml.Unmarshal(nebulaFile, &configMap)
-			if err != nil {
-				utils.Error("Constellation: error while unmarshalling nebula.yml", err)
-			} else {
-				if configMap["cstln_device_name"] == nil || configMap["cstln_api_key"] == nil {
-					utils.Warn("Constellation: device name or api key not found in nebula.yml")
-					DeviceName = ""
-					APIKey = ""
-				} else {
-					DeviceName = configMap["cstln_device_name"].(string)
-					APIKey = configMap["cstln_api_key"].(string)
-				}
-			}
-		} else {
-			utils.Error("Constellation: error while reading nebula.yml", err)
-			DeviceName = ""
-			APIKey = ""
-		}
-
 		// Does not work because of Digital Ocean's floating IP's gateway system
 		// if utils.GetMainConfig().ConstellationConfig.SlaveMode {
 		// 	// check if the IP
@@ -188,7 +139,7 @@ func Init() {
 		}
 		
 		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			go (func() {				
+			go (func() {
 				InitNATSClient()
 
 				var err error

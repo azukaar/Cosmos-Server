@@ -9,6 +9,7 @@ import { Alert, Button, Chip, CircularProgress, IconButton, LinearProgress, Stac
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
+import * as Yup from "yup";
 import { LoadingButton } from "@mui/lab";
 import ApiModal from "../../components/apiModal";
 import { isDomain } from "../../utils/indexs";
@@ -190,18 +191,31 @@ export const ConstellationVPN = ({ freeVersion }) => {
               </>}
               {(isAdmin || constellationEnabled) && <Formik
                 enableReinitialize
+                validationSchema={Yup.object().shape({
+                  DeviceName: Yup.string().required().min(3).max(32)
+                    .matches(/^[a-z0-9-]+$/, t('mgmt.constellation.setup.deviceName.validationError')),
+                })}
                 initialValues={{
+                  DeviceName: config.ConstellationConfig.ThisDeviceName || '',
                   Enabled: config.ConstellationConfig.Enabled,
-                  IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
+                  IsRelay: config.ConstellationConfig.IsRelayNode,
                   IsExitNode: config.ConstellationConfig.IsExitNode,
                   SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
                   ConstellationHostname: (config.ConstellationConfig.ConstellationHostname && config.ConstellationConfig.ConstellationHostname != "") ? config.ConstellationConfig.ConstellationHostname :
                     getDefaultConstellationHostname(config)
                 }}
-                onSubmit={(values) => {
+                onSubmit={async (values) => {
+                  const isCreating = !config.ConstellationConfig.ThisDeviceName;
+                  if (isCreating) {
+                    await API.constellation.create(values.DeviceName);
+                    setTimeout(() => {
+                      refreshConfig();
+                    }, 1500);
+                    return;
+                  }
                   let newConfig = { ...config };
                   newConfig.ConstellationConfig.Enabled = values.Enabled;
-                  newConfig.ConstellationConfig.NebulaConfig.Relay.AMRelay = values.IsRelay;
+                  newConfig.ConstellationConfig.IsRelayNode = values.IsRelay;
                   newConfig.ConstellationConfig.IsExitNode = values.IsExitNode;
                   newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
                   newConfig.ConstellationConfig.DoNotSyncNodes = !values.SyncNodes;
@@ -318,7 +332,16 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       </div>}
 
                       {!freeVersion && <>
-                        <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
+                        <CosmosInputText
+                          disabled={!isAdmin || !!config.ConstellationConfig.ThisDeviceName}
+                          formik={formik}
+                          name="DeviceName"
+                          label={t('mgmt.constellation.setup.deviceName.label')}
+                        />
+
+                        {config.ConstellationConfig.ThisDeviceName && (
+                          <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
+                        )}
 
                         {constellationEnabled && !config.ConstellationConfig.SlaveMode && <>
                           {formik.values.Enabled && <>
@@ -338,7 +361,9 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           variant="contained"
                           color="primary"
                         >
-                          {t('global.saveAction')}
+                          {config.ConstellationConfig.ThisDeviceName
+                            ? t('global.saveAction')
+                            : t('mgmt.constellation.setup.createConstellation')}
                         </LoadingButton>
                         </>}
                       </>}

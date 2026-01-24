@@ -28,7 +28,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const {role, nickname} = useClientInfos();
   const isAdmin = role === "2";
 
-  let firstIP = "192.168.201.2/24";
+  let firstIP = "192.168.201.2";
   if (devices && devices.length > 0) { 
     const isIpFree = (ip) => {
       return devices.filter((d) => d.ip === ip).length === 0;
@@ -41,7 +41,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
         i = 0;
         j++;
       }
-      firstIP = "192.168." + j + "." + i + "/24";
+      firstIP = "192.168." + j + "." + i;
     }
   }
 
@@ -81,6 +81,8 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
         }}
 
         validationSchema={yup.object({
+          deviceName: yup.string().required().min(3).max(32)
+            .matches(/^[a-z0-9-]+$/, t('mgmt.constellation.setup.deviceName.validationError')),
         })}
 
         onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {

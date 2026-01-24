@@ -251,6 +251,8 @@
 	"mgmt.constellation.resetLabel": "Reset Network",
 	"mgmt.constellation.resetText": "This will completely reset the network, and disconnect all the clients. You will need to reconnect them. This cannot be undone.",
 	"mgmt.constellation.restartButton": "Restart VPN Service",
+	"mgmt.constellation.setup.createConstellation": "Create Constellation",
+	"mgmt.constellation.setup.deviceName.validationError": "Device must only contain lowercase letters, numbers and hyphens",
 	"mgmt.constellation.setup.addDeviceSuccess": "Device added successfully! Download scan the QR Code from the Cosmos app or download the relevant files to your device along side the config and network certificate to connect:",
 	"mgmt.constellation.setup.addDeviceText": "Add a Device to the constellation using either the Cosmos or Nebula client",
 	"mgmt.constellation.setup.addDeviceTitle": "Add Device",
