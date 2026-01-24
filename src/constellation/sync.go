@@ -12,9 +12,14 @@ type SyncPayload struct {
 	Database       string `json:"database"`
 	AuthPrivateKey string `json:"authPrivateKey"`
 	AuthPublicKey  string `json:"authPublicKey"`
+	LastEdited     int64  `json:"lastEdited"`
 }
 
-func MakeSyncPayload() string {
+type SyncRequestPayload struct {
+	EditedAt int64 `json:"editedAt"`
+}
+
+func MakeSyncPayload(rawPayload string) string {
 	utils.Log("Constellation: MakeSyncPayload: Making sync payload")
 	
 	// Read database file
@@ -24,6 +29,23 @@ func MakeSyncPayload() string {
 		utils.Error("Constellation: MakeSyncPayload: Failed to read database file", err)
 		return ""
 	}
+	
+	if (rawPayload != "") {
+		var payload SyncPayload
+		err := json.Unmarshal([]byte(rawPayload), &payload)
+		if err != nil {
+			utils.Error("Constellation: ReceiveSyncPayload: Failed to unmarshal payload", err)
+			return ""
+		}
+
+		editedAt := payload.LastEdited
+
+		// If our local is older or same, skip sending
+		if utils.GetFileLastModifiedTime(dbPath).Unix() <= editedAt {
+			utils.Warn("Constellation: MakeSyncPayload: Local database is older or same as requested one, skipping sending")
+			return ""
+		}
+	}
 
 	// Encode database content to base64
 	dbBase64 := base64.StdEncoding.EncodeToString(dbData)
@@ -32,14 +54,15 @@ func MakeSyncPayload() string {
 	AuthPrivateKey := utils.GetMainConfig().HTTPConfig.AuthPrivateKey
 	AuthPublicKey := utils.GetMainConfig().HTTPConfig.AuthPublicKey
 
-	payload := SyncPayload{
+	sendPayload := SyncPayload{
 		Database:       dbBase64,
 		AuthPrivateKey: AuthPrivateKey,
 		AuthPublicKey:  AuthPublicKey,
+		LastEdited:    utils.GetFileLastModifiedTime(dbPath).Unix(),
 	}
 
 	// JSON encode the payload
-	payloadBytes, err := json.Marshal(payload)
+	payloadBytes, err := json.Marshal(sendPayload)
 	if err != nil {
 		utils.Error("Constellation: MakeSyncPayload: Failed to marshal payload", err)
 		return ""
@@ -54,7 +77,7 @@ func ReceiveSyncPayload(rawPayload string) {
 	var payload SyncPayload
 	err := json.Unmarshal([]byte(rawPayload), &payload)
 	if err != nil {
-		utils.Error("Constellation: ReceiveSyncPayload: Failed to unmarshal payload", err)
+		utils.Error("Constellation: ReceiveSyncPayload: Failed to unmarshal payload " + rawPayload, err)
 		return
 	}
 
@@ -67,6 +90,13 @@ func ReceiveSyncPayload(rawPayload string) {
 
 	// Write database file
 	dbPath := utils.CONFIGFOLDER + "database"
+
+	// if local database is newer or same, skip update
+	if utils.FileExists(dbPath) && utils.GetFileLastModifiedTime(dbPath).Unix() >= payload.LastEdited {
+		utils.Warn("Constellation: ReceiveSyncPayload: Local database is newer or same as received one, skipping update")
+		return
+	}
+
 	err = ioutil.WriteFile(dbPath, dbData, 0644)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to write database file", err)
@@ -96,33 +126,57 @@ func ReceiveSyncPayload(rawPayload string) {
 	}()
 }
 
-
-func RequestSyncPayload() {
-	user, _, err := GetNATSCredentials(!utils.GetMainConfig().ConstellationConfig.SlaveMode)
-	if err != nil {
-		utils.Error("Error getting constellation credentials", err)
+func SendRequestSyncMessage() {
+	if !NebulaStarted {
+		utils.Warn("Constellation: SendRequestSyncMessage: Nebula not started, skipping sync request")
 		return
 	}
 
-	user = sanitizeNATSUsername(user)
+	utils.Log("Constellation: SendRequestSyncMessage: Requesting sync payload")
+	
+	payload := SyncRequestPayload{
+		EditedAt: utils.GetFileLastModifiedTime(utils.CONFIGFOLDER + "database").Unix(),
+	}
 
-	response, err := SendNATSMessage("cosmos."+user+".constellation.data.sync-request", "")
-
+	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
-		utils.Error("Constellation: RequestSyncPayload: Failed to send request", err)
+		utils.Error("Constellation: SendRequestSyncMessage: Failed to marshal request payload", err)
 		return
 	}
+
+	payloadStr := string(payloadBytes)
+
+	response, err := SendNATSMessage("cosmos._global_.constellation.data.sync-request", payloadStr)
+
+	if err != nil {
+		utils.Error("Constellation: SendRequestSyncMessage: Failed to send request", err)
+		return
+	}
+
+	utils.Log("Constellation: SendRequestSyncMessage: Received sync response")
 
 	ReceiveSyncPayload(string(response))
 }
 
-func SendSyncPayload(username string) {
-	payload := MakeSyncPayload()
-
-	err := PublishNATSMessage("cosmos."+username+".constellation.data.sync-receive", payload)
-
-	if err != nil {
-		utils.Error("Constellation: SendSyncPayload: Failed to send payload", err)
+func SendNewDBSyncMessage() {
+	if !NebulaStarted {
 		return
 	}
+
+	utils.Log("Constellation: SendNewDBSyncMessage: sending sync payload")
+	
+	payload := MakeSyncPayload("")
+	if payload == "" {
+		utils.Warn("Constellation: SendNewDBSyncMessage: No sync payload to send")
+		return
+	}
+
+	response, err := SendNATSMessage("cosmos._global_.constellation.data.sync-receive", payload)
+
+	if err != nil {
+		utils.Error("Constellation: SendNewDBSyncMessage: Failed to send request", err)
+		return
+	}
+
+	ReceiveSyncPayload(string(response))
 }

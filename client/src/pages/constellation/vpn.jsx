@@ -338,6 +338,9 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           name="DeviceName"
                           label={t('mgmt.constellation.setup.deviceName.label')}
                         />
+                        
+                        <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
+                        <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={'Constellation ' + t('global.hostname')} />
 
                         {config.ConstellationConfig.ThisDeviceName && (
                           <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
@@ -349,8 +352,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                             {devices.length > 0 && <Alert severity="warning">{t('mgmt.constellation.setup.deviceConnectedWarn')}</Alert>}
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
                             <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsExitNode" label={t('mgmt.constellation.setup.exitNode.label')} />
-                            <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
-                            <CosmosInputText disabled={!isAdmin || devices.length > 0} formik={formik} name="ConstellationHostname" label={'Constellation ' + t('global.hostname')} />
                           </>}
                         </>}
 

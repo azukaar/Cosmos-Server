@@ -2,7 +2,6 @@ package constellation
 
 import (
 	"github.com/azukaar/cosmos-server/src/utils" 
-	"time"
 	"strings"
 )
 
@@ -11,22 +10,16 @@ var CachedDeviceNames = map[string]string{}
 var CachedDevices = map[string]utils.ConstellationDevice{}
 
 func resyncConstellationNodes() {
-	if utils.GetMainConfig().ConstellationConfig.Enabled {
-		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			TriggerClientResync()
-		}
-	}
+	go SendNewDBSyncMessage()
 }
 
-func Init() {
-	InitConfig()
-	
+func InitHostname() {
 	// if no hostname yet, set default one
 	if utils.GetMainConfig().ConstellationConfig.ConstellationHostname == "" {
 		utils.Log("Constellation: no hostname found, setting default one...")
 		hostnames, _ := utils.ListIps(true)
 		httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
-		if(utils.IsDomain(httpHostname)) {
+		if(utils.IsDomain(httpHostname) && !utils.IsLocalDomain(httpHostname)) {
 			hostnames = append(hostnames, "vpn." + httpHostname)
 		} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
 			hostnames = append(hostnames, httpHostname)
@@ -37,6 +30,10 @@ func Init() {
 	} else {
 		utils.Log("Constellation: hostname found: " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
 	}
+}
+
+func Init() {
+	InitConfig()
 
 	utils.ResyncConstellationNodes = resyncConstellationNodes
 	utils.ConstellationSlaveIPWarning = ""
@@ -53,6 +50,48 @@ func Init() {
 	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {
+		// populate CachedDeviceNames
+		utils.Log("Constellation: populating device names cache...")
+		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+		defer closeDb()
+
+		if errCo != nil {
+			utils.Error("Database Connect", errCo)
+		} else {
+			cursor, err := c.Find(nil, map[string]interface{}{})
+			defer cursor.Close(nil)
+
+			if err != nil {
+				utils.Error("DeviceList: Error fetching devices", err)
+			} else {
+				var devices []utils.ConstellationDevice
+
+				if err = cursor.All(nil, &devices); err != nil {
+					utils.Error("DeviceList: Error decoding devices", err)
+				} else {
+					for _, device := range devices {
+						if device.Blocked {
+							continue
+						}
+						CachedDeviceNames[device.DeviceName] = device.IP
+						CachedDevices[device.DeviceName] = device
+						utils.Debug("Constellation: device name cached: " + device.DeviceName + " -> " + device.IP)
+
+						if device.PublicHostname != "" {
+							publicHostnames := strings.Split(device.PublicHostname, ",")
+							for _, publicHostname := range publicHostnames {
+								CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
+								CachedDevices[strings.TrimSpace(publicHostname)] = device
+								utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
+							}
+						}
+					}
+
+					utils.Log("Constellation: device names cache populated")
+				}
+			}
+		}
+		
 		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
 			if !utils.FBL.LValid {
 				utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
@@ -74,44 +113,6 @@ func Init() {
 				utils.Error("Constellation: error while exporting nebula.yml", err)
 			}
 
-			// populate CachedDeviceNames
-			utils.Log("Constellation: populating device names cache...")
-			c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-			defer closeDb()
-
-			if errCo != nil {
-				utils.Error("Database Connect", errCo)
-			} else {
-				cursor, err := c.Find(nil, map[string]interface{}{})
-				defer cursor.Close(nil)
-
-				if err != nil {
-					utils.Error("DeviceList: Error fetching devices", err)
-				} else {
-					var devices []utils.ConstellationDevice
-
-					if err = cursor.All(nil, &devices); err != nil {
-						utils.Error("DeviceList: Error decoding devices", err)
-					} else {
-						for _, device := range devices {
-							CachedDeviceNames[device.DeviceName] = device.IP
-							CachedDevices[device.DeviceName] = device
-							utils.Debug("Constellation: device name cached: " + device.DeviceName + " -> " + device.IP)
-
-							if device.PublicHostname != "" {
-								publicHostnames := strings.Split(device.PublicHostname, ",")
-								for _, publicHostname := range publicHostnames {
-									CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
-									CachedDevices[strings.TrimSpace(publicHostname)] = device
-									utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
-								}
-							}
-						}
-	
-						utils.Log("Constellation: device names cache populated")
-					}
-				}
-			}
 		}
 
 		// Does not work because of Digital Ocean's floating IP's gateway system
@@ -138,7 +139,7 @@ func Init() {
 			utils.Error("Constellation: error while starting nebula", err)
 		}
 		
-		if utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		/*if utils.GetMainConfig().ConstellationConfig.SlaveMode {
 			go (func() {
 				InitNATSClient()
 
@@ -166,10 +167,10 @@ func Init() {
 					}
 				}
 			})()
-		} else {
+		} else {*/
 			go InitDNS()
 			go StartNATS()
-		}
+		//}
 		
 		go InitPingLighthouses()
 

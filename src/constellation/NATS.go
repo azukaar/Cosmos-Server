@@ -9,6 +9,8 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"encoding/pem"
+	"io/ioutil"
+	"gopkg.in/yaml.v2"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
@@ -20,7 +22,6 @@ import (
 
 type NodeHeartbeat struct {
 	DeviceName string
-	LastSeen time.Time
 	IP string
 	IsRelay bool
 	IsLighthouse bool
@@ -29,8 +30,6 @@ type NodeHeartbeat struct {
 }
 
 var ns *server.Server
-var MASTERUSER = "SERVERUSER"
-var MASTERPWD = utils.GenerateRandomString(24)
 
 func sanitizeNATSUsername(username string) string {
 	username = strings.ReplaceAll(username, " ", "_")
@@ -42,12 +41,55 @@ func sanitizeNATSUsername(username string) string {
 	return username
 }
 
+func GetNATSCredentials(isMaster bool) (string, string, error) {
+	currentDevice, _ := GetCurrentDevice()
+
+	utils.Debug("GetNATSCredentials: currentDevice.APIKey=" + currentDevice.APIKey + " currentDevice.DeviceName=" + currentDevice.DeviceName)
+
+	if currentDevice.APIKey != "" && currentDevice.DeviceName != "" {
+		return currentDevice.DeviceName, currentDevice.APIKey, nil
+	} else {
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err != nil {
+			utils.Error("GetNATSCredentials: error while reading nebula.yml", err)
+			return "", "", err
+		}
+
+		configMap := make(map[string]interface{})
+		err = yaml.Unmarshal(nebulaFile, &configMap)
+		if err != nil {
+			utils.Error("GetNATSCredentials: Invalid slave config file for resync", err)
+			return "", "", err
+		}
+
+		if configMap["cstln_api_key"] == nil || configMap["cstln_device_name"] == nil {
+			utils.Error("GetNATSCredentials: Invalid slave config file for resync", nil)
+			return "", "", errors.New("Invalid slave config file for resync")
+		}
+
+		apiKey := configMap["cstln_api_key"].(string)
+		deviceName := configMap["cstln_device_name"].(string)
+
+		utils.Debug("GetNATSCredentials: found credentials in nebula.yml: deviceName=" + deviceName + " apiKey=" + apiKey)
+
+		return deviceName, apiKey, nil
+	}
+
+	return "", "", errors.New("NATS credentials not found")
+}
+
 func StartNATS() {
 	if ns != nil {
 		return
 	}
 	
-	utils.Log("[NATS] Starting NATS server on " + GetCurrentDeviceIP() + ":4222")
+	ip,err := GetCurrentDeviceIP()
+	if err != nil {
+		utils.Error("[NATS] Failed to get current device IP", err)
+		return
+	}
+
+	utils.Log("[NATS] Starting NATS server on " + ip + ":4222")
 
 	time.Sleep(2 * time.Second)
 	
@@ -82,16 +124,11 @@ func StartNATS() {
 	// Configure the NATS server options
 	// Make users
 	
-	users := []*server.User{
-		&server.User{
-			Username: MASTERUSER,
-			Password: MASTERPWD,
-			Permissions: nil,
-		},
-	}
+	users := []*server.User{}
 
 	// if debug, add debug user 
 	for _, devices := range CachedDevices {
+		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + devices.APIKey)
 		username := sanitizeNATSUsername(devices.DeviceName)
 		
 		users = append(users, &server.User{
@@ -99,16 +136,32 @@ func StartNATS() {
 			Password: devices.APIKey,
 			Permissions: &server.Permissions{
 				Publish: &server.SubjectPermission{
-						Allow: []string{"cosmos."+username+".>", "_INBOX.>"},
+						Allow: []string{
+							"cosmos."+username+".>", "_INBOX.>",
+							"cosmos._global_.>", 
+							"_INBOX.>",
+							"$KV.constellation-nodes.>",
+		                    "$JS.API.STREAM.INFO.>",
+						},
 				},
 				Subscribe: &server.SubjectPermission{
-						Allow: []string{"cosmos."+username+".>", "_INBOX.>"},
+						Allow: []string{
+							"cosmos."+username+".>", "_INBOX.>",
+							"cosmos._global_.>",
+							"_INBOX.>",
+		                    "$KV.constellation-nodes.>",
+		                    "$JS.API.STREAM.INFO.>",
+						},
 				},
 			},
 		})
 	}
 
-	natsHost := GetCurrentDeviceIP()
+	natsHost, err := GetCurrentDeviceIP()
+	if err != nil {
+		utils.Error("[NATS] Failed to get current device IP", err)
+		return
+	}
 
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		users = append(users, &server.User{
@@ -179,9 +232,7 @@ func StartNATS() {
 		utils.MajorError("[NATS] Error starting NATS server", err)
 	} else {
 		utils.Log("[NATS] Started NATS server on host " + opts.Host + ":" + strconv.Itoa(opts.Port))
-		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			InitNATSClient()
-		}
+		InitNATSClient()
 	}
 }
 
@@ -239,6 +290,7 @@ func InitNATSClient() {
 		}),
 
 		nats.UserInfo(user, pwd),
+		
 	)
 
 	for err != nil {
@@ -284,24 +336,18 @@ func InitNATSClient() {
 
 	utils.Debug("[NATS] NATS client connected")
 
-	js, err = nc.JetStream()
+	js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
 	if err != nil {
 		utils.MajorError("[NATS] Error getting JetStream context", err)
 	}
 
 	utils.Debug("[NATS] JetStream context obtained")
 
-	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		go MasterNATSClientRouter()
-	} else {
-		clientConfigLock.Unlock()
-		go SlaveNATSClientRouter()
-		SendNATSMessage("cosmos."+user+".debug", "NATS Client connected as " + user)
-		RequestSyncPayload()
-		clientConfigLock.Lock()
-	}
+	go MasterNATSClientRouter()
 
 	ClientHeartbeatInit()
+
+	go SendRequestSyncMessage()
 
 	// POST CLIENT CONNECTION HOOK
 }
@@ -312,6 +358,7 @@ func ClientHeartbeatInit() {
 
 	kv, err = js.KeyValue("constellation-nodes")
 	if err != nil {
+		time.Sleep(2 * time.Second)
 		kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
 			Bucket: "constellation-nodes",
 			TTL:    10 * time.Second,
@@ -325,21 +372,25 @@ func ClientHeartbeatInit() {
 	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
 
 	go func() {
-		device := GetCurrentDevice()
-		key := sanitizeNATSUsername(device.DeviceName)
 		
 		ticker := time.NewTicker(2 * time.Second)
 		for range ticker.C {
+			device, err := GetCurrentDevice()
+			if err != nil {
+				utils.Error("[NATS] Error getting current device for heartbeat", err)
+				continue
+			}
+
+			key := sanitizeNATSUsername(device.DeviceName)
+
 			if !IsClientConnected() {
 				utils.Warn("[NATS] NATS client not connected during heartbeat")
 				InitNATSClient()
 			}
 
-			utils.Debug("[NATS] Updating heartbeat for " + device.DeviceName)
 			// insert JSON encoded heartbeat
 			heartbeat := NodeHeartbeat{
 				DeviceName: device.DeviceName,
-				LastSeen: time.Now(),
 				IP: device.IP,
 				IsRelay: device.IsRelay,
 				IsLighthouse: device.IsLighthouse,
@@ -426,89 +477,31 @@ func PublishNATSMessage(topic string, payload string) error {
 func MasterNATSClientRouter() {
 	utils.Log("[NATS] Starting NATS Master client router.")
 
-	nc.Subscribe("cosmos."+MASTERUSER+".ping", func(m *nats.Msg) {
+	nc.Subscribe("cosmos._global_.ping", func(m *nats.Msg) {
 		utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
 		m.Respond([]byte("Pong"))
 	})
 
-	for _, devices := range CachedDevices {
-		localDevice := devices
-		username := sanitizeNATSUsername(localDevice.DeviceName)
-		
-		nc.Subscribe("cosmos."+username+".debug", func(m *nats.Msg) {
-			utils.Debug("[MQ] Received: " + string(m.Data))
-			m.Respond([]byte("Received: " + string(m.Data)))
-		})
+	nc.Subscribe("cosmos._global_.constellation.data.sync-request", func(m *nats.Msg) {
+		utils.Log("[NATS] Constellation data sync request received")
 
-		nc.Subscribe("cosmos."+username+".ping", func(m *nats.Msg) {
-			utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
-			m.Respond([]byte("Pong"))
-		})
-
-		nc.Subscribe("cosmos."+username+".constellation.config", func(m *nats.Msg) {
-			utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
-
-			res, err := GetDeviceConfigForSync(localDevice.Nickname, localDevice.DeviceName)
-			if err != nil {
-				utils.Error("Error getting device config for sync", err)
-			} else {
-				m.Respond([]byte(res))
-			}
-		})
-
-		if localDevice.IsCosmosNode {
-			nc.Subscribe("cosmos."+username+".constellation.data.sync-request", func(m *nats.Msg) {
-				if !utils.GetMainConfig().ConstellationConfig.SlaveMode && !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
-					utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
-					m.Respond([]byte(MakeSyncPayload()))
-				}
-			})
-		}
-	}
-}
-
-func SlaveNATSClientRouter() {
-	utils.Log("Starting NATS Slave client router.")
-
-	username := sanitizeNATSUsername(GetCurrentDeviceName())
-
-	nc.Subscribe("cosmos."+username+".constellation.config.resync", func(m *nats.Msg) {
-		utils.Log("[NATS] Constellation config changed, resyncing...")
-		
-		config := m.Data
-
-		needRestart, err := SlaveConfigSync((string)(config))
-
-		if err != nil {
-			utils.MajorError("[NATS] Error re-syncing Constellation config, please manually sync", err)
-		} else {
-			if needRestart {
-				utils.Warn("[NATS] Slave config has changed, restarting Nebula...")
-				RestartNebula()
-				utils.RestartHTTPServer()
-			}
+		payload := m.Data
+		response := MakeSyncPayload((string)(payload))
+		if response != "" {
+			m.Respond([]byte(response))
 		}
 	})
 	
-	nc.Subscribe("cosmos."+username+".constellation.data.sync-receive", func(m *nats.Msg) {
+	nc.Subscribe("cosmos._global_.constellation.data.sync-receive", func(m *nats.Msg) {
 		utils.Log("[NATS] Constellation data sync received")
 		
 		payload := m.Data
-
 		ReceiveSyncPayload((string)(payload))
 	})
 }
 
 func PingNATSClient() bool {
-	user, _, err := GetNATSCredentials(!utils.GetMainConfig().ConstellationConfig.SlaveMode)
-	if err != nil {
-		utils.Error("[NATS] Error getting constellation credentials", err)
-		return false
-	}
-
-	user = sanitizeNATSUsername(user)
-
-	response, err := SendNATSMessage("cosmos."+user+".ping", "Ping")
+	response, err := SendNATSMessage("cosmos._global_.ping", "Ping")
 	if err != nil {
 		utils.Error("[NATS] Error pinging NATS client", err)
 		return false

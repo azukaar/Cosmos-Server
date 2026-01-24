@@ -19,6 +19,8 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		utils.ConfigLock.Lock()
 		defer utils.ConfigLock.Unlock()
 
+		InitHostname()
+		
 		utils.Log("API_NewConstellation: creating new Constellation")
 
 		var request struct {
@@ -64,6 +66,8 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 			IsLighthouse: true,
 			IsCosmosNode: true,
 			Nickname: "",
+			PublicHostname: utils.GetMainConfig().ConstellationConfig.ConstellationHostname,
+			Port: "4242",
 		}
 
 		_, _, _, response, err := DeviceCreate(DeviceCreateRequest)

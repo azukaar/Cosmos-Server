@@ -285,7 +285,7 @@ func GetDeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 		utils.Log("DeviceConfigManualSync: Resync Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  	defer closeDb()
+  		defer closeDb()
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -348,21 +348,6 @@ func GetDeviceConfigManualSync(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}
-}
-
-func GetNATSCredentials(isMaster bool) (string, string, error) {
-	if isMaster {
-		return MASTERUSER, MASTERPWD, nil
-	}
-
-	currentDevice := GetCurrentDevice()
-
-	if currentDevice.APIKey == "" || currentDevice.DeviceName == "" {
-		utils.Error("GetNATSCredentials: Invalid slave config file for resync", nil)
-		return "", "", errors.New("Invalid slave config file for resync")
-	}
-
-	return currentDevice.DeviceName, currentDevice.APIKey, nil
 }
 
 func SlaveConfigSync(newConfig string) (bool, error) {
@@ -566,9 +551,9 @@ func TriggerClientResync() error {
 				utils.Error("TriggerClientResync: Error sending resync message to client", err)
 			}
 
-			if !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
-				SendSyncPayload(username)
-			}
+			// if !utils.GetMainConfig().ConstellationConfig.DoNotSyncNodes {
+			// 	SendSyncPayload(username)
+			// }
 			
 			utils.Log("TriggerClientResync: Resync message sent to " + username)
 		}

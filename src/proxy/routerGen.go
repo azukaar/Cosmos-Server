@@ -81,9 +81,11 @@ func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// If the request is from a Constellation tunnel, add the token
-			if route.TunnelVia == constellation.GetCurrentDeviceName() {
+			deviceName, _ := constellation.GetCurrentDeviceName()
+			apiKey, _ := constellation.GetCurrentDeviceAPIKey()
+			if route.TunnelVia == deviceName {
 				// Add the token
-				r.Header.Set("x-cstln-auth", constellation.GetCurrentDeviceAPIKey())
+				r.Header.Set("x-cstln-auth", apiKey)
 			}
 
 			next.ServeHTTP(w, r)

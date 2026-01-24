@@ -254,7 +254,7 @@ func GetNumberUsersFromToken(serverToken string) (int, int) {
 	}
 
 	nbUser := 20
-	nbNodes := 1
+	nbNodes := 2
 	
 	// get the number of users
 	userNumber, ok := claims["nbUsers"].(float64)
@@ -266,7 +266,7 @@ func GetNumberUsersFromToken(serverToken string) (int, int) {
 
 	cosmosNodeNumber, ok := claims["nbCosmosNodes"].(float64)
 	if !ok {
-		Log("[Cloud] Could not get number of cosmos nodes from token, defaulting to 1")
+		Log("[Cloud] Could not get number of cosmos nodes from token, defaulting to 2")
 	} else {
 		nbNodes = int(cosmosNodeNumber)
 	}

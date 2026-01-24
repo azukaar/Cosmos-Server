@@ -639,7 +639,11 @@ func InitServer() *mux.Router {
 	SecureAPI(srapi, false, false)
 	SecureAPI(srapiAdmin, false, false)
 	
-	pwd,_ := os.Getwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		utils.Fatal("Getting pwd", err)
+	}
+	
 	utils.Log("Starting in " + pwd)
 	if _, err := os.Stat(pwd + "/static"); os.IsNotExist(err) {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)

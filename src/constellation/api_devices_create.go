@@ -63,6 +63,12 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 		}
 
 		cert, key, _, request, err := DeviceCreate(request)
+		if err != nil {
+			utils.Error("DeviceCreation: Error creating device", err)
+			utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+				http.StatusInternalServerError, "DC003")
+			return
+		}
 
 		APIKey := request.APIKey
 		deviceName := request.DeviceName
@@ -84,8 +90,8 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
 				IsCosmosNode: request.IsCosmosNode,
-				IsRelay: request.IsLighthouse && request.IsRelay,
-				IsExitNode: request.IsLighthouse && request.IsExitNode,
+				IsRelay: request.IsRelay,
+				IsExitNode: request.IsExitNode,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
@@ -128,12 +134,12 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
 					"IsCosmosNode": request.IsCosmosNode,
-					"IsRelay": request.IsLighthouse && request.IsRelay,
-					"IsExitNode": request.IsLighthouse && request.IsExitNode,
+					"IsRelay": request.IsRelay,
+					"IsExitNode": request.IsExitNode,
 					"PublicHostname": request.PublicHostname,
 					"Port": request.Port,
 					"LighthousesList": lightHousesList,
-					"Invisible": request.Invisible && !request.IsLighthouse,
+					"Invisible": request.Invisible,
 				},
 			})
 			
@@ -222,6 +228,12 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			return "", "", "", DeviceCreateRequestJSON{}, err
 		}
 
+		if (!request.IsLighthouse ) {
+			request.IsRelay = false
+			request.IsExitNode = false
+			request.Invisible = false
+		}
+
 		_, err3 := c.InsertOne(nil, map[string]interface{}{
 			"Nickname": nickname,
 			"DeviceName": deviceName,
@@ -229,14 +241,14 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			"IP": request.IP,
 			"IsLighthouse": request.IsLighthouse,
 			"IsCosmosNode": request.IsCosmosNode,
-			"IsRelay": request.IsLighthouse && request.IsRelay,
-			"IsExitNode": request.IsLighthouse && request.IsExitNode,
+			"IsRelay": request.IsRelay,
+			"IsExitNode": request.IsExitNode,
 			"PublicHostname": request.PublicHostname,
 			"Port": request.Port,
 			"Fingerprint": fingerprint,
 			"APIKey": APIKey,
 			"Blocked": false,
-			"Invisible": request.Invisible && !request.IsLighthouse,
+			"Invisible": request.Invisible,
 		})
 
 		if err3 != nil {
@@ -246,9 +258,10 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 		request.Nickname = nickname
 		request.DeviceName = deviceName
 		request.PublicKey = key
-		request.IsRelay = request.IsLighthouse && request.IsRelay
-		request.IsExitNode = request.IsLighthouse && request.IsExitNode
-		request.Invisible = request.Invisible && !request.IsLighthouse
+		request.IsRelay = request.IsRelay
+		request.IsExitNode = request.IsExitNode
+		request.Invisible = request.Invisible
+		request.APIKey = APIKey	
 
 		return cert, key, fingerprint, request, nil
 	} else if err2 == nil {

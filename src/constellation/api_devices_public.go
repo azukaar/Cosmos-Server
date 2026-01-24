@@ -71,21 +71,6 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Always add the cosmos lighthouse device
-	config := utils.GetMainConfig()
-	cosmosDevice := utils.ConstellationDevice{
-		DeviceName: "cosmos",
-		Nickname:   "cosmos",
-		IP:         "192.168.201.1",
-		IsLighthouse: true,
-		IsCosmosNode: true,
-		IsRelay: config.ConstellationConfig.IsRelayNode,
-		IsExitNode: config.ConstellationConfig.IsExitNode,
-		PublicHostname: config.ConstellationConfig.ConstellationHostname,
-		Port: "4242",
-	}
-	devices = append([]utils.ConstellationDevice{cosmosDevice}, devices...)
-
 	// Convert to public device info with limited fields
 	publicDevices := make([]PublicDeviceInfo, len(devices))
 	for i, device := range devices {

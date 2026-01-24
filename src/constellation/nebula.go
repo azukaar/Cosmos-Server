@@ -335,7 +335,7 @@ func cleanIp(ip string) string {
 }
 
 func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath string) error {
-	// Combine defaultConfig and overwriteConfig
+	// Combine defaultConfig
 	finalConfig := NebulaDefaultConfig
 
 	hostnames := []string{}
@@ -348,20 +348,22 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		}
 	}
 
-	finalConfig.StaticHostMap = map[string][]string{
-		"192.168.201.1": hostnames,
-	}
-
 	// for each lighthouse
 	lh, err := GetAllLightHouses()
 	if err != nil {
 		return err
 	}
 
+	myDevice, _ := GetCurrentDevice()
+	myIP, _ := GetCurrentDeviceIP()
+
 	for _, l := range lh {
-		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
-			// l.PublicHostname + ":" + l.Port,
+		utils.Warn("Lighthouse found: " + l.DeviceName + " at " + l.IP + " (" + myIP + ")")
+		if cleanIp(l.IP) == cleanIp(myIP) {
+			continue
 		}
+
+		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{}
 
 		for _, hostname := range strings.Split(l.PublicHostname, ",") {
 			hostname = strings.TrimSpace(hostname)
@@ -386,18 +388,24 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	// add other lighthouses 
 	// if !finalConfig.Lighthouse.AMLighthouse {
 		for _, l := range lh {
+			if cleanIp(l.IP) == cleanIp(myIP) {
+				continue
+			}
 			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
 		}
 	// }
 
 	// if no lighthouses, be one
-	finalConfig.Lighthouse.AMLighthouse = len(finalConfig.Lighthouse.Hosts) == 0
+	finalConfig.Lighthouse.AMLighthouse = myDevice.IsLighthouse
 
-	finalConfig.Relay.AMRelay = overwriteConfig.IsRelayNode
+	finalConfig.Relay.AMRelay = myDevice.IsRelay
 
 	finalConfig.Relay.Relays = []string{}
 	for _, l := range lh {
 		if l.IsRelay {
+			if cleanIp(l.IP) == cleanIp(myIP) {
+				continue
+			}
 			finalConfig.Relay.Relays = append(finalConfig.Relay.Relays, cleanIp(l.IP))
 		}
 	}
@@ -460,14 +468,13 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			}
 		}
 
-		staticHostMap["192.168.201.1"] = hostnames
-
 		for _, l := range lh {
-			staticHostMap[cleanIp(l.IP)] = []string{
-				// l.PublicHostname + ":" + l.Port,
-			}
+			staticHostMap[cleanIp(l.IP)] = []string{}
 
 			for _, hostname := range strings.Split(l.PublicHostname, ",") {
+				if device.IP == l.IP {
+					continue
+				}
 				hostname = strings.TrimSpace(hostname)
 				staticHostMap[cleanIp(l.IP)] = append(staticHostMap[cleanIp(l.IP)].([]string), hostname + ":" + l.Port)
 			}
@@ -572,6 +579,9 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
 	configMap["cstln_is_exit_node"] = device.IsExitNode
+	configMap["cstln_is_relay"] = device.IsRelay
+	configMap["cstln_is_lighthouse"] = device.IsLighthouse
+	configMap["cstln_ip"] = device.IP
 
 	if getLicence {
 		// get client licence
@@ -1144,26 +1154,111 @@ func pingLighthouse(lh utils.ConstellationDevice, retries int) {
 	}
 }
 
-func GetCurrentDevice() utils.ConstellationDevice {
+func GetCurrentDeviceName() (string, error) {
 	config := utils.GetMainConfig()
 	name := config.ConstellationConfig.ThisDeviceName
-	return CachedDevices[name]
+	if name == "" {
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: error while reading nebula.yml", err)
+			return "", err
+		}
+
+		configMap := make(map[string]interface{})
+		err = yaml.Unmarshal(nebulaFile, &configMap)
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: Invalid slave config file for resync", err)
+			return "", err
+		}
+
+		if configMap["cstln_device_name"] == nil {
+			return "", errors.New("Invalid slave config file for resync")
+		}
+
+		deviceName := configMap["cstln_device_name"].(string)
+
+		return deviceName, nil
+	}
+	return name, nil
+}
+
+func GetCurrentDevice() (utils.ConstellationDevice, error) {
+	name, err := GetCurrentDeviceName()
+	if err != nil {
+		return utils.ConstellationDevice{}, err
+	}
+	
+	device, exists := CachedDevices[name]
+	if !exists {
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: error while reading nebula.yml", err)
+			return utils.ConstellationDevice{}, err
+		}
+
+		configMap := make(map[string]interface{})
+		err = yaml.Unmarshal(nebulaFile, &configMap)
+		if err != nil {
+			utils.Error("GetCurrentDevice: Invalid slave config file for resync", err)
+			return utils.ConstellationDevice{}, err
+		}
+
+		device = utils.ConstellationDevice{}
+
+		if configMap["cstln_device_name"] != nil  {
+			device.DeviceName = configMap["cstln_device_name"].(string)
+		} else {
+			return utils.ConstellationDevice{}, errors.New("Invalid slave config file for resync")
+		}
+
+		if configMap["cstln_ip"] != nil  {
+			device.IP = configMap["cstln_ip"].(string)
+		}
+
+		if configMap["cstln_public_hostname"] != nil  {
+			device.PublicHostname = configMap["cstln_public_hostname"].(string)
+		}
+
+		if configMap["cstln_is_cosmos_node"] != nil  {
+			device.IsCosmosNode = configMap["cstln_is_cosmos_node"].(bool)
+		}
+
+		if configMap["cstln_is_exit_node"] != nil  {
+			device.IsExitNode = configMap["cstln_is_exit_node"].(bool)
+		}
+
+		if configMap["cstln_is_relay"] != nil  {
+			device.IsRelay = configMap["cstln_is_relay"].(bool)
+		}
+
+		if configMap["cstln_is_lighthouse"] != nil  {
+			device.IsLighthouse = configMap["cstln_is_lighthouse"].(bool)
+		}
+
+		if configMap["cstln_api_key"] != nil  {
+			device.APIKey = configMap["cstln_api_key"].(string)
+		} else {
+			return utils.ConstellationDevice{}, errors.New("Invalid slave config file for resync")
+		}
+
+		return device, nil
+	}
+	
+	return device, nil
 }	
 
-func GetCurrentDeviceName() string {
-	config := utils.GetMainConfig()
-	name := config.ConstellationConfig.ThisDeviceName
-	return name
+func GetCurrentDeviceAPIKey() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return "", errors.New("current device not found in cache")
+	}
+	return device.APIKey, nil
 }
 
-func GetCurrentDeviceAPIKey() string {
-	config := utils.GetMainConfig()
-	name := config.ConstellationConfig.ThisDeviceName
-	return CachedDevices[name].APIKey
-}
-
-func GetCurrentDeviceIP() string {
-	config := utils.GetMainConfig()
-	name := config.ConstellationConfig.ThisDeviceName
-	return CachedDevices[name].IP
+func GetCurrentDeviceIP() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return "", errors.New("current device not found in cache")
+	}
+	return device.IP, nil
 }

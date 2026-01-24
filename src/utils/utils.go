@@ -891,6 +891,13 @@ func IsDomain(domain string) bool {
 	return false
 }
 
+func IsLocalDomain(domain string) bool {
+	if strings.HasSuffix(domain, ".local") || strings.HasSuffix(domain, ".lan") || strings.HasSuffix(domain, ".home") {
+		return true
+	}
+	return false
+}
+
 func CheckHostNetwork() {
   IsHostNetwork =	CheckDockerNetworkMode() == "host"
 	Log("Cosmos IsHostNetwork: " + strconv.FormatBool(IsHostNetwork))
@@ -1214,4 +1221,12 @@ func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
 	}
 
 	return hostname, proxyRoute
+}
+
+func GetFileLastModifiedTime(path string) time.Time {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}
+	}
+	return fileInfo.ModTime()
 }
