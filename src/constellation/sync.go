@@ -3,6 +3,7 @@ package constellation
 import (
 	"encoding/base64"
 	"encoding/json"
+	"strconv"
 	"io/ioutil"
 
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -93,7 +94,7 @@ func ReceiveSyncPayload(rawPayload string) {
 
 	// if local database is newer or same, skip update
 	if utils.FileExists(dbPath) && utils.GetFileLastModifiedTime(dbPath).Unix() >= payload.LastEdited {
-		utils.Warn("Constellation: ReceiveSyncPayload: Local database is newer or same as received one, skipping update")
+		utils.Warn("Constellation: ReceiveSyncPayload: Local database is newer or same as received one, skipping update -  local time:" + strconv.FormatInt(utils.GetFileLastModifiedTime(dbPath).Unix(), 10) + " received time:" + strconv.FormatInt(payload.LastEdited, 10))
 		return
 	}
 
@@ -103,7 +104,14 @@ func ReceiveSyncPayload(rawPayload string) {
 		return
 	}
 
-	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated")
+	// set the last modified time to the one received
+	err = utils.SetFileLastModifiedTime(dbPath, payload.LastEdited)
+	if err != nil {
+		utils.Error("Constellation: ReceiveSyncPayload: Failed to set database file last modified time", err)
+		return
+	}
+
+	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated -  local time:" + strconv.FormatInt(utils.GetFileLastModifiedTime(dbPath).Unix(), 10) + " received time:" + strconv.FormatInt(payload.LastEdited, 10))
 
 	// Update auth keys
 	config := utils.ReadConfigFromFile()

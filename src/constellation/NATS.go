@@ -11,6 +11,7 @@ import (
 	"encoding/pem"
 	"io/ioutil"
 	"gopkg.in/yaml.v2"
+    "net/url"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
@@ -39,6 +40,31 @@ func sanitizeNATSUsername(username string) string {
 	username = strings.ReplaceAll(username, "/", "_")
 	username = strings.ReplaceAll(username, "\\", "_")
 	return username
+}
+
+func GetClusterIPs() ([]*url.URL, error) {
+	ipsMap := make(map[string]bool)
+	
+	// add lighthouse IPs from nebula config
+	lips, _ := GetAllLighthouseIPFromTempConfig()
+	
+	for _, ip := range lips {
+		ipsMap[ip] = true
+	}
+
+	ips := []*url.URL{}
+	for ip := range ipsMap {
+		parsedIP, err := url.Parse("nats-route://" + ip + ":6222")
+		if err == nil {
+			ips = append(ips, parsedIP)
+		}
+	}
+
+	if len(ips) == 0 {
+		return ips, errors.New("No cluster IPs found")
+	}
+
+	return ips, nil
 }
 
 func GetNATSCredentials(isMaster bool) (string, string, error) {
@@ -142,6 +168,7 @@ func StartNATS() {
 							"_INBOX.>",
 							"$KV.constellation-nodes.>",
 		                    "$JS.API.STREAM.INFO.>",
+							"$JS.API.>", 
 						},
 				},
 				Subscribe: &server.SubjectPermission{
@@ -151,17 +178,21 @@ func StartNATS() {
 							"_INBOX.>",
 		                    "$KV.constellation-nodes.>",
 		                    "$JS.API.STREAM.INFO.>",
+							"$JS.API.>", 
 						},
 				},
 			},
 		})
 	}
 
-	natsHost, err := GetCurrentDeviceIP()
+	device, err := GetCurrentDevice()
 	if err != nil {
 		utils.Error("[NATS] Failed to get current device IP", err)
 		return
 	}
+
+	natsHost := device.IP
+	natsName:= device.DeviceName
 
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		users = append(users, &server.User{
@@ -173,12 +204,18 @@ func StartNATS() {
 		natsHost = "0.0.0.0"
 	}
 
+	cips, err := GetClusterIPs()
+	if err != nil {
+		utils.Error("[NATS] Failed to get cluster IPs", err)
+	}
 
 	opts := &server.Options{
 		Host: natsHost,
 		Port: 4222,
 
-	    JetStream: true,
+		ServerName: natsName,
+
+	    // JetStream: true,
     	StoreDir:  utils.CONFIGFOLDER + "/jetstream",
 
 		TLSConfig: &tls.Config{
@@ -187,15 +224,18 @@ func StartNATS() {
 			InsecureSkipVerify: true,
 		},
 
-		// Cluster: server.ClusterOpts{
-		// 	Host: GetCurrentDeviceIP(),
-		// 	Port: 6222,
-		// 	TLSConfig: &tls.Config{
-		// 		Certificates: []tls.Certificate{cert},
-		// 		ClientAuth:   tls.NoClientCert,
-		// 		InsecureSkipVerify: true,
-		// 	},
-		// },
+		Cluster: server.ClusterOpts{
+        	Name: "Constellation",
+			Host: device.IP,
+			Port: 6222,
+			TLSConfig: &tls.Config{
+				Certificates: []tls.Certificate{cert},
+				ClientAuth:   tls.NoClientCert,
+				InsecureSkipVerify: true,
+			},
+		},
+
+		Routes: cips,
 
 		Users: users,
 	}
@@ -279,7 +319,7 @@ func InitNATSClient() {
 		return
 	}
 
-	nc, err = natsClient.Connect("nats://192.168.201.1:4222",
+	nc, err = natsClient.Connect("nats://localhost:4222",
 
 		// nats.DisconnectHandler(func(nc *nats.Conn) {
 		// 		utils.Log("Disconnected from NATS server - trying to reconnect")
@@ -291,6 +331,10 @@ func InitNATSClient() {
 
 		nats.UserInfo(user, pwd),
 		
+		// timeout
+		nats.Timeout(2*time.Second),
+
+    	nats.NoEcho(), 
 	)
 
 	for err != nil {
@@ -309,7 +353,7 @@ func InitNATSClient() {
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
 
-		nc, err = natsClient.Connect("nats://192.168.201.1:4222",
+		nc, err = natsClient.Connect("nats://localhost:4222",
 			nats.Secure(&tls.Config{
 				InsecureSkipVerify: true,
 			}),
@@ -318,6 +362,8 @@ func InitNATSClient() {
 
 			// timeout
 			nats.Timeout(2*time.Second),
+		
+    		nats.NoEcho(), 
 		)
 		
 		if err != nil {
@@ -336,16 +382,16 @@ func InitNATSClient() {
 
 	utils.Debug("[NATS] NATS client connected")
 
-	js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
-	if err != nil {
-		utils.MajorError("[NATS] Error getting JetStream context", err)
-	}
 
 	utils.Debug("[NATS] JetStream context obtained")
 
 	go MasterNATSClientRouter()
 
-	ClientHeartbeatInit()
+	/*js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
+	if err != nil {
+		utils.MajorError("[NATS] Error getting JetStream context", err)
+	}*/
+	//ClientHeartbeatInit()
 
 	go SendRequestSyncMessage()
 
@@ -358,10 +404,12 @@ func ClientHeartbeatInit() {
 
 	kv, err = js.KeyValue("constellation-nodes")
 	if err != nil {
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 		kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
 			Bucket: "constellation-nodes",
 			TTL:    10 * time.Second,
+    		Storage: nats.MemoryStorage, 
+    		Replicas:     1, 
 		})
 		if err != nil {
 			utils.MajorError("[NATS] Error creating Key-Value store", err)

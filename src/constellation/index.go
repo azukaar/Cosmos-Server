@@ -3,6 +3,7 @@ package constellation
 import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"strings"
+	"os"
 )
 
 var NebulaStarted = false
@@ -92,6 +93,16 @@ func Init() {
 			}
 		}
 		
+		if _, err = os.Stat(utils.CONFIGFOLDER + "nebula.yml"); os.IsNotExist(err) {
+			// export nebula.yml
+			utils.Log("Constellation: exporting nebula.yml...")
+			err := ExportDefaultConfigToYAML(utils.CONFIGFOLDER + "nebula.yml")
+
+			if err != nil {
+				utils.Error("Constellation: error while exporting nebula.yml", err)
+			}
+		}
+
 		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
 			if !utils.FBL.LValid {
 				utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
@@ -104,15 +115,6 @@ func Init() {
 			}
 
 			utils.Log("Initializing Constellation module...")
-
-			// export nebula.yml
-			utils.Log("Constellation: exporting nebula.yml...")
-			err := ExportConfigToYAML(utils.GetMainConfig().ConstellationConfig, utils.CONFIGFOLDER + "nebula.yml")
-
-			if err != nil {
-				utils.Error("Constellation: error while exporting nebula.yml", err)
-			}
-
 		}
 
 		// Does not work because of Digital Ocean's floating IP's gateway system

@@ -437,7 +437,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 field: getIcon,
               },
               {
-                title: t('mgmt.constellation.setup.deviceName.label'),
+                title: t('mgmt.constellation.setup.device.label'),
                 field: (r) => {
 
                   const status = devicePingStatus[r.deviceName];
@@ -451,7 +451,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     res = "🔴";
                   }
 
-                  return <strong>{res} {r.deviceName}</strong>;
+                  return <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
+                    {res} 
+                    <div>
+                      <div><strong>{r.deviceName}</strong></div>
+                      <div style={{opacity: 0.8}}>{r.ip}</div>
+                    </div>
+                  </div>
                 }
               },
               {
@@ -488,9 +494,9 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 },
               },
               {
-                title: t('mgmt.constellation.setup.ipTitle'),
+                title: t('mgmt.constellation.setup.publicIpTitle'),
                 screenMin: 'md',
-                field: (r) => r.ip,
+                field: (r) => r.publicHostname,
               },
               {
                 title: t('mgmt.constellation.setup.firewallStatus'),

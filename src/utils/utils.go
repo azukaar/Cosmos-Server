@@ -1230,3 +1230,11 @@ func GetFileLastModifiedTime(path string) time.Time {
 	}
 	return fileInfo.ModTime()
 }
+
+func SetFileLastModifiedTime(path string, modTime int64) error {
+	err := os.Chtimes(path, time.Now(), time.Unix(modTime, 0))
+	if err != nil {
+		return err
+	}
+	return nil
+}

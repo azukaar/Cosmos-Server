@@ -71,6 +71,7 @@ func startNebulaInBackground() error {
 
 	UpdateFirewallBlockedClients()
 	AdjustDNS(logBuffer)
+	ExportLighthouseFromDB()
 	// removed because cannot use multiple hostnames
 	// AdjustConfigHostname()
 	// removed because no retry logic if a node is disconnected: let Nebula handle it
@@ -285,6 +286,26 @@ func ResetNebula() error {
 	return nil
 }
 
+func GetAllDevicesEvenBlocked() ([]utils.ConstellationDevice, error) {
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+    defer closeDb()
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{})
+	defer cursor.Close(nil)
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
+}
+
 func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
     defer closeDb()
@@ -308,33 +329,11 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	return devices, nil
 }
 
-func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
-	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-    defer closeDb()
-	if err != nil {
-		return []utils.ConstellationDevice{}, err
-	}
-
-	var devices []utils.ConstellationDevice
-
-	cursor, err := c.Find(nil, map[string]interface{}{
-		"Blocked": true,
-	})
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
-	if err != nil {
-		return []utils.ConstellationDevice{}, err
-	}
-
-	return devices, nil
-}
-
 func cleanIp(ip string) string {
 	return strings.Split(ip, "/")[0]
 }
 
-func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath string) error {
+func ExportDefaultConfigToYAML(outputPath string) error {
 	// Combine defaultConfig
 	finalConfig := NebulaDefaultConfig
 
@@ -345,68 +344,6 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		hostname = strings.TrimSpace(hostname)
 		if hostname != "" {
 			hostnames = append(hostnames, hostname + ":4242")
-		}
-	}
-
-	// for each lighthouse
-	lh, err := GetAllLightHouses()
-	if err != nil {
-		return err
-	}
-
-	myDevice, _ := GetCurrentDevice()
-	myIP, _ := GetCurrentDeviceIP()
-
-	for _, l := range lh {
-		utils.Warn("Lighthouse found: " + l.DeviceName + " at " + l.IP + " (" + myIP + ")")
-		if cleanIp(l.IP) == cleanIp(myIP) {
-			continue
-		}
-
-		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{}
-
-		for _, hostname := range strings.Split(l.PublicHostname, ",") {
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
-			}
-		}
-	}
-
-	// add blocked devices
-	blockedDevices, err := GetBlockedDevices()
-	if err != nil {
-		return err
-	}
-
-	for _, d := range blockedDevices {
-		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
-	}
-
-
-	finalConfig.Lighthouse.Hosts = []string{}
-	// add other lighthouses 
-	// if !finalConfig.Lighthouse.AMLighthouse {
-		for _, l := range lh {
-			if cleanIp(l.IP) == cleanIp(myIP) {
-				continue
-			}
-			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
-		}
-	// }
-
-	// if no lighthouses, be one
-	finalConfig.Lighthouse.AMLighthouse = myDevice.IsLighthouse
-
-	finalConfig.Relay.AMRelay = myDevice.IsRelay
-
-	finalConfig.Relay.Relays = []string{}
-	for _, l := range lh {
-		if l.IsRelay {
-			if cleanIp(l.IP) == cleanIp(myIP) {
-				continue
-			}
-			finalConfig.Relay.Relays = append(finalConfig.Relay.Relays, cleanIp(l.IP))
 		}
 	}
 
@@ -493,11 +430,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			if cleanIp(l.IP) != cleanIp(device.IP) {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))
 			}
-		}
-
-		// if no lighthouse, be one
-		if len(lighthouseMap["hosts"].([]string)) == 0 && !device.IsLighthouse {
-			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
@@ -1261,4 +1193,33 @@ func GetCurrentDeviceIP() (string, error) {
 		return "", errors.New("current device not found in cache")
 	}
 	return device.IP, nil
+}
+
+func GetAllLighthouseIPFromTempConfig() ([]string, error) {
+	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula-temp.yml")
+	if err != nil {
+		utils.Error("GetAllLighthouseIPFromConfig: error while reading nebula.yml", err)
+		return []string{}, err
+	}
+
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal(nebulaFile, &configMap)
+	if err != nil {
+		utils.Error("GetAllLighthouseIPFromConfig: Invalid slave config file for resync", err)
+		return []string{}, err
+	}
+
+	lhIPs := []string{}
+
+	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
+		if hosts, ok := lighthouseMap["hosts"].([]interface{}); ok {
+			for _, host := range hosts {
+				lhIPs = append(lhIPs, host.(string))
+			}
+		}
+	} else {
+		return []string{}, errors.New("lighthouse not found in nebula.yml")
+	}
+
+	return lhIPs, nil
 }
