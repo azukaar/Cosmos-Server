@@ -215,7 +215,7 @@ func StartNATS() {
 
 		ServerName: natsName,
 
-	    // JetStream: true,
+	    JetStream: true,
     	StoreDir:  utils.CONFIGFOLDER + "/jetstream",
 
 		TLSConfig: &tls.Config{
@@ -387,11 +387,12 @@ func InitNATSClient() {
 
 	go MasterNATSClientRouter()
 
-	/*js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
+	js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
 	if err != nil {
 		utils.MajorError("[NATS] Error getting JetStream context", err)
-	}*/
-	//ClientHeartbeatInit()
+	}
+
+	go ClientHeartbeatInit()
 
 	go SendRequestSyncMessage()
 
@@ -399,22 +400,28 @@ func InitNATSClient() {
 }
 
 func ClientHeartbeatInit() {
-	var kv nats.KeyValue
-	var err error
-
-	kv, err = js.KeyValue("constellation-nodes")
-	if err != nil {
+	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
-		kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
-			Bucket: "constellation-nodes",
-			TTL:    10 * time.Second,
-    		Storage: nats.MemoryStorage, 
-    		Replicas:     1, 
-		})
-		if err != nil {
-			utils.MajorError("[NATS] Error creating Key-Value store", err)
-			return
+		
+		_, err := js.KeyValue("constellation-nodes")
+		if err == nil {
+			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
+			break
 		}
+		
+		_, err = js.CreateKeyValue(&nats.KeyValueConfig{
+			Bucket:   "constellation-nodes",
+			TTL:      10 * time.Second,
+			Storage:  nats.MemoryStorage,
+			Replicas: 1,
+		})
+
+		if err == nil {
+			utils.Log("[NATS] Created Key-Value store 'constellation-nodes'")
+			break
+		}
+		
+		utils.Debug("[NATS] JetStream not ready, retrying... " + err.Error())
 	}
 	
 	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
@@ -423,6 +430,12 @@ func ClientHeartbeatInit() {
 		
 		ticker := time.NewTicker(2 * time.Second)
 		for range ticker.C {
+			kv, err := js.KeyValue("constellation-nodes")
+			if err != nil {
+				utils.Error("[NATS] Error getting Key-Value store during heartbeat, store is offline will skip this cycle", err)
+				continue
+			}
+
 			device, err := GetCurrentDevice()
 			if err != nil {
 				utils.Error("[NATS] Error getting current device for heartbeat", err)
