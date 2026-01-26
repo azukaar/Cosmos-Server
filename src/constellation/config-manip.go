@@ -115,9 +115,6 @@ func UpdateFirewallBlockedClients() error {
 	defer cursor.Close(nil)
 	cursor.All(nil, &devices)
 
-	// Always add the cosmos lighthouse device
-	devices = append([]utils.ConstellationDevice{}}, devices...)
-
 	// Create a map of device names to IPs
 	deviceIPs := make(map[string]string)
 	for _, device := range devices {

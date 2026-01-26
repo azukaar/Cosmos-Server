@@ -77,20 +77,21 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 
 		customTransport := &http.Transport{}
 
-		if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			customTransport = &http.Transport{
-				DialContext: (&net.Dialer{
-					Timeout:   5 * time.Second,
-					KeepAlive: 5 * time.Second,
-					Resolver: &net.Resolver{
-						PreferGo: true,
-						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-							return net.Dial(network, "192.168.201.1:53")
-						},
-					},
-				}).DialContext,
-			}
-		}
+		// TODO UPDATE THIS FOR CONSTELLATION DNS
+		// if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		// 	customTransport = &http.Transport{
+		// 		DialContext: (&net.Dialer{
+		// 			Timeout:   5 * time.Second,
+		// 			KeepAlive: 5 * time.Second,
+		// 			Resolver: &net.Resolver{
+		// 				PreferGo: true,
+		// 				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+		// 					return net.Dial(network, "192.168.201.1:53")
+		// 				},
+		// 			},
+		// 		}).DialContext,
+		// 	}
+		// }
 
 		if AcceptInsecureHTTPSTarget {
 			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}

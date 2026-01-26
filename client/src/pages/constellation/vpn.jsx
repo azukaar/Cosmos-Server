@@ -174,16 +174,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
           </Alert>}
           <MainCard title={t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
             <Stack spacing={2}>
-              {constellationEnabled && config.ConstellationConfig.SlaveMode && isAdmin && <>
-                <Alert severity="info">
-                  {t('mgmt.constellation.externalTextSlaveNoAdmin')}
-                </Alert>
-              </>}
-              {constellationEnabled && config.ConstellationConfig.SlaveMode && isAdmin && <>
-                <Alert severity="info">
-                  {t('mgmt.constellation.externalText')}
-                </Alert>
-              </>}
               {!constellationEnabled && !isAdmin && <>
                 <Alert severity="info">
                   {t('mgmt.constellation.setupTextNoAdmin')}
@@ -346,7 +336,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
                         )}
 
-                        {constellationEnabled && !config.ConstellationConfig.SlaveMode && <>
+                        {constellationEnabled && <>
                           {formik.values.Enabled && <>
                             <CosmosCheckbox disabled={!isAdmin} formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} />
                             {devices.length > 0 && <Alert severity="warning">{t('mgmt.constellation.setup.deviceConnectedWarn')}</Alert>}
@@ -370,9 +360,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       </>}
                       {isAdmin && <><UploadButtons
                         accept=".yml,.yaml"
-                        label={config.ConstellationConfig.SlaveMode ?
-                          t('mgmt.constellation.setup.externalConfig.slaveMode.label')
-                          : t('mgmt.constellation.setup.externalConfig.label')}
+                        label={t('mgmt.constellation.setup.externalConfig.label')}
                         variant="outlined"
                         fullWidth
                         OnChange={async (e) => {
@@ -393,7 +381,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
         {config.ConstellationConfig.Enabled && <>
           <CosmosFormDivider title={"Devices"} />
 
-          {!config.ConstellationConfig.SlaveMode && <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
+          <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
             <div>
               <div>{t('mgmt.constellation.deviceSeatsUsed')}: {devices ? devices.filter(d => !d.blocked).length : 0} / {coStatus ? coStatus.LicenceNumber * 10 : 0}</div>
               <LinearProgress
@@ -413,13 +401,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length >= coStatus.LicenceNodeNumber ? 'error' : 'primary') : 'primary'}
               />
             </div>
-          </Stack>}
+          </Stack>
 
           <PrettyTableView
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
             buttons={[
-              !config.ConstellationConfig.SlaveMode && (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} />),
+              (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} />),
               <Button
                 disableElevation
                 variant="outlined"
@@ -555,7 +543,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 title: '',
                 clickable: true,
                 field: (r) => {
-                  return !config.ConstellationConfig.SlaveMode ? <>
+                  return <>
                     <Tooltip title="Resync Device">
                       <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
                         <SyncOutlined />
@@ -565,7 +553,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       await API.constellation.block(r.nickname, r.deviceName, true);
                       refreshConfig();
                     }}></DeleteButton>
-                  </> : null
+                  </>
                 }
               }
             ]}

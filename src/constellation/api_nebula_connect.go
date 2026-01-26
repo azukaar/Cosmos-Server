@@ -134,7 +134,6 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 
 		config := utils.ReadConfigFromFile()
 		config.ConstellationConfig.Enabled = true
-		config.ConstellationConfig.SlaveMode = true
 		config.ConstellationConfig.DNSDisabled = true
 		
 		var configMap map[string]interface{}

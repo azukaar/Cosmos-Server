@@ -67,7 +67,7 @@ func GetClusterIPs() ([]*url.URL, error) {
 	return ips, nil
 }
 
-func GetNATSCredentials(isMaster bool) (string, string, error) {
+func GetNATSCredentials() (string, string, error) {
 	currentDevice, _ := GetCurrentDevice()
 
 	utils.Debug("GetNATSCredentials: currentDevice.APIKey=" + currentDevice.APIKey + " currentDevice.DeviceName=" + currentDevice.DeviceName)
@@ -311,7 +311,7 @@ func InitNATSClient() {
 	
 	time.Sleep(2 * time.Second)
 	
-	user, pwd, err := GetNATSCredentials(!utils.GetMainConfig().ConstellationConfig.SlaveMode)
+	user, pwd, err := GetNATSCredentials()
 	user = sanitizeNATSUsername(user)
 	
 	if err != nil {

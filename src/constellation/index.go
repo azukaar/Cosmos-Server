@@ -37,7 +37,6 @@ func Init() {
 	InitConfig()
 
 	utils.ResyncConstellationNodes = resyncConstellationNodes
-	utils.ConstellationSlaveIPWarning = ""
 
 	ConstellationInitLock.Lock()
 	defer ConstellationInitLock.Unlock()
@@ -103,32 +102,18 @@ func Init() {
 			}
 		}
 
-		if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			if !utils.FBL.LValid {
-				utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
-				// disable constellation
-				configFile := utils.ReadConfigFromFile()
-				configFile.ConstellationConfig.Enabled = false
-				configFile.AdminConstellationOnly = false
-				utils.SetBaseMainConfig(configFile)
-				return
-			}
-
-			utils.Log("Initializing Constellation module...")
-		}
-
-		// Does not work because of Digital Ocean's floating IP's gateway system
-		// if utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		// 	// check if the IP
-		// 	absoluteConfigPath, _ := filepath.Abs(utils.CONFIGFOLDER + "nebula.yml")
-		// 	cip, _ := GetConfigAttribute(absoluteConfigPath, "cstln_public_hostname")
-		// 	myIps, _ := utils.ListIps(true)
-		// 	contained := utils.StringArrayContains(myIps, cip)
-
-		// 	if cip != "" && !contained {
-		// 		utils.ConstellationSlaveIPWarning = "This device's public IP is NOT the IP the server is currently using! Hostname: " + cip + " - But only those IPs are associated with this server: " + strings.Join(myIps, ", ") + ". If you are using a public VPS with a floating IP, that IP has not been setup in your netplan config!"
-		// 		utils.MajorError("Constellation: " + utils.ConstellationSlaveIPWarning, nil)
+		// if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
+		// 	if !utils.FBL.LValid {
+		// 		utils.MajorError("Constellation: No valid licence found to use Constellation. Disabling.", nil)
+		// 		// disable constellation
+		// 		configFile := utils.ReadConfigFromFile()
+		// 		configFile.ConstellationConfig.Enabled = false
+		// 		configFile.AdminConstellationOnly = false
+		// 		utils.SetBaseMainConfig(configFile)
+		// 		return
 		// 	}
+
+		// 	utils.Log("Initializing Constellation module...")
 		// }
 
 		// read isExitNode from config, if true, add masquerade to iptable
@@ -140,39 +125,9 @@ func Init() {
 		if err != nil {
 			utils.Error("Constellation: error while starting nebula", err)
 		}
-		
-		/*if utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			go (func() {
-				InitNATSClient()
-
-				var err error
-				retries := 0
-				needRestart := false
-				needRestart, err = SlaveConfigSync("")
-				for err != nil && retries < 4 {
-					time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
-					needRestart, err = SlaveConfigSync("")
-					retries++
-					utils.Debug("Retrying to sync slave config")
-				}
-				if err != nil {
-					utils.MajorError("Failed to sync slave config", err)
-				} else {
-					utils.Log("Slave config synced")
-					if needRestart {
-						utils.Warn("Slave config has changed, restarting Nebula...")
-						go (func() {		
-							time.Sleep(1 * time.Second)		
-							RestartNebula()
-							utils.RestartHTTPServer()
-						})()
-					}
-				}
-			})()
-		} else {*/
-			go InitDNS()
-			go StartNATS()
-		//}
+	
+		go InitDNS()
+		go StartNATS()
 		
 		go InitPingLighthouses()
 

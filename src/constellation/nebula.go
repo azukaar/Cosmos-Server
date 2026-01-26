@@ -242,11 +242,8 @@ func stop() error {
 }
 
 func RestartNebula() {
-	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		TriggerClientResync()
-		CloseNATSClient()
-		StopNATS()
-	}
+	CloseNATSClient()
+	StopNATS()
 	stop()
 	Init()
 }
@@ -274,7 +271,6 @@ func ResetNebula() error {
 	
 	config := utils.ReadConfigFromFile()
 	config.ConstellationConfig.Enabled = false
-	config.ConstellationConfig.SlaveMode = false
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
 	config.ConstellationConfig.ThisDeviceName = ""
@@ -447,9 +443,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		relayMap["am_relay"] = device.IsRelay && device.IsLighthouse
 		relayMap["use_relays"] = !(device.IsRelay && device.IsLighthouse)
 		relayMap["relays"] = []string{}
-		if utils.GetMainConfig().ConstellationConfig.IsRelayNode {
-			relayMap["relays"] = append(relayMap["relays"].([]string), "192.168.201.1")
-		}
 
 		for _, l := range lh {
 			if l.IsRelay && l.IsLighthouse && cleanIp(l.IP) != cleanIp(device.IP) {
@@ -470,45 +463,10 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	// configEndpoint := utils.GetServerURL("") + "cosmos/api/constellation/config-sync"
-
-	configHost := utils.GetServerURL("")
-	
-	if !utils.IsDomain(utils.GetMainConfig().HTTPConfig.Hostname) {
-		configHost = "http://192.168.201.1"
-
-		if utils.GetMainConfig().HTTPConfig.HTTPPort != "80" {
-			configHost += ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
-		}
-
-		configHost += "/"
-	}
-
-	configEndpoint := configHost
-
-	configHostname := strings.Split(configHost, "://")[1]
-	configHostname = strings.Split(configHostname, ":")[0]
-	configHostport := ""
-
-	if strings.Contains(configHostname, ":") {
-		configHostport = strings.Split(configHostname, ":")[1]
-
-		if _, err := strconv.Atoi(configHostport); err == nil {
-			configHostport = ":" + configHostport
-		} else {
-			configHostport = ""
-		}
-	}
-
-
-	configHostProto := strings.Split(configHost, "://")[0] + "://"
 
 	configMap["cstln_device_name"] = name
-	configMap["cstln_local_dns_address"] = "192.168.201.1"
 	configMap["cstln_public_hostname"] = device.PublicHostname
 	configMap["cstln_api_key"] = APIKey
-	configMap["cstln_config_endpoint"] = configEndpoint
-	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
 	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
 	configMap["cstln_is_exit_node"] = device.IsExitNode
 	configMap["cstln_is_relay"] = device.IsRelay
@@ -516,6 +474,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_ip"] = device.IP
 
 	if getLicence {
+		configEndpoint := "IDK WHAT TO SAY"
 		// get client licence
 		utils.Log("Creating client license for " + name)
 		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
@@ -526,51 +485,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		utils.Log("Client license created for " + name)
 	}
 	
-
-	// list routes with a tunnel property matching the device name
-	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
-	tunnels := []utils.ProxyRouteConfig{}
-
-	for _, route := range routesList {
-		if route.TunnelVia == name {
-			if route.UseHost {
-				route.OverwriteHostHeader = route.Host
-			}
-
-			port := configHostport
-			protocol := configHostProto
-
-			targetProtocol := strings.Split(route.Target, "://")[0]
-			if targetProtocol != "" && targetProtocol != "http" && targetProtocol != "https" && route.Mode != "STATIC" && route.Mode != "SPA" {
-				protocol = strings.Split(route.Target, "://")[0] + "://"
-			} 
-			
-			// extract port from target
-			if strings.Contains(route.Host, ":") {
-				_port := strings.Split(route.Host, ":")[1]
-					// if port is a number
-					if _, err := strconv.Atoi(_port); err == nil {
-						port = ":" + _port
-				}
-			}
-			
-			route.UseHost = true
-			
-			route.Target = protocol + configHostname + port
-
-			if configMap["cstln_https_insecure"].(bool) {
-				route.AcceptInsecureHTTPSTarget = true
-			}
-
-			route.Host = route.TunneledHost
-			route.Mode = "PROXY"
-
-			tunnels = append(tunnels, route)
-		}
-	}
-
-	configMap["cstln_tunnels"] = tunnels
-
 	// lighten the config for QR Codes
 	// remove tun, firewall, punchy and logging
 	if(lite) {
@@ -1099,12 +1013,12 @@ func GetCurrentDeviceName() (string, error) {
 		configMap := make(map[string]interface{})
 		err = yaml.Unmarshal(nebulaFile, &configMap)
 		if err != nil {
-			utils.Error("GetCurrentDeviceName: Invalid slave config file for resync", err)
+			utils.Error("GetCurrentDeviceName: Invalid new config file for resync", err)
 			return "", err
 		}
 
 		if configMap["cstln_device_name"] == nil {
-			return "", errors.New("Invalid slave config file for resync")
+			return "", errors.New("Invalid new config file for resync")
 		}
 
 		deviceName := configMap["cstln_device_name"].(string)
@@ -1131,7 +1045,7 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 		configMap := make(map[string]interface{})
 		err = yaml.Unmarshal(nebulaFile, &configMap)
 		if err != nil {
-			utils.Error("GetCurrentDevice: Invalid slave config file for resync", err)
+			utils.Error("GetCurrentDevice: Invalid new config file for resync", err)
 			return utils.ConstellationDevice{}, err
 		}
 
@@ -1140,7 +1054,7 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 		if configMap["cstln_device_name"] != nil  {
 			device.DeviceName = configMap["cstln_device_name"].(string)
 		} else {
-			return utils.ConstellationDevice{}, errors.New("Invalid slave config file for resync")
+			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
 		}
 
 		if configMap["cstln_ip"] != nil  {
@@ -1170,7 +1084,7 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 		if configMap["cstln_api_key"] != nil  {
 			device.APIKey = configMap["cstln_api_key"].(string)
 		} else {
-			return utils.ConstellationDevice{}, errors.New("Invalid slave config file for resync")
+			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
 		}
 
 		return device, nil
@@ -1205,7 +1119,7 @@ func GetAllLighthouseIPFromTempConfig() ([]string, error) {
 	configMap := make(map[string]interface{})
 	err = yaml.Unmarshal(nebulaFile, &configMap)
 	if err != nil {
-		utils.Error("GetAllLighthouseIPFromConfig: Invalid slave config file for resync", err)
+		utils.Error("GetAllLighthouseIPFromConfig: Invalid new config file for resync", err)
 		return []string{}, err
 	}
 

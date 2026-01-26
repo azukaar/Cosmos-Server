@@ -287,7 +287,6 @@ type MarketSource struct {
 
 type ConstellationConfig struct {
 	Enabled bool
-	SlaveMode bool
 	DoNotSyncNodes bool
 	DNSDisabled bool
 	DNSPort string

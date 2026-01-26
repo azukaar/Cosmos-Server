@@ -553,10 +553,6 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
 	srapiAdmin.HandleFunc("/api/constellation/ping", constellation.API_Ping)
-	// device request config
-	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.GetDeviceConfigSync)
-	// user manually request constellation config for resync
-	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.GetDeviceConfigManualSync)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

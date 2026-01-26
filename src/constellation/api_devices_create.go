@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
@@ -143,6 +144,8 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				},
 			})
 			
+			utils.ResyncConstellationNodes()
+			time.Sleep(2 * time.Second)
 			go RestartNebula()
 		} else {
 			utils.Error("DeviceCreation: Error creating device", err)
