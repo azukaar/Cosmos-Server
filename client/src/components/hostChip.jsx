@@ -3,6 +3,7 @@ import { Chip } from "@mui/material";
 import { useEffect, useState } from "react";
 import { getOrigin, getFullOrigin } from "../utils/routes";
 import { useTheme } from '@mui/material/styles';
+import StatusDot from "./statusDot";
 
 const HostChip = ({route, settings, style}) => {
   const theme = useTheme();
@@ -22,7 +23,7 @@ const HostChip = ({route, settings, style}) => {
   }, [url]);
 
   return <Chip
-    label={((isOnline == null) ? "⚪" : (isOnline ? "🟢 " : "🔴 ")) + url}
+    label={<><StatusDot status={isOnline == null ? "unknown" : isOnline ? "success" : "error"} size={8} style={{ marginRight: 6 }} />{url}</>}
     color="secondary"
     style={{
       paddingRight: '4px',

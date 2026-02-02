@@ -4,8 +4,8 @@ import * as API from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { ApiOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
-import { Alert, Button, Chip, CircularProgress, IconButton, LinearProgress, Stack, Switch, Tooltip } from "@mui/material";
+import { ApiOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, QuestionCircleOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
+import { Alert, Box, Button, Chip, CircularProgress, IconButton, LinearProgress, Skeleton, Stack, Switch, Tooltip, Typography } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -19,7 +19,7 @@ import { useClientInfos } from "../../utils/hooks";
 import { Trans, useTranslation } from 'react-i18next';
 import ResyncDeviceModal from "./resyncDevice";
 import VPNSalesPage from "./free";
-import { autoBatchEnhancer } from "@reduxjs/toolkit";
+import StatusDot from "../../components/statusDot";
 
 const getDefaultConstellationHostname = (config) => {
   // if domain is set, use it
@@ -43,6 +43,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
   const [devicePingStatus, setDevicePingStatus] = useState({}); // {deviceName: 'loading' | 'success' | 'error'}
   const [firewallLoading, setFirewallLoading] = useState(null); // deviceName being toggled
   const [currentDeviceName, setCurrentDeviceName] = useState('');
+  const [enableLoading, setEnableLoading] = useState(false);
 
   const refreshStatus = () => {
     API.getStatus().then((res) => {
@@ -141,20 +142,22 @@ export const ConstellationVPN = ({ freeVersion }) => {
   }, []);
 
   const getIcon = (r) => {
-    if (r.deviceName.toLowerCase().includes("mobile") || r.deviceName.toLowerCase().includes("phone")) {
-      return <MobileOutlined />
-    }
-    else if (r.deviceName.toLowerCase().includes("laptop") || r.deviceName.toLowerCase().includes("computer")) {
-      return <LaptopOutlined />
-    } else if (r.deviceName.toLowerCase().includes("desktop")) {
-      return <DesktopOutlined />
-    } else if (r.deviceName.toLowerCase().includes("tablet")) {
-      return <TabletOutlined />
-    } else if (r.deviceName.toLowerCase().includes("lighthouse") || r.deviceName.toLowerCase().includes("server")) {
-      return <CompassOutlined />
+    const name = r.deviceName.toLowerCase();
+    let icon, label;
+    if (name.includes("mobile") || name.includes("phone")) {
+      icon = <MobileOutlined />; label = "Mobile";
+    } else if (name.includes("laptop") || name.includes("computer")) {
+      icon = <LaptopOutlined />; label = "Laptop";
+    } else if (name.includes("desktop")) {
+      icon = <DesktopOutlined />; label = "Desktop";
+    } else if (name.includes("tablet")) {
+      icon = <TabletOutlined />; label = "Tablet";
+    } else if (name.includes("lighthouse") || name.includes("server")) {
+      icon = <CompassOutlined />; label = "Server";
     } else {
-      return <CloudOutlined />
+      icon = <CloudOutlined />; label = "Device";
     }
+    return <Tooltip title={label}>{icon}</Tooltip>;
   }
 
   const currentDevice = devices && devices.find(d => d.deviceName === currentDeviceName);
@@ -166,9 +169,175 @@ export const ConstellationVPN = ({ freeVersion }) => {
           () => setResyncDevice(null)
         } />
       }
-      <Stack spacing={2} style={{ maxWidth: "1000px", margin: freeVersion ? "auto" : 0 }}>
-        <div>
-          <MainCard title={t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
+      <Stack spacing={2} style={{ maxWidth: "1000px", margin: "auto" }}>
+
+        {config.ConstellationConfig.ThisDeviceName && <MainCard>
+          <Stack spacing={1.5}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between">
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box sx={{
+                  width: 40, height: 40, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: !constellationEnabled ? 'action.disabledBackground' : ping === 2 ? 'success.main' : ping === 1 ? 'error.main' : 'action.disabledBackground',
+                  color: 'white', fontSize: 20,
+                  transition: 'background-color 0.3s',
+                }}>
+                  <CompassOutlined />
+                </Box>
+                <Typography variant="h6">{config.ConstellationConfig.ThisDeviceName}</Typography>
+                {currentDevice && <Typography variant="body2" color="textSecondary">{currentDevice.ip}</Typography>}
+              </Stack>
+
+              {currentDevice && <Tooltip title={currentDevice.isLighthouse
+                ? t('mgmt.constellation.publicLighthouseTooltip')
+                : t('mgmt.constellation.privateServerTooltip')
+              }>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
+                  {currentDevice.isLighthouse
+                    ? <><CompassOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.publicLighthouse')}</Typography></>
+                    : <><DesktopOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.privateServer')}</Typography></>
+                  }
+                  {currentDevice.isRelay && <><Typography variant="body2" color="textSecondary">·</Typography> <ApiOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isRelay.label')}</Typography></>}
+                  {currentDevice.isExitNode && <><Typography variant="body2" color="textSecondary">·</Typography> <ExportOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isExitNode.label')}</Typography></>}
+                  {currentDevice.isLoadBalancer && <><Typography variant="body2" color="textSecondary">·</Typography> <CloudOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isLoadBalancer.label')}</Typography></>}
+                </Stack>
+              </Tooltip>}
+            </Stack>
+
+            <Stack direction="row" alignItems="center" justifyContent="space-between"
+              sx={{ px: 2, py: 1, borderRadius: 1, backgroundColor: 'action.hover' }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2">{constellationEnabled ? t('mgmt.constellation.setup.enabledCheckbox') : t('mgmt.constellation.disabled')}</Typography>
+                {constellationEnabled && <>
+                  <Typography variant="body2" color="textSecondary">-</Typography>
+                  <Typography variant="body2" color={ping === 2 ? 'success.main' : ping === 1 ? 'error.main' : 'textSecondary'}>
+                    {[
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}><CircularProgress color="inherit" size={12} /> {t('mgmt.constellation.constStatus')}</span>,
+                      t('mgmt.constellation.constStatusDown'),
+                      t('mgmt.constellation.constStatusConnected'),
+                    ][ping]}
+                  </Typography>
+                  <IconButton size="small" onClick={async () => {
+                    setPing(0);
+                    setPing((await API.constellation.ping()).data ? 2 : 1);
+                  }}>
+                    <SyncOutlined style={{ fontSize: 14 }} />
+                  </IconButton>
+                </>}
+              </Stack>
+              {enableLoading
+                ? <CircularProgress size={24} sx={{ mr: 1 }} />
+                : <Switch
+                  disabled={!isAdmin}
+                  checked={!!constellationEnabled}
+                  onChange={async (e) => {
+                    setEnableLoading(true);
+                    let newConfig = { ...config };
+                    newConfig.ConstellationConfig.Enabled = e.target.checked;
+                    await API.config.set(newConfig);
+                    setTimeout(() => {
+                      refreshConfig().then(() => setEnableLoading(false));
+                    }, 1500);
+                  }}
+                  color="success"
+                />
+              }
+            </Stack>
+          </Stack>
+
+          {isAdmin && constellationEnabled && <>
+            <Box sx={{ borderTop: '1px solid', borderColor: 'divider', mt: 2, pt: 2 }}>
+              <Stack spacing={1} direction="row" flexWrap="wrap">
+                <Button
+                  disableElevation
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  onClick={async () => {
+                    await API.constellation.restart();
+                  }}
+                >
+                  {t('mgmt.constellation.restartButton')}
+                </Button>
+                <ApiModal
+                  callback={API.constellation.getLogs}
+                  label={t('mgmt.constellation.showLogsButton')}
+                  processContent={(logs) => {
+                    const result = [];
+
+                    logs.split("\n").forEach((line, lineIndex) => {
+                      if (!line.trim()) return;
+
+                      const levelMatch = line.match(/level=(\w+)/);
+                      const level = levelMatch?.[1]?.toLowerCase();
+
+                      const color = {
+                        error: "red",
+                        warn: "orange",
+                        debug: "purple"
+                      }[level] || "white";
+
+                      const elements = [];
+                      let lastIndex = 0;
+
+                      line.replace(/([a-z]+=)([^\s]+)/g, (match, key, value, offset) => {
+                        if (offset > lastIndex) {
+                          elements.push(line.slice(lastIndex, offset));
+                        }
+
+                        if (key === 'msg=') {
+                          elements.push(
+                            <span key={offset}>
+                              <span style={{ fontWeight: 'bold', color: '#52a5d8ff' }}>{key}</span>
+                              <span style={{ }}>{value}</span>
+                            </span>
+                          );
+                        } else {
+                          elements.push(
+                            <span key={offset}>
+                              <span style={{ color: '#81bbdfff' }}>{key}</span>
+                              {value}
+                            </span>
+                          );
+                        }
+
+                        lastIndex = offset + match.length;
+                        return match;
+                      });
+
+                      if (lastIndex < line.length) {
+                        elements.push(line.slice(lastIndex));
+                      }
+
+                      result.push(
+                        <div key={lineIndex} style={{ color }}>
+                          ● {elements}
+                        </div>
+                      );
+                    });
+
+                    return result;
+                  }}
+                />
+                <ApiModal callback={API.constellation.getConfig} label={t('mgmt.constellation.showConfigButton')} />
+                <ConfirmModal
+                  variant="outlined"
+                  color="warning"
+                  label={t('mgmt.constellation.resetLabel')}
+                  content={t('mgmt.constellation.resetText')}
+                  callback={async () => {
+                    await API.constellation.reset();
+                    refreshConfig();
+                  }}
+                />
+              </Stack>
+            </Box>
+          </>}
+        </MainCard>}
+
+        {(isAdmin || !config.ConstellationConfig.ThisDeviceName) && <div>
+          <MainCard title={config.ConstellationConfig.ThisDeviceName ? t('mgmt.constellation.settingsTitle') : t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
             <Stack spacing={2}>
               {!constellationEnabled && !isAdmin && <>
                 <Alert severity="info">
@@ -183,7 +352,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 })}
                 initialValues={{
                   DeviceName: config.ConstellationConfig.ThisDeviceName || '',
-                  Enabled: config.ConstellationConfig.Enabled,
                   IsLighthouse: currentDevice ? currentDevice.isLighthouse : false,
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
@@ -200,7 +368,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     }, 1500);
                     return;
                   }
-                  
+
                   await API.constellation.editDevice({
                     isLighthouse: values.IsLighthouse,
                     isRelay: values.IsRelay,
@@ -208,12 +376,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     isLoadBalancer: values.IsLoadBalancer,
                     publicHostname: values.ConstellationHostname,
                   });
-
-                  if (values.Enabled !== config.ConstellationConfig.Enabled) {
-                    let newConfig = { ...config };
-                    newConfig.ConstellationConfig.Enabled = values.Enabled;
-                    await API.config.set(newConfig);
-                  }
 
                   setTimeout(() => {
                     refreshConfig();
@@ -223,133 +385,40 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Stack spacing={2}>
-                      {isAdmin && constellationEnabled && <Stack spacing={2} direction="row">
-                        <Button
-                          disableElevation
-                          variant="outlined"
-                          color="primary"
-                          onClick={async () => {
-                            await API.constellation.restart();
-                          }}
-                        >
-                          {t('mgmt.constellation.restartButton')}
-                        </Button>
-                        <ApiModal 
-                          callback={API.constellation.getLogs} 
-                          label={t('mgmt.constellation.showLogsButton')} 
-                          processContent={(logs) => {
-                            const result = [];
-                            
-                            logs.split("\n").forEach((line, lineIndex) => {
-                              if (!line.trim()) return;
-                              
-                              const levelMatch = line.match(/level=(\w+)/);
-                              const level = levelMatch?.[1]?.toLowerCase();
-                              
-                              const color = {
-                                error: "red",
-                                warn: "orange", 
-                                debug: "purple"
-                              }[level] || "white";
-                              
-                              const elements = [];
-                              let lastIndex = 0;
-                              
-                              line.replace(/([a-z]+=)([^\s]+)/g, (match, key, value, offset) => {
-                                // Add text before this match
-                                if (offset > lastIndex) {
-                                  elements.push(line.slice(lastIndex, offset));
-                                }
-                                
-                                // Style differently based on the key
-                                if (key === 'msg=') {
-                                  elements.push(
-                                    <span key={offset}>
-                                      <span style={{ fontWeight: 'bold', color: '#52a5d8ff' }}>{key}</span>
-                                      <span style={{ }}>{value}</span>
-                                    </span>
-                                  );
-                                } else {
-                                  elements.push(
-                                    <span key={offset}>
-                                      <span style={{ color: '#81bbdfff' }}>{key}</span>
-                                      {value}
-                                    </span>
-                                  );
-                                }
-                                
-                                lastIndex = offset + match.length;
-                                return match;
-                              });
-                              
-                              // Add any remaining text
-                              if (lastIndex < line.length) {
-                                elements.push(line.slice(lastIndex));
-                              }
-                              
-                              result.push(
-                                <div key={lineIndex} style={{ color }}>
-                                  ● {elements}
-                                </div>
-                              );
-                            });
-                            
-                            return result;
-                          }}
-
-                        />
-                        <ApiModal callback={API.constellation.getConfig} label={t('mgmt.constellation.showConfigButton')} />
-                        <ConfirmModal
-                          variant="outlined"
-                          color="warning"
-                          label={t('mgmt.constellation.resetLabel')}
-                          content={t('mgmt.constellation.resetText')}
-                          callback={async () => {
-                            await API.constellation.reset();
-                            refreshConfig();
-                          }}
-                        />
-                      </Stack>}
-
-                      {constellationEnabled && <div>
-                        {t('mgmt.constellation.constStatus')}: {[
-                          <CircularProgress color="inherit" size={20} />,
-                          <span style={{ color: "red" }}>{t('mgmt.constellation.constStatusDown')}</span>,
-                          <span style={{ color: "green" }}>{t('mgmt.constellation.constStatusConnected')}</span>,
-                        ][ping]}
-
-                        <IconButton onClick={async () => {
-                          setPing(0);
-                          setPing((await API.constellation.ping()).data ? 2 : 1);
-                        }}>
-                          <SyncOutlined />
-                        </IconButton>
-                      </div>}
-
-                      <CosmosInputText
-                        disabled={!isAdmin || !!config.ConstellationConfig.ThisDeviceName}
+                      {!config.ConstellationConfig.ThisDeviceName && <CosmosInputText
+                        disabled={!isAdmin}
                         formik={formik}
                         name="DeviceName"
                         label={t('mgmt.constellation.setup.deviceName.label')}
-                      />
-                      
-                      <Alert severity="info"><Trans i18nKey="mgmt.constellation.setup.hostnameInfo" /></Alert>
-                      <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={'Constellation ' + t('global.hostname')} />
+                      />}
 
-                      {config.ConstellationConfig.ThisDeviceName && (
-                        <CosmosCheckbox disabled={!isAdmin} formik={formik} name="Enabled" label={t('mgmt.constellation.setup.enabledCheckbox')} />
-                      )}
+                      <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                        <span>{'Constellation ' + t('global.hostname')}</span>
+                        <Tooltip title={<Trans i18nKey="mgmt.constellation.setup.hostnameInfo" />}>
+                          <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                        </Tooltip>
+                      </Stack>} />
 
-                      {constellationEnabled && <>
-                        {formik.values.Enabled && <>
-                          <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsLighthouse" label={t('mgmt.constellation.setup.lighthouse.label')} />
-                          {/* <CosmosCheckbox disabled={!isAdmin} formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} /> */}
-                          {formik.values.IsLighthouse && <>
-                            <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
-                            <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsExitNode" label={t('mgmt.constellation.setup.exitNode.label')} />
-                            <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLoadBalancer" label={t('mgmt.constellation.setup.loadBalancer.label')} />
-                          </>}
-                        </>}
+
+                      {constellationEnabled && formik.values.IsLighthouse && <>
+                        <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.setup.relayRequests.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.relayRequests.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>} />
+                        <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsExitNode" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.setup.exitNode.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.exitNode.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>} />
+                        <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLoadBalancer" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.setup.loadBalancer.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.loadBalancer.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>} />
                       </>}
 
                       {isAdmin && <><LoadingButton
@@ -364,7 +433,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           : t('mgmt.constellation.setup.createConstellation')}
                       </LoadingButton>
                       </>}
-                      
+
                       {isAdmin && <><UploadButtons
                         accept=".yml,.yaml"
                         label={t('mgmt.constellation.setup.externalConfig.label')}
@@ -384,9 +453,9 @@ export const ConstellationVPN = ({ freeVersion }) => {
               </Formik>}
             </Stack>
           </MainCard>
-        </div>
+        </div>}
         {config.ConstellationConfig.Enabled && <>
-          <CosmosFormDivider title={"Devices"} />
+          <CosmosFormDivider title={t('mgmt.constellation.devices')} />
 
           <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
             <div>
@@ -442,13 +511,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   if (status === 'loading') {
                     res = <CircularProgress size={16} />;
                   } else if (status === 'success') {
-                    res = "🟢";
+                    res = <StatusDot status="success" />;
                   } else if (status === 'error') {
-                    res = "🔴";
+                    res = <StatusDot status="error" />;
                   }
 
                   return <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
-                    {res} 
+                    {res}
                     <div>
                       <div><strong>{r.deviceName}</strong></div>
                       <div style={{opacity: 0.8}}>{r.ip}</div>
@@ -462,7 +531,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
               },
               {
                 title: t('mgmt.storage.typeTitle'),
-                field: (r) => <strong>{r.isCosmosNode ? "Cosmos Node" : (r.isLighthouse ? "Lighthouse" : "Client")}</strong>,
+                field: (r) => <strong>{r.isCosmosNode ? t('mgmt.constellation.cosmosNode') : (r.isLighthouse ? t('mgmt.constellation.lighthouse') : t('mgmt.constellation.client'))}</strong>,
               },
               {
                 title: '',
@@ -471,7 +540,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   return (
                     <Stack direction="row" spacing={1}>
                       {r.isCosmosNode && (
-                        <Tooltip title="Cosmos Node">
+                        <Tooltip title={t('mgmt.constellation.cosmosNode')}>
                           <CloudOutlined style={{ color: '#9c27b0' }} />
                         </Tooltip>
                       )}
@@ -510,7 +579,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       label={
                         <div>
                           <CircularProgress size={16} style={{ verticalAlign: "middle", marginRight: 4 }} />
-                          Updating...
+                          {t('mgmt.constellation.updating')}
                         </div>
                       }
                       color="default"
@@ -521,7 +590,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     label={
                       <div>
                         <Switch size="small" style={{ verticalAlign: "middle", marginRight: 4 }} />
-                        Blocked
+                        {t('mgmt.constellation.blocked')}
                       </div>
                     }
                     color="error"
@@ -543,7 +612,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           }}
                           checked
                         />
-                        Allowed
+                        {t('mgmt.constellation.allowed')}
                       </div>
                     }
                     color="success"
@@ -557,7 +626,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 clickable: true,
                 field: (r) => {
                   return <>
-                    <Tooltip title="Resync Device">
+                    <Tooltip title={t('mgmt.constellation.resyncDevice')}>
                       <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
                         <SyncOutlined />
                       </IconButton>
@@ -573,9 +642,16 @@ export const ConstellationVPN = ({ freeVersion }) => {
           />
         </>}
       </Stack>
-    </> : <center>
-      <CircularProgress color="inherit" size={20} />
-    </center>}
+    </> : <Stack spacing={2} style={{ maxWidth: "1000px" }}>
+      <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 1 }} />
+      <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
+      <Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} />
+      <Stack direction="row" spacing={2}>
+        <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1, flex: 1 }} />
+        <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1, flex: 1 }} />
+      </Stack>
+      <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 1 }} />
+    </Stack>}
 
     {freeVersion && config && !constellationEnabled && <VPNSalesPage />}
   </>

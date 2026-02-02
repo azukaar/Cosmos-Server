@@ -13,6 +13,7 @@ import ApiModal from "../../components/apiModal";
 import ConfirmModal from "../../components/confirmModal";
 import { isDomain } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
+import StatusDot from "../../components/statusDot";
 import { useTheme } from '@mui/material/styles';
 
 import diskIcon from '../../assets/images/icons/disk.svg';
@@ -143,7 +144,7 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened, containerized}) => {
                   padding: '0px 5px',
                 }}>
                 <span style={{fontSize: '80%', opacity: 0.8}}>
-                  {(disk.smart ? diskChip(disk) : "⚪")} {disk.smart.Temperature}°C
+                  {(disk.smart ? diskChip(disk) : <StatusDot status="unknown" />)} {disk.smart.Temperature}°C
                 </span></div> : ""}
 
               
