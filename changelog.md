@@ -2,6 +2,7 @@
  - Reworked Constellation cluster synchronisation completely. Now there are no more "Master" server and each server is equally capable.
  - Any server can be used as DNS (add redundancy too)
  - Any server can tunnel another server's URL in any direction
+ - Server can now modify their setup without having to recreate the network
 
 ## Version 0.20.2
  - Fix regression with header hardening

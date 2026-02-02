@@ -23,6 +23,7 @@ type DeviceCreateRequestJSON struct {
 	IsLighthouse bool `json:"isLighthouse",omitempty`
 	IsCosmosNode bool `json:"isCosmosNode",omitempty`
 	IsRelay bool `json:"isRelay",omitempty`
+	IsLoadBalancer bool `json:"isLoadBalancer",omitempty`
 	IsExitNode bool `json:"isExitNode",omitempty`
 	PublicHostname string `json:"PublicHostname",omitempty`
 	Port string `json:"port",omitempty`
@@ -93,6 +94,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				IsCosmosNode: request.IsCosmosNode,
 				IsRelay: request.IsRelay,
 				IsExitNode: request.IsExitNode,
+				IsLoadBalancer: request.IsLoadBalancer,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
@@ -135,6 +137,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
 					"IsCosmosNode": request.IsCosmosNode,
+					"IsLoadBalancer": request.IsLoadBalancer,
 					"IsRelay": request.IsRelay,
 					"IsExitNode": request.IsExitNode,
 					"PublicHostname": request.PublicHostname,
@@ -235,6 +238,7 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			request.IsRelay = false
 			request.IsExitNode = false
 			request.Invisible = false
+			request.IsLoadBalancer = false
 		}
 
 		_, err3 := c.InsertOne(nil, map[string]interface{}{
@@ -247,6 +251,7 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			"IsRelay": request.IsRelay,
 			"IsExitNode": request.IsExitNode,
 			"PublicHostname": request.PublicHostname,
+			"IsLoadBalancer": request.IsLoadBalancer,
 			"Port": request.Port,
 			"Fingerprint": fingerprint,
 			"APIKey": APIKey,
@@ -261,8 +266,9 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 		request.Nickname = nickname
 		request.DeviceName = deviceName
 		request.PublicKey = key
-		request.IsRelay = request.IsRelay
+		request.IsLoadBalancer = request.IsLoadBalancer
 		request.IsExitNode = request.IsExitNode
+		request.IsLoadBalancer = request.IsLoadBalancer
 		request.Invisible = request.Invisible
 		request.APIKey = APIKey	
 

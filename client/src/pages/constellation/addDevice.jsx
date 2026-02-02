@@ -76,6 +76,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
           PublicHostname: '',
           IsRelay: true,
           IsExitNode: true,
+          IsLoadBalancer: true,
           deviceType: 'client',
           invisible: false,
         }}
@@ -221,6 +222,14 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                         label={t('mgmt.constellation.setup.pubHostname.label')}
                         formik={formik}
                       />
+
+                      {(formik.values.deviceType === 'cosmos') && <>
+                        <CosmosCheckbox
+                          name="IsLoadBalancer"
+                          label={t('mgmt.constellation.isLoadBalancer.label')}
+                          formik={formik}
+                        />
+                      </>}
 
                       <CosmosCheckbox
                         name="IsRelay"

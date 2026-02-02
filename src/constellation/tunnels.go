@@ -196,7 +196,7 @@ func UpdateLocalTunnelCache() {
 				if existing, ok := byName[tunnelRoute.Name]; ok {
 					existing.From = append(existing.From, heartbeat.DeviceName)
 				} else {
-					tunnelRoute._IsTunneled = true
+					tunnelRoute.Const_IsTunneled = true
 					byName[tunnelRoute.Name] = &utils.ConstellationTunnel{
 						Route: tunnelRoute,
 						From:  []string{heartbeat.DeviceName},
@@ -216,6 +216,16 @@ func UpdateLocalTunnelCache() {
 }
 
 func GetLocalTunnelCache() []utils.ConstellationTunnel {
+	isLB, err := GetCurrentDeviceIsLoadbalancer()
+	if err != nil {
+		utils.Error("[constellation] Failed to get current device load balancer status for tunnel cache retrieval", err)
+		return []utils.ConstellationTunnel{}
+	}
+	
+	if !isLB {
+		return []utils.ConstellationTunnel{}
+	}
+
 	localTunnelCacheMutex.RLock()
 	defer localTunnelCacheMutex.RUnlock()
 
@@ -227,4 +237,8 @@ func GetLocalTunnelCache() []utils.ConstellationTunnel {
 	}
 
 	return result
+}
+
+func IsTunneled(route utils.ProxyRouteConfig) bool {
+	return route.Const_IsTunneled
 }

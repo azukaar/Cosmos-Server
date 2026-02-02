@@ -22,7 +22,7 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 	
 	// Connect to the collection
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if errCo != nil {
 		utils.Error("Database Connect", errCo)
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -65,9 +65,12 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	
+	n, _ := GetCurrentDeviceName()
+
 	// Respond with the list of devices
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "OK",
 		"data": devices,
+		"currentDeviceName": n,
 	})
 }

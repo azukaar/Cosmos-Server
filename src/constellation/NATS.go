@@ -410,7 +410,6 @@ func ClientConnectToJS() error {
 	}
 	
     if js != nil && time.Since(lastCheck) < 5*time.Second {
-		utils.Debug("[NATS] JetStream context already exists and recently checked")
         return nil
     }
 

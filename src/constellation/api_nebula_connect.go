@@ -134,7 +134,6 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 
 		config := utils.ReadConfigFromFile()
 		config.ConstellationConfig.Enabled = true
-		config.ConstellationConfig.DNSDisabled = true
 		
 		var configMap map[string]interface{}
 
@@ -166,15 +165,6 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "API_ConnectToExisting Error: device name not found in config",
 				http.StatusInternalServerError, "ACE003")
 			return
-		}
-
-		// read values into main config
-		if exitNodeVal, ok := configMap["cstln_is_exit_node"]; ok {
-			if exitNodeStr, ok := exitNodeVal.(string); ok {
-				config.ConstellationConfig.IsExitNode = (exitNodeStr == "true")
-			} else if exitNodeBool, ok := exitNodeVal.(bool); ok {
-				config.ConstellationConfig.IsExitNode = exitNodeBool
-			}
 		}
 		
 		utils.SetBaseMainConfig(config)

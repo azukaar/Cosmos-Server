@@ -62,7 +62,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
     (async () => {
       setTunnels((await API.constellation.list()).data.filter(
-        (device) => device.isLighthouse
+        (device) => device.isLighthouse && device.isLoadBalancer
       ) || []);
     })();
 

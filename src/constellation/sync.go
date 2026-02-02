@@ -94,6 +94,8 @@ func MakeSyncPayload(rawPayload string) string {
 	return string(payloadBytes)
 }
 
+var lastDBSyncTime time.Time
+
 func ReceiveSyncPayload(rawPayload string) bool {
 	utils.Log("Constellation: ReceiveSyncPayload: Received sync payload")
 	
@@ -166,6 +168,8 @@ func ReceiveSyncPayload(rawPayload string) bool {
 
 	utils.CloseEmbeddedDB()
 
+	lastDBSyncTime = time.Now()
+
 	utils.TriggerEvent(
 		"cosmos.settings",
 		"Settings updated",
@@ -180,6 +184,11 @@ func ReceiveSyncPayload(rawPayload string) bool {
 func SendRequestSyncMessage() {
 	if !NebulaStarted {
 		utils.Warn("Constellation: SendRequestSyncMessage: Nebula not started, skipping sync request")
+		return
+	}
+
+	if !lastDBSyncTime.IsZero() && time.Since(lastDBSyncTime) < 10*time.Second {
+		utils.Warn("Constellation: SendRequestSyncMessage: Last DB sync was less than 10s ago, skipping")
 		return
 	}
 
@@ -207,6 +216,7 @@ func SendRequestSyncMessage() {
 	if needRestart {
 		go func() {
 			utils.RestartHTTPServer()
+			RestartNebula()
 		}()
 	}
 }

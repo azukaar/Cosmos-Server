@@ -242,6 +242,7 @@ func stop() error {
 }
 
 func RestartNebula() {
+	cachedCurrentDevice = nil
 	CloseNATSClient()
 	StopNATS()
 	stop()
@@ -867,8 +868,9 @@ func GetDeviceIp(device string) string {
 
 func populateIPTableMasquerade() {
 	config := utils.GetMainConfig()
+	isExitNode, err := GetCurrentDeviceIsExitNode()
 
-	if config.ConstellationConfig.IsExitNode {
+	if isExitNode && err == nil {
 		utils.Log("Constellation: Exit node enabled, configuring iptables masquerade...")
 
 		// Enable IP forwarding
@@ -1030,12 +1032,18 @@ func GetCurrentDeviceName() (string, error) {
 	return name, nil
 }
 
+var cachedCurrentDevice *utils.ConstellationDevice
+
 func GetCurrentDevice() (utils.ConstellationDevice, error) {
+	if cachedCurrentDevice != nil {
+		return *cachedCurrentDevice, nil
+	}
+
 	name, err := GetCurrentDeviceName()
 	if err != nil {
 		return utils.ConstellationDevice{}, err
 	}
-	
+
 	device, exists := CachedDevices[name]
 	if !exists {
 		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
@@ -1088,10 +1096,9 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 		} else {
 			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
 		}
-
-		return device, nil
 	}
-	
+
+	cachedCurrentDevice = &device
 	return device, nil
 }	
 
@@ -1109,6 +1116,30 @@ func GetCurrentDeviceIP() (string, error) {
 		return "", errors.New("current device not found in cache")
 	}
 	return device.IP, nil
+}
+
+func GetCurrentDeviceIsLoadbalancer() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsLoadBalancer, nil
+}
+
+func GetCurrentDeviceIsRelay() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsRelay, nil
+}
+
+func GetCurrentDeviceIsExitNode() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsExitNode, nil
 }
 
 func GetAllLighthouseIPFromTempConfig() ([]string, error) {

@@ -147,6 +147,16 @@ function tunnels() {
   }))
 }
 
+function editDevice(device) {
+  return wrap(fetch('/cosmos/api/constellation/edit-device', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(device),
+  }))
+}
+
 export {
   list,
   addDevice,
@@ -161,4 +171,5 @@ export {
   create,
   pingDevice,
   tunnels,
+  editDevice,
 };

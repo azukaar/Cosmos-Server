@@ -41,6 +41,7 @@ function list() {
           "fingerprint": "..."
         }
       ],
+      "currentDeviceName": "cosmos",
       "status": "OK"
     })
   });

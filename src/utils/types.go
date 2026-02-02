@@ -256,7 +256,7 @@ type ProxyRouteConfig struct {
 	Tunnel                     string                      `yaml:"tunnel,omitempty"`
 	TunneledHost			   string                      `yaml:"tunneled_host,omitempty"`
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
-	_IsTunneled                bool                        `yaml:"-"`
+	Const_IsTunneled           bool                        `yaml:"-", json:"-"`
 }
 
 type EmailConfig struct {
@@ -302,8 +302,6 @@ type ConstellationConfig struct {
 
 	// TODO REMOVE
 	ConstellationHostname string
-	IsExitNode bool
-	IsRelayNode bool
 }
 
 type ConstellationTunnel struct {
@@ -325,6 +323,7 @@ type ConstellationDevice struct {
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
 	IsCosmosNode bool `json:"isCosmosNode" bson:"IsCosmosNode"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
+	IsLoadBalancer bool `json:"isLoadBalancer" bson:"IsLoadBalancer"`
 	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`
 	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`
 	Port string `json:"port" bson:"Port"`
