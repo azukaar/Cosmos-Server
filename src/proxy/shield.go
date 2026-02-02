@@ -297,12 +297,11 @@ func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
-	isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
 	isConstIP := utils.IsConstellationIP(remoteAddr)
 	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
 	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
-		 (isTunneledIp && isConstIP && isConstTokenValid) {
+		 (isConstIP && isConstTokenValid) {
 		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
 		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip

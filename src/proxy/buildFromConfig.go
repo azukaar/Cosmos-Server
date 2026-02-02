@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
@@ -33,17 +34,13 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 		RouterGen(rcloneRoute, router, RouteTo(rcloneRoute))
 	}
 
-	// ConstellationConfig := utils.GetMainConfig().ConstellationConfig
-	
-	// if constellation slave
-	// if ConstellationConfig.Enabled && ConstellationConfig.SlaveMode {
-	// 	for i := len(ConstellationConfig.Tunnels)-1; i >= 0; i-- {
-	// 		routeConfig := ConstellationConfig.Tunnels[i]
-	// 		if !routeConfig.Disabled {
-	// 			RouterGen(routeConfig, router, RouteTo(routeConfig))
-	// 		}
-	// 	}
-	// }
+	remoteTunnels := constellation.GetLocalTunnelCache()
+	for _, tunnel := range remoteTunnels {
+		routeConfig := tunnel.Route 
+		if !routeConfig.Disabled {
+			RouterGen(routeConfig, router, RouteTo(routeConfig))
+		}
+	}
 
 	remoteConfigs := utils.GetMainConfig().RemoteStorage
 	for _, shares := range remoteConfigs.Shares {

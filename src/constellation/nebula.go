@@ -256,10 +256,12 @@ func ResetNebula() error {
 	os.RemoveAll(utils.CONFIGFOLDER + "ca.key")
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.crt")
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.key")
+	os.RemoveAll(utils.CONFIGFOLDER + "jetstream")
+	
 	// remove everything in db
 
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if err != nil {
 			return err
 	}

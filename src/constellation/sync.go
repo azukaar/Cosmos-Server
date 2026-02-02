@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"strconv"
 	"io/ioutil"
+	"time"
+	"github.com/nats-io/nats.go"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -13,6 +15,8 @@ type SyncPayload struct {
 	Database       string `json:"database"`
 	AuthPrivateKey string `json:"authPrivateKey"`
 	AuthPublicKey  string `json:"authPublicKey"`
+	CART           string `json:"caCrt"`
+	CAKey 	       string `json:"caKey"`
 	LastEdited     int64  `json:"lastEdited"`
 }
 
@@ -55,11 +59,29 @@ func MakeSyncPayload(rawPayload string) string {
 	AuthPrivateKey := utils.GetMainConfig().HTTPConfig.AuthPrivateKey
 	AuthPublicKey := utils.GetMainConfig().HTTPConfig.AuthPublicKey
 
+	// Read CA
+	CART := ""
+	CAKey := ""
+
+	caCrtData, err := ioutil.ReadFile(utils.CONFIGFOLDER + "ca.crt")
+	if err == nil {
+		CART = base64.StdEncoding.EncodeToString(caCrtData)
+	}
+
+	caKeyData, err := ioutil.ReadFile(utils.CONFIGFOLDER + "ca.key")
+	if err == nil {
+		CAKey = base64.StdEncoding.EncodeToString(caKeyData)
+	}
+
+	// Create payload
+
 	sendPayload := SyncPayload{
 		Database:       dbBase64,
 		AuthPrivateKey: AuthPrivateKey,
 		AuthPublicKey:  AuthPublicKey,
-		LastEdited:    utils.GetFileLastModifiedTime(dbPath).Unix(),
+		CART:           CART,
+		CAKey:          CAKey,
+		LastEdited:     utils.GetFileLastModifiedTime(dbPath).Unix(),
 	}
 
 	// JSON encode the payload
@@ -72,21 +94,21 @@ func MakeSyncPayload(rawPayload string) string {
 	return string(payloadBytes)
 }
 
-func ReceiveSyncPayload(rawPayload string) {
+func ReceiveSyncPayload(rawPayload string) bool {
 	utils.Log("Constellation: ReceiveSyncPayload: Received sync payload")
 	
 	var payload SyncPayload
 	err := json.Unmarshal([]byte(rawPayload), &payload)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to unmarshal payload " + rawPayload, err)
-		return
+		return false
 	}
 
 	// Decode base64 database content
 	dbData, err := base64.StdEncoding.DecodeString(payload.Database)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to decode database content", err)
-		return
+		return false
 	}
 
 	// Write database file
@@ -95,23 +117,46 @@ func ReceiveSyncPayload(rawPayload string) {
 	// if local database is newer or same, skip update
 	if utils.FileExists(dbPath) && utils.GetFileLastModifiedTime(dbPath).Unix() >= payload.LastEdited {
 		utils.Warn("Constellation: ReceiveSyncPayload: Local database is newer or same as received one, skipping update -  local time:" + strconv.FormatInt(utils.GetFileLastModifiedTime(dbPath).Unix(), 10) + " received time:" + strconv.FormatInt(payload.LastEdited, 10))
-		return
+		return false
 	}
 
 	err = ioutil.WriteFile(dbPath, dbData, 0644)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to write database file", err)
-		return
+		return false
 	}
 
 	// set the last modified time to the one received
 	err = utils.SetFileLastModifiedTime(dbPath, payload.LastEdited)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to set database file last modified time", err)
-		return
+		return false
 	}
 
 	utils.Warn("Constellation: ReceiveSyncPayload: Database file updated -  local time:" + strconv.FormatInt(utils.GetFileLastModifiedTime(dbPath).Unix(), 10) + " received time:" + strconv.FormatInt(payload.LastEdited, 10))
+
+	// set the CA filses if present
+	if payload.CART != "" && payload.CAKey != "" {
+		caCrtData, err := base64.StdEncoding.DecodeString(payload.CART)
+		if err != nil {
+			utils.Error("Constellation: ReceiveSyncPayload: Failed to decode CA crt", err)
+		} else {
+			err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.crt", caCrtData, 0644)
+			if err != nil {
+				utils.Error("Constellation: ReceiveSyncPayload: Failed to write CA crt file", err)
+			} else {
+				caKeyData, err := base64.StdEncoding.DecodeString(payload.CAKey)
+				if err != nil {
+					utils.Error("Constellation: ReceiveSyncPayload: Failed to decode CA key", err)
+				} else {
+					err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.key", caKeyData, 0644)
+					if err != nil {
+						utils.Error("Constellation: ReceiveSyncPayload: Failed to write CA key file", err)
+					}
+				}
+			}
+		}
+	}
 
 	// Update auth keys
 	config := utils.ReadConfigFromFile()
@@ -129,9 +174,7 @@ func ReceiveSyncPayload(rawPayload string) {
 		map[string]interface{}{},
 	)
 
-	go func() {
-		utils.RestartHTTPServer()
-	}()
+	return true
 }
 
 func SendRequestSyncMessage() {
@@ -154,16 +197,18 @@ func SendRequestSyncMessage() {
 
 	payloadStr := string(payloadBytes)
 
-	response, err := SendNATSMessage("cosmos._global_.constellation.data.sync-request", payloadStr)
+	needRestart := false
 
-	if err != nil {
-		utils.Error("Constellation: SendRequestSyncMessage: Failed to send request", err)
-		return
+	SendNATSMessageAllReply("cosmos._global_.constellation.data.sync-request", payloadStr, 2*time.Second, func(response string) {
+		utils.Log("Constellation: SendRequestSyncMessage: Received sync response")
+		needRestart = ReceiveSyncPayload(response) && needRestart
+	})
+
+	if needRestart {
+		go func() {
+			utils.RestartHTTPServer()
+		}()
 	}
-
-	utils.Log("Constellation: SendRequestSyncMessage: Received sync response")
-
-	ReceiveSyncPayload(string(response))
 }
 
 func SendNewDBSyncMessage() {
@@ -179,12 +224,31 @@ func SendNewDBSyncMessage() {
 		return
 	}
 
-	response, err := SendNATSMessage("cosmos._global_.constellation.data.sync-receive", payload)
+	_, err := SendNATSMessage("cosmos._global_.constellation.data.sync-receive", payload)
 
 	if err != nil {
 		utils.Error("Constellation: SendNewDBSyncMessage: Failed to send request", err)
 		return
 	}
+}
 
-	ReceiveSyncPayload(string(response))
+func SyncNATSClientRouter(nc *nats.Conn) {
+	nc.Subscribe("cosmos._global_.constellation.data.sync-request", func(m *nats.Msg) {
+		utils.Log("[NATS] Constellation data sync request received")
+
+		payload := m.Data
+		response := MakeSyncPayload((string)(payload))
+		if response != "" {
+			m.Respond([]byte(response))
+		}
+	})
+	
+	nc.Subscribe("cosmos._global_.constellation.data.sync-receive", func(m *nats.Msg) {
+		utils.Log("[NATS] Constellation data sync received")
+		
+		payload := m.Data
+		ReceiveSyncPayload((string)(payload))
+
+		m.Respond([]byte("ack"))
+	})
 }

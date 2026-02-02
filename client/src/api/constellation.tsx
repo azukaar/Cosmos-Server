@@ -138,6 +138,15 @@ function block(nickname, devicename, block) {
   }))
 }
 
+function tunnels() {
+  return wrap(fetch('/cosmos/api/constellation/tunnels', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   list,
   addDevice,
@@ -151,4 +160,5 @@ export {
   ping,
   create,
   pingDevice,
+  tunnels,
 };

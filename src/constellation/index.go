@@ -9,6 +9,7 @@ import (
 var NebulaStarted = false
 var CachedDeviceNames = map[string]string{}
 var CachedDevices = map[string]utils.ConstellationDevice{}
+var needToSyncCA = false
 
 func resyncConstellationNodes() {
 	go SendNewDBSyncMessage()

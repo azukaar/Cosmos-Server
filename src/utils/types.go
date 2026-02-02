@@ -253,9 +253,10 @@ type ProxyRouteConfig struct {
 	OverwriteHostHeader        string                      `yaml:"overwrite_host_header,omitempty"`
 	WhitelistInboundIPs        []string                    `yaml:"whitelist_inbound_ips,omitempty"`
 	Icon                       string                      `yaml:"icon,omitempty"`
-	TunnelVia                  string                      `yaml:"tunnel_via,omitempty"`
-	TunneledHost							 string                      `yaml:"tunneled_host,omitempty"`
+	Tunnel                     string                      `yaml:"tunnel,omitempty"`
+	TunneledHost			   string                      `yaml:"tunneled_host,omitempty"`
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
+	_IsTunneled                bool                        `yaml:"-"`
 }
 
 type EmailConfig struct {
@@ -303,6 +304,11 @@ type ConstellationConfig struct {
 	ConstellationHostname string
 	IsExitNode bool
 	IsRelayNode bool
+}
+
+type ConstellationTunnel struct {
+	Route ProxyRouteConfig
+	From []string
 }
 
 type ConstellationDNSEntry struct {

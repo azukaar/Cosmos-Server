@@ -71,6 +71,7 @@ const ProxyManagement = () => {
   const [needSave, setNeedSave] = React.useState(false);
   const [openNewModal, setOpenNewModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [tunnels, setTunnels] = React.useState([]);
   const {role} = useClientInfos();
   const isAdmin = role === "2";
 
@@ -108,6 +109,13 @@ const ProxyManagement = () => {
   function refresh() {
     API.config.get().then((res) => {
       setConfig(res.data);
+    });
+    API.constellation.tunnels().then((res) => {
+      setTunnels((res.data || []).map(r => {
+        let route = r.Route;
+        route._from = r.From;
+        return route;
+      }));
     });
   }
 
@@ -167,14 +175,12 @@ const ProxyManagement = () => {
 
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
-  if (config && config.ConstellationConfig.Tunnels) {
-    // prepend
-    config.ConstellationConfig.Tunnels = config.ConstellationConfig.Tunnels.map((t) => {
-      t._IsTunnel = true;
-      return t;
-    });
-    
-    routes = [...config.ConstellationConfig.Tunnels, ...routes];
+  if (config && tunnels.length > 0) {
+    const tunnelRoutes = tunnels.map((t) => ({
+      ...t,
+      _IsTunnel: true,
+    }));
+    routes = [...tunnelRoutes, ...routes];
   }
 
   return <div style={{   }}>
@@ -229,7 +235,10 @@ const ProxyManagement = () => {
                 {r.Name} {!r._IsTunnel && r.TunnelVia && <span>💫</span>}
               </div>
               <br/>
-              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+              <div>
+                <div style={{ textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+                {r._IsTunnel ? <div style={{ textDecoration: 'inherit', fontSize: '90%', opacity: '60%'}}>From {r._from.join(', ')}</div> : ""}
+              </div>
             </>
           },
           { title: t('global.network'), screenMin: 'lg', clickable:false, field: (r) => 

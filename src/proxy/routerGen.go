@@ -24,11 +24,10 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
 				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 				
-				isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
 				isConstIP := utils.IsConstellationIP(remoteAddr)
 				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-				if isTunneledIp && isConstIP && isConstTokenValid {
+				if isConstIP && isConstTokenValid {
 					utils.Debug("Bypassing auth for Constellation tunnel")
 					r.Header.Del("x-cstln-auth")
 
@@ -81,9 +80,8 @@ func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// If the request is from a Constellation tunnel, add the token
-			deviceName, _ := constellation.GetCurrentDeviceName()
 			apiKey, _ := constellation.GetCurrentDeviceAPIKey()
-			if route.TunnelVia == deviceName {
+			if route._IsTunneled {
 				// Add the token
 				r.Header.Set("x-cstln-auth", apiKey)
 			}

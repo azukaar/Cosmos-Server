@@ -89,7 +89,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
-          TunnelVia: routeConfig.TunnelVia || '',
+          Tunnel: routeConfig.Tunnel,
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
         }}
@@ -347,24 +347,21 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     formik={formik}
                   />
 
-                  {(formik.values.TunnelVia || tunnels.length > 0) && (<>
+                  {(formik.values.Tunnel || tunnels.length > 0) && (<>
                     <CosmosSelect
-                      name="TunnelVia"
-                      label={t('mgmt.urls.edit.tunnelViaSelection.tunnelViaLabel')}
+                      name="Tunnel"
+                      label={t('mgmt.urls.edit.tunnelSelection.tunnelLabel')}
                       formik={formik}
-                      onChange={(e) => {
-                        const newHostname = tunnels.find((t) => t.deviceName === e.target.value)?.publicHostname;
-                        formik.setFieldValue('TunneledHost', getHostnameFromName(formik.values.Name, null, config, newHostname));
-                      }}
                       options={[
-                        ['', 'None'],
+                        ['',  t('mgmt.urls.edit.tunnelSelection.noNode')],
+                        ['_ANY_', t('mgmt.urls.edit.tunnelSelection.anyNode')],
                         ...tunnels.map((t) => [t.deviceName, `${t.deviceName} (${t.publicHostname})`])
                       ]}
                     />
 
-                    {formik.values.TunnelVia && <CosmosInputText
+                    {formik.values.Tunnel && <CosmosInputText
                       name="TunneledHost"
-                      label={t('mgmt.urls.edit.tunneledHostInput.tunneledHostLabel')}
+                      label={t('mgmt.urls.edit.tunneledHostInput.tunneledHostLabel2')}
                       placeholder="other-host.com"
                       formik={formik}
                     />}

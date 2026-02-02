@@ -7,9 +7,9 @@ import (
 	"sync"
 	"strings"
 	"crypto/tls"
-	"encoding/json"
 	"encoding/pem"
 	"io/ioutil"
+	"fmt"
 	"gopkg.in/yaml.v2"
     "net/url"
 
@@ -28,6 +28,7 @@ type NodeHeartbeat struct {
 	IsLighthouse bool
 	IsExitNode bool
 	IsCosmosNode bool
+	Tunnels []utils.ProxyRouteConfig
 }
 
 var ns *server.Server
@@ -387,10 +388,9 @@ func InitNATSClient() {
 
 	go MasterNATSClientRouter()
 
-	js, err = nc.JetStream(nats.MaxWait(10 * time.Second)) 
-	if err != nil {
-		utils.MajorError("[NATS] Error getting JetStream context", err)
-	}
+	clientConfigLock.Unlock()
+	ClientConnectToJS()
+	clientConfigLock.Lock()
 
 	go ClientHeartbeatInit()
 
@@ -399,78 +399,36 @@ func InitNATSClient() {
 	// POST CLIENT CONNECTION HOOK
 }
 
-func ClientHeartbeatInit() {
-	for i := 0; i < 20; i++ {
-		time.Sleep(3 * time.Second)
-		
-		_, err := js.KeyValue("constellation-nodes")
-		if err == nil {
-			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
-			break
-		}
-		
-		_, err = js.CreateKeyValue(&nats.KeyValueConfig{
-			Bucket:   "constellation-nodes",
-			TTL:      10 * time.Second,
-			Storage:  nats.MemoryStorage,
-			Replicas: 1,
-		})
+var lastCheck time.Time
 
-		if err == nil {
-			utils.Log("[NATS] Created Key-Value store 'constellation-nodes'")
-			break
-		}
-		
-		utils.Debug("[NATS] JetStream not ready, retrying... " + err.Error())
+func ClientConnectToJS() error {
+	clientConfigLock.Lock()
+	defer clientConfigLock.Unlock()
+
+	if nc == nil {
+		return errors.New("NATS client not connected")
 	}
 	
-	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
+    if js != nil && time.Since(lastCheck) < 5*time.Second {
+		utils.Debug("[NATS] JetStream context already exists and recently checked")
+        return nil
+    }
 
-	go func() {
-		
-		ticker := time.NewTicker(2 * time.Second)
-		for range ticker.C {
-			kv, err := js.KeyValue("constellation-nodes")
-			if err != nil {
-				utils.Error("[NATS] Error getting Key-Value store during heartbeat, store is offline will skip this cycle", err)
-				continue
-			}
+    if js != nil {
+        if _, err := js.AccountInfo(); err == nil {
+            lastCheck = time.Now()
+            return nil
+        }
+    }
 
-			device, err := GetCurrentDevice()
-			if err != nil {
-				utils.Error("[NATS] Error getting current device for heartbeat", err)
-				continue
-			}
-
-			key := sanitizeNATSUsername(device.DeviceName)
-
-			if !IsClientConnected() {
-				utils.Warn("[NATS] NATS client not connected during heartbeat")
-				InitNATSClient()
-			}
-
-			// insert JSON encoded heartbeat
-			heartbeat := NodeHeartbeat{
-				DeviceName: device.DeviceName,
-				IP: device.IP,
-				IsRelay: device.IsRelay,
-				IsLighthouse: device.IsLighthouse,
-				IsExitNode: device.IsExitNode,
-				IsCosmosNode: device.IsCosmosNode,
-			}
-
-			heartbeatData, err := json.Marshal(heartbeat)
-			if err != nil {
-				utils.Error("[NATS] Error marshalling heartbeat JSON", err)
-				continue
-			}
-
-			_, err = kv.Put(key, heartbeatData)
-			if err != nil {
-				utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
-			}
-		}
-	}()
+    var err error
+    js, err = nc.JetStream(nats.MaxWait(10 * time.Second))
+    if err != nil {
+        return fmt.Errorf("error getting JetStream context: %w", err)
+    }
+    
+    lastCheck = time.Now()
+    return nil
 }
 
 func IsClientConnected() bool {
@@ -517,6 +475,41 @@ func SendNATSMessage(topic string, payload string) (string, error) {
 	return string(msg.Data), nil
 }
 
+func SendNATSMessageAllReply(topic string, payload string, timeout time.Duration, callback func(response string)) error {
+	if !IsClientConnected() {
+		utils.Warn("NATS client not connected")
+		InitNATSClient()
+	}
+
+	utils.Debug("[MQ] Sending message to topic: " + topic)
+
+	inbox := nats.NewInbox()
+	sub, err := nc.SubscribeSync(inbox)
+	if err != nil {
+		utils.Error("[MQ] Error creating subscription", err)
+		return err
+	}
+	defer sub.Unsubscribe()
+
+	err = nc.PublishRequest(topic, inbox, []byte(payload))
+	if err != nil {
+		utils.Error("[MQ] Error publishing request", err)
+		return err
+	}
+
+	deadline := time.Now().Add(timeout)
+	for {
+		msg, err := sub.NextMsg(time.Until(deadline))
+		if err != nil {
+			break // timeout or connection closed
+		}
+		utils.Debug("[MQ] Received response: " + string(msg.Data))
+		callback(string(msg.Data))
+	}
+
+	return nil
+}
+
 func PublishNATSMessage(topic string, payload string) error {
 	if !IsClientConnected() {
 		utils.Warn("NATS client not connected")
@@ -543,22 +536,7 @@ func MasterNATSClientRouter() {
 		m.Respond([]byte("Pong"))
 	})
 
-	nc.Subscribe("cosmos._global_.constellation.data.sync-request", func(m *nats.Msg) {
-		utils.Log("[NATS] Constellation data sync request received")
-
-		payload := m.Data
-		response := MakeSyncPayload((string)(payload))
-		if response != "" {
-			m.Respond([]byte(response))
-		}
-	})
-	
-	nc.Subscribe("cosmos._global_.constellation.data.sync-receive", func(m *nats.Msg) {
-		utils.Log("[NATS] Constellation data sync received")
-		
-		payload := m.Data
-		ReceiveSyncPayload((string)(payload))
-	})
+	SyncNATSClientRouter(nc)
 }
 
 func PingNATSClient() bool {

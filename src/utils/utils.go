@@ -629,11 +629,13 @@ func GetAllTunnelHostnames() map[string]string {
 	tunnels := config.HTTPConfig.ProxyConfig.Routes
 	results := map[string]string{}
 	
-	for _, tunnel := range tunnels {
-		if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
-			results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
-		}
-	}
+	_ = tunnels
+	
+	// for _, tunnel := range tunnels {
+		// if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
+		// 	results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
+		// }
+	// }
 
 	Debug("Tunnel Hostnames: " + fmt.Sprint(results))
 
@@ -711,6 +713,22 @@ func GetServerURL(overwriteHostname string) string {
 	}
 
 	return ServerURL + "/"
+}
+
+func GetServerRawAccess() (string, string) {
+	Hostname := ""
+	Port := ""
+
+	Hostname = MainConfig.HTTPConfig.Hostname
+	
+	if IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443" {
+		Port = MainConfig.HTTPConfig.HTTPSPort
+	}
+	if !IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80" {
+		Port = MainConfig.HTTPConfig.HTTPPort
+	}
+
+	return Hostname, Port
 }
 
 func GetServerPort() string {
