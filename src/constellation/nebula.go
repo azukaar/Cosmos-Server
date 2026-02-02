@@ -395,7 +395,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		hostnames := []string{}
-		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		hsraw := strings.Split(GetCurrentDeviceHostname(), ",")
 		for _, hostname := range hsraw {
 			// trim
 			hostname = strings.TrimSpace(hostname)
@@ -1140,6 +1140,17 @@ func GetCurrentDeviceIsExitNode() (bool, error) {
 		return false, errors.New("current device not found in cache")
 	}
 	return device.IsExitNode, nil
+}
+
+func GetCurrentDeviceHostname() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		if utils.GetMainConfig().ConstellationConfig.ConstellationHostname != "" {
+			return utils.GetMainConfig().ConstellationConfig.ConstellationHostname, nil
+		}
+		return "", errors.New("current device not found in cache")
+	}
+	return device.PublicHostname, nil
 }
 
 func GetAllLighthouseIPFromTempConfig() ([]string, error) {

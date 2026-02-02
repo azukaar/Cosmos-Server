@@ -17,7 +17,16 @@ type SyncPayload struct {
 	AuthPublicKey  string `json:"authPublicKey"`
 	CART           string `json:"caCrt"`
 	CAKey 	       string `json:"caKey"`
+	DNS 		   SyncDNSPayload `json:"dns"`
 	LastEdited     int64  `json:"lastEdited"`
+}
+
+type SyncDNSPayload struct {
+	DNSPort string `json:"dnsPort"`
+	DNSFallback string `json:"dnsFallback"`
+	DNSBlockBlacklist bool `json:"dnsBlockBlacklist"`
+	DNSAdditionalBlocklists []string `json:"dnsAdditionalBlocklists"`
+	CustomDNSEntries []utils.ConstellationDNSEntry `json:"customDNSEntries"`
 }
 
 type SyncRequestPayload struct {
@@ -75,12 +84,21 @@ func MakeSyncPayload(rawPayload string) string {
 
 	// Create payload
 
+	constellationConfig := utils.GetMainConfig().ConstellationConfig
+
 	sendPayload := SyncPayload{
 		Database:       dbBase64,
 		AuthPrivateKey: AuthPrivateKey,
 		AuthPublicKey:  AuthPublicKey,
 		CART:           CART,
 		CAKey:          CAKey,
+		DNS: SyncDNSPayload{
+			DNSPort:                constellationConfig.DNSPort,
+			DNSFallback:            constellationConfig.DNSFallback,
+			DNSBlockBlacklist:      constellationConfig.DNSBlockBlacklist,
+			DNSAdditionalBlocklists: constellationConfig.DNSAdditionalBlocklists,
+			CustomDNSEntries:       constellationConfig.CustomDNSEntries,
+		},
 		LastEdited:     utils.GetFileLastModifiedTime(dbPath).Unix(),
 	}
 
@@ -160,10 +178,15 @@ func ReceiveSyncPayload(rawPayload string) bool {
 		}
 	}
 
-	// Update auth keys
+	// Update auth keys and DNS config
 	config := utils.ReadConfigFromFile()
 	config.HTTPConfig.AuthPrivateKey = payload.AuthPrivateKey
 	config.HTTPConfig.AuthPublicKey = payload.AuthPublicKey
+	config.ConstellationConfig.DNSPort = payload.DNS.DNSPort
+	config.ConstellationConfig.DNSFallback = payload.DNS.DNSFallback
+	config.ConstellationConfig.DNSBlockBlacklist = payload.DNS.DNSBlockBlacklist
+	config.ConstellationConfig.DNSAdditionalBlocklists = payload.DNS.DNSAdditionalBlocklists
+	config.ConstellationConfig.CustomDNSEntries = payload.DNS.CustomDNSEntries
 	utils.SetBaseMainConfig(config)
 
 	utils.CloseEmbeddedDB()

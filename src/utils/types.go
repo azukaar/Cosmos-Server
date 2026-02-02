@@ -299,8 +299,6 @@ type ConstellationConfig struct {
 	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
 	OverrideNebulaExitNodeInterface string
 	ThisDeviceName string
-
-	// TODO REMOVE
 	ConstellationHostname string
 }
 

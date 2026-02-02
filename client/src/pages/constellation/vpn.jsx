@@ -189,8 +189,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
                   IsLoadBalancer: currentDevice ? currentDevice.isLoadBalancer : false,
                   SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
-                  ConstellationHostname: (config.ConstellationConfig.ConstellationHostname && config.ConstellationConfig.ConstellationHostname != "") ? config.ConstellationConfig.ConstellationHostname :
-                    getDefaultConstellationHostname(config)
+                  ConstellationHostname: (currentDevice && currentDevice.publicHostname) || getDefaultConstellationHostname(config)
                 }}
                 onSubmit={async (values) => {
                   const isCreating = !config.ConstellationConfig.ThisDeviceName;
@@ -207,13 +206,12 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     isRelay: values.IsRelay,
                     isExitNode: values.IsExitNode,
                     isLoadBalancer: values.IsLoadBalancer,
+                    publicHostname: values.ConstellationHostname,
                   });
 
-                  if (values.Enabled !== config.ConstellationConfig.Enabled ||
-                      values.ConstellationHostname !== config.ConstellationConfig.ConstellationHostname) {
+                  if (values.Enabled !== config.ConstellationConfig.Enabled) {
                     let newConfig = { ...config };
                     newConfig.ConstellationConfig.Enabled = values.Enabled;
-                    newConfig.ConstellationConfig.ConstellationHostname = values.ConstellationHostname;
                     await API.config.set(newConfig);
                   }
 
@@ -344,7 +342,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
 
                       {constellationEnabled && <>
                         {formik.values.Enabled && <>
-                          <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={t('mgmt.constellation.setup.lighthouse.label')} />
+                          <CosmosCheckbox disabled={!isAdmin || devices.length > 0} formik={formik} name="IsLighthouse" label={t('mgmt.constellation.setup.lighthouse.label')} />
                           {/* <CosmosCheckbox disabled={!isAdmin} formik={formik} name="SyncNodes" label={t('mgmt.constellation.setup.dataSync.label')} /> */}
                           {formik.values.IsLighthouse && <>
                             <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={t('mgmt.constellation.setup.relayRequests.label')} />
