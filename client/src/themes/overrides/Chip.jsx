@@ -6,6 +6,7 @@ export default function Chip(theme) {
             styleOverrides: {
                 root: {
                     borderRadius: 4,
+                    backdropFilter: 'blur(6px)',
                     '&:active': {
                         boxShadow: 'none'
                     }

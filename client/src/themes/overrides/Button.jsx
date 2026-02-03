@@ -14,7 +14,9 @@ export default function Button(theme) {
             },
             styleOverrides: {
                 root: {
-                    fontWeight: 500
+                    fontWeight: 500,
+                    backdropFilter: 'blur(4px)',
+                    transition: 'all 0.2s ease',
                 },
                 contained: {
                     ...disabledStyle

@@ -16,6 +16,7 @@ import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
 import Migrate014 from "./migrate014";
 import { Trans, useTranslation } from 'react-i18next';
+import { motion } from 'framer-motion';
 
 
 export const HomeBackground = () => {
@@ -42,6 +43,8 @@ export const TransparentHeader = () => {
     const backColor = isDark ? '0,0,0' : '255,255,255';
     const textColor = isDark ? 'white' : 'dark';
 
+    const borderColor = backColor === '0,0,0' ? '255,255,255' : '0,0,0';
+
     return <style>
         {`header {
         background: rgba(${backColor}, 0.40) !important;
@@ -61,15 +64,18 @@ export const TransparentHeader = () => {
     }
 
     .app {
-        backdrop-filter: blur(15px);
-        transition: background 0.1s ease-in-out;
-        transition: transform 0.1s ease-in-out;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(${borderColor},0.08);
+        box-shadow: 0 4px 24px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.06);
     }
-    
+
     .app-hover:hover {
         cursor: pointer;
-        background: rgba(${backColor},0.8) !important;
-        transform: scale(1.05);
+        background: rgba(${backColor},0.7) !important;
+        transform: scale(1.03) translateY(-2px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2), 0 0 12px rgba(171,71,188,0.15);
     }
 
     .MuiAlert-standard {
@@ -107,10 +113,10 @@ const HomePage = () => {
 
     const appColor = isDark ? {
         color: 'white',
-        background: 'rgba(10,10,10,0.42)',
+        background: 'rgba(10,10,10,0.5)',
     } : {
         color: 'black',
-        background: 'rgba(245,245,245,0.42)',
+        background: 'rgba(255,255,255,0.45)',
     }
 
 
@@ -192,7 +198,7 @@ const HomePage = () => {
                 hollow: {
                     margin: 0,
                     size: "70%",
-                    background: "#fff",
+                    background: isDark ? 'rgba(30,30,30,0.6)' : "#fff",
                     image: undefined,
                     imageOffsetX: 0,
                     imageOffsetY: 0,
@@ -207,7 +213,7 @@ const HomePage = () => {
                 },
 
                 track: {
-                    background: "#fff",
+                    background: isDark ? 'rgba(50,50,50,0.6)' : "#fff",
                     strokeWidth: "67%",
                     margin: 0, // margin is in pixels
                     dropShadow: {
@@ -230,7 +236,7 @@ const HomePage = () => {
                         formatter: function (val) {
                             return val + "%"
                         },
-                        color: "#111",
+                        color: isDark ? "#eee" : "#111",
                         offsetY: 7,
                         fontSize: "18px",
                         show: true
@@ -272,6 +278,88 @@ const HomePage = () => {
             maxRAMRaw = metrics["cosmos.system.ram"].Max;
         }
     }
+
+    const metricCardStyle = {height: '106px', borderRadius: 10, ...appColor};
+
+    const loadingMetricCards = [
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
+                <Stack style={{paddingLeft: '20px'}} spacing={0}>
+                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
+                    <div>-</div>
+                    <div>-</div>
+                </Stack>
+                <div style={{height: '97px'}}>-</div>
+            </Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
+                <Stack style={{paddingLeft: '20px'}} spacing={0}>
+                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
+                    <div>{t('navigation.home.availRam')}: -</div>
+                    <div>{t('navigation.home.usedRam')}: -</div>
+                </Stack>
+                <div style={{height: '97px'}}>-</div>
+            </Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>-</Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>-</Stack>
+        </Box>,
+    ];
+
+    const liveMetricCards = [
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
+                <Stack style={{paddingLeft: '20px'}} spacing={0}>
+                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
+                    <div>{coStatus && coStatus.CPU}</div>
+                    <div>{coStatus && (coStatus.AVX ? t('navigation.home.Avx') : t('navigation.home.noAvx'))}</div>
+                </Stack>
+                <div style={{height: '97px'}}>
+                    <Chart options={optionsRadial} series={[latestCPU]} type="radialBar" height={120} width={120} />
+                </div>
+            </Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
+                <Stack style={{paddingLeft: '20px'}} spacing={0}>
+                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
+                    <div>{t('navigation.home.availRam')}: <strong>{maxRAM}</strong></div>
+                    <div>{t('navigation.home.usedRam')}: <strong>{latestRAM}</strong></div>
+                </Stack>
+                <div style={{height: '97px'}}>
+                    <Chart options={optionsRadial} series={[parseInt(latestRAMRaw / maxRAMRaw * 100)]} type="radialBar" height={120} width={120} />
+                </div>
+            </Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                <MiniPlotComponent noBackground title={t('navigation.home.network')} agglo metrics={[
+                    "cosmos.system.netTx",
+                    "cosmos.system.netRx",
+                ]} labels={{
+                    ["cosmos.system.netTx"]: t('navigation.home.trsNet')+":",
+                    ["cosmos.system.netRx"]: t('navigation.home.rcvNet')+":"
+                }}/>
+            </Stack>
+        </Box>,
+        <Box className='app' style={metricCardStyle}>
+            <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
+                <MiniPlotComponent noBackground title='URLS' agglo metrics={[
+                    "cosmos.proxy.all.success",
+                    "cosmos.proxy.all.error",
+                ]} labels={{
+                    ["cosmos.proxy.all.success"]: "ok:",
+                    ["cosmos.proxy.all.error"]: "err:"
+                }}/>
+            </Stack>
+        </Box>,
+    ];
+
+    const activeMetricCards = metrics ? liveMetricCards : loadingMetricCards;
 
     return <Stack spacing={2} style={{maxWidth: '1450px', margin:'auto'}}>
         <HomeBackground status={coStatus} />
@@ -335,178 +423,101 @@ const HomePage = () => {
             )}
         </Stack>
 
-        <Grid2 container spacing={2} style={{ zIndex: 2 }}>
-            {isAdmin && coStatus && !coStatus.MonitoringDisabled && (<>
-                {isMd && !metrics && (<>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'000'}>
-                        <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
-                            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
-                                <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
-                                <div>-</div>
-                                <div>-</div>
-                                </Stack>
-                                <div style={{height: '97px'}}>
-                                    -
-                                </div>
-                            </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
-                            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
-                                <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
-                                    <div>{t('navigation.home.availRam')}: -</div>
-                                    <div>{t('navigation.home.usedRam')}: -</div>
-                                </Stack>
-                                <div style={{height: '97px'}}>
-                                    -
-                                </div>
-                            </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
-                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            -
-                        </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
-                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            -
-                        </Stack>
-                        </Box>
-                    </Grid2>
-                </>)}
+        {/* Metrics */}
+        {isAdmin && coStatus && !coStatus.MonitoringDisabled && isMd && (
+            <Box sx={{ zIndex: 2, px: 1 }}>
+                <Grid2 container spacing={2}>
+                    {activeMetricCards.map((card, i) => (
+                        <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'metric-' + i}>
+                            <motion.div
+                                initial={{ opacity: 0, y: 16 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.08, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                            >
+                                {card}
+                            </motion.div>
+                        </Grid2>
+                    ))}
+                </Grid2>
+            </Box>
+        )}
 
-                {isMd && metrics && (<>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'000'}>
-                        <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
-                            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
-                                <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.CPU')}</div>
-                                <div>{coStatus.CPU}</div>
-                                <div>{coStatus.AVX ? t('navigation.home.Avx') : t('navigation.home.noAvx')}</div>
-                                </Stack>
-                                <div style={{height: '97px'}}>
-                                    <Chart
-                                        options={optionsRadial}
-                                        // series={[parseInt(
-                                        //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
-                                        // )]}
-                                        series={[latestCPU]}
-                                        type="radialBar"
-                                        height={120}
-                                        width={120}
-                                    />
-                                </div>
-                            </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px', borderRadius: 5, ...appColor }}>
-                            <Stack direction="row" justifyContent={'space-between'} alignItems={'center'} style={{ height: "100%" }}>
-                                <Stack style={{paddingLeft: '20px'}} spacing={0}>
-                                    <div style={{fontSize: '18px', fontWeight: "bold"}}>{t('global.RAM')}</div>
-                                    <div>{t('navigation.home.availRam')}: <strong>{maxRAM}</strong></div>
-                                    <div>{t('navigation.home.usedRam')}: <strong>{latestRAM}</strong></div>
-                                </Stack>
-                                <div style={{height: '97px'}}>
-                                    <Chart
-                                        options={optionsRadial}
-                                        // series={[parseInt(
-                                        //     coStatus.resources.ram / (coStatus.resources.ram + coStatus.resources.ramFree) * 100
-                                        // )]}
-                                        series={[parseInt(latestRAMRaw / maxRAMRaw * 100)]}
-                                        type="radialBar"
-                                        height={120}
-                                        width={120}
-                                    />
-                                </div>
-                            </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
-                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            <MiniPlotComponent noBackground title={t('navigation.home.network')} agglo metrics={[
-                                "cosmos.system.netTx",
-                                "cosmos.system.netRx",
-                            ]} labels={{
-                                ["cosmos.system.netTx"]: t('navigation.home.trsNet')+":", 
-                                ["cosmos.system.netRx"]: t('navigation.home.rcvNet')+":"
-                            }}/>
-                        </Stack>
-                        </Box>
-                    </Grid2>
-                    <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'001'}>
-                        <Box className='app' style={{height: '106px',borderRadius: 5, ...appColor }}>
-                        <Stack direction="row" justifyContent={'center'} alignItems={'center'} style={{ height: "100%" }}>
-                            <MiniPlotComponent noBackground title='URLS' agglo metrics={[
-                                "cosmos.proxy.all.success",
-                                "cosmos.proxy.all.error",
-                            ]} labels={{
-                                ["cosmos.proxy.all.success"]: "ok:", 
-                                ["cosmos.proxy.all.error"]: "err:"
-                            }}/>
-                        </Stack>
-                        </Box>
-                    </Grid2>
-                
-                </>)}
-            </>)}
-            
-            {config && routes.map((route) => {
+        {/* Section divider */}
+        {isAdmin && coStatus && !coStatus.MonitoringDisabled && isMd && routes.length > 0 && (
+            <Box sx={{ zIndex: 2, px: 4, py: 0.5 }}>
+                <Box sx={{
+                    height: '1px',
+                    background: isDark
+                        ? 'linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent)'
+                        : 'linear-gradient(90deg, transparent, rgba(0,0,0,0.08), transparent)',
+                }} />
+            </Box>
+        )}
+
+        {/* Apps */}
+        <Grid2 container spacing={2} style={{ zIndex: 2 }}>
+            {config && routes.map((route, index) => {
                 let skip = false;
                 const isSocketProxy = IsRouteSocketProxy(route);
 
                 if (route.HideFromDashboard || (route.Mode == "SERVAPP" && !route.ContainerRunning) || isSocketProxy)
-                    skip = true; 
+                    skip = true;
 
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
-                
+
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
-                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
-                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                            <Stack direction="row" spacing={2} alignItems="center">
-                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                <div style={{ minWidth: 0 }}>
-                                    <h3 style={blockStyle}>{route.Name}</h3>
-                                    <p style={blockStyle}>{route.Description}</p>
-                                    <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
-                                </div>
-                            </Stack>
-                        </Link>
-                    </Box>
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + index * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                    >
+                        <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
+                            <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
+                                <Stack direction="row" spacing={2} alignItems="center">
+                                    <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
+                                    <div style={{ minWidth: 0 }}>
+                                        <h3 style={blockStyle}>{route.Name}</h3>
+                                        <p style={blockStyle}>{route.Description}</p>
+                                        <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
+                                    </div>
+                                </Stack>
+                            </Link>
+                        </Box>
+                    </motion.div>
                 </Grid2>
                 :
                 <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
-                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 5, ...appColor, ...appBorder }}>
-                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                            <Stack direction="column" spacing={2} alignItems="center">
-                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                <div style={{ minWidth: 0 }}>
-                                    <h3 style={blockStyle}>{route.Name}</h3>
-                                </div>
-                            </Stack>
-                        </Link>
-                    </Box>
+                    <motion.div
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 + index * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                    >
+                        <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
+                            <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
+                                <Stack direction="column" spacing={2} alignItems="center">
+                                    <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
+                                    <div style={{ minWidth: 0 }}>
+                                        <h3 style={blockStyle}>{route.Name}</h3>
+                                    </div>
+                                </Stack>
+                            </Link>
+                        </Box>
+                    </motion.div>
                 </Grid2>)
             })}
 
             {config && routes.length === 0 && (
                 <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    <Box style={{ padding: 10, borderRadius: 5, ...appColor }}>
-                        <Stack direction="row" spacing={2} alignItems="center">
-                            <div style={{ minWidth: 0 }}>
-                                <h3 style={blockStyle}>{t('navigation.home.noAppsTitle')}</h3>
-                                <p style={blockStyle}>{t('navigation.home.noApps')}</p>
-                            </div>
-                        </Stack>
-                    </Box>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3, duration: 0.5 }}
+                    >
+                        <Box style={{ padding: 32, borderRadius: 12, textAlign: 'center', ...appColor }}>
+                            <h3 style={blockStyle}>{t('navigation.home.noAppsTitle')}</h3>
+                            <p style={{ ...blockStyle, marginTop: 8, opacity: 0.7 }}>{t('navigation.home.noApps')}</p>
+                        </Box>
+                    </motion.div>
                 </Grid2>
             )}
         </Grid2>

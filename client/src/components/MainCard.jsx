@@ -45,14 +45,22 @@ const MainCard = forwardRef(
                 ref={ref}
                 {...others}
                 sx={{
-                    ...sx,
                     border: border ? '1px solid' : 'none',
                     borderRadius: 2,
-                    borderColor: theme.palette.mode === 'dark' ? theme.palette.divider : theme.palette.grey.A800,
-                    boxShadow: boxShadow && (!border || theme.palette.mode === 'dark') ? shadow || theme.customShadows.z1 : 'inherit',
+                    borderColor: theme.palette.mode === 'dark'
+                        ? 'rgba(255,255,255,0.08)'
+                        : theme.palette.grey.A800,
+                    background: theme.palette.mode === 'dark'
+                        ? 'rgba(30,30,30,0.65)'
+                        : 'rgba(255,255,255,0.7)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    boxShadow: theme.customShadows?.glass || 'none',
+                    transition: 'box-shadow 0.2s ease, transform 0.2s ease',
                     ':hover': {
-                        boxShadow: boxShadow ? shadow || theme.customShadows.z1 : 'inherit'
+                        boxShadow: boxShadow ? (shadow || theme.customShadows?.glassHover || theme.customShadows?.z1) : 'inherit'
                     },
+                    ...sx,
                 }}
             >
                 {/* card header and action */}
