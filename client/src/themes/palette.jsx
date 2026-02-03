@@ -73,16 +73,16 @@ const Palette = (mode, PrimaryColor, SecondaryColor) => {
             ...paletteColor,
             text: {
                 primary: paletteColor.grey[700],
-                secondary: paletteColor.grey[600],
+                secondary: '#6b7280',
                 disabled: paletteColor.grey[500]
             },
             action: {
                 disabled: paletteColor.grey[300]
             },
-            divider: paletteColor.grey[200],
+            divider: '#e8e8ec',
             background: {
-                paper: paletteColor.grey[0],
-                default: paletteColor.grey.A50
+                paper: '#fafafa',
+                default: '#f5f5f7'
             }
         },
     });

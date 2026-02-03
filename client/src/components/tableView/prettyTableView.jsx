@@ -40,7 +40,8 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
         <Input placeholder={t('global.searchPlaceholder')}
           value={search}
           style={{
-            width: '250px',
+            width: '300px',
+            borderRadius: '8px',
           }}
           startAdornment={
             <InputAdornment position="start">
@@ -54,22 +55,30 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
         {buttons}
       </Stack>
       
-      {isLoading && (<div style={{height: '550px'}}>
-                <center>
-                    <br />
+      {isLoading && (<div style={{height: '550px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                     <CircularProgress />
-                </center>
             </div>
             )}
 
 
-      {!isLoading && <TableContainer style={{width: fullWidth ? '100%': '', background: isDark ? '#252b32' : '', borderTop: '3px solid ' + theme.palette.primary.main}} component={Paper}>
+      {!isLoading && <TableContainer style={{
+        width: fullWidth ? '100%': '',
+        background: isDark ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255,0.7)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        borderRadius: '12px',
+        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+      }} component={Paper} elevation={0}>
         <Table aria-label="simple table">
           <TableHead>
-            <TableRow>
+            <TableRow sx={{
+              background: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.03)',
+              '& .MuiTableCell-head': { fontWeight: 600 },
+            }}>
               {columns.filter(c=>c).map((column) => (
-                ((!column.screenMin || screenMin[column.screenMin]) && 
-                (!column.screenMax || screenMax[column.screenMax]) && 
+                ((!column.screenMin || screenMin[column.screenMin]) &&
+                (!column.screenMax || screenMax[column.screenMax]) &&
                 <TableCell>{column.title}</TableCell>)
               ))}
             </TableRow>
@@ -98,11 +107,12 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
                   key={getKey(row, key)}
                   sx={{
                     cursor: 'pointer',
-                    borderLeft: 'transparent solid 2px',
-                    '&:last-child td, &:last-child th': { border: 0 },
+                    borderLeft: '2px solid transparent',
+                    transition: 'background 0.15s ease',
+                    '&:last-child td, &:last-child th, &:last-child .MuiTableCell-root': { border: 0 },
                     '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.06)',
-                      borderColor: 'gray',
+                      backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+                      borderColor: theme.palette.primary.main,
                       '&:hover .emphasis': {
                         textDecoration: 'underline'
                       }

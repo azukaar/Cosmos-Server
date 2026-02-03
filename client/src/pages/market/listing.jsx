@@ -74,7 +74,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
     }}>
       <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
         <Stack direction="column" spacing={2} style={{ height: '100%' }} sx={{
-          backgroundColor: isDark ? '#1A2027' : '#fff',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255,0.95)',
           padding: '20px 100px',
           width: '50%',
           filter: 'drop-shadow(-20px 0px 20px rgba(0, 0, 0, 1))',
@@ -116,7 +116,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
 
 const appCardStyle = (theme) => ({
   width: '100%',
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  backgroundColor: theme.palette.mode === 'dark' ? '#20232b' : 'rgba(255,255,255)',
   ...theme.typography.body2,
   padding: theme.spacing(1),
   color: theme.palette.text.secondary,
@@ -145,11 +145,9 @@ const MarketPage = () => {
   const isAdmin = role === "2";
 
   const backgroundStyle = isDark ? {
-    backgroundColor: 'rgb(0,0,0)',
-    // borderTop: '1px solid #595959'
+    backgroundColor: '#141414',
   } : {
-    backgroundColor: 'rgb(255,255,255)',
-    // borderTop: '1px solid rgb(220,220,220)'
+    backgroundColor: 'rgb(245,245,247)',
   };
 
   const refresh = () => {
@@ -240,7 +238,7 @@ const MarketPage = () => {
 
       <Stack direction="row" spacing={2} style={{ height: '100%' }} justifyContent="flex-end">
         <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto" }} sx={{
-          backgroundColor: isDark ? '#1A2027' : '#fff',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255,0.95)',
           padding: '80px 80px',
           width: '100%',
           maxWidth: '800px',

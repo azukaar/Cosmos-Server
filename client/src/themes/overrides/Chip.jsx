@@ -5,11 +5,13 @@ export default function Chip(theme) {
         MuiChip: {
             styleOverrides: {
                 root: {
-                    borderRadius: 4,
-                    backdropFilter: 'blur(6px)',
+                    borderRadius: 8,
                     '&:active': {
                         boxShadow: 'none'
                     }
+                },
+                colorWarning: {
+                    color: '#000',
                 },
                 sizeLarge: {
                     fontSize: '1rem',

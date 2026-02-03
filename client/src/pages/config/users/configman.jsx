@@ -701,7 +701,7 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
                       />
                     </Stack>
                   </Grid>
-                  
+
                   <Grid item xs={12}>
                     <Stack spacing={1}>
                       <InputLabel style={{marginBottom: '10px'}} htmlFor="SecondaryColor">{t('mgmt.config.appearance.secondaryColorSlider')}</InputLabel>

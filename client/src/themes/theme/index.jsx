@@ -1,8 +1,9 @@
 // ==============================|| PRESET THEME - THEME SELECTOR ||============================== //
 
-import { purple, pink, deepPurple, blueGrey, lightBlue, lightGreen, orange, teal, indigo } from '@mui/material/colors';
+import { purple, pink, deepPurple, blueGrey, lightBlue, lightGreen, orange, teal, indigo, cyan as muiCyan } from '@mui/material/colors';
 
 const Theme = (colors, darkMode) => {
+    const mode = darkMode ? 'dark' : 'light';
     const { blue, red, gold, cyan, green, grey } = colors;
     const greyColors = {
         0: grey[0],
@@ -30,7 +31,7 @@ const Theme = (colors, darkMode) => {
             main: purple[400],
         },
         secondary: {
-            main: indigo[700],
+            main: indigo[600],
         },
         error: {
             lighter: red[0],
@@ -46,7 +47,7 @@ const Theme = (colors, darkMode) => {
             main: gold[5],
             dark: gold[7],
             darker: gold[9],
-            contrastText: greyColors[100]
+            contrastText: greyColors[900]
         },
         info: {
             lighter: cyan[0],

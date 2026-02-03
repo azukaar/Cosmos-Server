@@ -49,7 +49,8 @@ const stickyButton = {
   position: 'fixed',
   bottom: '20px',
   width: '300px',
-  boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.50)',
+  borderRadius: '12px',
+  boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
   right: '20px',
 }
 

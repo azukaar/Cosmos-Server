@@ -93,16 +93,19 @@ const NavItem = ({ item, level }) => {
                 pl: drawerOpen ? `${level * 28}px` : 1.5,
                 py: !drawerOpen && level === 1 ? 1.25 : 1,
                 ...(drawerOpen && {
+                    borderRadius: '0 8px 8px 0',
+                    mr: 1,
                     '&:hover': {
-                        bgcolor: 'primary.lighter'
+                        bgcolor: 'primary.lighter',
                     },
                     '&.Mui-selected': {
                         bgcolor: 'primary.lighter',
-                        borderRight: `2px solid ${theme.palette.primary.main}`,
+                        borderLeft: `2px solid ${theme.palette.primary.main}`,
+                        borderRight: 'none',
                         color: iconSelectedColor,
                         '&:hover': {
                             color: iconSelectedColor,
-                            bgcolor: 'primary.lighter'
+                            bgcolor: 'primary.lighter',
                         }
                     }
                 }),
@@ -149,7 +152,7 @@ const NavItem = ({ item, level }) => {
             {(drawerOpen || (!drawerOpen && level !== 1)) && (
                 <ListItemText
                     primary={
-                        <Typography component="span" variant="h6" sx={{ color: isSelected ? iconSelectedColor : textColor }}>
+                        <Typography component="span" variant="body1" sx={{ color: isSelected ? iconSelectedColor : textColor, fontWeight: isSelected ? 500 : 400, fontSize: '0.875rem' }}>
                             {t(item.title)}
                         </Typography>
                     }
