@@ -33,7 +33,7 @@ export const ConstellationDNS = () => {
 
   return <>
     {(config) ? <>
-      <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      <Stack spacing={2} style={{maxWidth: "1000px", margin: "auto"}}>
       <div>
         <MainCard title={t('mgmt.constellation.dnsTitle')} content={config.constellationIP}>
           <Stack spacing={2}>

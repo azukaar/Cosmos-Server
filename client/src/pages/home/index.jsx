@@ -16,7 +16,6 @@ import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
 import Migrate014 from "./migrate014";
 import { Trans, useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
 
 
 export const HomeBackground = () => {
@@ -429,13 +428,7 @@ const HomePage = () => {
                 <Grid2 container spacing={2}>
                     {activeMetricCards.map((card, i) => (
                         <Grid2 item xs={12} sm={6} md={6} lg={3} xl={3} xxl={3} key={'metric-' + i}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: i * 0.08, duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                            >
-                                {card}
-                            </motion.div>
+                            {card}
                         </Grid2>
                     ))}
                 </Grid2>
@@ -466,58 +459,40 @@ const HomePage = () => {
                 return !skip && coStatus && (coStatus.homepage.Expanded ?
 
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + index * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                    >
-                        <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
-                            <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                                <Stack direction="row" spacing={2} alignItems="center">
-                                    <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                    <div style={{ minWidth: 0 }}>
-                                        <h3 style={blockStyle}>{route.Name}</h3>
-                                        <p style={blockStyle}>{route.Description}</p>
-                                        <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
-                                    </div>
-                                </Stack>
-                            </Link>
-                        </Box>
-                    </motion.div>
+                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
+                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
+                                <div style={{ minWidth: 0 }}>
+                                    <h3 style={blockStyle}>{route.Name}</h3>
+                                    <p style={blockStyle}>{route.Description}</p>
+                                    <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
+                                </div>
+                            </Stack>
+                        </Link>
+                    </Box>
                 </Grid2>
                 :
                 <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
-                    <motion.div
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + index * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                    >
-                        <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
-                            <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                                <Stack direction="column" spacing={2} alignItems="center">
-                                    <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                    <div style={{ minWidth: 0 }}>
-                                        <h3 style={blockStyle}>{route.Name}</h3>
-                                    </div>
-                                </Stack>
-                            </Link>
-                        </Box>
-                    </motion.div>
+                    <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
+                        <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
+                            <Stack direction="column" spacing={2} alignItems="center">
+                                <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
+                                <div style={{ minWidth: 0 }}>
+                                    <h3 style={blockStyle}>{route.Name}</h3>
+                                </div>
+                            </Stack>
+                        </Link>
+                    </Box>
                 </Grid2>)
             })}
 
             {config && routes.length === 0 && (
                 <Grid2 item xs={12} sm={12} md={12} lg={12} xl={12}>
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 0.5 }}
-                    >
-                        <Box style={{ padding: 32, borderRadius: 12, textAlign: 'center', ...appColor }}>
-                            <h3 style={blockStyle}>{t('navigation.home.noAppsTitle')}</h3>
-                            <p style={{ ...blockStyle, marginTop: 8, opacity: 0.7 }}>{t('navigation.home.noApps')}</p>
-                        </Box>
-                    </motion.div>
+                    <Box className='app' style={{ padding: 32, borderRadius: 12, textAlign: 'center', ...appColor }}>
+                        <h3 style={blockStyle}>{t('navigation.home.noAppsTitle')}</h3>
+                        <p style={{ ...blockStyle, marginTop: 8, opacity: 0.7 }}>{t('navigation.home.noApps')}</p>
+                    </Box>
                 </Grid2>
             )}
         </Grid2>

@@ -205,8 +205,8 @@ const ProxyManagement = () => {
         columns={[
           { 
             title: '', 
-            field: (r) => <LazyLoad width={"64px"} height={"64px"}>
-              <ImageWithPlaceholder className="loading-image" alt="" src={r.Icon || getFaviconURL(r)} width="64px" height="64px"/>
+            field: (r) => <LazyLoad width={"50px"} height={"50px"}>
+              <ImageWithPlaceholder className="loading-image" alt="" src={r.Icon || getFaviconURL(r)} width="50px" height="50px"/>
             </LazyLoad>,
             style: {
               textAlign: 'center',

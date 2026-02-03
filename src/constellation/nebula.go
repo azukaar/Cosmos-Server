@@ -238,6 +238,10 @@ func stop() error {
 		os.Remove(utils.CONFIGFOLDER + "nebula.pid")
 	}
 
+	cachedCurrentDevice = nil
+	CachedDevices = map[string]utils.ConstellationDevice{}
+	CachedDeviceNames = map[string]string{}
+
 	return nil
 }
 
@@ -277,8 +281,13 @@ func ResetNebula() error {
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
 	config.ConstellationConfig.ThisDeviceName = ""
+	config.ConstellationConfig.ConstellationHostname = ""
 
 	utils.SetBaseMainConfig(config)
+
+	cachedCurrentDevice = nil
+	CachedDevices = map[string]utils.ConstellationDevice{}
+	CachedDeviceNames = map[string]string{}
 
 	Init()
 
@@ -395,7 +404,8 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		hostnames := []string{}
-		hsraw := strings.Split(GetCurrentDeviceHostname(), ",")
+		hs, _ := GetCurrentDeviceHostname()
+		hsraw := strings.Split(hs, ",")
 		for _, hostname := range hsraw {
 			// trim
 			hostname = strings.TrimSpace(hostname)

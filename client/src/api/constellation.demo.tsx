@@ -138,6 +138,15 @@ function pingDevice() {
   });
 }
 
+function tunnels() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": []
+    })
+  });
+}
+
 export {
   list,
   addDevice,
@@ -148,5 +157,6 @@ export {
   connect,
   block,
   ping,
-  pingDevice
+  pingDevice,
+  tunnels
 };

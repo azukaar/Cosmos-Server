@@ -40,7 +40,6 @@ const TerminalHeader = () => {
 		
 		<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth={true}>
 			<DialogTitle>{t('mgmt.servapps.containers.terminal.enabled')}</DialogTitle>
-			<DialogContent>
           {(!status || !status.containerized) ? <DialogContentText>
 						<div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}>
 							<TerminalComponent refresh={() => {}} connectButtons={
@@ -57,7 +56,6 @@ const TerminalHeader = () => {
 							<h3>{t('mgmt.servapps.containers.terminal.disabled')}</h3>
 						</div>
 					</DialogContentText>}
-        </DialogContent>
         <DialogActions>
             <Button onClick={() => {
               setOpen(false)

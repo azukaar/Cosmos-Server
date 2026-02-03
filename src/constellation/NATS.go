@@ -271,6 +271,11 @@ func StartNATS() {
 
 	if err != nil {
 		utils.MajorError("[NATS] Error starting NATS server", err)
+
+		// retry in 30 seconds
+		time.Sleep(30 * time.Second)
+		StartNATS()
+		return
 	} else {
 		utils.Log("[NATS] Started NATS server on host " + opts.Host + ":" + strconv.Itoa(opts.Port))
 		InitNATSClient()
@@ -450,8 +455,12 @@ func IsClientConnected() bool {
 func CloseNATSClient() {
 	utils.Log("Closing NATS client...")
 
-	nc.Close()
-	nc = nil
+	StopHeartbeat()
+
+	if nc != nil {
+		nc.Close()
+		nc = nil
+	}
 }
 
 func SendNATSMessage(topic string, payload string) (string, error) {

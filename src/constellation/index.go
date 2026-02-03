@@ -21,6 +21,10 @@ func InitHostname() {
 		utils.Log("Constellation: no hostname found, setting default one...")
 		hostnames, _ := utils.ListIps(true)
 		httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
+		// Strip port if present
+		if colonIndex := strings.LastIndex(httpHostname, ":"); colonIndex != -1 {
+			httpHostname = httpHostname[:colonIndex]
+		}
 		if(utils.IsDomain(httpHostname) && !utils.IsLocalDomain(httpHostname)) {
 			hostnames = append(hostnames, "vpn." + httpHostname)
 		} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
@@ -36,6 +40,7 @@ func InitHostname() {
 
 func Init() {
 	InitConfig()
+	InitHostname()
 
 	utils.ResyncConstellationNodes = resyncConstellationNodes
 
@@ -84,6 +89,20 @@ func Init() {
 								CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
 								CachedDevices[strings.TrimSpace(publicHostname)] = device
 								utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
+							}
+						}
+					}
+
+					// If current device is not in cache, populate from nebula.yml
+					currentDeviceName, errName := GetCurrentDeviceName()
+					if errName == nil && currentDeviceName != "" {
+						if _, exists := CachedDevices[currentDeviceName]; !exists {
+							utils.Log("Constellation: current device not in cache, populating from config...")
+							currentDevice, errDevice := GetCurrentDevice()
+							if errDevice == nil {
+								CachedDeviceNames[currentDeviceName] = currentDevice.IP
+								CachedDevices[currentDeviceName] = currentDevice
+								utils.Debug("Constellation: current device cached: " + currentDeviceName + " -> " + currentDevice.IP)
 							}
 						}
 					}

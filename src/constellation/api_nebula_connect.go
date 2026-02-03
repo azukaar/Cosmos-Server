@@ -18,13 +18,12 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "POST" {
 		utils.ConfigLock.Lock()
 		defer utils.ConfigLock.Unlock()
-
-		InitHostname()
 		
 		utils.Log("API_NewConstellation: creating new Constellation")
 
 		var request struct {
 			DeviceName string `json:"deviceName"`
+			IsLighthouse bool   `json:"isLighthouse"`
 		}
 
 		err := json.NewDecoder(req.Body).Decode(&request)
@@ -63,8 +62,11 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		DeviceCreateRequest := DeviceCreateRequestJSON{
 			DeviceName: request.DeviceName,
 			IP: "192.168.201.1",
-			IsLighthouse: true,
+			IsLighthouse: request.IsLighthouse,
 			IsCosmosNode: true,
+			IsRelay: true,
+			IsExitNode: true,
+			IsLoadBalancer: true,
 			Nickname: "",
 			PublicHostname: utils.GetMainConfig().ConstellationConfig.ConstellationHostname,
 			Port: "4242",
@@ -166,7 +168,11 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 				http.StatusInternalServerError, "ACE003")
 			return
 		}
-		
+
+		if publicHostnameVal, ok := configMap["cstln_public_hostname"]; ok {
+			config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
+		}
+
 		utils.SetBaseMainConfig(config)
 		
 		utils.TriggerEvent(

@@ -64,16 +64,30 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 }
 
 
+func StopHeartbeat() {
+	if heartbeatStopChan != nil {
+		close(heartbeatStopChan)
+		heartbeatStopChan = nil
+	}
+	if heartbeatTicker != nil {
+		heartbeatTicker.Stop()
+		heartbeatTicker = nil
+	}
+}
+
 func ClientHeartbeatInit() {
+	// Stop any existing heartbeat
+	StopHeartbeat()
+
 	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
-		
+
 		_, err := js.KeyValue("constellation-nodes")
 		if err == nil {
 			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
 			break
 		}
-		
+
 		_, err = js.CreateKeyValue(&nats.KeyValueConfig{
 			Bucket:   "constellation-nodes",
 			TTL:      10 * time.Second,
@@ -85,58 +99,79 @@ func ClientHeartbeatInit() {
 			utils.Log("[NATS] Created Key-Value store 'constellation-nodes'")
 			break
 		}
-		
+
 		utils.Debug("[NATS] JetStream not ready, retrying... " + err.Error())
 	}
-	
+
 	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
 
 	go UpdateLocalTunnelCache();
 
+	heartbeatStopChan = make(chan struct{})
+	heartbeatTicker = time.NewTicker(2 * time.Second)
+
+	// Capture in local variables to avoid race conditions
+	stopChan := heartbeatStopChan
+	ticker := heartbeatTicker
+
 	go func() {
-		ticker := time.NewTicker(2 * time.Second)
-		for range ticker.C {
-			ClientConnectToJS()
+		for {
+			select {
+			case <-stopChan:
+				utils.Log("[NATS] Heartbeat stopped")
+				return
+			case <-ticker.C:
+				err := ClientConnectToJS()
+				if err != nil {
+					utils.Warn("[NATS] Error connecting to JetStream during heartbeat: " + err.Error())
+					continue
+				}
 
-			kv, err := js.KeyValue("constellation-nodes")
-			if err != nil {
-				utils.Warn("[NATS] NATS client not connected getting Key-Value store during heartbeat, store is offline will skip this cycle " + err.Error())
-				continue
-			}
+				if js == nil {
+					utils.Warn("[NATS] JetStream context is nil during heartbeat, skipping cycle")
+					continue
+				}
 
-			device, err := GetCurrentDevice()
-			if err != nil {
-				utils.Warn("[NATS] NATS client not connected getting current device for heartbeat " + err.Error())
-				continue
-			}
+				kv, err := js.KeyValue("constellation-nodes")
+				if err != nil {
+					utils.Warn("[NATS] NATS client not connected getting Key-Value store during heartbeat, store is offline will skip this cycle " + err.Error())
+					continue
+				}
 
-			key := sanitizeNATSUsername(device.DeviceName)
+				device, err := GetCurrentDevice()
+				if err != nil {
+					utils.Warn("[NATS] NATS client not connected getting current device for heartbeat " + err.Error())
+					continue
+				}
 
-			if !IsClientConnected() {
-				utils.Warn("[NATS] NATS client not connected during heartbeat")
-				InitNATSClient()
-			}
+				key := sanitizeNATSUsername(device.DeviceName)
 
-			// insert JSON encoded heartbeat
-			heartbeat := NodeHeartbeat{
-				DeviceName: device.DeviceName,
-				IP: device.IP,
-				IsRelay: device.IsRelay,
-				IsLighthouse: device.IsLighthouse,
-				IsExitNode: device.IsExitNode,
-				IsCosmosNode: device.IsCosmosNode,
-				Tunnels: GetAllTunneledRoutes(),
-			}
+				if !IsClientConnected() {
+					utils.Warn("[NATS] NATS client not connected during heartbeat")
+					InitNATSClient()
+				}
 
-			heartbeatData, err := json.Marshal(heartbeat)
-			if err != nil {
-				utils.Error("[NATS] Error marshalling heartbeat JSON", err)
-				continue
-			}
+				// insert JSON encoded heartbeat
+				heartbeat := NodeHeartbeat{
+					DeviceName: device.DeviceName,
+					IP: device.IP,
+					IsRelay: device.IsRelay,
+					IsLighthouse: device.IsLighthouse,
+					IsExitNode: device.IsExitNode,
+					IsCosmosNode: device.IsCosmosNode,
+					Tunnels: GetAllTunneledRoutes(),
+				}
 
-			_, err = kv.Put(key, heartbeatData)
-			if err != nil {
-				utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
+				heartbeatData, err := json.Marshal(heartbeat)
+				if err != nil {
+					utils.Error("[NATS] Error marshalling heartbeat JSON", err)
+					continue
+				}
+
+				_, err = kv.Put(key, heartbeatData)
+				if err != nil {
+					utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
+				}
 			}
 		}
 	}()
@@ -145,6 +180,8 @@ func ClientHeartbeatInit() {
 var localTunnelCache []utils.ConstellationTunnel
 var localTunnelCacheMutex = &sync.RWMutex{}
 var lastCacheUpdate time.Time
+var heartbeatStopChan chan struct{}
+var heartbeatTicker *time.Ticker
 
 func UpdateLocalTunnelCache() {
 	localTunnelCacheMutex.Lock()
@@ -171,7 +208,7 @@ func UpdateLocalTunnelCache() {
 
 	keys, err := kv.Keys()
 	if err != nil {
-		utils.Error("[NATS] Error getting keys from Key-Value store during tunnel cache update", err)
+		utils.Warn("[NATS] Error getting keys from Key-Value store during tunnel cache update "+ err.Error())
 		return
 	}
 

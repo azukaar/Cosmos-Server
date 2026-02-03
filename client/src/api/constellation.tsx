@@ -114,14 +114,15 @@ function connect(file) {
   });
 }
 
-function create(deviceName) {
+function create(deviceName, isLighthouse) {
   return wrap(fetch(`/cosmos/api/constellation/create`, {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      deviceName
+      deviceName,
+      isLighthouse
     }),
   }))
 }

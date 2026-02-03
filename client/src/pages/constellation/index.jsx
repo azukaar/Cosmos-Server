@@ -35,7 +35,7 @@ const ConstellationIndex = () => {
     <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
         {
           title: 'VPN',
-          children: <ConstellationVPN />,
+          children: <ConstellationVPN freeVersion={coStatus && coStatus.Licence} />,
           path: 'vpn'
         },
         {
@@ -55,9 +55,8 @@ const ConstellationIndex = () => {
 
   </div> : <ConstellationVPN />;
 
-  const pickFree = (coStatus && coStatus.Licence) ? ConstContent : <><ConstellationVPN freeVersion /></>;
 
-  return coStatus ? pickFree : <center><CircularProgress /></center>;
+  return ConstContent;
 }
 
 export default ConstellationIndex;

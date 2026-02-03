@@ -241,11 +241,16 @@ func InitDNS() {
 		utils.Log("Initializing Constellation DNS")
 
 		go (func() {
+			currIp, err := GetCurrentDeviceIP()
+			if err != nil {
+				utils.Error("Constellation DNS: Failed to get current device IP", err)
+				return
+			}
+
 			dns.HandleFunc(".", handleDNSRequest)
-			server := &dns.Server{Addr: "192.168.201.1:" + DNSPort, Net: "udp"}
+			server := &dns.Server{Addr: currIp + ":" + DNSPort, Net: "udp"}
 
 			utils.Log("Starting DNS server on :" + DNSPort)
-			var err error
 			
 			DNSStarted = true
 

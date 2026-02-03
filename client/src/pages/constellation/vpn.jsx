@@ -21,15 +21,6 @@ import ResyncDeviceModal from "./resyncDevice";
 import VPNSalesPage from "./free";
 import StatusDot from "../../components/statusDot";
 
-const getDefaultConstellationHostname = (config) => {
-  // if domain is set, use it
-  if (isDomain(config.HTTPConfig.Hostname)) {
-    return "vpn." + config.HTTPConfig.Hostname;
-  } else {
-    return config.HTTPConfig.Hostname;
-  }
-}
-
 export const ConstellationVPN = ({ freeVersion }) => {
   const { t } = useTranslation();
   const [config, setConfig] = useState(null);
@@ -188,20 +179,22 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 {currentDevice && <Typography variant="body2" color="textSecondary">{currentDevice.ip}</Typography>}
               </Stack>
 
-              {currentDevice && <Tooltip title={currentDevice.isLighthouse
-                ? t('mgmt.constellation.publicLighthouseTooltip')
-                : t('mgmt.constellation.privateServerTooltip')
-              }>
+              {currentDevice && <>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
-                  {currentDevice.isLighthouse
-                    ? <><CompassOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.publicLighthouse')}</Typography></>
-                    : <><DesktopOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.privateServer')}</Typography></>
-                  }
-                  {currentDevice.isRelay && <><Typography variant="body2" color="textSecondary">·</Typography> <ApiOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isRelay.label')}</Typography></>}
-                  {currentDevice.isExitNode && <><Typography variant="body2" color="textSecondary">·</Typography> <ExportOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isExitNode.label')}</Typography></>}
-                  {currentDevice.isLoadBalancer && <><Typography variant="body2" color="textSecondary">·</Typography> <CloudOutlined style={{ fontSize: 16 }} /> <Typography variant="body2">{t('mgmt.constellation.isLoadBalancer.label')}</Typography></>}
+                  {currentDevice.isRelay && <Tooltip title={t('mgmt.constellation.isRelay.label')}><ApiOutlined style={{ fontSize: 16, color: '#1976d2' }} /></Tooltip>}
+                  {currentDevice.isExitNode && <Tooltip title={t('mgmt.constellation.isExitNode.label')}><ExportOutlined style={{ fontSize: 16, color: '#2e7d32' }} /></Tooltip>}
+                  {currentDevice.isLoadBalancer && <Tooltip title={t('mgmt.constellation.isLoadBalancer.label')}><DesktopOutlined style={{ fontSize: 16, color: '#ff9800' }} /></Tooltip>}
+                                                                          
+                  {currentDevice.isLighthouse                                                                                                 
+                      ? <Tooltip title={t('mgmt.constellation.publicLighthouseTooltip')}><span style={{ display: 'flex', alignItems: 'center',
+                  gap: 4 }}><CompassOutlined style={{ fontSize: 16 }} /> <Typography                                                         
+                  variant="body2">{t('mgmt.constellation.publicLighthouse')}</Typography></span></Tooltip>                                    
+                      : <Tooltip title={t('mgmt.constellation.privateServerTooltip')}><span style={{ display: 'flex', alignItems: 'center',   
+                  gap: 4 }}><DesktopOutlined style={{ fontSize: 16 }} /> <Typography                                                          
+                  variant="body2">{t('mgmt.constellation.privateServer')}</Typography></span></Tooltip>                                       
+                  }          
                 </Stack>
-              </Tooltip>}
+              </>}
             </Stack>
 
             <Stack direction="row" alignItems="center" justifyContent="space-between"
@@ -351,18 +344,18 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     .matches(/^[a-z0-9-]+$/, t('mgmt.constellation.setup.deviceName.validationError')),
                 })}
                 initialValues={{
-                  DeviceName: config.ConstellationConfig.ThisDeviceName || '',
-                  IsLighthouse: currentDevice ? currentDevice.isLighthouse : false,
+                  DeviceName: config.ConstellationConfig.ThisDeviceName || 'cosmos-0',
+                  IsLighthouse: currentDevice ? currentDevice.isLighthouse : true,
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
                   IsLoadBalancer: currentDevice ? currentDevice.isLoadBalancer : false,
                   SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
-                  ConstellationHostname: (currentDevice && currentDevice.publicHostname) || getDefaultConstellationHostname(config)
+                  ConstellationHostname: config.ConstellationConfig.ConstellationHostname
                 }}
                 onSubmit={async (values) => {
                   const isCreating = !config.ConstellationConfig.ThisDeviceName;
                   if (isCreating) {
-                    await API.constellation.create(values.DeviceName);
+                    await API.constellation.create(values.DeviceName, values.IsLighthouse);
                     setTimeout(() => {
                       refreshConfig();
                     }, 1500);
@@ -385,19 +378,26 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 {(formik) => (
                   <form onSubmit={formik.handleSubmit}>
                     <Stack spacing={2}>
-                      {!config.ConstellationConfig.ThisDeviceName && <CosmosInputText
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosInputText
                         disabled={!isAdmin}
                         formik={formik}
                         name="DeviceName"
                         label={t('mgmt.constellation.setup.deviceName.label')}
                       />}
 
-                      <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                        <span>{t('mgmt.constellation.setup.isLighthouse.label')}</span>
+                        <Tooltip title={t('mgmt.constellation.setup.isLighthouse.tooltip')}>
+                          <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                        </Tooltip>
+                      </Stack>} />}
+
+                      {(!freeVersion || config.ConstellationConfig.ThisDeviceName) && <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                         <span>{'Constellation ' + t('global.hostname')}</span>
                         <Tooltip title={<Trans i18nKey="mgmt.constellation.setup.hostnameInfo" />}>
                           <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
                         </Tooltip>
-                      </Stack>} />
+                      </Stack>} />}
 
 
                       {constellationEnabled && formik.values.IsLighthouse && <>
@@ -421,7 +421,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         </Stack>} />
                       </>}
 
-                      {isAdmin && <><LoadingButton
+                      {isAdmin && (!freeVersion || config.ConstellationConfig.ThisDeviceName) && <><LoadingButton
                         disableElevation
                         loading={formik.isSubmitting}
                         type="submit"
