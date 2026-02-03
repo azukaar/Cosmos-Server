@@ -9,7 +9,7 @@ import TableComponent from './components/table';
 
 const ResourceDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
   const { t } = useTranslation();
-  return (<>
+  return ( <div style={{ maxWidth: "1200px", margin: "auto" }}>
 
     <Grid container rowSpacing={4.5} columnSpacing={2.75} >
       <Grid item xs={12} md={7} lg={8}>
@@ -55,7 +55,7 @@ const ResourceDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
         />
       </Grid>
     </Grid>
-  </>)
+  </div>)
 }
 
 export default ResourceDashboard;

@@ -236,7 +236,7 @@ export const StorageDisks = () => {
     })();
   }, []);
 
-  return <>
+  return  <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       <SMARTDialog disk={SMARTDialogOpened} OnClose={() => SetSMARTDialogOpened(false)} />
 
@@ -268,5 +268,5 @@ export const StorageDisks = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

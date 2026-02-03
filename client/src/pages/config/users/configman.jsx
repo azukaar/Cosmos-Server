@@ -102,7 +102,7 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
     refresh();
   }, []);
 
-  return <div style={{maxWidth: '1000px', margin: ''}}>
+  return <div style={{ maxWidth: "1000px", margin: "auto" }}>
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();

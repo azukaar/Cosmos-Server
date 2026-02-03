@@ -45,7 +45,7 @@ export const StorageMerges = () => {
     refresh();
   }, []);
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {mergeDialog && <MergerDialogInternal data={mergeDialog.data} refresh={refresh} unmount={mergeDialog.unmount} open={mergeDialog} setOpen={setMergeDialog} />}
       <Stack spacing={2}>
@@ -98,5 +98,5 @@ export const StorageMerges = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

@@ -1,51 +1,46 @@
 import { CheckOutlined, ClockCircleOutlined, CopyOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, SafetyOutlined, UpOutlined } from "@ant-design/icons";
-import { Card, Chip, Stack, Tooltip } from "@mui/material";
+import { Card, Chip, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTheme } from '@mui/material/styles';
 import { Trans, useTranslation } from 'react-i18next';
+import MenuButton from './MenuButton';
 
 let routeImages = {
   "TUNNEL": {
     label: "Tunnel",
-    icon: "💫",
+    icon: "TU",
     backgroundColor: "#082452",
     color: "white",
-    colorDark: "white",
   },
   "SERVAPP": {
     label: "ServApp",
-    icon: "🐳",
+    icon: "SA",
     backgroundColor: "#0db7ed",
-    color: "white",
-    colorDark: "black",
+    color: "black",
   },
   "STATIC": {
     label: "Static",
-    icon: "📁",
+    icon: "ST",
     backgroundColor: "#f9d71c",
     color: "black",
-    colorDark: "black",
   },
   "REDIRECT": {
     label: "Redir",
-    icon: "🔀",
+    icon: "RE",
     backgroundColor: "#2c3e50",
     color: "white",
-    colorDark: "white",
   },
   "PROXY": {
     label: "Proxy",
-    icon: "🔗",
+    icon: "PR",
     backgroundColor: "#2ecc71",
-    color: "white",
-    colorDark: "black",
+    color: "black",
   },
   "SPA": {
     label: "SPA",
-    icon: "🌐",
+    icon: "SP",
     backgroundColor: "#e74c3c",
-    color: "white",
-    colorDark: "black",
+    color: "black",
   },
 }
 
@@ -60,17 +55,25 @@ export const RouteMode = ({route}) => {
     cicon = c.icon + " 💫";
   }
 
-  return c ? <>
+  return c ? <><Tooltip title={c.label}>
     <Chip
       icon={<span>{cicon}</span>}
-      label={c.label}
+      // label={c.label}
       sx={{
         backgroundColor: c.backgroundColor,
-        color: isDark ? c.colorDark : c.color,
         paddingLeft: "5px",
-        alignItems: "right",
+
+        '& .MuiChip-label': {
+          paddingLeft: 1,
+          paddingRight: 1,
+        },
+
+        '& .MuiChip-icon': {
+          color: c.color,
+        },
       }}
     ></Chip>
+    </Tooltip>
   </> : <></>;
 }
 
@@ -119,43 +122,43 @@ export const RouteSecurity = ({route}) => {
 
 export const RouteActions = ({route, routeKey, up, down, deleteRoute, duplicateRoute}) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
   const { t } = useTranslation();
 
-  const miniChip = {
-    width: '30px',
-    height: '20px',
-    display: 'inline-block',
-    textAlign: 'center',
-    cursor: 'pointer',
-    color: theme.palette.text.secondary,
-    fontSize: '12px',
-    lineHeight: '20px',
-    padding: '0px',
-    borderRadius: '0px',
-    background: isDark ? 'rgba(255, 255, 255, 0.03)' : '',
-    fontWeight: 'bold',
-  
-    '&:hover': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-    }
-  }
-
-  return <>
-    <Stack direction={'row'} spacing={2} alignItems={'center'} justifyContent={'right'}>
-      {!confirmDelete && (<Chip label={<DeleteOutlined />} onClick={() => setConfirmDelete(true)}/>)}
-      {confirmDelete && (<Chip label={<CheckOutlined />} color="error" onClick={(event) => deleteRoute(event)}/>)}
-      
-      <Chip label={<CopyOutlined />} onClick={(event) => duplicateRoute(event)}/>
-
-      <Tooltip title={t('tooltip.route.move')}>
-        <Stack direction={'column'} spacing={0}>
-          <Card sx={{...miniChip, borderBottom: 'none'}} onClick={(event) => up(event)}><UpOutlined /></Card>
-          <Card sx={{...miniChip, cursor: 'auto'}}>{routeKey}</Card>
-          <Card sx={{...miniChip, borderTop: 'none'}} onClick={(event) => down(event)}><DownOutlined /></Card>
-        </Stack>
-      </Tooltip>
-    </Stack>
-  </>;
+  return (
+    <MenuButton>
+      <MenuItem onClick={(event) => up(event)}>
+        <ListItemIcon>
+          <UpOutlined />
+        </ListItemIcon>
+        <ListItemText>{t('global.moveUp')}</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={(event) => down(event)}>
+        <ListItemIcon>
+          <DownOutlined />
+        </ListItemIcon>
+        <ListItemText>{t('global.moveDown')}</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={(event) => duplicateRoute(event)}>
+        <ListItemIcon>
+          <CopyOutlined />
+        </ListItemIcon>
+        <ListItemText>{t('global.duplicate')}</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={(event) => {
+        if (confirmDelete) {
+          deleteRoute(event);
+          setConfirmDelete(false);
+        } else {
+          setConfirmDelete(true);
+        }
+      }}>
+        <ListItemIcon>
+          <DeleteOutlined style={{color: confirmDelete ? 'red' : 'inherit'}} />
+        </ListItemIcon>
+        <ListItemText style={{color: confirmDelete ? 'red' : 'inherit'}}>
+          {confirmDelete ? t('global.confirmDelete') : t('global.delete')}
+        </ListItemText>
+      </MenuItem>
+    </MenuButton>
+  );
 }

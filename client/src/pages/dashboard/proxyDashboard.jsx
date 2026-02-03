@@ -11,7 +11,7 @@ import { InfoCircleOutlined } from '@ant-design/icons';
 
 const ProxyDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
   const { t } = useTranslation();
-  return (<>
+  return ( <div style={{ maxWidth: "1200px", margin: "auto" }}>
 
     <Grid container rowSpacing={4.5} columnSpacing={2.75} >
       <Grid item xs={12} md={6} lg={6}>
@@ -53,7 +53,7 @@ const ProxyDashboard = ({ xAxis, zoom, setZoom, slot, metrics }) => {
         Object.keys(metrics).filter((key) => key.startsWith("cosmos.proxy.blocked.")).map((key) => metrics[key])
       } />
     </Grid>
-  </>)
+  </div>)
 }
 
 export default ProxyDashboard;

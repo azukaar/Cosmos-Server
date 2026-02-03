@@ -121,7 +121,7 @@ export const Parity = () => {
     refresh();
   }, []);
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {deleteRaid && <ConfirmModalDirect
         title="Delete Parity"
@@ -252,5 +252,5 @@ export const Parity = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

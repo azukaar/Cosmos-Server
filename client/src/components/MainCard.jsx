@@ -52,7 +52,7 @@ const MainCard = forwardRef(
                         : theme.palette.grey.A800,
                     background: theme.palette.mode === 'dark'
                         ? 'rgba(30,30,30,0.65)'
-                        : 'rgba(255,255,255,0.7)',
+                        : 'rgba(255,255,255)',
                     backdropFilter: 'blur(8px)',
                     WebkitBackdropFilter: 'blur(8px)',
                     boxShadow: theme.customShadows?.glass || 'none',

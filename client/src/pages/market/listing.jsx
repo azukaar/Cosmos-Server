@@ -74,7 +74,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
     }}>
       <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
         <Stack direction="column" spacing={2} style={{ height: '100%' }} sx={{
-          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255,0.95)',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255)',
           padding: '20px 100px',
           width: '50%',
           filter: 'drop-shadow(-20px 0px 20px rgba(0, 0, 0, 1))',
@@ -238,7 +238,7 @@ const MarketPage = () => {
 
       <Stack direction="row" spacing={2} style={{ height: '100%' }} justifyContent="flex-end">
         <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto" }} sx={{
-          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255,0.95)',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255)',
           padding: '80px 80px',
           width: '100%',
           maxWidth: '800px',

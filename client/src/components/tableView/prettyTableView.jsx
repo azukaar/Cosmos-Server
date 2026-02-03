@@ -63,17 +63,16 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
 
       {!isLoading && <TableContainer style={{
         width: fullWidth ? '100%': '',
-        background: isDark ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255,0.7)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
+        backgroundColor: isDark ? 'rgba(32,35,43,1)' : 'rgba(255,255,255)',
         borderRadius: '12px',
-        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+        border: isDark ? '1px solid rgba(40,48,70,0.6)' : '1px solid rgba(0,0,0,0.06)',
+        boxShadow: theme.customShadows?.glass || 'none',
         overflow: 'hidden',
       }} component={Paper} elevation={0}>
         <Table aria-label="simple table">
           <TableHead>
             <TableRow sx={{
-              background: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.03)',
+              background: isDark ? 'rgba(0,0,0,0.20)' : 'rgba(0,0,0,0.03)',
               '& .MuiTableCell-head': { fontWeight: 600 },
             }}>
               {columns.filter(c=>c).map((column) => (

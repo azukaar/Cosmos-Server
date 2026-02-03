@@ -407,7 +407,7 @@ const AlertPage = () => {
     }
   }
 
-  return <div style={{maxWidth: '1200px', margin: ''}}>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {openModal && <EditAlertModal open={openModal} onClose={() => setOpenModal(false)} onSave={saveAlert} />}
 
     <Stack direction="row" spacing={2} style={{marginBottom: '15px'}}>

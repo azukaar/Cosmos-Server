@@ -46,7 +46,7 @@ export const StorageMounts = () => {
     refresh();
   }, []);
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {mountDialog && <MountDialogInternal data={mountDialog.data} refresh={refresh} unmount={mountDialog.unmount} open={mountDialog} setOpen={setMountDialog} />}
     {(config) ? <Stack spacing={2}>
       {containerized && <VMWarning />}
@@ -102,5 +102,5 @@ export const StorageMounts = () => {
     </Stack> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

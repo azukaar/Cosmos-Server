@@ -25,7 +25,7 @@ import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255,0.7)',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255)',
   backdropFilter: 'blur(8px)',
   WebkitBackdropFilter: 'blur(8px)',
   borderRadius: '12px',
@@ -35,11 +35,6 @@ const Item = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(1),
   textAlign: 'center',
   color: theme.palette.text.secondary,
-  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: theme.customShadows?.glassHover || '0 8px 32px rgba(0,0,0,0.15)',
-  },
 }));
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -55,7 +50,7 @@ const noOver = {
   overflowX: 'auto',
   width: "100%",
   maxWidth: "800px",
-  height: "50px"
+  height: "55px"
 }
 
 const ServApps = ({stack}) => {
@@ -237,7 +232,7 @@ const ServApps = ({stack}) => {
     }
   });
 
-  return <div>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} newRoute />
     <ExposeModal
       openModal={openModal} 
@@ -258,17 +253,6 @@ const ServApps = ({stack}) => {
         {stack && <Link to="/cosmos-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
-        <Input placeholder={t('global.searchPlaceholder')}
-          value={search}
-          startAdornment={
-            <InputAdornment position="start">
-              <SearchOutlined />
-            </InputAdornment>
-          }
-          onChange={(e) => {
-            setSearch(e.target.value);
-          }}
-        />
         <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServApps();
         }}>{t('global.refresh')}</ResponsiveButton>
@@ -287,6 +271,20 @@ const ServApps = ({stack}) => {
         />
         </>}
       </Stack>
+
+      <div>
+        <Input placeholder={t('global.searchPlaceholder')}
+          value={search}
+          startAdornment={
+            <InputAdornment position="start">
+              <SearchOutlined />
+            </InputAdornment>
+          }
+          onChange={(e) => {
+            setSearch(e.target.value);
+          }}
+        />
+      </div>
       
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
         {updatesAvailable && updatesAvailable.length && <Grid2 style={gridAnim} xs={12} item>
@@ -378,7 +376,7 @@ const ServApps = ({stack}) => {
                     }}
                   />
                 </Stack>
-                <Stack style={noOver} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
+                <Stack style={noOver} spacing={1} direction="row" alignItems="center" >
                   {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
                     return <HostChip route={route} settings/>
                   })}

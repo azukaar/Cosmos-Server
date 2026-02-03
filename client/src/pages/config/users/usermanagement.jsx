@@ -70,7 +70,7 @@ const UserManagement = () => {
         });
     }
 
-    return <>
+    return <div style={{ maxWidth: "1200px", margin: "auto" }}>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
             <DialogTitle>{t('mgmt.usermgmt.inviteUserTitle')}</DialogTitle>
             <DialogContent>
@@ -320,7 +320,7 @@ const UserManagement = () => {
                 },
             ]}
         />)}
-    </>;
+    </div>;
 };
 
 export default UserManagement;

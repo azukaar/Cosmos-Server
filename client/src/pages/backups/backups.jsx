@@ -59,7 +59,7 @@ export const Backups = ({pathFilters}) => {
     refresh();
   }, []);
 
-  return <>
+  return  <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {deleteBackup && <ConfirmModalDirect
         title="Delete Backup"
@@ -159,5 +159,5 @@ export const Backups = ({pathFilters}) => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>;
+  </div>;
 };

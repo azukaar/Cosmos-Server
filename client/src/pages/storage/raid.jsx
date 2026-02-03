@@ -87,7 +87,7 @@ export const RAIDArrays = () => {
     refresh();
   }, []);
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {deleteRaid && <ConfirmModalDirect
         title={t('mgmt.storage.raid.deleteTitle')}
@@ -218,5 +218,5 @@ export const RAIDArrays = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>;
+  </div>;
 };

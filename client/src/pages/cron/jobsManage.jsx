@@ -83,7 +83,7 @@ export const CronManager = () => {
 
   const jobsInProgress = cronJobs && Object.values(cronJobs).map((jobs) => Object.values(jobs).filter((job) => job.Running)).flat();
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config && cronJobs) ? <>
       {jobLogs && <JobLogsDialog job={jobLogs} OnClose={() => {
         setJobLogs(false);
@@ -179,5 +179,5 @@ export const CronManager = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

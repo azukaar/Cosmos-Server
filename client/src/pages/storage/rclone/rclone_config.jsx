@@ -67,7 +67,7 @@ const RClonePage = ({coStatus, containerized}) => {
     return <VMWarning />;
   }
 
-  return (<>
+  return ( <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {configModal && <RCloneNewConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh(true);}} open={configModal} setOpen={setConfigModal} />}
     {isTransfering && <Alert severity="warning">{t('mgmt.storage.rclone.transferWarning')}</Alert>}
     <MiniPlotComponent  metrics={[
@@ -179,7 +179,7 @@ const RClonePage = ({coStatus, containerized}) => {
     : <Stack spacing={2} direction="row" justifyContent="center">
       <CircularProgress />
     </Stack>}
-  </>);
+  </div>);
 };
 
 export default RClonePage;

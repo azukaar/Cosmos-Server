@@ -81,8 +81,8 @@ const Palette = (mode, PrimaryColor, SecondaryColor) => {
             },
             divider: '#e8e8ec',
             background: {
-                paper: '#fafafa',
-                default: '#f5f5f7'
+                paper: '#ffffff',
+                default: 'rgb(250,250,251)'
             }
         },
     });

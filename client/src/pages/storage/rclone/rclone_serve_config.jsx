@@ -28,7 +28,7 @@ const RCloneServePage = ({containerized}) => {
     return <VMWarning />;
   }
 
-  return (<>
+  return (<div style={{ maxWidth: "1200px", margin: "auto" }}>
     {configModal && <RCloneNewServeConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
     <br/>
     {config ? 
@@ -85,7 +85,7 @@ const RCloneServePage = ({containerized}) => {
     : <Stack spacing={2} direction="row" justifyContent="center">
       <CircularProgress />
     </Stack>}
-  </>);
+  </div>);
 };
 
 export default RCloneServePage;

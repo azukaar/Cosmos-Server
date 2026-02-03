@@ -40,7 +40,7 @@ export const Repositories = () => {
     );
   }
 
-  return <>
+  return  <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(repositories) ? <>
       <Stack direction="row" spacing={2} justifyContent="flex-start">  
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={refresh}>
@@ -85,5 +85,5 @@ export const Repositories = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>;
+  </div>;
 };

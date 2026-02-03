@@ -184,7 +184,7 @@ const ProxyManagement = () => {
     routes = [...tunnelRoutes, ...routes];
   }
 
-  return <div style={{   }}>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
       <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
