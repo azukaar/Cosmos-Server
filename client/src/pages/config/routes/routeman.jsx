@@ -68,7 +68,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
   }, [])
  
-  return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+  return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
     
     {routeConfig && <>

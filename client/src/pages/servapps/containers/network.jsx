@@ -89,7 +89,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
   }
 
   return (<Stack spacing={2}>
-    <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+    <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
       <Formik
         initialValues={{
           networkMode: containerInfo.HostConfig.NetworkMode,

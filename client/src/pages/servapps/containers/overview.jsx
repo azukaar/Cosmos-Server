@@ -51,7 +51,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
   }
 
   return (
-    <div style={{ maxWidth: '1000px', width: '100%' }}>
+    <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto' }}>
       <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} />
 
       <ExposeModal

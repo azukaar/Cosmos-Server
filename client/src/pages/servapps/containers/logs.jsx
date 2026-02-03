@@ -250,7 +250,7 @@ const Logs = ({ containerInfo }) => {
   };
 
   return (
-    <Stack spacing={2} sx={{  width: '100%'}}>
+    <Stack spacing={2} sx={{  width: '100%', margin: 'auto', maxWidth: '1200px' }}>
       <Stack
         spacing={2}
         direction="column"

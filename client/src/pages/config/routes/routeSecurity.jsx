@@ -21,7 +21,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
   const [openModal, setOpenModal] = React.useState(false);
   const isNotSocketProxy = !IsRouteSocketProxy(routeConfig);
 
-  return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+  return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
 
     {routeConfig && <>

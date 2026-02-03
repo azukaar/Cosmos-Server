@@ -32,7 +32,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       background: '#000',
       width: '100%', 
       maxWidth: '900px', 
-      position:'relative'
+      margin: 'auto',
     }}>
       {(!isInteractive) && (
         <Alert severity="warning">

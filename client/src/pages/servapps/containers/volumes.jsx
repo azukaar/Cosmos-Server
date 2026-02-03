@@ -129,7 +129,7 @@ const VolumeContainerSetup = ({
   );
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} style={{ alignItems: "center" }}>
       <div
         style={{
           maxWidth: "1000px",

@@ -189,7 +189,7 @@ const DockerContainerSetup = ({
       style={{
         maxWidth: "1000px",
         width: "100%",
-        margin: "",
+        margin: "auto",
         position: "relative",
       }}
     >

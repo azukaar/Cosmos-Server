@@ -50,7 +50,7 @@ const ContainerComposeEdit = ({ containerInfo, config, refresh, updatesAvailable
   })) : (() => {setIsUpdating(false);});
 
   return (
-    <div style={{ maxWidth: '1000px', width: '100%' }}>
+    <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto' }}>
       {exportedCompose && <NewDockerService edit service={exportedCompose} refresh={refreshAll} />}  
     </div>
   );

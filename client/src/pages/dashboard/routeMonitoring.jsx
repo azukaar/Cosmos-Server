@@ -157,9 +157,9 @@ const RouteMetrics = ({routeName}) => {
             size={100}
           />
         </Box>}
-        {metrics && <div style={{zIndex:2, position: 'relative'}}>
+        {metrics && <div style={{zIndex:2, maxWidth: "1000px", margin: "auto"}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
-                <Grid item xs={12} xl={8} sx={{ mb: -2.25 }}>
+                <Grid item xs={12} xl={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h4">{routeName} Monitoring</Typography>
                     <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
                         <Button
@@ -202,11 +202,11 @@ const RouteMetrics = ({routeName}) => {
                     </Stack>
                 </Grid>
                 
-                <Grid item xs={12} xl={8}>
+                <Grid item xs={12} xl={12}>
                     <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('mgmt.urls.edit.resourceDashboard.requestsTitle')} data={[metrics[metricsKey.SUCCESS], metrics[metricsKey.ERROR]]}/>
                 </Grid>
                
-                <Grid item xs={12} xl={8}>
+                <Grid item xs={12} xl={12}>
                     <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('mgmt.urls.edit.resourceDashboard.resourcesTitle')} data={[metrics[metricsKey.TIME], metrics[metricsKey.BYTES]]}/>
                 </Grid>
             </Grid>
