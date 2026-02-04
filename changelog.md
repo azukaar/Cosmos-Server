@@ -1,5 +1,6 @@
 ## Version 0.21.0
  - UI refresh for most pages
+ - Rclone rework, no more sub processes
  - Reworked Constellation cluster synchronisation completely. Now there are no more "Master" server and each server is equally capable.
  - Any server can be used as DNS (add redundancy too)
  - Any server can tunnel another server's URL in any direction

@@ -101,7 +101,7 @@ export default function BackupOverview({backupName}) {
   }
 
   return (
-    <Stack spacing={3} className="p-4" style={{ maxWidth: '1000px' }}>
+    <Stack spacing={3} className="p-4" style={{ maxWidth: '1000px', margin: 'auto' }}>
       <MainCard name={backup.Name} title={<div>{backup.Name}</div>}>
         <Stack spacing={2} direction={isMobile ? 'column' : 'row'} alignItems={isMobile ? 'center' : 'flex-start'}>
           {/* Left Column */}
