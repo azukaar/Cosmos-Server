@@ -9,12 +9,13 @@ import (
 	"os"
 	"io/ioutil"
 	"strconv"
-	// "time"
-	// "context"
-	// "net"
+	"time"
+	"context"
+	"net"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 
@@ -70,6 +71,7 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 	// 	targetURL, _ = url.Parse("http://unix-socket")
 	// } else {
 		// Regular HTTP/HTTPS handling
+		
 		targetURL, err = url.Parse(targetHost)
 		if err != nil {
 			return nil, err
@@ -77,21 +79,23 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 
 		customTransport := &http.Transport{}
 
-		// TODO UPDATE THIS FOR CONSTELLATION DNS
-		// if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		// 	customTransport = &http.Transport{
-		// 		DialContext: (&net.Dialer{
-		// 			Timeout:   5 * time.Second,
-		// 			KeepAlive: 5 * time.Second,
-		// 			Resolver: &net.Resolver{
-		// 				PreferGo: true,
-		// 				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-		// 					return net.Dial(network, "192.168.201.1:53")
-		// 				},
-		// 			},
-		// 		}).DialContext,
-		// 	}
-		// }
+		if constellation.ConstellationConnected() {
+			currIp, err := constellation.GetCurrentDeviceIP()
+			if err != nil {
+				utils.Error("Custom tunnel transport", err)
+			} else {
+				customTransport.DialContext = (&net.Dialer{
+					Timeout:   5 * time.Second,
+					KeepAlive: 5 * time.Second,
+					Resolver: &net.Resolver{
+						PreferGo: true,
+						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
+							return net.Dial(network, currIp + ":53")
+						},
+					},
+				}).DialContext
+			}
+		}
 
 		if AcceptInsecureHTTPSTarget {
 			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}

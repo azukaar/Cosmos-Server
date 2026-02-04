@@ -101,6 +101,22 @@ function getDashboard() {
   }))
 }
 
+function updateDNS(dnsConfig: {
+  dnsPort?: string;
+  dnsFallback?: string;
+  dnsBlockBlacklist?: boolean;
+  dnsAdditionalBlocklists?: string[];
+  customDNSEntries?: { Type: string; Key: string; Value: string }[];
+}) {
+  return wrap(fetch('/cosmos/api/config/dns', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(dnsConfig),
+  }))
+}
+
 export {
   get,
   set,
@@ -114,4 +130,5 @@ export {
   canSendEmail,
   getBackup,
   getDashboard,
+  updateDNS,
 };

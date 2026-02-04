@@ -147,6 +147,16 @@ function tunnels() {
   });
 }
 
+function getNextIP() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": "192.168.201.10"
+    })
+  });
+}
+
+
 export {
   list,
   addDevice,

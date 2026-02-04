@@ -175,8 +175,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 }}>
                   <CompassOutlined />
                 </Box>
-                <Typography variant="h6">{config.ConstellationConfig.ThisDeviceName}</Typography>
-                {currentDevice && <Typography variant="body2" color="textSecondary">{currentDevice.ip}</Typography>}
+                <Stack spacing={0}>
+                  <Typography variant="h6">{config.ConstellationConfig.ThisDeviceName}</Typography>
+                  <Stack direction="row" spacing={2}>
+                    {currentDevice && <Typography variant="body2" color="textSecondary"><strong>{t('mgmt.constellation.privateIP')}:</strong> {currentDevice.ip}</Typography>}
+                    {config.ConstellationConfig.ConstellationHostname && <Typography variant="body2" color="textSecondary"><strong>{t('mgmt.constellation.publicHostname')}:</strong> {config.ConstellationConfig.ConstellationHostname}</Typography>}
+                  </Stack>
+                </Stack>
               </Stack>
 
               {currentDevice && <>
@@ -345,17 +350,16 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 })}
                 initialValues={{
                   DeviceName: config.ConstellationConfig.ThisDeviceName || 'cosmos-0',
+                  ConstellationHostname: config.ConstellationConfig.ConstellationHostname || '',
                   IsLighthouse: currentDevice ? currentDevice.isLighthouse : true,
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
                   IsLoadBalancer: currentDevice ? currentDevice.isLoadBalancer : false,
-                  SyncNodes: !config.ConstellationConfig.DoNotSyncNodes,
-                  ConstellationHostname: config.ConstellationConfig.ConstellationHostname
                 }}
                 onSubmit={async (values) => {
                   const isCreating = !config.ConstellationConfig.ThisDeviceName;
                   if (isCreating) {
-                    await API.constellation.create(values.DeviceName, values.IsLighthouse);
+                    await API.constellation.create(values.DeviceName, values.IsLighthouse, values.ConstellationHostname);
                     setTimeout(() => {
                       refreshConfig();
                     }, 1500);
@@ -367,7 +371,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     isRelay: values.IsRelay,
                     isExitNode: values.IsExitNode,
                     isLoadBalancer: values.IsLoadBalancer,
-                    publicHostname: values.ConstellationHostname,
                   });
 
                   setTimeout(() => {
@@ -385,21 +388,19 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         label={t('mgmt.constellation.setup.deviceName.label')}
                       />}
 
-                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
-                        <span>{t('mgmt.constellation.setup.isLighthouse.label')}</span>
-                        <Tooltip title={t('mgmt.constellation.setup.isLighthouse.tooltip')}>
-                          <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
-                        </Tooltip>
-                      </Stack>} />}
-
-                      {(!freeVersion || config.ConstellationConfig.ThisDeviceName) && <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                         <span>{'Constellation ' + t('global.hostname')}</span>
                         <Tooltip title={<Trans i18nKey="mgmt.constellation.setup.hostnameInfo" />}>
                           <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
                         </Tooltip>
                       </Stack>} />}
 
-
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                        <span>{t('mgmt.constellation.setup.isLighthouse.label')}</span>
+                        <Tooltip title={t('mgmt.constellation.setup.isLighthouse.tooltip')}>
+                          <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                        </Tooltip>
+                      </Stack>} />}
                       {constellationEnabled && formik.values.IsLighthouse && <>
                         <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                           <span>{t('mgmt.constellation.setup.relayRequests.label')}</span>
@@ -642,7 +643,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
           />
         </>}
       </Stack>
-    </> : <Stack spacing={2} style={{ maxWidth: "1000px" }}>
+    </> : <Stack spacing={2} style={{ maxWidth: "1000px", margin: "auto" }}>
       <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 1 }} />
       <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
       <Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} />

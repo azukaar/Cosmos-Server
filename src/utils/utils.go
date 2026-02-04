@@ -623,25 +623,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	return uniqueHostnames
 }
 
-// TODO
-func GetAllTunnelHostnames() map[string]string {
-	config := GetMainConfig()
-	tunnels := config.HTTPConfig.ProxyConfig.Routes
-	results := map[string]string{}
-	
-	_ = tunnels
-	
-	// for _, tunnel := range tunnels {
-		// if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
-		// 	results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
-		// }
-	// }
-
-	Debug("Tunnel Hostnames: " + fmt.Sprint(results))
-
-	return results
-}
-
 func GetAvailableRAM() uint64 {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
@@ -1022,14 +1003,6 @@ func IsLocalIP(ip string) bool {
 	return false
 }
 
-func IsConstellationIP(ip string) bool {
-	if strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.") {
-		return true
-	}
-
-	return false 
-}
-
 func SplitIP(ipPort string) (string, string) {
 	host, port, err := osnet.SplitHostPort(ipPort)
 	if err != nil {
@@ -1255,4 +1228,10 @@ func SetFileLastModifiedTime(path string, modTime int64) error {
 		return err
 	}
 	return nil
+}
+
+func TouchDatabase() error {
+	dbPath := CONFIGFOLDER + "database"
+	now := time.Now()
+	return os.Chtimes(dbPath, now, now)
 }

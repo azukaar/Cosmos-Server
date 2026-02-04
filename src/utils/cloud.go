@@ -85,7 +85,7 @@ func _InitFBL() *FirebaseApiSdk {
 		return res
 	}
 
-	if Licence == "" {
+	if Licence == "" && ServerToken == "" {
 		return res
 	}
 	

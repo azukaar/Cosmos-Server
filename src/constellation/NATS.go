@@ -53,6 +53,13 @@ func GetClusterIPs() ([]*url.URL, error) {
 		ipsMap[ip] = true
 	}
 
+	// read IPs from cached devices
+	for _, device := range CachedDevices {
+		if device.IsLighthouse {
+			ipsMap[device.IP] = true
+		}
+	}
+
 	ips := []*url.URL{}
 	for ip := range ipsMap {
 		parsedIP, err := url.Parse("nats-route://" + ip + ":6222")
@@ -210,6 +217,16 @@ func StartNATS() {
 		utils.Error("[NATS] Failed to get cluster IPs", err)
 	}
 
+	// if only one, abort
+	if (len(cips) == 0) {
+		utils.Warn("[NATS] No cluster IPs found, NATS server will not start")
+		utils.Debug("[NATS] Current cached devices: ")
+		for _, d := range cips {
+			utils.Debug("[NATS] Device: " + d.String())
+		}
+		return
+	}
+
 	opts := &server.Options{
 		Host: natsHost,
 		Port: 4222,
@@ -271,11 +288,6 @@ func StartNATS() {
 
 	if err != nil {
 		utils.MajorError("[NATS] Error starting NATS server", err)
-
-		// retry in 30 seconds
-		time.Sleep(30 * time.Second)
-		StartNATS()
-		return
 	} else {
 		utils.Log("[NATS] Started NATS server on host " + opts.Host + ":" + strconv.Itoa(opts.Port))
 		InitNATSClient()
@@ -292,8 +304,8 @@ func StopNATS() {
 	}
 }
 
-// sync lock
-var clientConfigLock = sync.Mutex{}
+// sync lock - RWMutex allows multiple readers, single writer
+var clientConfigLock = sync.RWMutex{}
 var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
@@ -393,9 +405,11 @@ func InitNATSClient() {
 
 	go MasterNATSClientRouter()
 
-	clientConfigLock.Unlock()
-	ClientConnectToJS()
-	clientConfigLock.Lock()
+	// Initialize JetStream directly (holding write lock)
+	js, err = nc.JetStream(nats.MaxWait(10 * time.Second))
+	if err != nil {
+		utils.Error("[NATS] Failed to get JetStream context", err)
+	}
 
 	go ClientHeartbeatInit()
 
@@ -436,20 +450,14 @@ func ClientConnectToJS() error {
 }
 
 func IsClientConnected() bool {
-	clientConfigLock.Lock()
-	defer clientConfigLock.Unlock()
+	clientConfigLock.RLock()
+	defer clientConfigLock.RUnlock()
 
 	if nc == nil {
 		return false
 	}
 
-	isc := nc.IsConnected()
-
-	if !isc {
-		nc = nil
-	}
-
-	return isc
+	return nc.IsConnected()
 }
 
 func CloseNATSClient() {
@@ -457,10 +465,14 @@ func CloseNATSClient() {
 
 	StopHeartbeat()
 
+	clientConfigLock.Lock()
+	defer clientConfigLock.Unlock()
+
 	if nc != nil {
 		nc.Close()
 		nc = nil
 	}
+	js = nil
 }
 
 func SendNATSMessage(topic string, payload string) (string, error) {

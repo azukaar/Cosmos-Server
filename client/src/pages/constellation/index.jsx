@@ -31,11 +31,13 @@ const ConstellationIndex = () => {
     refreshStatus();
   }, []);
 
-  const ConstContent = isAdmin ? <div>
+  const freeVersion = coStatus && !coStatus.Licence;
+
+  const ConstContent = isAdmin && !freeVersion ? <div>
     <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
         {
           title: 'VPN',
-          children: <ConstellationVPN freeVersion={coStatus && coStatus.Licence} />,
+          children: <ConstellationVPN freeVersion={freeVersion} />,
           path: 'vpn'
         },
         {
@@ -53,7 +55,7 @@ const ConstellationIndex = () => {
         }
       ]}/>
 
-  </div> : <ConstellationVPN />;
+  </div> : <ConstellationVPN freeVersion={freeVersion} />;
 
 
   return ConstContent;

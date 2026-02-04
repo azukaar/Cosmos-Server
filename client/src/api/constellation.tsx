@@ -18,6 +18,15 @@ function ping() {
   }))
 }
 
+function getNextIP() {
+  return wrap(fetch('/cosmos/api/constellation/get-next-ip', {
+    method: 'GET',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+  }))
+}
+
 function pingDevice(deviceId) {
   return wrap(fetch(`/cosmos/api/constellation/devices/${deviceId}/ping`, {
     method: 'GET',
@@ -114,7 +123,7 @@ function connect(file) {
   });
 }
 
-function create(deviceName, isLighthouse) {
+function create(deviceName, isLighthouse, hostname) {
   return wrap(fetch(`/cosmos/api/constellation/create`, {
     method: 'POST',
     headers: {
@@ -122,7 +131,8 @@ function create(deviceName, isLighthouse) {
     },
     body: JSON.stringify({
       deviceName,
-      isLighthouse
+      isLighthouse,
+      hostname
     }),
   }))
 }
@@ -173,4 +183,5 @@ export {
   pingDevice,
   tunnels,
   editDevice,
+  getNextIP,
 };

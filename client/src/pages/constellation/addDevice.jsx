@@ -24,26 +24,21 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
+  const [nextIP, setNextIP] = useState("");
   const canvasRef = React.useRef(null);
   const {role, nickname} = useClientInfos();
   const isAdmin = role === "2";
 
-  let firstIP = "192.168.201.2";
-  if (devices && devices.length > 0) { 
-    const isIpFree = (ip) => {
-      return devices.filter((d) => d.ip === ip).length === 0;
-    }
-    let i = 1;
-    let j = 201;
-    while (!isIpFree(firstIP)) {
-      i++;
-      if (i > 254) {
-        i = 0;
-        j++;
+  const fetchNextIP = async () => {
+    try {
+      const res = await API.constellation.getNextIP();
+      if (res.data) {
+        setNextIP(res.data);
       }
-      firstIP = "192.168." + j + "." + i;
+    } catch (err) {
+      console.error("Error fetching next IP:", err);
     }
-  }
+  };
 
   const renderCanvas = (data) => {
     if (!canvasRef.current) return setTimeout(() => {
@@ -67,10 +62,11 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   return <>
     <Dialog open={openModal} onClose={() => setOpenModal(false)}>
       <Formik
+        enableReinitialize
         initialValues={{
           nickname: nickname,
           deviceName: '',
-          ip: firstIP,
+          ip: nextIP,
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
@@ -159,10 +155,13 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                     name="deviceType"
                     label={t('mgmt.constellation.setup.deviceType.label')}
                     formik={formik}
-                    options={[
+                    disabled={!isAdmin}
+                    options={isAdmin ? [
                       ['client', t('mgmt.constellation.setup.deviceType.client')],
                       ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
                       ['cosmos', t('mgmt.constellation.setup.deviceType.cosmos')],
+                    ] : [
+                      ['client', t('mgmt.constellation.setup.deviceType.client')],
                     ]}
                   />
                   {formik.values.deviceType === 'client' &&
@@ -271,6 +270,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       color="primary"
       onClick={() => {
         setIsDone(null);
+        fetchNextIP();
         setOpenModal(true);
       }}
       variant={

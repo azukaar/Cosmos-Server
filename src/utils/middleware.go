@@ -501,7 +501,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 		isUsingWhiteList := len(WhitelistInboundIPs) > 0
 
 		isInWhitelist := false
-		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
+		isInConstellation := constellation.IsConstellationIP(clientID)
 
 		for _, ipRange := range WhitelistInboundIPs {
 			Debug("Checking if " + ip + " is in " + ipRange)

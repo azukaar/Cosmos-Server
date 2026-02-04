@@ -282,6 +282,10 @@ func ResetNebula() error {
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
 	config.ConstellationConfig.ThisDeviceName = ""
 	config.ConstellationConfig.ConstellationHostname = ""
+	
+	if config.Licence == "" {
+		config.ServerToken = ""
+	}
 
 	utils.SetBaseMainConfig(config)
 
@@ -289,7 +293,9 @@ func ResetNebula() error {
 	CachedDevices = map[string]utils.ConstellationDevice{}
 	CachedDeviceNames = map[string]string{}
 
-	Init()
+	go utils.RestartServer()
+
+	time.Sleep(2 * time.Second)
 
 	return nil
 }

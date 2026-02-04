@@ -56,6 +56,14 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		// Non-admin users can only create client devices
+		if !utils.IsAdmin(req) && request.IsLighthouse {
+			utils.Error("DeviceCreation: Non-admin users can only create client devices", nil)
+			utils.HTTPError(w, "Device Creation Error: Only administrators can create lighthouse devices",
+				http.StatusForbidden, "DC006")
+			return
+		}
+
 		errV := utils.Validate.Struct(request)
 		if errV != nil {
 			utils.Error("DeviceCreation: Invalid User Request", errV)
@@ -186,7 +194,27 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 		"Blocked": false,
 	}).Decode(&device)
 
-	if err2 == mongo.ErrNoDocuments {
+	if err2 == nil {
+		return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device with this name already exists")
+	} else if err2 != mongo.ErrNoDocuments {
+		return "", "", "", DeviceCreateRequestJSON{}, err2
+	}
+
+	// Check if IP is already in use
+	ipDevice := utils.Device{}
+	errIP := c.FindOne(nil, map[string]interface{}{
+		"IP": request.IP,
+		"Blocked": false,
+	}).Decode(&ipDevice)
+
+	if errIP == nil {
+		return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: IP address is already in use")
+	} else if errIP != mongo.ErrNoDocuments {
+		return "", "", "", DeviceCreateRequestJSON{}, errIP
+	}
+
+	// Device name and IP are both available, proceed with creation
+	{
 		cert, key, fingerprint, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
 
 		if err != nil {
@@ -270,12 +298,8 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 		request.IsExitNode = request.IsExitNode
 		request.IsLoadBalancer = request.IsLoadBalancer
 		request.Invisible = request.Invisible
-		request.APIKey = APIKey	
+		request.APIKey = APIKey
 
 		return cert, key, fingerprint, request, nil
-	} else if err2 == nil {
-		return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device with this name already exists")
-	} else {
-		return "", "", "", DeviceCreateRequestJSON{}, err2
 	}
 }

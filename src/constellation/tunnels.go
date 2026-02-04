@@ -82,8 +82,24 @@ func ClientHeartbeatInit() {
 	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
 
-		_, err := js.KeyValue("constellation-nodes")
+		// Reconnect JetStream if needed
+		err := ClientConnectToJS()
+		if err != nil {
+			utils.Debug("[NATS] JetStream not connected, retrying... " + err.Error())
+			continue
+		}
+
+		// Hold read lock for entire KV operation
+		clientConfigLock.RLock()
+		if js == nil {
+			clientConfigLock.RUnlock()
+			utils.Debug("[NATS] JetStream context is nil, retrying...")
+			continue
+		}
+
+		_, err = js.KeyValue("constellation-nodes")
 		if err == nil {
+			clientConfigLock.RUnlock()
 			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
 			break
 		}
@@ -94,6 +110,7 @@ func ClientHeartbeatInit() {
 			Storage:  nats.MemoryStorage,
 			Replicas: 1,
 		})
+		clientConfigLock.RUnlock()
 
 		if err == nil {
 			utils.Log("[NATS] Created Key-Value store 'constellation-nodes'")
@@ -127,17 +144,14 @@ func ClientHeartbeatInit() {
 					continue
 				}
 
-				if js == nil {
-					utils.Warn("[NATS] JetStream context is nil during heartbeat, skipping cycle")
-					continue
+				// check connected status first
+				if !ConstellationConnected() {
+					utils.Warn("[NATS] Constellation not connected during heartbeat, stopping heartbeat")
+					ticker.Stop()
+					return
 				}
 
-				kv, err := js.KeyValue("constellation-nodes")
-				if err != nil {
-					utils.Warn("[NATS] NATS client not connected getting Key-Value store during heartbeat, store is offline will skip this cycle " + err.Error())
-					continue
-				}
-
+				// Prepare heartbeat data outside the lock
 				device, err := GetCurrentDevice()
 				if err != nil {
 					utils.Warn("[NATS] NATS client not connected getting current device for heartbeat " + err.Error())
@@ -146,12 +160,6 @@ func ClientHeartbeatInit() {
 
 				key := sanitizeNATSUsername(device.DeviceName)
 
-				if !IsClientConnected() {
-					utils.Warn("[NATS] NATS client not connected during heartbeat")
-					InitNATSClient()
-				}
-
-				// insert JSON encoded heartbeat
 				heartbeat := NodeHeartbeat{
 					DeviceName: device.DeviceName,
 					IP: device.IP,
@@ -168,7 +176,24 @@ func ClientHeartbeatInit() {
 					continue
 				}
 
+				// Hold read lock for entire KV operation
+				clientConfigLock.RLock()
+				if js == nil {
+					clientConfigLock.RUnlock()
+					utils.Warn("[NATS] JetStream context is nil during heartbeat, skipping cycle")
+					continue
+				}
+
+				kv, err := js.KeyValue("constellation-nodes")
+				if err != nil {
+					clientConfigLock.RUnlock()
+					utils.Warn("[NATS] NATS client not connected getting Key-Value store during heartbeat, store is offline will skip this cycle " + err.Error())
+					continue
+				}
+
 				_, err = kv.Put(key, heartbeatData)
+				clientConfigLock.RUnlock()
+
 				if err != nil {
 					utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
 				}
@@ -199,15 +224,24 @@ func UpdateLocalTunnelCache() {
 		return
 	}
 
+	// Hold read lock for KV operations
+	clientConfigLock.RLock()
+	if js == nil {
+		clientConfigLock.RUnlock()
+		utils.Error("[NATS] JetStream context is nil during tunnel cache update", nil)
+		return
+	}
+
 	kv, err := js.KeyValue("constellation-nodes")
 	if err != nil {
+		clientConfigLock.RUnlock()
 		utils.Error("[NATS] Error getting Key-Value store during tunnel cache update, store is offline will skip this cycle", err)
 		return
 	}
 
-
 	keys, err := kv.Keys()
 	if err != nil {
+		clientConfigLock.RUnlock()
 		utils.Warn("[NATS] Error getting keys from Key-Value store during tunnel cache update "+ err.Error())
 		return
 	}
@@ -242,20 +276,30 @@ func UpdateLocalTunnelCache() {
 			}
 		}
 	}
+	clientConfigLock.RUnlock() // Done with KV operations
 
 	tunnels := make([]utils.ConstellationTunnel, 0, len(byName))
 	for _, t := range byName {
 		tunnels = append(tunnels, *t)
 	}
 
-	localTunnelCache = tunnels	
+	// Compare old and new cache using JSON stringify
+	oldJSON, _ := json.Marshal(localTunnelCache)
+	newJSON, _ := json.Marshal(tunnels)
+
+	localTunnelCache = tunnels
 	lastCacheUpdate = time.Now()
+
+	if string(oldJSON) != string(newJSON) {
+		utils.Log("[constellation] Tunnel cache changed, restarting HTTP server...")
+		go utils.RestartHTTPServer()
+	}
 }
 
 func GetLocalTunnelCache() []utils.ConstellationTunnel {
 	isLB, err := GetCurrentDeviceIsLoadbalancer()
 	if err != nil {
-		utils.Error("[constellation] Failed to get current device load balancer status for tunnel cache retrieval", err)
+		utils.Debug("[constellation] Failed to get current device load balancer status for tunnel cache retrieval " + err.Error())
 		return []utils.ConstellationTunnel{}
 	}
 	

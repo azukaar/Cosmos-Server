@@ -38,6 +38,25 @@ func InitHostname() {
 	}
 }
 
+func ConstellationConnected() bool {
+	return utils.GetMainConfig().ConstellationConfig.Enabled && NebulaStarted
+}
+
+func IsConstellationIP(ip string) bool {
+	if !ConstellationConnected() {
+		return false
+	}
+
+	// Check if the IP exists in the cached device IPs
+	for _, deviceIP := range CachedDeviceNames {
+		if deviceIP == ip {
+			return true
+		}
+	}
+
+	return false
+}
+
 func Init() {
 	InitConfig()
 	InitHostname()
@@ -50,9 +69,6 @@ func Init() {
 	NebulaStarted = false
 
 	var err error
-
-	// Debug step
-	utils.GetAllTunnelHostnames()
 	
 	// if Constellation is enabled
 	if utils.GetMainConfig().ConstellationConfig.Enabled {

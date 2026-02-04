@@ -297,7 +297,7 @@ func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
-	isConstIP := utils.IsConstellationIP(remoteAddr)
+	isConstIP := constellation.IsConstellationIP(remoteAddr)
 	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
 	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 

@@ -442,7 +442,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 
 		isUsingWhitelist := len(whitelistInboundIPs) > 0
 		isInWhitelist := false
-		isInConstellation := strings.HasPrefix(clientID, "192.168.201.") || strings.HasPrefix(clientID, "192.168.202.")
+		isInConstellation := constellation.IsConstellationIP(clientID)
 
 		for _, ipRange := range whitelistInboundIPs {
 			utils.Debug(fmt.Sprintf("Checking if %s is in %s", clientID, ipRange))

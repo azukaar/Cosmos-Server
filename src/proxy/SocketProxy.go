@@ -12,6 +12,7 @@ import (
 
     "github.com/azukaar/cosmos-server/src/utils"
     "github.com/azukaar/cosmos-server/src/docker"
+    "github.com/azukaar/cosmos-server/src/constellation"
 )
 
 var (
@@ -320,10 +321,16 @@ func InitInternalSocketProxy() {
 	HTTPPort := config.HTTPConfig.HTTPPort
 	HTTPSPort := config.HTTPConfig.HTTPSPort
 	routes := config.HTTPConfig.ProxyConfig.Routes
+
+
     tunnels := []utils.ProxyRouteConfig{}
-    if config.ConstellationConfig.Enabled {
-        tunnels = config.ConstellationConfig.Tunnels
-    }
+	remoteTunnels := constellation.GetLocalTunnelCache()
+	for _, tunnel := range remoteTunnels {
+		routeConfig := tunnel.Route 
+		if !routeConfig.Disabled {
+            tunnels = append(tunnels, routeConfig)
+		}
+	}
     
     remoteListRoutes := []utils.ProxyRouteConfig{}
     for _, shares := range config.RemoteStorage.Shares {

@@ -134,8 +134,22 @@ func ReceiveSyncPayload(rawPayload string) bool {
 	// Write database file
 	dbPath := utils.CONFIGFOLDER + "database"
 
-	// if local database is newer or same, skip update
-	if utils.FileExists(dbPath) && utils.GetFileLastModifiedTime(dbPath).Unix() >= payload.LastEdited {
+	// Check if local database has 0 constellation devices - if so, always accept sync
+	skipDateCheck := false
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	if errCo == nil {
+		count, errCount := c.CountDocuments(nil, map[string]interface{}{
+			"Blocked": false,
+		})
+		closeDb()
+		if errCount == nil && count == 0 {
+			utils.Log("Constellation: ReceiveSyncPayload: Local database has 0 devices, skipping date check")
+			skipDateCheck = true
+		}
+	}
+
+	// if local database is newer or same, skip update (unless we have 0 devices)
+	if !skipDateCheck && utils.FileExists(dbPath) && utils.GetFileLastModifiedTime(dbPath).Unix() >= payload.LastEdited {
 		utils.Warn("Constellation: ReceiveSyncPayload: Local database is newer or same as received one, skipping update -  local time:" + strconv.FormatInt(utils.GetFileLastModifiedTime(dbPath).Unix(), 10) + " received time:" + strconv.FormatInt(payload.LastEdited, 10))
 		return false
 	}

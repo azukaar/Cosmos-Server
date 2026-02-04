@@ -24,7 +24,7 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
 				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 				
-				isConstIP := utils.IsConstellationIP(remoteAddr)
+				isConstIP := constellation.IsConstellationIP(remoteAddr)
 				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
 				if isConstIP && isConstTokenValid {
@@ -98,10 +98,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		origin = origin.Host(route.Host)
 
 		if route.Mode == "SERVAPP" || route.Mode == "PROXY" || route.Mode == "REDIRECT" {
-			// if Scheme is not http/https, discard
 			urlRoute, err := url.Parse(route.Target)
 			if err != nil {
-				utils.Error("Invalid target URL: "+route.Target, err)
 				return nil
 			}
 

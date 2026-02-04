@@ -24,6 +24,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		var request struct {
 			DeviceName string `json:"deviceName"`
 			IsLighthouse bool   `json:"isLighthouse"`
+			Hostname string `json:"hostname"`
 		}
 
 		err := json.NewDecoder(req.Body).Decode(&request)
@@ -40,12 +41,19 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 				http.StatusBadRequest, "ANC002")
 			return
 		}
-	
+
+		if request.Hostname == "" {
+			utils.Error("API_NewConstellation: Hostname is required", nil)
+			utils.HTTPError(w, "Hostname is required",
+				http.StatusBadRequest, "ANC004")
+			return
+		}
+
 		// check if ca.crt exists
 		if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
 			utils.Log("Constellation: ca.crt not found, generating...")
 			// generate ca.crt
-			
+
 			errG := generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
 			if errG != nil {
 				utils.Error("Constellation: error while generating ca.crt", errG)
@@ -86,7 +94,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		config := utils.ReadConfigFromFile()
 		config.ConstellationConfig.Enabled = true
 		config.ConstellationConfig.ThisDeviceName = deviceName
-
+		config.ConstellationConfig.ConstellationHostname = request.Hostname
 		utils.SetBaseMainConfig(config)
 
 		utils.TriggerEvent(
@@ -171,6 +179,10 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 
 		if publicHostnameVal, ok := configMap["cstln_public_hostname"]; ok {
 			config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
+		}
+
+		if licence, ok := configMap["cstln_licence"]; ok {
+			config.ServerToken = licence.(string)
 		}
 
 		utils.SetBaseMainConfig(config)

@@ -46,13 +46,12 @@ export const ConstellationDNS = () => {
               CustomDNSEntries: config.ConstellationConfig.CustomDNSEntries || []
             }}
             onSubmit={(values) => {
-              let newConfig = { ...config };
-              newConfig.ConstellationConfig.DNSFallback = values.Fallback;
-              newConfig.ConstellationConfig.DNSBlockBlacklist = values.DNSBlockBlacklist;
-              newConfig.ConstellationConfig.DNSAdditionalBlocklists = values.DNSAdditionalBlocklists;
-              newConfig.ConstellationConfig.CustomDNSEntries = values.CustomDNSEntries;
-              
-              return API.config.set(newConfig);
+              return API.config.updateDNS({
+                dnsFallback: values.Fallback,
+                dnsBlockBlacklist: values.DNSBlockBlacklist,
+                dnsAdditionalBlocklists: values.DNSAdditionalBlocklists,
+                customDNSEntries: values.CustomDNSEntries,
+              });
             }}
           >
             {(formik) => (

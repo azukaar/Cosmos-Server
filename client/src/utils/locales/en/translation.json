@@ -320,6 +320,8 @@
 	"mgmt.constellation.privateServer": "Private Server",
 	"mgmt.constellation.publicLighthouseTooltip": "This server's Constellation port is exposed externally, allowing devices to discover and connect to it directly.",
 	"mgmt.constellation.privateServerTooltip": "This server's Constellation port is not exposed externally. Devices connect through relays or other lighthouses.",
+	"mgmt.constellation.privateIP": "Private IP",
+	"mgmt.constellation.publicHostname": "Public Hostname",
 	"mgmt.constellation.cosmosNode": "Cosmos Node",
 	"mgmt.constellation.lighthouse": "Lighthouse",
 	"mgmt.constellation.client": "Client",

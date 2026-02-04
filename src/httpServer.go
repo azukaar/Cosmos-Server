@@ -120,27 +120,6 @@ func startHTTPSServer(router *mux.Router) error {
 	go (func () {
 		httpRouter := mux.NewRouter()
 
-		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
-			if r.Host == "192.168.201.1" && (r.URL.Path == "/cosmos/api/constellation/config-sync" || r.URL.Path == "/cosmos/api/constellation_webhook_sync") && utils.IsConstellationIP(r.RemoteAddr) {
-				router.ServeHTTP(w, r)
-			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)  {
-				// use router 
-				router.ServeHTTP(w, r)
-			} else {
-				// change port in host
-				if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
-					if serverPortHTTPS != "443" {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
-						} else {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
-					}
-				}
-
-				http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
-			}
-		})
-
 		HTTPServer2 = &http.Server{
 			Addr: "0.0.0.0:" + serverPortHTTP,
 			ReadTimeout: 0,
@@ -502,6 +481,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/_logs", LogsRoute)
 	srapiAdmin.HandleFunc("/api/force-server-update", ForceUpdateRoute)
 	srapiAdmin.HandleFunc("/api/config", configapi.ConfigRoute)
+	srapiAdmin.HandleFunc("/api/config/dns", configapi.ConfigApiDNS)
 	srapiAdmin.HandleFunc("/api/_memory", MemStatusRoute)
 	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 	
@@ -555,6 +535,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/ping", constellation.API_Ping)
 	srapiAdmin.HandleFunc("/api/constellation/tunnels", constellation.TunnelList)
 	srapiAdmin.HandleFunc("/api/constellation/edit-device", constellation.DeviceEdit_API)
+	srapiAdmin.HandleFunc("/api/constellation/get-next-ip", constellation.API_GetNextIP)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

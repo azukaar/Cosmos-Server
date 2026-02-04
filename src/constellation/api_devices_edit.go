@@ -13,7 +13,6 @@ type DeviceEditRequestJSON struct {
 	IsRelay        bool   `json:"isRelay"`
 	IsExitNode     bool   `json:"isExitNode"`
 	IsLoadBalancer bool   `json:"isLoadBalancer"`
-	PublicHostname string `json:"publicHostname"`
 }
 
 func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
@@ -67,7 +66,6 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 			"IsRelay":        request.IsRelay,
 			"IsExitNode":     request.IsExitNode,
 			"IsLoadBalancer": request.IsLoadBalancer,
-			"PublicHostname": request.PublicHostname,
 		},
 	})
 
