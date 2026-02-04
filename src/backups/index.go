@@ -3,6 +3,7 @@ package backups
 import (
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"time"
 )
 
 func InitBackups() {
@@ -67,33 +68,35 @@ func InitBackups() {
 		config = utils.GetMainConfig()
 	}
 
+	go func() {
+		time.Sleep(2 * time.Second) 
+		for _, repo := range Repositories {
+			err := CheckRepository(repo.Repository, repo.Password)
 
-	for _, repo := range Repositories {
-		err := CheckRepository(repo.Repository, repo.Password)
-
-		if err != nil {
-			utils.MajorError("Backups destination unavailable", err)
-		} else {
-			// create backup job
-			CreateBackupJob(BackupConfig{
-				Repository: repo.Repository,
-				Password:   repo.Password,
-				Source:     repo.Source,
-				Name:       repo.Name,
-				AutoStopContainers: repo.AutoStopContainers,
-				Tags:       []string{repo.Name},
-				// Exclude:    repo.Exclude,
-			}, repo.Crontab)
-			
-			// create backup job
-			CreateForgetJob(BackupConfig{
-				Repository: repo.Repository,
-				Password:   repo.Password,
-				Source:     repo.Source,
-				Name:       repo.Name,
-				Tags:       []string{repo.Name},
-				Retention:  repo.RetentionPolicy,
-			}, repo.CrontabForget)
+			if err != nil {
+				utils.MajorError("Backups destination unavailable", err)
+			} else {
+				// create backup job
+				CreateBackupJob(BackupConfig{
+					Repository: repo.Repository,
+					Password:   repo.Password,
+					Source:     repo.Source,
+					Name:       repo.Name,
+					AutoStopContainers: repo.AutoStopContainers,
+					Tags:       []string{repo.Name},
+					// Exclude:    repo.Exclude,
+				}, repo.Crontab)
+				
+				// create backup job
+				CreateForgetJob(BackupConfig{
+					Repository: repo.Repository,
+					Password:   repo.Password,
+					Source:     repo.Source,
+					Name:       repo.Name,
+					Tags:       []string{repo.Name},
+					Retention:  repo.RetentionPolicy,
+				}, repo.CrontabForget)
+			}
 		}
-	}
+	}()
 }

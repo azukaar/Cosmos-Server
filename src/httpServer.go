@@ -565,6 +565,17 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
+
+	// RClone API handlers (replaces RCD proxy)
+	srapi.HandleFunc("/rclone/config/dump", storage.API_RClone_ConfigDump)
+	srapi.HandleFunc("/rclone/config/create", storage.API_RClone_ConfigCreate)
+	srapi.HandleFunc("/rclone/config/update", storage.API_RClone_ConfigUpdate)
+	srapi.HandleFunc("/rclone/config/delete", storage.API_RClone_ConfigDelete)
+	srapi.HandleFunc("/rclone/config/save", storage.API_RClone_ConfigSave)
+	srapi.HandleFunc("/rclone/operations/about", storage.API_RClone_OperationsAbout)
+	srapi.HandleFunc("/rclone/vfs/stats", storage.API_RClone_VfsStats)
+	srapi.HandleFunc("/rclone/core/stats", storage.API_RClone_CoreStats)
+
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
 	srapiAdmin.HandleFunc("/api/new-dir", storage.CreateFolderRoute)
 

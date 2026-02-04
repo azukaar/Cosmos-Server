@@ -14,25 +14,6 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	
-	// Proxy RClone
-	if utils.ProxyRClone {
-		data64Auth := utils.Base64Encode(utils.ProxyRCloneUser + ":" + utils.ProxyRClonePwd)
-		rcloneRoute := utils.ProxyRouteConfig{
-			Name: "RClone",
-			Mode: "PROXY",
-			UseHost: false,
-			Target: "http://localhost:5573",
-			UsePathPrefix: true,
-			PathPrefix: "/cosmos/rclone",
-			AuthEnabled: true,
-			AdminOnly: true,
-			ExtraHeaders: map[string]string{
-				"Authorization": "Basic " + data64Auth,
-			},
-		}
-		RouterGen(rcloneRoute, router, RouteTo(rcloneRoute))
-	}
 
 	remoteTunnels := constellation.GetLocalTunnelCache()
 	for _, tunnel := range remoteTunnels {

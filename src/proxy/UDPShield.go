@@ -10,6 +10,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type UDPSmartShieldState struct {

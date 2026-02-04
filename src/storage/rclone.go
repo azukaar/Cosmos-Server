@@ -1,271 +1,148 @@
-package storage 
+package storage
 
 import (
-	"os"
-	"os/exec"
-	"io"
-	"bufio"
-	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
-	"time"
-	"strings"
-	"fmt"
-	"encoding/json"
-	"io/ioutil"
+	"os"
+	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
-	"crypto/md5"
 	"syscall"
-	
-	"github.com/rclone/rclone/cmd"
-	"github.com/fsnotify/fsnotify"	
+	"time"
+
+	"github.com/rclone/rclone/fs"
+	"github.com/rclone/rclone/fs/accounting"
+	"github.com/rclone/rclone/fs/config"
+	"github.com/rclone/rclone/fs/config/configfile"
+	"github.com/rclone/rclone/vfs"
+	"github.com/rclone/rclone/vfs/vfscommon"
+	"github.com/rclone/rclone/cmd/mountlib"
+	"github.com/rclone/rclone/cmd/serve/nfs"
+	"github.com/rclone/rclone/cmd/serve/s3"
+	"github.com/rclone/rclone/cmd/serve/sftp"
+	"github.com/rclone/rclone/cmd/serve/webdav"
+	"github.com/rclone/rclone/cmd/serve/proxy"
 	_ "github.com/rclone/rclone/backend/all"
-	_ "github.com/rclone/rclone/cmd/all"
-	_ "github.com/rclone/rclone/lib/plugin"
+	_ "github.com/rclone/rclone/cmd/config"
+
+	"github.com/rclone/rclone/cmd"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
-var rcloneMutex = &sync.Mutex{}
-
-type RCloneProcess struct {
-	RcloneCmd     *exec.Cmd
-	RcloneRestart chan bool
-	RestartCount  int
-	LastRestart   time.Time
-	Main bool
-}
-func (rp *RCloneProcess) SetRcloneRestartCount(v int) {
-	rp.RestartCount = v
-}
-func (rp *RCloneProcess) SetLastRestart(v time.Time) {
-	rp.LastRestart = v
-}
-
-var rcloneProcesses = make(map[int]*RCloneProcess)
-
+// RunRClone runs rclone with the given arguments (CLI passthrough)
 func RunRClone(args []string) {
+	configLocation := utils.CONFIGFOLDER + "rclone.conf"
+	config.SetConfigPath(configLocation)
+
 	cmd.Root.SetArgs(args)
 	cmd.Main()
 }
 
-func RunRCloneCommand(command []string) (*exec.Cmd, io.WriteCloser, *bytes.Buffer, *bytes.Buffer) {
-	utils.Log("[RemoteStorage] Running Rclone process")
-	utils.Debug("[RemoteStorage] Running Rclone process with command: " + strings.Join(command, " "))
-
-	args := []string{"rclone"}
-	args = append(args, command...)
-	cmd := exec.Command(os.Args[0], args...)
-
-	var stdoutBuf, stderrBuf bytes.Buffer
-	
-	stdin, err := cmd.StdinPipe()
-	if err != nil {
-		utils.Error("[RemoteStorage] Error creating stdin pipe", err)
-		return nil, nil, nil, nil
-	}
-
-	stdoutPipe, err := cmd.StdoutPipe()
-	if err != nil {
-		utils.Error("[RemoteStorage] Error creating stdout pipe", err)
-		return nil, nil, nil, nil
-	}
-
-	stderrPipe, err := cmd.StderrPipe()
-	if err != nil {
-		utils.Error("[RemoteStorage] Error creating stderr pipe", err)
-		return nil, nil, nil, nil
-	}
-
-	err = cmd.Start()
-	if err != nil {
-		utils.Error("[RemoteStorage] Error starting rclone command", err)
-		return nil, nil, nil, nil
-	}
-
-	go func() {
-		scanner := bufio.NewScanner(stdoutPipe)
-		for scanner.Scan() {
-			line := scanner.Text()
-			utils.Debug("[RemoteStorage] " + line)
-			stdoutBuf.WriteString(line + "\n")
-		}
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(stderrPipe)
-		for scanner.Scan() {
-			line := scanner.Text()
-			utils.Error("[RemoteStorage] " + line, nil)
-			stderrBuf.WriteString(line + "\n")
-		}
-	}()
-
-	return cmd, stdin, &stdoutBuf, &stderrBuf
+// ServeHandle is the interface that serve servers implement
+type ServeHandle interface {
+	Serve() error
+	Shutdown() error
 }
 
-func monitorRCloneProcess(cmd *exec.Cmd, args ...string) {
-	rcloneProcesses[cmd.Process.Pid].RcloneRestart = make(chan bool)
+var (
+	rcloneMutex       sync.Mutex
+	liveMounts        = make(map[string]*mountlib.MountPoint) // For VFS stats only
+	liveServers       = make(map[string]ServeHandle)
+	liveCancels       = make(map[string]context.CancelFunc)
+	mountsMutex       sync.RWMutex
+	serversMutex      sync.RWMutex
+	rcloneInitialized bool
+	rcloneCtx         context.Context
+	rcloneCancelAll   context.CancelFunc
+)
 
-	err := cmd.Wait()
-	if err != nil {
-		utils.Error("[RemoteStorage] RClone process exited with error", err)
-	} else {
-		utils.Log("[RemoteStorage] RClone process exited")
-	}
-
-	rcloneMutex.Lock()
-	// stop monitoring if the process is not in the map
-	if _, ok := rcloneProcesses[cmd.Process.Pid]; !ok {
-		rcloneMutex.Unlock()
-		return
-	}
-	rcloneMutex.Unlock()
-
-	// Monitor and restart RClone process if needed
-	go func() {
-		for {
-			select {
-			case <-rcloneProcesses[cmd.Process.Pid].RcloneRestart:
-				utils.Debug("[RemoteStorage] RcloneRestart signal received")
-				startRCloneProcess(args...)
-				return
-			}
-		}
-	}()
-
-	now := time.Now()
-	if now.Sub(rcloneProcesses[cmd.Process.Pid].LastRestart) < 10*time.Second {
-		rcloneProcesses[cmd.Process.Pid].SetRcloneRestartCount(rcloneProcesses[cmd.Process.Pid].RestartCount + 1)
-	} else {
-		rcloneProcesses[cmd.Process.Pid].SetRcloneRestartCount(1)
-	}
-	rcloneProcesses[cmd.Process.Pid].SetLastRestart(now)
-
-	if rcloneProcesses[cmd.Process.Pid].RestartCount <= 3 {
-		utils.Log("[RemoteStorage] Restarting RClone process")
-		rcloneProcesses[cmd.Process.Pid].RcloneRestart <- true
-	} else {
-		utils.MajorError("[RemoteStorage] RClone process restarted too many times in a short period. Stopping automatic restarts.", nil)
-	}
-}
-
-func startRCloneProcess(args ...string) {
+func initRCloneLibrary(configLocation string) error {
 	rcloneMutex.Lock()
 	defer rcloneMutex.Unlock()
 
-	utils.Log("[RemoteStorage] Starting RClone process")
-
-	configLocation := utils.CONFIGFOLDER + "rclone.conf"
-
-	if len(args) == 0 {
-		rcloneCmd, _, _, _ := RunRCloneCommand([]string{"rcd", "--rc-addr", "localhost:5573", "--rc-user=" + utils.ProxyRCloneUser, "--rc-pass=" + utils.ProxyRClonePwd, "--config=" + configLocation, "--rc-baseurl=/cosmos/rclone"})
-		rcloneProcesses[rcloneCmd.Process.Pid] = &RCloneProcess{
-			RcloneCmd: rcloneCmd,
-			Main: true,
-		}
-		go monitorRCloneProcess(rcloneCmd)
-	} else {
-		rcloneCmd, _, _, _ := RunRCloneCommand(append(args, "--config=" + configLocation))
-		rcloneProcesses[rcloneCmd.Process.Pid] = &RCloneProcess{
-			RcloneCmd: rcloneCmd,
-		}
-		go monitorRCloneProcess(rcloneCmd, args...)
-	}
-}
-
-var isWaitingToStop = false
-func StopAllRCloneProcess(forever bool) {
-	rcloneMutex.Lock()
-	defer rcloneMutex.Unlock()
-	
-	if isWaitingToStop {
-		return
+	if rcloneInitialized {
+		return nil
 	}
 
-	isWaitingToStop = true
-
-	// TODO: wait for backups to finish
-
-	utils.Log("[RemoteStorage] Restarting Samba service to remove shares")
-
-	_, err := utils.Exec("smbcontrol", "all", "reload-config")
-	if err != nil {
-		utils.MajorError("[RemoteStorage] Error restarting Samba service", err)
+	if err := config.SetConfigPath(configLocation); err != nil {
+		return fmt.Errorf("error setting config path: %w", err)
 	}
 
-	utils.Log("[RemoteStorage] Stopping all RClone processes")
+	// Load the config file
+	configfile.Install()
 
-	for _, process := range rcloneProcesses {
-		if process.Main {
-			unmountAll()
-		}
-
-		if process.RcloneCmd != nil && process.RcloneCmd.Process != nil {
-			utils.Log("[RemoteStorage] Stopping RClone process")
-
-			err := process.RcloneCmd.Process.Signal(syscall.SIGTERM)
-			if err != nil {
-				utils.Error("[RemoteStorage] Error stopping RClone process", err)
-			}
-			// Wait for the process to exit
-			_, _ = process.RcloneCmd.Process.Wait()
-
-			if !process.Main || forever {
-				delete(rcloneProcesses, process.RcloneCmd.Process.Pid)
-			}
-		}
-	}
-
-	isWaitingToStop = false
-}
-
-func unmountAll() error {
-	utils.Log("[RemoteStorage] Unmounting all remote storages")
-
-	// Get the list of current mounts
-	response, err := runRDC("/mount/listmounts")
-	if err != nil {
-		return fmt.Errorf("error getting mount list: %w", err)
-	}
-
-	var mountList struct {
-		Mounts []struct {
-			MountPoint string `json:"MountPoint"`
-		} `json:"mounts"`
-	}
-
-	if err := json.Unmarshal(response, &mountList); err != nil {
-		return fmt.Errorf("error parsing mount list response: %w", err)
-	}
-
-	// Unmount each mount point
-	for _, mount := range mountList.Mounts {
-		utils.Log(fmt.Sprintf("[RemoteStorage] Unmounting %s", mount.MountPoint))
-
-		unmountPayload := map[string]string{
-			"mountPoint": mount.MountPoint,
-		}
-
-		payloadBytes, err := json.Marshal(unmountPayload)
-		if err != nil {
-			utils.Error(fmt.Sprintf("[RemoteStorage] Error marshaling unmount payload for %s", mount.MountPoint), err)
-			continue
-		}
-
-		_, err = runRDC("/mount/unmount", "json", string(payloadBytes))
-		if err != nil {
-			utils.Error(fmt.Sprintf("[RemoteStorage] Error unmounting %s", mount.MountPoint), err)
-			continue
-		}
-
-		utils.Log(fmt.Sprintf("[RemoteStorage] Successfully unmounted %s", mount.MountPoint))
-	}
-
+	rcloneCtx, rcloneCancelAll = context.WithCancel(context.Background())
+	rcloneInitialized = true
+	utils.Log("[RemoteStorage] RClone library initialized")
 	return nil
 }
 
+func StopAllRCloneProcess(forever bool) {
+	rcloneMutex.Lock()
+	defer rcloneMutex.Unlock()
+
+	utils.Log("[RemoteStorage] Restarting Samba service to remove shares")
+	utils.Exec("smbcontrol", "all", "reload-config")
+
+	utils.Log("[RemoteStorage] Stopping all RClone mounts and servers")
+	stopAllServers()
+	rcloneUnmountAll()
+
+	if forever && rcloneCancelAll != nil {
+		rcloneCancelAll()
+		rcloneInitialized = false
+	}
+}
+
+func stopAllServers() {
+	serversMutex.Lock()
+	defer serversMutex.Unlock()
+
+	for key, server := range liveServers {
+		utils.Log(fmt.Sprintf("[RemoteStorage] Stopping server %s", key))
+		if cancel, ok := liveCancels[key]; ok {
+			cancel()
+		}
+		if server != nil {
+			server.Shutdown()
+		}
+	}
+	liveServers = make(map[string]ServeHandle)
+	liveCancels = make(map[string]context.CancelFunc)
+}
+
+func rcloneUnmountAll() error {
+	utils.Log("[RemoteStorage] Unmounting all remote storages")
+
+	// Get storage list from config file
+	storageList, err := getStorageList()
+	if err != nil {
+		utils.Error("[RemoteStorage] Error getting storage list for unmounting", err)
+		return err
+	}
+
+	baseDir := "/mnt/cosmos-storage-"
+	if utils.IsInsideContainer {
+		baseDir = "/mnt/host/mnt/cosmos-storage-"
+	}
+
+	for _, storage := range storageList {
+		mountPath := baseDir + storage.Name
+		utils.Log(fmt.Sprintf("[RemoteStorage] Unmounting %s", mountPath))
+		Unmount(mountPath, false)
+	}
+	return nil
+}
+
+func rcloneUnmount(mountPath string, silent bool) error {
+	utils.Exec("fusermount", "-u", "-z", mountPath) // in case of stale mount
+	return Unmount(mountPath, silent)
+}
 
 func Restart() {
 	if !utils.FBL.LValid {
@@ -274,113 +151,31 @@ func Restart() {
 
 	StopAllRCloneProcess(false)
 
-	// wait for rclone to start
-	go func() {
-		retries := 0
-		for {
-			_, err := runRDC("/core/version")
-			if err == nil { break }
-
-			time.Sleep(2 * time.Second)
-			if retries > 5 {
-				utils.MajorError("[RemoteStorage] Failed to reach RClone, check the port 5573 is free", nil)
-				return
-			}
-			retries++
-		}
-
-		utils.Log("[RemoteStorage] RClone started and ready!")
-
-		remountAll()
-	}()
-}
-
-func runRDC(path string, params ...string) ([]byte, error) {
-	baseURL := "http://localhost:5573/cosmos/rclone"
-	fullURL := fmt.Sprintf("%s%s", baseURL, path)
-
-	utils.Debug("[RemoteStorage] Sending request to RClone server: " + fullURL)
-
-	var req *http.Request
-	var err error
-
-	if len(params) == 2 && params[0] == "json" {
-		// If a JSON payload is provided
-		req, err = http.NewRequest("POST", fullURL, strings.NewReader(params[1]))
-		if err != nil {
-			return nil, fmt.Errorf("[RemoteStorage] error creating request: %w", err)
-		}
-		req.Header.Set("Content-Type", "application/json")
-		utils.Debug("[RemoteStorage] Request payload: " + params[1])
-	} else {
-		// For regular key-value params
-		data := url.Values{}
-		for i := 0; i < len(params); i += 2 {
-			if i+1 < len(params) {
-				data.Set(params[i], params[i+1])
-			}
-		}
-		req, err = http.NewRequest("POST", fullURL, strings.NewReader(data.Encode()))
-		if err != nil {
-			return nil, fmt.Errorf("[RemoteStorage] error creating request: %w", err)
-		}
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		utils.Debug("[RemoteStorage] Request payload: " + data.Encode())
+	configLocation := utils.CONFIGFOLDER + "rclone.conf"
+	if err := initRCloneLibrary(configLocation); err != nil {
+		utils.MajorError("[RemoteStorage] Failed to reinitialize RClone library", err)
+		return
 	}
 
-	req.SetBasicAuth(utils.ProxyRCloneUser, utils.ProxyRClonePwd)
-
-	// Create an HTTP client with a timeout
-	client := &http.Client{
-		Timeout: 30 * time.Second,
-	}
-
-	// Send the request
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("error sending request: %w", err)
-	}
-	defer resp.Body.Close()
-
-	// Read the response body
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("error reading response body: %w", err)
-	}
-
-	// Check for non-200 status code
-	if resp.StatusCode != http.StatusOK {
-		var errorResp struct {
-			Error string `json:"error"`
-		}
-		if err := json.Unmarshal(body, &errorResp); err == nil && errorResp.Error != "" {
-			return nil, fmt.Errorf("RClone server error: %s", errorResp.Error)
-		}
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	return body, nil
+	utils.Log("[RemoteStorage] RClone restarted and ready!")
+	remountAll()
 }
 
 type RemoteStorage struct {
-	Name string
+	Name  string
 	Chown string
 }
 
 func mountRemoteStorage(remoteStorage RemoteStorage) error {
-	// Create the base directory if it doesn't exist
 	baseDir := "/mnt/cosmos-storage-"
-
 	if utils.IsInsideContainer {
 		baseDir = "/mnt/host/mnt/cosmos-storage-"
 	}
-	
-	// Create the storage-specific directory
+
 	mountPoint := baseDir + remoteStorage.Name
 
 	if _, err := os.Stat(mountPoint); !os.IsNotExist(err) {
-		// ensure the mount point is unmounted
-		Unmount(mountPoint, true)
+		rcloneUnmount(mountPoint, true)
 	}
 
 	if _, err := os.Stat(mountPoint); os.IsNotExist(err) {
@@ -389,16 +184,13 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 		}
 	}
 
-	// if there are files in the directory, error 
-	files, err := ioutil.ReadDir(mountPoint)
+	files, err := os.ReadDir(mountPoint)
 	if err != nil {
 		return fmt.Errorf("[RemoteStorage] error reading mount point directory: %w", err)
 	}
 
 	if len(files) > 0 {
 		utils.Warn(fmt.Sprintf("[RemoteStorage] Mount point %s is not empty. Moving to backup location.", mountPoint))
-
-		// Find an available backup name
 		backupPath := mountPoint + ".old"
 		counter := 1
 		for {
@@ -408,77 +200,76 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 			backupPath = fmt.Sprintf("%s.old%d", mountPoint, counter)
 			counter++
 		}
-
-		// Move the existing directory to backup
-		utils.Log(fmt.Sprintf("[RemoteStorage] Moving %s to %s", mountPoint, backupPath))
 		if err := os.Rename(mountPoint, backupPath); err != nil {
 			return fmt.Errorf("[RemoteStorage] error moving mount point to backup: %w", err)
 		}
-
-		// Recreate empty folder
 		if err := os.MkdirAll(mountPoint, 0755); err != nil {
 			return fmt.Errorf("[RemoteStorage] error recreating mount point directory: %w", err)
 		}
-
-		utils.Log(fmt.Sprintf("[RemoteStorage] Successfully backed up to %s and recreated mount point", backupPath))
 	}
 
 	chown := remoteStorage.Chown
 	if chown != "" {
-		utils.Log("[STORAGE] Chowning " + mountPoint + " to " + chown)
-		out, err := utils.Exec("chown", chown, mountPoint)
-		utils.Debug(out)
-		if err != nil {
-			return err
-		}
+		utils.Exec("chown", chown, mountPoint)
 	}
 
-	// Prepare the mount command
-	remotePath := fmt.Sprintf("%s:", remoteStorage.Name) // Assuming the remote name in rclone config matches the storageName
-	
-	uid, gid := 1000, 1000 // Default to user 1000:1000
-	
+	uid, gid := 1000, 1000
 	if chown != "" {
-		if len(strings.Split(chown, ":")) != 2 {
+		parts := strings.Split(chown, ":")
+		if len(parts) != 2 {
 			return fmt.Errorf("[RemoteStorage] invalid chown value: %s", chown)
-		} else {
-			uids, gids := strings.Split(chown, ":")[0], strings.Split(chown, ":")[1]
-			uid, _ = strconv.Atoi(uids)
-			gid, _ = strconv.Atoi(gids)
 		}
+		uid, _ = strconv.Atoi(parts[0])
+		gid, _ = strconv.Atoi(parts[1])
 	}
 
-	payload := map[string]interface{}{
-		"fs":         remotePath,
-		"mountPoint": mountPoint,
-		"mountType":  "mount",
-		"vfsOpt": map[string]interface{}{
-			"CacheMode":         "full",
-			"CacheMaxAge":       86400000000000,
-			"ReadChunkSize":     "10M",
-			"ReadChunkSizeLimit": "100M",
-			"UID":               uid,
-			"GID":               gid,
-			"Umask":             077, // This sets permissions to 700 for directories and 600 for files
-		},
-		"mountOpt": map[string]interface{}{
-			// "AllowNonEmpty": true,
-			"AllowOther":    true,
-		},
-	}
-	
-	// Convert payload to JSON
-	payloadBytes, err := json.Marshal(payload)
-	if err != nil {
-		return fmt.Errorf("error marshaling payload: %w", err)
-	}
-	
-	// Execute the mount command using runRDC
-	_, err = runRDC("/mount/mount", "json", string(payloadBytes))
+	remotePath := fmt.Sprintf("%s:", remoteStorage.Name)
+	ctx, cancel := context.WithCancel(rcloneCtx)
 
+	f, err := fs.NewFs(ctx, remotePath)
 	if err != nil {
+		cancel()
+		return fmt.Errorf("[RemoteStorage] error creating filesystem for %s: %w", remotePath, err)
+	}
+
+	// Configure VFS options
+	vfsOpt := vfscommon.Opt
+	vfsOpt.CacheMode = vfscommon.CacheModeFull
+	vfsOpt.CacheMaxAge = fs.Duration(24 * time.Hour)
+	vfsOpt.ChunkSize = 10 * fs.Mebi
+	vfsOpt.ChunkSizeLimit = 100 * fs.Mebi
+
+	// TODO: Improve this 
+	vfsOpt.DirPerms = 0770
+	vfsOpt.FilePerms = 0660
+	vfsOpt.UID = uint32(uid)
+	vfsOpt.GID = uint32(gid)
+
+	mountOpt := mountlib.Opt
+	mountOpt.AllowOther = true
+
+	mountFn := mountlib.GetMountFn("mount")
+	if mountFn == nil {
+		cancel()
+		return fmt.Errorf("[RemoteStorage] mount function not available")
+	}
+
+	mp := mountlib.NewMountPoint(mountFn, mountPoint, f, &mountOpt, &vfsOpt)
+
+	// Mount runs in background
+	_, err = mp.Mount()
+	if err != nil {
+		cancel()
 		return fmt.Errorf("[RemoteStorage] error mounting remote storage: %w", err)
 	}
+
+	// Give it a moment to start
+	time.Sleep(1000 * time.Millisecond)
+
+	// Track mount for VFS stats only (not used for unmounting)
+	mountsMutex.Lock()
+	liveMounts[mountPoint] = mp
+	mountsMutex.Unlock()
 
 	utils.Log(fmt.Sprintf("[RemoteStorage] Successfully mounted %s to %s", remoteStorage.Name, mountPoint))
 	return nil
@@ -487,178 +278,133 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 var CachedRemoteStorageList []StorageInfo
 
 func getStorageList() ([]RemoteStorage, error) {
-	response, err := runRDC("/config/dump")
-	if err != nil {
-		return nil, fmt.Errorf("error getting config dump: %w", err)
-	}
-
+	result := config.DumpRcBlob()
 	CachedRemoteStorageList = []StorageInfo{}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(response, &result); err != nil {
-		return nil, fmt.Errorf("error parsing config dump response: %w", err)
-	}
-
-	// Extract the storage names and chown values from the config
 	var storageList []RemoteStorage
 	for key, value := range result {
+		if key == "install_id" || key == "client_id" || key == "client_secret" {
+			continue
+		}
 		utils.Debug("[RemoteStorage] Found storage: " + key)
-		// Exclude the special keys that are not storage names
-		if key != "install_id" && key != "client_id" && key != "client_secret" {
-			storage := RemoteStorage{
-				Name: key,
-			}
+		storage := RemoteStorage{Name: key}
 
-			// Extract the cosmos-chown value if it exists
-			if storageConfig, ok := value.(map[string]interface{}); ok {
-				if chown, exists := storageConfig["cosmos-chown"]; exists {
-					if chownStr, ok := chown.(string); ok {
-						storage.Chown = chownStr
-					}
+		if storageConfig, ok := value.(map[string]interface{}); ok {
+			if chown, exists := storageConfig["cosmos-chown"]; exists {
+				if chownStr, ok := chown.(string); ok {
+					storage.Chown = chownStr
 				}
 			}
-
-			storageList = append(storageList, storage)
-			
-			CachedRemoteStorageList = append(CachedRemoteStorageList, StorageInfo{
-				Name: storage.Name,
-				Path: "/mnt/cosmos-storage-" + storage.Name,
-			})
 		}
+
+		storageList = append(storageList, storage)
+		CachedRemoteStorageList = append(CachedRemoteStorageList, StorageInfo{
+			Name: storage.Name,
+			Path: "/mnt/cosmos-storage-" + storage.Name,
+		})
 	}
 
 	return storageList, nil
 }
 
-func watchConfigFile(configLocation string, restart func()) {
-	utils.Log("[RemoteStorage] Watching config file for changes")
+func startServeInstance(protocol, target, addr string, settings map[string]string) error {
+	ctx, cancel := context.WithCancel(rcloneCtx)
 
-	watcher, err := fsnotify.NewWatcher()
+	f, err := fs.NewFs(ctx, target)
 	if err != nil {
-		utils.Error("[RemoteStorage] Error creating file watcher, falling back to polling only", err)
-		watchConfigFilePollingOnly(configLocation, restart)
-		return
+		cancel()
+		return fmt.Errorf("[RemoteStorage] error creating filesystem for serve: %w", err)
 	}
-	defer watcher.Close()
 
-	lastHash := getFileHash(configLocation)
-	lastModTime := getFileModTime(configLocation)
-	var mutex sync.Mutex
-	normalMechanismDetectedChange := false
+	vfsOpt := vfscommon.Opt
+	proxyOpt := proxy.Opt // proxy options needed by serve functions
+
+	var server ServeHandle
+
+	switch protocol {
+	case "sftp":
+		opt := sftp.DefaultOpt
+		opt.ListenAddr = addr
+		if v, ok := settings["user"]; ok {
+			opt.User = v
+		}
+		if v, ok := settings["pass"]; ok {
+			opt.Pass = v
+		}
+		if v, ok := settings["authorized-keys"]; ok {
+			opt.AuthorizedKeys = v
+		}
+		server, err = sftp.NewServer(ctx, f, &opt, &vfsOpt, &proxyOpt)
+
+	case "webdav":
+		opt := webdav.DefaultOpt
+		opt.HTTP.ListenAddr = []string{addr}
+		if v, ok := settings["user"]; ok {
+			opt.Auth.BasicUser = v
+		}
+		if v, ok := settings["pass"]; ok {
+			opt.Auth.BasicPass = v
+		}
+		server, err = webdav.NewServer(ctx, f, &opt, &vfsOpt, &proxyOpt)
+
+	case "nfs":
+		opt := nfs.DefaultOpt
+		opt.ListenAddr = addr
+		vfsLayer := vfs.New(f, &vfsOpt)
+		server, err = nfs.NewServer(ctx, vfsLayer, &opt)
+
+	case "s3":
+		opt := s3.DefaultOpt
+		opt.HTTP.ListenAddr = []string{addr}
+		if v, ok := settings["auth-key"]; ok {
+			opt.AuthKey = []string{v}
+		}
+		server, err = s3.NewServer(ctx, f, &opt, &vfsOpt, &proxyOpt)
+
+	default:
+		cancel()
+		return fmt.Errorf("[RemoteStorage] unsupported serve protocol: %s", protocol)
+	}
+
+	if err != nil {
+		cancel()
+		return fmt.Errorf("[RemoteStorage] error creating %s server: %w", protocol, err)
+	}
 
 	go func() {
-		for {
+		utils.Log(fmt.Sprintf("[RemoteStorage] Starting %s server on %s", protocol, addr))
+		if err := server.Serve(); err != nil {
 			select {
-			case event, ok := <-watcher.Events:
-				if !ok {
-					return
-				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					mutex.Lock()
-					if fileChanged(configLocation, &lastHash, &lastModTime) {
-						utils.Log("[RemoteStorage] Config file modified (detected by watcher). Restarting...")
-						normalMechanismDetectedChange = true
-						restart()
-					}
-					mutex.Unlock()
-				}
-			case err, ok := <-watcher.Errors:
-				if !ok {
-					return
-				}
-				utils.Error("[RemoteStorage] Error watching config file", err)
+			case <-ctx.Done():
+			default:
+				utils.Error(fmt.Sprintf("[RemoteStorage] %s server error", protocol), err)
 			}
 		}
 	}()
 
-	err = watcher.Add(configLocation)
-	if err != nil {
-		utils.Error("[RemoteStorage] Error adding config file to watcher, falling back to polling only", err)
-		watchConfigFilePollingOnly(configLocation, restart)
-		return
-	}
+	serverKey := fmt.Sprintf("%s:%s", protocol, addr)
+	serversMutex.Lock()
+	liveServers[serverKey] = server
+	liveCancels[serverKey] = cancel
+	serversMutex.Unlock()
 
-	// Fallback polling mechanism
-	for {
-		time.Sleep(5 * time.Second)
-		mutex.Lock()
-		if !normalMechanismDetectedChange && fileChanged(configLocation, &lastHash, &lastModTime) {
-			utils.Log("[RemoteStorage] Config file modified (detected by polling). Restarting...")
-			restart()
-		}
-		normalMechanismDetectedChange = false
-		mutex.Unlock()
-	}
-}
-func watchConfigFilePollingOnly(configLocation string, restart func()) {
-	utils.Log("[RemoteStorage] Using polling method to watch config file")
-	lastHash := getFileHash(configLocation)
-	lastModTime := getFileModTime(configLocation)
-
-	for {
-		time.Sleep(5 * time.Second)
-		if fileChanged(configLocation, &lastHash, &lastModTime) {
-			utils.Log("[RemoteStorage] Config file modified (detected by polling). Restarting...")
-			restart()
-		}
-	}
+	return nil
 }
 
-func getFileHash(filePath string) string {
-	file, err := os.Open(filePath)
-	if err != nil {
-		utils.Error("[RemoteStorage] Error opening file for hashing", err)
-		return ""
-	}
-	defer file.Close()
-
-	hash := md5.New()
-	if _, err := io.Copy(hash, file); err != nil {
-		utils.Error("[RemoteStorage] Error calculating file hash", err)
-		return ""
-	}
-
-	return fmt.Sprintf("%x", hash.Sum(nil))
-}
-
-func getFileModTime(filePath string) time.Time {
-	info, err := os.Stat(filePath)
-	if err != nil {
-		utils.Error("[RemoteStorage] Error getting file info", err)
-		return time.Time{}
-	}
-	return info.ModTime()
-}
-
-func fileChanged(filePath string, lastHash *string, lastModTime *time.Time) bool {
-	currentHash := getFileHash(filePath)
-	currentModTime := getFileModTime(filePath)
-
-	if currentHash != *lastHash || !currentModTime.Equal(*lastModTime) {
-		*lastHash = currentHash
-		*lastModTime = currentModTime
-		return true
-	}
-
-	return false
-}
 type StorageRoutes struct {
-	Name string
-	Protocol string
-	Source string
-	Target string
+	Name        string
+	Protocol    string
+	Source      string
+	Target      string
 	SmartShield bool
 }
 
 var StorageRoutesList []StorageRoutes
 
 func remountAll() {
-	utils.WaitForAllJobs() 
-	
+	utils.WaitForAllJobs()
 	StorageRoutesList = []StorageRoutes{}
 
-
-	// Mount remote storages
 	storageList, err := getStorageList()
 	if err != nil {
 		utils.MajorError("[RemoteStorage] Error getting remote storage list for mounting", err)
@@ -666,7 +412,7 @@ func remountAll() {
 	}
 
 	for _, remoteStorage := range storageList {
-		utils.Log(fmt.Sprintf("[RemoteStorage] Mounting %s", remoteStorage))
+		utils.Log(fmt.Sprintf("[RemoteStorage] Mounting %s", remoteStorage.Name))
 		if err := mountRemoteStorage(remoteStorage); err != nil {
 			utils.MajorError("[RemoteStorage] Error mounting remote storage", err)
 			return
@@ -674,52 +420,29 @@ func remountAll() {
 	}
 
 	shares := utils.GetMainConfig().RemoteStorage.Shares
-
 	cleanupCosmosSambaShares()
 
 	var sambaShares []utils.LocationRemoteStorageConfig
 	for _, share := range shares {
-		utils.Log("[RemoteStorage] Sharing " + share.Target)
-
-        if share.Protocol == "smb" || share.Protocol == "samba" {
+		if share.Protocol == "smb" || share.Protocol == "samba" {
 			if err := startSambaShare(share); err != nil {
 				utils.MajorError("[RemoteStorage] [SAMBA] Error setting up Samba user", err)
 				continue
 			}
 			sambaShares = append(sambaShares, share)
-        } else {
-			argsShare := []string{"serve"}
-			// addr, err := utils.GetNextAvailableLocalPort(12000)
-			// if err != nil {
-			// 	utils.MajorError("[RemoteStorage] Error: cannot find a free port to share on network", err)
-			// 	return
-			// }
+		} else {
 			urlN, _ := url.Parse(share.Route.Target)
 			addr := "127.0.0.1:" + urlN.Port()
-			// remote scehme
-
-			utils.Debug("[RemoteStorage] Sharing on port " + addr)
-
-			argsShare = append(argsShare, "--addr="+addr)
-			argsShare = append(argsShare, share.Protocol)
-			for k,v := range share.Settings {
-				argsShare = append(argsShare, "--"+k+"="+v)
+			if err := startServeInstance(share.Protocol, share.Target, addr, share.Settings); err != nil {
+				utils.MajorError(fmt.Sprintf("[RemoteStorage] Error starting %s server", share.Protocol), err)
 			}
-			argsShare = append(argsShare, share.Target)
-
-			startRCloneProcess(argsShare...)
 		}
 	}
 
-    if len(sambaShares) > 0 {
-        if err := writeCosmosSambaShares(sambaShares); err != nil {
-            utils.MajorError("[RemoteStorage] [SAMBA] Error writing Samba config", err)
-        } else {
-            utils.Exec("smbcontrol", "all", "reload-config")
-        }
-    } else {
-		utils.Exec("smbcontrol", "all", "reload-config")
+	if len(sambaShares) > 0 {
+		writeCosmosSambaShares(sambaShares)
 	}
+	utils.Exec("smbcontrol", "all", "reload-config")
 }
 
 func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
@@ -729,62 +452,52 @@ func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {
 		Restart()
-
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status": "OK",
-		})
+		json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 	} else {
-		utils.Error("API_Rclone_remountAll: Method not allowed " + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
-		return
 	}
 }
 
+var signalHandlerSetup bool
+
+func setupSignalHandler() {
+	if signalHandlerSetup {
+		return
+	}
+	signalHandlerSetup = true
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		sig := <-sigChan
+		utils.Log(fmt.Sprintf("[RemoteStorage] Received signal %v, unmounting all storages...", sig))
+		rcloneUnmountAll()
+		utils.Log("[RemoteStorage] All storages unmounted, exiting...")
+		os.Exit(0)
+	}()
+}
+
+// Called multiuple times on config change
 func InitRemoteStorage() bool {
 	utils.StopAllRCloneProcess = StopAllRCloneProcess
-	
 	configLocation := utils.CONFIGFOLDER + "rclone.conf"
-	utils.ProxyRCloneUser = utils.GenerateRandomString(8)
-	utils.ProxyRClonePwd = utils.GenerateRandomString(16)
-	
+
 	if !utils.FBL.LValid {
 		utils.Warn("RemoteStorage: No valid licence found, not starting module.")
 		return false
 	}
-	
-	if _, err := os.Stat(configLocation); os.IsNotExist(err) {
-		utils.Log("[RemoteStorage] Creating rclone config file")
-		file, err := os.Create(configLocation)
-		if err != nil {
-			utils.Error("[RemoteStorage] Error creating rclone config file", err)
-			return false
-		}
-		file.Close()
+
+	if err := initRCloneLibrary(configLocation); err != nil {
+		utils.MajorError("[RemoteStorage] Failed to initialize RClone library", err)
+		return false
 	}
 
-	utils.Log("[RemoteStorage] Initializing remote storage")
-	startRCloneProcess()
+	setupSignalHandler()
 
-	// Start watching the config file
-	go watchConfigFile(configLocation, Restart)
-
-	// wait for rclone to start
 	go func() {
-		retries := 0
-		for {
-			_, err := runRDC("/core/version")
-			if err == nil { break }
-
-			time.Sleep(2 * time.Second)
-			if retries > 5 {
-				utils.MajorError("[RemoteStorage] Failed to reach RClone, check the port 5573 is free", nil)
-				return
-			}
-			retries++
-		}
-
-		utils.Log("[RemoteStorage] RClone started and ready!")
-
+		time.Sleep(1 * time.Second)
+		utils.Log("[RemoteStorage] RClone library ready!")
 		remountAll()
 	}()
 
@@ -792,29 +505,22 @@ func InitRemoteStorage() bool {
 }
 
 type RcloneStatsObj struct {
-	Bytes float64
-	Errors float64 
+	Bytes  float64
+	Errors float64
 }
 
 func RCloneStats() (RcloneStatsObj, error) {
-	utils.Debug("[RemoteStorage] Getting rclone stats")
-	
-	if utils.FBL == nil || !utils.FBL.LValid {
-		return RcloneStatsObj{0, 0}, nil
+	if utils.FBL == nil || !utils.FBL.LValid || !rcloneInitialized {
+		return RcloneStatsObj{}, nil
 	}
 
-	response, err := runRDC("/core/stats")
+	stats := accounting.GlobalStats()
+	params, err := stats.RemoteStats(false)
 	if err != nil {
-		return RcloneStatsObj{0, 0}, fmt.Errorf("error getting rclone stats: %w", err)
+		return RcloneStatsObj{}, fmt.Errorf("error getting rclone stats: %w", err)
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(response, &result); err != nil {
-		return RcloneStatsObj{0, 0}, fmt.Errorf("error parsing rclone stats response: %w", err)
-	}
-
-	bytes, _ := result["bytes"].(float64)
-	errors, _ := result["errors"].(float64)
-
+	bytes, _ := params["bytes"].(float64)
+	errors, _ := params["errors"].(float64)
 	return RcloneStatsObj{bytes, errors}, nil
 }

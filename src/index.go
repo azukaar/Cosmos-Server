@@ -185,13 +185,6 @@ WantedBy=multi-user.target`
 }
 
 func main() {
-	if HandleCLIArgs() {
-		return
-	}
-	cosmos()
-}
-
-func cosmos() {
 	docker.IsInsideContainer()
 
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
@@ -200,7 +193,21 @@ func cosmos() {
 		utils.CONFIGFOLDER = "/config/"
 	}
 
+	if HandleCLIArgs() {
+		return
+	}
+	cosmos()
+}
+
+func cosmos() {
 	utils.InitLogs()
+
+	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
+		err := os.MkdirAll(utils.CONFIGFOLDER, os.ModePerm)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 
 	if utils.IsInsideContainer {
 		utils.Log("Running inside Docker container")
@@ -211,12 +218,6 @@ func cosmos() {
 	i, _ := utils.ListInterfaces(false)
 	utils.Log("Interfaces are: " + strings.Join(i, ", "))
 	
-	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
-		err := os.MkdirAll(utils.CONFIGFOLDER, os.ModePerm)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 
 	utils.Log("------------------------------------------")
 	utils.Log("Starting Cosmos-Server version " + GetCosmosVersion())
