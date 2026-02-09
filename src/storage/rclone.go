@@ -30,6 +30,7 @@ import (
 	_ "github.com/rclone/rclone/cmd/config"
 
 	"github.com/rclone/rclone/cmd"
+	"github.com/rclone/rclone/lib/atexit"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
@@ -51,7 +52,7 @@ type ServeHandle interface {
 
 var (
 	rcloneMutex       sync.Mutex
-	liveMounts        = make(map[string]*mountlib.MountPoint) // For VFS stats only
+	liveMounts        = make(map[string]*mountlib.MountPoint) // For VFS stats and proper unmount
 	liveServers       = make(map[string]ServeHandle)
 	liveCancels       = make(map[string]context.CancelFunc)
 	mountsMutex       sync.RWMutex
@@ -75,6 +76,10 @@ func initRCloneLibrary(configLocation string) error {
 
 	// Load the config file
 	configfile.Install()
+
+	// Prevent rclone from hijacking process signals (SIGINT/SIGTERM)
+	// Cosmos-server has its own signal handling
+	atexit.IgnoreSignals()
 
 	rcloneCtx, rcloneCancelAll = context.WithCancel(context.Background())
 	rcloneInitialized = true
@@ -119,7 +124,19 @@ func stopAllServers() {
 func rcloneUnmountAll() error {
 	utils.Log("[RemoteStorage] Unmounting all remote storages")
 
-	// Get storage list from config file
+	// First: properly unmount tracked rclone mounts via MountPoint.Unmount()
+	// This calls VFS.Shutdown() + fuse.Unmount() for a clean teardown
+	mountsMutex.Lock()
+	for mountPath, mp := range liveMounts {
+		utils.Log(fmt.Sprintf("[RemoteStorage] Properly unmounting rclone mount %s", mountPath))
+		if err := mp.Unmount(); err != nil {
+			utils.Error(fmt.Sprintf("[RemoteStorage] Error in rclone unmount for %s", mountPath), err)
+		}
+	}
+	liveMounts = make(map[string]*mountlib.MountPoint)
+	mountsMutex.Unlock()
+
+	// Second: OS-level cleanup for any remaining/stale mounts (e.g. after crash restart)
 	storageList, err := getStorageList()
 	if err != nil {
 		utils.Error("[RemoteStorage] Error getting storage list for unmounting", err)
@@ -133,7 +150,7 @@ func rcloneUnmountAll() error {
 
 	for _, storage := range storageList {
 		mountPath := baseDir + storage.Name
-		utils.Log(fmt.Sprintf("[RemoteStorage] Unmounting %s", mountPath))
+		utils.Log(fmt.Sprintf("[RemoteStorage] OS-level unmount cleanup %s", mountPath))
 		Unmount(mountPath, false)
 	}
 	return nil

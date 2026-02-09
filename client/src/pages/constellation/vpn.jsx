@@ -659,14 +659,8 @@ export const ConstellationVPN = ({ freeVersion }) => {
         </>}
       </Stack>
     </> : <Stack spacing={2} style={{ maxWidth: "1000px", margin: "auto" }}>
-      <Skeleton variant="rectangular" height={48} sx={{ borderRadius: 1 }} />
-      <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />
-      <Skeleton variant="rectangular" height={40} sx={{ borderRadius: 1 }} />
-      <Stack direction="row" spacing={2}>
-        <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1, flex: 1 }} />
-        <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1, flex: 1 }} />
-      </Stack>
-      <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 1 }} />
+      <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
+      <Skeleton variant="rectangular" height={500} sx={{ borderRadius: 1 }} />
     </Stack>}
 
     {freeVersion && config && !constellationEnabled && <VPNSalesPage />}
