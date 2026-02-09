@@ -54,6 +54,8 @@ var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer = func() {}
 
+var IsConstellationIP = func(string) bool { return false }
+
 // var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
@@ -447,8 +449,10 @@ func SaveConfigTofile(config Config) {
 
 func RestartServer() {
 	Log("Restarting server...")
-	WaitForAllJobs() 
-	StopAllRCloneProcess(false)
+	WaitForAllJobs()
+	if StopAllRCloneProcess != nil {
+		StopAllRCloneProcess(false)
+	}
 	os.Exit(0)
 }
 

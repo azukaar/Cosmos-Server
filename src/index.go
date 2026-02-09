@@ -293,6 +293,7 @@ func cosmos() {
 		constellation.Init()
 
 		utils.InitRemoteStorage = storage.InitRemoteStorage
+		
 		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
 			utils.ProxyRClone = storage.InitRemoteStorage()
 		}

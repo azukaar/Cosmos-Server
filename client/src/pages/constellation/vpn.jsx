@@ -337,6 +337,21 @@ export const ConstellationVPN = ({ freeVersion }) => {
         {(isAdmin || !config.ConstellationConfig.ThisDeviceName) && <div>
           <MainCard title={config.ConstellationConfig.ThisDeviceName ? t('mgmt.constellation.settingsTitle') : t('mgmt.constellation.setupTitle')} content={config.constellationIP}>
             <Stack spacing={2}>
+              {constellationEnabled && !config.ConstellationConfig.ThisDeviceName && <div>
+                <Alert severity="error">
+                  {t('mgmt.constellation.corruptedConstellation')} <br /><br />
+                  <ConfirmModal
+                    variant="outlined"
+                    color="warning"
+                    label={t('mgmt.constellation.resetLabel')}
+                    content={t('mgmt.constellation.resetText')}
+                    callback={async () => {
+                      await API.constellation.reset();
+                      refreshConfig();
+                    }}
+                  />
+                </Alert>
+              </div>}
               {!constellationEnabled && !isAdmin && <>
                 <Alert severity="info">
                   {t('mgmt.constellation.setupTextNoAdmin')}

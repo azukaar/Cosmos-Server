@@ -61,6 +61,8 @@ func Init() {
 	InitConfig()
 	InitHostname()
 
+	utils.IsConstellationIP = IsConstellationIP
+
 	utils.ResyncConstellationNodes = resyncConstellationNodes
 
 	ConstellationInitLock.Lock()
