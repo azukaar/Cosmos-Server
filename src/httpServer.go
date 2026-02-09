@@ -291,7 +291,7 @@ func CertificateIsExpired(validUntil time.Time) bool {
 }
 
 func InitServer() *mux.Router {
-	utils.RestartHTTPServer = RestartServer
+	utils.RestartHTTPServer = RestartHTTPServer
 	baseMainConfig := utils.GetBaseMainConfig()
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
@@ -717,7 +717,7 @@ func StartServer() {
 	}
 }
 
-func RestartServer() {
+func RestartHTTPServer() {
 	utils.LetsEncryptErrors = []string{}
 	IconCache = map[string]CachedImage{}
 	

@@ -123,7 +123,7 @@ function connect(file) {
   });
 }
 
-function create(deviceName, isLighthouse, hostname) {
+function create(deviceName, isLighthouse, hostname, ipRange) {
   return wrap(fetch(`/cosmos/api/constellation/create`, {
     method: 'POST',
     headers: {
@@ -132,7 +132,8 @@ function create(deviceName, isLighthouse, hostname) {
     body: JSON.stringify({
       deviceName,
       isLighthouse,
-      hostname
+      hostname,
+      ipRange
     }),
   }))
 }

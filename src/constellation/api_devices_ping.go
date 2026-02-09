@@ -37,11 +37,24 @@ func DevicePing(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
 		return
 	}
+	
+	currentDeviceName, err := GetCurrentDeviceName()
+	if deviceID == currentDeviceName {
+		// Respond with the ping result
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data": map[string]interface{}{
+				"deviceName": currentDeviceName,
+				"reachable":  true,
+			},
+		})
+		return
+	}
 
 	var device utils.ConstellationDevice
 
 	// Find the device by DeviceName
-	err := c.FindOne(nil, map[string]interface{}{
+	err = c.FindOne(nil, map[string]interface{}{
 		"DeviceName": deviceID,
 	}).Decode(&device)
 

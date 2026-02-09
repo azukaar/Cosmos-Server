@@ -19,6 +19,13 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 		return
 	} 
 
+	if utils.FBL.AgentMode {
+		utils.Error("User: Agents cannot manage users. Use a manager server", nil)
+		utils.HTTPError(w, "User Creation Error: Agents cannot manage users. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+
 	if(req.Method == "POST") {
 		var request CreateRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)

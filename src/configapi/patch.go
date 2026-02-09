@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type UpdateRouteRequest struct {
@@ -106,7 +105,6 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 	})
 	
 	go (func () {
-		constellation.RestartNebula()
 		utils.RestartHTTPServer()
 	})()
 	

@@ -21,7 +21,7 @@ type DeviceCreateRequestJSON struct {
 
 	// for lighthouse only
 	IsLighthouse bool `json:"isLighthouse",omitempty`
-	IsCosmosNode bool `json:"isCosmosNode",omitempty`
+	CosmosNode int `json:"cosmosNode",omitempty`
 	IsRelay bool `json:"isRelay",omitempty`
 	IsLoadBalancer bool `json:"isLoadBalancer",omitempty`
 	IsExitNode bool `json:"isExitNode",omitempty`
@@ -43,9 +43,16 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 
-		if !utils.FBL.LValid && !utils.FBL.IsCosmosNode {
+		if !utils.FBL.LValid {
 			utils.Error("ConstellationDeviceCreation: No valid licence found to use Constellation.", nil)
 			utils.HTTPError(w, "Device Creation Error: No valid licence found to use Constellation.",
+				http.StatusInternalServerError, "DC001")
+			return
+		}
+
+		if utils.FBL.AgentMode {
+			utils.Error("ConstellationDeviceCreation: Agents cannot create devices. Use a manager server", nil)
+			utils.HTTPError(w, "Device Creation Error: Agents cannot create devices. Use a manager server",
 				http.StatusInternalServerError, "DC001")
 			return
 		}
@@ -99,7 +106,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				PublicKey: key,
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
-				IsCosmosNode: request.IsCosmosNode,
+				CosmosNode: request.CosmosNode,
 				IsRelay: request.IsRelay,
 				IsExitNode: request.IsExitNode,
 				IsLoadBalancer: request.IsLoadBalancer,
@@ -144,7 +151,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 					"Config": configYml,
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
-					"IsCosmosNode": request.IsCosmosNode,
+					"CosmosNode": request.CosmosNode,
 					"IsLoadBalancer": request.IsLoadBalancer,
 					"IsRelay": request.IsRelay,
 					"IsExitNode": request.IsExitNode,
@@ -221,37 +228,54 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			return "", "", "", DeviceCreateRequestJSON{}, err
 		}
 
-		// Cosmos nodes are also lighthouses
-		if request.IsCosmosNode {
-			request.IsLighthouse = true
-		}
-
 		// Check cosmos node and devices limit
-		if request.IsCosmosNode {
-			totalClientLimit := 10 * int64(utils.GetNumberUsers())
-
-			count, errCount := c.CountDocuments(nil, map[string]interface{}{
-				"IsCosmosNode": true,
+		if request.CosmosNode > 0 {
+			countManagers, errCount := c.CountDocuments(nil, map[string]interface{}{
+				"CosmosNode": 2,
 				"Blocked": false,
 			})
+
 			if errCount != nil {
 				return "", "", "", DeviceCreateRequestJSON{}, errCount
 			}
 
-			countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
+			countAgent, errCount := c.CountDocuments(nil, map[string]interface{}{
+				"CosmosNode": 1,
 				"Blocked": false,
 			})
-			if errCountDevices != nil {
-				return "", "", "", DeviceCreateRequestJSON{}, errCountDevices
+
+			if errCount != nil {
+				return "", "", "", DeviceCreateRequestJSON{}, errCount
 			}
 
-			if countDevices >= totalClientLimit {
-				return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device limit reached")
-			}
+			totalCount := countManagers + countAgent
 
-			if count >= int64(utils.GetNumberCosmosNode()) {
-				return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Cosmos Node limit reached")
+			if totalCount >= int64(utils.GetNumberCosmosNode()) {
+				// we are creating the extra agent allowed in the licence
+				if request.CosmosNode == 1 && totalCount == int64(utils.GetNumberCosmosNode()) {
+
+				// We are creating a manager but one slot was already taken by an agent using the extra slot allowed in the licence
+				} else if request.CosmosNode == 2 && totalCount == int64(utils.GetNumberCosmosNode()) &&
+					countAgent >= 1 {
+
+				} else {
+					return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Cosmos Node limit reached")
+				}
 			}
+		}
+
+		totalClientLimit := 10 * int64(utils.GetNumberUsers())
+
+		countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
+			"Blocked": false,
+		})
+
+		if errCountDevices != nil {
+			return "", "", "", DeviceCreateRequestJSON{}, errCountDevices
+		}
+
+		if countDevices >= totalClientLimit {
+			return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device limit reached")
 		}
 
 		if request.IsLighthouse && request.Nickname != "" {
@@ -275,7 +299,7 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			"PublicKey": key,
 			"IP": request.IP,
 			"IsLighthouse": request.IsLighthouse,
-			"IsCosmosNode": request.IsCosmosNode,
+			"CosmosNode": request.CosmosNode,
 			"IsRelay": request.IsRelay,
 			"IsExitNode": request.IsExitNode,
 			"PublicHostname": request.PublicHostname,

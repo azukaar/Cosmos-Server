@@ -108,6 +108,7 @@ type Config struct {
 	CRON map[string]CRONConfig
 	Licence string
 	ServerToken string
+	AgentMode bool
 	RemoteStorage RemoteStorageConfig
 	DisableOpenIDDirect bool
 	Backup BackupConfig
@@ -300,6 +301,7 @@ type ConstellationConfig struct {
 	OverrideNebulaExitNodeInterface string
 	ThisDeviceName string
 	ConstellationHostname string
+	IPRange string
 }
 
 type ConstellationTunnel struct {
@@ -319,7 +321,7 @@ type ConstellationDevice struct {
 	PublicKey string `json:"publicKey" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
-	IsCosmosNode bool `json:"isCosmosNode" bson:"IsCosmosNode"`
+	CosmosNode int `json:"cosmosNode" bson:"CosmosNode"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
 	IsLoadBalancer bool `json:"isLoadBalancer" bson:"IsLoadBalancer"`
 	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`

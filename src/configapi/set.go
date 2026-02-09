@@ -4,11 +4,6 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/authorizationserver"
-	"github.com/azukaar/cosmos-server/src/constellation"
-	"github.com/azukaar/cosmos-server/src/cron"
-	"github.com/azukaar/cosmos-server/src/storage"
-	"github.com/azukaar/cosmos-server/src/backups"
 )
 
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
@@ -52,17 +47,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 			map[string]interface{}{
 		})
 
-		utils.InitFBL()
-		utils.DisconnectDB()
-		authorizationserver.Init()
-		go (func() {
-			storage.Restart()
-			constellation.RestartNebula()
-			utils.RestartHTTPServer()
-			cron.InitJobs()
-			cron.InitScheduler()
-			backups.InitBackups()
-		})()
+		go utils.SoftRestartServer()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

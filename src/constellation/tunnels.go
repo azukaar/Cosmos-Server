@@ -166,7 +166,7 @@ func ClientHeartbeatInit() {
 					IsRelay: device.IsRelay,
 					IsLighthouse: device.IsLighthouse,
 					IsExitNode: device.IsExitNode,
-					IsCosmosNode: device.IsCosmosNode,
+					CosmosNode: device.CosmosNode,
 					Tunnels: GetAllTunneledRoutes(),
 				}
 

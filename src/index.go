@@ -200,6 +200,20 @@ func main() {
 }
 
 func cosmos() {
+	utils.PushShieldMetrics = metrics.PushShieldMetrics
+	utils.GetContainerIPByName = docker.GetContainerIPByName
+	utils.DoesContainerExist = docker.DoesContainerExist
+	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
+	utils.InitPremiumFeatures = InitPremiumFeatures
+	utils.InitRemoteStorage = storage.InitRemoteStorage
+	utils.RestartConstellation = constellation.RestartNebula
+	utils.InitSnapRAIDConfig = storage.InitSnapRAIDConfig
+	utils.InitBackups = backups.InitBackups
+	utils.RestartCRON = func() {
+		cron.InitJobs()
+		cron.InitScheduler()
+	}
+	
 	utils.InitLogs()
 
 	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
@@ -223,11 +237,6 @@ func cosmos() {
 	utils.Log("Starting Cosmos-Server version " + GetCosmosVersion())
 	utils.Log("------------------------------------------")
 	
-	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
-	utils.PushShieldMetrics = metrics.PushShieldMetrics
-	utils.GetContainerIPByName = docker.GetContainerIPByName
-	utils.DoesContainerExist = docker.DoesContainerExist
-	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 
 	rand.Seed(time.Now().UnixNano())
 	
@@ -290,27 +299,37 @@ func cosmos() {
 
 		utils.InitFBL()
 
-		constellation.Init()
-
-		utils.InitRemoteStorage = storage.InitRemoteStorage
-		
-		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
-			utils.ProxyRClone = storage.InitRemoteStorage()
+		if !utils.FBL.LValid {
+			storage.InitSnapRAIDConfig()			
 		}
 
-		storage.InitSnapRAIDConfig()
-		
 		// Has to be done last, so scheduler does not re-init
 		cron.Init()
-
-		
-		utils.InitBackups = backups.InitBackups
-		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
-			go backups.InitBackups()
-		}
 
 		utils.Log("Starting server...")
 	}
 
 	StartServer()
+}
+
+var InitPremiumFeaturesDone = false
+func InitPremiumFeatures() {
+
+	if InitPremiumFeaturesDone {
+		return
+	}
+
+	if utils.FBL.LValid {
+		constellation.Init()
+		storage.InitRemoteStorage()
+	}
+
+	// Restart snapRAID to account for remote storages
+	storage.InitSnapRAIDConfig()
+	
+	if utils.FBL.LValid {
+		go backups.InitBackups()
+	}
+
+	InitPremiumFeaturesDone = true
 }

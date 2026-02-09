@@ -15,7 +15,7 @@ type PublicDeviceInfo struct {
 	User       string `json:"user"`
 	IP         string `json:"ip"`
 	IsLighthouse bool `json:"isLighthouse"`
-	IsCosmosNode bool `json:"isCosmosNode"`
+	CosmosNode int `json:"cosmosNode"`
 	IsRelay bool `json:"isRelay"`
 	IsExitNode bool `json:"isExitNode"`
 	PublicHostname string `json:"publicHostname"`
@@ -80,7 +80,7 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 			User:       device.Nickname,
 			IP:         cleanIp(device.IP),
 			IsLighthouse: device.IsLighthouse,
-			IsCosmosNode: device.IsCosmosNode,
+			CosmosNode: device.CosmosNode,
 			IsRelay: device.IsRelay,
 			IsExitNode: device.IsExitNode,
 			PublicHostname: device.PublicHostname,

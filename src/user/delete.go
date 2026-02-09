@@ -16,10 +16,18 @@ func UserDelete(w http.ResponseWriter, req *http.Request) {
 		return
 	} 
 
+	if utils.FBL.AgentMode {
+		utils.Error("User: Agents cannot manage users. Use a manager server", nil)
+		utils.HTTPError(w, "User Creation Error: Agents cannot manage users. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+	
 	if(req.Method == "DELETE") {
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
+  		defer closeDb()
+		
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")

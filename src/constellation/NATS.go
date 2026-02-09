@@ -27,7 +27,7 @@ type NodeHeartbeat struct {
 	IsRelay bool
 	IsLighthouse bool
 	IsExitNode bool
-	IsCosmosNode bool
+	CosmosNode int
 	Tunnels []utils.ProxyRouteConfig
 }
 
@@ -320,7 +320,7 @@ func InitNATSClient() {
 	var err error
 	retries := 0
 
-	if NebulaFailedStarting {
+	if NebulaFailedStarting || !NebulaStarted {
 		utils.Error("[NATS] Nebula failed to start, aborting NATS client connection", nil)
 		return
 	}

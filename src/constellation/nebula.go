@@ -293,7 +293,7 @@ func ResetNebula() error {
 	CachedDevices = map[string]utils.ConstellationDevice{}
 	CachedDeviceNames = map[string]string{}
 
-	go utils.RestartServer()
+	go utils.SoftRestartServer()
 
 	time.Sleep(2 * time.Second)
 
@@ -486,22 +486,27 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	configMap["cstln_device_name"] = name
 	configMap["cstln_public_hostname"] = device.PublicHostname
 	configMap["cstln_api_key"] = APIKey
-	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
+	configMap["cstln_cosmos_node"] = device.CosmosNode
 	configMap["cstln_is_exit_node"] = device.IsExitNode
 	configMap["cstln_is_relay"] = device.IsRelay
 	configMap["cstln_is_lighthouse"] = device.IsLighthouse
 	configMap["cstln_ip"] = device.IP
+	configMap["cstln_config_endpoint"] = utils.GetServerURL("")
+	configMap["cstln_ip_range"] = utils.GetMainConfig().ConstellationConfig.IPRange
 
-	if getLicence {
-		configEndpoint := "IDK WHAT TO SAY"
+	if getLicence && device.CosmosNode == 0 {
 		// get client licence
 		utils.Log("Creating client license for " + name)
-		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
+		lic, err := utils.FBL.CreateClientLicense(name)
 		if err != nil {
 			return "", err
 		}
 		configMap["cstln_licence"] = lic
 		utils.Log("Client license created for " + name)
+	}
+
+	if getLicence && device.CosmosNode > 0 {
+		configMap["cstln_server_licence"] = utils.GetMainConfig().Licence
 	}
 	
 	// lighten the config for QR Codes
@@ -934,7 +939,7 @@ func populateIPTableMasquerade() {
 		// Add iptables rules with comment markers
 		// Using a unique comment for easy identification and removal
 		rules := []string{
-			fmt.Sprintf("iptables -t nat -A POSTROUTING -s 192.168.201.0/24 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
+			fmt.Sprintf("iptables -t nat -A POSTROUTING -s "+utils.GetMainConfig().ConstellationConfig.IPRange+" -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
 			fmt.Sprintf("iptables -A FORWARD -i nebula1 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
 			fmt.Sprintf("iptables -A FORWARD -i %s -o nebula1 -m state --state RELATED,ESTABLISHED -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
 		}
@@ -1091,8 +1096,8 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 			device.PublicHostname = configMap["cstln_public_hostname"].(string)
 		}
 
-		if configMap["cstln_is_cosmos_node"] != nil  {
-			device.IsCosmosNode = configMap["cstln_is_cosmos_node"].(bool)
+		if configMap["cstln_cosmos_node"] != nil  {
+			device.CosmosNode = configMap["cstln_cosmos_node"].(int)
 		}
 
 		if configMap["cstln_is_exit_node"] != nil  {

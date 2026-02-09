@@ -25,6 +25,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 			DeviceName string `json:"deviceName"`
 			IsLighthouse bool   `json:"isLighthouse"`
 			Hostname string `json:"hostname"`
+			IPRange string `json:"ipRange"`
 		}
 
 		err := json.NewDecoder(req.Body).Decode(&request)
@@ -49,29 +50,35 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
+		if request.IPRange == "" {
+			request.IPRange = "192.168.201.0/24"
+		}
+
 		// check if ca.crt exists
 		if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
 			utils.Log("Constellation: ca.crt not found, generating...")
 			// generate ca.crt
 
-			errG := generateNebulaCACert("Cosmos - " + utils.GetMainConfig().ConstellationConfig.ConstellationHostname)
+			errG := generateNebulaCACert("Cosmos - " + request.Hostname)
 			if errG != nil {
 				utils.Error("Constellation: error while generating ca.crt", errG)
 			}
 		}
 
-		utils.Log("Constellation: cosmos.crt generating...")
+		ip := GetNextAvailableIP(request.IPRange)
+
+		utils.Log("Constellation: cosmos.crt generating with ip " + ip)
 		// generate cosmos.crt
-		_,_,_,errG := generateNebulaCert("cosmos", "192.168.201.1", "", true)
+		_,_,_,errG := generateNebulaCert("cosmos", ip, "", true)
 		if errG != nil {
 			utils.Error("Constellation: error while generating cosmos.crt", errG)
 		}
 	
 		DeviceCreateRequest := DeviceCreateRequestJSON{
 			DeviceName: request.DeviceName,
-			IP: "192.168.201.1",
+			IP: ip,
 			IsLighthouse: request.IsLighthouse,
-			IsCosmosNode: true,
+			CosmosNode: 2,
 			IsRelay: true,
 			IsExitNode: true,
 			IsLoadBalancer: true,
@@ -95,6 +102,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		config.ConstellationConfig.Enabled = true
 		config.ConstellationConfig.ThisDeviceName = deviceName
 		config.ConstellationConfig.ConstellationHostname = request.Hostname
+		config.ConstellationConfig.IPRange = request.IPRange
 		utils.SetBaseMainConfig(config)
 
 		utils.TriggerEvent(
@@ -181,8 +189,16 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 			config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
 		}
 
-		if licence, ok := configMap["cstln_licence"]; ok {
-			config.ServerToken = licence.(string)
+		if licence, ok := configMap["cstln_server_licence"]; ok {
+			config.Licence = licence.(string)
+		}
+
+		if cosmosNode, ok := configMap["cstln_cosmos_node"]; ok {
+			config.AgentMode = cosmosNode.(int) == 1
+		}
+
+		if ipRange, ok := configMap["cstln_ip_range"]; ok {
+			config.ConstellationConfig.IPRange = ipRange.(string)
 		}
 
 		utils.SetBaseMainConfig(config)

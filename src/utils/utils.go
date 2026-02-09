@@ -37,10 +37,6 @@ import (
 var ConfigLock sync.Mutex
 var ConfigLockInternal sync.Mutex
 
-var ProxyRClone = false
-var ProxyRCloneUser = ""
-var ProxyRClonePwd = ""
-
 var BaseMainConfig Config
 var MainConfig Config
 var IsHTTPS = false
@@ -53,37 +49,27 @@ var IsHostNetwork = false
 var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer = func() {}
+var InitBackups func()
+var RestartConstellation func()
+var InitRemoteStorage func()
+var InitSnapRAIDConfig func()
+var RestartCRON func()
 
 var IsConstellationIP = func(string) bool { return false }
 
-// var ReBootstrapContainer func(string) error
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
 
-// late init of advanced features for cosmos slaves nodes
-var InitRemoteStorage func() bool
-var InitBackups func()
-
-var slaveInitialized = false
-
-func InitializeSlaveLicence() {
-	if !slaveInitialized && FBL.LValid && FBL.IsCosmosNode {
-		slaveInitialized = true
-		ProxyRClone = InitRemoteStorage()
-		go InitBackups()
-	}
-}
+var InitPremiumFeatures func()
 
 var ResyncConstellationNodes = func() {}
 
 var LetsEncryptErrors = []string{}
 
 var CONFIGFOLDER = "/var/lib/cosmos/"
-
-var ConstellationSlaveIPWarning = ""
 
 var IsInsideContainer = false
 
@@ -251,6 +237,10 @@ func GenerateRandomString(n int) string {
 		b[i] = AlphaNumRunes[rand.Intn(len(AlphaNumRunes))]
 	}
 	return string(b)
+}
+
+func GetRandomNumber(min int, max int) int {
+	return rand.Intn(max-min) + min
 }
 
 type HTTPErrorResult struct {
@@ -454,6 +444,23 @@ func RestartServer() {
 		StopAllRCloneProcess(false)
 	}
 	os.Exit(0)
+}
+
+func SoftRestartServer() {
+	DisconnectDB()
+	
+	ProcessLicence()
+
+	RestartHTTPServer()
+
+	WaitForAllJobs()
+
+	RestartConstellation() // Constellation
+	InitRemoteStorage() // rclone
+	InitBackups() // restic
+	InitSnapRAIDConfig() // snapraid
+	
+	RestartCRON()
 }
 
 func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {

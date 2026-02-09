@@ -161,23 +161,6 @@ func rcloneUnmount(mountPath string, silent bool) error {
 	return Unmount(mountPath, silent)
 }
 
-func Restart() {
-	if !utils.FBL.LValid {
-		return
-	}
-
-	StopAllRCloneProcess(false)
-
-	configLocation := utils.CONFIGFOLDER + "rclone.conf"
-	if err := initRCloneLibrary(configLocation); err != nil {
-		utils.MajorError("[RemoteStorage] Failed to reinitialize RClone library", err)
-		return
-	}
-
-	utils.Log("[RemoteStorage] RClone restarted and ready!")
-	remountAll()
-}
-
 type RemoteStorage struct {
 	Name  string
 	Chown string
@@ -468,7 +451,7 @@ func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if req.Method == "GET" {
-		Restart()
+		InitRemoteStorage()
 		json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 	} else {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -495,21 +478,20 @@ func setupSignalHandler() {
 	}()
 }
 
-// Called multiuple times on config change
-func InitRemoteStorage() bool {
+func InitRemoteStorage() {
 	utils.StopAllRCloneProcess = StopAllRCloneProcess
 	configLocation := utils.CONFIGFOLDER + "rclone.conf"
+	StopAllRCloneProcess(false)
 
 	if !utils.FBL.LValid {
-		utils.Warn("RemoteStorage: No valid licence found, not starting module.")
-		return false
+		return
 	}
 
 	if err := initRCloneLibrary(configLocation); err != nil {
-		utils.MajorError("[RemoteStorage] Failed to initialize RClone library", err)
-		return false
+		utils.MajorError("[RemoteStorage] Failed to reinitialize RClone library", err)
+		return
 	}
-
+	
 	setupSignalHandler()
 
 	go func() {
@@ -517,8 +499,6 @@ func InitRemoteStorage() bool {
 		utils.Log("[RemoteStorage] RClone library ready!")
 		remountAll()
 	}()
-
-	return true
 }
 
 type RcloneStatsObj struct {

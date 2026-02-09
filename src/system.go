@@ -98,7 +98,6 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"LicenceNumber": licenceNumber,
 				"LicenceNodeNumber": licenceNodeNumber,
 				"ConfigFolder": absoluteConfigPath,
-				"ConstellationSlaveIPWarning": utils.ConstellationSlaveIPWarning,
 			},
 		})
 	} else {

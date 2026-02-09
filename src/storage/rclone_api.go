@@ -80,7 +80,7 @@ func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	config.SaveConfig()
-	go Restart()
+	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
@@ -117,7 +117,7 @@ func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	config.SaveConfig()
-	go Restart()
+	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
@@ -141,7 +141,7 @@ func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
 
 	config.DeleteRemote(payload.Name)
 	config.SaveConfig()
-	go Restart()
+	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }

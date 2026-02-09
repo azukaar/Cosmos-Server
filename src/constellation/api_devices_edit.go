@@ -16,6 +16,13 @@ type DeviceEditRequestJSON struct {
 }
 
 func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
+	if utils.FBL.AgentMode {
+		utils.Error("Constellation: Agents cannot manage devices. Use a manager server", nil)
+		utils.HTTPError(w, "Constellation Error: Agents cannot manage devices. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+	
 	if req.Method != "POST" {
 		utils.Error("DeviceEdit: Method not allowed "+req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

@@ -174,7 +174,7 @@ export const CosmosSelect = ({ name, onChange, label, formik, disabled, options,
             }}
           >
             {options.map((option) => (
-              <MenuItem key={option[0]} value={option[0]}>
+              <MenuItem key={option[0]} value={option[0]} disabled={option[2]}>
                 {option[1]}
               </MenuItem>
             ))}

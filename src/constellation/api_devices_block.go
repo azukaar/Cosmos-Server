@@ -14,6 +14,13 @@ type DeviceBlockRequestJSON struct {
 }
 
 func DeviceBlock(w http.ResponseWriter, req *http.Request) {
+	if utils.FBL.AgentMode {
+		utils.Error("Constellation: Agents cannot manage devices. Use a manager server", nil)
+		utils.HTTPError(w, "Constellation Error: Agents cannot manage devices. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+	
 	if(req.Method == "POST") {
 		var request DeviceBlockRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)

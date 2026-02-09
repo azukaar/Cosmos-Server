@@ -67,6 +67,14 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 	
 	n, _ := GetCurrentDeviceName()
 
+	// If list is empty, include the current device at least
+	if (devices == nil || len(devices) == 0) && n != "" {
+		currentDevice, err := GetCurrentDevice()
+		if err == nil {
+			devices = []utils.ConstellationDevice{currentDevice}
+		}
+	}
+
 	// Respond with the list of devices
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "OK",

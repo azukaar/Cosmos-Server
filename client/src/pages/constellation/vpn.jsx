@@ -4,7 +4,7 @@ import * as API from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { ApiOutlined, CloudOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, QuestionCircleOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
+import { ApiOutlined, CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, NodeIndexOutlined, QuestionCircleOutlined, SyncOutlined, TabletOutlined } from "@ant-design/icons";
 import { Alert, Box, Button, Chip, CircularProgress, IconButton, LinearProgress, Skeleton, Stack, Switch, Tooltip, Typography } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
@@ -186,17 +186,29 @@ export const ConstellationVPN = ({ freeVersion }) => {
 
               {currentDevice && <>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
+                  {currentDevice.isLighthouse
+                    ? <Tooltip title={t('mgmt.constellation.publicLighthouseTooltip')}><CompassOutlined style={{ fontSize: 16 }} /></Tooltip>
+                    : <Tooltip title={t('mgmt.constellation.privateServerTooltip')}><DesktopOutlined style={{ fontSize: 16, opacity: 0.5 }} /></Tooltip>
+                  }
                   {currentDevice.isRelay && <Tooltip title={t('mgmt.constellation.isRelay.label')}><ApiOutlined style={{ fontSize: 16, color: '#1976d2' }} /></Tooltip>}
                   {currentDevice.isExitNode && <Tooltip title={t('mgmt.constellation.isExitNode.label')}><ExportOutlined style={{ fontSize: 16, color: '#2e7d32' }} /></Tooltip>}
                   {currentDevice.isLoadBalancer && <Tooltip title={t('mgmt.constellation.isLoadBalancer.label')}><DesktopOutlined style={{ fontSize: 16, color: '#ff9800' }} /></Tooltip>}
-                                                                          
-                  {currentDevice.isLighthouse                                                                                                 
+
+                  {currentDevice.cosmosNode === 2
+                      ? <Tooltip title={t('mgmt.constellation.cosmosNodeManagerTooltip')}><span style={{ display: 'flex', alignItems: 'center',
+                  gap: 4 }}><CloudServerOutlined style={{ fontSize: 16, color: '#9c27b0' }} /> <Typography
+                  variant="body2">{t('mgmt.constellation.cosmosNodeManager')}</Typography></span></Tooltip>
+                      : currentDevice.cosmosNode === 1
+                      ? <Tooltip title={t('mgmt.constellation.cosmosNodeAgentTooltip')}><span style={{ display: 'flex', alignItems: 'center',
+                  gap: 4 }}><NodeIndexOutlined style={{ fontSize: 16, color: '#e65100' }} /> <Typography
+                  variant="body2">{t('mgmt.constellation.cosmosNodeAgent')}</Typography></span></Tooltip>
+                      : currentDevice.isLighthouse
                       ? <Tooltip title={t('mgmt.constellation.publicLighthouseTooltip')}><span style={{ display: 'flex', alignItems: 'center',
-                  gap: 4 }}><CompassOutlined style={{ fontSize: 16 }} /> <Typography                                                         
-                  variant="body2">{t('mgmt.constellation.publicLighthouse')}</Typography></span></Tooltip>                                    
-                      : <Tooltip title={t('mgmt.constellation.privateServerTooltip')}><span style={{ display: 'flex', alignItems: 'center',   
-                  gap: 4 }}><DesktopOutlined style={{ fontSize: 16 }} /> <Typography                                                          
-                  variant="body2">{t('mgmt.constellation.privateServer')}</Typography></span></Tooltip>                                       
+                  gap: 4 }}><Typography
+                  variant="body2">{t('mgmt.constellation.publicLighthouse')}</Typography></span></Tooltip>
+                      : <Tooltip title={t('mgmt.constellation.privateServerTooltip')}><span style={{ display: 'flex', alignItems: 'center',
+                  gap: 4 }}><Typography
+                  variant="body2">{t('mgmt.constellation.privateServer')}</Typography></span></Tooltip>
                   }          
                 </Stack>
               </>}
@@ -366,6 +378,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 initialValues={{
                   DeviceName: config.ConstellationConfig.ThisDeviceName || 'cosmos-0',
                   ConstellationHostname: config.ConstellationConfig.ConstellationHostname || '',
+                  IPRange: config.ConstellationConfig.IPRange || '192.168.201.0/24',
                   IsLighthouse: currentDevice ? currentDevice.isLighthouse : true,
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
@@ -374,7 +387,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 onSubmit={async (values) => {
                   const isCreating = !config.ConstellationConfig.ThisDeviceName;
                   if (isCreating) {
-                    await API.constellation.create(values.DeviceName, values.IsLighthouse, values.ConstellationHostname);
+                    await API.constellation.create(values.DeviceName, values.IsLighthouse, values.ConstellationHostname, values.IPRange);
                     setTimeout(() => {
                       refreshConfig();
                     }, 1500);
@@ -406,6 +419,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
                       {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosInputText disabled={!isAdmin} formik={formik} name="ConstellationHostname" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                         <span>{'Constellation ' + t('global.hostname')}</span>
                         <Tooltip title={<Trans i18nKey="mgmt.constellation.setup.hostnameInfo" />}>
+                          <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                        </Tooltip>
+                      </Stack>} />}
+
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosInputText disabled={!isAdmin} formik={formik} name="IPRange" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                        <span>{t('mgmt.constellation.setup.ipRange.label')}</span>
+                        <Tooltip title={t('mgmt.constellation.setup.ipRange.tooltip')}>
                           <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
                         </Tooltip>
                       </Stack>} />}
@@ -470,7 +490,19 @@ export const ConstellationVPN = ({ freeVersion }) => {
             </Stack>
           </MainCard>
         </div>}
-        {config.ConstellationConfig.Enabled && <>
+        {config.ConstellationConfig.Enabled && (() => {
+          const managers = devices ? devices.filter(d => !d.blocked && d.cosmosNode === 2).length : 0;
+          const agents = devices ? devices.filter(d => !d.blocked && d.cosmosNode === 1).length : 0;
+          const totalNodes = managers + agents;
+          const limit = coStatus ? coStatus.LicenceNodeNumber : 1;
+          let canCreateManager = true;
+          let canCreateAgent = true;
+          if (totalNodes >= limit) {
+            canCreateAgent = totalNodes === limit;
+            canCreateManager = totalNodes === limit && agents >= 1;
+          }
+
+          return <>
           <CosmosFormDivider title={t('mgmt.constellation.devices')} />
 
           <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
@@ -485,12 +517,17 @@ export const ConstellationVPN = ({ freeVersion }) => {
             </div>
 
             <div>
-              <div>{t('mgmt.constellation.cosmosNodeSeatsUsed')}: {devices ? devices.filter(d => !d.blocked && d.isCosmosNode).length : 0} / {coStatus ? coStatus.LicenceNodeNumber : 0}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {t('mgmt.constellation.cosmosNodeSeatsUsed')}: {devices ? devices.filter(d => !d.blocked && d.cosmosNode > 0).length : 0} / {coStatus ? coStatus.LicenceNodeNumber+1 : 0}
+                <Tooltip title={t('mgmt.constellation.cosmosNodeSeatsTooltip')}>
+                  <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                </Tooltip>
+              </div>
               <LinearProgress
                 style={{width: '150px'}}
                 variant="determinate"
-                value={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length / coStatus.LicenceNodeNumber) * 100 : 0}
-                color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.isCosmosNode).length >= coStatus.LicenceNodeNumber ? 'error' : 'primary') : 'primary'}
+                value={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length / (coStatus.LicenceNodeNumber+1)) * 100 : 0}
+                color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length >= coStatus.LicenceNodeNumber+1 ? 'error' : 'primary') : 'primary'}
               />
             </div>
           </Stack>
@@ -499,7 +536,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
             data={devices.filter((d) => !d.blocked)}
             getKey={(r) => r.deviceName}
             buttons={[
-              (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} />),
+              (<AddDeviceModal users={users} config={config} refreshConfig={refreshConfig} devices={devices} canCreateManager={canCreateManager} canCreateAgent={canCreateAgent} />),
               <Button
                 disableElevation
                 variant="outlined"
@@ -520,7 +557,6 @@ export const ConstellationVPN = ({ freeVersion }) => {
               {
                 title: t('mgmt.constellation.setup.device.label'),
                 field: (r) => {
-
                   const status = devicePingStatus[r.deviceName];
                   let res = "";
 
@@ -547,35 +583,35 @@ export const ConstellationVPN = ({ freeVersion }) => {
               },
               {
                 title: t('mgmt.storage.typeTitle'),
-                field: (r) => <strong>{r.isCosmosNode ? t('mgmt.constellation.cosmosNode') : (r.isLighthouse ? t('mgmt.constellation.lighthouse') : t('mgmt.constellation.client'))}</strong>,
+                field: (r) => <strong>{r.cosmosNode === 2 ? t('mgmt.constellation.cosmosNodeManager') : r.cosmosNode === 1 ? t('mgmt.constellation.cosmosNodeAgent') : (r.isLighthouse ? t('mgmt.constellation.lighthouse') : t('mgmt.constellation.client'))}</strong>,
               },
               {
                 title: '',
                 field: (r) => {
-                  if (!r.isLighthouse) return null;
+                  const icons = [];
+                  if (r.isLighthouse) icons.push(
+                    <Tooltip key="lh" title={t('mgmt.constellation.publicLighthouse')}><CompassOutlined style={{ fontSize: 14 }} /></Tooltip>
+                  );
+                  if (r.cosmosNode === 2) icons.push(
+                    <Tooltip key="mgr" title={t('mgmt.constellation.cosmosNodeManager')}><CloudServerOutlined style={{ fontSize: 14, color: '#9c27b0' }} /></Tooltip>
+                  );
+                  if (r.cosmosNode === 1) icons.push(
+                    <Tooltip key="agt" title={t('mgmt.constellation.cosmosNodeAgent')}><NodeIndexOutlined style={{ fontSize: 14, color: '#e65100' }} /></Tooltip>
+                  );
+                  if (r.isRelay) icons.push(
+                    <Tooltip key="relay" title={t('mgmt.constellation.isRelay.label')}><ApiOutlined style={{ fontSize: 14, color: '#1976d2' }} /></Tooltip>
+                  );
+                  if (r.isExitNode) icons.push(
+                    <Tooltip key="exit" title={t('mgmt.constellation.isExitNode.label')}><ExportOutlined style={{ fontSize: 14, color: '#2e7d32' }} /></Tooltip>
+                  );
+                  if (r.isLoadBalancer) icons.push(
+                    <Tooltip key="lb" title={t('mgmt.constellation.isLoadBalancer.label')}><DesktopOutlined style={{ fontSize: 14, color: '#ff9800' }} /></Tooltip>
+                  );
+                  if (icons.length === 0) return null;
                   return (
-                    <Stack direction="row" spacing={1}>
-                      {r.isCosmosNode && (
-                        <Tooltip title={t('mgmt.constellation.cosmosNode')}>
-                          <CloudOutlined style={{ color: '#9c27b0' }} />
-                        </Tooltip>
-                      )}
-                      {r.isRelay && (
-                        <Tooltip title={t('mgmt.constellation.isRelay.label')}>
-                          <ApiOutlined style={{ color: '#1976d2' }} />
-                        </Tooltip>
-                      )}
-                      {r.isExitNode && (
-                        <Tooltip title={t('mgmt.constellation.isExitNode.label')}>
-                          <ExportOutlined style={{ color: '#2e7d32' }} />
-                        </Tooltip>
-                      )}
-                      {r.isLoadBalancer && (
-                        <Tooltip title={t('mgmt.constellation.isLoadBalancer.label')}>
-                          <DesktopOutlined style={{ color: '#ff9800' }} />
-                        </Tooltip>
-                      )}
-                    </Stack>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, maxWidth: 60, justifyContent: 'center' }}>
+                      {icons}
+                    </div>
                   );
                 },
               },
@@ -656,7 +692,8 @@ export const ConstellationVPN = ({ freeVersion }) => {
               }
             ]}
           />
-        </>}
+        </>;
+        })()}
       </Stack>
     </> : <Stack spacing={2} style={{ maxWidth: "1000px", margin: "auto" }}>
       <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />

@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"encoding/json"
+	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/storage"
@@ -180,7 +181,7 @@ func checkCerts() {
 		utils.Log("Checking certificates for renewal")
 		if !CertificateIsExpiredSoon(HTTPConfig.TLSValidUntil) {
 			utils.Log("Certificates are not valid anymore, renewing")
-			RestartServer()
+			RestartHTTPServer()
 		}
 	}
 }
@@ -211,13 +212,17 @@ func CRON() {
 		s.Every(1).Hours().Do(proxy.CleanUp)
 		s.Every(1).Hours().Do(proxy.CleanUpSocket)
 		s.Every(1).Day().At("2:00").Do(func() {
-			checkVersion()
 			utils.CleanupByDate("notifications")
 			utils.CleanupByDate("events")
 			imageCleanUp()
 			checkCerts()
 			checkUpdatesAvailable()
 		})
+
+		// random 1-23 number
+		randomHour := utils.GetRandomNumber(1, 23)
+		s.Every(1).Day().At(fmt.Sprintf("%02d:45", randomHour)).Do(utils.ProcessLicence)
+		s.Every(1).Day().At(fmt.Sprintf("%02d:15", randomHour)).Do(checkVersion)
 
 		s.Start()
 	}()
