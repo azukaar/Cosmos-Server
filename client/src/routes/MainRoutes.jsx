@@ -1,6 +1,6 @@
 // project import
 import MainLayout from '../layout/MainLayout';
-import logo from '../assets/images/icons/cosmos.png';
+import logo from '../assets/images/icons/logo2.png';
 import { Navigate } from 'react-router';
 import UserManagement from '../pages/config/users/usermanagement';
 import ConfigManagement from '../pages/config/users/configman';

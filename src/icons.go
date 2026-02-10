@@ -331,7 +331,7 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 
 func SendLogo(w http.ResponseWriter, req *http.Request) {
 	pwd,_ := os.Getwd()
-	imgsrc := "Logo.png"
+	imgsrc := "Logo2.png"
 	Logo, err := ioutil.ReadFile(pwd + "/" + imgsrc)
 	if err != nil {
 		utils.Error("Logo", err)

@@ -57,6 +57,7 @@ const VolumeContainerSetup = ({
   };
 
   const formatSource = (mount) => {
+    if (!mount) return null;
     if (mount.startsWith("/")) return mount;
     else return "/var/lib/docker/volumes/" + mount + "/_data";
   }
@@ -213,6 +214,7 @@ const VolumeContainerSetup = ({
                                   >
                                     <MenuItem value="bind">{t('mgmt.servapps.newContainer.volumes.bindInput')}</MenuItem>
                                     <MenuItem value="volume">{t('global.volume')}</MenuItem>
+                                    <MenuItem value="tmpfs">tmpfs</MenuItem>
                                   </TextField>
                                 </div>
                               ),
@@ -248,6 +250,14 @@ const VolumeContainerSetup = ({
                                       onChange={formik.handleChange}
                                     />
                                     </Stack>
+                                  ) : r.Type == "tmpfs" ? (
+                                    <TextField
+                                      className="px-2 my-2"
+                                      variant="outlined"
+                                      disabled
+                                      style={{ minWidth: "200px" }}
+                                      value="(memory)"
+                                    />
                                   ) : (
                                     <TextField
                                       className="px-2 my-2"
@@ -383,7 +393,7 @@ const VolumeContainerSetup = ({
       }}>
         {containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.Mounts && <MainCard title={t('mgmt.backup.backups')}>
           <Backups pathFilters={
-            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source))
+            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source)).filter(Boolean)
           } />
         </MainCard>}
       </div>}

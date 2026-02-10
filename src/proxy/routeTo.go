@@ -123,20 +123,23 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 
 			targetIP, err := docker.GetContainerIPByName(targetHost)
 			if err != nil {
-				utils.Error("Create Route", err)
+				utils.Error("Director Route", err)
 			}
 			utils.Debug("Dockerless Target IP: " + targetIP)
 			req.URL.Host = targetIP + ":" + targetURL.Port()
 		}
 
-		utils.Debug("Request to backend: " + req.URL.String())
 
 		req.URL.Path, req.URL.RawPath = joinURLPath(targetURL, req.URL)
+
+
 		if urlQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = urlQuery + req.URL.RawQuery
 		} else {
 			req.URL.RawQuery = urlQuery + "&" + req.URL.RawQuery
 		}
+		
+		utils.Debug("Request to backend: " + req.URL.String())
 		
 		req.Header.Set("X-Forwarded-Proto", originalScheme)
 		

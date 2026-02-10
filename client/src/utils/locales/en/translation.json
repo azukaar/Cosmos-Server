@@ -624,6 +624,7 @@
 	"mgmt.urls.edit.advancedSettings.hideFromDashboardCheckbox.hideFromDashboardLabel": "Hide from Dashboard",
 	"mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel": "Overwrite Host Header (use this to chain resolve request from another server/ip)",
 	"mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder": "Overwrite Host Header",
+	"mgmt.urls.edit.advancedSettings.skipURLCleanCheckbox.skipURLCleanLabel": "Skip URL Cleaning (preserve double slashes in path)",
 	"mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpLabel": "Whitelist Inbound IPs and/or IP ranges (comma separated)",
 	"mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpPlaceholder": "Whitelist Inbound IPs and/or IP ranges (comma separated)",
 	"mgmt.urls.edit.advancedSettingsTitle": "Advanced Settings",

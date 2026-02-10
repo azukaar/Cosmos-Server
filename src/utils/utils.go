@@ -453,14 +453,15 @@ func SoftRestartServer() {
 
 	RestartHTTPServer()
 
-	WaitForAllJobs()
-
-	RestartConstellation() // Constellation
-	InitRemoteStorage() // rclone
-	InitBackups() // restic
-	InitSnapRAIDConfig() // snapraid
-	
-	RestartCRON()
+	go func() {
+		WaitForAllJobs()
+		RestartConstellation() // Constellation
+		InitRemoteStorage() // rclone
+		InitBackups() // restic
+		InitSnapRAIDConfig() // snapraid
+		
+		RestartCRON()
+	}()
 }
 
 func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {

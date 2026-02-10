@@ -4,10 +4,11 @@ import (
 	"strings"
 	"strconv"
 	"time"
+	"sort"
 	"github.com/nats-io/nats.go"
 	"encoding/json"
 	"sync"
-	
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -263,6 +264,10 @@ func UpdateLocalTunnelCache() {
 		}
 
 		for _, tunnelRoute := range heartbeat.Tunnels {
+			// Skip tunnels from ourselves
+			if heartbeat.DeviceName == currentDeviceName {
+				continue
+			}
 			if tunnelRoute.Tunnel == "_ANY_" || tunnelRoute.Tunnel == currentDeviceName {
 				if existing, ok := byName[tunnelRoute.Name]; ok {
 					existing.From = append(existing.From, heartbeat.DeviceName)
@@ -283,9 +288,23 @@ func UpdateLocalTunnelCache() {
 		tunnels = append(tunnels, *t)
 	}
 
-	// Compare old and new cache using JSON stringify
-	oldJSON, _ := json.Marshal(localTunnelCache)
-	newJSON, _ := json.Marshal(tunnels)
+	// Compare old and new cache using sorted copies for consistent comparison
+	sortTunnelsForComparison := func(t []utils.ConstellationTunnel) []utils.ConstellationTunnel {
+		copied := make([]utils.ConstellationTunnel, len(t))
+		for i, tunnel := range t {
+			copied[i] = tunnel
+			copied[i].From = make([]string, len(tunnel.From))
+			copy(copied[i].From, tunnel.From)
+			sort.Strings(copied[i].From)
+		}
+		sort.Slice(copied, func(i, j int) bool {
+			return copied[i].Route.Name < copied[j].Route.Name
+		})
+		return copied
+	}
+
+	oldJSON, _ := json.Marshal(sortTunnelsForComparison(localTunnelCache))
+	newJSON, _ := json.Marshal(sortTunnelsForComparison(tunnels))
 
 	localTunnelCache = tunnels
 	lastCacheUpdate = time.Now()

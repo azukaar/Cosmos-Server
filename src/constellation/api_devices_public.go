@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/nats-io/nats.go"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -93,4 +95,68 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		"status": "OK",
 		"data":   publicDevices,
 	})
+}
+
+func PublicDeviceListNATS(m *nats.Msg) {
+	// Connect to the collection
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
+	if errCo != nil {
+		utils.Error("PublicDeviceListNATS: Database Connect", errCo)
+		m.Respond([]byte(`{"status":"error","message":"Database error"}`))
+		return
+	}
+
+	utils.Debug("PublicDeviceListNATS: Fetching devices")
+
+	// Find all non-blocked, non-invisible devices
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": false,
+		"Invisible": false,
+	})
+
+	defer cursor.Close(nil)
+
+	if err != nil {
+		utils.Error("PublicDeviceListNATS: Error fetching devices", err)
+		m.Respond([]byte(`{"status":"error","message":"Error fetching devices"}`))
+		return
+	}
+
+	var devices []utils.ConstellationDevice
+	if err = cursor.All(nil, &devices); err != nil {
+		utils.Error("PublicDeviceListNATS: Error decoding devices", err)
+		m.Respond([]byte(`{"status":"error","message":"Error decoding devices"}`))
+		return
+	}
+
+	// Convert to public device info with limited fields
+	publicDevices := make([]PublicDeviceInfo, len(devices))
+	for i, device := range devices {
+		publicDevices[i] = PublicDeviceInfo{
+			DeviceID:   device.DeviceName,
+			DeviceName: device.DeviceName,
+			User:       device.Nickname,
+			IP:         cleanIp(device.IP),
+			IsLighthouse: device.IsLighthouse,
+			CosmosNode: device.CosmosNode,
+			IsRelay: device.IsRelay,
+			IsExitNode: device.IsExitNode,
+			PublicHostname: device.PublicHostname,
+			Port: device.Port,
+		}
+	}
+
+	// Respond with the list of public device info
+	response, err := json.Marshal(map[string]interface{}{
+		"status": "OK",
+		"data":   publicDevices,
+	})
+	if err != nil {
+		utils.Error("PublicDeviceListNATS: Error marshalling response", err)
+		m.Respond([]byte(`{"status":"error","message":"Error encoding response"}`))
+		return
+	}
+
+	m.Respond(response)
 }

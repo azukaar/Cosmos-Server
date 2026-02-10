@@ -88,6 +88,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           HideFromDashboard: routeConfig.HideFromDashboard,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
+          SkipURLClean: routeConfig.SkipURLClean === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
           Tunnel: routeConfig.Tunnel,
           TunneledHost: routeConfig.TunneledHost,
@@ -382,6 +383,12 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         name="OverwriteHostHeader"
                         label={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel')}
                         placeholder={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder')}
+                        formik={formik}
+                      />
+
+                      <CosmosCheckbox
+                        name="SkipURLClean"
+                        label={t('mgmt.urls.edit.advancedSettings.skipURLCleanCheckbox.skipURLCleanLabel')}
                         formik={formik}
                       /></>}
 

@@ -289,6 +289,8 @@ func SyncNATSClientRouter(nc *nats.Conn) {
 			m.Respond([]byte(response))
 		}
 	})
+
+	nc.Subscribe("cosmos._global_.constellation.public-devices", PublicDeviceListNATS)
 	
 	nc.Subscribe("cosmos._global_.constellation.data.sync-receive", func(m *nats.Msg) {
 		utils.Log("[NATS] Constellation data sync received")

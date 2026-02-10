@@ -164,7 +164,7 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, canCreateManage
                     disabled={!isAdmin}
                     options={isAdmin ? [
                       ['client', t('mgmt.constellation.setup.deviceType.client')],
-                      ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
+                      // ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
                       ['cosmos-agent', t('mgmt.constellation.setup.deviceType.cosmosAgent'), !canCreateAgent],
                       ['cosmos-manager', t('mgmt.constellation.setup.deviceType.cosmosManager'), !canCreateManager],
                     ] : [

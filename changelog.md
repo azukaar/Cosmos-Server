@@ -1,7 +1,11 @@
 ## Version 0.21.0
  - UI refresh for most pages
- - Rclone rework, no more sub processes (increased performance and reliability)
  - Reworked mount managemenet logic for flexibility
+ - Added "skip clean URL" option for apps that have invalid URLs like Synology
+ - Support for tempFS
+ - Improve support for 0.0.0.0 routes
+ - Reduce SmartShield false positive on the server panel by having two level of strictness (UI/panel vs. login)
+ - Rclone rework, no more sub processes (increased performance and reliability)
  - Reworked Constellation cluster synchronisation completely. Now there are no more "Master" server and each server is equally capable.
  - Any server can be used as DNS (add redundancy too)
  - Any server can tunnel another server's URL in any direction

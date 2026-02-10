@@ -544,7 +544,6 @@ func ExportLighthouseFromDB() error {
 	var relays []string
 	var Blocklist []string
 	for _, lh := range ll {
-		utils.Debug("[CACA PROUT] Lighthouse from DB: " + lh.IP + " - "  + lh.PublicHostname)
 		if lh.Blocked {
 			Blocklist = append(Blocklist, lh.Fingerprint)
 		} else {

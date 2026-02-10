@@ -98,6 +98,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"LicenceNumber": licenceNumber,
 				"LicenceNodeNumber": licenceNodeNumber,
 				"ConfigFolder": absoluteConfigPath,
+				"ConstellationName": utils.GetMainConfig().ConstellationConfig.ThisDeviceName,
 			},
 		})
 	} else {

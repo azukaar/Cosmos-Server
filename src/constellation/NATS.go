@@ -165,6 +165,8 @@ func StartNATS() {
 		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + devices.APIKey)
 		username := sanitizeNATSUsername(devices.DeviceName)
 		
+		// TODO: Agent / users with less permissions 
+
 		users = append(users, &server.User{
 			Username: username,
 			Password: devices.APIKey,
@@ -268,8 +270,9 @@ func StartNATS() {
 			retries++
 			continue
 		}
+
 		if NebulaFailedStarting {
-			utils.Error("[NATS] Nebula failed to start, aborting NATS server setup", nil)
+			utils.Error("[NATS] Nebula failed to start, aborting NATS server setup retry", nil)
 			return
 		}
 
@@ -320,7 +323,7 @@ func InitNATSClient() {
 	var err error
 	retries := 0
 
-	if NebulaFailedStarting || !NebulaStarted {
+	if NebulaFailedStarting {
 		utils.Error("[NATS] Nebula failed to start, aborting NATS client connection", nil)
 		return
 	}
@@ -365,11 +368,17 @@ func InitNATSClient() {
 		}
 
 		if NebulaFailedStarting {
-			utils.Error("[NATS] Nebula failed to start, aborting NATS client connection", nil)
+			utils.Error("[NATS] Nebula failed to start, aborting NATS client connection retry", nil)
 			return
 		}
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+
+		if !NebulaStarted {
+			retries++
+			utils.Warn("[NATS] Nebula not started yet, delaying NATS client connection retry")
+			continue
+		}
 
 		nc, err = natsClient.Connect("nats://localhost:4222",
 			nats.Secure(&tls.Config{

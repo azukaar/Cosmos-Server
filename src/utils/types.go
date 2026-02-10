@@ -257,6 +257,7 @@ type ProxyRouteConfig struct {
 	Tunnel                     string                      `yaml:"tunnel,omitempty"`
 	TunneledHost			   string                      `yaml:"tunneled_host,omitempty"`
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
+	SkipURLClean               bool                        `yaml:"skip_url_clean"`
 	Const_IsTunneled           bool                        `yaml:"-", json:"-"`
 }
 

@@ -381,13 +381,14 @@ const ServApps = ({stack}) => {
                     return <HostChip route={route} settings/>
                   })}
                   {app.networkSettings && app.networkSettings.Networks && app.networkSettings.Networks['host'] &&
-                    <Chip style={{ fontSize: '80%' }} label="Host Network" color="warning" />
+                    <Chip style={{ fontSize: '80%' }} label="Host Network" color="warning" variant='outlined' />
                   }
                   {app.ports && app.ports.filter(p => p && p.IP != '::' && p.PublicPort).map((port) => {
                     return <Chip
                       style={{ fontSize: '80%', cursor: 'pointer' }}
                       label={port.PublicPort + ":" + port.PrivatePort}
                       color="warning"
+                      variant='outlined'
                       onClick={() => window.open(`${window.location.protocol}//${window.location.hostname}:${port.PublicPort}`, '_blank')}
                     />
                   })}

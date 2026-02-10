@@ -24,10 +24,11 @@ const HostChip = ({route, settings, style}) => {
 
   return <Chip
     label={<><StatusDot status={isOnline == null ? "unknown" : isOnline ? "success" : "error"} size={8} style={{ marginRight: 6 }} />{url}</>}
-    color="secondary"
+    color="primary"
+    variant="outlined"
     style={{
       paddingRight: '4px',
-      textDecoration: isOnline ? 'none' : 'underline wavy red',
+      // textDecoration: isOnline ? 'none' : 'underline wavy red',
       ...style
     }}
     onClick={() => {

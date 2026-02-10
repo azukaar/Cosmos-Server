@@ -9,37 +9,37 @@ let routeImages = {
   "TUNNEL": {
     label: "Tunnel",
     icon: "TU",
-    backgroundColor: "#082452",
+    background: "linear-gradient(135deg, #082452, #0a3a7e)",
     color: "white",
   },
   "SERVAPP": {
     label: "ServApp",
     icon: "SA",
-    backgroundColor: "#0db7ed",
+    background: "linear-gradient(135deg, #0db7ed, #0a8abf)",
     color: "black",
   },
   "STATIC": {
     label: "Static",
     icon: "ST",
-    backgroundColor: "#f9d71c",
+    background: "linear-gradient(135deg, #f9d71c, #d4b010)",
     color: "black",
   },
   "REDIRECT": {
     label: "Redir",
     icon: "RE",
-    backgroundColor: "#2c3e50",
+    background: "linear-gradient(135deg, #2c3e50, #1a252f)",
     color: "white",
   },
   "PROXY": {
     label: "Proxy",
     icon: "PR",
-    backgroundColor: "#2ecc71",
+    background: "linear-gradient(135deg, #2ecc71, #1fa85a)",
     color: "black",
   },
   "SPA": {
     label: "SPA",
     icon: "SP",
-    backgroundColor: "#e74c3c",
+    background: "linear-gradient(135deg, #e74c3c, #c0392b)",
     color: "black",
   },
 }
@@ -60,7 +60,7 @@ export const RouteMode = ({route}) => {
       icon={<span>{cicon}</span>}
       // label={c.label}
       sx={{
-        backgroundColor: c.backgroundColor,
+        background: c.background,
         paddingLeft: "5px",
 
         '& .MuiChip-label': {

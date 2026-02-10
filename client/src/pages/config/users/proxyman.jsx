@@ -111,6 +111,9 @@ const ProxyManagement = () => {
     API.config.get().then((res) => {
       setConfig(res.data);
     });
+    if (!isAdmin) {
+      return;
+    }
     API.constellation.tunnels().then((res) => {
       setTunnels((res.data || []).map(r => {
         let route = r.Route;

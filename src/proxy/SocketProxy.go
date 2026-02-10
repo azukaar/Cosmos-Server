@@ -107,6 +107,17 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
     var listener net.Listener
     var packetConn net.PacketConn
 
+    // Ensure we always signal completion, even on early errors
+    defer func() {
+        if listener != nil {
+            listener.Close()
+        }
+        if packetConn != nil {
+            packetConn.Close()
+        }
+        close(proxyInfo.stopped)
+    }()
+
     switch listenProtocol {
     case "tcp":
         listener, err = net.Listen("tcp", listenAddr)
@@ -121,16 +132,6 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
         utils.Error("[SocketProxy] Failed to listen on "+listenAddr, err)
         return
     }
-
-    defer func() {
-        if listener != nil {
-            listener.Close()
-        }
-        if packetConn != nil {
-            packetConn.Close()
-        }
-        close(proxyInfo.stopped)
-    }()
 
     utils.Log("[SocketProxy] Proxy listening on "+listenAddr+", forwarding to "+listenProtocol+"://"+target)
 
@@ -171,9 +172,9 @@ func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, 
             } else {
                 shieldedClient = client
             }
-            
+
             utils.Debug("[SocketProxy] New TCP connection accepted on " + listenAddr)
-           
+
             server, err := net.Dial("tcp", target)
             if err != nil {
                 utils.Error("[SocketProxy] Failed to connect to TCP server", err)
@@ -393,12 +394,24 @@ func InitInternalSocketProxy() {
                     portpair.To = "localhost:" + HTTPPort
                 }
 
-    			expectedPorts = append(expectedPorts, portpair)
+    			// Check if this port is already in the list (avoid duplicates)
+                alreadyExists := false
+                for _, existing := range expectedPorts {
+                    if existing.From == portpair.From {
+                        alreadyExists = true
+                        break
+                    }
+                }
+                if alreadyExists {
+                    utils.MajorError("[SocketProxy] Duplicate port detected: "+portpair.From+". Multiple routes are trying to use the same port.", nil)
+                } else {
+                    expectedPorts = append(expectedPorts, portpair)
+                }
             }
 		}
 	}
 
     StopAllProxies()
-    
-    go initInternalPortProxy(expectedPorts)
+
+    initInternalPortProxy(expectedPorts)
 }

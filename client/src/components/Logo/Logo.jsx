@@ -31,7 +31,15 @@ const Logo = () => {
                     : "brightness(0)" // black
                 }}
             />
-            <span style={{fontWeight: 'bold', fontSize: '160%', paddingLeft:'10px'}}> Cosmos Cloud</span>
+            <span style={{fontWeight: 500, fontSize: '160%', paddingLeft:'10px'}}>
+                Cosmos{' '}
+                <span style={{
+                    background: `linear-gradient(to right, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                }}>Cloud</span>
+            </span>
         </>
     );
 };

@@ -28,10 +28,10 @@ const Theme = (colors, darkMode) => {
 
     return {
         primary: {
-            main: purple[400],
+            main: "#ff64c8",
         },
         secondary: {
-            main: indigo[600],
+            main: "#c864ff",
         },
         error: {
             lighter: red[0],

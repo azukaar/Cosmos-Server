@@ -2,10 +2,12 @@ package proxy
 
 import (
 	"net/http"
+	"net/url"
+	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
-	"net/url"
 
 	"github.com/azukaar/cosmos-server/src/user"
 	"github.com/azukaar/cosmos-server/src/constellation"
@@ -13,6 +15,32 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/mux"
 )
+
+// Borrowed from the net/http package. (Thanks mux!)
+func cleanPathMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path
+		if p == "" {
+			p = "/"
+		}
+		if p[0] != '/' {
+			p = "/" + p
+		}
+		np := path.Clean(p)
+		if p[len(p)-1] == '/' && np != "/" {
+			np += "/"
+		}
+
+		if np != r.URL.Path {
+			url := *r.URL
+			url.Path = np
+			http.Redirect(w, r, url.String(), http.StatusMovedPermanently)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -95,7 +123,13 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	origin := router.NewRoute()
 
 	if route.UseHost {
-		origin = origin.Host(route.Host)
+		// If hostname is 0.0.0.0, treat it as a wildcard (match any host with that port)
+		if strings.Contains(route.Host, ":") && (strings.Split(route.Host, ":")[0] == "0.0.0.0" || route.Host[0] == ":") {
+			port := strings.Split(route.Host, ":")[1]
+			origin = origin.Host("{host:[^:]+}:" + port)
+		} else {
+			origin = origin.Host(route.Host)
+		}
 
 		if route.Mode == "SERVAPP" || route.Mode == "PROXY" || route.Mode == "REDIRECT" {
 			urlRoute, err := url.Parse(route.Target)
@@ -198,6 +232,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	}
 
 	destination = tokenMiddleware(route)(utils.SetCosmosHeader(destination))
+
+	if !route.SkipURLClean {
+		destination = cleanPathMiddleware(destination)
+	}
 
 	origin.Handler(destination)
 
