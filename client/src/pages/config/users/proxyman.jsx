@@ -189,12 +189,12 @@ const ProxyManagement = () => {
 
   return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
-      <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-          refresh();
-      }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
       {isAdmin && <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setOpenNewModal(true);
-      }}>{t('global.createAction')}</Button>}
+      }}>{t('global.createAction')}</Button>}&nbsp;&nbsp;
+      <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+          refresh();
+      }}>{t('global.refresh')}</Button>
     </Stack>
 
     {config && <>

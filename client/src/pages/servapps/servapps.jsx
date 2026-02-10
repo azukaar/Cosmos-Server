@@ -253,9 +253,6 @@ const ServApps = ({stack}) => {
         {stack && <Link to="/cosmos-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
-        <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
-          refreshServApps();
-        }}>{t('global.refresh')}</ResponsiveButton>
         {!stack && <>
         <Link to="/cosmos-ui/servapps/new-service">
           <ResponsiveButton
@@ -263,6 +260,9 @@ const ServApps = ({stack}) => {
             startIcon={<AppstoreAddOutlined />}
             >{t('navigation.market.startServAppButton')}</ResponsiveButton>
         </Link>
+        <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
+          refreshServApps();
+        }}>{t('global.refresh')}</ResponsiveButton>
         <DockerComposeImport refresh={refreshServApps}/>
         <DownloadFile
           filename={'backup.cosmos-compose.json'}

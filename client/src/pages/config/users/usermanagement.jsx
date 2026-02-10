@@ -199,13 +199,13 @@ const UserManagement = () => {
 
 
         <Stack direction="row" spacing={2}>
-            <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
-                    refresh();
-            }}>{t('global.refresh')}</Button>
-
             <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
                 setOpenCreateForm(true)
             }} disabled={(status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button>
+
+            <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+                    refresh();
+            }}>{t('global.refresh')}</Button>
 
             <div>{t('mgmt.usermgmt.userSeatsUsed')} {rows ? rows.length : 0} / {status ? status.LicenceNumber : 0}
                 <LinearProgress style={{width: '100px'}} variant="determinate" value={(status && rows) ? (rows.length / status.LicenceNumber) * 100 : 0}

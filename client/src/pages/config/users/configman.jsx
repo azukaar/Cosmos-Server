@@ -153,6 +153,7 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
           ForceHTTPSCertificateRenewal: config.HTTPConfig.ForceHTTPSCertificateRenewal,
           OverrideWildcardDomains: config.HTTPConfig.OverrideWildcardDomains,
           UseForwardedFor: config.HTTPConfig.UseForwardedFor,
+          TrustedProxies: config.HTTPConfig.TrustedProxies && config.HTTPConfig.TrustedProxies.join(', '),
           AllowSearchEngine: config.HTTPConfig.AllowSearchEngine,
           AllowHTTPLocalIPAccess: config.HTTPConfig.AllowHTTPLocalIPAccess,
           PublishMDNS: config.HTTPConfig.PublishMDNS,
@@ -246,6 +247,8 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
               UseForwardedFor: values.UseForwardedFor,
+              TrustedProxies: (values.TrustedProxies && values.TrustedProxies != "") ?
+                values.TrustedProxies.split(',').map((x) => x.trim()) : [],
               AllowSearchEngine: values.AllowSearchEngine,
               AllowHTTPLocalIPAccess: values.AllowHTTPLocalIPAccess,
               PublishMDNS: values.PublishMDNS,
@@ -934,6 +937,13 @@ Ijy+/SYjyHfakFQm7JDhKpbNPC5oc+e4uM6Y9UyC0686toqpTYBSzbgaQw==
                     name="UseForwardedFor"
                     formik={formik}
                   /> */}
+
+                  <CosmosInputText
+                    label={t('mgmt.config.security.trustedProxiesInput.trustedProxiesLabel')}
+                    name="TrustedProxies"
+                    formik={formik}
+                    helperText={t('mgmt.config.security.trustedProxiesInput.trustedProxiesHelperText')}
+                  />
 
                   <CosmosFormDivider title='Geo-Blocking' />
 

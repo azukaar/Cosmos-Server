@@ -218,6 +218,8 @@
 	"mgmt.config.security.adminRestrictions.adminRestrictionsInfo": "Use those options to restrict access to the admin panel. Be careful, if you lock yourself out, you will need to manually edit the config file. To restrict the access to your local network, you can use the 'Admin Whitelist' with the IP range 192.168.0.0/16",
 	"mgmt.config.security.adminRestrictions.adminWhitelistInput.adminWhitelistHelperText": "Comma separated list of IPs that will be allowed to access the admin panel",
 	"mgmt.config.security.adminRestrictions.adminWhitelistInput.adminWhitelistLabel": "Admin Whitelist Inbound IPs and/or IP ranges (comma separated)",
+	"mgmt.config.security.trustedProxiesInput.trustedProxiesLabel": "Trusted proxies allow X-Forwarded-For from IP/IP range",
+	"mgmt.config.security.trustedProxiesInput.trustedProxiesHelperText": "Comma separated list of IPs/IP ranges of upstream proxies that are trusted to provide the real client IP via X-Forwarded-For header",
 	"mgmt.config.security.adminRestrictionsTitle": "Admin Restrictions",
 	"mgmt.config.security.encryption.authPubKeyTitle": "Authentication Public Key",
 	"mgmt.config.security.encryption.enryptionInfo": "For security reasons, It is not possible to remotely change the Private keys of any certificates on your instance. It is advised to manually edit the config file, or better, use Environment Variables to store them.",

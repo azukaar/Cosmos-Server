@@ -445,7 +445,9 @@ func InitServer() *mux.Router {
 	utils.Log("Initialising HTTP(S) Router and all routes")
 
 	router := mux.NewRouter().StrictSlash(true).SkipClean(true)
-	
+
+	router.Use(utils.ClientRealIP)
+
 	router.Use(utils.BlockBannedIPs)
 
 	router.Use(utils.Logger)

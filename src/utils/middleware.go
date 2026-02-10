@@ -48,10 +48,25 @@ func GetIPAbuseCounter(ip string) int64 {
 	return atomic.LoadInt64(&counter.val)
 }
 
+func ClientRealIP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clientID := GetClientIP(r)
+		if clientID == "" {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "ClientID", clientID)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func BlockBannedIPs(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        ip, _, err := net.SplitHostPort(r.RemoteAddr)
-        if err != nil {
+        ip, ok := r.Context().Value("ClientID").(string)
+        if !ok || ip == "" {
 					if hj, ok := w.(http.Hijacker); ok {
 							conn, _, err := hj.Hijack()
 							if err == nil {
@@ -210,8 +225,8 @@ func GetIPLocation(ip string) (string, error) {
 func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhitelist bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
+			ip, ok := r.Context().Value("ClientID").(string)
+			if !ok || ip == "" {
 				http.Error(w, "Invalid request", http.StatusBadRequest)
 				return
 			}
@@ -477,7 +492,8 @@ func IsValidHostname(hostname string) bool {
 func IPInRange(ipStr, cidrStr string) (bool, error) {
 	_, cidrNet, err := net.ParseCIDR(cidrStr)
 	if err != nil {
-		return false, fmt.Errorf("parse CIDR range: %w", err)
+		// If not a CIDR range, try exact IP match
+		return ipStr == cidrStr, nil
 	}
 
 	ip := net.ParseIP(ipStr)
@@ -492,17 +508,19 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
+		ip, ok := r.Context().Value("ClientID").(string)
+		if !ok || ip == "" {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
+		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
+
 		isUsingWhiteList := len(WhitelistInboundIPs) > 0
 
 		isInWhitelist := false
-		
-		isInConstellation := IsConstellationIP(ip)
+
+		isInConstellation := IsConstellationIP(remoteAddr)
 
 		for _, ipRange := range WhitelistInboundIPs {
 			Debug("Checking if " + ip + " is in " + ipRange)

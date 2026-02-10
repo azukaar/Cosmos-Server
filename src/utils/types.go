@@ -191,6 +191,7 @@ type HTTPConfig struct {
 	UseForwardedFor bool
 	AllowSearchEngine bool
 	PublishMDNS bool
+	TrustedProxies []string
 } 
 
 const (

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
@@ -296,13 +297,12 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
-	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
 	isConstIP := constellation.IsConstellationIP(remoteAddr)
 	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
-		 (isConstIP && isConstTokenValid) {
-		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
+	if (utils.IsTrustedProxy(remoteAddr) && r.Header.Get("x-forwarded-for") != "") ||
+		(isConstIP && isConstTokenValid) {
+		ip, _ := utils.SplitIP(strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]))
 		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip
 	} else {
