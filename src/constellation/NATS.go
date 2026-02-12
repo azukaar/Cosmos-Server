@@ -347,7 +347,13 @@ func InitNATSClient() error {
 		return err
 	}
 
-	nc, err = natsClient.Connect("nats://localhost:4222",
+	deviceIp, err := GetCurrentDeviceIP()
+	if err != nil {
+		utils.MajorError("[NATS] Error getting current device IP", err)
+		return err
+	}
+
+	nc, err = natsClient.Connect("nats://"+deviceIp+":4222",
 
 		// nats.DisconnectHandler(func(nc *nats.Conn) {
 		// 		utils.Log("Disconnected from NATS server - trying to reconnect")
