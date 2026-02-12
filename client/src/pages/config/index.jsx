@@ -235,7 +235,7 @@ const ConfigManagement = () => {
               DNSChallengeProvider: values.DNSChallengeProvider,
               DNSChallengeConfig: values.DNSChallengeConfig,
               DisablePropagationChecks: values.DisablePropagationChecks,
-              DNSChallengePropagationWait: values.DNSChallengePropagationWait,
+              DNSChallengePropagationWait: parseInt(values.DNSChallengePropagationWait, 10) || 0,
               DNSChallengeResolvers: values.DNSChallengeResolvers,
               ForceHTTPSCertificateRenewal: values.ForceHTTPSCertificateRenewal,
               OverrideWildcardDomains: values.OverrideWildcardDomains.replace(/\s/g, ''),
