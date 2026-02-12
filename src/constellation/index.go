@@ -3,7 +3,6 @@ package constellation
 import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 	"strings"
-	"os"
 )
 
 var NebulaStarted = false
@@ -15,21 +14,26 @@ func resyncConstellationNodes() {
 	go SendNewDBSyncMessage()
 }
 
+func GetDefaultHostnames() []string {
+	hostnames, _ := utils.ListIps(true)
+	httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
+	// Strip port if present
+	if colonIndex := strings.LastIndex(httpHostname, ":"); colonIndex != -1 {
+		httpHostname = httpHostname[:colonIndex]
+	}
+	if(utils.IsDomain(httpHostname) && !utils.IsLocalDomain(httpHostname)) {
+		hostnames = append(hostnames, "vpn." + httpHostname)
+	} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
+		hostnames = append(hostnames, httpHostname)
+	}
+	return hostnames
+}
+
 func InitHostname() {
 	// if no hostname yet, set default one
 	if utils.GetMainConfig().ConstellationConfig.ConstellationHostname == "" {
 		utils.Log("Constellation: no hostname found, setting default one...")
-		hostnames, _ := utils.ListIps(true)
-		httpHostname := utils.GetMainConfig().HTTPConfig.Hostname
-		// Strip port if present
-		if colonIndex := strings.LastIndex(httpHostname, ":"); colonIndex != -1 {
-			httpHostname = httpHostname[:colonIndex]
-		}
-		if(utils.IsDomain(httpHostname) && !utils.IsLocalDomain(httpHostname)) {
-			hostnames = append(hostnames, "vpn." + httpHostname)
-		} else if httpHostname != "127.0.0.1" && httpHostname != "localhost" {
-			hostnames = append(hostnames, httpHostname)
-		}
+		hostnames := GetDefaultHostnames()
 		configFile := utils.ReadConfigFromFile()
 		configFile.ConstellationConfig.ConstellationHostname = strings.Join(hostnames, ", ")
 		utils.SetBaseMainConfig(configFile)
@@ -58,6 +62,8 @@ func IsConstellationIP(ip string) bool {
 }
 
 func Init() {
+	utils.Log("Initializing Constellation module...")
+
 	InitConfig()
 	InitHostname()
 
@@ -106,7 +112,7 @@ func Init() {
 							for _, publicHostname := range publicHostnames {
 								CachedDeviceNames[strings.TrimSpace(publicHostname)] = device.IP
 								CachedDevices[strings.TrimSpace(publicHostname)] = device
-								utils.Debug("Constellation: device name cached: " + publicHostname + " -> " + device.IP)
+								utils.Debug("Constellation: public hostname cached: " + publicHostname + " -> " + device.IP)
 							}
 						}
 					}
@@ -127,16 +133,6 @@ func Init() {
 
 					utils.Log("Constellation: device names cache populated")
 				}
-			}
-		}
-		
-		if _, err = os.Stat(utils.CONFIGFOLDER + "nebula.yml"); os.IsNotExist(err) {
-			// export nebula.yml
-			utils.Log("Constellation: exporting nebula.yml...")
-			err := ExportDefaultConfigToYAML(utils.CONFIGFOLDER + "nebula.yml")
-
-			if err != nil {
-				utils.Error("Constellation: error while exporting nebula.yml", err)
 			}
 		}
 

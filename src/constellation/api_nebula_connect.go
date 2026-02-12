@@ -53,6 +53,13 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		if request.IPRange == "" {
 			request.IPRange = "192.168.201.0/24"
 		}
+		
+		utils.Log("Constellation: exporting nebula.yml...")
+		err = ExportDefaultConfigToYAML(utils.CONFIGFOLDER + "nebula.yml")
+
+		if err != nil {
+			utils.Error("Constellation: error while exporting nebula.yml", err)
+		}
 
 		// check if ca.crt exists
 		if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {

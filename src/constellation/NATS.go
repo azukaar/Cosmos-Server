@@ -33,6 +33,13 @@ type NodeHeartbeat struct {
 
 var ns *server.Server
 
+func truncateLog(s string) string {
+	if len(s) > 100 {
+		return s[:100] + "..."
+	}
+	return s
+}
+
 func sanitizeNATSUsername(username string) string {
 	username = strings.ReplaceAll(username, " ", "_")
 	username = strings.ReplaceAll(username, ".", "_")
@@ -312,9 +319,9 @@ var clientConfigLock = sync.RWMutex{}
 var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
-func InitNATSClient() {
+func InitNATSClient() error {
 	if nc != nil {
-		return
+		return errors.New("NATS client already initialized")
 	}
 
 	clientConfigLock.Lock()
@@ -325,7 +332,7 @@ func InitNATSClient() {
 
 	if NebulaFailedStarting {
 		utils.Error("[NATS] Nebula failed to start, aborting NATS client connection", nil)
-		return
+		return errors.New("Nebula failed to start, aborting NATS client connection")
 	}
 
 	utils.Log("[NATS] Connecting to NATS server...")
@@ -337,7 +344,7 @@ func InitNATSClient() {
 	
 	if err != nil {
 		utils.MajorError("[NATS] Error getting constellation credentials", err)
-		return
+		return err
 	}
 
 	nc, err = natsClient.Connect("nats://localhost:4222",
@@ -360,16 +367,13 @@ func InitNATSClient() {
 
 	for err != nil {
 		if retries == 10 {
-			utils.MajorError("[NATS] Error connecting to Constellation NATS server (timeout) - will continue trying", err)
+			utils.MajorError("[NATS] Error connecting to Constellation NATS server after 10 tries", err)
 		}
 		
-		if retries >= 11 {
-			retries = 11
-		}
-
 		if NebulaFailedStarting {
 			utils.Error("[NATS] Nebula failed to start, aborting NATS client connection retry", nil)
-			return
+			nc = nil
+			return errors.New("Nebula failed to start, aborting NATS client connection retry")
 		}
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
@@ -401,16 +405,14 @@ func InitNATSClient() {
 
 	if err != nil {
 		utils.MajorError("[NATS] Error connecting to Constellation NATS server", err)
-		return
+		nc = nil
+		return err
 	} else {
 		utils.Log("[NATS] Connected to NATS server as " + user)
 		NATSClientTopic = "cosmos." + user
 	}
 
 	utils.Debug("[NATS] NATS client connected")
-
-
-	utils.Debug("[NATS] JetStream context obtained")
 
 	go MasterNATSClientRouter()
 
@@ -425,6 +427,8 @@ func InitNATSClient() {
 	go SendRequestSyncMessage()
 
 	// POST CLIENT CONNECTION HOOK
+
+	return nil
 }
 
 var lastCheck time.Time
@@ -487,7 +491,10 @@ func CloseNATSClient() {
 func SendNATSMessage(topic string, payload string) (string, error) {
 	if !IsClientConnected() {
 		utils.Warn("NATS client not connected")
-		InitNATSClient()
+		err := InitNATSClient()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	utils.Debug("[MQ] Sending message to topic: " + topic)
@@ -499,7 +506,7 @@ func SendNATSMessage(topic string, payload string) (string, error) {
 		return "", err
 	}
 
-	utils.Debug("[MQ] Received response: " +  string(msg.Data))
+	utils.Debug("[MQ] Received response: " + truncateLog(string(msg.Data)))
 
 	return string(msg.Data), nil
 }
@@ -507,7 +514,10 @@ func SendNATSMessage(topic string, payload string) (string, error) {
 func SendNATSMessageAllReply(topic string, payload string, timeout time.Duration, callback func(response string)) error {
 	if !IsClientConnected() {
 		utils.Warn("NATS client not connected")
-		InitNATSClient()
+		err := InitNATSClient()
+		if err != nil {
+			return err
+		}
 	}
 
 	utils.Debug("[MQ] Sending message to topic: " + topic)
@@ -532,7 +542,7 @@ func SendNATSMessageAllReply(topic string, payload string, timeout time.Duration
 		if err != nil {
 			break // timeout or connection closed
 		}
-		utils.Debug("[MQ] Received response: " + string(msg.Data))
+		utils.Debug("[MQ] Received response: " + truncateLog(string(msg.Data)))
 		callback(string(msg.Data))
 	}
 
@@ -542,7 +552,10 @@ func SendNATSMessageAllReply(topic string, payload string, timeout time.Duration
 func PublishNATSMessage(topic string, payload string) error {
 	if !IsClientConnected() {
 		utils.Warn("NATS client not connected")
-		InitNATSClient()
+		err := InitNATSClient()
+		if err != nil {
+			return err
+		}
 	}
 
 	utils.Debug("[MQ] Publishing message to topic: " + topic)
@@ -561,7 +574,7 @@ func MasterNATSClientRouter() {
 	utils.Log("[NATS] Starting NATS Master client router.")
 
 	nc.Subscribe("cosmos._global_.ping", func(m *nats.Msg) {
-		utils.Debug("[MQ] Received: " + string(m.Data) + " from " + m.Subject)
+		utils.Debug("[MQ] Received: " + truncateLog(string(m.Data)) + " from " + m.Subject)
 		m.Respond([]byte("Pong"))
 	})
 

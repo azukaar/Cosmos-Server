@@ -246,10 +246,13 @@ func stop() error {
 }
 
 func RestartNebula() {
+	utils.Log("Restarting Constellation...")
 	cachedCurrentDevice = nil
 	CloseNATSClient()
 	StopNATS()
 	stop()
+	time.Sleep(1 * time.Second)
+	utils.Log("Constellation Init...")
 	Init()
 }
 
@@ -281,7 +284,7 @@ func ResetNebula() error {
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
 	config.ConstellationConfig.ThisDeviceName = ""
-	config.ConstellationConfig.ConstellationHostname = ""
+	config.ConstellationConfig.ConstellationHostname = strings.Join(GetDefaultHostnames(), ",")
 	
 	if config.Licence == "" {
 		config.ServerToken = ""
@@ -293,7 +296,7 @@ func ResetNebula() error {
 	CachedDevices = map[string]utils.ConstellationDevice{}
 	CachedDeviceNames = map[string]string{}
 
-	go utils.SoftRestartServer()
+	utils.SoftRestartServer()
 
 	time.Sleep(2 * time.Second)
 
@@ -991,7 +994,12 @@ func populateIPTableMasquerade() {
 	}
 }
 
+var inited = false
 func InitPingLighthouses() {
+	if inited {
+		return
+	}
+	inited = true
 	for {
 		PingLighthouses()
 		time.Sleep(1 * time.Minute)

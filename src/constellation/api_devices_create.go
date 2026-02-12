@@ -115,6 +115,11 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				APIKey: APIKey,
 			}, true, true)
 
+			if err != nil {
+				utils.Error("DeviceCreation: Error while reading config", err)
+				utils.HTTPError(w, "Device Creation Error: " + err.Error(), http.StatusInternalServerError, "DC004") 
+				return
+			}
 
 			lightHousesList := []utils.ConstellationDevice{}
 			if request.IsLighthouse {
