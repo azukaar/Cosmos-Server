@@ -4,6 +4,8 @@
  - Added "skip clean URL" option for apps that have invalid URLs like Synology
  - Support for tempFS
  - Improve support for 0.0.0.0 routes
+ - Reworked the setting page for better clarity
+ - Added advanced DNS options (challenge related, thanks @moham96)
  - Added trusted proxy option (Thanks @InterN0te)
  - Reduce SmartShield false positive on the server panel by having two level of strictness (UI/panel vs. login)
  - Rclone rework, no more sub processes (increased performance and reliability)

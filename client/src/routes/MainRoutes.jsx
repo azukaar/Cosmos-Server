@@ -3,7 +3,7 @@ import MainLayout from '../layout/MainLayout';
 import logo from '../assets/images/icons/logo2.png';
 import { Navigate } from 'react-router';
 import UserManagement from '../pages/config/users/usermanagement';
-import ConfigManagement from '../pages/config/users/configman';
+import ConfigManagement from '../pages/config';
 import ProxyManagement from '../pages/config/users/proxyman';
 import ServAppsIndex from '../pages/servapps/';
 import RouteConfigPage from '../pages/config/routeConfigPage';
@@ -89,6 +89,10 @@ const MainRoutes = {
         },
         {
             path: '/cosmos-ui/config-general',
+            element: <ConfigManagement />
+        },
+        {
+            path: '/cosmos-ui/config-general/*',
             element: <ConfigManagement />
         },
         {

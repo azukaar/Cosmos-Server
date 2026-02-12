@@ -124,7 +124,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 
 	if route.UseHost {
 		// If hostname is 0.0.0.0, treat it as a wildcard (match any host with that port)
-		if strings.Contains(route.Host, ":") && (strings.Split(route.Host, ":")[0] == "0.0.0.0" || route.Host[0] == ":") {
+		if strings.Contains(route.Host, ":") && (strings.Split(route.Host, ":")[0] == "0.0.0.0" || route.Host[0] == ':') {
 			port := strings.Split(route.Host, ":")[1]
 			origin = origin.Host("{host:[^:]+}:" + port)
 		} else {

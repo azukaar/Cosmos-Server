@@ -59,23 +59,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
       <Grid item xs={12}>
         <Stack spacing={2}>
         {formik.values[name] && dnsConfig[formik.values[name]] &&<>
-          {dnsConfig[formik.values[name]].vars.length > 0 && <CosmosCollapse title="DNS Challenge setup">
-            <Stack spacing={2} marginBottom={2}>
-              <CosmosCheckbox
-              label={t('mgmt.config.security.encryption.dnsChallengeCheckbox.disablePropagationChecksLabel')}
-              name="DisablePropagationChecks"
-              formik={formik}
-              />
-              {formik.values.DisablePropagationChecks && (
-                <CosmosInputText
-                  label={t('mgmt.config.security.encryption.dnsChallengeCheckbox.waitDurationLabel')}
-                  name="DNSChallengePropagationWait"
-                  formik={formik}
-                  type="number"
-                  placeholder="In seconds (Default: 30)"
-                />
-              )}
-            </Stack>
+          {dnsConfig[formik.values[name]].vars.length > 0 && <CosmosCollapse title="DNS Challenge setup" >
           <Stack spacing={2}>
           <Alert severity="info">
             Please be careful you are filling the correct values. Check the doc if unsure. Leave blank unused variables. <br />
