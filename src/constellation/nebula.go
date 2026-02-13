@@ -118,8 +118,20 @@ func startNebula() error {
 		return fmt.Errorf("failed to load nebula config: %w", err)
 	}
 
-	// Create nebula instance
-	ctrl, err := nebula.Main(c, false, "", l, nil)
+	// Create nebula instance (retry to handle TUN device not yet released by kernel)
+	var ctrl *nebula.Control
+	for i := 0; i < 10; i++ {
+		ctrl, err = nebula.Main(c, false, "", l, nil)
+		if err == nil {
+			break
+		}
+		if i < 9 {
+			time.Sleep(1 * time.Second)
+			// Reload config for each retry since NewC is consumed
+			c = nebulaConfig.NewC(l)
+			c.LoadString(string(configData))
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("failed to create nebula instance: %w", err)
 	}

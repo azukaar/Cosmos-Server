@@ -320,12 +320,12 @@ var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
 func InitNATSClient() error {
+	clientConfigLock.Lock()
+	defer clientConfigLock.Unlock()
+
 	if nc != nil {
 		return errors.New("NATS client already initialized")
 	}
-
-	clientConfigLock.Lock()
-	defer clientConfigLock.Unlock()
 
 	var err error
 	retries := 0
