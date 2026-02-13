@@ -64,6 +64,8 @@ func startNebula() error {
 	nebulaLock.Lock()
 	defer nebulaLock.Unlock()
 
+	utils.Log("Starting nebula sub-process...")
+
 	if control != nil {
 		return errors.New("nebula is already running")
 	}
@@ -119,11 +121,12 @@ func startNebula() error {
 	}
 
 	// Create nebula instance (retry to handle TUN device not yet released by kernel)
-	var ctrl *nebula.Control
 	for i := 0; i < 10; i++ {
-		ctrl, err = nebula.Main(c, false, "", l, nil)
+		control, err = nebula.Main(c, false, "", l, nil)
 		if err == nil {
 			break
+		} else {
+			utils.Warn("Failed to create nebula instance, retrying... Error was: " + err.Error())
 		}
 		if i < 9 {
 			time.Sleep(1 * time.Second)
@@ -137,9 +140,8 @@ func startNebula() error {
 	}
 
 	// Actually start the nebula service (brings up TUN interface)
-	ctrl.Start()
+	control.Start()
 
-	control = ctrl
 	NebulaStarted = true
 
 	utils.Log("Constellation: nebula started successfully")
@@ -157,12 +159,25 @@ func stop() {
 
 	if ctrl != nil {
 		ctrl.Stop()
+
+		// After ctrl.Stop() closes the socket FDs, nebula's ListenOut goroutine
+		// may still be blocked in a raw recvmsg() syscall. The kernel keeps the
+		// socket alive (and port bound) as long as recvmsg holds a reference via
+		// fdget(). Send a dummy UDP packet to wake up the blocked goroutine so it
+		// can detect the closed FD and exit, releasing the port.
+		wakeConn, err := net.Dial("udp4", "127.0.0.1:4242")
+		if err == nil {
+			wakeConn.Write([]byte{0})
+			wakeConn.Close()
+		}
+
 		// Wait for the TUN device to be released by the kernel
 		for i := 0; i < 50; i++ {
-			if _, err := net.InterfaceByName("nebula1"); err != nil {
+			if _, err := net.InterfaceByName("nebula1"); err != nil {                                                                  
+                utils.Log("Nebula TUN device released")                 
 				break // interface is gone
 			}
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 		utils.Log("Stopped nebula.")
 	}

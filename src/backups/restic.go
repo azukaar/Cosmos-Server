@@ -161,6 +161,15 @@ type LockInfo struct {
 	PID       int    `json:"pid"`
 }
 
+func isHexString(s string) bool {
+	for _, c := range s {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')) {
+			return false
+		}
+	}
+	return true
+}
+
 // GetLocks returns lock details for a repository
 func GetLocks(repository, password string) []LockInfo {
 	args := []string{"list", "locks", "--no-lock", "--repo", repository}
@@ -171,7 +180,14 @@ func GetLocks(repository, password string) []LockInfo {
 		return nil
 	}
 
-	ids := strings.Fields(strings.TrimSpace(output))
+	// Filter to only valid restic IDs (64-char hex strings) since the PTY
+	// output includes stderr messages like "repository xxx opened ..."
+	var ids []string
+	for _, token := range strings.Fields(strings.TrimSpace(output)) {
+		if len(token) == 64 && isHexString(token) {
+			ids = append(ids, token)
+		}
+	}
 	if len(ids) == 0 {
 		return nil
 	}
@@ -183,10 +199,11 @@ func GetLocks(repository, password string) []LockInfo {
 		if err != nil {
 			continue
 		}
-		var lock LockInfo
-		if err := json.Unmarshal([]byte(lockJSON), &lock); err != nil {
+		var parsedLocks []LockInfo
+		if err := json.Unmarshal([]byte(SplitJSONObjects(lockJSON)), &parsedLocks); err != nil || len(parsedLocks) == 0 {
 			continue
 		}
+		lock := parsedLocks[0]
 		locks = append(locks, lock)
 	}
 	return locks

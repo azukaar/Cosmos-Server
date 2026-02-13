@@ -23,28 +23,6 @@ export const Repositories = () => {
   const [editOpened, setEditOpened] = useState(null);
   const [unlocking, setUnlocking] = useState(null);
 
-  const handleUnlock = async (repoId) => {
-    setUnlocking(repoId);
-    try {
-      await API.backups.unlockRepository(repoId);
-      // Re-fetch stats for this repo after unlock
-      fetchRepoStats(repoId);
-    } catch (error) {
-      console.error('Failed to unlock repository:', error);
-    } finally {
-      setUnlocking(null);
-    }
-  };
-
-  const fetchRepoStats = async (repoId) => {
-    try {
-      const res = await API.backups.repoStats(repoId);
-      setRepoStats(prev => ({ ...prev, [repoId]: { status: 'ok', data: res.data } }));
-    } catch (error) {
-      setRepoStats(prev => ({ ...prev, [repoId]: { status: 'error', error: error.message || String(error) } }));
-    }
-  };
-
   const refresh = async () => {
     setLoading(true);
     setRepoStats({});
@@ -57,6 +35,32 @@ export const Repositories = () => {
     Object.values(repos).forEach((repo) => {
       fetchRepoStats(repo.id);
     });
+  };
+
+  const handleUnlock = async (repoId) => {
+    setUnlocking(repoId);
+    try {
+      await API.backups.unlockRepository(repoId);
+      // Re-fetch stats for this repo after unlock
+      fetchRepoStats(repoId);
+    } catch (error) {
+      console.error('Failed to unlock repository:', error);
+    } finally {
+      setUnlocking(null);
+      // refresh
+      setTimeout(() => {
+        refresh();
+      }, 1000);
+    }
+  };
+
+  const fetchRepoStats = async (repoId) => {
+    try {
+      const res = await API.backups.repoStats(repoId);
+      setRepoStats(prev => ({ ...prev, [repoId]: { status: 'ok', data: res.data } }));
+    } catch (error) {
+      setRepoStats(prev => ({ ...prev, [repoId]: { status: 'error', error: error.message || String(error) } }));
+    }
   };
 
   useEffect(() => {
