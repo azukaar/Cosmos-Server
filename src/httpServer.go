@@ -609,6 +609,8 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/backups/{name}", backups.RemoveBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/forget", backups.ForgetSnapshotRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/subfolder-restore-size", backups.StatsRepositorySubfolderRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}/unlock", backups.UnlockRepositoryRoute)
+	srapiAdmin.HandleFunc("/api/backups-repository/{name}/stats", backups.RepoStatsRoute)
 
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")

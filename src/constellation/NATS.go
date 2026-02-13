@@ -167,7 +167,6 @@ func StartNATS() {
 	
 	users := []*server.User{}
 
-	// if debug, add debug user 
 	for _, devices := range CachedDevices {
 		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + devices.APIKey)
 		username := sanitizeNATSUsername(devices.DeviceName)
@@ -211,6 +210,7 @@ func StartNATS() {
 	natsHost := device.IP
 	natsName:= device.DeviceName
 
+	// if debug, add debug user 
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		users = append(users, &server.User{
 			Username: "DEBUG",
@@ -278,8 +278,8 @@ func StartNATS() {
 			continue
 		}
 
-		if NebulaFailedStarting {
-			utils.Error("[NATS] Nebula failed to start, aborting NATS server setup retry", nil)
+		if !NebulaStarted {
+			utils.Error("[NATS] Nebula not started, aborting NATS server setup", nil)
 			return
 		}
 
@@ -330,9 +330,9 @@ func InitNATSClient() error {
 	var err error
 	retries := 0
 
-	if NebulaFailedStarting {
-		utils.Error("[NATS] Nebula failed to start, aborting NATS client connection", nil)
-		return errors.New("Nebula failed to start, aborting NATS client connection")
+	if !NebulaStarted {
+		utils.Error("[NATS] Nebula not started, aborting NATS client connection", nil)
+		return errors.New("Nebula not started, aborting NATS client connection")
 	}
 
 	utils.Log("[NATS] Connecting to NATS server...")
@@ -376,10 +376,10 @@ func InitNATSClient() error {
 			utils.MajorError("[NATS] Error connecting to Constellation NATS server after 10 tries", err)
 		}
 		
-		if NebulaFailedStarting {
-			utils.Error("[NATS] Nebula failed to start, aborting NATS client connection retry", nil)
+		if !NebulaStarted {
+			utils.Error("[NATS] Nebula not started, aborting NATS client connection retry", nil)
 			nc = nil
-			return errors.New("Nebula failed to start, aborting NATS client connection retry")
+			return errors.New("Nebula not started, aborting NATS client connection retry")
 		}
 
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
@@ -420,7 +420,7 @@ func InitNATSClient() error {
 
 	utils.Debug("[NATS] NATS client connected")
 
-	go MasterNATSClientRouter()
+	MasterNATSClientRouter()
 
 	// Initialize JetStream directly (holding write lock)
 	js, err = nc.JetStream(nats.MaxWait(10 * time.Second))

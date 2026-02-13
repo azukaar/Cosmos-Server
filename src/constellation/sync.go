@@ -247,7 +247,7 @@ func SendRequestSyncMessage() {
 
 	SendNATSMessageAllReply("cosmos._global_.constellation.data.sync-request", payloadStr, 2*time.Second, func(response string) {
 		utils.Log("Constellation: SendRequestSyncMessage: Received sync response")
-		needRestart = ReceiveSyncPayload(response) && needRestart
+		needRestart = ReceiveSyncPayload(response) || needRestart
 	})
 
 	if needRestart {
@@ -294,9 +294,11 @@ func SyncNATSClientRouter(nc *nats.Conn) {
 	
 	nc.Subscribe("cosmos._global_.constellation.data.sync-receive", func(m *nats.Msg) {
 		utils.Log("[NATS] Constellation data sync received")
-		
+
 		payload := m.Data
-		ReceiveSyncPayload((string)(payload))
+		if ReceiveSyncPayload((string)(payload)) {
+			go RestartNebula()
+		}
 
 		m.Respond([]byte("ack"))
 	})

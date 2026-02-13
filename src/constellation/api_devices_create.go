@@ -167,7 +167,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				},
 			})
 			
-			utils.ResyncConstellationNodes()
+			SendNewDBSyncMessage()
 			time.Sleep(2 * time.Second)
 			go RestartNebula()
 		} else {

@@ -9,6 +9,7 @@
  - Added trusted proxy option (Thanks @InterN0te)
  - Reduce SmartShield false positive on the server panel by having two level of strictness (UI/panel vs. login)
  - Rclone rework, no more sub processes (increased performance and reliability)
+ - Added the ability to manage Restic locks from the UI
  - Reworked Constellation cluster synchronisation completely. Now there are no more "Master" server and each server is equally capable.
  - Any server can be used as DNS (add redundancy too)
  - Any server can tunnel another server's URL in any direction

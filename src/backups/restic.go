@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 	"context"
+	"time"
 
 	"github.com/creack/pty"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -72,14 +73,12 @@ func prependResticArgs(args []string) []string {
 	return args
 }
 
-// ExecRestic executes a restic command with the given arguments and environment variables
-func ExecRestic(args []string, env []string) (string, error) {
-	args = prependResticArgs(args)
-
+// execResticRaw executes a restic command with already-prepended arguments
+func execResticRaw(args []string, env []string) (string, error) {
 	cmd := exec.Command("./restic",  args...)
 
 	utils.Debug("[Restic] Executing command: restic " + strings.Join(cmd.Args, " "))
-	
+
 	cmd.Env = append(os.Environ(), env...)
 
 	// Start the command with a pseudo-terminal
@@ -105,10 +104,10 @@ func ExecRestic(args []string, env []string) (string, error) {
 				done <- err
 				return
 			}
-			
+
 			// output.Write(buf[:n])
 			tempBuffer.Write(buf[:n])
-			
+
 			// if not in filters, write to output
 			if strings.TrimSpace(tempBuffer.String()) != filters[0] {
 				output.Write(buf[:n])
@@ -116,7 +115,7 @@ func ExecRestic(args []string, env []string) (string, error) {
 				b = stripAnsi.ReplaceAllString(b, "")
 				b = strings.TrimSuffix(b, "\n")
 			}
-			
+
 			utils.Debug("[Restic] " + tempBuffer.String())
 		}
 	}()
@@ -128,6 +127,113 @@ func ExecRestic(args []string, env []string) (string, error) {
 	}
 
 	return output.String(), nil
+}
+
+// isLockError checks if the output indicates a repository lock error
+func isLockError(output string) bool {
+	return strings.Contains(output, "repository is already locked")
+}
+
+// staleLockThreshold is the minimum age of a lock before it is automatically removed
+var staleLockThreshold = 30 * 24 * time.Hour // 1 month
+
+var lockAgeRegex = regexp.MustCompile(`lock was created at .+ \(([0-9hms.]+) ago\)`)
+
+// parseLockAge extracts the lock age from restic error output.
+// Returns 0 if the age cannot be parsed.
+func parseLockAge(output string) time.Duration {
+	matches := lockAgeRegex.FindStringSubmatch(output)
+	if len(matches) < 2 {
+		return 0
+	}
+	d, err := time.ParseDuration(matches[1])
+	if err != nil {
+		return 0
+	}
+	return d
+}
+
+type LockInfo struct {
+	Time      string `json:"time"`
+	Exclusive bool   `json:"exclusive"`
+	Hostname  string `json:"hostname"`
+	Username  string `json:"username"`
+	PID       int    `json:"pid"`
+}
+
+// GetLocks returns lock details for a repository
+func GetLocks(repository, password string) []LockInfo {
+	args := []string{"list", "locks", "--no-lock", "--repo", repository}
+	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
+
+	output, err := ExecRestic(args, env)
+	if err != nil {
+		return nil
+	}
+
+	ids := strings.Fields(strings.TrimSpace(output))
+	if len(ids) == 0 {
+		return nil
+	}
+
+	var locks []LockInfo
+	for _, id := range ids {
+		catArgs := []string{"cat", "lock", id, "--no-lock", "--repo", repository}
+		lockJSON, err := ExecRestic(catArgs, env)
+		if err != nil {
+			continue
+		}
+		var lock LockInfo
+		if err := json.Unmarshal([]byte(lockJSON), &lock); err != nil {
+			continue
+		}
+		locks = append(locks, lock)
+	}
+	return locks
+}
+
+// UnlockRepository removes locks from a restic repository
+func UnlockRepository(repository, password string) error {
+	utils.Log("[Restic] Unlocking repository: " + repository)
+	args := prependResticArgs([]string{"unlock", "--repo", repository})
+	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
+	_, err := execResticRaw(args, env)
+	return err
+}
+
+// ExecRestic executes a restic command with the given arguments and environment variables.
+// If the command fails due to a stale repository lock (older than 1 month), it automatically
+// unlocks and retries. For newer locks, the error is returned as-is so the user can decide
+// whether to unlock manually.
+func ExecRestic(args []string, env []string) (string, error) {
+	args = prependResticArgs(args)
+
+	output, err := execResticRaw(args, env)
+
+	if err != nil && isLockError(output) {
+		lockAge := parseLockAge(output)
+		if lockAge >= staleLockThreshold {
+			// Lock is very old, safe to auto-unlock
+			repo := ""
+			for i, arg := range args {
+				if arg == "--repo" && i+1 < len(args) {
+					repo = args[i+1]
+					break
+				}
+			}
+			if repo != "" {
+				utils.Log(fmt.Sprintf("[Restic] Repository has a stale lock (%s old), auto-unlocking...", lockAge))
+				unlockArgs := prependResticArgs([]string{"unlock", "--repo", repo})
+				execResticRaw(unlockArgs, env)
+				// Retry the original command
+				output, err = execResticRaw(args, env)
+			}
+		} else {
+			utils.Warn(fmt.Sprintf("[Restic] Repository is locked (lock age: %s). Use the unlock button in the UI to remove it if the lock is stale.", lockAge))
+		}
+	}
+
+	return output, err
 }
 
 // CreateRepository initializes a new Restic repository
@@ -204,25 +310,23 @@ func EditRepositoryPassword(repository, currentPassword, newPassword string) err
 
 // CheckRepository verifies if a repository exists and is valid
 func CheckRepository(repository, password string) error {
-	args := []string{"check", "--repo", repository}
+	args := []string{"check", "--no-lock", "--repo", repository}
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 
 	_, err := ExecRestic(args, env)
 	return err
 }
 
-// CheckRepository verifies if a repository exists and is valid
 func StatsRepository(repository, password string) (string,error) {
-	args := []string{"stats", "--repo", repository, "--json", "--mode", "raw-data"}
+	args := []string{"stats", "--no-lock", "--repo", repository, "--json", "--mode", "raw-data"}
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 
 	output, err := ExecRestic(args, env)
 	return output,err
 }
 
-// CheckRepository verifies if a repository exists and is valid
 func StatsRepositorySubfolder(repository, password, snapshot, path string) (string,error) {
-	args := []string{"stats", "--mode", "restore-size", "--repo", repository, "--path", path, snapshot,  "--json"}
+	args := []string{"stats", "--no-lock", "--mode", "restore-size", "--repo", repository, "--path", path, snapshot,  "--json"}
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 
 	output, err := ExecRestic(args, env)
@@ -290,7 +394,7 @@ func CreateBackupJob(config BackupConfig, crontab string) {
 			}
 
 			cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
-		
+
 			if config.AutoStopContainers {
 				// Start all containers
 				err = docker.StartContainers(containers)
@@ -377,17 +481,17 @@ func CreateRestoreJob(config RestoreConfig) {
 			Job:            func(OnLog func(string), OnFail func(error), OnSuccess func(), ctx context.Context, cancel context.CancelFunc) {
 				var containers []string
 				var err error
-	
+
 				if config.AutoStopContainers {
 					containers, err = docker.GetContainersUsingPath(config.OriginalSource)
 					if err != nil {
 						OnFail(err)
 						return
 					}
-	
+
 					OnLog("Found container(s) using path: " + strings.Join(containers, ", "))
-	
-	
+
+
 					// Stop all containers
 					err = docker.StopContainers(containers)
 					if err != nil {
@@ -395,12 +499,12 @@ func CreateRestoreJob(config RestoreConfig) {
 						OnFail(err)
 						return
 					}
-	
-					OnLog("Stopped containers, starting backup")
+
+					OnLog("Stopped containers, starting restore")
 				}
-	
+
 				cron.JobFromCommandWithEnv(env, "./restic", prependResticArgs(args)...)(OnLog, OnFail, OnSuccess, ctx, cancel)
-			
+
 				if config.AutoStopContainers {
 					// Start all containers
 					err = docker.StartContainers(containers)
@@ -419,8 +523,9 @@ func CreateRestoreJob(config RestoreConfig) {
 func ListSnapshots(repository, password string) (string, error) {
 	args := []string{
 		"snapshots",
+		"--no-lock",
 		"--repo", repository,
-		"--json",  // Use JSON format for easier parsing if needed
+		"--json",
 	}
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 
@@ -436,6 +541,7 @@ func ListSnapshots(repository, password string) (string, error) {
 func ListSnapshotsWithFilters(repository, password string, tags []string, host string, path string) (string, error) {
 	args := []string{
 		"snapshots",
+		"--no-lock",
 		"--repo", repository,
 		"--json",
 	}
@@ -465,10 +571,11 @@ func ListSnapshotsWithFilters(repository, password string, tags []string, host s
 func ListDirectory(repository, password, snapshotID, path string) (string, error) {
 	args := []string{
 		"ls",
+		"--no-lock",
 		"--repo", repository,
 		snapshotID,
 		path,
-		"--json",  // Use JSON format for easier parsing if needed
+		"--json",
 	}
 	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
 
@@ -484,6 +591,7 @@ func ListDirectory(repository, password, snapshotID, path string) (string, error
 func ListDirectoryWithFilters(repository, password, snapshotID, path string, recursive bool, longFormat bool) (string, error) {
 	args := []string{
 		"ls",
+		"--no-lock",
 		"--repo", repository,
 		snapshotID,
 		path,

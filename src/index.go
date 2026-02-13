@@ -242,8 +242,6 @@ func cosmos() {
 	
 	LoadConfig()
 
-	utils.RemovePIDFile()
-
 	utils.CheckHostNetwork()
 	
 	go CRON()

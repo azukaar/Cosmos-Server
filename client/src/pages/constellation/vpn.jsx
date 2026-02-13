@@ -122,9 +122,17 @@ export const ConstellationVPN = ({ freeVersion }) => {
       setUsers([]);
 
     if (configAsync.data.ConstellationConfig.Enabled) {
+      // Initialize device ping status to loading immediately so spinners show while waiting
+      const nonBlockedDevices = deviceList.filter((d) => !d.blocked);
+      const initialStatus = {};
+      nonBlockedDevices.forEach(device => {
+        initialStatus[device.deviceName] = 'loading';
+      });
+      setDevicePingStatus(initialStatus);
+
       setPing((await API.constellation.ping()).data ? 2 : 1);
       // Ping devices after loading
-      pingDevices(deviceList.filter((d) => !d.blocked));
+      pingDevices(nonBlockedDevices);
     }
   };
 

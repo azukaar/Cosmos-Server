@@ -137,6 +137,24 @@ function forgetNow(name: string) {
   }))
 }
 
+function unlockRepository(name: string) {
+  return wrap(fetch(`/cosmos/api/backups/${name}/unlock`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
+function repoStats(name: string) {
+  return wrap(fetch(`/cosmos/api/backups-repository/${name}/stats`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }))
+}
+
 export {
   listSnapshots,
   listFolders,
@@ -151,5 +169,7 @@ export {
   editBackup,
   backupNow,
   forgetNow,
-  subfolderRestoreSize
+  subfolderRestoreSize,
+  unlockRepository,
+  repoStats
 };

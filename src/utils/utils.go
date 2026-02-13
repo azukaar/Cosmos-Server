@@ -215,7 +215,7 @@ func FileExists(path string) bool {
 	if err == nil {
 		return true
 	}
-	Error("Reading file error: ", err)
+	Warn("File does not exist: " + path)
 	return false
 }
 
@@ -1117,11 +1117,6 @@ func ListIps(skipNebula bool) ([]string, error) {
 	return result, nil
 }
 
-func RemovePIDFile() {
-	if _, err := os.Stat(CONFIGFOLDER + "nebula.pid"); err == nil {
-		os.Remove(CONFIGFOLDER + "nebula.pid")
-	}
-}
 
 func CheckInternet() {
 	_, err := http.Get("https://www.google.com")

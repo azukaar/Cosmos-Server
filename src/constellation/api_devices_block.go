@@ -3,6 +3,7 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
+	"time"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
@@ -90,6 +91,8 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 				utils.Log("ConstellationDeviceBlocking: Device " + deviceName + " unblocked")
 			}
 			
+			SendNewDBSyncMessage()
+			time.Sleep(2 * time.Second)
 			go RestartNebula()
 		} else {
 			utils.Error("DeviceBlocking: Error while finding device", err2)

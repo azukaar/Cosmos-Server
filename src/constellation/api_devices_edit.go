@@ -95,7 +95,7 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 		"status": "OK",
 	})
 
-	utils.ResyncConstellationNodes()
-	time.Sleep(5 * time.Second) // wait for sync to complete
+	SendNewDBSyncMessage()
+	time.Sleep(2 * time.Second)
 	go RestartNebula()
 }

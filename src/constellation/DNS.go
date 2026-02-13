@@ -191,10 +191,7 @@ func InitDNS() {
 		return
 	}
 
-	utils.Log("Waiting for Constellation DNS")
-
-	ConstellationInitLock.Lock()
-	defer ConstellationInitLock.Unlock()
+	utils.Log("Initializing Constellation DNS setup")
 	
 	
 	config := utils.GetMainConfig()

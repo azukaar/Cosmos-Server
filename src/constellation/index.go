@@ -11,7 +11,7 @@ var CachedDevices = map[string]utils.ConstellationDevice{}
 var needToSyncCA = false
 
 func resyncConstellationNodes() {
-	go SendNewDBSyncMessage()
+	SendNewDBSyncMessage()
 }
 
 func GetDefaultHostnames() []string {
@@ -71,9 +71,6 @@ func Init() {
 
 	utils.ResyncConstellationNodes = resyncConstellationNodes
 
-	ConstellationInitLock.Lock()
-	defer ConstellationInitLock.Unlock()
-	
 	NebulaStarted = false
 
 	var err error
@@ -155,9 +152,10 @@ func Init() {
 
 		// start nebula
 		utils.Log("Constellation: starting nebula...")
-		err = startNebulaInBackground()
+		err = startNebula()
 		if err != nil {
 			utils.Error("Constellation: error while starting nebula", err)
+			return
 		}
 	
 		go InitDNS()

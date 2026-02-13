@@ -215,13 +215,13 @@ func UpdateLocalTunnelCache() {
 	
 	currentDeviceName, err := GetCurrentDeviceName()
 	if err != nil {
-		utils.Error("[constellation] Failed to get current device name for tunnel cache update", err)
+		utils.Warn("[constellation] Failed to get current device name for tunnel cache update: " + err.Error())
 		return
 	}
 
 	err = ClientConnectToJS()
 	if err != nil {
-		utils.Error("[NATS] Error connecting to JetStream during tunnel cache update", err)
+		utils.Warn("[NATS] Error connecting to JetStream during tunnel cache update: " + err.Error())
 		return
 	}
 
@@ -229,7 +229,7 @@ func UpdateLocalTunnelCache() {
 	clientConfigLock.RLock()
 	if js == nil {
 		clientConfigLock.RUnlock()
-		utils.Error("[NATS] JetStream context is nil during tunnel cache update", nil)
+		utils.Warn("[NATS] JetStream context is nil during tunnel cache update")
 		return
 	}
 

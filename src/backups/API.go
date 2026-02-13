@@ -439,50 +439,65 @@ func ListRepos(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {
 		config := utils.GetMainConfig()
-		repos := map[string]utils.SingleBackupConfig{}
+		seen := map[string]bool{}
 		results := map[string]interface{}{}
 
 		for _, backup := range config.Backup.Backups {
-			found := false
-			if _, exists := repos[backup.Repository]; exists {
-				found = true
+			if seen[backup.Repository] {
+				continue
 			}
-			
-			if !found {
-				repos[backup.Repository] = backup
+			seen[backup.Repository] = true
 
-				output, err := StatsRepository(backup.Repository, backup.Password)
-				if err != nil {
-					utils.Error("ListRepos: Failed to get repository stats", err)
-					results[backup.Repository] = map[string]interface{}{
-						"status": "error",
-						"id": backup.Name,
-						"error": err.Error(),
-					}
-				} else {
-					var outputJSON map[string]interface{}
-					if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
-						utils.Error("ListRepos: Failed to parse repository stats", err)
-						results[backup.Repository] = map[string]interface{}{
-							"status": "error",
-							"id": backup.Name,
-							"error": err.Error(),
-						}
-					} else {
-						results[backup.Repository] = map[string]interface{}{
-							"status": "ok",
-							"id": backup.Name,
-							"stats": outputJSON,
-							"path": backup.Repository,
-						}
-					}
-				}
+			locks := GetLocks(backup.Repository, backup.Password)
+			results[backup.Repository] = map[string]interface{}{
+				"status": "ok",
+				"id":     backup.Name,
+				"path":   backup.Repository,
+				"locks":  locks,
 			}
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data":	 results,
+			"data":   results,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		backup, exists := utils.GetMainConfig().Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		output, err := StatsRepository(backup.Repository, backup.Password)
+		if err != nil {
+			utils.Error("RepoStats: Failed to get repository stats", err)
+			utils.HTTPError(w, "Failed to get repository stats: "+err.Error(), http.StatusInternalServerError, "BCK013")
+			return
+		}
+
+		var outputJSON map[string]interface{}
+		if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
+			utils.Error("RepoStats: Failed to parse repository stats", err)
+			utils.HTTPError(w, "Failed to parse repository stats: "+err.Error(), http.StatusInternalServerError, "BCK014")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   outputJSON,
 		})
 	} else {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
@@ -557,6 +572,37 @@ func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data":	 outputJSON,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+func UnlockRepositoryRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.AdminOnly(w, req) != nil {
+		return
+	}
+
+	if req.Method == "POST" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		backup, exists := utils.GetMainConfig().Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		err := UnlockRepository(backup.Repository, backup.Password)
+		if err != nil {
+			utils.Error("UnlockRepository: Failed to unlock repository", err)
+			utils.HTTPError(w, "Failed to unlock repository: "+err.Error(), http.StatusInternalServerError, "BCK012")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "OK",
+			"message": fmt.Sprintf("Unlocked repository for backup %s", name),
 		})
 	} else {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
