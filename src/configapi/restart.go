@@ -15,7 +15,7 @@ func ConfigApiRestart(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})
-		utils.RestartServer()
+		utils.RestartServer(0)
 	} else {
 		utils.Error("Restart: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

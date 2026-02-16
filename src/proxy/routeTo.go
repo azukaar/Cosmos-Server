@@ -16,6 +16,8 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/constellation"
+
+	"golang.org/x/net/http2"
 )
 
 
@@ -58,56 +60,59 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 	var transport http.RoundTripper
 	var targetURL *url.URL
 	var err error
-
-	// if strings.HasPrefix(targetHost, "http://unix://") {
-	// 	// Unix socket handling
-	// 	socketPath := strings.TrimPrefix(targetHost, "http://unix://")
-	// 	transport = &http.Transport{
-	// 		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-	// 			return net.Dial("unix", socketPath)
-	// 		},
-	// 	}
-	// 	// Use a dummy URL for the director
-	// 	targetURL, _ = url.Parse("http://unix-socket")
-	// } else {
-		// Regular HTTP/HTTPS handling
 		
-		targetURL, err = url.Parse(targetHost)
-		if err != nil {
-			return nil, err
-		}
+	targetURL, err = url.Parse(targetHost)
+	if err != nil {
+		return nil, err
+	}
 
-		customTransport := &http.Transport{}
+	dialer := &net.Dialer{
+		Timeout:   5 * time.Second,
+		KeepAlive: 5 * time.Second,
+	}
 
-		if constellation.ConstellationConnected() {
-			currIp, err := constellation.GetCurrentDeviceIP()
-			if err != nil {
-				utils.Error("Custom tunnel transport", err)
-			} else {
-				customTransport.DialContext = (&net.Dialer{
-					Timeout:   5 * time.Second,
-					KeepAlive: 5 * time.Second,
-					Resolver: &net.Resolver{
-						PreferGo: true,
-						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-							return net.Dial(network, currIp + ":53")
-						},
-					},
-				}).DialContext
+	if utils.GetMainConfig().ConstellationConfig.Enabled {
+			dialer.Resolver = &net.Resolver{                                            
+				PreferGo: true,                                                         
+				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {    
+					currConIp, err := constellation.GetCurrentDeviceIP()
+					if err == nil {
+						// Try Constellation DNS first
+						conn, err := net.Dial(network, currConIp+":53")
+						if err == nil {
+							return conn, nil
+						}
+					} 
+
+					// Fallback to system DNS
+					return net.Dial(network, address)
+				},
 			}
-		}
+			
+	}
 
+	if route.UseH2C {
+		transport = &http2.Transport{
+			AllowHTTP: true,
+			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, addr)
+			},
+		}
+	} else {
+		customTransport := &http.Transport{
+			DialContext: dialer.DialContext,
+		}
 		if AcceptInsecureHTTPSTarget {
 			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		}
-
 		transport = customTransport
-	// }
+	}
 
 	proxy := &httputil.ReverseProxy{
-		Transport: transport,
+		Transport:     transport,
+		FlushInterval: -1,
 	}
-	
+
 	proxy.Director = func(req *http.Request) {
 		originalScheme := "http"
 		if utils.IsHTTPS {

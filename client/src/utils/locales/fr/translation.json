@@ -217,7 +217,6 @@
   "mgmt.config.security.geoBlockSelection.varBlock": "bloquer",
   "mgmt.config.security.geoblock.resetToDefaultButton": "Réinitialiser par défaut (pays les plus dangereux)",
   "mgmt.config.security.invertBlacklistCheckbox.invertBlacklistLabel": "Utiliser la liste comme liste blanche au lieu de liste noire",
-  "mgmt.config.security.trustedProxiesInput.trustedProxiesLabel": "Les proxies de confiance autorisent X-Forwarded-For depuis une IP/plage d'IP",
   "mgmt.config.security.trustedProxiesInput.trustedProxiesHelperText": "Liste d'IPs/plages d'IPs séparées par des virgules des proxies en amont auxquels on fait confiance pour fournir l'IP réelle du client via l'en-tête X-Forwarded-For",
   "mgmt.constellation.dns.resetButton": "Réinitialiser",
   "mgmt.constellation.dnsBlocklistsTitle": "Listes de blocage DNS",

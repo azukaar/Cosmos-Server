@@ -439,13 +439,13 @@ func SaveConfigTofile(config Config) {
 	Log("Config file saved.")
 }
 
-func RestartServer() {
+func RestartServer(code int) {
 	Log("Restarting server...")
 	WaitForAllJobs()
 	if StopAllRCloneProcess != nil {
 		StopAllRCloneProcess(false)
 	}
-	os.Exit(0)
+	os.Exit(code)
 }
 
 func SoftRestartServer() {
@@ -897,10 +897,63 @@ func GetClientIP(req *http.Request) string {
 	return remoteAddr
 }
 
+var (
+	trustedProxyURLCache     = map[string][]string{}
+	trustedProxyURLCacheLock sync.Mutex
+)
+
+func fetchIPRangesFromURL(url string) ([]string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var ranges []string
+	for _, line := range strings.Split(string(body), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			ranges = append(ranges, line)
+		}
+	}
+	return ranges, nil
+}
+
+func getTrustedProxyRanges(url string) []string {
+	trustedProxyURLCacheLock.Lock()
+	defer trustedProxyURLCacheLock.Unlock()
+
+	if cached, ok := trustedProxyURLCache[url]; ok {
+		return cached
+	}
+
+	ranges, err := fetchIPRangesFromURL(url)
+	if err != nil {
+		Error("IsTrustedProxy: failed to fetch URL "+url, err)
+		return nil
+	}
+
+	trustedProxyURLCache[url] = ranges
+	return ranges
+}
+
 func IsTrustedProxy(ip string) bool {
 	for _, trustedProxy := range GetMainConfig().HTTPConfig.TrustedProxies {
-		if isInRange, _ := IPInRange(ip, trustedProxy); isInRange {
-			return true
+		if strings.HasPrefix(trustedProxy, "http://") || strings.HasPrefix(trustedProxy, "https://") {
+			for _, r := range getTrustedProxyRanges(trustedProxy) {
+				if isInRange, _ := IPInRange(ip, r); isInRange {
+					return true
+				}
+			}
+		} else {
+			if isInRange, _ := IPInRange(ip, trustedProxy); isInRange {
+				return true
+			}
 		}
 	}
 	return false

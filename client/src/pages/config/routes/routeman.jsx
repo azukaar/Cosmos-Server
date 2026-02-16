@@ -81,6 +81,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           UseHost: routeConfig.UseHost,
           Host: routeConfig.Host,
           AcceptInsecureHTTPSTarget: routeConfig.AcceptInsecureHTTPSTarget === true,
+          UseH2C: routeConfig.UseH2C === true,
           UsePathPrefix: routeConfig.UsePathPrefix,
           PathPrefix: routeConfig.PathPrefix,
           StripPathPrefix: routeConfig.StripPathPrefix,
@@ -390,7 +391,14 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         name="SkipURLClean"
                         label={t('mgmt.urls.edit.advancedSettings.skipURLCleanCheckbox.skipURLCleanLabel')}
                         formik={formik}
-                      /></>}
+                      />
+
+                      {(formik.values.Mode === "SERVAPP" || formik.values.Mode === "PROXY") && <CosmosCheckbox
+                        name="UseH2C"
+                        label={t('mgmt.urls.edit.useH2CCheckbox.useH2CLabel')}
+                        formik={formik}
+                      />}
+                      </>}
 
                       <Alert severity='warning'>
                         {t('mgmt.urls.edit.advancedSettings.filterIpWarning')}
