@@ -20,6 +20,7 @@ import (
 		"os"
 		"net"
 		"strings"
+		"path"
 		"github.com/go-chi/httprate"
 		"crypto/tls"
 		"github.com/foomo/tlsconfig"
@@ -446,6 +447,23 @@ func InitServer() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true).SkipClean(true)
 
+	// Clean paths for API routes before mux routing.
+	// SkipClean(true) is needed for proxy routes, but API routes use exact
+	// segment matching so double slashes cause 404s.
+	// router.Use runs after the main router matches but before subrouters match,
+	// so this cleans the path in time for API subrouter matching.
+	router.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/cosmos/") || strings.HasPrefix(r.URL.Path, "/cosmos-ui/") {
+				cleaned := path.Clean(r.URL.Path)
+				if cleaned != r.URL.Path {
+					r.URL.Path = cleaned
+				}
+			}
+			next.ServeHTTP(w, r)
+		})
+	})
+
 	router.Use(utils.ClientRealIP)
 
 	router.Use(utils.BlockBannedIPs)
@@ -474,7 +492,6 @@ func InitServer() *mux.Router {
 
 	srapiStrict := router.PathPrefix("/cosmos").Subrouter()
 	srapiStrict.Use(utils.ContentTypeMiddleware("application/json"))
-
 	
 	srapiStrict.HandleFunc("/api/login", user.UserLogin)
 	srapiStrict.HandleFunc("/api/sudo", user.UserSudo)
@@ -636,6 +653,10 @@ func InitServer() *mux.Router {
 	}
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
+	
+	srapi.Use(proxy.CleanPathMiddleware)
+	srapiStrict.Use(proxy.CleanPathMiddleware)
+	srapiAdmin.Use(proxy.CleanPathMiddleware)
 
 	srapi.Use(utils.SetSecurityHeaders)
 	srapiStrict.Use(utils.SetSecurityHeaders)

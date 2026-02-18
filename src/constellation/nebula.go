@@ -138,15 +138,18 @@ func startNebula() error {
 	if err != nil {
 		utils.Error("failed to create nebula instance, need to restart the process", err)
 		
-		// TODO: need a way to avoid restart loops (check if Nebula ever started?)
-		// We need a full restart
-		// utils.RestartServer(1)
+		// Nebula restart failure, we need to kill the process for OS cleanup
+		// Check that Nebula has ever started to avoid restart loop
+		if NebulaHasStarted {
+			utils.RestartServer(1)
+		}
 	}
 
 	// Actually start the nebula service (brings up TUN interface)
 	control.Start()
 
 	NebulaStarted = true
+	NebulaHasStarted = true
 
 	utils.Log("Constellation: nebula started successfully")
 	return nil

@@ -17,7 +17,7 @@ import (
 )
 
 // Borrowed from the net/http package. (Thanks mux!)
-func cleanPathMiddleware(next http.Handler) http.Handler {
+func CleanPathMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		p := r.URL.Path
 		if p == "" {
@@ -234,7 +234,7 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	destination = tokenMiddleware(route)(utils.SetCosmosHeader(destination))
 
 	if !route.SkipURLClean {
-		destination = cleanPathMiddleware(destination)
+		destination = CleanPathMiddleware(destination)
 	}
 
 	origin.Handler(destination)

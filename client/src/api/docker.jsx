@@ -23,6 +23,11 @@ function getContainerLogs(containerId, searchQuery, limit, lastReceivedLogs, err
 
   if(limit < 50) limit = 50;
 
+  // remove starting / from containerId
+  if(containerId.startsWith('/')) {
+    containerId = containerId.substring(1);
+  }
+
   const queryParams = new URLSearchParams({
     search: searchQuery || "",
     limit: limit || "",

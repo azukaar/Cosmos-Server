@@ -6,6 +6,7 @@ import (
 )
 
 var NebulaStarted = false
+var NebulaHasStarted = false
 var CachedDeviceNames = map[string]string{}
 var CachedDevices = map[string]utils.ConstellationDevice{}
 var needToSyncCA = false
