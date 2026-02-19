@@ -12,23 +12,28 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"io/ioutil"
-	"io"
-	"net"
+	"strconv"
 	"encoding/json"
+	"io"
 	"time"
+	"syscall"
 
 	"github.com/natefinch/lumberjack"
-	"github.com/sirupsen/logrus"
-	"github.com/slackhq/nebula"
-	nebulaConfig "github.com/slackhq/nebula/config"
 )
 
 var logBuffer *lumberjack.Logger
 
 var (
-	control    *nebula.Control
-	nebulaLock sync.Mutex
+	process    *exec.Cmd
+	ProcessMux sync.Mutex
 )
+
+func binaryToRun() string {
+	if runtime.GOARCH == "arm" || runtime.GOARCH == "arm64" {
+		return "./nebula-arm"
+	}
+	return "./nebula"
+}
 
 func certBinaryToRun() string {
 	if runtime.GOARCH == "arm" || runtime.GOARCH == "arm64" {
@@ -37,36 +42,13 @@ func certBinaryToRun() string {
 	return "./nebula-cert"
 }
 
-// cosmosLogHook is a logrus hook that routes nebula log output to the Cosmos logging system
-type cosmosLogHook struct {
-	logBuffer *lumberjack.Logger
-}
-
-func (h *cosmosLogHook) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
-
-func (h *cosmosLogHook) Fire(entry *logrus.Entry) error {
-	line, err := entry.String()
-	if err != nil {
-		return err
-	}
-	// Route to Cosmos VPN logger (parses level= from the formatted line)
-	utils.VPNWithLevel(line)
-	// Write to nebula.log file
-	if h.logBuffer != nil {
-		h.logBuffer.Write([]byte(line))
-	}
-	return nil
-}
-
 func startNebula() error {
-	nebulaLock.Lock()
-	defer nebulaLock.Unlock()
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
 
 	utils.Log("Starting nebula sub-process...")
 
-	if control != nil {
+	if process != nil {
 		return errors.New("nebula is already running")
 	}
 
@@ -101,94 +83,167 @@ func startNebula() error {
 	AdjustDNS(logBuffer)
 	ExportLighthouseFromDB()
 
-	// Read the final config
-	configData, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula-temp.yml")
-	if err != nil {
-		return fmt.Errorf("failed to read nebula-temp.yml: %w", err)
-	}
-
-	// Create logrus logger with Cosmos hook
-	l := logrus.New()
-	l.SetOutput(ioutil.Discard) // suppress default output, hook handles it
-	l.SetLevel(logrus.DebugLevel)
-	l.AddHook(&cosmosLogHook{logBuffer: logBuffer})
-
-	// Load nebula config
-	c := nebulaConfig.NewC(l)
-	err = c.LoadString(string(configData))
-	if err != nil {
-		return fmt.Errorf("failed to load nebula config: %w", err)
-	}
-
-	// Create nebula instance (retry to handle TUN device not yet released by kernel)
-	for i := 0; i < 10; i++ {
-		control, err = nebula.Main(c, false, "", l, nil)
-		if err == nil {
-			break
-		} else {
-			utils.Warn("Failed to create nebula instance, retrying... Error was: " + err.Error())
-		}
-		if i < 9 {
-			time.Sleep(1 * time.Second)
-			// Reload config for each retry since NewC is consumed
-			c = nebulaConfig.NewC(l)
-			c.LoadString(string(configData))
-		}
-	}
-	if err != nil {
-		utils.Error("failed to create nebula instance, need to restart the process", err)
-		
-		// Nebula restart failure, we need to kill the process for OS cleanup
-		// Check that Nebula has ever started to avoid restart loop
-		if NebulaHasStarted {
-			utils.RestartServer(1)
+	// Handle existing PID file
+	pidFile := utils.CONFIGFOLDER + "nebula.pid"
+	if _, err := os.Stat(pidFile); err == nil {
+		if err := killExistingProcess(pidFile); err != nil {
+			utils.Error("Constellation: Failed to kill existing process", err)
+			// Continue execution as the process might not exist anymore
 		}
 	}
 
-	// Actually start the nebula service (brings up TUN interface)
-	control.Start()
+	// Create and configure the process
+	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula-temp.yml")
 
+	// Setup stdout and stderr pipes
+	stdout, err := process.StdoutPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stdout pipe: %s", err)
+	}
+	stderr, err := process.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("failed to create stderr pipe: %s", err)
+	}
+
+	// Start the process
+	if err := process.Start(); err != nil {
+		return fmt.Errorf("failed to start nebula: %s", err)
+	}
+
+	// Handle process output
+	go handleProcessOutput(stdout, stderr, logBuffer)
+
+	// Set process state
 	NebulaStarted = true
 	NebulaHasStarted = true
 
-	utils.Log("Constellation: nebula started successfully")
+	// Monitor process
+	go monitorNebulaProcess(process)
+
+	// Save PID
+	if err := savePID(process.Process.Pid); err != nil {
+		utils.Error("Constellation: Error writing PID file", err)
+		// Don't return error as process is already running
+	}
+
+	utils.Log(fmt.Sprintf("%s started with PID %d", binaryToRun(), process.Process.Pid))
 	return nil
 }
 
-func stop() {
-	// Grab control reference and clear state under lock, then shut down outside the lock
-	// to avoid holding nebulaLock during a potentially slow shutdown.
-	nebulaLock.Lock()
-	ctrl := control
-	control = nil
-	NebulaStarted = false
-	nebulaLock.Unlock()
-
-	if ctrl != nil {
-		ctrl.Stop()
-
-		// After ctrl.Stop() closes the socket FDs, nebula's ListenOut goroutine
-		// may still be blocked in a raw recvmsg() syscall. The kernel keeps the
-		// socket alive (and port bound) as long as recvmsg holds a reference via
-		// fdget(). Send a dummy UDP packet to wake up the blocked goroutine so it
-		// can detect the closed FD and exit, releasing the port.
-		wakeConn, err := net.Dial("udp4", "127.0.0.1:4242")
-		if err == nil {
-			wakeConn.Write([]byte{0})
-			wakeConn.Close()
-		}
-
-		// Wait for the TUN device to be released by the kernel
-		for i := 0; i < 50; i++ {
-			if _, err := net.InterfaceByName("nebula1"); err != nil {                                                                  
-                utils.Log("Nebula TUN device released")                 
-				break // interface is gone
+func handleProcessOutput(stdout, stderr io.ReadCloser, logBuffer *lumberjack.Logger) {
+	// Handle stdout
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			utils.VPNWithLevel(line)
+			if _, err := logBuffer.Write([]byte(line + "\n")); err != nil {
+				utils.Error("Failed to write to log buffer", err)
 			}
-			time.Sleep(500 * time.Millisecond)
 		}
-		utils.Log("Stopped nebula.")
+	}()
+
+	// Handle stderr
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			line := scanner.Text()
+			utils.Error("Nebula error", errors.New(line))
+			if _, err := logBuffer.Write([]byte("ERROR: " + line + "\n")); err != nil {
+				utils.Error("Failed to write to log buffer", err)
+			}
+		}
+	}()
+}
+
+func killExistingProcess(pidFile string) error {
+	pidBytes, err := ioutil.ReadFile(pidFile)
+	if err != nil {
+		return fmt.Errorf("error reading pid file: %w", err)
 	}
 
+	pidInt, err := strconv.Atoi(strings.TrimSpace(string(pidBytes)))
+	if err != nil {
+		return fmt.Errorf("invalid pid format: %w", err)
+	}
+
+	proc, err := os.FindProcess(pidInt)
+	if err != nil {
+		return fmt.Errorf("error finding process: %w", err)
+	}
+
+	if err := proc.Kill(); err != nil {
+		return fmt.Errorf("error killing process: %w", err)
+	}
+
+	// Clean up PID file
+	if err := os.Remove(pidFile); err != nil {
+		utils.Error("Failed to remove old PID file", err)
+		// Continue as this is not critical
+	}
+
+	return nil
+}
+
+func savePID(pid int) error {
+	pidFile := utils.CONFIGFOLDER + "nebula.pid"
+	pidContent := []byte(fmt.Sprintf("%d", pid))
+
+	if err := ioutil.WriteFile(pidFile, pidContent, 0644); err != nil {
+		return fmt.Errorf("failed to write PID file: %w", err)
+	}
+
+	return nil
+}
+
+func monitorNebulaProcess(proc *exec.Cmd) {
+	err := proc.Wait()
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() && status.Signal() == syscall.SIGKILL {
+				utils.Warn("Constellation process killed.")
+			} else {
+				utils.MajorError("Constellation process exited with an error. See logs", exitErr)
+			}
+		} else {
+			utils.MajorError("Constellation process exited with an error. See logs", err)
+		}
+	}
+
+	// The process has stopped, so update the global state
+	// Only clear state if this is still the active process (a new one may have been started)
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
+	process = nil
+	NebulaStarted = false
+}
+
+func stop() {
+	ProcessMux.Lock()
+	defer ProcessMux.Unlock()
+
+	if process != nil {
+		if err := process.Process.Kill(); err != nil {
+			utils.Error("Failed to kill nebula process", err)
+		}
+		// wait for process to be nil
+
+		ProcessMux.Unlock()
+		for process != nil {
+			time.Sleep(100 * time.Millisecond)
+			utils.Debug("CCIAJHSODLJALSD")
+		}
+		ProcessMux.Lock()
+
+		utils.Log("Stopped nebula.")
+
+		// remove PID file
+		if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+			os.Remove(utils.CONFIGFOLDER + "nebula.pid")
+		}
+	}
+
+	NebulaStarted = false
 	cachedCurrentDevice = nil
 	CachedDevices = map[string]utils.ConstellationDevice{}
 	CachedDeviceNames = map[string]string{}
@@ -437,7 +492,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	} else {
 		return "", errors.New("listen not found in nebula.yml")
 	}
-
 
 	configMap["cstln_device_name"] = name
 	configMap["cstln_public_hostname"] = device.PublicHostname

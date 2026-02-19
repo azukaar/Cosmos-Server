@@ -383,8 +383,10 @@ func InitNATSClient() error {
 			nc = nil
 			return errors.New("Nebula not started, aborting NATS client connection retry")
 		}
-
+		
+		clientConfigLock.Unlock()
 		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+		clientConfigLock.Lock()
 
 		if !NebulaStarted {
 			retries++
@@ -461,7 +463,7 @@ func ClientConnectToJS() error {
     }
 
     var err error
-    js, err = nc.JetStream(nats.MaxWait(10 * time.Second))
+    js, err = nc.JetStream(nats.MaxWait(6 * time.Second))
     if err != nil {
         return fmt.Errorf("error getting JetStream context: %w", err)
     }
@@ -486,13 +488,18 @@ func CloseNATSClient() {
 
 	StopHeartbeat()
 
+	utils.Debug("[NATS] Closing NATS client connection")
+
 	clientConfigLock.Lock()
 	defer clientConfigLock.Unlock()
+
+	utils.Debug("[NATS] NATS client connection closed")
 
 	if nc != nil {
 		nc.Close()
 		nc = nil
 	}
+
 	js = nil
 }
 

@@ -87,7 +87,7 @@ func API_Restart(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "GET") {
 		RestartNebula()
-		utils.RestartHTTPServer()
+		go utils.RestartHTTPServer()
 
 		utils.Log("Constellation: nebula restarted")
 		
