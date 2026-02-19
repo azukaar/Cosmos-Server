@@ -167,9 +167,11 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				},
 			})
 			
-			SendNewDBSyncMessage()
-			time.Sleep(2 * time.Second)
-			go RestartNebula()
+			go func() {
+				SendNewDBSyncMessage()
+				time.Sleep(2 * time.Second)
+				RestartNebula()
+			}()
 		} else {
 			utils.Error("DeviceCreation: Error creating device", err)
 			utils.HTTPError(w, "Device Creation Error: " + err.Error(),

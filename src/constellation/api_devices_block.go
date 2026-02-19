@@ -91,9 +91,11 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 				utils.Log("ConstellationDeviceBlocking: Device " + deviceName + " unblocked")
 			}
 			
-			SendNewDBSyncMessage()
-			time.Sleep(2 * time.Second)
-			go RestartNebula()
+			go func() {
+				SendNewDBSyncMessage()
+				time.Sleep(2 * time.Second)
+				RestartNebula()
+			}()
 		} else {
 			utils.Error("DeviceBlocking: Error while finding device", err2)
 			utils.HTTPError(w, "Device Creation Error: " + err2.Error(),

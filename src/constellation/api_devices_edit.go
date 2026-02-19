@@ -95,7 +95,9 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 		"status": "OK",
 	})
 
-	SendNewDBSyncMessage()
-	time.Sleep(2 * time.Second)
-	go RestartNebula()
+	go func() {
+		SendNewDBSyncMessage()
+		time.Sleep(2 * time.Second)
+		RestartNebula()
+	}()
 }

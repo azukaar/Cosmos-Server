@@ -271,7 +271,7 @@ func SendNewDBSyncMessage() {
 		return
 	}
 
-	_, err := SendNATSMessage("cosmos._global_.constellation.data.sync-receive", payload)
+	err := PublishNATSMessage("cosmos._global_.constellation.data.sync-receive", payload)
 
 	if err != nil {
 		utils.Error("Constellation: SendNewDBSyncMessage: Failed to send request", err)

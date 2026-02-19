@@ -447,21 +447,15 @@ func InitServer() *mux.Router {
 
 	router := mux.NewRouter().StrictSlash(true).SkipClean(true)
 
-	// Clean paths for API routes before mux routing.
-	// SkipClean(true) is needed for proxy routes, but API routes use exact
-	// segment matching so double slashes cause 404s.
-	// router.Use runs after the main router matches but before subrouters match,
-	// so this cleans the path in time for API subrouter matching.
-	router.Use(func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if strings.HasPrefix(r.URL.Path, "/cosmos/") || strings.HasPrefix(r.URL.Path, "/cosmos-ui/") {
-				cleaned := path.Clean(r.URL.Path)
-				if cleaned != r.URL.Path {
-					r.URL.Path = cleaned
-				}
+	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/cosmos/") || strings.HasPrefix(r.URL.Path, "/cosmos-ui/") {
+			cleaned := path.Clean(r.URL.Path)
+			if cleaned != r.URL.Path {
+				http.Redirect(w, r, cleaned, http.StatusPermanentRedirect)
+				return
 			}
-			next.ServeHTTP(w, r)
-		})
+		}
+		http.NotFound(w, r)
 	})
 
 	router.Use(utils.ClientRealIP)

@@ -372,8 +372,10 @@ func InitNATSClient() error {
 	)
 
 	for err != nil {
-		if retries == 10 {
+		if retries >= 10 {
 			utils.MajorError("[NATS] Error connecting to Constellation NATS server after 10 tries", err)
+			nc = nil
+			return err
 		}
 		
 		if !NebulaStarted {
