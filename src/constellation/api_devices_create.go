@@ -229,7 +229,7 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 
 	// Device name and IP are both available, proceed with creation
 	{
-		cert, key, fingerprint, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
+		cert, key, fingerprint, err := generateNebulaCert(deviceName, deviceName, request.IP, request.PublicKey, false)
 
 		if err != nil {
 			return "", "", "", DeviceCreateRequestJSON{}, err

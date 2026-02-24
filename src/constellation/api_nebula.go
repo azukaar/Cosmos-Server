@@ -61,7 +61,7 @@ func API_GetConfig(w http.ResponseWriter, req *http.Request) {
 
 	if(req.Method == "GET") {
 		// read utils.CONFIGFOLDER + "nebula.yml"
-		config, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		config, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula-temp.yml")
 
 		if err != nil {
 			utils.Error("SettingGet: error while reading nebula.yml", err)

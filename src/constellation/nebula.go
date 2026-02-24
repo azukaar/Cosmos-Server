@@ -370,7 +370,7 @@ func ExportDefaultConfigToYAML(outputPath string) error {
 		if hostname != "" {
 			hostnames = append(hostnames, hostname + ":4242")
 		}
-	}
+	}	
 
 	// Marshal the combined config to YAML
 	yamlData, err := yaml.Marshal(finalConfig)
@@ -629,15 +629,15 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 	return strValue, nil
 }
 
-func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
+func generateNebulaCert(name, filename, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
 
 	ip = ip + "/24"
 
 	// Read the generated certificate and key files
-	certPath := fmt.Sprintf("./%s.crt", name)
-	keyPath := fmt.Sprintf("./%s.key", name)
+	certPath := fmt.Sprintf("./%s.crt", filename)
+	keyPath := fmt.Sprintf("./%s.key", filename)
 
 
 	// if the temp exists, delete it
@@ -738,10 +738,10 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 	}
 
 	if saveToFile {
-		cmd = exec.Command("mv", certPath, utils.CONFIGFOLDER + name + ".crt")
+		cmd = exec.Command("mv", certPath, utils.CONFIGFOLDER + filename + ".crt")
 		utils.Debug(cmd.String())
 		cmd.Run()
-		cmd = exec.Command("mv", keyPath, utils.CONFIGFOLDER + name + ".key")
+		cmd = exec.Command("mv", keyPath, utils.CONFIGFOLDER + filename + ".key")
 		utils.Debug(cmd.String())
 		cmd.Run()
 	} else {

@@ -62,21 +62,27 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// check if ca.crt exists
-		if _, err = os.Stat(utils.CONFIGFOLDER + "ca.crt"); os.IsNotExist(err) {
-			utils.Log("Constellation: ca.crt not found, generating...")
-			// generate ca.crt
-
-			errG := generateNebulaCACert("Cosmos - " + request.Hostname)
-			if errG != nil {
-				utils.Error("Constellation: error while generating ca.crt", errG)
+		if _, errCA := os.Stat(utils.CONFIGFOLDER + "ca.crt"); errCA == nil {
+			utils.Log("Constellation: ca.crt found, deleting...")
+			// delete ca.crt
+			errD := os.Remove(utils.CONFIGFOLDER + "ca.crt")
+			if errD != nil {
+				utils.Error("Constellation: error while deleting ca.crt", errD)
 			}
+			os.Remove(utils.CONFIGFOLDER + "ca.key")
+		}
+
+		errG := generateNebulaCACert("Cosmos - " + request.Hostname)
+		if errG != nil {
+			utils.Error("Constellation: error while generating ca.crt", errG)
 		}
 
 		ip := GetNextAvailableIP(request.IPRange)
 
 		utils.Log("Constellation: cosmos.crt generating with ip " + ip)
+		
 		// generate cosmos.crt
-		_,_,_,errG := generateNebulaCert("cosmos", ip, "", true)
+		_,_,_,errG = generateNebulaCert(request.DeviceName, "cosmos", ip, "", true)
 		if errG != nil {
 			utils.Error("Constellation: error while generating cosmos.crt", errG)
 		}

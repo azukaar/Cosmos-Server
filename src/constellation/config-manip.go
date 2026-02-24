@@ -592,6 +592,9 @@ func ExportLighthouseFromDB() error {
 	}
 	lighthouseMap["hosts"] = lighthouses
 
+	// set am_lighthouse
+	lighthouseMap["am_lighthouse"] = currentDevice.IsLighthouse
+
 	// Update relay.relays
 	relayMap, ok := configMap["relay"].(map[interface{}]interface{})
 	if !ok {
