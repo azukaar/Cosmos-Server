@@ -331,6 +331,28 @@ func GetAllDevicesEvenBlocked() ([]utils.ConstellationDevice, error) {
 	return devices, nil
 }
 
+func GetAllDevices() ([]utils.ConstellationDevice, error) {
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+    defer closeDb()
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": false,
+	})
+	defer cursor.Close(nil)
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
+}
+
 func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
     defer closeDb()
@@ -414,7 +436,8 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", err
 	}
 
-	lh, err := GetAllLightHouses()
+	// get all devices
+	devices, err := GetAllDevices()
 	if err != nil {
 		return "", err
 	}
@@ -431,8 +454,12 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			}
 		}
 
-		for _, l := range lh {
+		for _, l := range devices {
 			staticHostMap[cleanIp(l.IP)] = []string{}
+
+			if l.PublicHostname == "" {
+				continue
+			}
 
 			for _, hostname := range strings.Split(l.PublicHostname, ",") {
 				if device.IP == l.IP {
@@ -444,6 +471,11 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		}
 	} else {
 		return "", errors.New("static_host_map not found in nebula.yml")
+	}
+
+	lh, err := GetAllLightHouses()
+	if err != nil {
+		return "", err
 	}
 
 	// set lightHouse
