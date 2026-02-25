@@ -941,21 +941,23 @@ func populateIPTableMasquerade() {
 			utils.Error("Constellation: Failed to check existing iptables rules", err)
 			// Continue anyway
 		}
-		
-		// Remove rules with our comment marker from nat table (IP range might have changed)
-		cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
-		if err := cmd.Run(); err != nil {
-			utils.Error("Constellation: Error removing NAT rules", err)
-		} else {
-			utils.Log("Constellation: NAT rules removed")
-		}
 
-		// Remove rules with our comment marker from filter table
-		cmd = exec.Command("sh", "-c", "iptables-save | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables")
-		if err := cmd.Run(); err != nil {
-			utils.Error("Constellation: Error removing FORWARD rules", err)
-		} else {
-			utils.Log("Constellation: FORWARD rules removed")
+		if strings.Contains(rules, "COSMOS-CLOUD-EXIT-NODE") {
+			// Remove rules with our comment marker from nat table (IP range might have changed)
+			cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Error removing NAT rules", err)
+			} else {
+				utils.Log("Constellation: NAT rules removed")
+			}
+
+			// Remove rules with our comment marker from filter table
+			cmd = exec.Command("sh", "-c", "iptables-save | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables")
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Error removing FORWARD rules", err)
+			} else {
+				utils.Log("Constellation: FORWARD rules removed")
+			}
 		}
 
 		// Add iptables rules with comment markers

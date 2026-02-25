@@ -65,9 +65,9 @@ const PremiumSalesPage = ({salesKey, extra}) => {
   const discountedLifePrice = (lifePrice * 0.85).toFixed(2);
 
 
-  const monthlyLink = "https://buy.stripe.com/5kAbMN4qrbkVcBGcMR?prefilled_promo_code=EARLY15";
-  const yearlyLink = "https://buy.stripe.com/cN2bMN9KLbkV59e9AE?prefilled_promo_code=EARLY15";
-  const lifeLink = "https://buy.stripe.com/8wM1896yz74F59e6ov?prefilled_promo_code=LIFE15";
+  const monthlyLink = "https://buy.stripe.com/5kAbMN4qrbkVcBGcMR";
+  const yearlyLink = "https://buy.stripe.com/cN2bMN9KLbkV59e9AE";
+  const lifeLink = "https://buy.stripe.com/8wM1896yz74F59e6ov";
 
   const featureKeys = Array.from({ length: 6 }, (_, i) => `mgmt.sales.${salesKey}.features.${i}`);
   const planFeatureKeys = Array.from({ length: 5 }, (_, i) => `mgmt.sales.plan_features.${i}`);
