@@ -461,70 +461,25 @@
 		"RequireMFA": false,
 		"AutoUpdate": false,
 		"ConstellationConfig": {
-			"Enabled": true,
-			"SlaveMode": false,
-			"DNSDisabled": false,
-			"DNSPort": "",
-			"DNSFallback": "8.8.8.8:53",
-			"DNSBlockBlacklist": true,
-			"DNSAdditionalBlocklists": [
-				"https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
-				"https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt"
-			],
-			"CustomDNSEntries": [],
-			"NebulaConfig": {
-				"PKI": {
-					"CA": "",
-					"Cert": "",
-					"Key": "",
-					"Blocklist": null
-				},
-				"StaticHostMap": null,
-				"Lighthouse": {
-					"AMLighthouse": false,
-					"Interval": 0,
-					"Hosts": null
-				},
-				"Listen": {
-					"Host": "",
-					"Port": 0
-				},
-				"Punchy": {
-					"Punch": false,
-					"Respond": false
-				},
-				"Relay": {
-					"AMRelay": true,
-					"UseRelays": false,
-					"Relays": null
-				},
-				"TUN": {
-					"Disabled": false,
-					"Dev": "",
-					"DropLocalBroadcast": false,
-					"DropMulticast": false,
-					"TxQueue": 0,
-					"MTU": 0,
-					"Routes": null,
-					"UnsafeRoutes": null
-				},
-				"Logging": {
-					"Level": "",
-					"Format": ""
-				},
-				"Firewall": {
-					"OutboundAction": "",
-					"InboundAction": "",
-					"Conntrack": {
-						"TCPTimeout": "",
-						"UDPTimeout": "",
-						"DefaultTimeout": ""
-					},
-					"Outbound": null,
-					"Inbound": null
-				}
-			},
-			"ConstellationHostname": "vpn.domain.com"
+            "Enabled": true,
+            "DoNotSyncNodes": false,
+            "DNSDisabled": false,
+            "DNSPort": "",
+            "DNSFallback": "8.8.8.8:53",
+            "DNSBlockBlacklist": false,
+            "DNSAdditionalBlocklists": [
+                "https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt",
+                "https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt",
+                "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts",
+                "https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/fakenews-only/hosts"
+            ],
+            "CustomDNSEntries": null,
+            "Tunnels": null,
+            "FirewallBlockedClients": [],
+            "OverrideNebulaExitNodeInterface": "",
+            "ThisDeviceName": "cosmos-0",
+            "ConstellationHostname": "cosmos-0.local",
+            "IPRange": "192.168.202.0/24"
 		},
 		"Storage": {
 			"SnapRAIDs": [
