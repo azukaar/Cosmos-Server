@@ -942,7 +942,9 @@ func populateIPTableMasquerade() {
 			// Continue anyway
 		}
 
-		if strings.Contains(rules, "COSMOS-CLOUD-EXIT-NODE") {
+		exRules := string(output)
+
+		if strings.Contains(exRules, "COSMOS-CLOUD-EXIT-NODE") {
 			// Remove rules with our comment marker from nat table (IP range might have changed)
 			cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
 			if err := cmd.Run(); err != nil {
