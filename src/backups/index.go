@@ -1,12 +1,18 @@
 package backups
 
 import (
+	"os"
+	"path/filepath"
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"time"
 )
 
 func InitBackups() {
+	execPath, _ := os.Executable()
+	resticPath := filepath.Dir(execPath) + "/restic"
+	utils.Exec("chmod", "+x", resticPath)
+
 	config := utils.GetMainConfig()
 	
 	if !utils.FBL.LValid {

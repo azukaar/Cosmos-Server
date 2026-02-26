@@ -123,6 +123,28 @@ const ProxyManagement = () => {
     });
   }
 
+  function moveToTop(event, key) {
+    event.stopPropagation();
+    if (key > 0) {
+      let tmp = routes.splice(key, 1)[0];
+      routes.unshift(tmp);
+      updateRoutes(routes);
+      setNeedSave(true);
+    }
+    return false;
+  }
+
+  function moveToBottom(event, key) {
+    event.stopPropagation();
+    if (key < routes.length - 1) {
+      let tmp = routes.splice(key, 1)[0];
+      routes.push(tmp);
+      updateRoutes(routes);
+      setNeedSave(true);
+    }
+    return false;
+  }
+
   function up(event, key) {
     event.stopPropagation();
     if (key > 0) {
@@ -253,7 +275,7 @@ const ProxyManagement = () => {
               ]} noLabels noBackground/>
             </div> : <div></div>
           },
-          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
+          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} /> },
           { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
           { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
@@ -269,6 +291,8 @@ const ProxyManagement = () => {
               routeKey={routes.indexOf(r)}
               up={(event) => up(event, routes.indexOf(r))}
               down={(event) => down(event, routes.indexOf(r))}
+              moveToTop={(event) => moveToTop(event, routes.indexOf(r))}
+              moveToBottom={(event) => moveToBottom(event, routes.indexOf(r))}
               deleteRoute={(event) => deleteRoute(event, routes.indexOf(r))}
               duplicateRoute={(event) => duplicateRoute(event, routes.indexOf(r))}
             />,

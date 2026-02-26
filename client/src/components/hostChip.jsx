@@ -5,7 +5,7 @@ import { getOrigin, getFullOrigin } from "../utils/routes";
 import { useTheme } from '@mui/material/styles';
 import StatusDot from "./statusDot";
 
-const HostChip = ({route, settings, style}) => {
+const HostChip = ({route, settings, style, ellipsis}) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [isOnline, setIsOnline] = useState(null);
@@ -29,7 +29,8 @@ const HostChip = ({route, settings, style}) => {
     style={{
       paddingRight: '4px',
       // textDecoration: isOnline ? 'none' : 'underline wavy red',
-      ...style
+      ...style,
+      ...(ellipsis ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' } : {})
     }}
     onClick={() => {
       if(route.UseHost)

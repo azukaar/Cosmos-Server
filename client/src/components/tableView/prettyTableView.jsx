@@ -67,7 +67,6 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
         borderRadius: '12px',
         border: isDark ? '1px solid rgba(40,48,70,0.6)' : '1px solid rgba(0,0,0,0.06)',
         boxShadow: theme.customShadows?.glass || 'none',
-        overflow: 'hidden',
       }} component={Paper} elevation={0}>
         <Table aria-label="simple table">
           <TableHead>
@@ -129,6 +128,8 @@ const PrettyTableView = ({ isLoading, getKey, data, columns, sort, onRowClick, l
                       className={column.underline ? 'emphasis' : ''}
                       sx={{
                         textDecoration: 'none',
+
+                        
                         ...column.style,
                       }}>
                         {column.field(row, key)}

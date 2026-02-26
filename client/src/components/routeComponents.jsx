@@ -1,4 +1,4 @@
-import { CheckOutlined, ClockCircleOutlined, CopyOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, SafetyOutlined, UpOutlined } from "@ant-design/icons";
+import { CheckOutlined, ClockCircleOutlined, CopyOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, SafetyOutlined, UpOutlined, VerticalAlignTopOutlined, VerticalAlignBottomOutlined } from "@ant-design/icons";
 import { Card, Chip, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { useState } from "react";
 import { useTheme } from '@mui/material/styles';
@@ -120,7 +120,7 @@ export const RouteSecurity = ({route}) => {
 }
 
 
-export const RouteActions = ({route, routeKey, up, down, deleteRoute, duplicateRoute}) => {
+export const RouteActions = ({route, routeKey, up, down, moveToTop, moveToBottom, deleteRoute, duplicateRoute}) => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const { t } = useTranslation();
 
@@ -138,6 +138,18 @@ export const RouteActions = ({route, routeKey, up, down, deleteRoute, duplicateR
         </ListItemIcon>
         <ListItemText>{t('global.moveDown')}</ListItemText>
       </MenuItem>
+      {moveToTop && <MenuItem onClick={(event) => moveToTop(event)}>
+        <ListItemIcon>
+          <VerticalAlignTopOutlined />
+        </ListItemIcon>
+        <ListItemText>{t('global.moveToTop')}</ListItemText>
+      </MenuItem>}
+      {moveToBottom && <MenuItem onClick={(event) => moveToBottom(event)}>
+        <ListItemIcon>
+          <VerticalAlignBottomOutlined />
+        </ListItemIcon>
+        <ListItemText>{t('global.moveToBottom')}</ListItemText>
+      </MenuItem>}
       <MenuItem onClick={(event) => duplicateRoute(event)}>
         <ListItemIcon>
           <CopyOutlined />

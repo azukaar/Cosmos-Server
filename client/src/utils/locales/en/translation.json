@@ -63,6 +63,8 @@
 	"global.mount": "Mount",
 	"global.mode.validation": "Mode is required",
 	"global.moveDown": "Move Down",
+	"global.moveToBottom": "Move to Bottom",
+	"global.moveToTop": "Move to Top",
 	"global.moveUp": "Move Up",
 	"global.name.validation": "Name is required",
 	"global.nameTitle": "Name",

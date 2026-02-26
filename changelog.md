@@ -1,3 +1,8 @@
+## Version 0.21.3
+ - fix Bug with table width
+ - Add move to top/bottom
+ - Add chmod Restic
+
 ## Version 0.21.2
  - Publish translations 
  
