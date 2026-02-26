@@ -1,3 +1,6 @@
+## Version 0.21.1
+ - Fix regression with Constellation creation 
+
 ## Version 0.21.0
  - UI refresh for most pages
  - Reworked mount managemenet logic for flexibility

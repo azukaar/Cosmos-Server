@@ -668,9 +668,10 @@ func generateNebulaCert(name, filename, ip, PK string, saveToFile bool) (string,
 	ip = ip + "/24"
 
 	// Read the generated certificate and key files
-	certPath := fmt.Sprintf("./%s.crt", filename)
-	keyPath := fmt.Sprintf("./%s.key", filename)
+	certPath := fmt.Sprintf("./%s.crt", name)
+	keyPath := fmt.Sprintf("./%s.key", name)
 
+	utils.Log("Generating certificate for " + name + " with IP " + ip + " and filename " + filename)
 
 	// if the temp exists, delete it
 	if _, err := os.Stat(certPath); err == nil {
