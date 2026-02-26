@@ -1,3 +1,6 @@
+## Version 0.21.2
+ - Publish translations 
+ 
 ## Version 0.21.1
  - Fix regression with Constellation creation 
 
