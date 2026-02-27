@@ -268,6 +268,7 @@ func ResetNebula() error {
 	stop()
 	utils.Log("Resetting nebula...")
 	os.RemoveAll(utils.CONFIGFOLDER + "nebula.yml")
+	os.RemoveAll(utils.CONFIGFOLDER + "nebula-temp.yml")
 	os.RemoveAll(utils.CONFIGFOLDER + "ca.crt")
 	os.RemoveAll(utils.CONFIGFOLDER + "ca.key")
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.crt")
@@ -1060,6 +1061,7 @@ func pingLighthouse(lh utils.ConstellationDevice, retries int) {
 func GetCurrentDeviceName() (string, error) {
 	config := utils.GetMainConfig()
 	name := config.ConstellationConfig.ThisDeviceName
+
 	if name == "" {
 		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
 		if err != nil {

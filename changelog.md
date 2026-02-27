@@ -1,3 +1,6 @@
+## Version 0.21.4
+ - Remove tunnel check when Constellation is off 
+
 ## Version 0.21.3
  - fix Bug with table width
  - Add move to top/bottom

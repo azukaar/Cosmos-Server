@@ -316,6 +316,10 @@ func UpdateLocalTunnelCache() {
 }
 
 func GetLocalTunnelCache() []utils.ConstellationTunnel {
+	if !utils.GetMainConfig().ConstellationConfig.Enabled {
+		return []utils.ConstellationTunnel{}
+	}
+	
 	isLB, err := GetCurrentDeviceIsLoadbalancer()
 	if err != nil {
 		utils.Debug("[constellation] Failed to get current device load balancer status for tunnel cache retrieval " + err.Error())
