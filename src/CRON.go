@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"hash/fnv"
 	"runtime"
 	"net/http"
 	"os"
@@ -218,9 +219,11 @@ func CRON() {
 			checkCerts()
 			checkUpdatesAvailable()
 		})
-
-		// random 1-23 number
-		randomHour := utils.GetRandomNumber(1, 23)
+		
+		hostname, _ := os.Hostname()
+		h := fnv.New32a()
+		h.Write([]byte(hostname))
+		randomHour := int(h.Sum32()%23) + 1
 		s.Every(1).Day().At(fmt.Sprintf("%02d:45", randomHour)).Do(utils.ProcessLicence)
 		s.Every(1).Day().At(fmt.Sprintf("%02d:15", randomHour)).Do(checkVersion)
 

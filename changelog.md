@@ -1,3 +1,6 @@
+## Version 0.21.6
+ - Prevent potential double counting of server by wrong timing 
+
 ## Version 0.21.5
  - Fix issue with nodes having 2 public hostnames
 
