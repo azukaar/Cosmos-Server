@@ -1,3 +1,6 @@
+## Version 0.21.5
+ - Fix issue with nodes having 2 public hostnames
+
 ## Version 0.21.4
  - Remove tunnel check when Constellation is off 
 

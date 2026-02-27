@@ -96,7 +96,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 			IsExitNode: true,
 			IsLoadBalancer: true,
 			Nickname: "",
-			PublicHostname: utils.GetMainConfig().ConstellationConfig.ConstellationHostname,
+			PublicHostname: request.Hostname,
 			Port: "4242",
 		}
 
