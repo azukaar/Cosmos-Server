@@ -844,7 +844,7 @@
 	"newInstall.dockerChecking": "Rechecking Docker Status...",
 	"newInstall.dockerNotConnected": "Docker is not connected! Please check your docker connection.<br/>Did you forget to add <pre>-v /var/run/docker.sock:/var/run/docker.sock</pre> to your docker run command?<br />if your docker daemon is running somewhere else, please add <pre>-e DOCKER_HOST=...</pre> to your docker run command.",
 	"newInstall.dockerTitle": "Docker 🐋 (step 1/4)",
-	"newInstall.finishText": "Well done! You have successfully installed Cosmos. You can now login to your server using the admin account you created. If you have changed the hostname, don't forget to use that URL to access your server after the restart. If you have are running into issues, check the logs for any error messages and edit the file in the /config folder. If you still don't manage, please join our <0>Discord server</0> and we'll be happy to help!",
+	"newInstall.finishText": "Well done! You have successfully installed Cosmos. You can now login to your server using the admin account you created. If you have changed the hostname, don't forget to use that URL to access your server after the restart. If you are running into issues, check the logs for any error messages and edit the file in the /config folder. If you still don't manage, please join our <0>Discord server</0> and we'll be happy to help!",
 	"newInstall.finishTitle": "Finish 🎉",
 	"newInstall.fqdnAutoLetsEncryptInfo": "You seem to be using a domain name.<br />Let's Encrypt can automatically generate a certificate for you.",
 	"newInstall.hostnameInput.hostnameLabel": "Hostname (How would you like to access Cosmos?)",
