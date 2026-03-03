@@ -3,6 +3,7 @@ package proxy
 import (
 	"github.com/gorilla/mux"
 	"net/http"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/constellation"
@@ -17,9 +18,8 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 
 	remoteTunnels := constellation.GetLocalTunnelCache()
 	for _, tunnel := range remoteTunnels {
-		routeConfig := tunnel.Route 
-		if !routeConfig.Disabled {
-			RouterGen(routeConfig, router, RouteTo(routeConfig))
+		if !tunnel.Route.Disabled && (strings.HasPrefix(tunnel.Route.Target, "http://") || strings.HasPrefix(tunnel.Route.Target, "https://")) {
+			RouterGen(tunnel.Route, router, TunnelRouteTo(tunnel, DefaultTunnelLB))
 		}
 	}
 
@@ -29,12 +29,15 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 			if route.Disabled {
 				continue
 			}
+			if !strings.HasPrefix(route.Target, "http://") && !strings.HasPrefix(route.Target, "https://") {
+				continue
+			}
 			RouterGen(route, router, RouteTo(route))
 	}
 
 	for i := len(config.Routes)-1; i >= 0; i-- {
 		routeConfig := config.Routes[i]
-		if !routeConfig.Disabled {
+		if !routeConfig.Disabled && (strings.HasPrefix(routeConfig.Target, "http://") || strings.HasPrefix(routeConfig.Target, "https://")) {
 			RouterGen(routeConfig, router, RouteTo(routeConfig))
 		}
 	}

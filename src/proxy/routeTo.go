@@ -235,6 +235,82 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 }
 
 
+func TunnelRouteTo(tunnel utils.ConstellationTunnel, lb *TunnelLoadBalancer) http.Handler {
+	type targetProxy struct {
+		target  utils.TunnelTarget
+		handler http.Handler
+	}
+
+	proxies := make([]targetProxy, 0, len(tunnel.Targets))
+	for _, t := range tunnel.Targets {
+		route := tunnel.Route
+		route.Target = t.TargetURL
+		proxy, err := NewProxy(t.TargetURL, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
+		if err != nil {
+			utils.Error("Create Tunnel Route for "+t.DeviceName, err)
+			continue
+		}
+		proxies = append(proxies, targetProxy{t, proxy})
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(proxies) == 0 {
+			http.Error(w, "No tunnel targets available", http.StatusBadGateway)
+			return
+		}
+
+		targets := make([]utils.TunnelTarget, len(proxies))
+		for i, p := range proxies {
+			targets[i] = p.target
+		}
+
+		sticky := tunnel.Route.LBStickyMode
+		stickyKey := ""
+		if sticky {
+			stickyKey = GetClientID(r, tunnel.Route)
+		}
+
+		// For HTTP, check cookie first (survives IP changes on mobile)
+		var selected *utils.TunnelTarget
+		if sticky {
+			if cookie, err := r.Cookie("_cosmos_tunnel_lb"); err == nil && cookie.Value != "" {
+				for i, p := range proxies {
+					if p.target.DeviceName == cookie.Value {
+						selected = &proxies[i].target
+						break
+					}
+				}
+				// Cookie device gone — fall through to SelectTarget
+			}
+		}
+
+		if selected == nil {
+			selected = lb.SelectTarget(targets, tunnel.Route.Name, tunnel.Route.LBMode, sticky, stickyKey)
+		}
+		if selected == nil {
+			http.Error(w, "No tunnel targets available", http.StatusBadGateway)
+			return
+		}
+
+		if sticky {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "_cosmos_tunnel_lb",
+				Value:    selected.DeviceName,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   3600,
+			})
+		}
+
+		for _, p := range proxies {
+			if p.target.DeviceName == selected.DeviceName {
+				p.handler.ServeHTTP(w, r)
+				return
+			}
+		}
+	})
+}
+
 func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 	// initialize a reverse proxy and pass the actual backend server url here
 
@@ -247,7 +323,7 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 		}
 	}
 
-  if(routeType == "SERVAPP" || routeType == "PROXY") {
+	if(routeType == "SERVAPP" || routeType == "PROXY") {
 		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
 		if err != nil {
 				utils.Error("Create Route", err)

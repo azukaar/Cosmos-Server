@@ -20,6 +20,14 @@ var (
     proxiesLock   sync.Mutex
 )
 
+func stripTargetProtocol(target string) string {
+    parts := strings.Split(target, "://")
+    if len(parts) > 1 {
+        return parts[1]
+    }
+    return parts[0]
+}
+
 type ProxyInfo struct {
     stop    chan bool
     stopped chan bool
@@ -88,7 +96,7 @@ var mapToTCPUDP = map[string]string{
     "quic":     "udp", // QUIC is a transport protocol that runs over UDP
 }
 
-func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig) {
+func startProxy(listenAddr string, target string, targets []utils.TunnelTarget, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig) {
     // remove any protocol
     destinationArr := strings.Split(target, "://")
     listenProtocol := "tcp"
@@ -137,13 +145,13 @@ func startProxy(listenAddr string, target string, proxyInfo *ProxyInfo, isHTTPPr
 
     if listenProtocol == "tcp" {
         utils.Debug("[SocketProxy] Starting TCP proxy on " + listenAddr + " -> " + target)
-        handleTCPProxy(listener, target, proxyInfo, isHTTPProxy, route, listenAddr)
+        handleTCPProxy(listener, target, targets, proxyInfo, isHTTPProxy, route, listenAddr)
     } else {
-        handleUDPProxy(packetConn, target, proxyInfo, route, listenAddr)
+        handleUDPProxy(packetConn, target, targets, proxyInfo, route, listenAddr)
     }
 }
 
-func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig, listenAddr string) {
+func handleTCPProxy(listener net.Listener, target string, targets []utils.TunnelTarget, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig, listenAddr string) {
     for {
         acceptChan := make(chan net.Conn)
         acceptErrChan := make(chan error)
@@ -175,7 +183,18 @@ func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, 
 
             utils.Debug("[SocketProxy] New TCP connection accepted on " + listenAddr)
 
-            server, err := net.Dial("tcp", target)
+            stickyKey := ""
+            if route.LBStickyMode {
+                ip, _ := utils.SplitIP(client.RemoteAddr().String())
+                stickyKey = ip
+            }
+            selected := DefaultTunnelLB.SelectTarget(targets, route.Name, route.LBMode, route.LBStickyMode, stickyKey)
+            dialTarget := target
+            if selected != nil {
+                dialTarget = stripTargetProtocol(selected.TargetURL)
+            }
+
+            server, err := net.Dial("tcp", dialTarget)
             if err != nil {
                 utils.Error("[SocketProxy] Failed to connect to TCP server", err)
                 shieldedClient.Close()
@@ -186,7 +205,7 @@ func handleTCPProxy(listener net.Listener, target string, proxyInfo *ProxyInfo, 
     }
 }
 
-func handleUDPProxy(packetConn net.PacketConn, target string, proxyInfo *ProxyInfo, route utils.ProxyRouteConfig, listenAddr string) {
+func handleUDPProxy(packetConn net.PacketConn, target string, targets []utils.TunnelTarget, proxyInfo *ProxyInfo, route utils.ProxyRouteConfig, listenAddr string) {
     targetAddr, err := net.ResolveUDPAddr("udp", target)
     if err != nil {
         utils.Error("[SocketProxy] Failed to resolve UDP target address", err)
@@ -211,22 +230,34 @@ func handleUDPProxy(packetConn net.PacketConn, target string, proxyInfo *ProxyIn
                 continue
             }
 
-            // utils.Debug("[SocketProxy] New UDP packet received on " + listenAddr)
-
             // Apply UDP shield middleware if needed
             shieldedBuffer := UDPSmartShieldMiddleware("proxy-"+listenAddr, route)(buffer[:n], remoteAddr)
             if shieldedBuffer == nil {
                 continue
             }
 
-            _, err = packetConn.WriteTo(buffer[:n], targetAddr)
+            stickyKey := ""
+            if route.LBStickyMode {
+                ip, _ := utils.SplitIP(remoteAddr.String())
+                stickyKey = ip
+            }
+            selected := DefaultTunnelLB.SelectTarget(targets, route.Name, route.LBMode, route.LBStickyMode, stickyKey)
+            dialAddr := targetAddr
+            if selected != nil {
+                resolved, err := net.ResolveUDPAddr("udp", stripTargetProtocol(selected.TargetURL))
+                if err == nil {
+                    dialAddr = resolved
+                }
+            }
+
+            _, err = packetConn.WriteTo(buffer[:n], dialAddr)
             if err != nil {
                 utils.Error("[SocketProxy] Failed to forward UDP packet to server", err)
                 continue
             }
 
             // Handle response from target
-            go handleUDPResponse(packetConn, remoteAddr, targetAddr, proxyInfo)
+            go handleUDPResponse(packetConn, remoteAddr, dialAddr, proxyInfo)
         }
     }
 }
@@ -255,6 +286,7 @@ func handleUDPResponse(packetConn net.PacketConn, clientAddr net.Addr, targetAdd
 type PortsPair struct {
     From string
     To string
+    Targets []utils.TunnelTarget
     isHTTPProxy bool
     route utils.ProxyRouteConfig
 }
@@ -271,7 +303,7 @@ func initInternalPortProxy(ports []PortsPair) {
         }
         activeProxies[port.From] = proxyInfo
 
-        go startProxy(port.From, port.To, proxyInfo, port.isHTTPProxy, port.route)
+        go startProxy(port.From, port.To, port.Targets, proxyInfo, port.isHTTPProxy, port.route)
     }
 }
 
@@ -324,15 +356,8 @@ func InitInternalSocketProxy() {
 	routes := config.HTTPConfig.ProxyConfig.Routes
 
 
-    tunnels := []utils.ProxyRouteConfig{}
 	remoteTunnels := constellation.GetLocalTunnelCache()
-	for _, tunnel := range remoteTunnels {
-		routeConfig := tunnel.Route 
-		if !routeConfig.Disabled {
-            tunnels = append(tunnels, routeConfig)
-		}
-	}
-    
+
     remoteListRoutes := []utils.ProxyRouteConfig{}
     for _, shares := range config.RemoteStorage.Shares {
         route := shares.Route
@@ -347,68 +372,78 @@ func InitInternalSocketProxy() {
 		targetPort = HTTPSPort
 	}
 
-    routesList := []utils.ProxyRouteConfig{}
-    routesList = append(routesList, tunnels...)
-    routesList = append(routesList, remoteListRoutes...)
-    routesList = append(routesList, routes...)
+    addPortPair := func(route utils.ProxyRouteConfig, targets []utils.TunnelTarget) {
+        if !route.UseHost || !strings.Contains(route.Host, ":") || route.Disabled {
+            return
+        }
+        hostname := route.Host
+        port := strings.Split(hostname, ":")[1]
+        if _, err := strconv.Atoi(port); err != nil {
+            return
+        }
+        destination := ""
+        isHTTPProxy := strings.HasPrefix(route.Target, "http://") || strings.HasPrefix(route.Target, "https://")
+        sourceHostname := hostname
+        var pairTargets []utils.TunnelTarget
+        if isHTTPProxy {
+            destination = "localhost:" + targetPort
+            sourceHostname = ":" + port
+        } else {
+            destination = route.Target
+            pairTargets = targets
 
-	for _, route := range routesList {
-		if route.UseHost && strings.Contains(route.Host, ":") && !route.Disabled {
-			hostname := route.Host
-			port := strings.Split(hostname, ":")[1]
-            // if port is a number
-            if _, err := strconv.Atoi(port); err == nil {
-                destination := ""
-                isHTTPProxy := strings.HasPrefix(route.Target, "http://") || strings.HasPrefix(route.Target, "https://")
-                sourceHostname := hostname
-                if isHTTPProxy {
-                    destination = "localhost:" + targetPort
-                    sourceHostname = ":" + port
+            if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
+                url, err := url.Parse(destination)
+                if err != nil {
+                    utils.Error("[SocketProxy] Create socket Route", err)
                 } else {
-                    destination = route.Target
-                    
-                    if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
-                        url, err := url.Parse(destination)
-                        if err != nil {
-                            utils.Error("[SocketProxy] Create socket Route", err)
-                        } else {
-                            targetHost := url.Hostname()
-    
-                            targetIP, err := docker.GetContainerIPByName(targetHost)
-                            if err != nil {
-                                utils.Error("[SocketProxy] Can't find container", err)
-                            } else {
-                                utils.Debug("[SocketProxy] Dockerless socket Target IP: " + targetIP)
-                                destination = targetIP + ":" + url.Port()
-                                if url.Scheme != "" {
-                                    destination = url.Scheme + "://" + destination
-                                }
-                            }
+                    targetHost := url.Hostname()
+
+                    targetIP, err := docker.GetContainerIPByName(targetHost)
+                    if err != nil {
+                        utils.Error("[SocketProxy] Can't find container", err)
+                    } else {
+                        utils.Debug("[SocketProxy] Dockerless socket Target IP: " + targetIP)
+                        destination = targetIP + ":" + url.Port()
+                        if url.Scheme != "" {
+                            destination = url.Scheme + "://" + destination
                         }
                     }
                 }
-                
-                portpair := PortsPair{sourceHostname, destination, isHTTPProxy, route}
-
-                if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
-                    portpair.To = "localhost:" + HTTPPort
-                }
-
-    			// Check if this port is already in the list (avoid duplicates)
-                alreadyExists := false
-                for _, existing := range expectedPorts {
-                    if existing.From == portpair.From {
-                        alreadyExists = true
-                        break
-                    }
-                }
-                if alreadyExists {
-                    utils.MajorError("[SocketProxy] Duplicate port detected: "+portpair.From+". Multiple routes are trying to use the same port.", nil)
-                } else {
-                    expectedPorts = append(expectedPorts, portpair)
-                }
             }
+        }
+
+        portpair := PortsPair{sourceHostname, destination, pairTargets, isHTTPProxy, route}
+
+        if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
+            portpair.To = "localhost:" + HTTPPort
+        }
+
+        // Check if this port is already in the list (avoid duplicates)
+        alreadyExists := false
+        for _, existing := range expectedPorts {
+            if existing.From == portpair.From {
+                alreadyExists = true
+                break
+            }
+        }
+        if alreadyExists {
+            utils.MajorError("[SocketProxy] Duplicate port detected: "+portpair.From+". Multiple routes are trying to use the same port.", nil)
+        } else {
+            expectedPorts = append(expectedPorts, portpair)
+        }
+    }
+
+	for _, tunnel := range remoteTunnels {
+		if !tunnel.Route.Disabled {
+            addPortPair(tunnel.Route, tunnel.Targets)
 		}
+	}
+    for _, route := range remoteListRoutes {
+        addPortPair(route, nil)
+    }
+	for _, route := range routes {
+        addPortPair(route, nil)
 	}
 
     StopAllProxies()

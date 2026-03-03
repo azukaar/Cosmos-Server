@@ -88,11 +88,11 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		} else {
 			for _, q := range r.Question {
 				for _, tunnel := range remoteTunnels {
-					for _, from := range tunnel.From {
-						if from == currentName {
+					for _, target := range tunnel.Targets {
+						if target.DeviceName == currentName {
 							continue
 						}
-						destination := CachedDeviceNames[from]
+						destination := CachedDeviceNames[target.DeviceName]
 						if destination != "" {
 							if strings.HasSuffix(q.Name, tunnel.Route.Host + ".") && q.Qtype == dns.TypeA {
 								utils.Debug("DNS Overwrite " + tunnel.Route.Host + " with " + destination)

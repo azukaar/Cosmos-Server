@@ -267,18 +267,18 @@ func UpdateLocalTunnelCache() {
 		}
 
 		for _, tunnelRoute := range heartbeat.Tunnels {
-			// Skip tunnels from ourselves
-			if heartbeat.DeviceName == currentDeviceName {
-				continue
-			}
 			if tunnelRoute.Tunnel == "_ANY_" || tunnelRoute.Tunnel == currentDeviceName {
+				target := utils.TunnelTarget{
+					DeviceName: heartbeat.DeviceName,
+					TargetURL:  tunnelRoute.Target,
+				}
 				if existing, ok := byName[tunnelRoute.Name]; ok {
-					existing.From = append(existing.From, heartbeat.DeviceName)
+					existing.Targets = append(existing.Targets, target)
 				} else {
 					tunnelRoute.Const_IsTunneled = true
 					byName[tunnelRoute.Name] = &utils.ConstellationTunnel{
-						Route: tunnelRoute,
-						From:  []string{heartbeat.DeviceName},
+						Route:   tunnelRoute,
+						Targets: []utils.TunnelTarget{target},
 					}
 				}
 			}
@@ -296,9 +296,11 @@ func UpdateLocalTunnelCache() {
 		copied := make([]utils.ConstellationTunnel, len(t))
 		for i, tunnel := range t {
 			copied[i] = tunnel
-			copied[i].From = make([]string, len(tunnel.From))
-			copy(copied[i].From, tunnel.From)
-			sort.Strings(copied[i].From)
+			copied[i].Targets = make([]utils.TunnelTarget, len(tunnel.Targets))
+			copy(copied[i].Targets, tunnel.Targets)
+			sort.Slice(copied[i].Targets, func(a, b int) bool {
+				return copied[i].Targets[a].DeviceName < copied[i].Targets[b].DeviceName
+			})
 		}
 		sort.Slice(copied, func(i, j int) bool {
 			return copied[i].Route.Name < copied[j].Route.Name
@@ -348,4 +350,53 @@ func GetLocalTunnelCache() []utils.ConstellationTunnel {
 
 func IsTunneled(route utils.ProxyRouteConfig) bool {
 	return route.Const_IsTunneled
+}
+
+func ensureStickyBucket() (nats.KeyValue, error) {
+	if js == nil {
+		return nil, nats.ErrConnectionClosed
+	}
+	kv, err := js.KeyValue("tunnel-sticky")
+	if err == nil {
+		return kv, nil
+	}
+	kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
+		Bucket:  "tunnel-sticky",
+		TTL:     120 * time.Second,
+		Storage: nats.MemoryStorage,
+		Replicas: 1,
+	})
+	return kv, err
+}
+
+func GetStickyTarget(clientKey string) (string, bool) {
+	clientConfigLock.RLock()
+	defer clientConfigLock.RUnlock()
+
+	kv, err := ensureStickyBucket()
+	if err != nil {
+		return "", false
+	}
+
+	entry, err := kv.Get(clientKey)
+	if err != nil {
+		return "", false
+	}
+	return string(entry.Value()), true
+}
+
+func SetStickyTarget(clientKey string, deviceName string) {
+	clientConfigLock.RLock()
+	defer clientConfigLock.RUnlock()
+
+	kv, err := ensureStickyBucket()
+	if err != nil {
+		utils.Error("[NATS] Error accessing sticky KV bucket", err)
+		return
+	}
+
+	_, err = kv.Put(clientKey, []byte(deviceName))
+	if err != nil {
+		utils.Error("[NATS] Error setting sticky target", err)
+	}
 }

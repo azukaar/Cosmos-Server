@@ -262,6 +262,8 @@ type ProxyRouteConfig struct {
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
 	SkipURLClean               bool                        `yaml:"skip_url_clean"`
 	UseH2C                     bool                        `yaml:"use_h2c"`
+	LBMode                     string                      `yaml:"lb_mode" json:"lb_mode,omitempty"`
+	LBStickyMode               bool                        `yaml:"lb_sticky_mode" json:"lb_sticky_mode,omitempty"`
 	Const_IsTunneled           bool                        `yaml:"-", json:"-"`
 }
 
@@ -309,9 +311,14 @@ type ConstellationConfig struct {
 	IPRange string
 }
 
+type TunnelTarget struct {
+	DeviceName string `json:"deviceName"`
+	TargetURL  string `json:"targetURL"`
+}
+
 type ConstellationTunnel struct {
-	Route ProxyRouteConfig
-	From []string
+	Route   ProxyRouteConfig
+	Targets []TunnelTarget
 }
 
 type ConstellationDNSEntry struct {
