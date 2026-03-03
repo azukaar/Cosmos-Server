@@ -41,12 +41,16 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 					}
 				}
 
-				// Extract ANY protocol from host, if empty leave empty
-				if idx := strings.Index(route.Host, "://"); idx != -1 {
-					protocol = route.Host[:idx+3]
-					route.Host = route.Host[idx+3:]
+				// Extract ANY protocol from target, if empty leave empty
+				if idx := strings.Index(route.Target, "://"); idx != -1 {
+					protocol = route.Target[:idx+3]
 				}
 			} else {
+				protocol = "http://"
+			}
+
+			// if protocol is https, force http
+			if protocol == "https://" {
 				protocol = "http://"
 			}
 
@@ -63,7 +67,6 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 
 	return tunnels
 }
-
 
 func StopHeartbeat() {
 	if heartbeatStopChan != nil {
