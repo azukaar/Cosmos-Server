@@ -64,6 +64,7 @@ type MountRequest struct {
 	Path       string `json:"path"`
 	MountPoint string `json:"mountPoint"`
 	Permanent  bool   `json:"permanent"`
+	NetDisk    bool   `json:"netDisk"`
 	Chown 		 string `json:"chown"`
 }
 
@@ -81,7 +82,7 @@ func MountRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		if err := Mount(request.Path, request.MountPoint, request.Permanent, request.Chown); err != nil {
+		if err := Mount(request.Path, request.MountPoint, request.Permanent, request.NetDisk, request.Chown); err != nil {
 			utils.Error("MountRoute: Error mounting", err)
 			utils.HTTPError(w, "Error mounting filesystem:" + err.Error(), http.StatusInternalServerError, "MNT002")
 			return

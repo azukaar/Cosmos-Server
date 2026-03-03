@@ -32,6 +32,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
         mountPoint: values.path,
         chown: values.chown,
         permanent: values.permanent,
+        netDisk: false,
       })).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);

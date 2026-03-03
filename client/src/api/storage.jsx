@@ -10,13 +10,13 @@ const mounts = {
     }))
   },
 
-  mount: ({path, mountPoint, permanent, chown}) => {
+  mount: ({path, mountPoint, permanent, netDisk, chown}) => {
     return wrap(fetch('/cosmos/api/mount', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
       },
-      body: JSON.stringify({path, mountPoint, permanent, chown})
+      body: JSON.stringify({path, mountPoint, permanent, netDisk, chown})
     }))
   },
 

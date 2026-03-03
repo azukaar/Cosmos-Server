@@ -77,7 +77,7 @@ func ListMounts() ([]MountPoint, error) {
 
 
 // Mount mounts a filesystem located at 'path' to 'mountpoint'.
-func Mount(path, mountpoint string, permanent bool, chown string) error {
+func Mount(path, mountpoint string, permanent bool, netDisk bool, chown string) error {
 	utils.Log("[STORAGE] Mounting " + path + " to " + mountpoint)
 
 	// Check if mountpoint exists
@@ -128,7 +128,12 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		}
 
 		// Format the fstab entry
-		fstabEntry := fmt.Sprintf("\n%s %s auto defaults 0 0\n", path, mountpoint)
+		var fstabEntry string
+		if netDisk {
+			fstabEntry = fmt.Sprintf("\n%s %s nfs defaults,nofail,_netdev 0 0\n", path, mountpoint)
+		} else {
+			fstabEntry = fmt.Sprintf("\n%s %s auto defaults 0 0\n", path, mountpoint)
+		}
 
 		// Append to /etc/fstab
 		file, err := os.OpenFile("/etc/fstab", os.O_APPEND|os.O_WRONLY, 0644)

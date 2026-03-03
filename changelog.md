@@ -1,3 +1,6 @@
+## Version 0.22
+ - Support for mounting network disk
+
 ## Version 0.21.6
  - Prevent potential double counting of server by wrong timing 
 

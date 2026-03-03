@@ -587,6 +587,7 @@
 	"mgmt.storage.mergeText": "You are about to merge disks together. <strong>This operation is safe and reversible</strong>. It will not affect the data on the disks, but will make the content available to be viewed in the file explorer as a single disk.",
 	"mgmt.storage.mergeTitle": "Merge Disks",
 	"mgmt.storage.mount.permanent": "Permanent",
+	"mgmt.storage.mount.netDisk": "This is a Network Disk",
 	"mgmt.storage.mount.whatToMountLabel": "What to mount",
 	"mgmt.storage.mountPath": "Path to mount to",
 	"mgmt.storage.mountPicker": "Select Targets",
