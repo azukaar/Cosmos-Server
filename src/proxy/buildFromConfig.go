@@ -10,7 +10,6 @@ import (
 )
 
 func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
-
 	router.HandleFunc("/_health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))

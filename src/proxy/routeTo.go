@@ -241,16 +241,29 @@ func TunnelRouteTo(tunnel utils.ConstellationTunnel, lb *TunnelLoadBalancer) htt
 		handler http.Handler
 	}
 
+	// For self-tunnel, use the original route handler to avoid proxy loop
+	currentDeviceName, _ := constellation.GetCurrentDeviceName()
+
 	proxies := make([]targetProxy, 0, len(tunnel.Targets))
 	for _, t := range tunnel.Targets {
-		route := tunnel.Route
-		route.Target = t.TargetURL
-		proxy, err := NewProxy(t.TargetURL, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
-		if err != nil {
-			utils.Error("Create Tunnel Route for "+t.DeviceName, err)
-			continue
+		if t.DeviceName == currentDeviceName {
+			// Find the original config route and use RouteTo directly
+			for _, cfgRoute := range utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes {
+				if cfgRoute.Name == tunnel.Route.Name {
+					proxies = append(proxies, targetProxy{t, RouteTo(cfgRoute)})
+					break
+				}
+			}
+		} else {
+			route := tunnel.Route
+			route.Target = t.TargetURL
+			proxy, err := NewProxy(t.TargetURL, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
+			if err != nil {
+				utils.Error("Create Tunnel Route for "+t.DeviceName, err)
+				continue
+			}
+			proxies = append(proxies, targetProxy{t, proxy})
 		}
-		proxies = append(proxies, targetProxy{t, proxy})
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

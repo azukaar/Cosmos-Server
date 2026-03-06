@@ -1,5 +1,9 @@
 ## Version 0.22
  - Support for mounting network disk
+ - Fix issue with Constellation sometime not connecting right away on new network
+
+## Version 0.21.7
+ - Fix issue with Constellation routing HTTP tunnels to the wrong protocol
 
 ## Version 0.21.6
  - Prevent potential double counting of server by wrong timing 

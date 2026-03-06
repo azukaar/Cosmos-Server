@@ -81,7 +81,10 @@ func startNebula() error {
 
 	UpdateFirewallBlockedClients()
 	AdjustDNS(logBuffer)
-	ExportLighthouseFromDB()
+	e := ExportLighthouseFromDB()
+	if e != nil {
+		utils.Error("Failed to export lighthouse config from DB", e)	
+	}
 
 	// Handle existing PID file
 	pidFile := utils.CONFIGFOLDER + "nebula.pid"
@@ -216,6 +219,7 @@ func monitorNebulaProcess(proc *exec.Cmd) {
 	defer ProcessMux.Unlock()
 	process = nil
 	NebulaStarted = false
+	NATSStarted = false
 }
 
 func stop() {
@@ -244,6 +248,7 @@ func stop() {
 	}
 
 	NebulaStarted = false
+	NATSStarted = false
 	cachedCurrentDevice = nil
 	CachedDevices = map[string]utils.ConstellationDevice{}
 	CachedDeviceNames = map[string]string{}
@@ -293,6 +298,7 @@ func ResetNebula() error {
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
 	config.ConstellationConfig.ThisDeviceName = ""
+	config.ConstellationConfig.IPRange = ""
 	config.ConstellationConfig.ConstellationHostname = strings.Join(GetDefaultHostnames(), ",")
 
 	if config.Licence == "" {

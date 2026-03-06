@@ -226,6 +226,11 @@ func StartNATS() {
 		utils.Error("[NATS] Failed to get cluster IPs", err)
 	}
 
+	utils.Debug("[NATS] Cluster IPs: ")
+	for _, cip := range cips {
+		utils.Debug("[NATS] Cluster IP: " + cip.String())
+	}
+
 	// if only one, abort
 	if (len(cips) == 0) {
 		utils.Warn("[NATS] No cluster IPs found, NATS server will not start")
@@ -296,6 +301,8 @@ func StartNATS() {
 		utils.Debug("[NATS] Retrying to start NATS server")
 	}
 
+	NATSStarted = true
+
 	if err != nil {
 		utils.MajorError("[NATS] Error starting NATS server", err)
 	} else {
@@ -312,6 +319,7 @@ func StopNATS() {
 		ns.WaitForShutdown()
 		ns = nil
 	}
+	NATSStarted = false
 }
 
 // sync lock - RWMutex allows multiple readers, single writer
@@ -320,6 +328,11 @@ var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
 func InitNATSClient() error {
+	if !NATSStarted {
+		utils.Warn("[NATS] NATS server not started, cannot initialize client")
+		return errors.New("NATS server not started, cannot initialize client")
+	}
+
 	clientConfigLock.Lock()
 	defer clientConfigLock.Unlock()
 

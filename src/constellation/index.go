@@ -7,12 +7,22 @@ import (
 
 var NebulaStarted = false
 var NebulaHasStarted = false
+var NATSStarted = false
 var CachedDeviceNames = map[string]string{}
 var CachedDevices = map[string]utils.ConstellationDevice{}
 var needToSyncCA = false
 
 func resyncConstellationNodes() {
 	SendNewDBSyncMessage()
+}
+
+func getConstellationTunnelRoutes() []utils.ProxyRouteConfig {
+	tunnels := GetLocalTunnelCache()
+	routes := make([]utils.ProxyRouteConfig, len(tunnels))
+	for i, t := range tunnels {
+		routes[i] = t.Route
+	}
+	return routes
 }
 
 func GetDefaultHostnames() []string {
@@ -71,8 +81,10 @@ func Init() {
 	utils.IsConstellationIP = IsConstellationIP
 
 	utils.ResyncConstellationNodes = resyncConstellationNodes
+	utils.GetConstellationTunnelRoutes = getConstellationTunnelRoutes
 
 	NebulaStarted = false
+	NATSStarted = false
 
 	var err error
 	

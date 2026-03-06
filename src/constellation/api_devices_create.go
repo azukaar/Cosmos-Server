@@ -168,7 +168,7 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 			})
 			
 			go func() {
-				SendNewDBSyncMessage()
+				go SendNewDBSyncMessage()
 				time.Sleep(2 * time.Second)
 				RestartNebula()
 			}()

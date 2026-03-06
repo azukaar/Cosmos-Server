@@ -3,6 +3,7 @@ package proxy
 import (
 	"sync"
 	"sync/atomic"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/utils"
@@ -45,6 +46,7 @@ func (lb *TunnelLoadBalancer) SelectTarget(targets []utils.TunnelTarget, routeNa
 
 	// Mode selection
 	var selected *utils.TunnelTarget
+	mode = strings.ToLower(mode)
 	switch mode {
 	case "round_robin":
 		c := lb.getCounter(routeName)

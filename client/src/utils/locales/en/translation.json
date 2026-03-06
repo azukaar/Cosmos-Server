@@ -272,6 +272,7 @@
 	"mgmt.constellation.resetLabel": "Reset Network",
 	"mgmt.constellation.resetText": "This will completely reset the network, and disconnect all the clients. You will need to reconnect them. This cannot be undone.",
 	"mgmt.constellation.restartButton": "Restart VPN Service",
+	"mgmt.constellation.setup.lighthouseInfo": "This is important! If you are behind CGNAT or do not wish to open any port on your server, you have to uncheck this!",
 	"mgmt.constellation.setup.createConstellation": "Create Constellation",
 	"mgmt.constellation.setup.deviceName.validationError": "Device must only contain lowercase letters, numbers and hyphens",
 	"mgmt.constellation.setup.addDeviceSuccess": "Device added successfully! Download scan the QR Code from the Cosmos app or download the relevant files to your device along side the config and network certificate to connect:",

@@ -54,7 +54,12 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 				protocol = "http://"
 			}
 
-			route.Target = protocol + thisIp + ":" + port
+			route.Target = protocol + thisIp
+			
+			if port != "" {
+				route.Target += ":" + port
+			}
+
 			route.Mode = "PROXY"
 
 			if route.TunneledHost != "" {
@@ -126,7 +131,7 @@ func ClientHeartbeatInit() {
 
 	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
 
-	go UpdateLocalTunnelCache();
+	UpdateLocalTunnelCache()
 
 	heartbeatStopChan = make(chan struct{})
 	heartbeatTicker = time.NewTicker(2 * time.Second)
@@ -134,6 +139,55 @@ func ClientHeartbeatInit() {
 	// Capture in local variables to avoid race conditions
 	stopChan := heartbeatStopChan
 	ticker := heartbeatTicker
+
+	// Watch KV for changes and refresh tunnel cache
+	go func() {
+		err := ClientConnectToJS()
+		if err != nil {
+			utils.Warn("[NATS] Error connecting to JetStream for KV watcher: " + err.Error())
+			return
+		}
+
+		clientConfigLock.RLock()
+		if js == nil {
+			clientConfigLock.RUnlock()
+			utils.Warn("[NATS] JetStream context is nil for KV watcher")
+			return
+		}
+		kv, err := js.KeyValue("constellation-nodes")
+		clientConfigLock.RUnlock()
+		if err != nil {
+			utils.Warn("[NATS] Error getting KV store for watcher: " + err.Error())
+			return
+		}
+
+		watcher, err := kv.WatchAll()
+		if err != nil {
+			utils.Warn("[NATS] Error creating KV watcher: " + err.Error())
+			return
+		}
+		defer watcher.Stop()
+
+		utils.Log("[NATS] KV watcher started for tunnel cache updates")
+
+		for {
+			select {
+			case <-stopChan:
+				utils.Log("[NATS] KV watcher stopped")
+				return
+			case entry, ok := <-watcher.Updates():
+				if !ok {
+					utils.Warn("[NATS] KV watcher channel closed")
+					return
+				}
+				if entry == nil {
+					// nil marks end of initial values
+					continue
+				}
+				GetLocalTunnelCache()
+			}
+		}
+	}()
 
 	go func() {
 		for {
@@ -288,6 +342,13 @@ func UpdateLocalTunnelCache() {
 
 	tunnels := make([]utils.ConstellationTunnel, 0, len(byName))
 	for _, t := range byName {
+		// Ensure local node is always first in targets
+		for i, target := range t.Targets {
+			if target.DeviceName == currentDeviceName && i != 0 {
+				t.Targets[0], t.Targets[i] = t.Targets[i], t.Targets[0]
+				break
+			}
+		}
 		tunnels = append(tunnels, *t)
 	}
 

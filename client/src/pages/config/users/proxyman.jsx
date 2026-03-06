@@ -117,7 +117,8 @@ const ProxyManagement = () => {
     API.constellation.tunnels().then((res) => {
       setTunnels((res.data || []).map(r => {
         let route = r.Route;
-        route._from = r.From;
+        route._from = (r.Targets || []).map(t => t.deviceName);
+        route._targets = r.Targets || [];
         return route;
       }));
     });
@@ -276,7 +277,10 @@ const ProxyManagement = () => {
             </div> : <div></div>
           },
           { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} /> },
-          { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: t('global.target'), screenMin: 'md', search: (r) => r._IsTunnel ? (r._targets || []).map(t => t.targetURL).join(' ') : r.Target, field: (r) => r._IsTunnel && r._targets && r._targets.length > 0
+            ? <><RouteMode route={r} /> {r._targets.map((t, i) => <Chip key={i} label={t.targetURL + ' (' + t.deviceName + ')'} style={{marginBottom: 2}} />)}</>
+            : <><RouteMode route={r} /> <Chip label={r.Target} /></>
+          },
           { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title={t('tooltip.route.tunnelWarn')}>

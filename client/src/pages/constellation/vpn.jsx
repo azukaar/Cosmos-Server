@@ -438,12 +438,16 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         </Tooltip>
                       </Stack>} />}
 
-                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                      {!freeVersion && !config.ConstellationConfig.ThisDeviceName && <>
+                      <Alert severity="warning">
+                        {t('mgmt.constellation.setup.lighthouseInfo')}
+                      </Alert>
+                      <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsLighthouse" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                         <span>{t('mgmt.constellation.setup.isLighthouse.label')}</span>
                         <Tooltip title={t('mgmt.constellation.setup.isLighthouse.tooltip')}>
                           <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
                         </Tooltip>
-                      </Stack>} />}
+                      </Stack>} /></>}
                       {constellationEnabled && formik.values.IsLighthouse && <>
                         <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                           <span>{t('mgmt.constellation.setup.relayRequests.label')}</span>

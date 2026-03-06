@@ -66,6 +66,7 @@ var StopAllRCloneProcess func(bool)
 var InitPremiumFeatures func()
 
 var ResyncConstellationNodes = func() {}
+var GetConstellationTunnelRoutes = func() []ProxyRouteConfig { return []ProxyRouteConfig{} }
 
 var LetsEncryptErrors = []string{}
 
@@ -560,8 +561,8 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		mainHostname,
 	}
 
-	proxies := GetMainConfig().ConstellationConfig.Tunnels
-	proxies = append(proxies, GetMainConfig().HTTPConfig.ProxyConfig.Routes...)
+	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	proxies = append(proxies, GetConstellationTunnelRoutes()...)
 	
 	for _, proxy := range proxies {
 		if proxy.UseHost && proxy.Host != "" && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {

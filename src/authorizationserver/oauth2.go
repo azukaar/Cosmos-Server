@@ -80,7 +80,7 @@ func Init() {
 	oauth2 = compose.ComposeAllEnabled(foconfig, store, AuthPrivateKey)
 
 	routes := config.HTTPConfig.ProxyConfig.Routes
-	routes = append(routes, config.ConstellationConfig.Tunnels...)
+	routes = append(routes, utils.GetConstellationTunnelRoutes()...)
 
 	// Add proxy route clients
 	for _, route := range routes {
