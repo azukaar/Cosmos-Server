@@ -1,0 +1,186 @@
+name: Build and Publish release
+
+on:
+  push:
+    branches: [ "master", "unstable" ]
+  pull_request:
+    branches: [ "master", "unstable" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  MAX_TOKEN: ${{ secrets.MAX_TOKEN }}
+  PKG_NAME: "cosmos-cloud"
+  MAINTAINER_NAME: "Yann Stepienik"
+  MAINTAINER_EMAIL: "cosmoscloudsup@gmail.com"
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get version
+        id: version-step
+        uses: michmich112/extract-version@main
+        with:
+          version-file: package.json
+          schema: major.minor.build[-unstable]
+
+      - name: Set the value
+        id: step_one
+        run: |
+          echo "VERSION=${{ steps.version-step.outputs.version }}" >> "$GITHUB_ENV"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: 'amd64,arm64'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: install go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.2'
+
+      - name: install node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      - name: install dependencies
+        run: npm install
+
+      - name: cache GeoLite2-Country database
+        id: cache-geolite
+        uses: actions/cache@v4
+        with:
+          path: GeoLite2-Country.mmdb
+          key: ${{ runner.os }}-geolite2
+
+      - name: Download GeoLite2-Country database
+        if: steps.cache-geolite.outputs.cache-hit != 'true'
+        run: |
+            curl -s -L "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key=$MAX_TOKEN&suffix=tar.gz" -o GeoLite2-Country.tar.gz
+            tar -xzf GeoLite2-Country.tar.gz --strip-components 1 --wildcards "*.mmdb"
+
+      - name: cache Nebula Binary
+        id: cache-nebula
+        uses: actions/cache@v4
+        with:
+          path: nebula*
+          key: ${{ runner.os }}-nebula
+
+      - name: Download and Extract ARM Nebula Binary
+        if: steps.cache-nebula.outputs.cache-hit != 'true'
+        run: |
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-arm64.tar.gz
+            tar -xzvf nebula-linux-arm64.tar.gz
+
+      - name: Rename ARM Nebula Binary
+        if: steps.cache-nebula.outputs.cache-hit != 'true'
+        run: |
+            mv nebula nebula-arm
+            mv nebula-cert nebula-arm-cert
+
+      - name: Download and Extract Nebula Binary
+        if: steps.cache-nebula.outputs.cache-hit != 'true'
+        run: |
+            curl -LO https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-amd64.tar.gz
+            tar -xzvf nebula-linux-amd64.tar.gz
+
+      - name: Build UI
+        run: npm run client-build
+
+      - name: Build
+        run: sh build.sh
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'master') }}
+            type=semver,pattern={{version}},value=${{ env.VERSION }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - id: string
+        uses: ASzc/change-string-case-action@v6
+        with:
+          string: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+#          cache-from: type=local,src=/tmp/.buildx-cache
+#          cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=registry,ref=${{ steps.string.outputs.lowercase }}:dockercache
+          cache-to: type=registry,ref=${{ steps.string.outputs.lowercase }}:dockercache,mode=max,image-manifest=true
+      
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      - name: Prepare package structure       
+        run: |
+            mkdir -p ${{ env.PKG_NAME }}-${{ env.VERSION }}
+            cp -r build/* ${{ env.PKG_NAME }}-${{ env.VERSION }}/
+            rm ${{ env.PKG_NAME }}-${{ env.VERSION }}/cosmos-launcher-arm64
+            rm ${{ env.PKG_NAME }}-${{ env.VERSION }}/cosmos-arm64
+            rm ${{ env.PKG_NAME }}-${{ env.VERSION }}/nebula-arm
+            rm ${{ env.PKG_NAME }}-${{ env.VERSION }}/nebula-arm-cert
+
+      - name: Prepare ARM64 package structure      
+        run: |
+            mkdir -p ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64
+            cp -r build/* ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/
+            mv ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/nebula-arm ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/nebula
+            mv ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/nebula-arm-cert ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/nebula-cert
+            mv ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/cosmos-arm64 ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/cosmos
+            mv ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/cosmos-launcher-arm64 ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64/cosmos-launcher
+
+      - name: Create .zip packages       
+        run: |
+            zip -r ${{ env.PKG_NAME }}-${{ env.VERSION }}-amd64.zip ${{ env.PKG_NAME }}-${{ env.VERSION }}
+            zip -r ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64.zip ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64
+
+      - name: Generate MD5 hashes    
+        run: |
+            md5sum ${{ env.PKG_NAME }}-${{ env.VERSION }}-amd64.zip > ${{ env.PKG_NAME }}-${{ env.VERSION }}-amd64.zip.md5
+            md5sum ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64.zip > ${{ env.PKG_NAME }}-${{ env.VERSION }}-arm64.zip.md5
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1      
+        with:
+          artifacts: "${{ env.PKG_NAME }}-${{ env.VERSION }}-*.zip*"
+          tag: ${{ env.VERSION }}
+          allowUpdates: true
