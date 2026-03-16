@@ -77,7 +77,7 @@ type result struct {
 }
 
 func GetFavicon(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 	}
 
@@ -269,14 +269,14 @@ func resolveIconURL(iconURL string, baseURL *url.URL) string {
 
 
 func PingURL(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
 	// get url from query string
 	escsiteurl := req.URL.Query().Get("q")
 	isServappMode := req.URL.Query().Get("servapp")
-	
+
 	// URL decode
 	siteurl, err := url.QueryUnescape(escsiteurl)
 	if err != nil {

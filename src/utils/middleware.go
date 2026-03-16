@@ -394,7 +394,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 
 func AdminOnlyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsAdmin(r) {
+		if !HasPermission(r, PERM_ADMIN_READ) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -504,6 +504,32 @@ func IPInRange(ipStr, cidrStr string) (bool, error) {
 	return cidrNet.Contains(ip), nil
 }
 
+func CheckIPAccess(clientIP string, remoteAddr string, restrictToConstellation bool, whitelistIPs []string) bool {
+	isUsingWhiteList := len(whitelistIPs) > 0
+	isInWhitelist := false
+	isInConstellation := IsConstellationIP(remoteAddr)
+
+	for _, ipRange := range whitelistIPs {
+		if strings.Contains(ipRange, "/") {
+			if ok, _ := IPInRange(clientIP, ipRange); ok {
+				isInWhitelist = true
+				break
+			}
+		} else if clientIP == ipRange {
+			isInWhitelist = true
+			break
+		}
+	}
+
+	if restrictToConstellation {
+		return isInConstellation || isInWhitelist
+	}
+	if isUsingWhiteList {
+		return isInWhitelist
+	}
+	return true
+}
+
 func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -516,68 +542,7 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 
 		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-		isUsingWhiteList := len(WhitelistInboundIPs) > 0
-
-		isInWhitelist := false
-
-		isInConstellation := IsConstellationIP(remoteAddr)
-
-		for _, ipRange := range WhitelistInboundIPs {
-			Debug("Checking if " + ip + " is in " + ipRange)
-			if strings.Contains(ipRange, "/") {
-				if ok, _ := IPInRange(ip, ipRange); ok {
-					isInWhitelist = true
-				}
-			} else {
-				if ip == ipRange {
-					isInWhitelist = true
-				}
-			}
-		}
-
-		if(RestrictToConstellation) {
-			if(!isInConstellation) {
-				if(!isUsingWhiteList) {
-					PushShieldMetrics("ip-whitelists")
-
-					TriggerEvent(
-						"cosmos.proxy.shield.whitelist",
-						"Proxy Shield IP blocked by whitelist",
-						"warning",
-						"",
-						map[string]interface{}{
-						"clientID": ip,
-						"hostname": r.Host,
-						"url": r.URL.String(),
-					})
-
-					IncrementIPAbuseCounter(ip)
-					Error("Request from " + ip + " is blocked because of restrictions", nil)
-					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
-					http.Error(w, "Access denied", http.StatusForbidden)
-					return
-				} else if (!isInWhitelist) {
-					PushShieldMetrics("ip-whitelists")
-					
-					TriggerEvent(
-						"cosmos.proxy.shield.whitelist",
-						"Proxy Shield IP blocked by whitelist",
-						"warning",
-						"",
-						map[string]interface{}{
-						"clientID": ip,
-						"hostname": r.Host,
-						"url": r.URL.String(),
-					})
-
-					IncrementIPAbuseCounter(ip)
-					Error("Request from " + ip + " is blocked because of restrictions", nil)
-					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
-					http.Error(w, "Access denied", http.StatusForbidden)
-					return
-				}
-			}
-		} else if(isUsingWhiteList && !isInWhitelist) {
+		if !CheckIPAccess(ip, remoteAddr, RestrictToConstellation, WhitelistInboundIPs) {
 			PushShieldMetrics("ip-whitelists")
 
 			TriggerEvent(
@@ -593,7 +558,6 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 
 			IncrementIPAbuseCounter(ip)
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
-			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")
 			http.Error(w, "Access denied", http.StatusForbidden)
 			return
 		}

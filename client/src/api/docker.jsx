@@ -183,12 +183,12 @@ function createVolume(values) {
   }))
 }
 
-function attachTerminal(containerId) {
+function attachTerminal(containerId, readonly) {
   let protocol = 'ws://';
   if (window.location.protocol === 'https:') {
     protocol = 'wss://';
   }
-  return new WebSocket(protocol + window.location.host + '/cosmos/api/servapps/' + containerId + '/terminal/attach');
+  return new WebSocket(protocol + window.location.host + '/cosmos/api/servapps/' + containerId + '/terminal/attach' + (readonly ? '?readonly=true' : ''));
 }
 
 function createTerminal(containerId) {

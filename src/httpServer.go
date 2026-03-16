@@ -15,14 +15,16 @@ import (
 		"github.com/azukaar/cosmos-server/src/storage"
 		"github.com/azukaar/cosmos-server/src/backups"
 		"github.com/gorilla/mux"
-		"strconv"
 		"time"
 		"os"
 		"net"
 		"strings"
 		"path"
 		"github.com/go-chi/httprate"
+		"crypto/sha256"
+		"crypto/subtle"
 		"crypto/tls"
+		"encoding/hex"
 		"github.com/foomo/tlsconfig"
 		"context"
     "net/http/pprof"
@@ -212,22 +214,110 @@ func startHTTPSServer(router *mux.Router) error {
 
 func tokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//Header.Del
 		r.Header.Del("x-cosmos-user")
 		r.Header.Del("x-cosmos-role")
 		r.Header.Del("x-cosmos-user-role")
 		r.Header.Del("x-cosmos-mfa")
 
-		role, u, err := user.RefreshUserToken(w, r)
+		// API Token path (checked first)
+		authHeader := r.Header.Get("Authorization")
+		if strings.HasPrefix(authHeader, "Bearer cosmos_") {
+			rawToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+			h := sha256.Sum256([]byte(rawToken))
+			tokenHash := hex.EncodeToString(h[:])
+
+			config := utils.GetMainConfig()
+			var matchedToken *utils.APITokenConfig
+			var matchedName string
+
+			for name, tok := range config.APITokens {
+				if subtle.ConstantTimeCompare([]byte(tok.TokenHash), []byte(tokenHash)) == 1 {
+					t := tok
+					matchedToken = &t
+					matchedName = name
+					break
+				}
+			}
+
+			if matchedToken == nil {
+				utils.Error("API Token: Invalid token presented", nil)
+				utils.HTTPError(w, "Invalid API token", http.StatusUnauthorized, "AT001")
+				return
+			}
+
+			clientIP, _ := r.Context().Value("ClientID").(string)
+			remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+			if !utils.CheckIPAccess(clientIP, remoteAddr, matchedToken.RestrictToConstellation, matchedToken.IPWhitelist) {
+				utils.Error("API Token: IP not allowed for token " + matchedName, nil)
+				utils.TriggerEvent(
+					"cosmos.api.token.ip_blocked",
+					"API Token IP blocked",
+					"warning",
+					"token@"+matchedName,
+					map[string]interface{}{
+						"clientID":  clientIP,
+						"tokenName": matchedName,
+					},
+				)
+				utils.HTTPError(w, "Access denied", http.StatusForbidden, "AT002")
+				return
+			}
+
+			utils.TriggerEvent(
+				"cosmos.api.token.used",
+				"API Token used",
+				"info",
+				"token@"+matchedName,
+				map[string]interface{}{
+					"clientID":  clientIP,
+					"tokenName": matchedName,
+					"owner":     matchedToken.Owner,
+					"path":      r.URL.Path,
+					"method":    r.Method,
+				},
+			)
+
+			ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+				Nickname: matchedToken.Owner,
+				Role:     0,
+				UserRole: 0,
+				MFAState: 0,
+				APIToken: &utils.APITokenContext{
+					Name:        matchedName,
+					Owner:       matchedToken.Owner,
+					Permissions: matchedToken.Permissions,
+				},
+			})
+			r = r.WithContext(ctx)
+
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// JWT Cookie path (existing logic)
+		permissions, isSudoed, u, err := user.RefreshUserToken(w, r)
 
 		if err != nil {
 			return
 		}
 
-		r.Header.Set("x-cosmos-user", u.Nickname)
-		r.Header.Set("x-cosmos-role", strconv.Itoa((int)(role)))
-		r.Header.Set("x-cosmos-user-role", strconv.Itoa((int)(u.Role)))
-		r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
+		// Compute Role for backward compat (proxy headers, OAuth2, etc.)
+		effectiveRole := u.Role
+		if utils.RoleHasSudoPermissions(u.Role) && !isSudoed {
+			effectiveRole = utils.USER
+		}
+
+		ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+			Nickname:    u.Nickname,
+			Role:        effectiveRole,
+			UserRole:    u.Role,
+			Permissions: permissions,
+			IsSudoed:    isSudoed,
+			MFAState:    int(u.MFAState),
+		})
+		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
@@ -552,6 +642,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/image/{name}", GetImage)
 
 	srapiAdmin.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
+	srapiAdmin.HandleFunc("/api/api-tokens", configapi.APITokenRoute)
 
 	srapiAdmin.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
 	srapiAdmin.HandleFunc("/api/constellation/public-devices", constellation.DevicePublicList)
@@ -599,6 +690,7 @@ func InitServer() *mux.Router {
 
 	// RClone API handlers (replaces RCD proxy)
 	srapi.HandleFunc("/rclone/config/dump", storage.API_RClone_ConfigDump)
+	srapi.HandleFunc("/rclone/config/listremotes", storage.API_RClone_ListRemotes)
 	srapi.HandleFunc("/rclone/config/create", storage.API_RClone_ConfigCreate)
 	srapi.HandleFunc("/rclone/config/update", storage.API_RClone_ConfigUpdate)
 	srapi.HandleFunc("/rclone/config/delete", storage.API_RClone_ConfigDelete)

@@ -10,11 +10,14 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from "react-i18next";
 import { ConfirmModalDirect } from "../../components/confirmModal";
 import BackupDialog, { BackupDialogInternal } from "./backupDialog";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const Backups = ({pathFilters}) => {
   const { t } = useTranslation();
-  // const [isAdmin, setIsAdmin] = useState(false);
-  let isAdmin = true;
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [backups, setBackups] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -131,18 +134,22 @@ export const Backups = ({pathFilters}) => {
                     </ListItemIcon>
                     <ListItemText>{t('global.open')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
-                    <ListItemIcon>
-                      <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.edit')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.Name)}>
-                    <ListItemIcon>
-                      <DeleteOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.delete')}</ListItemText>
-                  </MenuItem>
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
+                      <ListItemIcon>
+                        <EditOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.edit')}</ListItemText>
+                    </MenuItem>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.Name)}>
+                      <ListItemIcon>
+                        <DeleteOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.delete')}</ListItemText>
+                    </MenuItem>
+                  </PermissionGuard>
                 </MenuButton>
               </div>
             }

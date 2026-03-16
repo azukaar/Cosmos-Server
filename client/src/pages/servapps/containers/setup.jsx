@@ -27,6 +27,8 @@ import { LoadingButton } from "@mui/lab";
 import LogsInModal from "../../../components/logsInModal";
 import ResponsiveButton from "../../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const containerInfoFrom = (values) => {
   const labels = {};
@@ -483,20 +485,22 @@ const DockerContainerSetup = ({
                         {t('mgmt.servapps.newContainer.imageUpdateWarning')}
                       </Alert>
                     )}
-                    <LoadingButton
-                      fullWidth
-                      disableElevation
-                      disabled={formik.errors.submit}
-                      loading={formik.isSubmitting}
-                      size="large"
-                      type="submit"
-                      variant="contained"
-                      color="primary"
-                    >
-                      {formik.values.image !== latestImage
-                        ? t('mgmt.servapps.newContainer.pullImageButton')
-                        : t('mgmt.servapps.newContainer.updateContainerButton')}
-                    </LoadingButton>
+                    <PermissionGuard permission={PERM_RESOURCES}>
+                      <LoadingButton
+                        fullWidth
+                        disableElevation
+                        disabled={formik.errors.submit}
+                        loading={formik.isSubmitting}
+                        size="large"
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                      >
+                        {formik.values.image !== latestImage
+                          ? t('mgmt.servapps.newContainer.pullImageButton')
+                          : t('mgmt.servapps.newContainer.updateContainerButton')}
+                      </LoadingButton>
+                    </PermissionGuard>
                   </Stack>
                 </MainCard>
               )}

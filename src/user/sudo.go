@@ -5,8 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-	"strconv"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
 
@@ -21,15 +19,14 @@ func UserSudo(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "POST" {
 		time.Sleep(time.Duration(rand.Float64()*2) * time.Second)
 
-		if utils.LoggedInOnly(w, req) != nil {
+		if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 		}
 		
-		userNickname := req.Header.Get("x-cosmos-user")
-		role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-		userRole, _ := strconv.Atoi(req.Header.Get("x-cosmos-user-role"))
+		authCtx := utils.GetAuthContext(req)
+		userNickname := authCtx.Nickname
 
-		if role < utils.USER || userRole < utils.ADMIN {
+		if !utils.PermissionsHaveSudo(authCtx.Permissions) {
 			utils.Error("UserSudo: User cannot sudo", nil)
 			utils.HTTPError(w, "User cannot sudo", http.StatusUnauthorized, "HTTP005")
 			return
@@ -84,7 +81,7 @@ func UserSudo(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			SendUserToken(w, req, user, true, user.Role)
+			SendUserToken(w, req, user, true, true)
 
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",

@@ -20,6 +20,8 @@ import { PlusCircleOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
 import * as API from '../../api';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 const NewVolumeButton = ({ fullWidth, refresh }) => {
   const { t } = useTranslation();
@@ -107,13 +109,13 @@ const NewVolumeButton = ({ fullWidth, refresh }) => {
           </DialogActions>
         </FormikProvider>
       </Dialog>
-      <Button
+      <PermissionGuard permission={PERM_RESOURCES}><Button
         fullWidth={fullWidth}
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
         {t('mgmt.servApps.volumes.newVolumeTitle')}
-      </Button>
+      </Button></PermissionGuard>
     </>
   );
 };

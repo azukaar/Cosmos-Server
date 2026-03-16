@@ -16,6 +16,8 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 import { Trans, useTranslation } from 'react-i18next';
 import ResyncDeviceModal from "./resyncDevice";
 import VPNSalesPage from "./free";
@@ -27,8 +29,8 @@ export const ConstellationVPN = ({ freeVersion }) => {
   const [users, setUsers] = useState(null);
   const [devices, setDevices] = useState(null);
   const [resynDevice, setResyncDevice] = useState(null); // [nickname, deviceName]
-  const { role } = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [ping, setPing] = useState(0);
   const [coStatus, setCoStatus] = React.useState(null);
   const [devicePingStatus, setDevicePingStatus] = useState({}); // {deviceName: 'loading' | 'success' | 'error'}
@@ -246,8 +248,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
               </Stack>
               {enableLoading
                 ? <CircularProgress size={24} sx={{ mr: 1 }} />
-                : <Switch
-                  disabled={!isAdmin}
+                : <PermissionGuard permission={PERM_RESOURCES} alwaysShow><Switch
                   checked={!!constellationEnabled}
                   onChange={async (e) => {
                     setEnableLoading(true);
@@ -259,12 +260,12 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     }, 1500);
                   }}
                   color="success"
-                />
+                /></PermissionGuard>
               }
             </Stack>
           </Stack>
 
-          {isAdmin && constellationEnabled && <>
+          {constellationEnabled && <PermissionGuard permission={PERM_RESOURCES}>
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider', mt: 2, pt: 2 }}>
               <Stack spacing={1} direction="row" flexWrap="wrap">
                 <Button
@@ -351,7 +352,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 />
               </Stack>
             </Box>
-          </>}
+          </PermissionGuard>}
         </MainCard>}
 
         {(isAdmin || !config.ConstellationConfig.ThisDeviceName) && <div>
@@ -469,20 +470,21 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         </Stack>} />
                       </>}
 
-                      {isAdmin && (!freeVersion || config.ConstellationConfig.ThisDeviceName) && <><LoadingButton
-                        disableElevation
-                        loading={formik.isSubmitting}
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                      >
-                        {config.ConstellationConfig.ThisDeviceName
-                          ? t('global.saveAction')
-                          : t('mgmt.constellation.setup.createConstellation')}
-                      </LoadingButton>
-                      </>}
+                      {(!freeVersion || config.ConstellationConfig.ThisDeviceName) && <PermissionGuard permission={PERM_RESOURCES}>
+                        <LoadingButton
+                          disableElevation
+                          loading={formik.isSubmitting}
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                        >
+                          {config.ConstellationConfig.ThisDeviceName
+                            ? t('global.saveAction')
+                            : t('mgmt.constellation.setup.createConstellation')}
+                        </LoadingButton>
+                      </PermissionGuard>}
 
-                      {isAdmin && <><UploadButtons
+                      <PermissionGuard permission={PERM_RESOURCES}><UploadButtons
                         accept=".yml,.yaml"
                         label={t('mgmt.constellation.setup.externalConfig.label')}
                         variant="outlined"
@@ -494,7 +496,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                             refreshConfig();
                           }, 1000);
                         }}
-                      /></>}
+                      /></PermissionGuard>
                     </Stack>
                   </form>
                 )}
@@ -650,7 +652,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     />;
                   }
 
-                  return blocked ? <Chip
+                  return blocked ? <PermissionGuard permission={PERM_RESOURCES} alwaysShow><Chip
                     label={
                       <div>
                         <Switch size="small" style={{ verticalAlign: "middle", marginRight: 4 }} />
@@ -660,7 +662,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     color="error"
                     onClick={() => toggleFirewallBlock(r.deviceName, blocked)}
                     style={{ cursor: 'pointer' }}
-                  /> : <Chip
+                  /></PermissionGuard> : <PermissionGuard permission={PERM_RESOURCES} alwaysShow><Chip
                     label={
                       <div>
                         <Switch
@@ -682,7 +684,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     color="success"
                     onClick={() => toggleFirewallBlock(r.deviceName, blocked)}
                     style={{ cursor: 'pointer' }}
-                  />;
+                  /></PermissionGuard>;
                 },
               },
               {
@@ -690,15 +692,15 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 clickable: true,
                 field: (r) => {
                   return <>
-                    <Tooltip title={t('mgmt.constellation.resyncDevice')}>
+                    <PermissionGuard permission={PERM_RESOURCES}>
                       <IconButton onClick={() => setResyncDevice([r.nickname, r.deviceName])}>
                         <SyncOutlined />
                       </IconButton>
-                    </Tooltip>
-                    <DeleteButton onDelete={async () => {
+                    </PermissionGuard>
+                    <PermissionGuard permission={PERM_RESOURCES}><DeleteButton onDelete={async () => {
                       await API.constellation.block(r.nickname, r.deviceName, true);
                       refreshConfig();
-                    }}></DeleteButton>
+                    }}></DeleteButton></PermissionGuard>
                   </>
                 }
               }

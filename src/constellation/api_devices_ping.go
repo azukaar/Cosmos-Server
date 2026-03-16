@@ -16,7 +16,7 @@ func DevicePing(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 

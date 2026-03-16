@@ -35,11 +35,11 @@ func NotifGet(w http.ResponseWriter, req *http.Request) {
 	_from := req.URL.Query().Get("from")
 	from, _ := primitive.ObjectIDFromHex(_from)
 	
-	if LoggedInOnly(w, req) != nil {
+	if CheckPermissions(w, req, PERM_LOGIN) != nil {
 		return
 	}
-	
-	nickname := req.Header.Get("x-cosmos-user")
+
+	nickname := GetAuthContext(req).Nickname
 
 	if(req.Method == "GET") {
 		c, errCo := GetCollection(GetRootAppId(), "notifications")
@@ -104,12 +104,12 @@ func NotifGet(w http.ResponseWriter, req *http.Request) {
 
 func MarkAsRead(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
-		if LoggedInOnly(w, req) != nil {
+		if CheckPermissions(w, req, PERM_LOGIN) != nil {
 				return
 		}
 
 		notificationIDs := []primitive.ObjectID{}
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := GetAuthContext(req).Nickname
 
 		notificationIDsRawRunes := req.URL.Query().Get("ids")
 

@@ -11,7 +11,7 @@ import (
 )
 
 func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -43,7 +43,7 @@ func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -84,7 +84,7 @@ type VolumeCreateRequest struct {
 }
 
 func CreateVolumeRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

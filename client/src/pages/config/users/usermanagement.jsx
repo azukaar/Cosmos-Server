@@ -1,6 +1,6 @@
 // material-ui
 import * as React from 'react';
-import { Button, LinearProgress, Stack, Typography } from '@mui/material';
+import { Button, LinearProgress, Stack, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
 import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -24,6 +24,8 @@ import { useEffect, useState } from 'react';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import { Trans, useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_USERS } from '../../../utils/permissions';
 
 const UserManagement = () => {
     const { t } = useTranslation();
@@ -31,12 +33,13 @@ const UserManagement = () => {
     const [openCreateForm, setOpenCreateForm] = React.useState(false);
     const [openDeleteForm, setOpenDeleteForm] = React.useState(false);
     const [openInviteForm, setOpenInviteForm] = React.useState(false);
-    const [openEditEmail, setOpenEditEmail] = React.useState(false);
+    const [openEditUser, setOpenEditUser] = React.useState(null);
+    const [editRole, setEditRole] = React.useState(1);
+    const [createRole, setCreateRole] = React.useState(1);
     const [toAction, setToAction] = React.useState(null);
     const [loadingRow, setLoadingRow] = React.useState(null);
     const [status, setStatus] = React.useState(null);
-
-    const roles = ['Guest', 'User', 'Admin']
+    const [roles, setRoles] = React.useState({0: 'Guest', 1: 'User', 2: 'Admin'});
 
     const [rows, setRows] = useState(null);
 
@@ -51,6 +54,16 @@ const UserManagement = () => {
 
         API.getStatus().then((res) => {
           setStatus(res.data);
+        });
+
+        API.config.get().then((res) => {
+          const configRoles = {1: 'User', 2: 'Admin'};
+          if (res.data && res.data.Roles) {
+            Object.keys(res.data.Roles).forEach((k) => {
+              configRoles[k] = res.data.Roles[k].name;
+            });
+          }
+          setRoles(configRoles);
         });
     }
 
@@ -128,11 +141,11 @@ const UserManagement = () => {
             </DialogActions>
         </Dialog>
         
-        <Dialog open={openEditEmail} onClose={() => setOpenEditEmail(false)}>
+        <Dialog open={!!openEditUser} onClose={() => setOpenEditUser(null)}>
             <DialogTitle>{t('mgmt.usermgmt.editEmailTitle')}</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    {t('mgmt.usermgmt.editEmailText', { user: openEditEmail })}
+                    {t('mgmt.usermgmt.editEmailText', { user: openEditUser ? openEditUser.nickname : '' })}
                 </DialogContentText>
                 <TextField
                     autoFocus
@@ -142,15 +155,23 @@ const UserManagement = () => {
                     type="email"
                     fullWidth
                     variant="standard"
+                    defaultValue={openEditUser ? openEditUser.email : ''}
                 />
+                <FormControl fullWidth variant="standard" margin="dense">
+                    <InputLabel>Role</InputLabel>
+                    <Select value={editRole} onChange={(e) => setEditRole(e.target.value)}>
+                        {Object.entries(roles).map(([id, name]) => <MenuItem key={id} value={Number(id)}>{name}</MenuItem>)}
+                    </Select>
+                </FormControl>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpenEditEmail(false)}>{t('global.cancelAction')}</Button>
+                <Button onClick={() => setOpenEditUser(null)}>{t('global.cancelAction')}</Button>
                 <Button onClick={() => {
-                    API.users.edit(openEditEmail, {
-                        email: document.getElementById('c-email-edit').value,
-                    }).then(() => {
-                        setOpenEditEmail(false);
+                    const payload = { role: editRole };
+                    const emailVal = document.getElementById('c-email-edit').value;
+                    if (emailVal) payload.email = emailVal;
+                    API.users.edit(openEditUser.nickname, payload).then(() => {
+                        setOpenEditUser(null);
                         refresh();
                     });
                 }}>{t('global.edit')}</Button>
@@ -181,6 +202,12 @@ const UserManagement = () => {
                     fullWidth
                     variant="standard"
                 />
+                <FormControl fullWidth variant="standard" margin="dense">
+                    <InputLabel>Role</InputLabel>
+                    <Select value={createRole} onChange={(e) => setCreateRole(e.target.value)}>
+                        {Object.entries(roles).map(([id, name]) => <MenuItem key={id} value={Number(id)}>{name}</MenuItem>)}
+                    </Select>
+                </FormControl>
             </DialogContent>
             <DialogActions>
                 <Button onClick={() => setOpenCreateForm(false)}>{t('global.cancelAction')}</Button>
@@ -188,6 +215,7 @@ const UserManagement = () => {
                     API.users.create({
                         nickname: document.getElementById('c-nickname').value,
                         email: document.getElementById('c-email').value,
+                        role: createRole,
                     }).then(() => {
                         setOpenCreateForm(false);
                         refresh();
@@ -199,9 +227,9 @@ const UserManagement = () => {
 
 
         <Stack direction="row" spacing={2}>
-            <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+            <PermissionGuard permission={PERM_USERS}><Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
                 setOpenCreateForm(true)
-            }} disabled={(status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button>
+            }} disabled={(status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button></PermissionGuard>
 
             <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
                     refresh();
@@ -223,7 +251,8 @@ const UserManagement = () => {
         {!isLoading && rows && (<PrettyTableView 
             data={rows}
             onRowClick = {(r) => {
-                setOpenEditEmail(r.nickname);
+                setOpenEditUser(r);
+                setEditRole(r.role);
             }}
             getKey={(r) => r.nickname}
             columns={[
@@ -239,12 +268,9 @@ const UserManagement = () => {
                         const isRegistered = new Date(r.registeredAt).getTime() > 0;
                         const inviteExpired = new Date(r.registerKeyExp).getTime() < new Date().getTime();
 
-                        return <>{isRegistered ? (r.role > 1 ? <Chip
-                                icon={<KeyOutlined />}
-                                label={t('mgmt.usermgmt.adminLabel')}
-                            /> : <Chip
-                                icon={<UserOutlined />}
-                                label={t('global.user')}
+                        return <>{isRegistered ? (<Chip
+                                icon={r.role === 2 ? <KeyOutlined /> : <UserOutlined />}
+                                label={roles[r.role] || t('global.user')}
                             />) : (
                                 inviteExpired ? <Chip
                                     icon={<ExclamationCircleOutlined  />}
@@ -288,34 +314,34 @@ const UserManagement = () => {
                         }
 
                         return <>{isRegistered ?
-                            (<Button variant="contained" color="primary" onClick={
+                            (<PermissionGuard permission={PERM_USERS}><Button variant="contained" color="primary" onClick={
                                 () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 1);
                                 }
-                            }>{t('mgmt.usermgmt.sendPasswordResetButton')}</Button>) :
-                            (<Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
+                            }>{t('mgmt.usermgmt.sendPasswordResetButton')}</Button></PermissionGuard>) :
+                            (<PermissionGuard permission={PERM_USERS}><Button variant="contained" className={inviteExpired ? 'shinyButton' : ''} onClick={
                                 () => {
                                     setLoadingRow(r.nickname);
                                     sendlink(r.nickname, 2);
                                 }
-                            } color="primary">{t('newInstall.usermgmt.inviteUser.resendInviteButton')}</Button>)
+                            } color="primary">{t('newInstall.usermgmt.inviteUser.resendInviteButton')}</Button></PermissionGuard>)
                         }
-                        &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
+                        &nbsp;&nbsp;<PermissionGuard permission={PERM_USERS}><Button variant="contained" color="error" onClick={
                             () => {
                                 setLoadingRow(r.nickname);
                                 setToAction(r.nickname);
                                 setOpenDeleteForm(true);
                             }
-                        }>{t('global.delete')}</Button>
-                        &nbsp;&nbsp;<Button variant="contained" color="error" onClick={
+                        }>{t('global.delete')}</Button></PermissionGuard>
+                        &nbsp;&nbsp;<PermissionGuard permission={PERM_USERS}><Button variant="contained" color="error" onClick={
                             () => {
                                 setLoadingRow(r.nickname);
                                 API.users.reset2FA(r.nickname).then(() => {
                                     refresh();
                                 });
                             }
-                        }>{t('mgmt.usermgmt.reset2faButton')}</Button></>
+                        }>{t('mgmt.usermgmt.reset2faButton')}</Button></PermissionGuard></>
                     }
                 },
             ]}

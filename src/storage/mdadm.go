@@ -241,7 +241,7 @@ func parseRaidDetails(output string) map[string]interface{} {
 // HTTP Routes
 
 func RaidCreateRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -272,7 +272,7 @@ func RaidCreateRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RaidDeleteRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -304,7 +304,7 @@ type RaidDeviceRequest struct {
 }
 
 func RaidAddDeviceRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -343,7 +343,7 @@ type RaidReplaceDeviceRequest struct {
 }
 
 func RaidReplaceDeviceRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -377,7 +377,7 @@ func RaidReplaceDeviceRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RaidListRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -422,7 +422,7 @@ func ResizeRaidArray(name string) error {
 }
 
 func RaidStatusRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -448,7 +448,7 @@ func RaidStatusRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RaidResizeRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

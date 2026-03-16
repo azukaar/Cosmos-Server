@@ -43,7 +43,7 @@ func isDiskOrPartition(path string) (string, error) {
 var diskOpMutex sync.Mutex
 
 func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 	
@@ -72,7 +72,7 @@ func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 			
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := utils.GetAuthContext(req).Nickname
 
 		errp := utils.CheckPassword(nickname, request.Password)
 		if errp != nil {

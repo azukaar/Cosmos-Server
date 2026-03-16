@@ -313,8 +313,14 @@ func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 }
 
 func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-user-role"))
-	return role >= policy.PrivilegedGroups
+	switch {
+	case policy.PrivilegedGroups <= 0:
+		return true
+	case policy.PrivilegedGroups == 1:
+		return utils.HasPermission(req, utils.PERM_LOGIN)
+	default:
+		return utils.HasPermission(req, utils.PERM_ADMIN_READ)
+	}
 }
 
 func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(http.Handler) http.Handler {

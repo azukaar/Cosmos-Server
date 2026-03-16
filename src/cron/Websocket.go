@@ -19,7 +19,7 @@ var clients = make(map[*websocket.Conn]bool) // connected clients
 
 // listenJobs handles new WebSocket requests from clients
 func listenJobs(w http.ResponseWriter, r *http.Request) {
-	if utils.AdminOnly(w, r) != nil {
+	if utils.CheckPermissions(w, r, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 

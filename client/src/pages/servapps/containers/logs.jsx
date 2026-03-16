@@ -57,7 +57,7 @@ const Logs = ({ containerInfo }) => {
       ws.current.close();
     }
 
-    ws.current = API.docker.attachTerminal(Name.slice(1));
+    ws.current = API.docker.attachTerminal(Name.slice(1), true);
 
     ws.current.onmessage = (event) => {
       if(event.data === '_PONG_') {

@@ -26,7 +26,7 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 
 		nickname := utils.Sanitize(request.Nickname)
 
-		if utils.AdminOnly(w, req) != nil {
+		if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 			return
 		}
 

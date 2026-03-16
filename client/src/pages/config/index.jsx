@@ -14,7 +14,9 @@ import RestartModal from './users/restart';
 import { ArrowDownOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import { LoadingButton } from '@mui/lab';
 import { useClientInfos } from '../../utils/hooks';
+import { PERM_CONFIGURATION, PERM_ADMIN_READ } from '../../utils/permissions';
 import ConfirmModal from '../../components/confirmModal';
+import PermissionGuard from '../../components/permissionGuard';
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 
 import { useTranslation } from 'react-i18next';
@@ -24,10 +26,11 @@ import ConfigHTTP from './configHTTP';
 import ConfigHTTPS from './configHTTPS';
 import ConfigExternal from './configExternal';
 import ConfigAppearance from './configAppearance';
+import ConfigAPITokens from './configAPITokens';
 
-const SaveButton = ({ formik, saveLabel, isAdmin }) => {
-  if (!isAdmin) return null;
+const SaveButton = ({ formik, saveLabel }) => {
   return (
+    <PermissionGuard permission={PERM_CONFIGURATION}>
     <MainCard>
       {formik.errors.submit && (
         <Grid item xs={12}>
@@ -48,6 +51,7 @@ const SaveButton = ({ formik, saveLabel, isAdmin }) => {
         </LoadingButton>
       </Grid>
     </MainCard>
+    </PermissionGuard>
   );
 };
 
@@ -58,8 +62,9 @@ const ConfigManagement = () => {
   const [openModal, setOpenModal] = React.useState(false);
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [saveLabel, setSaveLabel] = React.useState(t('global.saveAction'));
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_CONFIGURATION);
+  const canViewAdmin = hasPermission(PERM_ADMIN_READ);
 
   function refresh() {
     API.config.get().then((res) => {
@@ -83,18 +88,20 @@ const ConfigManagement = () => {
               refresh();
           }}>{t('mgmt.config.header.refreshButton.refreshLabel')}</Button>
 
-          {isAdmin && <Button variant="outlined" color="primary"
+          {canViewAdmin && <Button variant="outlined" color="primary"
             startIcon={<ArrowDownOutlined />} href={"/cosmos/_logs"}>
             {t('mgmt.config.header.downloadLogsButton.downloadLogsLabel')}
           </Button>}
 
-          <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
-              API.metrics.reset().then(() => {
-                refresh();
-              });
-          }}
-          label={t('mgmt.config.header.purgeMetricsButton.purgeMetricsLabel')}
-          content={t('mgmt.config.header.purgeMetricsButton.purgeMetricsPopUp.cofirmAction')} />
+          <PermissionGuard permission={PERM_CONFIGURATION}>
+            <ConfirmModal variant="outlined" color="warning" startIcon={<DeleteOutlined />} callback={() => {
+                API.metrics.reset().then(() => {
+                  refresh();
+                });
+            }}
+            label={t('mgmt.config.header.purgeMetricsButton.purgeMetricsLabel')}
+            content={t('mgmt.config.header.purgeMetricsButton.purgeMetricsPopUp.cofirmAction')} />
+          </PermissionGuard>
         </Stack>
 
         {!isAdmin && <div>
@@ -102,9 +109,9 @@ const ConfigManagement = () => {
           </Alert>
         </div>}
 
-        <SaveButton formik={formik} saveLabel={saveLabel} isAdmin={isAdmin} />
+        <SaveButton formik={formik} saveLabel={saveLabel} />
         {content}
-        <SaveButton formik={formik} saveLabel={saveLabel} isAdmin={isAdmin} />
+        <SaveButton formik={formik} saveLabel={saveLabel} />
       </Stack>
     </div>
   );
@@ -335,6 +342,13 @@ const ConfigManagement = () => {
                   title: t('mgmt.config.externalTitle'),
                   children: wrapTab(formik, <ConfigExternal formik={formik} />),
                   url: "/external",
+                },
+                {
+                  title: "API",
+                  children: <div style={{ maxWidth: "1000px", margin: "auto" }}>
+                    <ConfigAPITokens />
+                  </div>,
+                  url: "/api",
                 },
               ]}
             />

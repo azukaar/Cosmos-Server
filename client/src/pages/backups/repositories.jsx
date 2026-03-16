@@ -11,11 +11,14 @@ import { useTranslation } from "react-i18next";
 import { ConfirmModalDirect } from "../../components/confirmModal";
 import BackupDialog, { BackupDialogInternal } from "./backupDialog";
 import {simplifyNumber} from '../dashboard/components/utils';
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const Repositories = () => {
   const { t } = useTranslation();
-  // const [isAdmin, setIsAdmin] = useState(false);
-  let isAdmin = true;
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [repositories, setRepositories] = useState(null);
   const [repoStats, setRepoStats] = useState({});
   const [loading, setLoading] = useState(false);
@@ -148,20 +151,22 @@ export const Repositories = () => {
                   size="small"
                   variant="outlined"
                 />
-                <ResponsiveButton
-                  variant="outlined"
-                  color="warning"
-                  size="small"
-                  startIcon={unlocking === r.id ? <CircularProgress size={16} /> : null}
-                  disabled={unlocking === r.id}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleUnlock(r.id);
-                  }}
-                >
-                  Unlock
-                </ResponsiveButton>
+                <PermissionGuard permission={PERM_RESOURCES}>
+                  <ResponsiveButton
+                    variant="outlined"
+                    color="warning"
+                    size="small"
+                    startIcon={unlocking === r.id ? <CircularProgress size={16} /> : null}
+                    disabled={unlocking === r.id}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleUnlock(r.id);
+                    }}
+                  >
+                    Unlock
+                  </ResponsiveButton>
+                </PermissionGuard>
               </Stack>;
             },
           },

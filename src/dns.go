@@ -10,7 +10,7 @@ import (
 )
 
 func CheckDNSRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
@@ -48,7 +48,7 @@ func CheckDNSRoute(w http.ResponseWriter, req *http.Request) {
 
 
 func GetDNSRoute(w http.ResponseWriter, req *http.Request) {
-	if !utils.GetMainConfig().NewInstall && (utils.LoggedInOnly(w, req) != nil) {
+	if !utils.GetMainConfig().NewInstall && (utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil) {
 		return
 	}
 

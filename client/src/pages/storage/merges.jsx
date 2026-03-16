@@ -18,10 +18,14 @@ import ResponsiveButton from "../../components/responseiveButton";
 import MenuButton from "../../components/MenuButton";
 import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const StorageMerges = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
   const [mergeDialog, setMergeDialog] = useState(null);
@@ -35,7 +39,6 @@ export const StorageMerges = () => {
     let status = await API.getStatus();
 
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setMounts(mountsData.data);
     setContainerized(status.data.containerized);
     setLoading(false);
@@ -83,11 +86,13 @@ export const StorageMerges = () => {
               title: '',
               clickable:true, 
               field: (r) => <>
-                <DeleteIconButton disabled={containerized} onDelete={() => {
-                  API.storage.mounts.unmount({ mountPoint: r.path, permanent: true }).then(() => {
-                    refresh();
-                  });
-                }} />
+                <PermissionGuard permission={PERM_RESOURCES}>
+                  <DeleteIconButton disabled={containerized} onDelete={() => {
+                    API.storage.mounts.unmount({ mountPoint: r.path, permanent: true }).then(() => {
+                      refresh();
+                    });
+                  }} />
+                </PermissionGuard>
               </>
             },
           ]}

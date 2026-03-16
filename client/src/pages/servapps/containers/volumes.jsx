@@ -23,6 +23,8 @@ import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from "../../../components/filePicker";
 import { Backups } from "../../backups/backups";
 import BackupDialog from "../../backups/backupDialog";
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const VolumeContainerSetup = ({
   noCard,
@@ -168,7 +170,7 @@ const VolumeContainerSetup = ({
                           getKey={(r) => r.Id}
                           fullWidth
                           buttons={[
-                            <ResponsiveButton
+                            <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton
                               startIcon={<PlusCircleOutlined />}
                               variant="outlined"
                               color="primary"
@@ -187,7 +189,7 @@ const VolumeContainerSetup = ({
                               }}
                             >
                               {t('mgmt.servapps.newContainer.volumes.newMountButton')}
-                            </ResponsiveButton>,
+                            </ResponsiveButton></PermissionGuard>,
                           ]}
                           columns={[
                             {
@@ -315,7 +317,7 @@ const VolumeContainerSetup = ({
                               field: (r) => {
                                 return (
                                   <Stack direction="row" spacing={2}>
-                                    <Button
+                                    <PermissionGuard permission={PERM_RESOURCES}><Button
                                     variant="outlined"
                                     color="primary"
                                     disabled={frozenVolumes.includes(r.Source)}
@@ -334,7 +336,7 @@ const VolumeContainerSetup = ({
                                     }}
                                   >
                                     {t('global.unmount')}
-                                  </Button>
+                                  </Button></PermissionGuard>
                                   {!newContainer && containerInfo.Name && (r.Target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null)}
                                   </Stack>
                                 );
@@ -362,18 +364,20 @@ const VolumeContainerSetup = ({
                           </Grid>
                         )}
                         {!newContainer && (
-                          <LoadingButton
-                            fullWidth
-                            disableElevation
-                            disabled={formik.errors.submit}
-                            loading={formik.isSubmitting}
-                            size="large"
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                          >
-                            {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
-                          </LoadingButton>
+                          <PermissionGuard permission={PERM_RESOURCES}>
+                            <LoadingButton
+                              fullWidth
+                              disableElevation
+                              disabled={formik.errors.submit}
+                              loading={formik.isSubmitting}
+                              size="large"
+                              type="submit"
+                              variant="contained"
+                              color="primary"
+                            >
+                              {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
+                            </LoadingButton>
+                          </PermissionGuard>
                         )}
                       </Stack>
                     </Grid>

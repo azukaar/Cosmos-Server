@@ -9,7 +9,7 @@ import (
 )
 
 func InspectImageRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 

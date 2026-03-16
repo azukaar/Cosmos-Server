@@ -43,6 +43,16 @@ function list() {
   }))
 }
 
+function listRemotes() {
+  return wrapRClone(fetch('/cosmos/rclone/config/listremotes', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({})
+  }))
+}
+
 // New function to update a provider
 function update(data) {
   return wrapRClone(fetch('/cosmos/rclone/config/update', {
@@ -115,6 +125,7 @@ function restart() {
 export {
   create,
   list,
+  listRemotes,
   deleteRemote,
   update,
   coreStats,

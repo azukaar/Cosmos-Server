@@ -23,6 +23,8 @@ import MiniPlotComponent from '../dashboard/components/mini-plot';
 import { DownloadFile } from '../../api/downloadButton';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from '../../utils/permissions';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255)',
@@ -254,21 +256,25 @@ const ServApps = ({stack}) => {
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
         {!stack && <>
-        <Link to="/cosmos-ui/servapps/new-service">
-          <ResponsiveButton
-            variant="contained" 
-            startIcon={<AppstoreAddOutlined />}
-            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
-        </Link>
+        <PermissionGuard permission={PERM_RESOURCES}>
+          <Link to="/cosmos-ui/servapps/new-service" style={{ textDecoration: 'none' }}>
+            <ResponsiveButton
+              variant="contained"
+              startIcon={<AppstoreAddOutlined />}
+              >{t('navigation.market.startServAppButton')}</ResponsiveButton>
+          </Link>
+        </PermissionGuard>
         <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
           refreshServApps();
         }}>{t('global.refresh')}</ResponsiveButton>
         <DockerComposeImport refresh={refreshServApps}/>
-        <DownloadFile
-          filename={'backup.cosmos-compose.json'}
-          label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
-          contentGetter={API.config.getBackup}
-        />
+        <PermissionGuard permission={PERM_CREDENTIALS_READ}>
+          <DownloadFile
+            filename={'backup.cosmos-compose.json'}
+            label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
+            contentGetter={API.config.getBackup}
+          />
+        </PermissionGuard>
         </>}
       </Stack>
 
@@ -362,19 +368,21 @@ const ServApps = ({stack}) => {
                   <Typography variant="h6" color="text.secondary">
                     {t('menu-items.management.urls')}
                   </Typography>
-                  <Chip
-                    label={t('mgmt.servApps.newChip.newLabel')}
-                    color="primary"
-                    size="small"
-                    style={{paddingRight: '4px'}}
-                    deleteIcon={<PlusCircleOutlined />}
-                    onClick={() => {
-                      setOpenModal(app.app);
-                    }}
-                    onDelete={() => {
-                      setOpenModal(app.app);
-                    }}
-                  />
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <Chip
+                      label={t('mgmt.servApps.newChip.newLabel')}
+                      color="primary"
+                      size="small"
+                      style={{paddingRight: '4px'}}
+                      deleteIcon={<PlusCircleOutlined />}
+                      onClick={() => {
+                        setOpenModal(app.app);
+                      }}
+                      onDelete={() => {
+                        setOpenModal(app.app);
+                      }}
+                    />
+                  </PermissionGuard>
                 </Stack>
                 <Stack style={noOver} spacing={1} direction="row" alignItems="center" >
                   {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {

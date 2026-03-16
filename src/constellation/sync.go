@@ -18,6 +18,8 @@ type SyncPayload struct {
 	CART           string `json:"caCrt"`
 	CAKey 	       string `json:"caKey"`
 	DNS 		   SyncDNSPayload `json:"dns"`
+	RcloneConfig   string `json:"rcloneConfig"`
+	ConfigData     SyncConfigPayload `json:"configData"`
 	LastEdited     int64  `json:"lastEdited"`
 }
 
@@ -27,6 +29,11 @@ type SyncDNSPayload struct {
 	DNSBlockBlacklist bool `json:"dnsBlockBlacklist"`
 	DNSAdditionalBlocklists []string `json:"dnsAdditionalBlocklists"`
 	CustomDNSEntries []utils.ConstellationDNSEntry `json:"customDNSEntries"`
+}
+
+type SyncConfigPayload struct {
+	APITokens map[string]utils.APITokenConfig `json:"apiTokens,omitempty"`
+	Roles     map[utils.Role]utils.RoleConfig  `json:"roles,omitempty"`
 }
 
 type SyncRequestPayload struct {
@@ -82,6 +89,13 @@ func MakeSyncPayload(rawPayload string) string {
 		CAKey = base64.StdEncoding.EncodeToString(caKeyData)
 	}
 
+	// Read rclone config
+	rcloneConfig := ""
+	rcloneConfigData, err := ioutil.ReadFile(utils.CONFIGFOLDER + "rclone.conf")
+	if err == nil {
+		rcloneConfig = base64.StdEncoding.EncodeToString(rcloneConfigData)
+	}
+
 	// Create payload
 
 	constellationConfig := utils.GetMainConfig().ConstellationConfig
@@ -98,6 +112,11 @@ func MakeSyncPayload(rawPayload string) string {
 			DNSBlockBlacklist:      constellationConfig.DNSBlockBlacklist,
 			DNSAdditionalBlocklists: constellationConfig.DNSAdditionalBlocklists,
 			CustomDNSEntries:       constellationConfig.CustomDNSEntries,
+		},
+		RcloneConfig: rcloneConfig,
+		ConfigData: SyncConfigPayload{
+			APITokens: utils.GetMainConfig().APITokens,
+			Roles:     utils.GetMainConfig().Roles,
 		},
 		LastEdited:     utils.GetFileLastModifiedTime(dbPath).Unix(),
 	}
@@ -192,6 +211,22 @@ func ReceiveSyncPayload(rawPayload string) bool {
 		}
 	}
 
+	// Write rclone config if present
+	needRcloneRemount := false
+	if payload.RcloneConfig != "" {
+		rcloneConfigData, err := base64.StdEncoding.DecodeString(payload.RcloneConfig)
+		if err != nil {
+			utils.Error("Constellation: ReceiveSyncPayload: Failed to decode rclone config", err)
+		} else {
+			err = ioutil.WriteFile(utils.CONFIGFOLDER+"rclone.conf", rcloneConfigData, 0644)
+			if err != nil {
+				utils.Error("Constellation: ReceiveSyncPayload: Failed to write rclone config file", err)
+			} else {
+				needRcloneRemount = true
+			}
+		}
+	}
+
 	// Update auth keys and DNS config
 	config := utils.ReadConfigFromFile()
 	config.HTTPConfig.AuthPrivateKey = payload.AuthPrivateKey
@@ -201,9 +236,21 @@ func ReceiveSyncPayload(rawPayload string) bool {
 	config.ConstellationConfig.DNSBlockBlacklist = payload.DNS.DNSBlockBlacklist
 	config.ConstellationConfig.DNSAdditionalBlocklists = payload.DNS.DNSAdditionalBlocklists
 	config.ConstellationConfig.CustomDNSEntries = payload.DNS.CustomDNSEntries
+
+	if payload.ConfigData.APITokens != nil {
+		config.APITokens = payload.ConfigData.APITokens
+	}
+	if payload.ConfigData.Roles != nil {
+		config.Roles = payload.ConfigData.Roles
+	}
+
 	utils.SetBaseMainConfig(config)
 
 	utils.CloseEmbeddedDB()
+
+	if needRcloneRemount && utils.InitRemoteStorage != nil {
+		go utils.InitRemoteStorage()
+	}
 
 	lastDBSyncTime = time.Now()
 

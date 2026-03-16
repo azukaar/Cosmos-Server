@@ -13,7 +13,7 @@ import (
 var maxLimit = 1000
 
 func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	} 
 
@@ -45,7 +45,7 @@ func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ExportContainerRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return
 	}
 

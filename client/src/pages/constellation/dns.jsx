@@ -15,16 +15,19 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useTranslation } from 'react-i18next';
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_CONFIGURATION } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const ConstellationDNS = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_CONFIGURATION);
   const [config, setConfig] = useState(null);
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
   };
 
   useEffect(() => {
@@ -147,7 +150,8 @@ export const ConstellationDNS = () => {
                     }}>{t('mgmt.constellation.dns.resetButton')}</Button>
                   </Stack>
 
-                  <LoadingButton
+                  <PermissionGuard permission={PERM_CONFIGURATION}>
+                    <LoadingButton
                       disableElevation
                       loading={formik.isSubmitting}
                       type="submit"
@@ -155,7 +159,8 @@ export const ConstellationDNS = () => {
                       color="primary"
                     >
                       {t('global.saveAction')}
-                  </LoadingButton>
+                    </LoadingButton>
+                  </PermissionGuard>
                 </Stack>
               </form>
             )}

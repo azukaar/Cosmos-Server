@@ -17,8 +17,8 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 
 	remoteTunnels := constellation.GetLocalTunnelCache()
 	for _, tunnel := range remoteTunnels {
-		if !routeConfig.Disabled && ((strings.HasPrefix(routeConfig.Target, "http://") || strings.HasPrefix(routeConfig.Target, "https://")) 
-		 	|| (routeConfig.Type == "STATIC" || routeConfig.Type == "SPA")) {
+		if !tunnel.Route.Disabled && ((strings.HasPrefix(tunnel.Route.Target, "http://") || strings.HasPrefix(tunnel.Route.Target, "https://")) ||
+			(tunnel.Route.Mode == "STATIC" || tunnel.Route.Mode == "SPA")) {
 			RouterGen(tunnel.Route, router, TunnelRouteTo(tunnel, DefaultTunnelLB))
 		}
 	}
@@ -37,8 +37,8 @@ func BuildFromConfig(router *mux.Router, config utils.ProxyConfig) *mux.Router {
 
 	for i := len(config.Routes)-1; i >= 0; i-- {
 		routeConfig := config.Routes[i]
-		if !routeConfig.Disabled && ((strings.HasPrefix(routeConfig.Target, "http://") || strings.HasPrefix(routeConfig.Target, "https://")) 
-		 	|| (routeConfig.Type == "STATIC" || routeConfig.Type == "SPA")) {
+		if !routeConfig.Disabled && ((strings.HasPrefix(routeConfig.Target, "http://") || strings.HasPrefix(routeConfig.Target, "https://")) ||
+			(routeConfig.Mode == "STATIC" || routeConfig.Mode == "SPA")) {
 			RouterGen(routeConfig, router, RouteTo(routeConfig))
 		}
 	}

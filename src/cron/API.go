@@ -9,7 +9,7 @@ import (
 )
 
 func ListJobs(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -58,7 +58,7 @@ type JobRequestJSON struct {
 
 
 func StopJobRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -93,7 +93,7 @@ func StopJobRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteJobRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -132,7 +132,7 @@ func DeleteJobRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RunJobRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -170,7 +170,7 @@ func RunJobRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetJobRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -215,7 +215,7 @@ func GetJobRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetRunningJobsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 

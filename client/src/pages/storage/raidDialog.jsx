@@ -7,6 +7,8 @@ import * as yup from 'yup';
 import * as API from '../../api';
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import PermissionGuard from "../../components/permissionGuard";
+import { PERM_RESOURCES } from "../../utils/permissions";
 import { MountPicker } from "./mountPicker";
 import { Trans } from 'react-i18next';
 
@@ -234,14 +236,16 @@ export const RaidDialog = ({ refresh, disabled }) => {
 
   return (
     <>
-      <ResponsiveButton
-        variant="contained"
-        startIcon={<PlusCircleOutlined />}
-        onClick={() => setOpen(true)}
-        disabled={disabled}
-      >
-        {t('mgmt.storage.raid.create')}
-      </ResponsiveButton>
+      <PermissionGuard permission={PERM_RESOURCES}>
+        <ResponsiveButton
+          variant="contained"
+          startIcon={<PlusCircleOutlined />}
+          onClick={() => setOpen(true)}
+          disabled={disabled}
+        >
+          {t('mgmt.storage.raid.create')}
+        </ResponsiveButton>
+      </PermissionGuard>
       <RaidDialogInternal
         refresh={refresh}
         open={open}

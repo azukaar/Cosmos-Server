@@ -36,6 +36,8 @@ import { CosmosContainerPicker } from '../../config/users/containerPicker';
 import { randomString } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../../components/filePicker';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -1094,16 +1096,18 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       </DialogActions>)}
     </Dialog>
 
-    <ResponsiveButton
-      color="primary"
-      onClick={() => {
-        openModalFunc();
-      }}
-      variant={(installerInit ? "contained" : "outlined")}
-      startIcon={(installerInit ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
-    >
-      {installerInit ? t('mgmt.servapps.compose.installButton') : t('mgmt.servapps.importComposeFileButton')}
-    </ResponsiveButton>
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <ResponsiveButton
+        color="primary"
+        onClick={() => {
+          openModalFunc();
+        }}
+        variant={(installerInit ? "contained" : "outlined")}
+        startIcon={(installerInit ? <ArrowDownOutlined /> : <ArrowUpOutlined />)}
+      >
+        {installerInit ? t('mgmt.servapps.compose.installButton') : t('mgmt.servapps.importComposeFileButton')}
+      </ResponsiveButton>
+    </PermissionGuard>
     
   </>;
 };

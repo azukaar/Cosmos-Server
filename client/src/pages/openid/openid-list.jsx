@@ -36,6 +36,8 @@ import { DeleteButton } from '../../components/delete';
 import OpenIdEditModal from './openid-edit';
 import bcrypt from 'bcryptjs';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_CONFIGURATION } from '../../utils/permissions';
 
 const stickyButton = {
   position: 'fixed',
@@ -129,10 +131,10 @@ const OpenIdList = () => {
 
   return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
-      <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+      <PermissionGuard permission={PERM_CONFIGURATION}><Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
         setClientId(null);
         setOpenNewModal(true);
-      }}>{t('global.createAction')}</Button>&nbsp;&nbsp;
+      }}>{t('global.createAction')}</Button></PermissionGuard>&nbsp;&nbsp;
       <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
         refresh();
       }}>{t('global.refresh')}</Button>
@@ -223,10 +225,10 @@ const OpenIdList = () => {
           },
           {
             title: '', clickable: true, field: (r, k) => <>
-              <Button variant="contained" color="primary" startIcon={<ArrowRightOutlined />} onClick={() => {
+              <PermissionGuard permission={PERM_CONFIGURATION}><Button variant="contained" color="primary" startIcon={<ArrowRightOutlined />} onClick={() => {
                 generateNewSecret(r.id)
-              }}>{t('mgmt.openId.resetSecret')}</Button>&nbsp;&nbsp;
-              <DeleteButton onDelete={(event) => deleteClient(event, k)} />
+              }}>{t('mgmt.openId.resetSecret')}</Button></PermissionGuard>&nbsp;&nbsp;
+              <PermissionGuard permission={PERM_CONFIGURATION}><DeleteButton onDelete={(event) => deleteClient(event, k)} /></PermissionGuard>
             </>,
           },
         ]}

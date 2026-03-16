@@ -30,6 +30,9 @@ import ResponsiveButton from "../../components/responseiveButton";
 import SMARTDialog, { CompleteDataSMARTDisk, diskChip, diskColor, getSMARTDef, temperatureChip } from "./smart";
 import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 const diskStyle = {
   width: "100%",
@@ -56,17 +59,19 @@ const FormatButton = ({disk, refresh, disabled}) => {
   const [passwordConfirm, setPasswordConfirm] = useState(false);
 
   return <>
-    <LoadingButton
-      disabled={disabled}
-      loading={loading}
-      onClick={() => {setPasswordConfirm(true); setLoading(true)}}
-      variant="outlined"
-      color="error"
-      size="small"
-      startIcon={<CloseCircleOutlined />}
-    >
-      {t('mgmt.storage.formatButton')}
-    </LoadingButton>
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <LoadingButton
+        disabled={disabled}
+        loading={loading}
+        onClick={() => {setPasswordConfirm(true); setLoading(true)}}
+        variant="outlined"
+        color="error"
+        size="small"
+        startIcon={<CloseCircleOutlined />}
+      >
+        {t('mgmt.storage.formatButton')}
+      </LoadingButton>
+    </PermissionGuard>
     
     {passwordConfirm && <FormatModal
       OnClose={() => {
@@ -183,11 +188,11 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened, containerized}) => {
             </Stack>
             <Stack spacing={2} direction="column" justifyContent={"center"}>
               {(disk.type == "disk" || disk.type == "part") ? <FormatButton disabled={containerized} disk={disk} refresh={refresh}/> : ""}
-              
+
               {disk.mountpoint ? <MountDiskDialog disabled={containerized} disk={disk} unmount={true} refresh={refresh} /> : ""}
-              
+
               {(
-                (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) && 
+                (disk.type == "part" || (disk.type == "disk" && (!disk.children || !disk.children.length))) &&
                 disk.fstype &&
                 disk.fstype !== "swap" &&
                 disk.fstype !== "linux_raid_member" &&
@@ -208,7 +213,8 @@ const Disk = ({disk, refresh, SetSMARTDialogOpened, containerized}) => {
 
 export const StorageDisks = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [disks, setDisks] = useState([]);
   const [containerized, setContainerized] = useState(false);
@@ -224,7 +230,6 @@ export const StorageDisks = () => {
     });
 
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setDisks(disksData);
     setContainerized(status.data.containerized);
   };

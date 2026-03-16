@@ -20,6 +20,8 @@ import { IsRouteSocketProxy, ValidateRouteSchema, getHostnameFromName, sanitizeR
 import { isDomain } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../../components/filePicker';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_CONFIGURATION } from '../../../utils/permissions';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -414,7 +416,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                   </CosmosCollapse>
                 </Grid>
               </MainCard>
-              {submitButton && <MainCard ><Button
+              {submitButton && <MainCard ><PermissionGuard permission={PERM_CONFIGURATION}><Button
                 fullWidth
                 disableElevation
                 size="large"
@@ -423,7 +425,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                 color="primary"
               >
                 {t('global.saveAction')}
-              </Button></MainCard>}
+              </Button></PermissionGuard></MainCard>}
             </Stack>
           </form>
         )}

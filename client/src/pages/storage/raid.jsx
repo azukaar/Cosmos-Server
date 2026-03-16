@@ -12,6 +12,9 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
 import { RaidDialog, RaidDialogInternal } from "./raidDialog";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 const getRAIDStatus = (details) => {
   if (!details || !details["Array State"]) {
@@ -43,7 +46,8 @@ const cleanRAIDStatus = (details) => {
 
 export const RAIDArrays = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [raids, setRaids] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,7 +62,6 @@ export const RAIDArrays = () => {
     let configAsync = await API.config.get();
     let status = await API.getStatus();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setRaids(raidsData.data);
     setLoading(false);
     setContainerized(status.data.containerized);
@@ -174,35 +177,37 @@ export const RAIDArrays = () => {
             title: '',
             field: (r) => {
               return <div style={{position: 'relative'}}>
-                <MenuButton>
-                  <MenuItem 
-                    disabled={loading || containerized} 
-                    onClick={() => resizeRaid(r.device.split('/').pop())}
-                  >
-                    <ListItemIcon>
-                      <CloudOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('mgmt.storage.raid.resize')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem 
-                    disabled={loading || containerized} 
-                    onClick={() => setEditOpened(r)}
-                  >
-                    <ListItemIcon>
-                      <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.edit')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem 
-                    disabled={loading || containerized} 
-                    onClick={() => tryDeleteRaid(r.device.split('/').pop())}
-                  >
-                    <ListItemIcon>
-                      <DeleteOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.delete')}</ListItemText>
-                  </MenuItem>
-                </MenuButton>
+                <PermissionGuard permission={PERM_RESOURCES}>
+                  <MenuButton>
+                    <MenuItem
+                      disabled={loading || containerized}
+                      onClick={() => resizeRaid(r.device.split('/').pop())}
+                    >
+                      <ListItemIcon>
+                        <CloudOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('mgmt.storage.raid.resize')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem
+                      disabled={loading || containerized}
+                      onClick={() => setEditOpened(r)}
+                    >
+                      <ListItemIcon>
+                        <EditOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.edit')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem
+                      disabled={loading || containerized}
+                      onClick={() => tryDeleteRaid(r.device.split('/').pop())}
+                    >
+                      <ListItemIcon>
+                        <DeleteOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.delete')}</ListItemText>
+                    </MenuItem>
+                  </MenuButton>
+                </PermissionGuard>
               </div>
             }
           }

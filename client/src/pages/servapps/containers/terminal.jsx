@@ -6,6 +6,9 @@ import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from '../../../components/responseiveButton';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES, PERM_ADMIN } from '../../../utils/permissions';
+import { useClientInfos } from '../../../utils/hooks';
 
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
@@ -14,6 +17,7 @@ import TerminalComponent from '../../../components/terminal';
 
 const DockerTerminal = ({containerInfo, refresh}) => {
   const { t } = useTranslation();
+  const { hasPermission, hasRolePermission } = useClientInfos();
   const { Name, Config, NetworkSettings, State } = containerInfo;
   const isInteractive = Config.Tty;
 
@@ -27,6 +31,18 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       });
   };
 
+  if (!hasPermission(PERM_ADMIN)) {
+    return (
+      <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', padding: '20px 0' }}>
+        <Alert severity="warning">
+          {hasRolePermission(PERM_ADMIN)
+            ? t('sudo.required')
+            : t('mgmt.servapps.containers.terminal.terminalAccessDenied')}
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="terminal-container" style={{
       background: '#000',
@@ -37,7 +53,7 @@ const DockerTerminal = ({containerInfo, refresh}) => {
       {(!isInteractive) && (
         <Alert severity="warning">
           {t('mgmt.servapps.containers.terminal.terminalNotInteractiveWarning')}
-          <Button onClick={() => makeInteractive()}>{t('mgmt.servapps.containers.terminal.ttyEnableButton')}</Button>
+          <PermissionGuard permission={PERM_RESOURCES}><Button onClick={() => makeInteractive()}>{t('mgmt.servapps.containers.terminal.ttyEnableButton')}</Button></PermissionGuard>
         </Alert>
       )}
       

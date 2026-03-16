@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"path"
@@ -70,16 +71,32 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			r.Header.Del("x-cosmos-mfa")
 			r.Header.Del("x-cstln-auth")
 
-			role, u, err := user.RefreshUserToken(w, r)
+			permissions, isSudoed, u, err := user.RefreshUserToken(w, r)
 
 			if err != nil {
 				return
 			}
 
+			// Compute Role for backward compat proxy headers
+			effectiveRole := u.Role
+			if utils.RoleHasSudoPermissions(u.Role) && !isSudoed {
+				effectiveRole = utils.USER
+			}
+
 			r.Header.Set("x-cosmos-user", u.Nickname)
-			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(role)))
+			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(effectiveRole)))
 			r.Header.Set("x-cosmos-user-role", strconv.Itoa((int)(u.Role)))
 			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
+
+			ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+				Nickname:    u.Nickname,
+				Role:        effectiveRole,
+				UserRole:    u.Role,
+				Permissions: permissions,
+				IsSudoed:    isSudoed,
+				MFAState:    int(u.MFAState),
+			})
+			r = r.WithContext(ctx)
 
 			ogcookies := r.Header.Get("Cookie")
 			cookieRemoveRegex := regexp.MustCompile(`\s?jwttoken=[^;]*;?\s?`)

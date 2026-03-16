@@ -12,6 +12,7 @@ import { getFullOrigin } from "../../utils/routes";
 import { DashboardIcon } from "../../utils/servapp-icon";
 import Chart from 'react-apexcharts';
 import { useClientInfos } from "../../utils/hooks";
+import { PERM_ADMIN_READ } from "../../utils/permissions";
 import { FormaterForMetric, formatDate } from "../dashboard/components/utils";
 import MiniPlotComponent from "../dashboard/components/mini-plot";
 import Migrate014 from "./migrate014";
@@ -98,8 +99,8 @@ const HomePage = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
     const isMd = useMediaQuery(theme.breakpoints.up('md'));
-    const {role} = useClientInfos();
-    const isAdmin = role === "2";
+    const { hasPermission } = useClientInfos();
+    const isAdmin = hasPermission(PERM_ADMIN_READ);
     const [metrics, setMetrics] = useState(null);
 
     const blockStyle = {

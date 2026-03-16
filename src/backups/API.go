@@ -11,7 +11,7 @@ import (
 )
 
 func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -120,7 +120,7 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -159,7 +159,7 @@ func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -238,7 +238,7 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -277,7 +277,7 @@ func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -319,7 +319,7 @@ func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -394,7 +394,7 @@ func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -433,7 +433,7 @@ func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListRepos(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -467,7 +467,7 @@ func ListRepos(w http.ResponseWriter, req *http.Request) {
 }
 
 func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -505,7 +505,7 @@ func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -538,7 +538,7 @@ func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -579,7 +579,7 @@ func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func UnlockRepositoryRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

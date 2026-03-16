@@ -15,6 +15,8 @@ import * as API from '../../api';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
 import ResponsiveButton from '../../components/responseiveButton';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 
 const NewNetworkButton = ({ fullWidth, refresh }) => {
@@ -150,13 +152,13 @@ const NewNetworkButton = ({ fullWidth, refresh }) => {
           </DialogActions>
         </FormikProvider>
       </Dialog>
-      <ResponsiveButton
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton
         fullWidth={fullWidth}
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
         {t('mgmt.servapps.networks.list.newNetwork')}
-      </ResponsiveButton>
+      </ResponsiveButton></PermissionGuard>
     </>
   );
 };

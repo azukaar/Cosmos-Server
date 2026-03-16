@@ -28,7 +28,7 @@ var validExtensions = map[string]bool{
 }
 
 func UploadImage(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
 	}
 	
@@ -105,7 +105,7 @@ func UploadImage(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetImage(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 

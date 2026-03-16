@@ -12,6 +12,8 @@ import { ServAppIcon } from '../../../utils/servapp-icon';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import UploadButtons from '../../../components/fileUpload';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -162,19 +164,21 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
               /> Isolate Container Network
             </Stack> */}
             <Stack style={{ fontSize: '80%' }} direction={"row"} alignItems="center">
-              <Checkbox
-                checked={Config.Labels['cosmos-auto-update'] === 'true'  ||
-                  (selfName && Name.replace('/', '') == selfName && config.AutoUpdate)}
-                disabled={isUpdating}
-                onChange={(e) => {
-                  setIsUpdating(true);
-                  API.docker.autoUpdate(Name.replace('/', ''), e.target.checked).then(() => {
-                    setTimeout(() => {
-                      refreshAll();
-                    }, 3000);
-                  })
-                }}
-              /> {t('mgmt.servApps.autoUpdateCheckbox')}
+              <PermissionGuard permission={PERM_RESOURCES} alwaysShow>
+                <Checkbox
+                  checked={Config.Labels['cosmos-auto-update'] === 'true'  ||
+                    (selfName && Name.replace('/', '') == selfName && config.AutoUpdate)}
+                  disabled={isUpdating}
+                  onChange={(e) => {
+                    setIsUpdating(true);
+                    API.docker.autoUpdate(Name.replace('/', ''), e.target.checked).then(() => {
+                      setTimeout(() => {
+                        refreshAll();
+                      }, 3000);
+                    })
+                  }}
+                />
+              </PermissionGuard> {t('mgmt.servApps.autoUpdateCheckbox')}
             </Stack>
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>
@@ -182,18 +186,20 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 return <HostChip route={route} settings style={{margin: '5px'}}/>
               })}
               <br />
-              <Chip 
-                label={t('mgmt.servApps.newChip.newLabel')}
-                color="primary"
-                style={{paddingRight: '4px', margin: '5px'}}
-                deleteIcon={<PlusCircleOutlined />}
-                onClick={() => {
-                  addNewRoute();
-                }}
-                onDelete={() => {
-                  addNewRoute();
-                }}
-              />
+              <PermissionGuard permission={PERM_RESOURCES}>
+                <Chip
+                  label={t('mgmt.servApps.newChip.newLabel')}
+                  color="primary"
+                  style={{paddingRight: '4px', margin: '5px'}}
+                  deleteIcon={<PlusCircleOutlined />}
+                  onClick={() => {
+                    addNewRoute();
+                  }}
+                  onDelete={() => {
+                    addNewRoute();
+                  }}
+                />
+              </PermissionGuard>
             </div>
             <strong><DashboardOutlined /> {t('menu-items.navigation.monitoringTitle')}</strong>
               <div style={{ width: '96%' }}>

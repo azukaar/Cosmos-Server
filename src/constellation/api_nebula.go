@@ -55,7 +55,7 @@ func CheckConstellationToken(req *http.Request) error {
 }
 
 func API_GetConfig(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -81,7 +81,7 @@ func API_GetConfig(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_Restart(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -102,7 +102,7 @@ func API_Restart(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_Reset(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -122,7 +122,7 @@ func API_Reset(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_GetLogs(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -145,7 +145,7 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_Ping(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 

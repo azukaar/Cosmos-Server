@@ -18,6 +18,92 @@ const (
 	ADMIN        = 2
 )
 
+type Permission int
+
+const (
+	PERM_ADMIN_READ         Permission = 1   // View logs
+	PERM_ADMIN              Permission = 2   // System ops: restart, shutdown, update, terminal
+
+	PERM_USERS_READ         Permission = 10  // View user list/details
+	PERM_USERS              Permission = 11  // Create, delete, edit users, 2FA reset
+
+	PERM_RESOURCES_READ     Permission = 20  // View containers, storage, devices, backups, cron, metrics
+	PERM_RESOURCES          Permission = 21  // Manage containers, storage, devices, backups, cron
+
+	PERM_CONFIGURATION_READ Permission = 30  // View config
+	PERM_CONFIGURATION      Permission = 31  // Set/patch config, DNS
+
+	PERM_CREDENTIALS_READ   Permission = 40  // View credentials (env vars, passwords, secrets)
+
+	PERM_LOGIN              Permission = 100 // Any logged-in user, MFA required
+	PERM_LOGIN_WEAK         Permission = 101 // Any logged-in user, no MFA check
+)
+
+var PermissionLabels = map[Permission]string{
+	PERM_ADMIN_READ:         "Admin Read (view logs)",
+	PERM_ADMIN:              "Admin (system ops)",
+	PERM_USERS_READ:         "Users Read (view users)",
+	PERM_USERS:              "Users (manage users)",
+	PERM_RESOURCES_READ:     "Resources Read (view containers/storage)",
+	PERM_RESOURCES:          "Resources (manage containers/storage)",
+	PERM_CONFIGURATION_READ: "Configuration Read (view config)",
+	PERM_CONFIGURATION:      "Configuration (modify config)",
+	PERM_CREDENTIALS_READ:   "Credentials Read (view secrets/env vars)",
+	PERM_LOGIN:              "Login",
+	PERM_LOGIN_WEAK:         "Login (weak)",
+}
+
+func PermissionLabel(p Permission) string {
+	if label, ok := PermissionLabels[p]; ok {
+		return label
+	}
+	return "Unknown"
+}
+
+// Built-in role defaults (used when config has no entry for these roles)
+var defaultRoles = map[Role]RoleConfig{
+	USER: {Name: "User", Permissions: []Permission{PERM_LOGIN, PERM_LOGIN_WEAK}},
+	ADMIN: {Name: "Admin", Permissions: []Permission{
+		PERM_LOGIN, PERM_LOGIN_WEAK,
+		PERM_ADMIN_READ, PERM_USERS_READ, PERM_RESOURCES_READ, PERM_CONFIGURATION_READ,
+		PERM_ADMIN, PERM_USERS, PERM_RESOURCES, PERM_CONFIGURATION,
+		PERM_CREDENTIALS_READ,
+	}},
+}
+
+func GetRolePermissions(role Role) []Permission {
+	config := GetMainConfig()
+	if config.Roles != nil {
+		if rc, ok := config.Roles[role]; ok {
+			return rc.Permissions
+		}
+	}
+	if rc, ok := defaultRoles[role]; ok {
+		return rc.Permissions
+	}
+	return nil
+}
+
+func GetRoles() map[Role]RoleConfig {
+	config := GetMainConfig()
+	roles := map[Role]RoleConfig{}
+	for k, v := range defaultRoles {
+		roles[k] = v
+	}
+	if config.Roles != nil {
+		for k, v := range config.Roles {
+			roles[k] = v
+		}
+	}
+	return roles
+}
+
+// Global: permissions that require sudo for ANY role
+var SudoPermissions = []Permission{
+	PERM_ADMIN, PERM_USERS, PERM_RESOURCES, PERM_CONFIGURATION,
+	PERM_CREDENTIALS_READ,
+}
+
 const (
 	DEBUG LogLevel = iota
 	INFO
@@ -114,6 +200,8 @@ type Config struct {
 	Backup BackupConfig
 	Mpdu_ string
 	Mpdn_ string
+	APITokens map[string]APITokenConfig `json:"APITokens,omitempty"`
+	Roles     map[Role]RoleConfig     `json:"Roles,omitempty"`
 }
 
 
@@ -480,3 +568,37 @@ type SingleBackupConfig struct {
 	RetentionPolicy string
 	AutoStopContainers bool
 }
+
+type RoleConfig struct {
+	Name        string       `json:"name"`
+	Permissions []Permission `json:"permissions"`
+}
+
+type APITokenConfig struct {
+	Name                    string       `json:"name"`
+	Description             string       `json:"description,omitempty"`
+	Owner                   string       `json:"owner,omitempty"`
+	TokenHash               string       `json:"tokenHash"`
+	Permissions             []Permission `json:"permissions"`
+	IPWhitelist             []string     `json:"ipWhitelist,omitempty"`
+	RestrictToConstellation bool         `json:"restrictToConstellation"`
+	CreatedAt               time.Time    `json:"createdAt"`
+}
+
+type APITokenContext struct {
+	Name        string
+	Owner       string
+	Permissions []Permission
+}
+
+type AuthContext struct {
+	Nickname    string
+	Role        Role
+	UserRole    Role
+	Permissions []Permission
+	IsSudoed    bool
+	MFAState    int
+	APIToken    *APITokenContext
+}
+
+const AuthCtxKey = "AuthContext"

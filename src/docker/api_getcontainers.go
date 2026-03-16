@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func GetContainerRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -32,6 +33,20 @@ func GetContainerRoute(w http.ResponseWriter, req *http.Request) {
 			utils.Error("GetContainerRoute: Error while getting container", err)
 			utils.HTTPError(w, "Container Get Error: " + err.Error(), http.StatusInternalServerError, "LN002")
 			return
+		}
+
+		// Mask env var values if user lacks PERM_CREDENTIALS_READ
+		if !utils.HasPermission(req, utils.PERM_CREDENTIALS_READ) && container.Config != nil {
+			masked := make([]string, len(container.Config.Env))
+			for i, env := range container.Config.Env {
+				parts := strings.SplitN(env, "=", 2)
+				if len(parts) == 2 {
+					masked[i] = parts[0] + "=***"
+				} else {
+					masked[i] = env
+				}
+			}
+			container.Config.Env = masked
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{

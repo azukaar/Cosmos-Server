@@ -32,7 +32,7 @@ func quickLoggout(w http.ResponseWriter, req *http.Request, err error) (utils.Us
 	return utils.User{}, errors.New("Token likely falsified")
 }
 
-func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.Role, utils.User, error) {
+func RefreshUserToken(w http.ResponseWriter, req *http.Request) ([]utils.Permission, bool, utils.User, error) {
 	config := utils.GetMainConfig()
 	
 	// if new install
@@ -42,39 +42,39 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.Role, uti
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "NEW_INSTALL",
 			})
-			return utils.NOONE, utils.User{}, errors.New("New install")
+			return nil, false, utils.User{}, errors.New("New install")
 		} else {
-			return utils.NOONE, utils.User{}, nil
+			return nil, false, utils.User{}, nil
 		}
 	}
 
 	cookie, err := req.Cookie("jwttoken")
 
 	if err != nil {
-		return utils.NOONE, utils.User{}, nil
+		return nil, false, utils.User{}, nil
 	}
-	
+
 	tokenString := cookie.Value
 
 	if tokenString == "" {
-		return utils.NOONE, utils.User{}, nil
+		return nil, false, utils.User{}, nil
 	}
-	
+
 	ed25519Key, errK := jwt.ParseEdPublicKeyFromPEM([]byte(utils.GetPublicAuthKey()))
 
 	if errK != nil {
 		utils.Error("UserToken: Cannot read auth public key", errK)
 		utils.HTTPError(w, "Authorization Error", http.StatusInternalServerError, "A001")
-		return utils.NOONE, utils.User{}, errors.New("Cannot read auth public key")
+		return nil, false, utils.User{}, errors.New("Cannot read auth public key")
 	}
 
 	parts := strings.Split(tokenString, ".")
-	
+
 	errT := jwt.SigningMethodEdDSA.Verify(strings.Join(parts[0:2], "."), parts[2], ed25519Key)
 
 	if errT != nil {
 		if _, e := quickLoggout(w, req, errT); e != nil {
-			return utils.NOONE, utils.User{}, errT
+			return nil, false, utils.User{}, errT
 		}
 	}
 
@@ -92,7 +92,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.Role, uti
 		utils.Error("UserToken: token is not valid", nil)
 		logOutUser(w, req)
 		redirectToReLogin(w, req)
-		return utils.NOONE, utils.User{}, errors.New("Token not valid")
+		return nil, false, utils.User{}, errors.New("Token not valid")
 	}
 
 	var (
@@ -105,67 +105,67 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.Role, uti
 
 	if nickname, ok = claims["nickname"].(string); !ok {
 		if _, e := quickLoggout(w, req, nil); e != nil {
-			return utils.NOONE, utils.User{}, e
+			return nil, false, utils.User{}, e
 		}
 	}
-	
+
 	if passwordCycleFloat, ok := claims["passwordCycle"].(float64); ok {
 		passwordCycle = int(passwordCycleFloat)
 	} else {
 		if _, e := quickLoggout(w, req, nil); e != nil {
-			return utils.NOONE, utils.User{}, e
+			return nil, false, utils.User{}, e
 		}
 	}
-	
+
 	if mfaDone, ok = claims["mfaDone"].(bool); !ok {
 		if _, e := quickLoggout(w, req, nil); e != nil {
-			return utils.NOONE, utils.User{}, e
+			return nil, false, utils.User{}, e
 		}
 	}
 
 	if forDomain, ok = claims["forDomain"].(string); !ok {
 		if _, e := quickLoggout(w, req, nil); e != nil {
-			return utils.NOONE, utils.User{}, e
+			return nil, false, utils.User{}, e
 		}
 	}
-	
+
 	reqHostname := req.Host
 	reqHostNoPort := strings.Split(reqHostname, ":")[0]
-	
+
 	if !strings.HasSuffix(reqHostNoPort, forDomain) {
 		utils.Error("UserToken: token is not valid for this domain", nil)
 		logOutUser(w, req)
 		redirectToReLogin(w, req)
-		return utils.NOONE, utils.User{}, errors.New("JWT Token not valid for this domain")
+		return nil, false, utils.User{}, errors.New("JWT Token not valid for this domain")
 	}
 
 	userInBase := utils.User{}
 
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
   defer closeDb()
-	
+
 	if errCo != nil {
 			utils.Error("Database Connect", errCo)
 			utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
-			return utils.NOONE, utils.User{}, errCo
+			return nil, false, utils.User{}, errCo
 	}
 
 	errDB := c.FindOne(nil, map[string]interface{}{
 		"Nickname": nickname,
 	}).Decode(&userInBase)
-	
+
 	if errDB != nil {
 		utils.Error("UserToken: User not found", errDB)
 		logOutUser(w, req)
 		redirectToReLogin(w, req)
-		return utils.NOONE, utils.User{}, errors.New("User not found")
+		return nil, false, utils.User{}, errors.New("User not found")
 	}
 
 	if userInBase.PasswordCycle != passwordCycle {
 		utils.Error("UserToken: Password cycle changed, token is too old", nil)
 		logOutUser(w, req)
 		redirectToReLogin(w, req)
-		return utils.NOONE, utils.User{}, errors.New("Password cycle changed, token is too old")
+		return nil, false, utils.User{}, errors.New("Password cycle changed, token is too old")
 	}
 
 	requestURL := req.URL.Path
@@ -181,37 +181,46 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) (utils.Role, uti
 		userInBase.MFAState = 2
 	}
 
-	tokenRole := (utils.Role)(claims["role"].(float64))
+	// Parse permissions from JWT token
+	rawPerms, hasPerms := claims["permissions"].([]interface{})
+	if !hasPerms {
+		// Old token without permissions claim — force re-login
+		utils.Warn("UserToken: Token missing permissions claim, forcing re-login")
+		logOutUser(w, req)
+		redirectToReLogin(w, req)
+		return nil, false, utils.User{}, errors.New("Token missing permissions claim")
+	}
+	permissions := make([]utils.Permission, len(rawPerms))
+	for i, rp := range rawPerms {
+		permissions[i] = utils.Permission(int(rp.(float64)))
+	}
 
-	// if sudo-until exists 
-	if (utils.Role)(claims["role"].(float64)) == utils.ADMIN {
-		if _, ok := claims["sudo-until"]; ok {
-			// if expires, refresh with demotion
-			if int64(claims["sudo-until"].(float64)) < time.Now().Unix() {
-				tokenRole = utils.USER
-				SendUserToken(w, req, userInBase, mfaDone, utils.USER)
-				utils.Debug("UserToken: Sudo expired")
-			} else if time.Now().Unix() + 3600 > int64(claims["sudo-until"].(float64)) {
-				SendUserToken(w, req, userInBase, mfaDone, (utils.Role)(claims["role"].(float64)))
-				utils.Debug("UserToken: Sudo refreshing")
+	// Determine sudo state from sudo-until timestamp
+	isSudoed := false
+	hasSudoPerms := utils.PermissionsHaveSudo(permissions)
+
+	if hasSudoPerms {
+		if sudoUntilRaw, ok := claims["sudo-until"]; ok {
+			sudoUntil := int64(sudoUntilRaw.(float64))
+			if sudoUntil > time.Now().Unix() {
+				isSudoed = true
+				// If close to sudo expiry (within 1 hour), refresh
+				if time.Now().Unix() + 3600 > sudoUntil {
+					SendUserToken(w, req, userInBase, mfaDone, true)
+					utils.Debug("UserToken: Sudo refreshing")
+				}
 			}
-		} else {
-			tokenRole = utils.USER
-			SendUserToken(w, req, userInBase, mfaDone, utils.USER)
-			utils.Debug("UserToken: Sudo expired")
+			// else: sudo expired, isSudoed stays false
 		}
+		// else: no sudo-until claim, isSudoed stays false
 	}
 
 	// if close to expiration, refresh
 	if int64(claims["iat"].(float64)) + (24 * 3600) < time.Now().Unix() {
-		SendUserToken(w, req, userInBase, mfaDone, tokenRole)
+		SendUserToken(w, req, userInBase, mfaDone, isSudoed)
 	}
 
-	return tokenRole, userInBase, nil
-}
-
-func GetUserR(req *http.Request) (string, string) {
-	return req.Header.Get("x-cosmos-user"), req.Header.Get("x-cosmos-role")
+	return permissions, isSudoed, userInBase, nil
 }
 
 
@@ -263,17 +272,23 @@ func redirectToNewMFA(w http.ResponseWriter, req *http.Request) {
 	http.Redirect(w, req, "/cosmos-ui/newmfa?invalid=1&redirect=" + req.URL.Path + "&" + req.URL.RawQuery, http.StatusTemporaryRedirect)
 }
 
-func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mfaDone bool, tokenRole utils.Role) {
+func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mfaDone bool, sudoed bool) {
 	reqHostname := req.Host
 	reqHostNoPort := strings.Split(reqHostname, ":")[0]
 
 	expiration := time.Now().Add(14 * 24 * time.Hour)
 
+	// Resolve permissions from role at token creation time
+	perms := utils.GetRolePermissions(user.Role)
+	permInts := make([]interface{}, len(perms))
+	for i, p := range perms {
+		permInts[i] = int(p)
+	}
+
 	token := jwt.New(jwt.SigningMethodEdDSA)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["exp"] = expiration.Unix()
-	claims["role"] = tokenRole
-	claims["user-role"] = user.Role
+	claims["permissions"] = permInts
 	claims["nickname"] = user.Nickname
 	claims["passwordCycle"] = user.PasswordCycle
 	claims["iat"] = time.Now().Unix()
@@ -281,13 +296,12 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 	claims["mfaDone"] = mfaDone
 	claims["forDomain"] = reqHostNoPort
 
-	sudoUntil :=  time.Now().Add(time.Hour * 2).Unix()
-	
-	// if role is ADMIN, add a timeout
-	if tokenRole == utils.ADMIN {
+	sudoUntil := int64(-1)
+
+	// if sudoed, add a timeout
+	if sudoed {
+		sudoUntil = time.Now().Add(time.Hour * 2).Unix()
 		claims["sudo-until"] = sudoUntil
-	} else {
-		sudoUntil = -1;
 	}
 
 	key, err5 := jwt.ParseEdPrivateKeyFromPEM([]byte(utils.GetPrivateAuthKey()))
@@ -315,9 +329,16 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 		HttpOnly: true,
 	}
 
+	// Build permissions string for client cookie (reuse perms from above)
+	permStrs := make([]string, len(perms))
+	for i, p := range perms {
+		permStrs[i] = strconv.Itoa(int(p))
+	}
+	permsString := strings.Join(permStrs, "-")
+
 	clientCookie := http.Cookie{
 		Name: "client-infos",
-		Value: user.Nickname + "," + strconv.Itoa(int(user.Role)) + "," + strconv.Itoa(int(tokenRole)) + "," + strconv.Itoa(int(sudoUntil)),
+		Value: user.Nickname + "," + permsString + "," + strconv.Itoa(int(sudoUntil)),
 		Expires: expiration,
 		Path: "/",
 		Secure: shouldCookieBeSecured(req.RemoteAddr),

@@ -13,7 +13,7 @@ type marketGetResult struct {
 }
 
 func MarketGet(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 

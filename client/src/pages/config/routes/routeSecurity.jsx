@@ -15,6 +15,8 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { snackit } from '../../../api/wrap';
 import { IsRouteSocketProxy } from '../../../utils/routes';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_CONFIGURATION } from '../../../utils/permissions';
 
 const RouteSecurity = ({ routeConfig, config }) => {
   const { t } = useTranslation();
@@ -237,7 +239,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
                   </>}
                 </Grid>
               </MainCard>
-              <MainCard ><Button
+              <MainCard ><PermissionGuard permission={PERM_CONFIGURATION}><Button
                 fullWidth
                 disableElevation
                 size="large"
@@ -246,7 +248,7 @@ const RouteSecurity = ({ routeConfig, config }) => {
                 color="primary"
               >
                 {t('global.saveAction')}
-              </Button></MainCard>
+              </Button></PermissionGuard></MainCard>
             </Stack>
           </form>
         )}

@@ -10,11 +10,11 @@ import (
 
 func Me(w http.ResponseWriter, req *http.Request) {
   if (req.Method == "GET") {
-		if utils.LoggedInOnly(w, req) != nil {
+		if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 		}
 
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := utils.GetAuthContext(req).Nickname
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
   	defer closeDb()

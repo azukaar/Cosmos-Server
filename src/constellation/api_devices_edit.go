@@ -22,7 +22,7 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

@@ -11,14 +11,14 @@ import (
 )
 
 func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
 	if req.Method == "POST" {
 		utils.ConfigLock.Lock()
 		defer utils.ConfigLock.Unlock()
-		
+
 		utils.Log("API_NewConstellation: creating new Constellation")
 
 		var request struct {
@@ -145,7 +145,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

@@ -1,6 +1,12 @@
 ## Version 0.22
+ - Adding feature to create API key to directly query the Cosmos API
+ - Refactor the entire permission system for future work on roles and fine-grained permissions
+ - You can now create multiple admin users
+ - Fixed issue with post-install on compose import
  - Support for mounting network disk
+ - Fix regression with static/spa folders
  - Fix issue with Constellation sometime not connecting right away on new network
+ - Sync more settings accross servers in Constellations (Rclone and api token/permissions configs)
 
 ## Version 0.21.7
  - Fix issue with Constellation routing HTTP tunnels to the wrong protocol

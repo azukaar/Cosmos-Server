@@ -12,7 +12,7 @@ import (
 )
 
 func ListDisksRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -36,7 +36,7 @@ func ListDisksRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListMountsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -70,7 +70,7 @@ type MountRequest struct {
 
 // MountRoute handles mounting filesystem requests
 func MountRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -102,7 +102,7 @@ func MountRoute(w http.ResponseWriter, req *http.Request) {
 
 // UnmountRoute handles unmounting filesystem requests
 func UnmountRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -143,7 +143,7 @@ type MergeRequest struct {
 
 // MergeRoute handles merging filesystem requests
 func MergeRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -238,7 +238,7 @@ func snapRAIDDeleteRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func SnapRAIDEditRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -284,14 +284,17 @@ func listSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func SNAPRaidCRUDRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
-		return
-	}
 
 	if req.Method == "GET" {
+		if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
+			return
+		}
 		listSNAPRaidRoute(w, req)
 		return
 	} else if req.Method == "POST" {
+		if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+			return
+		}
 		createSNAPRaidRoute(w, req)
 		return
 	} else {

@@ -9,11 +9,11 @@ func authEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// This context will be passed to all methods.
 	ctx := req.Context()
 	
-	if utils.LoggedInOnly(rw, req) != nil {
+	if utils.CheckPermissions(rw, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
-	nickname := req.Header.Get("x-cosmos-user")
+	nickname := utils.GetAuthContext(req).Nickname
 	
 	hostname := utils.GetMainConfig().HTTPConfig.Hostname
 	if utils.IsHTTPS {

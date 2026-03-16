@@ -38,7 +38,7 @@ func splitIntoChunks(input string) []string {
 }
 
 func HostTerminalRoute(w http.ResponseWriter, r *http.Request) {
-	if utils.AdminOnly(w, r) != nil {
+	if utils.CheckPermissions(w, r, utils.PERM_ADMIN) != nil {
 		return
 	}
 	utils.Log("Attempting to attach to host terminal")

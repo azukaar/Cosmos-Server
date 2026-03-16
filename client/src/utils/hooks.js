@@ -1,6 +1,7 @@
 import React from 'react';
 import { useCookies } from 'react-cookie';
 import { logout } from '../api/authentication';
+import { SUDO_PERMISSIONS } from './permissions';
 
 const isDemo = import.meta.env.MODE === 'demo';
 
@@ -9,43 +10,48 @@ function useClientInfos() {
 
   if(isDemo) return {
     nickname: "Demo",
-    role: "2",
-    userRole: "2"
+    hasPermission: () => true,
+    hasRolePermission: () => true,
+    needsSudo: false,
   };
 
-  let clientInfos = null;
-  
   try {
-    // Try to parse the cookie into a JavaScript object
-    clientInfos = cookies['client-infos'].split(',');
-
-    if(clientInfos.length <= 3) {
+    const parts = cookies['client-infos'].split(',');
+    // Format: nickname,perm1-perm2-...,sudoUntil
+    if(parts.length < 3) {
       window.location.href = '/cosmos-ui/logout';
     }
-    
-    let res = {
-      nickname: clientInfos[0],
-      userRole: clientInfos[1],
-      role: clientInfos[2]
-    };
 
-    // If role is admin, check if the timeout has expired
+    const nickname = parts[0];
+    const permissions = parts[1].split('-').map(Number);
+    const sudoUntilTs = parseInt(parts[2], 10);
 
-    if(clientInfos.length > 3) {
-      let roleUntil = new Date(parseInt(clientInfos[3], 10) * 1000);
-      let currentDate = new Date();
-
-      if(roleUntil < currentDate && res.role == "2") {
-        res.role = "1";
-      }
+    // Determine sudo state from timestamp
+    let isSudoed = false;
+    if(sudoUntilTs > 0) {
+      isSudoed = new Date(sudoUntilTs * 1000) > new Date();
     }
 
-    return res;
+    const hasSudoPerms = permissions.some(p => SUDO_PERMISSIONS.includes(p));
+    const needsSudo = hasSudoPerms && !isSudoed;
+
+    return {
+      nickname,
+      hasPermission: (perm) => {
+        if(!permissions.includes(perm)) return false;
+        if(SUDO_PERMISSIONS.includes(perm)) return isSudoed;
+        return true;
+      },
+      hasRolePermission: (perm) => permissions.includes(perm),
+      needsSudo,
+    };
   } catch (error) {
     console.error('Error parsing client-infos cookie:', error);
     return {
       nickname: "",
-      role: "2"
+      hasPermission: () => true,
+      hasRolePermission: () => true,
+      needsSudo: false,
     };
   }
 }

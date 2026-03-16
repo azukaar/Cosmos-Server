@@ -7,6 +7,8 @@ import { DeleteButton } from '../../components/delete';
 import { CosmosCheckbox } from '../config/users/formShortcuts';
 import { getContaienrsJobs, getContainersRoutes } from '../../utils/routes';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}) => {
   const { t } = useTranslation();
@@ -268,15 +270,17 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
         </Dialog>
      </>}
 
-     <IconButton onClick={() => {
-          setIsOpen(true);
-          setIsDeleting(false);
-          setFailed([]);
-          setDeleted([]);
-          setIgnored([]);
-      }} color="error" size='large'>
-        <DeleteOutlined />
-      </IconButton>
+     <PermissionGuard permission={PERM_RESOURCES}>
+       <IconButton onClick={() => {
+            setIsOpen(true);
+            setIsDeleting(false);
+            setFailed([]);
+            setDeleted([]);
+            setIgnored([]);
+        }} color="error" size='large'>
+          <DeleteOutlined />
+        </IconButton>
+     </PermissionGuard>
   </>
 }
 

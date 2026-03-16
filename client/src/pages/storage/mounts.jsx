@@ -19,10 +19,14 @@ import MountDialog, { MountDialogInternal } from "./mountDialog";
 import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const StorageMounts = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [mounts, setMounts] = useState([]);
   const [mountDialog, setMountDialog] = useState(null);
@@ -36,7 +40,6 @@ export const StorageMounts = () => {
     let status = await API.getStatus();
 
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setMounts(mountsData.data);
     setLoading(false);
     setContainerized(status.data.containerized);
@@ -54,7 +57,7 @@ export const StorageMounts = () => {
         data={mounts}
         getKey={(r) => `${r.device} - ${refresh.path}`}
         buttons={[
-          <ResponsiveButton startIcon={<PlusCircleOutlined />}  disabled={containerized} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton>,
+          <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton startIcon={<PlusCircleOutlined />}  disabled={containerized} variant="contained" onClick={() => setMountDialog({data: null, unmount: false})}>{t('mgmt.storage.newMount.newMountButton')}</ResponsiveButton></PermissionGuard>,
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
           }}>{t('global.refresh')}</ResponsiveButton>
@@ -80,20 +83,22 @@ export const StorageMounts = () => {
             title: '',
             field: (r) => <>
               <div style={{position: 'relative'}}>
-                <MenuButton>
-                  <MenuItem disabled={!r.device.startsWith('/dev/') || loading || containerized} onClick={() => setMountDialog({data: r, unmount: false})}>
-                    <ListItemIcon>
-                      <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText >{t('global.edit')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading || containerized} onClick={() => setMountDialog({data: r, unmount: true})}>
-                    <ListItemIcon>
-                      <DeleteOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText >{t('global.unmount')}</ListItemText>
-                  </MenuItem>
-                </MenuButton>
+                <PermissionGuard permission={PERM_RESOURCES}>
+                  <MenuButton>
+                    <MenuItem disabled={!r.device.startsWith('/dev/') || loading || containerized} onClick={() => setMountDialog({data: r, unmount: false})}>
+                      <ListItemIcon>
+                        <EditOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText >{t('global.edit')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem disabled={loading || containerized} onClick={() => setMountDialog({data: r, unmount: true})}>
+                      <ListItemIcon>
+                        <DeleteOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText >{t('global.unmount')}</ListItemText>
+                    </MenuItem>
+                  </MenuButton>
+                </PermissionGuard>
               </div>
             </>
           },

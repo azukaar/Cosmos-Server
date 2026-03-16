@@ -12,7 +12,7 @@ type User2FAResetRequest struct {
 }
 
 func Delete2FA(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 		return
 	}
 	

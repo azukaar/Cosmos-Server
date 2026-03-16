@@ -12,7 +12,7 @@ import (
 )
 
 func API_GetMetrics(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -42,7 +42,7 @@ func API_GetMetrics(w http.ResponseWriter, req *http.Request) {
 }
 
 func API_ResetMetrics(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -93,7 +93,7 @@ type MetricList struct {
 }
 
 func ListMetrics(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 	

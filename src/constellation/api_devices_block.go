@@ -43,7 +43,7 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
 		
-		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+		if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_RESOURCES) != nil {
 			return
 		}
 

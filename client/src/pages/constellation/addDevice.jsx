@@ -17,6 +17,8 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
+import { PERM_RESOURCES } from '../../utils/permissions';
+import PermissionGuard from '../../components/permissionGuard';
 import { useTranslation } from 'react-i18next';
 import { json } from 'react-router';
 
@@ -26,8 +28,8 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, canCreateManage
   const [isDone, setIsDone] = useState(null);
   const [nextIP, setNextIP] = useState("");
   const canvasRef = React.useRef(null);
-  const {role, nickname} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission, nickname } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
 
   const fetchNextIP = async () => {
     try {
@@ -301,20 +303,22 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices, canCreateManage
       </Formik>
     </Dialog>
 
-    <ResponsiveButton
-      color="primary"
-      onClick={() => {
-        setIsDone(null);
-        fetchNextIP();
-        setOpenModal(true);
-      }}
-      variant={
-        "contained"
-      }
-      startIcon={<PlusCircleFilled />}
-    >
-      {t('mgmt.constellation.setup.addDeviceTitle')}
-    </ResponsiveButton>
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <ResponsiveButton
+        color="primary"
+        onClick={() => {
+          setIsDone(null);
+          fetchNextIP();
+          setOpenModal(true);
+        }}
+        variant={
+          "contained"
+        }
+        startIcon={<PlusCircleFilled />}
+      >
+        {t('mgmt.constellation.setup.addDeviceTitle')}
+      </ResponsiveButton>
+    </PermissionGuard>
   </>;
 };
 

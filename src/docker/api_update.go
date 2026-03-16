@@ -12,7 +12,7 @@ import (
 )
 
 func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -75,7 +75,7 @@ func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 }
 
 func PullImage(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -131,7 +131,7 @@ func PullImage(w http.ResponseWriter, req *http.Request) {
 }
 
 func CanUpdateImageRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

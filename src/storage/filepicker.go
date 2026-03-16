@@ -30,7 +30,7 @@ type DirectoryListing struct {
 }
 
 func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -161,7 +161,7 @@ func ListDirectory(path string) ([]DirectoryListing, error) {
 }
 
 func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

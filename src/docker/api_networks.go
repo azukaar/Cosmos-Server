@@ -13,7 +13,7 @@ import (
 )
 
 func ListNetworksRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -46,7 +46,7 @@ func ListNetworksRoute(w http.ResponseWriter, req *http.Request) {
 
 
 func DeleteNetworkRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -127,7 +127,7 @@ func NetworkRoutes(w http.ResponseWriter, req *http.Request) {
 }
 
 func AttachNetwork(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -162,7 +162,7 @@ func AttachNetwork(w http.ResponseWriter, req *http.Request) {
 }
 
 func DetachNetwork(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -203,7 +203,7 @@ func DetachNetwork(w http.ResponseWriter, req *http.Request) {
 }
 
 func ListContainerNetworks(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -257,7 +257,7 @@ type createNetworkPayload struct {
 }
 
 func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

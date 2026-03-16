@@ -8,6 +8,8 @@ import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewNetworkButton from './createNetwork';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 export const NetworksColumns = (theme, isDark, t) => [
   {
@@ -92,7 +94,7 @@ const NetworkManagementList = () => {
               clickable: true,
               field: (r) => (
                 <>
-                  <Button
+                  <PermissionGuard permission={PERM_RESOURCES}><Button
                     variant="contained"
                     color="error"
                     startIcon={<DeleteOutlined />}
@@ -112,7 +114,7 @@ const NetworkManagementList = () => {
                     }}
                   >
                     {tryDelete === r.Id ? t('global.confirmDeletion') : t('global.delete')}
-                  </Button>
+                  </Button></PermissionGuard>
                 </>
               ),
             },

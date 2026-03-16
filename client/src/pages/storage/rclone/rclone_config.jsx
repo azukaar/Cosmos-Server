@@ -15,6 +15,8 @@ import RCloneTransfers from './rclone-transfers';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import { FilePickerButton } from '../../../components/filePicker';
 import VMWarning from '../vmWarning';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from '../../../utils/permissions';
 
 const RClonePage = ({coStatus, containerized}) => {
   const { t } = useTranslation();
@@ -35,7 +37,7 @@ const RClonePage = ({coStatus, containerized}) => {
   }
 
   const refresh = (delay = false) => {
-    API.rclone.list().then((response) => {
+    API.rclone.listRemotes().then((response) => {
       setProviders(response);
       if(delay) {
         setTimeout(() => {
@@ -83,14 +85,14 @@ const RClonePage = ({coStatus, containerized}) => {
     data={Object.keys(providers).map(key => ({name: key, ...providers[key]}))}
     getKey={(r, k) => `${r.name + k}`}
     buttons={[
-      <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create')}</ResponsiveButton>,
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create')}</ResponsiveButton></PermissionGuard>,
       <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
         refresh();
       }}>{t('global.refresh')}</ResponsiveButton>,    
       <RCloneTransfers refreshStats={refreshStats} transferring={coreStats.transferring ? coreStats.transferring : []}/>,  
-      <ResponsiveButton variant="outlined" startIcon={<SettingOutlined />} onClick={() => {
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton variant="outlined" startIcon={<SettingOutlined />} onClick={() => {
         API.rclone.restart()
-      }}>{t('mgmt.storage.rclone.remountAll')}</ResponsiveButton>
+      }}>{t('mgmt.storage.rclone.remountAll')}</ResponsiveButton></PermissionGuard>
     ]}
     columns={[
       {
@@ -159,17 +161,17 @@ const RClonePage = ({coStatus, containerized}) => {
         title: '',
         field: (r) => <>
           <div style={{position: 'relative'}}>
-            <DeleteIconButton onDelete={() => {
+            <PermissionGuard permission={PERM_RESOURCES}><DeleteIconButton onDelete={() => {
               API.rclone.deleteRemote(r.name).then(() => {
                 refresh();
               });
-            }} />
-            <IconButton variant="outlined"
+            }} /></PermissionGuard>
+            <PermissionGuard permission={PERM_CREDENTIALS_READ}><IconButton variant="outlined"
              onClick={() => {
               setConfigModal(r);
             }}>
               <EditOutlined />
-            </IconButton>
+            </IconButton></PermissionGuard>
             <FilePickerButton storage={r.name} />
           </div>
         </>,

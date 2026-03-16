@@ -13,11 +13,11 @@ type User2FACheckRequest struct {
 }
 
 func Check2FA(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInWeakOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN_WEAK) != nil {
 		return
 	}
 
-	nickname := req.Header.Get("x-cosmos-user")
+	nickname := utils.GetAuthContext(req).Nickname
 	
 	var request User2FACheckRequest
 	errD := json.NewDecoder(req.Body).Decode(&request)
@@ -77,11 +77,7 @@ func Check2FA(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		role := userInBase.Role
-		if role >= utils.ADMIN {
-			role = utils.USER
-		}
-		SendUserToken(w, req, userInBase, true, role)
+		SendUserToken(w, req, userInBase, true, false)
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

@@ -11,12 +11,12 @@ import (
 )
 
 func New2FA(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInWeakOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN_WEAK) != nil {
 		return
 	}
 	time.Sleep(time.Duration(rand.Float64()*2)*time.Second)
 
-	nickname := req.Header.Get("x-cosmos-user")
+	nickname := utils.GetAuthContext(req).Nickname
 
 	key, err := totp.Generate(totp.GenerateOpts{
 		Issuer:      "Cosmos " + utils.GetMainConfig().HTTPConfig.Hostname,
@@ -57,7 +57,7 @@ func New2FA(w http.ResponseWriter, req *http.Request) {
 	}
 
 	if(userInBase.MFAKey != "" && userInBase.Was2FAVerified) {
-		if utils.LoggedInOnly(w, req) != nil {
+		if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 		}
 	}

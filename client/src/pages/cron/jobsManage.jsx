@@ -19,6 +19,9 @@ import JobLogsDialog from "./jobLogs";
 import NewJobDialog from "./newJob";
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 const getStatus = (job) => {
   if (job.Running) return 'running';
@@ -29,7 +32,8 @@ const getStatus = (job) => {
 
 export const CronManager = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [cronJobs, setCronJobs] = useState([]);
   const [mergeDialog, setMergeDialog] = useState(null);
@@ -72,7 +76,6 @@ export const CronManager = () => {
     let _cronJobs = await API.cron.list();
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setCronJobs(_cronJobs.data);
     setLoading(false);
   };
@@ -93,9 +96,9 @@ export const CronManager = () => {
       }} />}
       <Stack spacing={2}>
         <Stack direction="row" spacing={2}>
-          <ResponsiveButton variant="contained" startIcon={<PlusOutlined />} onClick={() => {
+          <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton variant="contained" startIcon={<PlusOutlined />} onClick={() => {
             setNewJob(true);
-          }}>{t('mgmt.cron.newCronTitle')}</ResponsiveButton>
+          }}>{t('mgmt.cron.newCronTitle')}</ResponsiveButton></PermissionGuard>
           <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
             refresh();
           }}>{t('global.refresh')}</ResponsiveButton>
@@ -160,14 +163,16 @@ export const CronManager = () => {
                     setJobLogs(r);
                   }}><SearchOutlined /></IconButton></Tooltip>
                   {scheduler == "Custom" && <>
-                    <Tooltip title={t('global.edit')}><IconButton onClick={() => {
-                      setNewJob(r);
-                    }}><EditOutlined /></IconButton></Tooltip>
-                    <Tooltip title={t('global.delete')}>
+                    <PermissionGuard permission={PERM_RESOURCES}>
+                      <Tooltip title={t('global.edit')}><IconButton onClick={() => {
+                        setNewJob(r);
+                      }}><EditOutlined /></IconButton></Tooltip>
+                    </PermissionGuard>
+                    <PermissionGuard permission={PERM_RESOURCES}>
                       <DeleteIconButton onDelete={() => {
                         deleteCronJob(r);
                       }} />
-                    </Tooltip>
+                    </PermissionGuard>
                   </>}
                 </>
               }

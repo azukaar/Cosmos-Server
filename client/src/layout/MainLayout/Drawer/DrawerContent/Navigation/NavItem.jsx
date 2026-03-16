@@ -20,8 +20,7 @@ const NavItem = ({ item, level }) => {
     const dispatch = useDispatch();
     const menu = useSelector((state) => state.menu);
     const { drawerOpen, openItem } = menu;
-    const {role} = useClientInfos();
-    const isAdmin = role === "2";
+    const { hasPermission } = useClientInfos();
 
     // active menu item on page load
     useEffect(() => {
@@ -35,7 +34,7 @@ const NavItem = ({ item, level }) => {
         // eslint-disable-next-line
     }, []);
 
-    if (item.adminOnly && !isAdmin) {
+    if (item.permission !== undefined && !hasPermission(item.permission)) {
         return null;
     }
 

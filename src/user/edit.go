@@ -8,14 +8,15 @@ import (
 )
 
 type EditRequestJSON struct {
-	Email string `validate:"email"`
+	Email string     `validate:"omitempty,email"`
+	Role  *utils.Role `json:"role"`
 }
 
 func UserEdit(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	nickname := vars["nickname"]
+	nickname := utils.Sanitize(vars["nickname"])
 
-	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_USERS) != nil {
 		return
 	} 
 
@@ -55,12 +56,19 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 
 		toSet := map[string]interface{}{}
 		if request.Email != "" {
-			
-			if utils.AdminOnly(w, req) != nil {
+
+			if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 				return
-			} 
+			}
 
 			toSet["Email"] = request.Email
+		}
+
+		if request.Role != nil && utils.GetRolePermissions(*request.Role) != nil {
+			if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
+				return
+			}
+			toSet["Role"] = *request.Role
 		}
 
 		_, err := c.UpdateOne(nil, map[string]interface{}{

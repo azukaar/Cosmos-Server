@@ -12,10 +12,11 @@ import (
 type CreateRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
 	Email string `validate:"omitempty,email"`
+	Role utils.Role `json:"role"`
 }
 
 func UserCreate(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 		return
 	} 
 
@@ -46,6 +47,11 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 		
 		nickname := utils.Sanitize(request.Nickname)
 		email := utils.Sanitize(request.Email)
+
+		role := request.Role
+		if utils.GetRolePermissions(role) == nil {
+			role = utils.USER
+		}
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
   	
@@ -88,7 +94,7 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 				"Password": "",
 				"RegisterKey": RegisterKey,
 				"RegisterKeyExp": RegisterKeyExp,
-				"Role": utils.USER,
+				"Role": role,
 				"PasswordCycle": 0,
 				"CreatedAt": time.Now(),
 			})

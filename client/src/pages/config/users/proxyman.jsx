@@ -44,6 +44,8 @@ import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 import { useTranslation } from 'react-i18next';
 import { useClientInfos } from '../../../utils/hooks';
+import { PERM_CONFIGURATION } from '../../../utils/permissions';
+import PermissionGuard from '../../../components/permissionGuard';
 
 const stickyButton = {
   position: 'fixed',
@@ -73,8 +75,8 @@ const ProxyManagement = () => {
   const [openNewModal, setOpenNewModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [tunnels, setTunnels] = React.useState([]);
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_CONFIGURATION);
 
   function setRouteEnabled(key) {
     return (event) => {
@@ -212,9 +214,11 @@ const ProxyManagement = () => {
 
   return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
-      {isAdmin && <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
-        setOpenNewModal(true);
-      }}>{t('global.createAction')}</Button>}&nbsp;&nbsp;
+      <PermissionGuard permission={PERM_CONFIGURATION}>
+        <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+          setOpenNewModal(true);
+        }}>{t('global.createAction')}</Button>
+      </PermissionGuard>&nbsp;&nbsp;
       <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
       }}>{t('global.refresh')}</Button>
@@ -290,7 +294,7 @@ const ProxyManagement = () => {
               verticalAlign: 'middle',
               paddingRight: '5px',
             }} />
-          </Tooltip> : <RouteActions
+          </Tooltip> : <PermissionGuard permission={PERM_CONFIGURATION}><RouteActions
               route={r}
               routeKey={routes.indexOf(r)}
               up={(event) => up(event, routes.indexOf(r))}
@@ -299,7 +303,7 @@ const ProxyManagement = () => {
               moveToBottom={(event) => moveToBottom(event, routes.indexOf(r))}
               deleteRoute={(event) => deleteRoute(event, routes.indexOf(r))}
               duplicateRoute={(event) => duplicateRoute(event, routes.indexOf(r))}
-            />,
+            /></PermissionGuard>,
             style: {
               textAlign: 'right',
             }
@@ -328,7 +332,7 @@ const ProxyManagement = () => {
             {submitErrors.map((err) => {
               return <Alert severity="error">{err}</Alert>
             })}
-            <AnimateButton>
+            <PermissionGuard permission={PERM_CONFIGURATION}>
               <Button
                 className='shinyButton'
                 disableElevation
@@ -349,7 +353,7 @@ const ProxyManagement = () => {
               >
                 {t('mgmt.config.proxy.saveChangesButton')}
               </Button>
-            </AnimateButton>
+            </PermissionGuard>
             </Stack>
         </MainCard>
         </div>

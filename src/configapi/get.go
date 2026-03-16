@@ -9,11 +9,12 @@ import (
 )
 
 func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
-	isAdmin := utils.IsAdmin(req)
+	isAdmin := utils.HasPermission(req, utils.PERM_CONFIGURATION_READ)
+	canReadCredentials := utils.HasPermission(req, utils.PERM_CREDENTIALS_READ)
 
 	if(req.Method == "GET") {
 		config := utils.ReadConfigFromFile()
@@ -22,7 +23,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 		config.HTTPConfig.AuthPrivateKey = ""
 		config.HTTPConfig.TLSKey = ""
 
-		if !isAdmin {
+		if !canReadCredentials {
 			config.MongoDB = "***"
 			config.EmailConfig.Password = "***"
 			config.EmailConfig.Username = "***"
@@ -32,7 +33,10 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			config.HTTPConfig.DNSChallengeConfig = map[string]string{}
 			config.Licence = "***"
 			config.ServerToken = "***"
+			config.APITokens = map[string]utils.APITokenConfig{}
+		}
 
+		if !isAdmin {
 			// filter admin only routes
 			filteredRoutes := make([]utils.ProxyRouteConfig, 0)
 			for _, route := range config.HTTPConfig.ProxyConfig.Routes {
@@ -58,7 +62,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 }
 
 func BackupFileApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return
 	}
 

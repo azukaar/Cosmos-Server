@@ -10,7 +10,7 @@ import (
 
 // UnmountRoute handles unmounting filesystem requests
 func SnapRAIDRunRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 

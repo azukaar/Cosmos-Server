@@ -13,6 +13,7 @@ import (
 	"github.com/rclone/rclone/fs/config/configfile"
 	"github.com/rclone/rclone/fs/rc"
 
+	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -37,7 +38,7 @@ func ensureRCloneConfig() {
 
 // API_RClone_ConfigDump handles /cosmos/rclone/config/dump
 func API_RClone_ConfigDump(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return
 	}
 
@@ -47,9 +48,31 @@ func API_RClone_ConfigDump(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+// API_RClone_ListRemotes handles /cosmos/rclone/config/listremotes
+// Returns only remote name + type, no credentials
+func API_RClone_ListRemotes(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
+		return
+	}
+
+	ensureRCloneConfig()
+
+	dump := config.DumpRcBlob()
+	remotes := make(map[string]interface{})
+	for name, cfg := range dump {
+		if cfgMap, ok := cfg.(map[string]interface{}); ok {
+			remotes[name] = map[string]interface{}{
+				"type": cfgMap["type"],
+			}
+		}
+	}
+
+	json.NewEncoder(w).Encode(remotes)
+}
+
 // API_RClone_ConfigCreate handles /cosmos/rclone/config/create
 func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -80,6 +103,8 @@ func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	config.SaveConfig()
+	utils.TouchDatabase()
+	go constellation.SendNewDBSyncMessage()
 	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
@@ -87,7 +112,7 @@ func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_ConfigUpdate handles /cosmos/rclone/config/update
 func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -117,6 +142,8 @@ func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
 	}
 
 	config.SaveConfig()
+	utils.TouchDatabase()
+	go constellation.SendNewDBSyncMessage()
 	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
@@ -124,7 +151,7 @@ func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_ConfigDelete handles /cosmos/rclone/config/delete
 func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -141,6 +168,8 @@ func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
 
 	config.DeleteRemote(payload.Name)
 	config.SaveConfig()
+	utils.TouchDatabase()
+	go constellation.SendNewDBSyncMessage()
 	go InitRemoteStorage()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
@@ -148,7 +177,7 @@ func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_ConfigSave handles /cosmos/rclone/config/save
 func API_RClone_ConfigSave(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -158,7 +187,7 @@ func API_RClone_ConfigSave(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_OperationsAbout handles /cosmos/rclone/operations/about (ping storage)
 func API_RClone_OperationsAbout(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -214,7 +243,7 @@ func API_RClone_OperationsAbout(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_VfsStats handles /cosmos/rclone/vfs/stats
 func API_RClone_VfsStats(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -257,7 +286,7 @@ func API_RClone_VfsStats(w http.ResponseWriter, req *http.Request) {
 
 // API_RClone_CoreStats handles /cosmos/rclone/core/stats
 func API_RClone_CoreStats(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 

@@ -59,12 +59,12 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 
 		nickname := utils.Sanitize(request.Nickname)
 
-		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+		if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_RESOURCES) != nil {
 			return
 		}
 
 		// Non-admin users can only create client devices
-		if !utils.IsAdmin(req) && request.IsLighthouse {
+		if !utils.HasPermission(req, utils.PERM_RESOURCES) && request.IsLighthouse {
 			utils.Error("DeviceCreation: Non-admin users can only create client devices", nil)
 			utils.HTTPError(w, "Device Creation Error: Only administrators can create lighthouse devices",
 				http.StatusForbidden, "DC006")

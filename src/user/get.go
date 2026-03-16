@@ -11,11 +11,11 @@ func UserGet(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := utils.Sanitize(vars["nickname"])
 
-	if nickname == "" && req.Header.Get("x-cosmos-user") != "" {
-		nickname = req.Header.Get("x-cosmos-user")
+	if nickname == "" && utils.GetAuthContext(req).Nickname != "" {
+		nickname = utils.GetAuthContext(req).Nickname
 	}
 	
-	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_USERS_READ) != nil {
 		return
 	}
 

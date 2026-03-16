@@ -14,11 +14,11 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
-	isAdmin := utils.IsAdmin(req)
+	isAdmin := utils.HasPermission(req, utils.PERM_RESOURCES_READ)
 	
 	// Connect to the collection
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
@@ -49,7 +49,7 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		}
 	} else {
 		// If not admin, get user's devices based on their nickname
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := utils.GetAuthContext(req).Nickname
 		cursor, err := c.Find(nil, map[string]interface{}{"Nickname": nickname})
 		defer cursor.Close(nil)
 		if err != nil {

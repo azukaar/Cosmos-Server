@@ -25,7 +25,7 @@ import (
 func StatusRoute(w http.ResponseWriter, req *http.Request) {
 	config := utils.GetMainConfig()
 
-	if !config.NewInstall && (utils.LoggedInOnly(w, req) != nil) {
+	if !config.NewInstall && (utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil) {
 		return
 	}
 
@@ -152,7 +152,7 @@ func getRealSizeOf2(v interface{}) (int) {
 }
 
 func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
-	if (utils.LoggedInOnly(w, req) != nil) {
+	if (utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil) {
 		return
 	}
 
@@ -180,7 +180,7 @@ func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func LogsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN_READ) != nil {
 		return
 	}
 
@@ -217,7 +217,7 @@ func LogsRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func ForceUpdateRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
 	}
 
@@ -232,7 +232,7 @@ func ForceUpdateRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 func restartHostMachineRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
 	}
 

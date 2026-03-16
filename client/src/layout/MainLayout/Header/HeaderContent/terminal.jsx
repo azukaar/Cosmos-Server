@@ -6,13 +6,14 @@ import TerminalComponent from "../../../../components/terminal";
 import * as API from '../../../../api';
 import { useTranslation } from "react-i18next";
 import { useClientInfos } from "../../../../utils/hooks";
+import { PERM_ADMIN } from "../../../../utils/permissions";
+import PermissionGuard from "../../../../components/permissionGuard";
 
 const TerminalHeader = () => {
 	const [open, setOpen] = React.useState(false);
 	const [status, setStatus] = React.useState(false);
   const { t, Trans } = useTranslation();
-	const {role} = useClientInfos();
-	const isAdmin = role === "2";
+	const { hasPermission } = useClientInfos();
 
 	useEffect(() => {
     API.getStatus().then((res) => {
@@ -24,7 +25,8 @@ const TerminalHeader = () => {
 			setOpen((prevOpen) => !prevOpen);
 	};
 
-	return isAdmin ? (<>
+	return <PermissionGuard permission={PERM_ADMIN}>
+		<>
 		<Tooltip title={t('mgmt.servapps.containers.terminal.enabled')}>
 			<IconButton
 					disableRipple
@@ -37,7 +39,7 @@ const TerminalHeader = () => {
 					<BorderOuterOutlined />
 			</IconButton>
 		</Tooltip>
-		
+
 		<Dialog open={open} onClose={() => setOpen(false)} maxWidth="md" fullWidth={true}>
 			<DialogTitle>{t('mgmt.servapps.containers.terminal.enabled')}</DialogTitle>
           {(!status || !status.containerized) ? <DialogContentText>
@@ -62,7 +64,8 @@ const TerminalHeader = () => {
             }}>Close</Button>
         </DialogActions>
 		</Dialog>
-		</>) : null
+		</>
+	</PermissionGuard>
 }
 
 export default TerminalHeader;

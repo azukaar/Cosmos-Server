@@ -13,6 +13,8 @@ import NewNetworkButton from '../createNetwork';
 import LinkContainersButton from '../linkContainersButton';
 import { useTranslation } from 'react-i18next';
 import { CosmosContainerPicker } from '../../config/users/containerPicker';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, OnChange, OnConnect, OnDisconnect }) => {
   const { t } = useTranslation();
@@ -234,7 +236,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         </Grid>
                       </Grid>
                     ))}
-                    <IconButton
+                    <PermissionGuard permission={PERM_RESOURCES}><IconButton
                       fullWidth
                       variant="outlined"
                       color="primary"
@@ -250,7 +252,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                       }}
                     >
                       <PlusCircleOutlined />
-                    </IconButton>
+                    </IconButton></PermissionGuard>
                   </div>
                   <div>
                     <Stack direction="column" spacing={2}>
@@ -259,7 +261,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                           <FormHelperText error>{formik.errors.submit}</FormHelperText>
                         </Grid>
                       )}
-                      {!newContainer && <LoadingButton
+                      {!newContainer && <PermissionGuard permission={PERM_RESOURCES}><LoadingButton
                         fullWidth
                         disableElevation
                         disabled={formik.errors.submit}
@@ -270,7 +272,7 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                         color="primary"
                       >
                         {t('mgmt.servApps.networks.updatePortsButton')}
-                      </LoadingButton>}
+                      </LoadingButton></PermissionGuard>}
                     </Stack>
                   </div>
                 </Stack>
@@ -304,13 +306,13 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                   data={networks}
                   sort={(a, b) => a.Name > b.Name}
                   buttons={[
-                    <NewNetworkButton refresh={refreshAll} />,
-                    <LinkContainersButton 
-                      refresh={refreshAll} 
+                    <PermissionGuard permission={PERM_RESOURCES}><NewNetworkButton refresh={refreshAll} /></PermissionGuard>,
+                    <PermissionGuard permission={PERM_RESOURCES}><LinkContainersButton
+                      refresh={refreshAll}
                       originContainer={containerInfo.Name.replace('/', '')}
                       newContainer={newContainer}
                       OnConnect={OnConnect}
-                    />,
+                    /></PermissionGuard>,
                   ]}
                   onRowClick={() => { }}
                   getKey={(r) => r.Id}
@@ -330,14 +332,14 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
                       title: '',
                       field: (r) => {
                         const isConnected = containerInfo.NetworkSettings.Networks[r.Name];
-                        return (<Button
+                        return (<PermissionGuard permission={PERM_RESOURCES}><Button
                           variant="outlined"
                           color="primary"
                           onClick={() => {
                             isConnected ? disconnect(r.Name) : connect(r.Name);
                           }}>
                           {isConnected ? t('mgmt.servapps.containers.terminal.disconnectButton') : t('mgmt.servapps.containers.terminal.connectButton')}
-                        </Button>)
+                        </Button></PermissionGuard>)
                       }
                     }
                   ]}

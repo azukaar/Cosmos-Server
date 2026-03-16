@@ -312,7 +312,7 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	userMod.SendUserToken(w, req, userInBase, true, utils.GUEST)
+	userMod.SendUserToken(w, req, userInBase, true, false)
 
 	// redirect to user page 
 	// TODO: redirect to RIGHT PAGE

@@ -10,9 +10,9 @@ import (
 
 func UserDelete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	nickname := vars["nickname"]
+	nickname := utils.Sanitize(vars["nickname"])
 
-	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_USERS) != nil {
 		return
 	} 
 

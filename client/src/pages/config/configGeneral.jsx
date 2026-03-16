@@ -17,6 +17,8 @@ import { CosmosCheckbox, CosmosInputPassword, CosmosInputText } from './users/fo
 import { LoadingButton } from '@mui/lab';
 import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../components/filePicker';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_ADMIN } from '../../utils/permissions';
 
 // License issuer's public key for signature verification
 const LICENSE_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
@@ -60,12 +62,14 @@ const ConfigGeneral = ({ formik, config, status, isAdmin }) => {
 
           {status && !status.containerized && <>
             <Grid item xs={3}>
-              <LoadingButton loading={isCheckingUpdate} variant="outlined" color="primary" onClick={() => {
-                setIsCheckingUpdate(true);
-                API.forceAutoUpdate().then(() => {
-                  setIsCheckingUpdate(false);
-                })
-              }}>{t('mgmt.config.general.forceAutoUpdateButton')}</LoadingButton>
+              <PermissionGuard permission={PERM_ADMIN}>
+                <LoadingButton loading={isCheckingUpdate} variant="outlined" color="primary" onClick={() => {
+                  setIsCheckingUpdate(true);
+                  API.forceAutoUpdate().then(() => {
+                    setIsCheckingUpdate(false);
+                  })
+                }}>{t('mgmt.config.general.forceAutoUpdateButton')}</LoadingButton>
+              </PermissionGuard>
             </Grid>
 
             <CosmosCheckbox
