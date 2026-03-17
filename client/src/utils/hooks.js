@@ -20,6 +20,12 @@ function useClientInfos() {
     // Format: nickname,perm1-perm2-...,sudoUntil
     if(parts.length < 3) {
       window.location.href = '/cosmos-ui/logout';
+      return {
+        nickname: "",
+        hasPermission: () => true,
+        hasRolePermission: () => true,
+        needsSudo: false,
+      };
     }
 
     const nickname = parts[0];

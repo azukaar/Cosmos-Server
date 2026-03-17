@@ -29,3 +29,5 @@ rclone-arm
 test-backup
 /backups
 ca.pem
+sdk/dist
+sdk/node_modules

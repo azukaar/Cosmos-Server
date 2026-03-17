@@ -189,11 +189,11 @@ func InitSnapRAIDConfig() {
 		os.RemoveAll(utils.CONFIGFOLDER + "snapraid")
 	}
 
-	os.MkdirAll(utils.CONFIGFOLDER + "snapraid", 0755)
+	os.MkdirAll(utils.CONFIGFOLDER + "snapraid", 0700)
 
 	for _, raidOptions := range snaps {
 		// create or overwrite the file
-		file, err := os.OpenFile(utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		file, err := os.OpenFile(utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 		if err != nil {
 			utils.MajorError("Failed to create SnapRAID config file", err)
 			return

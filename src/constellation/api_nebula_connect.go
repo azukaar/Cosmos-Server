@@ -187,7 +187,7 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// output utils.CONFIGFOLDER + "nebula.yml"
-		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configMapString, 0644)
+		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configMapString, 0600)
 		
 		if deviceNameVal, ok := configMap["cstln_device_name"]; ok {
 			config.ConstellationConfig.ThisDeviceName = deviceNameVal.(string)

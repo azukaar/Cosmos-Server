@@ -5,6 +5,7 @@ import (
 	"time"
 	"context"
 	"os"
+	"os/exec"
 	"strings"
 	"fmt"
 	"log"
@@ -217,11 +218,15 @@ func cosmos() {
 	utils.InitLogs()
 
 	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
-		err := os.MkdirAll(utils.CONFIGFOLDER, os.ModePerm)
+		err := os.MkdirAll(utils.CONFIGFOLDER, 0700)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
+
+	// Fix permissions on existing config folder files
+	exec.Command("chmod", "-R", "600", utils.CONFIGFOLDER).Run()
+	exec.Command("chmod", "-R", "+X", utils.CONFIGFOLDER).Run()
 
 	if utils.IsInsideContainer {
 		utils.Log("Running inside Docker container")

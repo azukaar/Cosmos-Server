@@ -59,7 +59,7 @@ func startNebula() error {
 	}
 	defer source.Close()
 
-	destination, err := os.Create(utils.CONFIGFOLDER + "nebula-temp.yml")
+	destination, err := os.OpenFile(utils.CONFIGFOLDER + "nebula-temp.yml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to create nebula-temp.yml: %w", err)
 	}
@@ -192,7 +192,7 @@ func savePID(pid int) error {
 	pidFile := utils.CONFIGFOLDER + "nebula.pid"
 	pidContent := []byte(fmt.Sprintf("%d", pid))
 
-	if err := ioutil.WriteFile(pidFile, pidContent, 0644); err != nil {
+	if err := ioutil.WriteFile(pidFile, pidContent, 0600); err != nil {
 		return fmt.Errorf("failed to write PID file: %w", err)
 	}
 
@@ -413,7 +413,7 @@ func ExportDefaultConfigToYAML(outputPath string) error {
 	}
 
 	// Write YAML data to the specified file
-	yamlFile, err := os.Create(outputPath)
+	yamlFile, err := os.OpenFile(outputPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

@@ -145,7 +145,7 @@ func checkUpdatesAvailable() {
 				if useBeta && !utils.FileExists(betaFile) {
 					// save .BETA file
 					utils.Log("Saving BETA file")
-					err := ioutil.WriteFile(betaFile, []byte("BETA"), 0644)
+					err := ioutil.WriteFile(betaFile, []byte("BETA"), 0600)
 					if err != nil {
 						utils.Error("checkUpdatesAvailable", err)
 						return

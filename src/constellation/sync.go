@@ -173,7 +173,7 @@ func ReceiveSyncPayload(rawPayload string) bool {
 		return false
 	}
 
-	err = ioutil.WriteFile(dbPath, dbData, 0644)
+	err = ioutil.WriteFile(dbPath, dbData, 0600)
 	if err != nil {
 		utils.Error("Constellation: ReceiveSyncPayload: Failed to write database file", err)
 		return false
@@ -194,7 +194,7 @@ func ReceiveSyncPayload(rawPayload string) bool {
 		if err != nil {
 			utils.Error("Constellation: ReceiveSyncPayload: Failed to decode CA crt", err)
 		} else {
-			err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.crt", caCrtData, 0644)
+			err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.crt", caCrtData, 0600)
 			if err != nil {
 				utils.Error("Constellation: ReceiveSyncPayload: Failed to write CA crt file", err)
 			} else {
@@ -202,7 +202,7 @@ func ReceiveSyncPayload(rawPayload string) bool {
 				if err != nil {
 					utils.Error("Constellation: ReceiveSyncPayload: Failed to decode CA key", err)
 				} else {
-					err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.key", caKeyData, 0644)
+					err = ioutil.WriteFile(utils.CONFIGFOLDER + "ca.key", caKeyData, 0600)
 					if err != nil {
 						utils.Error("Constellation: ReceiveSyncPayload: Failed to write CA key file", err)
 					}
@@ -218,7 +218,7 @@ func ReceiveSyncPayload(rawPayload string) bool {
 		if err != nil {
 			utils.Error("Constellation: ReceiveSyncPayload: Failed to decode rclone config", err)
 		} else {
-			err = ioutil.WriteFile(utils.CONFIGFOLDER+"rclone.conf", rcloneConfigData, 0644)
+			err = ioutil.WriteFile(utils.CONFIGFOLDER+"rclone.conf", rcloneConfigData, 0600)
 			if err != nil {
 				utils.Error("Constellation: ReceiveSyncPayload: Failed to write rclone config file", err)
 			} else {

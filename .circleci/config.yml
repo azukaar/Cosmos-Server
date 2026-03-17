@@ -17,6 +17,14 @@ jobs:
             source $BASH_ENV
 
       - run:
+          name: Verify npm token is valid
+          command: |
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+            echo "Authenticating with npm..."
+            npm whoami || { echo "ERROR: npm token is invalid or expired. Regenerate at https://www.npmjs.com/settings/~/tokens"; exit 1; }
+            echo "npm auth OK (logged in as $(npm whoami))"
+
+      - run:
           name: Install GitHub CLI
           command: |
             type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
@@ -171,6 +179,18 @@ jobs:
                 --prerelease \
                 --title "Beta Release $VERSION" \
                 --notes "Beta release version $VERSION for x86_64 and ARM64 architectures from branch $BRANCH_NAME"
+            fi
+
+      - run:
+          name: Publish SDK to npm
+          command: |
+            cd sdk
+            npm install
+            BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+            if [ "$BRANCH_NAME" = "master" ] || [ "$BRANCH_NAME" = "main" ]; then
+              npm publish --access public
+            else
+              npm publish --access public --tag beta
             fi
 
 workflows:

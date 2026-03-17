@@ -22,6 +22,9 @@ const Logout = () => {
           setTimeout(() => {
             redirectToLocal('/cosmos-ui/login');
           }, 2000);
+        })
+       .catch(() => {
+          redirectToLocal('/cosmos-ui/login');
         });
     },[]);
 

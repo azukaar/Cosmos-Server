@@ -1,15 +1,15 @@
-import * as _auth from './authentication';
-import * as _users from './users';
-import * as _config from './config';
-import * as _docker from './docker';
-import * as _market from './market';
-import * as _constellation from './constellation';
-import * as _metrics from './metrics';
-import * as _storage from './storage';
-import * as _cron from './cron';
-import * as _rclone from './rclone';
-import * as _backups from './backup';
-import * as _apiTokens from './apiTokens';
+import createAuthAPI from './authentication';
+import createUsersAPI from './users';
+import createConfigAPI from './config';
+import createDockerAPI from './docker';
+import createMarketAPI from './market';
+import createConstellationAPI from './constellation';
+import createMetricsAPI from './metrics';
+import createStorageAPI from './storage';
+import createCronAPI from './cron';
+import createRcloneAPI from './rclone';
+import createBackupsAPI from './backup';
+import createApiTokensAPI from './apiTokens';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -24,6 +24,7 @@ import * as cronDemo from './cron.demo';
 import * as backupDemo from './backup.demo';
 
 import wrap from './wrap';
+import { createApiClient } from './client';
 import { redirectToLocal } from '../utils/indexs';
 
 export let CPU_ARCH = 'amd64';
@@ -35,8 +36,141 @@ export let SECONDARY_COLOR;
 
 export let FIRST_LOAD = false;
 
+// --- SDK entry point ---
+export function createClient({ baseUrl, token }) {
+  const { apiFetch, createWs } = createApiClient(baseUrl, token);
+
+  const client = {
+    auth: createAuthAPI(apiFetch),
+    users: createUsersAPI(apiFetch),
+    config: createConfigAPI(apiFetch),
+    docker: createDockerAPI(apiFetch, createWs),
+    market: createMarketAPI(apiFetch),
+    constellation: createConstellationAPI(apiFetch),
+    metrics: createMetricsAPI(apiFetch),
+    storage: createStorageAPI(apiFetch),
+    cron: createCronAPI(apiFetch, createWs),
+    rclone: createRcloneAPI(apiFetch),
+    backups: createBackupsAPI(apiFetch),
+    apiTokens: createApiTokensAPI(apiFetch),
+
+    getStatus: () => {
+      return wrap(apiFetch('/cosmos/api/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }));
+    },
+
+    isOnline: () => {
+      return apiFetch('/cosmos/api/status', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(async (response) => {
+        let rep;
+        try {
+          rep = await response.json();
+        } catch {
+          throw new Error('Server error');
+        }
+        if (response.status == 200) {
+          return rep;
+        }
+        const e = new Error(rep.message);
+        e.status = response.status;
+        throw e;
+      });
+    },
+
+    checkHost: (host) => {
+      return apiFetch('/cosmos/api/dns-check?url=' + host, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(async (response) => {
+        let rep;
+        try {
+          rep = await response.json();
+        } catch {
+          throw new Error('Server error');
+        }
+        if (response.status == 200) {
+          return rep;
+        }
+        const e = new Error(rep.message);
+        e.status = response.status;
+        e.message = rep.message;
+        throw e;
+      });
+    },
+
+    getDNS: (host) => {
+      return apiFetch('/cosmos/api/dns?url=' + host, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(async (response) => {
+        let rep;
+        try {
+          rep = await response.json();
+        } catch {
+          throw new Error('Server error');
+        }
+        if (response.status == 200) {
+          return rep;
+        }
+        const e = new Error(rep.message);
+        e.status = response.status;
+        e.message = rep.message;
+        throw e;
+      });
+    },
+
+    uploadImage: (file, name) => {
+      const formData = new FormData();
+      formData.append('image', file);
+      return wrap(apiFetch('/cosmos/api/upload/' + name, {
+        method: 'POST',
+        body: formData
+      }));
+    },
+
+    restartServer: () => {
+      return wrap(apiFetch('/cosmos/api/restart-server', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }));
+    },
+
+    terminal: (startCmd = "bash") => {
+      return createWs('/cosmos/api/terminal/' + startCmd);
+    },
+
+    forceAutoUpdate: () => {
+      return wrap(apiFetch('/cosmos/api/force-server-update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }));
+    },
+  };
+
+  return client;
+}
+
+// --- Default browser client (backward compat) ---
+const { apiFetch: defaultFetch, createWs: defaultWs } = createApiClient();
+
 let getStatus = (initial) => {
-  return wrap(fetch('/cosmos/api/status', {
+  return wrap(defaultFetch('/cosmos/api/status', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -55,11 +189,11 @@ let getStatus = (initial) => {
     const redirectToURL = (window.location.pathname + urlSearch);
 
     if(response.status != 'OK') {
-      if( 
-          window.location.href.indexOf('/cosmos-ui/oauth/callback') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/newInstall') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/login') == -1 && 
-          window.location.href.indexOf('/cosmos-ui/loginmfa') == -1 && 
+      if(
+          window.location.href.indexOf('/cosmos-ui/oauth/callback') == -1 &&
+          window.location.href.indexOf('/cosmos-ui/newInstall') == -1 &&
+          window.location.href.indexOf('/cosmos-ui/login') == -1 &&
+          window.location.href.indexOf('/cosmos-ui/loginmfa') == -1 &&
           window.location.href.indexOf('/cosmos-ui/newmfa') == -1 &&
           window.location.href.indexOf('/cosmos-ui/register') == -1 &&
           window.location.href.indexOf('/cosmos-ui/forgot-password') == -1) {
@@ -82,7 +216,7 @@ let getStatus = (initial) => {
 }
 
 let isOnline = () => {
-  return fetch('/cosmos/api/status', {
+  return defaultFetch('/cosmos/api/status', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -96,7 +230,7 @@ let isOnline = () => {
     }
     if (response.status == 200) {
       return rep;
-    } 
+    }
     const e = new Error(rep.message);
     e.status = response.status;
     throw e;
@@ -112,16 +246,16 @@ let newInstall = (req, onProgress) => {
       },
       body: JSON.stringify(req)
     };
-  
-    return fetch('/cosmos/api/newInstall', requestOptions)
+
+    return defaultFetch('/cosmos/api/newInstall', requestOptions)
       .then(response => {
         if (!response.ok) {
           throw new Error(response.statusText);
         }
-  
+
         // The response body is a ReadableStream. This code reads the stream and passes chunks to the callback.
         const reader = response.body.getReader();
-  
+
         // Read the stream and pass chunks to the callback as they arrive
         return new ReadableStream({
           start(controller) {
@@ -152,7 +286,7 @@ let newInstall = (req, onProgress) => {
         console.error(e);
       });
   } else {
-    return wrap(fetch('/cosmos/api/newInstall', {
+    return wrap(defaultFetch('/cosmos/api/newInstall', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -163,7 +297,7 @@ let newInstall = (req, onProgress) => {
 }
 
 let checkHost = (host) => {
-  return fetch('/cosmos/api/dns-check?url=' + host, {
+  return defaultFetch('/cosmos/api/dns-check?url=' + host, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -177,7 +311,7 @@ let checkHost = (host) => {
     }
     if (response.status == 200) {
       return rep;
-    } 
+    }
     const e = new Error(rep.message);
     e.status = response.status;
     e.message = rep.message;
@@ -186,7 +320,7 @@ let checkHost = (host) => {
 }
 
 let getDNS = (host) => {
-  return fetch('/cosmos/api/dns?url=' + host, {
+  return defaultFetch('/cosmos/api/dns?url=' + host, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -200,7 +334,7 @@ let getDNS = (host) => {
     }
     if (response.status == 200) {
       return rep;
-    } 
+    }
     const e = new Error(rep.message);
     e.status = response.status;
     e.message = rep.message;
@@ -211,14 +345,14 @@ let getDNS = (host) => {
 let uploadImage = (file, name) => {
   const formData = new FormData();
   formData.append('image', file);
-  return wrap(fetch('/cosmos/api/upload/' + name, {
+  return wrap(defaultFetch('/cosmos/api/upload/' + name, {
     method: 'POST',
     body: formData
   }));
 };
 
 let restartServer = () => {
-  return wrap(fetch('/cosmos/api/restart-server', {
+  return wrap(defaultFetch('/cosmos/api/restart-server', {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json'
@@ -227,15 +361,11 @@ let restartServer = () => {
 }
 
 function terminal(startCmd = "bash") {
-  let protocol = 'ws://';
-  if (window.location.protocol === 'https:') {
-    protocol = 'wss://';
-  }
-  return new WebSocket(protocol + window.location.host + '/cosmos/api/terminal/'+startCmd)
+  return defaultWs('/cosmos/api/terminal/' + startCmd);
 }
 
 function forceAutoUpdate() {
-  return wrap(fetch('/cosmos/api/force-server-update', {
+  return wrap(defaultFetch('/cosmos/api/force-server-update', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -245,18 +375,18 @@ function forceAutoUpdate() {
 
 const isDemo = import.meta.env.MODE === 'demo';
 
-let auth = _auth;
-let users = _users;
-let config = _config;
-let docker = _docker;
-let market = _market;
-let constellation = _constellation;
-let metrics = _metrics;
-let storage = _storage;
-let cron = _cron;
-let rclone = _rclone;
-let backups = _backups;
-let apiTokens = _apiTokens;
+let auth = createAuthAPI(defaultFetch);
+let users = createUsersAPI(defaultFetch);
+let config = createConfigAPI(defaultFetch);
+let docker = createDockerAPI(defaultFetch, defaultWs);
+let market = createMarketAPI(defaultFetch);
+let constellation = createConstellationAPI(defaultFetch);
+let metrics = createMetricsAPI(defaultFetch);
+let storage = createStorageAPI(defaultFetch);
+let cron = createCronAPI(defaultFetch, defaultWs);
+let rclone = createRcloneAPI(defaultFetch);
+let backups = createBackupsAPI(defaultFetch);
+let apiTokens = createApiTokensAPI(defaultFetch);
 
 if(isDemo) {
   auth = authDemo;

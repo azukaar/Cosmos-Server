@@ -1,188 +1,202 @@
-import wrap from './wrap';
+import wrap, { type ApiResponse, type ApiFetch } from './wrap';
 
-function list() {
-  return wrap(fetch('/cosmos/api/constellation/devices', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-  }))
+export interface ConstellationDevice {
+  Nickname: string;
+  DeviceName: string;
+  PublicKey: string;
+  IP: string;
+  IsLighthouse: boolean;
+  IsRelay: boolean;
+  Blocked: boolean;
+  Fingerprint: string;
+  PublicHostname: string;
+  Port: string;
+  [key: string]: any;
 }
 
-function ping() {
-  return wrap(fetch('/cosmos/api/constellation/ping', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-  }))
+export default function createConstellationAPI(apiFetch: ApiFetch) {
+  function list() {
+    return wrap(apiFetch('/cosmos/api/constellation/devices', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function ping() {
+    return wrap(apiFetch('/cosmos/api/constellation/ping', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function getNextIP() {
+    return wrap(apiFetch('/cosmos/api/constellation/get-next-ip', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function pingDevice(deviceId) {
+    return wrap(apiFetch(`/cosmos/api/constellation/devices/${deviceId}/ping`, {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function addDevice(device) {
+    return wrap(apiFetch('/cosmos/api/constellation/devices', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(device),
+    }))
+  }
+
+  function resyncDevice(device) {
+    return wrap(apiFetch('/cosmos/api/constellation/config-manual-sync', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(device),
+    }))
+  }
+
+  function restart() {
+    return wrap(apiFetch('/cosmos/api/constellation/restart', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }))
+  }
+
+
+  function reset() {
+    return wrap(apiFetch('/cosmos/api/constellation/reset', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }))
+  }
+
+  function getConfig() {
+    return wrap(apiFetch('/cosmos/api/constellation/config', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }))
+  }
+
+  function getLogs() {
+    return wrap(apiFetch('/cosmos/api/constellation/logs', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    }))
+  }
+
+  function connect(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        apiFetch('/cosmos/api/constellation/connect', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'text/plain',
+          },
+          body: reader.result,
+        })
+        .then(response => {
+          resolve(response);
+        })
+        .catch(error => {
+          reject(error);
+        });
+      };
+
+      reader.onerror = () => {
+        reject(new Error('Failed to read the file.'));
+      };
+
+      reader.readAsText(file);
+    });
+  }
+
+  function create(deviceName, isLighthouse, hostname, ipRange) {
+    return wrap(apiFetch(`/cosmos/api/constellation/create`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        deviceName,
+        isLighthouse,
+        hostname,
+        ipRange
+      }),
+    }))
+  }
+
+  function block(nickname, devicename, block) {
+    return wrap(apiFetch(`/cosmos/api/constellation/block`, {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nickname, devicename, block
+      }),
+    }))
+  }
+
+  function tunnels() {
+    return wrap(apiFetch('/cosmos/api/constellation/tunnels', {
+      method: 'GET',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function editDevice(device) {
+    return wrap(apiFetch('/cosmos/api/constellation/edit-device', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(device),
+    }))
+  }
+
+  return {
+    list,
+    addDevice,
+    resyncDevice,
+    restart,
+    getConfig,
+    getLogs,
+    reset,
+    connect,
+    block,
+    ping,
+    create,
+    pingDevice,
+    tunnels,
+    editDevice,
+    getNextIP,
+  };
 }
-
-function getNextIP() {
-  return wrap(fetch('/cosmos/api/constellation/get-next-ip', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-  }))
-}
-
-function pingDevice(deviceId) {
-  return wrap(fetch(`/cosmos/api/constellation/devices/${deviceId}/ping`, {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-  }))
-}
-
-function addDevice(device) {
-  return wrap(fetch('/cosmos/api/constellation/devices', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(device),
-  }))
-}
-
-function resyncDevice(device) {
-  return wrap(fetch('/cosmos/api/constellation/config-manual-sync', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(device),
-  }))
-}
-
-function restart() {
-  return wrap(fetch('/cosmos/api/constellation/restart', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    }
-  }))
-}
-
-
-function reset() {
-  return wrap(fetch('/cosmos/api/constellation/reset', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    }
-  }))
-}
-
-function getConfig() {
-  return wrap(fetch('/cosmos/api/constellation/config', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    }
-  }))
-}
-
-function getLogs() {
-  return wrap(fetch('/cosmos/api/constellation/logs', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    }
-  }))
-}
-
-function connect(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = () => {
-      fetch('/cosmos/api/constellation/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-        body: reader.result,
-      })
-      .then(response => {
-        // Add additional response handling here if needed.
-        resolve(response);
-      })
-      .catch(error => {
-        // Handle the error.
-        reject(error);
-      });
-    };
-    
-    reader.onerror = () => {
-      reject(new Error('Failed to read the file.'));
-    };
-    
-    reader.readAsText(file);
-  });
-}
-
-function create(deviceName, isLighthouse, hostname, ipRange) {
-  return wrap(fetch(`/cosmos/api/constellation/create`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      deviceName,
-      isLighthouse,
-      hostname,
-      ipRange
-    }),
-  }))
-}
-
-function block(nickname, devicename, block) {
-  return wrap(fetch(`/cosmos/api/constellation/block`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      nickname, devicename, block
-    }),
-  }))
-}
-
-function tunnels() {
-  return wrap(fetch('/cosmos/api/constellation/tunnels', {
-    method: 'GET',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-  }))
-}
-
-function editDevice(device) {
-  return wrap(fetch('/cosmos/api/constellation/edit-device', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(device),
-  }))
-}
-
-export {
-  list,
-  addDevice,
-  resyncDevice,
-  restart,
-  getConfig,
-  getLogs,
-  reset,
-  connect,
-  block,
-  ping,
-  create,
-  pingDevice,
-  tunnels,
-  editDevice,
-  getNextIP,
-};

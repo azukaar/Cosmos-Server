@@ -1,134 +1,136 @@
-import wrap from './wrap';
-interface Route {
+import wrap, { type ApiResponse, type ApiFetch } from './wrap';
+export interface Route {
   Name: string;
 }
 
-type Operation = 'replace' | 'move_up' | 'move_down' | 'delete' | 'add';
+export type Operation = 'replace' | 'move_up' | 'move_down' | 'delete' | 'add';
 
-function get() {
-  return wrap(fetch('/cosmos/api/config', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }))
-}
-
-function set(values) {
-  return wrap(fetch('/cosmos/api/config', {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(values),
-  }))
-}
-
-function restart() {
-  return fetch('/cosmos/api/restart', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  })
-}
-
-function canSendEmail() {
-  return fetch('/cosmos/api/can-send-email', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }).then((response) => {
-    return response.json();
-  });
-}
-
-async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<void> {
-  const payload = {
-    routeName,
-    operation,
-    newRoute,
-  };
-
-  if (operation === 'replace') {
-    if (!newRoute) throw new Error('newRoute must be provided for replace operation');
+export default function createConfigAPI(apiFetch: ApiFetch) {
+  function get() {
+    return wrap(apiFetch('/cosmos/api/config', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }))
   }
 
-  return wrap(fetch('/cosmos/api/config', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  }));
-}
+  function set(values) {
+    return wrap(apiFetch('/cosmos/api/config', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(values),
+    }))
+  }
 
-async function replaceRoute(routeName: string, newRoute: Route): Promise<void> {
-  return rawUpdateRoute(routeName, 'replace', newRoute);
-}
+  function restart() {
+    return apiFetch('/cosmos/api/restart', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+  }
 
-async function moveRouteUp(routeName: string): Promise<void> {
-  return rawUpdateRoute(routeName, 'move_up');
-}
+  function canSendEmail() {
+    return apiFetch('/cosmos/api/can-send-email', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }).then((response) => {
+      return response.json();
+    });
+  }
 
-async function moveRouteDown(routeName: string): Promise<void> {
-  return rawUpdateRoute(routeName, 'move_down');
-}
+  async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<ApiResponse> {
+    const payload = {
+      routeName,
+      operation,
+      newRoute,
+    };
 
-async function deleteRoute(routeName: string): Promise<void> {
-  return rawUpdateRoute(routeName, 'delete');
-}
-async function addRoute(newRoute: Route): Promise<void> {
-  return rawUpdateRoute("", 'add', newRoute);
-}
+    if (operation === 'replace') {
+      if (!newRoute) throw new Error('newRoute must be provided for replace operation');
+    }
 
-function getBackup() {
-  return wrap(fetch('/cosmos/api/get-backup', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }))
-}
+    return wrap(apiFetch('/cosmos/api/config', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    }));
+  }
 
-function getDashboard() {
-  return wrap(fetch('/cosmos/api/dashboard', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }))
-}
+  async function replaceRoute(routeName: string, newRoute: Route): Promise<ApiResponse> {
+    return rawUpdateRoute(routeName, 'replace', newRoute);
+  }
 
-function updateDNS(dnsConfig: {
-  dnsPort?: string;
-  dnsFallback?: string;
-  dnsBlockBlacklist?: boolean;
-  dnsAdditionalBlocklists?: string[];
-  customDNSEntries?: { Type: string; Key: string; Value: string }[];
-}) {
-  return wrap(fetch('/cosmos/api/config/dns', {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(dnsConfig),
-  }))
-}
+  async function moveRouteUp(routeName: string): Promise<ApiResponse> {
+    return rawUpdateRoute(routeName, 'move_up');
+  }
 
-export {
-  get,
-  set,
-  restart,
-  rawUpdateRoute,
-  replaceRoute,
-  moveRouteUp,
-  moveRouteDown,
-  deleteRoute,
-  addRoute,
-  canSendEmail,
-  getBackup,
-  getDashboard,
-  updateDNS,
-};
+  async function moveRouteDown(routeName: string): Promise<ApiResponse> {
+    return rawUpdateRoute(routeName, 'move_down');
+  }
+
+  async function deleteRoute(routeName: string): Promise<ApiResponse> {
+    return rawUpdateRoute(routeName, 'delete');
+  }
+  async function addRoute(newRoute: Route): Promise<ApiResponse> {
+    return rawUpdateRoute("", 'add', newRoute);
+  }
+
+  function getBackup() {
+    return wrap(apiFetch('/cosmos/api/get-backup', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function getDashboard() {
+    return wrap(apiFetch('/cosmos/api/dashboard', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }))
+  }
+
+  function updateDNS(dnsConfig: {
+    dnsPort?: string;
+    dnsFallback?: string;
+    dnsBlockBlacklist?: boolean;
+    dnsAdditionalBlocklists?: string[];
+    customDNSEntries?: { Type: string; Key: string; Value: string }[];
+  }) {
+    return wrap(apiFetch('/cosmos/api/config/dns', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dnsConfig),
+    }))
+  }
+
+  return {
+    get,
+    set,
+    restart,
+    rawUpdateRoute,
+    replaceRoute,
+    moveRouteUp,
+    moveRouteDown,
+    deleteRoute,
+    addRoute,
+    canSendEmail,
+    getBackup,
+    getDashboard,
+    updateDNS,
+  };
+}

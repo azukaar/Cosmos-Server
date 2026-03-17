@@ -205,7 +205,7 @@ func UpdateFirewallBlockedClients() error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
 	}
@@ -317,7 +317,7 @@ func AdjustDNS(logBuffer *lumberjack.Logger) error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		logger.Printf("level=error msg=failed to write nebula-temp.yml")
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
@@ -510,7 +510,7 @@ func ValidateStaticHosts(logBuffer *lumberjack.Logger) error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		logger.Printf("level=error msg=failed to write nebula-temp.yml")
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
@@ -643,7 +643,7 @@ func ExportLighthouseFromDB() error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
 	}

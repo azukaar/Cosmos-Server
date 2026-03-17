@@ -73,7 +73,7 @@ func UploadImage(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// create a new file in the config directory
-		dst, err := os.Create(utils.CONFIGFOLDER + "/uploads/" + name + ext)
+		dst, err := os.OpenFile(utils.CONFIGFOLDER + "/uploads/" + name + ext, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			utils.HTTPError(w, "Error creating destination file", http.StatusInternalServerError, "FILE004")
 			return

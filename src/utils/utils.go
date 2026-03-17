@@ -395,11 +395,11 @@ func CreateDefaultConfigFileIfNecessary() bool {
 	folderPath := strings.Split(configFile, "/")
 	folderPath = folderPath[:len(folderPath)-1]
 	folderPathString := strings.Join(folderPath, "/")
-	os.MkdirAll(folderPathString, os.ModePerm)
+	os.MkdirAll(folderPathString, 0700)
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		Log("Config file does not exist. Creating default config file.")
-		file, err := os.Create(configFile)
+		file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			Fatal("Creating Default Config File", err)
 		}
@@ -424,7 +424,7 @@ func SaveConfigTofile(config Config) {
 	configFile := GetConfigFileName()
 	CreateDefaultConfigFileIfNecessary()
 
-	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		Fatal("Opening Config File", err)
 	}

@@ -219,8 +219,20 @@ func tokenMiddleware(next http.Handler) http.Handler {
 		r.Header.Del("x-cosmos-user-role")
 		r.Header.Del("x-cosmos-mfa")
 
+		// Logout should always work regardless of token state
+		if r.URL.Path == "/cosmos/api/logout" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		// API Token path (checked first)
+		// Support token via Authorization header or query param (for WebSocket)
 		authHeader := r.Header.Get("Authorization")
+		if !strings.HasPrefix(authHeader, "Bearer cosmos_") {
+			if qToken := r.URL.Query().Get("token"); strings.HasPrefix(qToken, "cosmos_") {
+				authHeader = "Bearer " + qToken
+			}
+		}
 		if strings.HasPrefix(authHeader, "Bearer cosmos_") {
 			rawToken := strings.TrimPrefix(authHeader, "Bearer ")
 
