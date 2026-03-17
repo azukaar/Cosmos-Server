@@ -17,6 +17,18 @@ type LoginRequestJSON struct {
 	Password string `validate:"required,min=8,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 }
 
+// UserLogin godoc
+// @Summary User login
+// @Description Authenticates a user with nickname and password, sets JWT cookie on success
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequestJSON true "Login credentials"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/login [post]
 func UserLogin(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "POST" {
 		time.Sleep(time.Duration(rand.Float64()*2) * time.Second)

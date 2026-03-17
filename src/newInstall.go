@@ -43,6 +43,18 @@ type AdminJSON struct {
 	Password string `validate:"required,min=9,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 }
 
+// NewInstallRoute godoc
+// @Summary Process new installation steps
+// @Description Handles multi-step server installation including database setup, HTTPS configuration, and admin user creation
+// @Tags system
+// @Accept json
+// @Produce json
+// @Param request body NewInstallJSON true "Installation step data"
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/newInstall [post]
 func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 	if !utils.GetMainConfig().NewInstall {
 		utils.Error("Status: not a new New install", nil)

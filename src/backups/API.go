@@ -10,6 +10,19 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// AddBackupRoute godoc
+// @Summary Create a new backup configuration
+// @Description Creates a backup config and initializes the repository if needed. Requires premium licence and non-container mode.
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param body body utils.SingleBackupConfig true "Backup configuration"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups [post]
 func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -119,6 +132,17 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// EditBackupRoute godoc
+// @Summary Edit an existing backup configuration
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param body body utils.SingleBackupConfig true "Updated backup configuration"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups/edit [post]
 func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -158,6 +182,17 @@ func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RemoveBackupRoute godoc
+// @Summary Remove a backup configuration and its snapshots
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name} [delete]
 func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -237,6 +272,17 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListSnapshotsRoute godoc
+// @Summary List snapshots for a specific backup
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/snapshots [get]
 func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -276,6 +322,19 @@ func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListFoldersRoute godoc
+// @Summary List folders in a backup snapshot
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID"
+// @Param path query string false "Directory path within the snapshot"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/folders [get]
 func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -318,6 +377,20 @@ func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RestoreBackupRoute godoc
+// @Summary Restore files from a backup snapshot
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param body body object true "Restore request with snapshotId, target, and optional include paths"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/restore [post]
 func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -393,6 +466,17 @@ func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListSnapshotsRouteFromRepo godoc
+// @Summary List all snapshots in a backup repository (all backup tags)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name (used to resolve repository)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository/{name}/snapshots [get]
 func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -432,6 +516,14 @@ func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListRepos godoc
+// @Summary List all backup repositories with their lock status
+// @Tags Backups
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository [get]
 func ListRepos(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -466,6 +558,17 @@ func ListRepos(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RepoStatsRoute godoc
+// @Summary Get repository statistics (size, file count, etc.)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name (used to resolve repository)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository/{name}/stats [get]
 func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -504,6 +607,18 @@ func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ForgetSnapshotRoute godoc
+// @Summary Forget (delete) a specific snapshot from a backup repository
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID to forget"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/forget [delete]
 func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -537,6 +652,19 @@ func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// StatsRepositorySubfolderRoute godoc
+// @Summary Get restore size stats for a subfolder within a snapshot
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID"
+// @Param path query string false "Subfolder path within the snapshot"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/subfolder-restore-size [get]
 func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -578,6 +706,17 @@ func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// UnlockRepositoryRoute godoc
+// @Summary Unlock a backup repository (remove stale locks)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/unlock [post]
 func UnlockRepositoryRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

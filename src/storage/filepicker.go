@@ -29,6 +29,18 @@ type DirectoryListing struct {
 	FullPath string `json:"fullPath"`
 }
 
+// ListDirectoryRoute godoc
+// @Summary List the contents of a directory
+// @Tags Storage
+// @Produce json
+// @Param storage query string false "Storage name (default: local)"
+// @Param path query string false "Directory path (default: /)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/list-dir [get]
 func ListDirectoryRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -160,6 +172,19 @@ func ListDirectory(path string) ([]DirectoryListing, error) {
 	return listings, nil
 }
 
+// CreateFolderRoute godoc
+// @Summary Create a new folder
+// @Tags Storage
+// @Produce json
+// @Param storage query string false "Storage name"
+// @Param path query string false "Parent directory path"
+// @Param folder query string true "Folder name to create"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/new-dir [post]
 func CreateFolderRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

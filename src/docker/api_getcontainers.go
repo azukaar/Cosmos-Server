@@ -10,6 +10,16 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// GetContainerRoute godoc
+// @Summary Inspect a single Docker container by ID
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/ [get]
 func GetContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

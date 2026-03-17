@@ -200,6 +200,13 @@ func main() {
 	cosmos()
 }
 
+// @title Cosmos Server API
+// @version 0.22.0-unstable04
+// @description REST API for Cosmos Cloud server management
+// @BasePath /cosmos
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func cosmos() {
 	utils.PushShieldMetrics = metrics.PushShieldMetrics
 	utils.GetContainerIPByName = docker.GetContainerIPByName

@@ -10,6 +10,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// API_NewConstellation godoc
+// @Summary Create a new Constellation VPN network
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body object true "Constellation creation payload (deviceName, isLighthouse, hostname, ipRange)"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/create [post]
 func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -144,6 +156,17 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_ConnectToExisting godoc
+// @Summary Connect this node to an existing Constellation VPN network
+// @Tags constellation
+// @Accept application/x-yaml
+// @Produce json
+// @Param body body string true "Nebula YAML configuration"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/connect [post]
 func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

@@ -24,6 +24,15 @@ type PublicDeviceInfo struct {
 	Port string `json:"port"`
 }
 
+// DevicePublicList godoc
+// @Summary List public information about all non-blocked Constellation devices
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/public-devices [get]
 func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 	// Check for GET method
 	if req.Method != "GET" {

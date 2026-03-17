@@ -4,6 +4,7 @@ export interface CreateAPITokenRequest {
   name: string;
   description?: string;
   readOnly?: boolean;
+  permissions?: number[];
   ipWhitelist?: string[];
   restrictToConstellation?: boolean;
 }
@@ -11,6 +12,13 @@ export interface CreateAPITokenRequest {
 export interface CreateAPITokenResponse {
   token: string;
   name: string;
+}
+
+export interface UpdateAPITokenRequest {
+  description?: string;
+  permissions?: number[];
+  ipWhitelist?: string[];
+  restrictToConstellation?: boolean;
 }
 
 export interface APITokenConfig {
@@ -44,6 +52,16 @@ export default function createApiTokensAPI(apiFetch: ApiFetch) {
     }))
   }
 
+  function update(name: string, config: UpdateAPITokenRequest): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/api-tokens/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(config),
+    }))
+  }
+
   function remove(name: string): Promise<ApiResponse> {
     return wrap(apiFetch('/cosmos/api/api-tokens', {
       method: 'DELETE',
@@ -57,6 +75,7 @@ export default function createApiTokensAPI(apiFetch: ApiFetch) {
   return {
     list,
     create,
+    update,
     remove,
   };
 }

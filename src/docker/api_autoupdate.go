@@ -10,6 +10,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// AutoUpdateContainerRoute godoc
+// @Summary Enable or disable auto-update for a Docker container
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param status path string true "Auto-update status (true or false)"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/auto-update/{status} [get]
 func AutoUpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

@@ -13,6 +13,19 @@ import (
 	contstuff "github.com/docker/docker/api/types/container"
 )
 
+// ManageContainerRoute godoc
+// @Summary Perform a management action on a Docker container
+// @Description Actions: stop, start, restart, kill, remove, pause, unpause, recreate, update
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param action path string true "Management action" Enums(stop, start, restart, kill, remove, pause, unpause, recreate, update)
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/manage/{action} [get]
 func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

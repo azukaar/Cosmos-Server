@@ -1,0 +1,6860 @@
+basePath: /cosmos
+definitions:
+  configapi.CreateAPITokenRequest:
+    properties:
+      description:
+        type: string
+      ipWhitelist:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      readOnly:
+        type: boolean
+      restrictToConstellation:
+        type: boolean
+    required:
+    - name
+    type: object
+  configapi.DNSConfigRequest:
+    properties:
+      customDNSEntries:
+        items:
+          $ref: '#/definitions/utils.ConstellationDNSEntry'
+        type: array
+      dnsAdditionalBlocklists:
+        items:
+          type: string
+        type: array
+      dnsBlockBlacklist:
+        type: boolean
+      dnsFallback:
+        type: string
+      dnsPort:
+        type: string
+    type: object
+  configapi.DashboardRoute:
+    properties:
+      ContainerIcon:
+        type: string
+      ContainerRunning:
+        description: Container info (for SERVAPP routes)
+        type: boolean
+      Description:
+        type: string
+      HideFromDashboard:
+        type: boolean
+      Host:
+        type: string
+      Icon:
+        type: string
+      Mode:
+        type: string
+      Name:
+        type: string
+      PathPrefix:
+        type: string
+      Target:
+        type: string
+      UseHost:
+        type: boolean
+      UsePathPrefix:
+        type: boolean
+    type: object
+  configapi.DeleteAPITokenRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  configapi.UpdateAPITokenRequest:
+    properties:
+      description:
+        type: string
+      ipWhitelist:
+        items:
+          type: string
+        type: array
+      permissions:
+        items:
+          $ref: '#/definitions/utils.Permission'
+        type: array
+      restrictToConstellation:
+        type: boolean
+    type: object
+  configapi.UpdateRouteRequest:
+    properties:
+      newRoute:
+        $ref: '#/definitions/utils.ProxyRouteConfig'
+      operation:
+        type: string
+      routeName:
+        type: string
+    required:
+    - operation
+    type: object
+  constellation.DeviceBlockRequestJSON:
+    properties:
+      block:
+        type: boolean
+      deviceName:
+        maxLength: 32
+        minLength: 3
+        type: string
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - deviceName
+    - nickname
+    type: object
+  constellation.DeviceCreateRequestJSON:
+    properties:
+      PublicHostname:
+        type: string
+      cosmosNode:
+        type: integer
+      deviceName:
+        maxLength: 32
+        minLength: 3
+        type: string
+      invisible:
+        type: boolean
+      ip:
+        type: string
+      isExitNode:
+        type: boolean
+      isLighthouse:
+        description: for lighthouse only
+        type: boolean
+      isLoadBalancer:
+        type: boolean
+      isRelay:
+        type: boolean
+      nickname:
+        description: for devices only
+        maxLength: 32
+        type: string
+      port:
+        type: string
+      publicKey:
+        type: string
+    required:
+    - deviceName
+    - ip
+    type: object
+  constellation.DeviceEditRequestJSON:
+    properties:
+      isExitNode:
+        type: boolean
+      isLighthouse:
+        type: boolean
+      isLoadBalancer:
+        type: boolean
+      isRelay:
+        type: boolean
+    type: object
+  container.Config:
+    properties:
+      argsEscaped:
+        description: True if command is already escaped (meaning treat as a command
+          line) (Windows specific).
+        type: boolean
+      attachStderr:
+        description: Attach the standard error
+        type: boolean
+      attachStdin:
+        description: Attach the standard input, makes possible user interaction
+        type: boolean
+      attachStdout:
+        description: Attach the standard output
+        type: boolean
+      cmd:
+        description: Command to run when starting the container
+        items:
+          type: string
+        type: array
+      domainname:
+        description: Domainname
+        type: string
+      entrypoint:
+        description: Entrypoint to run when starting the container
+        items:
+          type: string
+        type: array
+      env:
+        description: List of environment variable to set in the container
+        items:
+          type: string
+        type: array
+      exposedPorts:
+        allOf:
+        - $ref: '#/definitions/nat.PortSet'
+        description: List of exposed ports
+      healthcheck:
+        allOf:
+        - $ref: '#/definitions/container.HealthConfig'
+        description: Healthcheck describes how to check the container is healthy
+      hostname:
+        description: Hostname
+        type: string
+      image:
+        description: Name of the image as it was passed by the operator (e.g. could
+          be symbolic)
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        description: List of labels set to this container
+        type: object
+      macAddress:
+        description: |-
+          Mac Address of the container.
+
+          Deprecated: this field is deprecated since API v1.44. Use EndpointSettings.MacAddress instead.
+        type: string
+      networkDisabled:
+        description: Is network disabled
+        type: boolean
+      onBuild:
+        description: ONBUILD metadata that were defined on the image Dockerfile
+        items:
+          type: string
+        type: array
+      openStdin:
+        description: Open stdin
+        type: boolean
+      shell:
+        description: Shell for shell-form of RUN, CMD, ENTRYPOINT
+        items:
+          type: string
+        type: array
+      stdinOnce:
+        description: If true, close stdin after the 1 attached client disconnects.
+        type: boolean
+      stopSignal:
+        description: Signal to stop a container
+        type: string
+      stopTimeout:
+        description: Timeout (in seconds) to stop a container
+        type: integer
+      tty:
+        description: Attach standard streams to a tty, including stdin if it is not
+          closed.
+        type: boolean
+      user:
+        description: User that will run the command(s) inside the container, also
+          support user:group
+        type: string
+      volumes:
+        additionalProperties:
+          type: object
+        description: List of volumes (mounts) used for the container
+        type: object
+      workingDir:
+        description: Current directory (PWD) in the command will be launched
+        type: string
+    type: object
+  container.HealthConfig:
+    properties:
+      interval:
+        allOf:
+        - $ref: '#/definitions/time.Duration'
+        description: Zero means to inherit. Durations are expressed as integer nanoseconds.
+      retries:
+        description: |-
+          Retries is the number of consecutive failures needed to consider a container as unhealthy.
+          Zero means inherit.
+        type: integer
+      startInterval:
+        allOf:
+        - $ref: '#/definitions/time.Duration'
+        description: The interval to attempt healthchecks at during the start period
+      startPeriod:
+        allOf:
+        - $ref: '#/definitions/time.Duration'
+        description: The start period for the container to initialize before the retries
+          starts to count down.
+      test:
+        description: |-
+          Test is the test to perform to check that the container is healthy.
+          An empty slice means to inherit the default.
+          The options are:
+          {} : inherit healthcheck
+          {"NONE"} : disable healthcheck
+          {"CMD", args...} : exec arguments directly
+          {"CMD-SHELL", command} : run command with system's default shell
+        items:
+          type: string
+        type: array
+      timeout:
+        allOf:
+        - $ref: '#/definitions/time.Duration'
+        description: Timeout is the time to wait before considering the check to have
+          hung.
+    type: object
+  cron.JobRequestJSON:
+    properties:
+      name:
+        maxLength: 32
+        minLength: 3
+        type: string
+      scheduler:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - name
+    - scheduler
+    type: object
+  docker.ContainerCreateRequestContainer:
+    properties:
+      cap_add:
+        items:
+          type: string
+        type: array
+      cap_drop:
+        items:
+          type: string
+        type: array
+      command:
+        type: string
+      container_name:
+        type: string
+      cpu_shares:
+        type: integer
+      cpus:
+        type: number
+      cpuset_cpus:
+        type: string
+      depends_on:
+        additionalProperties:
+          $ref: '#/definitions/docker.ContainerCreateRequestContainerDependsOnCont'
+        type: object
+      devices:
+        items:
+          type: string
+        type: array
+      dns:
+        items:
+          type: string
+        type: array
+      dns_search:
+        items:
+          type: string
+        type: array
+      domainname:
+        type: string
+      entrypoint:
+        type: string
+      environment:
+        items:
+          type: string
+        type: array
+      expose:
+        items:
+          type: string
+        type: array
+      extra_hosts:
+        items:
+          type: string
+        type: array
+      gid:
+        type: integer
+      healthcheck:
+        $ref: '#/definitions/docker.ContainerCreateRequestContainerHealthcheck'
+      hostname:
+        type: string
+      image:
+        type: string
+      isolation:
+        type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      links:
+        items:
+          type: string
+        type: array
+      mac_address:
+        type: string
+      mem_limit:
+        description: Resource constraints
+        type: string
+      mem_reservation:
+        type: string
+      network_mode:
+        type: string
+      networks:
+        additionalProperties:
+          $ref: '#/definitions/docker.ContainerCreateRequestServiceNetwork'
+        type: object
+      ports:
+        items:
+          type: string
+        type: array
+      post_install:
+        items:
+          type: string
+        type: array
+      privileged:
+        type: boolean
+      restart:
+        type: string
+      routes:
+        items:
+          $ref: '#/definitions/utils.ProxyRouteConfig'
+        type: array
+      runtime:
+        type: string
+      security_opt:
+        items:
+          type: string
+        type: array
+      stdin_open:
+        type: boolean
+      stop_grace_period:
+        type: integer
+      stop_signal:
+        type: string
+      storage_opt:
+        additionalProperties:
+          type: string
+        type: object
+      sysctls:
+        additionalProperties:
+          type: string
+        type: object
+      tty:
+        type: boolean
+      uid:
+        type: integer
+      user:
+        type: string
+      volumes:
+        items:
+          $ref: '#/definitions/mount.Mount'
+        type: array
+      working_dir:
+        type: string
+    required:
+    - image
+    type: object
+  docker.ContainerCreateRequestContainerDependsOnCont:
+    properties:
+      condition:
+        type: string
+      restart:
+        type: string
+    type: object
+  docker.ContainerCreateRequestContainerHealthcheck:
+    properties:
+      interval:
+        type: integer
+      retries:
+        type: integer
+      start_period:
+        type: integer
+      test:
+        items:
+          type: string
+        type: array
+      timeout:
+        type: integer
+    type: object
+  docker.ContainerCreateRequestNetwork:
+    properties:
+      attachable:
+        type: boolean
+      driver:
+        type: string
+      enable_ipv6:
+        type: boolean
+      internal:
+        type: boolean
+      ipam:
+        properties:
+          config:
+            items:
+              $ref: '#/definitions/docker.ContainerCreateRequestNetworkIPAMConfig'
+            type: array
+          driver:
+            type: string
+        type: object
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      name:
+        description: name must be unique
+        type: string
+    type: object
+  docker.ContainerCreateRequestNetworkIPAMConfig:
+    properties:
+      gateway:
+        type: string
+      subnet:
+        type: string
+    type: object
+  docker.ContainerCreateRequestServiceNetwork:
+    properties:
+      aliases:
+        items:
+          type: string
+        type: array
+      ipv4_address:
+        type: string
+      ipv6_address:
+        type: string
+    type: object
+  docker.ContainerCreateRequestVolume:
+    properties:
+      driver:
+        type: string
+      name:
+        description: name must be unique
+        type: string
+      source:
+        type: string
+      target:
+        type: string
+    type: object
+  docker.ContainerForm:
+    properties:
+      Volumes:
+        items:
+          $ref: '#/definitions/mount.Mount'
+        type: array
+      cpus:
+        type: number
+      devices:
+        items:
+          type: string
+        type: array
+      envVars:
+        items:
+          type: string
+        type: array
+      image:
+        type: string
+      interactive:
+        description: we make this a int so that we can ignore 0
+        type: integer
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      memLimit:
+        type: string
+      networkMode:
+        type: string
+      portBindings:
+        $ref: '#/definitions/nat.PortMap'
+      restartPolicy:
+        type: string
+      user:
+        type: string
+    type: object
+  docker.DockerServiceCreateRequest:
+    properties:
+      networks:
+        additionalProperties:
+          $ref: '#/definitions/docker.ContainerCreateRequestNetwork'
+        type: object
+      services:
+        additionalProperties:
+          $ref: '#/definitions/docker.ContainerCreateRequestContainer'
+        type: object
+      volumes:
+        additionalProperties:
+          $ref: '#/definitions/docker.ContainerCreateRequestVolume'
+        type: object
+    type: object
+  docker.VolumeCreateRequest:
+    properties:
+      driver:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  docker.createNetworkPayload:
+    properties:
+      attachCosmos:
+        type: boolean
+      driver:
+        type: string
+      name:
+        type: string
+      parentInterface:
+        type: string
+      subnet:
+        type: string
+    required:
+    - name
+    type: object
+  docker.migrateToHostMode:
+    properties:
+      http:
+        type: string
+      https:
+        type: string
+    required:
+    - http
+    - https
+    type: object
+  github_com_azukaar_cosmos-server_src_utils.Config:
+    properties:
+      APITokens:
+        additionalProperties:
+          $ref: '#/definitions/utils.APITokenConfig'
+        type: object
+      Roles:
+        additionalProperties:
+          $ref: '#/definitions/utils.RoleConfig'
+        type: object
+      adminConstellationOnly:
+        type: boolean
+      adminWhitelistIPs:
+        items:
+          type: string
+        type: array
+      agentMode:
+        type: boolean
+      autoUpdate:
+        type: boolean
+      backup:
+        $ref: '#/definitions/utils.BackupConfig'
+      backupOutputDir:
+        type: string
+      betaUpdates:
+        type: boolean
+      blockedCountries:
+        items:
+          type: string
+        type: array
+      constellationConfig:
+        $ref: '#/definitions/utils.ConstellationConfig'
+      countryBlacklistIsWhitelist:
+        type: boolean
+      cron:
+        additionalProperties:
+          $ref: '#/definitions/utils.CRONConfig'
+        type: object
+      database:
+        $ref: '#/definitions/utils.DatabaseConfig'
+      disableHostModeWarning:
+        type: boolean
+      disableOpenIDDirect:
+        type: boolean
+      disableUserManagement:
+        type: boolean
+      dockerConfig:
+        $ref: '#/definitions/utils.DockerConfig'
+      emailConfig:
+        $ref: '#/definitions/utils.EmailConfig'
+      homepageConfig:
+        $ref: '#/definitions/utils.HomepageConfig'
+      httpconfig:
+        $ref: '#/definitions/utils.HTTPConfig'
+      incrBackupOutputDir:
+        type: string
+      licence:
+        type: string
+      loggingLevel:
+        type: string
+      marketConfig:
+        $ref: '#/definitions/utils.MarketConfig'
+      mongoDB:
+        type: string
+      monitoringAlerts:
+        additionalProperties:
+          $ref: '#/definitions/utils.Alert'
+        type: object
+      monitoringDisabled:
+        type: boolean
+      mpdn_:
+        type: string
+      mpdu_:
+        type: string
+      newInstall:
+        type: boolean
+      openIDClients:
+        items:
+          $ref: '#/definitions/utils.OpenIDClient'
+        type: array
+      remoteStorage:
+        $ref: '#/definitions/utils.RemoteStorageConfig'
+      requireMFA:
+        type: boolean
+      serverCountry:
+        type: string
+      serverToken:
+        type: string
+      storage:
+        $ref: '#/definitions/utils.StorageConfig'
+      themeConfig:
+        $ref: '#/definitions/utils.ThemeConfig'
+    required:
+    - emailConfig
+    - httpconfig
+    type: object
+  image.Metadata:
+    properties:
+      lastTagTime:
+        description: LastTagTime is the date and time at which the image was last
+          tagged.
+        type: string
+    type: object
+  main.NewInstallJSON:
+    properties:
+      allowHTTPLocalIPAccess:
+        type: boolean
+      dnsChallengeProvider:
+        type: string
+      dnschallengeConfig:
+        additionalProperties:
+          type: string
+        type: object
+      hostname:
+        type: string
+      httpsCertificateMode:
+        type: string
+      mongodb:
+        type: string
+      mongodbMode:
+        type: string
+      nickname:
+        type: string
+      omitempty:
+        type: string
+      password:
+        type: string
+      sslEmail:
+        type: string
+      step:
+        type: string
+      tlsCert:
+        type: string
+      tlsKey:
+        type: string
+      useWildcardCertificate:
+        type: boolean
+    type: object
+  mount.BindOptions:
+    properties:
+      createMountpoint:
+        type: boolean
+      nonRecursive:
+        type: boolean
+      propagation:
+        $ref: '#/definitions/mount.Propagation'
+      readOnlyForceRecursive:
+        description: ReadOnlyForceRecursive raises an error if the mount cannot be
+          made recursively read-only.
+        type: boolean
+      readOnlyNonRecursive:
+        description: |-
+          ReadOnlyNonRecursive makes the mount non-recursively read-only, but still leaves the mount recursive
+          (unless NonRecursive is set to true in conjunction).
+        type: boolean
+    type: object
+  mount.ClusterOptions:
+    type: object
+  mount.Consistency:
+    enum:
+    - consistent
+    - cached
+    - delegated
+    - default
+    type: string
+    x-enum-varnames:
+    - ConsistencyFull
+    - ConsistencyCached
+    - ConsistencyDelegated
+    - ConsistencyDefault
+  mount.Driver:
+    properties:
+      name:
+        type: string
+      options:
+        additionalProperties:
+          type: string
+        type: object
+    type: object
+  mount.Mount:
+    properties:
+      bindOptions:
+        $ref: '#/definitions/mount.BindOptions'
+      clusterOptions:
+        $ref: '#/definitions/mount.ClusterOptions'
+      consistency:
+        $ref: '#/definitions/mount.Consistency'
+      readOnly:
+        description: attempts recursive read-only if possible
+        type: boolean
+      source:
+        description: |-
+          Source specifies the name of the mount. Depending on mount type, this
+          may be a volume name or a host path, or even ignored.
+          Source is not supported for tmpfs (must be an empty value)
+        type: string
+      target:
+        type: string
+      tmpfsOptions:
+        $ref: '#/definitions/mount.TmpfsOptions'
+      type:
+        $ref: '#/definitions/mount.Type'
+      volumeOptions:
+        $ref: '#/definitions/mount.VolumeOptions'
+    type: object
+  mount.Propagation:
+    enum:
+    - rprivate
+    - private
+    - rshared
+    - shared
+    - rslave
+    - slave
+    type: string
+    x-enum-varnames:
+    - PropagationRPrivate
+    - PropagationPrivate
+    - PropagationRShared
+    - PropagationShared
+    - PropagationRSlave
+    - PropagationSlave
+  mount.TmpfsOptions:
+    properties:
+      mode:
+        allOf:
+        - $ref: '#/definitions/os.FileMode'
+        description: Mode of the tmpfs upon creation
+      sizeBytes:
+        description: |-
+          Size sets the size of the tmpfs, in bytes.
+
+          This will be converted to an operating system specific value
+          depending on the host. For example, on linux, it will be converted to
+          use a 'k', 'm' or 'g' syntax. BSD, though not widely supported with
+          docker, uses a straight byte value.
+
+          Percentages are not supported.
+        type: integer
+    type: object
+  mount.Type:
+    enum:
+    - bind
+    - volume
+    - tmpfs
+    - npipe
+    - cluster
+    type: string
+    x-enum-varnames:
+    - TypeBind
+    - TypeVolume
+    - TypeTmpfs
+    - TypeNamedPipe
+    - TypeCluster
+  mount.VolumeOptions:
+    properties:
+      driverConfig:
+        $ref: '#/definitions/mount.Driver'
+      labels:
+        additionalProperties:
+          type: string
+        type: object
+      noCopy:
+        type: boolean
+      subpath:
+        type: string
+    type: object
+  nat.PortBinding:
+    properties:
+      HostIp:
+        description: HostIP is the host IP Address
+        type: string
+      hostPort:
+        description: HostPort is the host port number
+        type: string
+    type: object
+  nat.PortMap:
+    additionalProperties:
+      items:
+        $ref: '#/definitions/nat.PortBinding'
+      type: array
+    type: object
+  nat.PortSet:
+    additionalProperties:
+      type: object
+    type: object
+  os.FileMode:
+    enum:
+    - 2147483648
+    - 1073741824
+    - 536870912
+    - 268435456
+    - 134217728
+    - 67108864
+    - 33554432
+    - 16777216
+    - 8388608
+    - 4194304
+    - 2097152
+    - 1048576
+    - 524288
+    - 2401763328
+    - 511
+    - 2147483648
+    - 1073741824
+    - 536870912
+    - 268435456
+    - 134217728
+    - 67108864
+    - 33554432
+    - 16777216
+    - 8388608
+    - 4194304
+    - 2097152
+    - 1048576
+    - 524288
+    - 2401763328
+    - 511
+    format: int32
+    type: integer
+    x-enum-comments:
+      ModeAppend: 'a: append-only'
+      ModeCharDevice: 'c: Unix character device, when ModeDevice is set'
+      ModeDevice: 'D: device file'
+      ModeDir: 'd: is a directory'
+      ModeExclusive: 'l: exclusive use'
+      ModeIrregular: '?: non-regular file; nothing else is known about this file'
+      ModeNamedPipe: 'p: named pipe (FIFO)'
+      ModePerm: Unix permission bits, 0o777
+      ModeSetgid: 'g: setgid'
+      ModeSetuid: 'u: setuid'
+      ModeSocket: 'S: Unix domain socket'
+      ModeSticky: 't: sticky'
+      ModeSymlink: 'L: symbolic link'
+      ModeTemporary: 'T: temporary file; Plan 9 only'
+    x-enum-descriptions:
+    - 'd: is a directory'
+    - 'a: append-only'
+    - 'l: exclusive use'
+    - 'T: temporary file; Plan 9 only'
+    - 'L: symbolic link'
+    - 'D: device file'
+    - 'p: named pipe (FIFO)'
+    - 'S: Unix domain socket'
+    - 'u: setuid'
+    - 'g: setgid'
+    - 'c: Unix character device, when ModeDevice is set'
+    - 't: sticky'
+    - '?: non-regular file; nothing else is known about this file'
+    - ""
+    - Unix permission bits, 0o777
+    x-enum-varnames:
+    - ModeDir
+    - ModeAppend
+    - ModeExclusive
+    - ModeTemporary
+    - ModeSymlink
+    - ModeDevice
+    - ModeNamedPipe
+    - ModeSocket
+    - ModeSetuid
+    - ModeSetgid
+    - ModeCharDevice
+    - ModeSticky
+    - ModeIrregular
+    - ModeType
+    - ModePerm
+  storage.FormatDiskJSON:
+    properties:
+      disk:
+        type: string
+      format:
+        type: string
+      password:
+        type: string
+    required:
+    - disk
+    - format
+    - password
+    type: object
+  storage.MergeRequest:
+    properties:
+      branches:
+        items:
+          type: string
+        type: array
+      chown:
+        type: string
+      mountPoint:
+        type: string
+      opts:
+        type: string
+      permanent:
+        type: boolean
+    required:
+    - branches
+    - mountPoint
+    type: object
+  storage.MountRequest:
+    properties:
+      chown:
+        type: string
+      mountPoint:
+        type: string
+      netDisk:
+        type: boolean
+      path:
+        type: string
+      permanent:
+        type: boolean
+    required:
+    - mountPoint
+    - path
+    type: object
+  time.Duration:
+    enum:
+    - -9223372036854775808
+    - 9223372036854775807
+    - 1
+    - 1000
+    - 1000000
+    - 1000000000
+    - 60000000000
+    - 3600000000000
+    format: int64
+    type: integer
+    x-enum-varnames:
+    - minDuration
+    - maxDuration
+    - Nanosecond
+    - Microsecond
+    - Millisecond
+    - Second
+    - Minute
+    - Hour
+  types.GraphDriverData:
+    properties:
+      Data:
+        additionalProperties:
+          type: string
+        description: |-
+          Low-level storage metadata, provided as key/value pairs.
+
+          This information is driver-specific, and depends on the storage-driver
+          in use, and should be used for informational purposes only.
+
+          Required: true
+        type: object
+      Name:
+        description: |-
+          Name of the storage driver.
+          Required: true
+        type: string
+    type: object
+  types.ImageInspect:
+    properties:
+      Id:
+        description: |-
+          ID is the content-addressable ID of an image.
+
+          This identifier is a content-addressable digest calculated from the
+          image's configuration (which includes the digests of layers used by
+          the image).
+
+          Note that this digest differs from the `RepoDigests` below, which
+          holds digests of image manifests that reference the image.
+        type: string
+      VirtualSize:
+        description: |-
+          VirtualSize is the total size of the image including all layers it is
+          composed of.
+
+          Deprecated: this field is omitted in API v1.44, but kept for backward compatibility. Use Size instead.
+        type: integer
+      architecture:
+        description: Architecture is the hardware CPU architecture that the image
+          runs on.
+        type: string
+      author:
+        description: |-
+          Author is the name of the author that was specified when committing the
+          image, or as specified through MAINTAINER (deprecated) in the Dockerfile.
+        type: string
+      comment:
+        description: |-
+          Comment is an optional message that can be set when committing or
+          importing the image.
+        type: string
+      config:
+        $ref: '#/definitions/container.Config'
+      container:
+        description: |-
+          Container is the ID of the container that was used to create the image.
+
+          Depending on how the image was created, this field may be empty.
+
+          Deprecated: this field is omitted in API v1.45, but kept for backward compatibility.
+        type: string
+      containerConfig:
+        allOf:
+        - $ref: '#/definitions/container.Config'
+        description: |-
+          ContainerConfig is an optional field containing the configuration of the
+          container that was last committed when creating the image.
+
+          Previous versions of Docker builder used this field to store build cache,
+          and it is not in active use anymore.
+
+          Deprecated: this field is omitted in API v1.45, but kept for backward compatibility.
+      created:
+        description: |-
+          Created is the date and time at which the image was created, formatted in
+          RFC 3339 nano-seconds (time.RFC3339Nano).
+
+          This information is only available if present in the image,
+          and omitted otherwise.
+        type: string
+      dockerVersion:
+        description: |-
+          DockerVersion is the version of Docker that was used to build the image.
+
+          Depending on how the image was created, this field may be empty.
+        type: string
+      graphDriver:
+        allOf:
+        - $ref: '#/definitions/types.GraphDriverData'
+        description: |-
+          GraphDriver holds information about the storage driver used to store the
+          container's and image's filesystem.
+      metadata:
+        allOf:
+        - $ref: '#/definitions/image.Metadata'
+        description: |-
+          Metadata of the image in the local cache.
+
+          This information is local to the daemon, and not part of the image itself.
+      os:
+        description: OS is the Operating System the image is built to run on.
+        type: string
+      osVersion:
+        description: |-
+          OsVersion is the version of the Operating System the image is built to
+          run on (especially for Windows).
+        type: string
+      parent:
+        description: |-
+          Parent is the ID of the parent image.
+
+          Depending on how the image was created, this field may be empty and
+          is only set for images that were built/created locally. This field
+          is empty if the image was pulled from an image registry.
+        type: string
+      repoDigests:
+        description: |-
+          RepoDigests is a list of content-addressable digests of locally available
+          image manifests that the image is referenced from. Multiple manifests can
+          refer to the same image.
+
+          These digests are usually only available if the image was either pulled
+          from a registry, or if the image was pushed to a registry, which is when
+          the manifest is generated and its digest calculated.
+        items:
+          type: string
+        type: array
+      repoTags:
+        description: |-
+          RepoTags is a list of image names/tags in the local image cache that
+          reference this image.
+
+          Multiple image tags can refer to the same image, and this list may be
+          empty if no tags reference the image, in which case the image is
+          "untagged", in which case it can still be referenced by its ID.
+        items:
+          type: string
+        type: array
+      rootFS:
+        allOf:
+        - $ref: '#/definitions/types.RootFS'
+        description: |-
+          RootFS contains information about the image's RootFS, including the
+          layer IDs.
+      size:
+        description: Size is the total size of the image including all layers it is
+          composed of.
+        format: int64
+        type: integer
+      variant:
+        description: Variant is the CPU architecture variant (presently ARM-only).
+        type: string
+    type: object
+  types.RootFS:
+    properties:
+      layers:
+        items:
+          type: string
+        type: array
+      type:
+        type: string
+    type: object
+  user.CreateRequestJSON:
+    properties:
+      email:
+        type: string
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+      role:
+        type: integer
+    required:
+    - nickname
+    type: object
+  user.EditRequestJSON:
+    properties:
+      email:
+        type: string
+      role:
+        type: integer
+    type: object
+  user.InviteRequestJSON:
+    properties:
+      formType:
+        type: string
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - nickname
+    type: object
+  user.LoginRequestJSON:
+    properties:
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+      password:
+        maxLength: 128
+        minLength: 8
+        type: string
+    required:
+    - nickname
+    - password
+    type: object
+  user.PasswordResetRequestJSON:
+    properties:
+      email:
+        maxLength: 32
+        minLength: 3
+        type: string
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+    required:
+    - email
+    - nickname
+    type: object
+  user.RegisterRequestJSON:
+    properties:
+      nickname:
+        maxLength: 32
+        minLength: 3
+        type: string
+      password:
+        maxLength: 128
+        minLength: 9
+        type: string
+      registerKey:
+        maxLength: 512
+        minLength: 1
+        type: string
+    required:
+    - nickname
+    - password
+    - registerKey
+    type: object
+  user.SudoRequestJSON:
+    properties:
+      password:
+        maxLength: 128
+        minLength: 8
+        type: string
+    required:
+    - password
+    type: object
+  user.User2FACheckRequest:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  user.User2FAResetRequest:
+    properties:
+      nickname:
+        type: string
+    required:
+    - nickname
+    type: object
+  utils.APIResponse:
+    properties:
+      data: {}
+      status:
+        example: OK
+        type: string
+    type: object
+  utils.APITokenConfig:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      ipWhitelist:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      owner:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/utils.Permission'
+        type: array
+      restrictToConstellation:
+        type: boolean
+      tokenHash:
+        type: string
+    type: object
+  utils.AddionalFiltersConfig:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    type: object
+  utils.Alert:
+    properties:
+      actions:
+        items:
+          $ref: '#/definitions/utils.AlertAction'
+        type: array
+      condition:
+        $ref: '#/definitions/utils.AlertCondition'
+      enabled:
+        type: boolean
+      lastTriggered:
+        type: string
+      name:
+        type: string
+      period:
+        type: string
+      severity:
+        type: string
+      throttled:
+        type: boolean
+      trackingMetric:
+        type: string
+    required:
+    - name
+    type: object
+  utils.AlertAction:
+    properties:
+      target:
+        type: string
+      type:
+        type: string
+    type: object
+  utils.AlertCondition:
+    properties:
+      operator:
+        type: string
+      percent:
+        type: boolean
+      value:
+        type: integer
+    type: object
+  utils.BackupConfig:
+    properties:
+      backups:
+        additionalProperties:
+          $ref: '#/definitions/utils.SingleBackupConfig'
+        type: object
+      disable:
+        type: boolean
+    type: object
+  utils.CRONConfig:
+    properties:
+      command:
+        type: string
+      container:
+        type: string
+      crontab:
+        type: string
+      enabled:
+        type: boolean
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  utils.ConstellationConfig:
+    properties:
+      FirewallBlockedClients:
+        items:
+          type: string
+        type: array
+      constellationHostname:
+        type: string
+      customDNSEntries:
+        items:
+          $ref: '#/definitions/utils.ConstellationDNSEntry'
+        type: array
+      dnsadditionalBlocklists:
+        items:
+          type: string
+        type: array
+      dnsblockBlacklist:
+        type: boolean
+      dnsdisabled:
+        type: boolean
+      dnsfallback:
+        type: string
+      dnsport:
+        type: string
+      doNotSyncNodes:
+        type: boolean
+      enabled:
+        type: boolean
+      iprange:
+        type: string
+      overrideNebulaExitNodeInterface:
+        type: string
+      thisDeviceName:
+        type: string
+      tunnels:
+        items:
+          $ref: '#/definitions/utils.ProxyRouteConfig'
+        type: array
+    type: object
+  utils.ConstellationDNSEntry:
+    properties:
+      key:
+        type: string
+      type:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    type: object
+  utils.DatabaseConfig:
+    properties:
+      configVolume:
+        type: string
+      dbVolume:
+        type: string
+      hostname:
+        type: string
+      password:
+        type: string
+      puppetMode:
+        type: boolean
+      username:
+        type: string
+      version:
+        type: string
+    type: object
+  utils.DockerConfig:
+    properties:
+      defaultDataPath:
+        type: string
+      skipPruneImages:
+        type: boolean
+      skipPruneNetwork:
+        type: boolean
+    type: object
+  utils.EmailConfig:
+    properties:
+      allowInsecureTLS:
+        type: boolean
+      enabled:
+        type: boolean
+      from:
+        type: string
+      host:
+        type: string
+      notifyLogin:
+        type: boolean
+      password:
+        type: string
+      port:
+        type: string
+      useTLS:
+        type: boolean
+      username:
+        type: string
+    type: object
+  utils.HTTPConfig:
+    properties:
+      DNSChallengeConfig:
+        additionalProperties:
+          type: string
+        type: object
+      acceptAllInsecureHostname:
+        type: boolean
+      allowHTTPLocalIPAccess:
+        type: boolean
+      allowSearchEngine:
+        type: boolean
+      authPrivateKey:
+        type: string
+      authPublicKey:
+        type: string
+      cacert:
+        type: string
+      caprivateKey:
+        type: string
+      disablePropagationChecks:
+        type: boolean
+      dnschallengePropagationWait:
+        type: integer
+      dnschallengeProvider:
+        type: string
+      dnschallengeResolvers:
+        type: string
+      forceHTTPSCertificateRenewal:
+        type: boolean
+      generateMissingAuthCert:
+        type: boolean
+      hostname:
+        type: string
+      httpport:
+        maxLength: 6
+        minLength: 1
+        type: string
+      httpscertificateMode:
+        type: string
+      httpsport:
+        maxLength: 6
+        minLength: 1
+        type: string
+      overrideWildcardDomains:
+        type: string
+      proxyConfig:
+        $ref: '#/definitions/utils.ProxyConfig'
+      publishMDNS:
+        type: boolean
+      selfTLSCert:
+        type: string
+      selfTLSKey:
+        type: string
+      selfTLSKeyHostsCached:
+        items:
+          type: string
+        type: array
+      selfTLSValidUntil:
+        type: string
+      sslemail:
+        type: string
+      tlscert:
+        type: string
+      tlskey:
+        type: string
+      tlskeyHostsCached:
+        items:
+          type: string
+        type: array
+      tlsvalidUntil:
+        type: string
+      trustedProxies:
+        items:
+          type: string
+        type: array
+      useForwardedFor:
+        type: boolean
+      useWildcardCertificate:
+        type: boolean
+    required:
+    - hostname
+    - httpport
+    - httpsport
+    type: object
+  utils.HTTPErrorResult:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  utils.HomepageConfig:
+    properties:
+      background:
+        type: string
+      expanded:
+        type: boolean
+      widgets:
+        items:
+          type: string
+        type: array
+    type: object
+  utils.LocationRemoteStorageConfig:
+    properties:
+      name:
+        type: string
+      protocol:
+        type: string
+      route:
+        $ref: '#/definitions/utils.ProxyRouteConfig'
+      settings:
+        additionalProperties:
+          type: string
+        type: object
+      source:
+        type: string
+      target:
+        type: string
+    type: object
+  utils.MarketConfig:
+    properties:
+      sources:
+        items:
+          $ref: '#/definitions/utils.MarketSource'
+        type: array
+    type: object
+  utils.MarketSource:
+    properties:
+      name:
+        type: string
+      url:
+        type: string
+    type: object
+  utils.OpenIDClient:
+    properties:
+      id:
+        type: string
+      redirect:
+        type: string
+      secret:
+        type: string
+    required:
+    - id
+    type: object
+  utils.Permission:
+    enum:
+    - 1
+    - 2
+    - 10
+    - 11
+    - 20
+    - 21
+    - 30
+    - 31
+    - 40
+    - 100
+    - 101
+    type: integer
+    x-enum-comments:
+      PERM_ADMIN: 'System ops: restart, shutdown, update, terminal'
+      PERM_ADMIN_READ: View logs
+      PERM_CONFIGURATION: Set/patch config, DNS
+      PERM_CONFIGURATION_READ: View config
+      PERM_CREDENTIALS_READ: View credentials (env vars, passwords, secrets)
+      PERM_LOGIN: Any logged-in user, MFA required
+      PERM_LOGIN_WEAK: Any logged-in user, no MFA check
+      PERM_RESOURCES: Manage containers, storage, devices, backups, cron
+      PERM_RESOURCES_READ: View containers, storage, devices, backups, cron, metrics
+      PERM_USERS: Create, delete, edit users, 2FA reset
+      PERM_USERS_READ: View user list/details
+    x-enum-descriptions:
+    - View logs
+    - 'System ops: restart, shutdown, update, terminal'
+    - View user list/details
+    - Create, delete, edit users, 2FA reset
+    - View containers, storage, devices, backups, cron, metrics
+    - Manage containers, storage, devices, backups, cron
+    - View config
+    - Set/patch config, DNS
+    - View credentials (env vars, passwords, secrets)
+    - Any logged-in user, MFA required
+    - Any logged-in user, no MFA check
+    x-enum-varnames:
+    - PERM_ADMIN_READ
+    - PERM_ADMIN
+    - PERM_USERS_READ
+    - PERM_USERS
+    - PERM_RESOURCES_READ
+    - PERM_RESOURCES
+    - PERM_CONFIGURATION_READ
+    - PERM_CONFIGURATION
+    - PERM_CREDENTIALS_READ
+    - PERM_LOGIN
+    - PERM_LOGIN_WEAK
+  utils.ProxyConfig:
+    properties:
+      routes:
+        items:
+          $ref: '#/definitions/utils.ProxyRouteConfig'
+        type: array
+    type: object
+  utils.ProxyRouteConfig:
+    properties:
+      LBMode:
+        type: string
+      LBStickyMode:
+        type: boolean
+      acceptInsecureHTTPSTarget:
+        type: boolean
+      addionalFilters:
+        items:
+          $ref: '#/definitions/utils.AddionalFiltersConfig'
+        type: array
+      adminOnly:
+        type: boolean
+      authEnabled:
+        type: boolean
+      blockAPIAbuse:
+        type: boolean
+      blockCommonBots:
+        type: boolean
+      corsorigin:
+        type: string
+      description:
+        type: string
+      disableHeaderHardening:
+        type: boolean
+      disabled:
+        type: boolean
+      extraHeaders:
+        additionalProperties:
+          type: string
+        type: object
+      hideFromDashboard:
+        type: boolean
+      host:
+        type: string
+      icon:
+        type: string
+      maxBandwith:
+        type: integer
+      mode:
+        type: string
+      name:
+        type: string
+      overwriteHostHeader:
+        type: string
+      pathPrefix:
+        type: string
+      restrictToConstellation:
+        type: boolean
+      skipURLClean:
+        type: boolean
+      smartShield:
+        $ref: '#/definitions/utils.SmartShieldPolicy'
+      spoofHostname:
+        type: boolean
+      stripPathPrefix:
+        type: boolean
+      target:
+        type: string
+      throttlePerMinute:
+        type: integer
+      timeout:
+        $ref: '#/definitions/time.Duration'
+      tunnel:
+        type: string
+      tunneledHost:
+        type: string
+      useH2C:
+        type: boolean
+      useHost:
+        type: boolean
+      usePathPrefix:
+        type: boolean
+      whitelistInboundIPs:
+        items:
+          type: string
+        type: array
+    required:
+    - name
+    - target
+    type: object
+  utils.RemoteStorageConfig:
+    properties:
+      shares:
+        items:
+          $ref: '#/definitions/utils.LocationRemoteStorageConfig'
+        type: array
+    type: object
+  utils.RoleConfig:
+    properties:
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/utils.Permission'
+        type: array
+    type: object
+  utils.SingleBackupConfig:
+    properties:
+      autoStopContainers:
+        type: boolean
+      crontab:
+        type: string
+      crontabForget:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      repository:
+        type: string
+      retentionPolicy:
+        type: string
+      source:
+        type: string
+    required:
+    - name
+    - repository
+    type: object
+  utils.SmartShieldPolicy:
+    properties:
+      enabled:
+        type: boolean
+      maxGlobalSimultaneous:
+        type: integer
+      perUserByteLimit:
+        type: integer
+      perUserRequestLimit:
+        type: integer
+      perUserSimultaneous:
+        type: integer
+      perUserTimeBudget:
+        type: number
+      policyStrictness:
+        type: integer
+      privilegedGroups:
+        type: integer
+    type: object
+  utils.SnapRAIDConfig:
+    properties:
+      checkOnFix:
+        type: boolean
+      data:
+        additionalProperties:
+          type: string
+        type: object
+      enabled:
+        type: boolean
+      name:
+        type: string
+      parity:
+        items:
+          type: string
+        type: array
+      scrubCrontab:
+        type: string
+      syncCrontab:
+        type: string
+    type: object
+  utils.StorageConfig:
+    properties:
+      snapRAIDs:
+        items:
+          $ref: '#/definitions/utils.SnapRAIDConfig'
+        type: array
+    type: object
+  utils.ThemeConfig:
+    properties:
+      primaryColor:
+        type: string
+      secondaryColor:
+        type: string
+    type: object
+  utils.User:
+    properties:
+      createdAt:
+        type: string
+      email:
+        type: string
+      lastLogin:
+        type: string
+      lastPasswordChangedAt:
+        type: string
+      link:
+        type: string
+      nickname:
+        type: string
+      registerKey:
+        type: string
+      registerKeyExp:
+        type: string
+      registeredAt:
+        type: string
+      role:
+        type: integer
+    required:
+    - nickname
+    - role
+    type: object
+info:
+  contact: {}
+  description: REST API for Cosmos Cloud server management
+  title: Cosmos Server API
+  version: 0.22.0-unstable04
+paths:
+  /_logs:
+    get:
+      description: Returns the server log file as a plain text attachment
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Download server logs
+      tags:
+      - system
+  /api/_memory:
+    get:
+      description: Returns memory usage details for internal caches and buffers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get internal memory status
+      tags:
+      - system
+  /api/alerts:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alert config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.Alert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create monitoring alerts
+      tags:
+      - Metrics
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alert config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.Alert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create monitoring alerts
+      tags:
+      - Metrics
+  /api/alerts/{name}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alert name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated alert config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.Alert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a monitoring alert by name
+      tags:
+      - Metrics
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alert name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated alert config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.Alert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a monitoring alert by name
+      tags:
+      - Metrics
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Alert name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated alert config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.Alert'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a monitoring alert by name
+      tags:
+      - Metrics
+  /api/api-tokens:
+    delete:
+      consumes:
+      - application/json
+      description: Removes an API token by name
+      parameters:
+      - description: Token name to delete
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/configapi.DeleteAPITokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete an API token
+      tags:
+      - api-tokens
+    get:
+      description: Returns all configured API tokens (without the actual token hashes)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all API tokens
+      tags:
+      - api-tokens
+    post:
+      consumes:
+      - application/json
+      description: Generates a new API token with the specified permissions and returns
+        the raw token (shown only once)
+      parameters:
+      - description: Token creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/configapi.CreateAPITokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new API token
+      tags:
+      - api-tokens
+  /api/api-tokens/{name}:
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing API token's description, permissions, IP whitelist,
+        or constellation restriction
+      parameters:
+      - description: Token name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/configapi.UpdateAPITokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update an API token
+      tags:
+      - api-tokens
+  /api/backups:
+    post:
+      consumes:
+      - application/json
+      description: Creates a backup config and initializes the repository if needed.
+        Requires premium licence and non-container mode.
+      parameters:
+      - description: Backup configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utils.SingleBackupConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new backup configuration
+      tags:
+      - Backups
+  /api/backups-repository:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all backup repositories with their lock status
+      tags:
+      - Backups
+  /api/backups-repository/{name}/snapshots:
+    get:
+      parameters:
+      - description: Backup name (used to resolve repository)
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all snapshots in a backup repository (all backup tags)
+      tags:
+      - Backups
+  /api/backups-repository/{name}/stats:
+    get:
+      parameters:
+      - description: Backup name (used to resolve repository)
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get repository statistics (size, file count, etc.)
+      tags:
+      - Backups
+  /api/backups/{name}:
+    delete:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Remove a backup configuration and its snapshots
+      tags:
+      - Backups
+  /api/backups/{name}/{snapshot}/folders:
+    get:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Snapshot ID
+        in: path
+        name: snapshot
+        required: true
+        type: string
+      - description: Directory path within the snapshot
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List folders in a backup snapshot
+      tags:
+      - Backups
+  /api/backups/{name}/{snapshot}/forget:
+    delete:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Snapshot ID to forget
+        in: path
+        name: snapshot
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Forget (delete) a specific snapshot from a backup repository
+      tags:
+      - Backups
+  /api/backups/{name}/{snapshot}/subfolder-restore-size:
+    get:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Snapshot ID
+        in: path
+        name: snapshot
+        required: true
+        type: string
+      - description: Subfolder path within the snapshot
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get restore size stats for a subfolder within a snapshot
+      tags:
+      - Backups
+  /api/backups/{name}/restore:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Restore request with snapshotId, target, and optional include
+          paths
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restore files from a backup snapshot
+      tags:
+      - Backups
+  /api/backups/{name}/snapshots:
+    get:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List snapshots for a specific backup
+      tags:
+      - Backups
+  /api/backups/{name}/unlock:
+    post:
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Unlock a backup repository (remove stale locks)
+      tags:
+      - Backups
+  /api/backups/edit:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Updated backup configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utils.SingleBackupConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Edit an existing backup configuration
+      tags:
+      - Backups
+  /api/can-send-email:
+    get:
+      description: Returns whether the server has email sending capabilities configured
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Check if email sending is enabled
+      tags:
+      - system
+  /api/config:
+    get:
+      description: Returns the full server configuration (sensitive fields masked
+        for non-credential users)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_azukaar_cosmos-server_src_utils.Config'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get server configuration
+      tags:
+      - config
+    patch:
+      consumes:
+      - application/json
+      description: Performs route operations (add, replace, delete, move_up, move_down)
+        on proxy routes
+      parameters:
+      - description: Route update operation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/configapi.UpdateRouteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Patch route configuration
+      tags:
+      - config
+    put:
+      consumes:
+      - application/json
+      description: Replaces the entire server configuration (masked credential fields
+        are preserved from existing config)
+      parameters:
+      - description: Full configuration object
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_azukaar_cosmos-server_src_utils.Config'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update server configuration
+      tags:
+      - config
+  /api/config/dns:
+    patch:
+      consumes:
+      - application/json
+      description: Patches DNS-related settings including port, fallback, blocklists,
+        and custom entries
+      parameters:
+      - description: DNS configuration fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/configapi.DNSConfigRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update DNS configuration
+      tags:
+      - config
+  /api/constellation/block:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Device block/unblock payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/constellation.DeviceBlockRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Block or unblock a Constellation device
+      tags:
+      - constellation
+  /api/constellation/config:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get the current Nebula configuration
+      tags:
+      - constellation
+  /api/constellation/connect:
+    post:
+      consumes:
+      - application/x-yaml
+      parameters:
+      - description: Nebula YAML configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Connect this node to an existing Constellation VPN network
+      tags:
+      - constellation
+  /api/constellation/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Constellation creation payload (deviceName, isLighthouse, hostname,
+          ipRange)
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new Constellation VPN network
+      tags:
+      - constellation
+  /api/constellation/devices:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List Constellation devices for the current user (or all if admin)
+      tags:
+      - constellation
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Device creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/constellation.DeviceCreateRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new Constellation device and generate its certificates
+      tags:
+      - constellation
+  /api/constellation/devices/{id}/ping:
+    get:
+      parameters:
+      - description: Device name/ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Ping a Constellation device to check reachability
+      tags:
+      - constellation
+  /api/constellation/dns:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all custom Constellation DNS entries
+      tags:
+      - constellation
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: DNS entry to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utils.ConstellationDNSEntry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new Constellation DNS entry
+      tags:
+      - constellation
+  /api/constellation/dns/{key}:
+    delete:
+      parameters:
+      - description: DNS entry key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a Constellation DNS entry by key
+      tags:
+      - constellation
+    get:
+      parameters:
+      - description: DNS entry key
+        in: path
+        name: key
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a single Constellation DNS entry by key
+      tags:
+      - constellation
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: DNS entry key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Updated DNS entry
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/utils.ConstellationDNSEntry'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update an existing Constellation DNS entry
+      tags:
+      - constellation
+  /api/constellation/edit-device:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Device edit payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/constellation.DeviceEditRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Edit the current Constellation device properties
+      tags:
+      - constellation
+  /api/constellation/get-next-ip:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get the next available IP address in the Constellation CIDR range
+      tags:
+      - constellation
+  /api/constellation/logs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get Nebula VPN service logs
+      tags:
+      - constellation
+  /api/constellation/ping:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Check if the NATS client connection is alive
+      tags:
+      - constellation
+  /api/constellation/public-devices:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List public information about all non-blocked Constellation devices
+      tags:
+      - constellation
+  /api/constellation/reset:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Reset the Nebula VPN configuration
+      tags:
+      - constellation
+  /api/constellation/restart:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restart the Nebula VPN service and HTTP server
+      tags:
+      - constellation
+  /api/constellation/tunnels:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all active Constellation tunnels
+      tags:
+      - constellation
+  /api/cron:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: CRON config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.CRONConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create CRON job configurations
+      tags:
+      - Cron
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: CRON config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.CRONConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create CRON job configurations
+      tags:
+      - Cron
+  /api/cron/{name}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: CRON job name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated CRON config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.CRONConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a CRON job configuration by name
+      tags:
+      - Cron
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: CRON job name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated CRON config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.CRONConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a CRON job configuration by name
+      tags:
+      - Cron
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: CRON job name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated CRON config (PUT only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.CRONConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get, update, or delete a CRON job configuration by name
+      tags:
+      - Cron
+  /api/dashboard:
+    get:
+      description: Returns dashboard route information with container status for SERVAPP
+        routes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/configapi.DashboardRoute'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get dashboard data
+      tags:
+      - config
+  /api/disks:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all disks
+      tags:
+      - Storage
+  /api/disks/format:
+    post:
+      consumes:
+      - application/json
+      description: Formats the specified disk with the given filesystem format. Requires
+        password confirmation. Streams progress output.
+      parameters:
+      - description: Format disk request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/storage.FormatDiskJSON'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Streamed text output ending with [OPERATION SUCCEEDED]
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Format a disk or partition
+      tags:
+      - Storage
+  /api/dns:
+    get:
+      description: Performs a DNS lookup for the given URL and returns the resolved
+        IPv4 address
+      parameters:
+      - description: URL to resolve
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  type: string
+              type: object
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Resolve DNS for a URL
+      tags:
+      - system
+  /api/dns-check:
+    get:
+      description: Verifies that DNS is correctly configured for the given URL
+      parameters:
+      - description: URL to check DNS for
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Check DNS configuration for a URL
+      tags:
+      - system
+  /api/docker-service:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Service creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docker.DockerServiceCreateRequest'
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Streamed creation output
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a Docker service (compose-like) with networks, volumes, and
+        containers
+      tags:
+      - docker
+  /api/events:
+    get:
+      parameters:
+      - description: Start date in RFC3339 format (2006-01-02T15:04:05Z)
+        in: query
+        name: from
+        type: string
+      - description: End date in RFC3339 format (2006-01-02T15:04:05Z)
+        in: query
+        name: to
+        type: string
+      - default: info
+        description: Minimum log level (debug, info, success, warning, important,
+          error)
+        in: query
+        name: logLevel
+        type: string
+      - description: Full-text search term
+        in: query
+        name: search
+        type: string
+      - description: BSON query as JSON string
+        in: query
+        name: query
+        type: string
+      - description: Pagination cursor (ObjectID hex string)
+        in: query
+        name: page
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List events with filtering and pagination
+      tags:
+      - Metrics
+  /api/favicon:
+    get:
+      description: Fetches and caches the favicon for the given URL, returning it
+        as an image
+      parameters:
+      - description: URL-encoded site URL to fetch favicon for
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Service app mode flag
+        in: query
+        name: servapp
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get favicon for a URL
+      tags:
+      - system
+  /api/force-server-update:
+    post:
+      description: Triggers a manual check for available server updates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Force check for server updates
+      tags:
+      - system
+  /api/get-backup:
+    get:
+      description: Returns the backup cosmos-compose JSON file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get backup file
+      tags:
+      - config
+  /api/image/{name}:
+    get:
+      description: Returns a previously uploaded image by name
+      parameters:
+      - description: Image file name (including extension)
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get an uploaded image
+      tags:
+      - system
+  /api/images:
+    get:
+      parameters:
+      - description: Name of the Docker image to inspect
+        in: query
+        name: imageName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ImageInspect'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Inspect a Docker image by name
+      tags:
+      - docker
+  /api/images/pull:
+    get:
+      parameters:
+      - description: Name of the Docker image to pull
+        in: query
+        name: imageName
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Streamed pull output
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Pull a Docker image from a registry
+      tags:
+      - docker
+  /api/images/pull-if-missing:
+    get:
+      parameters:
+      - description: Name of the Docker image to pull
+        in: query
+        name: imageName
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Streamed pull output
+          schema:
+            type: string
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Pull a Docker image only if it is not already present locally
+      tags:
+      - docker
+  /api/invite:
+    post:
+      consumes:
+      - application/json
+      description: Generates a new registration key and optionally sends an invite
+        or password reset email
+      parameters:
+      - description: Nickname and form type
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.InviteRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Resend invite link
+      tags:
+      - users
+  /api/jobs:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all scheduled jobs
+      tags:
+      - Cron
+  /api/jobs/delete:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job identifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cron.JobRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a job from the CRON configuration
+      tags:
+      - Cron
+  /api/jobs/get:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job identifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cron.JobRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get details and logs of a specific job
+      tags:
+      - Cron
+  /api/jobs/run:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job identifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cron.JobRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Manually trigger a job to run
+      tags:
+      - Cron
+  /api/jobs/running:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List currently running jobs
+      tags:
+      - Cron
+  /api/jobs/stop:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job identifier
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/cron.JobRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Stop a running job
+      tags:
+      - Cron
+  /api/list-dir:
+    get:
+      parameters:
+      - description: 'Storage name (default: local)'
+        in: query
+        name: storage
+        type: string
+      - description: 'Directory path (default: /)'
+        in: query
+        name: path
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List the contents of a directory
+      tags:
+      - Storage
+  /api/list-metrics:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all available metric keys and their labels
+      tags:
+      - Metrics
+  /api/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates a user with nickname and password, sets JWT cookie
+        on success
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.LoginRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: User login
+      tags:
+      - auth
+  /api/logout:
+    get:
+      description: Logs out the current user by clearing authentication cookies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: User logout
+      tags:
+      - auth
+  /api/markets:
+    get:
+      description: Returns all marketplace sources and their applications, plus the
+        showcase from cosmos-cloud.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get the app marketplace listings
+      tags:
+      - Market
+  /api/me:
+    get:
+      description: Returns the profile information of the currently authenticated
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get current user info
+      tags:
+      - auth
+  /api/merge:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Merge request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/storage.MergeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Merge multiple filesystems using MergerFS
+      tags:
+      - Storage
+  /api/metrics:
+    get:
+      parameters:
+      - description: Comma-separated list of metric keys to retrieve
+        in: query
+        name: metrics
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get aggregated metrics data
+      tags:
+      - Metrics
+  /api/mfa:
+    delete:
+      consumes:
+      - application/json
+      description: Removes the 2FA key for a specified user (admin operation)
+      parameters:
+      - description: Nickname of the user to reset 2FA for
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.User2FAResetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Reset 2FA for a user
+      tags:
+      - auth
+    get:
+      description: Generates a new TOTP key for the current user and returns the provisioning
+        URL
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Generate new 2FA key
+      tags:
+      - auth
+    post:
+      consumes:
+      - application/json
+      description: Validates a TOTP token for the current user to complete multi-factor
+        authentication
+      parameters:
+      - description: TOTP token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.User2FACheckRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Verify 2FA token
+      tags:
+      - auth
+  /api/migrate-host:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: HTTP and HTTPS port configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docker.migrateToHostMode'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Migrate Cosmos container to host network mode
+      tags:
+      - docker
+  /api/mount:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Mount request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/storage.MountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Mount a filesystem
+      tags:
+      - Storage
+  /api/mounts:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all mounted filesystems
+      tags:
+      - Storage
+  /api/network/{networkID}:
+    delete:
+      parameters:
+      - description: Network ID
+        in: path
+        name: networkID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a Docker network by ID
+      tags:
+      - docker
+  /api/networks:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all Docker networks
+      tags:
+      - docker
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Network creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docker.createNetworkPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new Docker network
+      tags:
+      - docker
+  /api/new-dir:
+    post:
+      parameters:
+      - description: Storage name
+        in: query
+        name: storage
+        type: string
+      - description: Parent directory path
+        in: query
+        name: path
+        type: string
+      - description: Folder name to create
+        in: query
+        name: folder
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new folder
+      tags:
+      - Storage
+  /api/newInstall:
+    post:
+      consumes:
+      - application/json
+      description: Handles multi-step server installation including database setup,
+        HTTPS configuration, and admin user creation
+      parameters:
+      - description: Installation step data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.NewInstallJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Process new installation steps
+      tags:
+      - system
+  /api/notifications:
+    get:
+      parameters:
+      - description: Pagination cursor (ObjectID hex string for older notifications)
+        in: query
+        name: from
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get notifications for the authenticated user
+      tags:
+      - Notifications
+  /api/notifications/read:
+    get:
+      parameters:
+      - description: Comma-separated list of notification ObjectID hex strings
+        in: query
+        name: ids
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Mark notifications as read
+      tags:
+      - Notifications
+  /api/openid:
+    get:
+      description: Returns all configured OpenID Connect client configurations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/utils.OpenIDClient'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all OpenID clients
+      tags:
+      - openid
+    post:
+      consumes:
+      - application/json
+      description: Creates a new OpenID Connect client configuration
+      parameters:
+      - description: OpenID client configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/utils.OpenIDClient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.OpenIDClient'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create an OpenID client
+      tags:
+      - openid
+  /api/openid/{id}:
+    delete:
+      description: Removes an OpenID Connect client configuration by ID
+      parameters:
+      - description: OpenID client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete an OpenID client
+      tags:
+      - openid
+    get:
+      description: Returns a single OpenID Connect client configuration
+      parameters:
+      - description: OpenID client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.OpenIDClient'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get an OpenID client by ID
+      tags:
+      - openid
+    put:
+      consumes:
+      - application/json
+      description: Replaces an existing OpenID Connect client configuration
+      parameters:
+      - description: OpenID client ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated OpenID client configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/utils.OpenIDClient'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.OpenIDClient'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update an OpenID client
+      tags:
+      - openid
+  /api/password-reset:
+    post:
+      consumes:
+      - application/json
+      description: Sends a password reset email to the user if email is configured
+      parameters:
+      - description: Nickname and email for password reset
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.PasswordResetRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Request a password reset
+      tags:
+      - auth
+  /api/ping:
+    get:
+      description: Checks if a URL is reachable and returns a non-5xx response
+      parameters:
+      - description: URL-encoded site URL to ping
+        in: query
+        name: q
+        required: true
+        type: string
+      - description: Service app mode flag
+        in: query
+        name: servapp
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Ping a URL
+      tags:
+      - system
+  /api/rclone-restart:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restart all RClone remote storage mounts
+      tags:
+      - Storage
+  /api/register:
+    post:
+      consumes:
+      - application/json
+      description: Completes user registration using a registration key (invite link)
+      parameters:
+      - description: Registration details including register key
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Register a new user
+      tags:
+      - auth
+  /api/reset-metrics:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Reset all metrics and events data
+      tags:
+      - Metrics
+  /api/restart:
+    get:
+      description: Triggers a graceful server restart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restart the server
+      tags:
+      - config
+  /api/restart-server:
+    get:
+      description: Triggers a restart of the host machine (not available when running
+        inside a container)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restart the host machine
+      tags:
+      - system
+  /api/routes:
+    get:
+      description: Returns all configured proxy routes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/utils.ProxyRouteConfig'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all proxy routes
+      tags:
+      - routes
+    post:
+      consumes:
+      - application/json
+      description: Creates a new proxy route configuration
+      parameters:
+      - description: Route configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/utils.ProxyRouteConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.ProxyRouteConfig'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new proxy route
+      tags:
+      - routes
+  /api/routes/{name}:
+    delete:
+      description: Removes a proxy route configuration by name
+      parameters:
+      - description: Route name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a proxy route
+      tags:
+      - routes
+    get:
+      description: Returns a single proxy route configuration by its name
+      parameters:
+      - description: Route name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.ProxyRouteConfig'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a proxy route by name
+      tags:
+      - routes
+    put:
+      consumes:
+      - application/json
+      description: Replaces an existing proxy route configuration by name
+      parameters:
+      - description: Route name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated route configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/utils.ProxyRouteConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.ProxyRouteConfig'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update a proxy route
+      tags:
+      - routes
+  /api/servapps:
+    get:
+      parameters:
+      - description: Maximum number of containers to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all Docker containers
+      tags:
+      - docker
+  /api/servapps/{containerId}/:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Inspect a single Docker container by ID
+      tags:
+      - docker
+  /api/servapps/{containerId}/auto-update/{status}:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Auto-update status (true or false)
+        in: path
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Enable or disable auto-update for a Docker container
+      tags:
+      - docker
+  /api/servapps/{containerId}/check-update:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Check whether a container's image has a newer version available
+      tags:
+      - docker
+  /api/servapps/{containerId}/export:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Export a container configuration as a service definition
+      tags:
+      - docker
+  /api/servapps/{containerId}/logs:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Maximum number of log lines to return
+        in: query
+        name: limit
+        type: integer
+      - description: Filter logs by search string
+        in: query
+        name: search
+        type: string
+      - description: Timestamp to fetch logs until
+        in: query
+        name: lastReceivedLogs
+        type: string
+      - description: Return only stderr logs
+        in: query
+        name: errorOnly
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Retrieve logs for a Docker container
+      tags:
+      - docker
+  /api/servapps/{containerId}/manage/{action}:
+    get:
+      description: 'Actions: stop, start, restart, kill, remove, pause, unpause, recreate,
+        update'
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Management action
+        enum:
+        - stop
+        - start
+        - restart
+        - kill
+        - remove
+        - pause
+        - unpause
+        - recreate
+        - update
+        in: path
+        name: action
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Perform a management action on a Docker container
+      tags:
+      - docker
+  /api/servapps/{containerId}/network/{networkId}:
+    delete:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Network ID
+        in: path
+        name: networkId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Detach a Docker network from a container
+      tags:
+      - docker
+    post:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Network ID
+        in: path
+        name: networkId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Attach a Docker network to a container
+      tags:
+      - docker
+  /api/servapps/{containerId}/networks:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all networks and the networks a container is connected to
+      tags:
+      - docker
+  /api/servapps/{containerId}/secure/{status}:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Network secured status (true or false)
+        in: path
+        name: status
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Set or unset network isolation on a Docker container
+      tags:
+      - docker
+  /api/servapps/{containerId}/update:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Container update payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docker.ContainerForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update a Docker container's settings
+      tags:
+      - docker
+  /api/smart-def:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get SMART attribute definitions for ATA and NVMe drives
+      tags:
+      - Storage
+  /api/snapraid:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: SnapRAID config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.SnapRAIDConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create SnapRAID configurations
+      tags:
+      - Storage
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: SnapRAID config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.SnapRAIDConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List or create SnapRAID configurations
+      tags:
+      - Storage
+  /api/snapraid/{name}:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: SnapRAID config name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated SnapRAID config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.SnapRAIDConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update or delete a SnapRAID configuration by name
+      tags:
+      - Storage
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: SnapRAID config name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated SnapRAID config (POST only)
+        in: body
+        name: body
+        schema:
+          $ref: '#/definitions/utils.SnapRAIDConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update or delete a SnapRAID configuration by name
+      tags:
+      - Storage
+  /api/snapraid/{name}/{action}:
+    get:
+      parameters:
+      - description: SnapRAID config name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Action to run
+        enum:
+        - sync
+        - scrub
+        - fix
+        - enable
+        - disable
+        in: path
+        name: action
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Run a SnapRAID action (sync, scrub, fix, enable, disable)
+      tags:
+      - Storage
+  /api/status:
+    get:
+      description: Returns the current server status including configuration, resource
+        info, and system state
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Get server status
+      tags:
+      - system
+  /api/sudo:
+    post:
+      consumes:
+      - application/json
+      description: Re-authenticates the user with their password to grant elevated
+        (sudo) permissions
+      parameters:
+      - description: Password for sudo elevation
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.SudoRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Elevate to sudo mode
+      tags:
+      - auth
+  /api/unmount:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Unmount request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/storage.MountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Unmount a filesystem
+      tags:
+      - Storage
+  /api/upload/{name}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads an image file to the server (supports jpg, jpeg, png, gif,
+        bmp, svg, webp, tiff, avif)
+      parameters:
+      - description: Base name for the uploaded file
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Image file to upload
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Upload an image
+      tags:
+      - system
+  /api/users:
+    get:
+      description: Returns a list of all users with optional limit
+      parameters:
+      - description: Maximum number of users to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/utils.User'
+                  type: array
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account with a registration key for invite-based
+        onboarding
+      parameters:
+      - description: User creation details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - users
+  /api/users/{nickname}:
+    delete:
+      description: Deletes a user account by nickname
+      parameters:
+      - description: User nickname
+        in: path
+        name: nickname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a user
+      tags:
+      - users
+    get:
+      description: Returns user details for the specified nickname
+      parameters:
+      - description: User nickname
+        in: path
+        name: nickname
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a user by nickname
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Updates user details such as email and role
+      parameters:
+      - description: User nickname
+        in: path
+        name: nickname
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.EditRequestJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Edit a user
+      tags:
+      - users
+  /api/volume/{volumeName}:
+    delete:
+      parameters:
+      - description: Name of the volume to delete
+        in: path
+        name: volumeName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a Docker volume by name
+      tags:
+      - docker
+  /api/volumes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all Docker volumes
+      tags:
+      - docker
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Volume creation payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/docker.VolumeCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new Docker volume
+      tags:
+      - docker
+  /logo:
+    get:
+      description: Returns the Cosmos server logo as a PNG image
+      produces:
+      - image/png
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: Get Cosmos logo
+      tags:
+      - system
+  /rclone/config/create:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Remote config with name, type, and parameters
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new RClone remote
+      tags:
+      - RClone
+  /rclone/config/delete:
+    delete:
+      consumes:
+      - application/json
+      parameters:
+      - description: Object with name of remote to delete
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete an RClone remote
+      tags:
+      - RClone
+  /rclone/config/dump:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Dump the full RClone configuration
+      tags:
+      - RClone
+  /rclone/config/listremotes:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List RClone remotes (name and type only, no credentials)
+      tags:
+      - RClone
+  /rclone/config/save:
+    post:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Save the RClone configuration
+      tags:
+      - RClone
+  /rclone/config/update:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Remote update with name and parameters
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update an existing RClone remote
+      tags:
+      - RClone
+  /rclone/core/stats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get global RClone transfer stats
+      tags:
+      - RClone
+  /rclone/operations/about:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Object with fs field specifying the remote
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "501":
+          description: Not Implemented
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get storage usage info for a remote (total, used, free)
+      tags:
+      - RClone
+  /rclone/vfs/stats:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Object with fs field specifying the remote
+        in: body
+        name: body
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get VFS stats for a mounted remote
+      tags:
+      - RClone
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -8,7 +8,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
-// UnmountRoute handles unmounting filesystem requests
+// SnapRAIDRunRoute godoc
+// @Summary Run a SnapRAID action (sync, scrub, fix, enable, disable)
+// @Tags Storage
+// @Produce json
+// @Param name path string true "SnapRAID config name"
+// @Param action path string true "Action to run" Enums(sync, scrub, fix, enable, disable)
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/snapraid/{name}/{action} [get]
 func SnapRAIDRunRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

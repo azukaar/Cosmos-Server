@@ -654,8 +654,17 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/image/{name}", GetImage)
 
 	srapiAdmin.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
+	srapiAdmin.HandleFunc("/api/api-tokens/{name}", configapi.APITokenIdRoute)
 	srapiAdmin.HandleFunc("/api/api-tokens", configapi.APITokenRoute)
 
+	srapiAdmin.HandleFunc("/api/routes/{name}", configapi.RoutesIdRoute)
+	srapiAdmin.HandleFunc("/api/routes", configapi.RoutesRoute)
+
+	srapiAdmin.HandleFunc("/api/openid/{id}", configapi.OpenIDIdRoute)
+	srapiAdmin.HandleFunc("/api/openid", configapi.OpenIDRoute)
+
+	srapiAdmin.HandleFunc("/api/constellation/dns/{key}", constellation.DNSEntriesIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/dns", constellation.DNSEntriesRoute)
 	srapiAdmin.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
 	srapiAdmin.HandleFunc("/api/constellation/public-devices", constellation.DevicePublicList)
 	srapiAdmin.HandleFunc("/api/constellation/devices/{id}/ping", constellation.DevicePing)
@@ -673,12 +682,18 @@ func InitServer() *mux.Router {
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 
+	srapiAdmin.HandleFunc("/api/alerts/{name}", metrics.AlertsIdRoute)
+	srapiAdmin.HandleFunc("/api/alerts", metrics.AlertsRoute)
+
 	srapiAdmin.HandleFunc("/api/metrics", metrics.API_GetMetrics)
 	srapiAdmin.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
 	srapiAdmin.HandleFunc("/api/list-metrics", metrics.ListMetrics)
 
 	srapiAdmin.HandleFunc("/api/notifications/read", utils.MarkAsRead)
 	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
+
+	srapiAdmin.HandleFunc("/api/cron/{name}", cron.CronConfigIdRoute)
+	srapiAdmin.HandleFunc("/api/cron", cron.CronConfigRoute)
 
 	srapiAdmin.HandleFunc("/api/listen=jobs", cron.ListJobs)
 	srapiAdmin.HandleFunc("/api/jobs", cron.ListJobs)

@@ -11,6 +11,7 @@ import createCronAPI from '../../client/src/api/cron';
 import createRcloneAPI from '../../client/src/api/rclone';
 import createBackupsAPI from '../../client/src/api/backup';
 import createApiTokensAPI from '../../client/src/api/apiTokens';
+import createOpenIDAPI from '../../client/src/api/openid';
 import wrap from '../../client/src/api/wrap';
 
 export function createClient({ baseUrl, token }: { baseUrl: string; token: string }) {
@@ -29,6 +30,7 @@ export function createClient({ baseUrl, token }: { baseUrl: string; token: strin
     rclone: createRcloneAPI(apiFetch),
     backups: createBackupsAPI(apiFetch),
     apiTokens: createApiTokensAPI(apiFetch),
+    openid: createOpenIDAPI(apiFetch),
 
     getStatus: () => {
       return wrap(apiFetch('/cosmos/api/status', {
@@ -114,7 +116,8 @@ export type { User } from '../../client/src/api/users';
 export type { Route, Operation } from '../../client/src/api/config';
 export type { Container, ContainerState, DockerNetwork, DockerVolume } from '../../client/src/api/docker';
 export type { MarketApp, MarketResult } from '../../client/src/api/market';
-export type { CreateAPITokenRequest, CreateAPITokenResponse, APITokenConfig } from '../../client/src/api/apiTokens';
+export type { CreateAPITokenRequest, CreateAPITokenResponse, UpdateAPITokenRequest, APITokenConfig } from '../../client/src/api/apiTokens';
+export type { OpenIDClient } from '../../client/src/api/openid';
 export type { ConstellationDevice } from '../../client/src/api/constellation';
 export type { CronJob } from '../../client/src/api/cron';
 export type { DiskInfo, MountRequest, UnmountRequest, MergeRequest, SnapRAIDConfig, RaidCreateRequest } from '../../client/src/api/storage';

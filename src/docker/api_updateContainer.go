@@ -31,6 +31,19 @@ type ContainerForm struct {
 	CPUs           float64           `json:"cpus"`
 }
 
+// UpdateContainerRoute godoc
+// @Summary Update a Docker container's settings
+// @Tags docker
+// @Accept json
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param body body ContainerForm true "Container update payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/update [post]
 func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

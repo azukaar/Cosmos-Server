@@ -8,6 +8,16 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// ConfigApiGet godoc
+// @Summary Get server configuration
+// @Description Returns the full server configuration (sensitive fields masked for non-credential users)
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse{data=utils.Config}
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/config [get]
 func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
@@ -33,7 +43,6 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			config.HTTPConfig.DNSChallengeConfig = map[string]string{}
 			config.Licence = "***"
 			config.ServerToken = "***"
-			config.APITokens = map[string]utils.APITokenConfig{}
 		}
 
 		if !isAdmin {
@@ -61,6 +70,18 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// BackupFileApiGet godoc
+// @Summary Get backup file
+// @Description Returns the backup cosmos-compose JSON file
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {file} binary
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/get-backup [get]
 func BackupFileApiGet(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return

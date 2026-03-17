@@ -15,6 +15,17 @@ type DeviceEditRequestJSON struct {
 	IsLoadBalancer bool   `json:"isLoadBalancer"`
 }
 
+// DeviceEdit_API godoc
+// @Summary Edit the current Constellation device properties
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body DeviceEditRequestJSON true "Device edit payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/edit-device [post]
 func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		utils.Error("DeviceEdit: Method not allowed "+req.Method, nil)

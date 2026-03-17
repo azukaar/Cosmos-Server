@@ -40,7 +40,7 @@ jobs:
 
       - run:
           name: install dependencies
-          command: sudo apt-get install bash curl
+          command: sudo apt-get install bash curl jq
 
       - run:
           name: download Go
@@ -192,6 +192,22 @@ jobs:
             else
               npm publish --access public --tag beta
             fi
+
+      - run:
+          name: Verify OpenAPI spec and Go SDK are up to date
+          command: |
+            bash scripts/generate-api.sh
+            git diff --exit-code api-docs/ go-sdk/client.gen.go go-sdk/version.go || {
+              echo "ERROR: OpenAPI spec or Go SDK is stale. Run scripts/generate-api.sh and commit."
+              exit 1
+            }
+
+      - run:
+          name: Tag Go SDK release
+          command: |
+            VERSION=$(jq -r .version package.json)
+            git tag "go-sdk/v${VERSION}" 2>/dev/null || true
+            git push origin "go-sdk/v${VERSION}" 2>/dev/null || true
 
 workflows:
   version: 2

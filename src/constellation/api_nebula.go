@@ -54,6 +54,15 @@ func CheckConstellationToken(req *http.Request) error {
 	return errors.New("Unauthorized: Client not found")
 }
 
+// API_GetConfig godoc
+// @Summary Get the current Nebula configuration
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/config [get]
 func API_GetConfig(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -80,6 +89,14 @@ func API_GetConfig(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_Restart godoc
+// @Summary Restart the Nebula VPN service and HTTP server
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/constellation/restart [get]
 func API_Restart(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -101,6 +118,14 @@ func API_Restart(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_Reset godoc
+// @Summary Reset the Nebula VPN configuration
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/constellation/reset [get]
 func API_Reset(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -121,6 +146,15 @@ func API_Reset(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_GetLogs godoc
+// @Summary Get Nebula VPN service logs
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/logs [get]
 func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -144,6 +178,14 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_Ping godoc
+// @Summary Check if the NATS client connection is alive
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/constellation/ping [get]
 func API_Ping(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return

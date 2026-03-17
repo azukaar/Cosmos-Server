@@ -85,6 +85,15 @@ func GetNextAvailableIP(cidr string) string {
 	return getNextAvailableIP(usedIPs, cidr)
 }
 
+// API_GetNextIP godoc
+// @Summary Get the next available IP address in the Constellation CIDR range
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/get-next-ip [get]
 func API_GetNextIP(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		utils.Error("API_GetNextIP: Method not allowed "+req.Method, nil)

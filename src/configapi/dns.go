@@ -16,6 +16,20 @@ type DNSConfigRequest struct {
 	CustomDNSEntries        []utils.ConstellationDNSEntry `json:"customDNSEntries,omitempty"`
 }
 
+// ConfigApiDNS godoc
+// @Summary Update DNS configuration
+// @Description Patches DNS-related settings including port, fallback, blocklists, and custom entries
+// @Tags config
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body DNSConfigRequest true "DNS configuration fields to update"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/config/dns [patch]
 func ConfigApiDNS(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_CONFIGURATION) != nil {
 		return

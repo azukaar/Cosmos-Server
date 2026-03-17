@@ -79,6 +79,44 @@ export default function createCronAPI(apiFetch: ApiFetch, createWs: (path: strin
     }))
   }
 
+  // --- CRON Config CRUD (individual cron entries in Config.CRON) ---
+  function listCronConfigs(): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/cron', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function getCronConfig(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/cron/${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function createCronConfig(config: { Name: string; Enabled: boolean; Crontab: string; Command: string; Container?: string }): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/cron', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    }))
+  }
+
+  function updateCronConfig(name: string, config: { Name: string; Enabled: boolean; Crontab: string; Command: string; Container?: string }): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/cron/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    }))
+  }
+
+  function deleteCronConfig(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/cron/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
   function runningJobs(): Promise<ApiResponse> {
     return wrap(apiFetch('/cosmos/api/jobs/running', {
       method: 'GET',
@@ -95,6 +133,11 @@ export default function createCronAPI(apiFetch: ApiFetch, createWs: (path: strin
     stop,
     get,
     deleteJob,
-    runningJobs
+    runningJobs,
+    listCronConfigs,
+    getCronConfig,
+    createCronConfig,
+    updateCronConfig,
+    deleteCronConfig,
   };
 }

@@ -45,7 +45,7 @@ type ContainerCreateRequestContainerDependsOnCont struct {
 
 type ContainerCreateRequestContainer struct {
 	Name 			string            `json:"container_name"`
-	Image       string            `json:"image"`
+	Image       string            `json:"image" validate:"required"`
 	Environment []string `json:"environment"`
 	Labels      map[string]string `json:"labels"`
 	Ports       []string          `json:"ports"`
@@ -219,6 +219,18 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 	OnLog("[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
 }
 
+// CreateServiceRoute godoc
+// @Summary Create a Docker service (compose-like) with networks, volumes, and containers
+// @Tags docker
+// @Accept json
+// @Produce plain
+// @Param body body DockerServiceCreateRequest true "Service creation payload"
+// @Security BearerAuth
+// @Success 200 {string} string "Streamed creation output"
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/docker-service [post]
 func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

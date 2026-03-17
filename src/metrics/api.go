@@ -11,6 +11,15 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// API_GetMetrics godoc
+// @Summary Get aggregated metrics data
+// @Tags Metrics
+// @Produce json
+// @Param metrics query string false "Comma-separated list of metric keys to retrieve"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/metrics [get]
 func API_GetMetrics(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -41,6 +50,15 @@ func API_GetMetrics(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// API_ResetMetrics godoc
+// @Summary Reset all metrics and events data
+// @Tags Metrics
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/reset-metrics [get]
 func API_ResetMetrics(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -92,6 +110,15 @@ type MetricList struct {
 	Label string
 }
 
+// ListMetrics godoc
+// @Summary List all available metric keys and their labels
+// @Tags Metrics
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/list-metrics [get]
 func ListMetrics(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

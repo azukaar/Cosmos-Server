@@ -351,7 +351,7 @@ func LoadBaseMainConfig(config Config) {
 	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
-		MainConfig.DockerConfig.DefaultDataPath = "/usr"
+		MainConfig.DockerConfig.DefaultDataPath = "/cosmos-storage"
 	}
 }
 

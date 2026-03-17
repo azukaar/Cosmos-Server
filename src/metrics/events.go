@@ -23,6 +23,21 @@ type Event struct {
 	Object string `json:"object" bson:"object"`
 }
 
+// API_ListEvents godoc
+// @Summary List events with filtering and pagination
+// @Tags Metrics
+// @Produce json
+// @Param from query string false "Start date in RFC3339 format (2006-01-02T15:04:05Z)"
+// @Param to query string false "End date in RFC3339 format (2006-01-02T15:04:05Z)"
+// @Param logLevel query string false "Minimum log level (debug, info, success, warning, important, error)" default(info)
+// @Param search query string false "Full-text search term"
+// @Param query query string false "BSON query as JSON string"
+// @Param page query string false "Pagination cursor (ObjectID hex string)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/events [get]
 func API_ListEvents(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

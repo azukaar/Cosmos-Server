@@ -37,10 +37,53 @@ export default function createMetricsAPI(apiFetch: ApiFetch) {
     }))
   }
 
+  // --- Alert CRUD ---
+  function listAlerts(): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/alerts', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function getAlert(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/alerts/${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function createAlert(alert: any): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alert),
+    }))
+  }
+
+  function updateAlert(name: string, alert: any): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/alerts/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alert),
+    }))
+  }
+
+  function deleteAlert(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/alerts/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
   return {
     get,
     reset,
     list,
-    events
+    events,
+    listAlerts,
+    getAlert,
+    createAlert,
+    updateAlert,
+    deleteAlert,
   };
 }

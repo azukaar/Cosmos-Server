@@ -8,6 +8,19 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// UserDelete godoc
+// @Summary Delete a user
+// @Description Deletes a user account by nickname
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Param nickname path string true "User nickname"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users/{nickname} [delete]
 func UserDelete(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := utils.Sanitize(vars["nickname"])

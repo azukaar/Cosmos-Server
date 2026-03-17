@@ -10,6 +10,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// DevicePing godoc
+// @Summary Ping a Constellation device to check reachability
+// @Tags constellation
+// @Produce json
+// @Param id path string true "Device name/ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices/{id}/ping [get]
 func DevicePing(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP002")

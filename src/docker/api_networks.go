@@ -12,6 +12,15 @@ import (
 	network "github.com/docker/docker/api/types/network"
 )
 
+// ListNetworksRoute godoc
+// @Summary List all Docker networks
+// @Tags docker
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/networks [get]
 func ListNetworksRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -45,6 +54,16 @@ func ListNetworksRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 
+// DeleteNetworkRoute godoc
+// @Summary Delete a Docker network by ID
+// @Tags docker
+// @Produce json
+// @Param networkID path string true "Network ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/network/{networkID} [delete]
 func DeleteNetworkRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -126,6 +145,17 @@ func NetworkRoutes(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// AttachNetwork godoc
+// @Summary Attach a Docker network to a container
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param networkId path string true "Network ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/network/{networkId} [post]
 func AttachNetwork(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -161,6 +191,18 @@ func AttachNetwork(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// DetachNetwork godoc
+// @Summary Detach a Docker network from a container
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param networkId path string true "Network ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/network/{networkId} [delete]
 func DetachNetwork(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -202,6 +244,16 @@ func DetachNetwork(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListContainerNetworks godoc
+// @Summary List all networks and the networks a container is connected to
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/networks [get]
 func ListContainerNetworks(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -249,13 +301,25 @@ func ListContainerNetworks(w http.ResponseWriter, req *http.Request) {
 }
 
 type createNetworkPayload struct {
-	Name   string `json:"name"`
+	Name   string `json:"name" validate:"required"`
 	Driver string `json:"driver"`
 	AttachCosmos bool `json:"attachCosmos"`
 	ParentInterface string `json:"parentInterface"`
 	Subnet string `json:"subnet"`
 }
 
+// CreateNetworkRoute godoc
+// @Summary Create a new Docker network
+// @Tags docker
+// @Accept json
+// @Produce json
+// @Param body body createNetworkPayload true "Network creation payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/networks [post]
 func CreateNetworkRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

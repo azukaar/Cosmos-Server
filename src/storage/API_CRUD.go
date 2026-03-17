@@ -11,6 +11,15 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// ListDisksRoute godoc
+// @Summary List all disks
+// @Tags Storage
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/disks [get]
 func ListDisksRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -35,6 +44,15 @@ func ListDisksRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListMountsRoute godoc
+// @Summary List all mounted filesystems
+// @Tags Storage
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/mounts [get]
 func ListMountsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -61,14 +79,25 @@ func ListMountsRoute(w http.ResponseWriter, req *http.Request) {
 
 // Assuming the structure for the mount/unmount request
 type MountRequest struct {
-	Path       string `json:"path"`
-	MountPoint string `json:"mountPoint"`
+	Path       string `json:"path" validate:"required"`
+	MountPoint string `json:"mountPoint" validate:"required"`
 	Permanent  bool   `json:"permanent"`
 	NetDisk    bool   `json:"netDisk"`
 	Chown 		 string `json:"chown"`
 }
 
-// MountRoute handles mounting filesystem requests
+// MountRoute godoc
+// @Summary Mount a filesystem
+// @Tags Storage
+// @Accept json
+// @Produce json
+// @Param body body MountRequest true "Mount request"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/mount [post]
 func MountRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -100,7 +129,18 @@ func MountRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// UnmountRoute handles unmounting filesystem requests
+// UnmountRoute godoc
+// @Summary Unmount a filesystem
+// @Tags Storage
+// @Accept json
+// @Produce json
+// @Param body body MountRequest true "Unmount request"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/unmount [post]
 func UnmountRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -134,14 +174,25 @@ func UnmountRoute(w http.ResponseWriter, req *http.Request) {
 
 // Assuming the structure for the mount/unmount request
 type MergeRequest struct {
-	Branches   []string `json:"branches"`
-	MountPoint string `json:"mountPoint"`
+	Branches   []string `json:"branches" validate:"required"`
+	MountPoint string `json:"mountPoint" validate:"required"`
 	Permanent  bool   `json:"permanent"`
 	Chown 		 string `json:"chown"`
 	Opts 		   string `json:"opts"`
 }
 
-// MergeRoute handles merging filesystem requests
+// MergeRoute godoc
+// @Summary Merge multiple filesystems using MergerFS
+// @Tags Storage
+// @Accept json
+// @Produce json
+// @Param body body MergeRequest true "Merge request"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/merge [post]
 func MergeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -237,6 +288,20 @@ func snapRAIDDeleteRoute(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// SnapRAIDEditRoute godoc
+// @Summary Update or delete a SnapRAID configuration by name
+// @Tags Storage
+// @Accept json
+// @Produce json
+// @Param name path string true "SnapRAID config name"
+// @Param body body utils.SnapRAIDConfig false "Updated SnapRAID config (POST only)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/snapraid/{name} [post]
+// @Router /api/snapraid/{name} [delete]
 func SnapRAIDEditRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -283,6 +348,19 @@ func listSNAPRaidRoute(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// SNAPRaidCRUDRoute godoc
+// @Summary List or create SnapRAID configurations
+// @Tags Storage
+// @Accept json
+// @Produce json
+// @Param body body utils.SnapRAIDConfig false "SnapRAID config (POST only)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/snapraid [get]
+// @Router /api/snapraid [post]
 func SNAPRaidCRUDRoute(w http.ResponseWriter, req *http.Request) {
 
 	if req.Method == "GET" {

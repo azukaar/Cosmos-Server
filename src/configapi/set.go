@@ -6,6 +6,20 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// ConfigApiSet godoc
+// @Summary Update server configuration
+// @Description Replaces the entire server configuration (masked credential fields are preserved from existing config)
+// @Tags config
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body utils.Config true "Full configuration object"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/config [put]
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_CONFIGURATION) != nil {
 		return

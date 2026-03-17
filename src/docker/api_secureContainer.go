@@ -10,6 +10,18 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// SecureContainerRoute godoc
+// @Summary Set or unset network isolation on a Docker container
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param status path string true "Network secured status (true or false)"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/secure/{status} [get]
 func SecureContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

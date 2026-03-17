@@ -8,6 +8,14 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// ListJobs godoc
+// @Summary List all scheduled jobs
+// @Tags Cron
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/jobs [get]
 func ListJobs(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -57,6 +65,17 @@ type JobRequestJSON struct {
 }
 
 
+// StopJobRoute godoc
+// @Summary Stop a running job
+// @Tags Cron
+// @Accept json
+// @Produce json
+// @Param body body JobRequestJSON true "Job identifier"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/jobs/stop [post]
 func StopJobRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -92,6 +111,17 @@ func StopJobRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// DeleteJobRoute godoc
+// @Summary Delete a job from the CRON configuration
+// @Tags Cron
+// @Accept json
+// @Produce json
+// @Param body body JobRequestJSON true "Job identifier"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/jobs/delete [post]
 func DeleteJobRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -131,6 +161,17 @@ func DeleteJobRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RunJobRoute godoc
+// @Summary Manually trigger a job to run
+// @Tags Cron
+// @Accept json
+// @Produce json
+// @Param body body JobRequestJSON true "Job identifier"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/jobs/run [post]
 func RunJobRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -169,6 +210,18 @@ func RunJobRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// GetJobRoute godoc
+// @Summary Get details and logs of a specific job
+// @Tags Cron
+// @Accept json
+// @Produce json
+// @Param body body JobRequestJSON true "Job identifier"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/jobs/get [post]
 func GetJobRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -214,6 +267,14 @@ func GetJobRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// GetRunningJobsRoute godoc
+// @Summary List currently running jobs
+// @Tags Cron
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/jobs/running [get]
 func GetRunningJobsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

@@ -9,9 +9,21 @@ import (
 )
 
 type User2FACheckRequest struct {
-	Token string
+	Token string `validate:"required"`
 }
 
+// Check2FA godoc
+// @Summary Verify 2FA token
+// @Description Validates a TOTP token for the current user to complete multi-factor authentication
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body User2FACheckRequest true "TOTP token"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/mfa [post]
 func Check2FA(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN_WEAK) != nil {
 		return

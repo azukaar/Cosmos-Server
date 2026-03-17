@@ -12,9 +12,9 @@ import (
 )
 
 type FormatDiskJSON struct {
-	Disk string `json:"disk"`
-	Format string `json:"format"`
-	Password string `json:"password"`
+	Disk string `json:"disk" validate:"required"`
+	Format string `json:"format" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 func isDiskOrPartition(path string) (string, error) {
@@ -42,6 +42,20 @@ func isDiskOrPartition(path string) (string, error) {
 
 var diskOpMutex sync.Mutex
 
+// FormatDiskRoute godoc
+// @Summary Format a disk or partition
+// @Description Formats the specified disk with the given filesystem format. Requires password confirmation. Streams progress output.
+// @Tags Storage
+// @Accept json
+// @Produce plain
+// @Param body body FormatDiskJSON true "Format disk request"
+// @Security BearerAuth
+// @Success 200 {string} string "Streamed text output ending with [OPERATION SUCCEEDED]"
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/disks/format [post]
 func FormatDiskRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

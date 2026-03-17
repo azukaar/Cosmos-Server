@@ -11,6 +11,16 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// PullImageIfMissing godoc
+// @Summary Pull a Docker image only if it is not already present locally
+// @Tags docker
+// @Produce plain
+// @Param imageName query string true "Name of the Docker image to pull"
+// @Security BearerAuth
+// @Success 200 {string} string "Streamed pull output"
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/images/pull-if-missing [get]
 func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -74,6 +84,16 @@ func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// PullImage godoc
+// @Summary Pull a Docker image from a registry
+// @Tags docker
+// @Produce plain
+// @Param imageName query string true "Name of the Docker image to pull"
+// @Security BearerAuth
+// @Success 200 {string} string "Streamed pull output"
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/images/pull [get]
 func PullImage(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -130,6 +150,16 @@ func PullImage(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// CanUpdateImageRoute godoc
+// @Summary Check whether a container's image has a newer version available
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/check-update [get]
 func CanUpdateImageRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

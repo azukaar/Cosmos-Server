@@ -12,6 +12,21 @@ type EditRequestJSON struct {
 	Role  *utils.Role `json:"role"`
 }
 
+// UserEdit godoc
+// @Summary Edit a user
+// @Description Updates user details such as email and role
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param nickname path string true "User nickname"
+// @Param request body EditRequestJSON true "Fields to update"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users/{nickname} [patch]
 func UserEdit(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	nickname := utils.Sanitize(vars["nickname"])

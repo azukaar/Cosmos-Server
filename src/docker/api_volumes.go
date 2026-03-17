@@ -10,6 +10,15 @@ import (
 	volumeTypes"github.com/docker/docker/api/types/volume"
 )
 
+// ListVolumeRoute godoc
+// @Summary List all Docker volumes
+// @Tags docker
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/volumes [get]
 func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -42,6 +51,16 @@ func ListVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// DeleteVolumeRoute godoc
+// @Summary Delete a Docker volume by name
+// @Tags docker
+// @Produce json
+// @Param volumeName path string true "Name of the volume to delete"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/volume/{volumeName} [delete]
 func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -79,10 +98,22 @@ func DeleteVolumeRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 type VolumeCreateRequest struct {
-	Name   string `json:"name"`
+	Name   string `json:"name" validate:"required"`
 	Driver string `json:"driver"`
 }
 
+// CreateVolumeRoute godoc
+// @Summary Create a new Docker volume
+// @Tags docker
+// @Accept json
+// @Produce json
+// @Param body body VolumeCreateRequest true "Volume creation payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/volumes [post]
 func CreateVolumeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

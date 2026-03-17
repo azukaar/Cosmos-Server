@@ -9,6 +9,18 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// CheckDNSRoute godoc
+// @Summary Check DNS configuration for a URL
+// @Description Verifies that DNS is correctly configured for the given URL
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Param url query string true "URL to check DNS for"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/dns-check [get]
 func CheckDNSRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
@@ -47,6 +59,16 @@ func CheckDNSRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 
+// GetDNSRoute godoc
+// @Summary Resolve DNS for a URL
+// @Description Performs a DNS lookup for the given URL and returns the resolved IPv4 address
+// @Tags system
+// @Produce json
+// @Param url query string true "URL to resolve"
+// @Success 200 {object} utils.APIResponse{data=string}
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/dns [get]
 func GetDNSRoute(w http.ResponseWriter, req *http.Request) {
 	if !utils.GetMainConfig().NewInstall && (utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil) {
 		return

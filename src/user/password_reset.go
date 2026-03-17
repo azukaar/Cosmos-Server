@@ -14,6 +14,18 @@ type PasswordResetRequestJSON struct {
 	Email string `validate:"required,min=3,max=32,alphanum"`
 }
 
+// ResetPassword godoc
+// @Summary Request a password reset
+// @Description Sends a password reset email to the user if email is configured
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body PasswordResetRequestJSON true "Nickname and email for password reset"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/password-reset [post]
 func ResetPassword(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		if !utils.IsEmailEnabled() {

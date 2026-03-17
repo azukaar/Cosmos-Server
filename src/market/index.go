@@ -12,6 +12,16 @@ type marketGetResult struct {
 	All map[string]interface{} `json:"all"`
 }
 
+// MarketGet godoc
+// @Summary Get the app marketplace listings
+// @Description Returns all marketplace sources and their applications, plus the showcase from cosmos-cloud.
+// @Tags Market
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/markets [get]
 func MarketGet(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return

@@ -207,7 +207,7 @@ type Config struct {
 
 type CRONConfig struct {
 	Enabled bool
-	Name string
+	Name string `validate:"required"`
 	Crontab string
 	Command string
 	Container string
@@ -368,7 +368,7 @@ type EmailConfig struct {
 }
 
 type OpenIDClient struct {
-	ID       string `json:"id"`
+	ID       string `json:"id" validate:"required"`
 	Secret 	 string `json:"secret"`
 	Redirect string `json:"redirect"`
 }
@@ -411,7 +411,7 @@ type ConstellationTunnel struct {
 
 type ConstellationDNSEntry struct {
 	Type string
-	Key string
+	Key string `validate:"required"`
 	Value string
 }
 
@@ -437,7 +437,7 @@ type NebulaFirewallRule struct {
 	Port   string   `yaml:"port"`
 	Proto  string   `yaml:"proto"`
 	Host   string   `yaml:"host"`
-	Groups []string `yaml:"groups,omitempty"omitempty"`
+	Groups []string `yaml:"groups,omitempty"`
 }
 
 type NebulaConntrackConfig struct {
@@ -504,15 +504,15 @@ type NebulaConfig struct {
 }
 
 type Device struct {
-	DeviceName string `json:"deviceName"validate:"required,min=3,max=32,alphanum",bson:"DeviceName"`
-	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum",bson:"Nickname"`
-	PublicKey string `json:"publicKey",omitempty,bson:"PublicKey"`
-	PrivateKey string `json:"privateKey",omitempty,bson:"PrivateKey"`
-	IP string `json:"ip",validate:"required,ipv4",bson:"IP"`
+	DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum" bson:"DeviceName"`
+	Nickname string `json:"nickname" validate:"required,min=3,max=32,alphanum" bson:"Nickname"`
+	PublicKey string `json:"publicKey,omitempty" bson:"PublicKey"`
+	PrivateKey string `json:"privateKey,omitempty" bson:"PrivateKey"`
+	IP string `json:"ip" validate:"required,ipv4" bson:"IP"`
 }
 
 type Alert struct {
-	Name string
+	Name string `validate:"required"`
 	Enabled bool
 	Period string
 	TrackingMetric string
@@ -559,10 +559,10 @@ type BackupConfig struct {
 }
 
 type SingleBackupConfig struct {
-	Name string
-	Repository string
+	Name string `validate:"required"`
+	Repository string `validate:"required"`
 	Password string
-	Source string 
+	Source string
 	Crontab string
 	CrontabForget string
 	RetentionPolicy string

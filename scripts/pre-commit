@@ -1,0 +1,7 @@
+#!/bin/bash
+# Regenerate API spec + Go SDK if any Go source files are staged
+
+echo "regenerating OpenAPI spec and Go SDK..."
+bash scripts/generate-api.sh
+git add api-docs/ go-sdk/client.gen.go go-sdk/version.go
+

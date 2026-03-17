@@ -36,7 +36,14 @@ func ensureRCloneConfig() {
 	rcloneConfigInitialized = true
 }
 
-// API_RClone_ConfigDump handles /cosmos/rclone/config/dump
+// API_RClone_ConfigDump godoc
+// @Summary Dump the full RClone configuration
+// @Tags RClone
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /rclone/config/dump [get]
 func API_RClone_ConfigDump(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return
@@ -48,8 +55,14 @@ func API_RClone_ConfigDump(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-// API_RClone_ListRemotes handles /cosmos/rclone/config/listremotes
-// Returns only remote name + type, no credentials
+// API_RClone_ListRemotes godoc
+// @Summary List RClone remotes (name and type only, no credentials)
+// @Tags RClone
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /rclone/config/listremotes [get]
 func API_RClone_ListRemotes(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -70,7 +83,18 @@ func API_RClone_ListRemotes(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(remotes)
 }
 
-// API_RClone_ConfigCreate handles /cosmos/rclone/config/create
+// API_RClone_ConfigCreate godoc
+// @Summary Create a new RClone remote
+// @Tags RClone
+// @Accept json
+// @Produce json
+// @Param body body object true "Remote config with name, type, and parameters"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /rclone/config/create [post]
 func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -110,7 +134,18 @@ func API_RClone_ConfigCreate(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
 
-// API_RClone_ConfigUpdate handles /cosmos/rclone/config/update
+// API_RClone_ConfigUpdate godoc
+// @Summary Update an existing RClone remote
+// @Tags RClone
+// @Accept json
+// @Produce json
+// @Param body body object true "Remote update with name and parameters"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /rclone/config/update [put]
 func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -149,7 +184,17 @@ func API_RClone_ConfigUpdate(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
 
-// API_RClone_ConfigDelete handles /cosmos/rclone/config/delete
+// API_RClone_ConfigDelete godoc
+// @Summary Delete an RClone remote
+// @Tags RClone
+// @Accept json
+// @Produce json
+// @Param body body object true "Object with name of remote to delete"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /rclone/config/delete [delete]
 func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -175,7 +220,14 @@ func API_RClone_ConfigDelete(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
 
-// API_RClone_ConfigSave handles /cosmos/rclone/config/save
+// API_RClone_ConfigSave godoc
+// @Summary Save the RClone configuration
+// @Tags RClone
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /rclone/config/save [post]
 func API_RClone_ConfigSave(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
@@ -185,7 +237,19 @@ func API_RClone_ConfigSave(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"status": "OK"})
 }
 
-// API_RClone_OperationsAbout handles /cosmos/rclone/operations/about (ping storage)
+// API_RClone_OperationsAbout godoc
+// @Summary Get storage usage info for a remote (total, used, free)
+// @Tags RClone
+// @Accept json
+// @Produce json
+// @Param body body object true "Object with fs field specifying the remote"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Failure 501 {object} utils.HTTPErrorResult
+// @Router /rclone/operations/about [post]
 func API_RClone_OperationsAbout(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -241,7 +305,17 @@ func API_RClone_OperationsAbout(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-// API_RClone_VfsStats handles /cosmos/rclone/vfs/stats
+// API_RClone_VfsStats godoc
+// @Summary Get VFS stats for a mounted remote
+// @Tags RClone
+// @Accept json
+// @Produce json
+// @Param body body object true "Object with fs field specifying the remote"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /rclone/vfs/stats [post]
 func API_RClone_VfsStats(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -284,7 +358,15 @@ func API_RClone_VfsStats(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(stats)
 }
 
-// API_RClone_CoreStats handles /cosmos/rclone/core/stats
+// API_RClone_CoreStats godoc
+// @Summary Get global RClone transfer stats
+// @Tags RClone
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /rclone/core/stats [get]
 func API_RClone_CoreStats(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

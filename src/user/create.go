@@ -15,6 +15,21 @@ type CreateRequestJSON struct {
 	Role utils.Role `json:"role"`
 }
 
+// UserCreate godoc
+// @Summary Create a new user
+// @Description Creates a new user account with a registration key for invite-based onboarding
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateRequestJSON true "User creation details"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 409 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users [post]
 func UserCreate(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 		return

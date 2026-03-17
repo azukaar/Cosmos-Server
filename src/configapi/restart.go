@@ -6,6 +6,17 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// ConfigApiRestart godoc
+// @Summary Restart the server
+// @Description Triggers a graceful server restart
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/restart [get]
 func ConfigApiRestart(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return

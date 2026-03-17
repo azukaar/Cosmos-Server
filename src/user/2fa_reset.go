@@ -8,9 +8,22 @@ import (
 )
 
 type User2FAResetRequest struct {
-	Nickname string
+	Nickname string `validate:"required"`
 }
 
+// Delete2FA godoc
+// @Summary Reset 2FA for a user
+// @Description Removes the 2FA key for a specified user (admin operation)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body User2FAResetRequest true "Nickname of the user to reset 2FA for"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/mfa [delete]
 func Delete2FA(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 		return

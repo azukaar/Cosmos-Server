@@ -8,10 +8,22 @@ import (
 )
 
 type migrateToHostMode struct {
-	HTTPPort string `json:"http"`
-	HTTPSPort string `json:"https"`
+	HTTPPort string `json:"http" validate:"required"`
+	HTTPSPort string `json:"https" validate:"required"`
 }
 
+// MigrateToHostModeRoute godoc
+// @Summary Migrate Cosmos container to host network mode
+// @Tags docker
+// @Accept json
+// @Produce json
+// @Param body body migrateToHostMode true "HTTP and HTTPS port configuration"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/migrate-host [post]
 func MigrateToHostModeRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

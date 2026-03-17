@@ -9,11 +9,22 @@ import (
 )
 
 type DeviceBlockRequestJSON struct {
-  Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
-  DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
-  Block bool `json:"block",omitempty`
+  Nickname string `json:"nickname" validate:"required,min=3,max=32,alphanum"`
+  DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum"`
+  Block bool `json:"block,omitempty"`
 }
 
+// DeviceBlock godoc
+// @Summary Block or unblock a Constellation device
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body DeviceBlockRequestJSON true "Device block/unblock payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/block [post]
 func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 	if utils.FBL.AgentMode {
 		utils.Error("Constellation: Agents cannot manage devices. Use a manager server", nil)

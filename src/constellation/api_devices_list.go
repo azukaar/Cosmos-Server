@@ -7,6 +7,15 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// DeviceList godoc
+// @Summary List Constellation devices for the current user (or all if admin)
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices [get]
 func DeviceList(w http.ResponseWriter, req *http.Request) {
 	// Check for GET method
 	if req.Method != "GET" {

@@ -78,6 +78,20 @@ func FilterLogs(logReader io.Reader, searchQuery string, limit int) []LogOutput 
 	return logLines
 }
 
+// GetContainerLogsRoute godoc
+// @Summary Retrieve logs for a Docker container
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Param limit query int false "Maximum number of log lines to return"
+// @Param search query string false "Filter logs by search string"
+// @Param lastReceivedLogs query string false "Timestamp to fetch logs until"
+// @Param errorOnly query bool false "Return only stderr logs"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/logs [get]
 func GetContainerLogsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

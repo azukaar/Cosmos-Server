@@ -8,6 +8,14 @@ import (
 	"github.com/analogj/scrutiny/webapp/backend/pkg/thresholds"
 )
 
+// ListSmartDef godoc
+// @Summary Get SMART attribute definitions for ATA and NVMe drives
+// @Tags Storage
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/smart-def [get]
 func ListSmartDef(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return

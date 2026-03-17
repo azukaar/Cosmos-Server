@@ -27,6 +27,22 @@ var validExtensions = map[string]bool{
 	".avif": true,
 }
 
+// UploadImage godoc
+// @Summary Upload an image
+// @Description Uploads an image file to the server (supports jpg, jpeg, png, gif, bmp, svg, webp, tiff, avif)
+// @Tags system
+// @Accept multipart/form-data
+// @Produce json
+// @Security BearerAuth
+// @Param name path string true "Base name for the uploaded file"
+// @Param image formData file true "Image file to upload"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/upload/{name} [post]
 func UploadImage(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
@@ -104,6 +120,19 @@ func UploadImage(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// GetImage godoc
+// @Summary Get an uploaded image
+// @Description Returns a previously uploaded image by name
+// @Tags system
+// @Produce octet-stream
+// @Security BearerAuth
+// @Param name path string true "Image file name (including extension)"
+// @Success 200 {file} binary
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/image/{name} [get]
 func GetImage(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return

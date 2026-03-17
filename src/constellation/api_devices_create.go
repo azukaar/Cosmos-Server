@@ -11,27 +11,38 @@ import (
 )
 
 type DeviceCreateRequestJSON struct {
-	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
-	IP string `json:"ip",validate:"required,ipv4"`
-	PublicKey string `json:"publicKey",omitempty`
+	DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum"`
+	IP string `json:"ip" validate:"required,ipv4"`
+	PublicKey string `json:"publicKey,omitempty"`
 
 	// for devices only
-	Nickname string `json:"nickname",validate:"max=32,alphanum",omitempty`
-	Invisible bool `json:"invisible",omitempty`
+	Nickname string `json:"nickname,omitempty" validate:"max=32,alphanum"`
+	Invisible bool `json:"invisible,omitempty"`
 
 	// for lighthouse only
-	IsLighthouse bool `json:"isLighthouse",omitempty`
-	CosmosNode int `json:"cosmosNode",omitempty`
-	IsRelay bool `json:"isRelay",omitempty`
-	IsLoadBalancer bool `json:"isLoadBalancer",omitempty`
-	IsExitNode bool `json:"isExitNode",omitempty`
-	PublicHostname string `json:"PublicHostname",omitempty`
-	Port string `json:"port",omitempty`
+	IsLighthouse bool `json:"isLighthouse,omitempty"`
+	CosmosNode int `json:"cosmosNode,omitempty"`
+	IsRelay bool `json:"isRelay,omitempty"`
+	IsLoadBalancer bool `json:"isLoadBalancer,omitempty"`
+	IsExitNode bool `json:"isExitNode,omitempty"`
+	PublicHostname string `json:"PublicHostname,omitempty"`
+	Port string `json:"port,omitempty"`
 
 	// internal
 	APIKey string `json:"-"`
 }
 
+// DeviceCreate_API godoc
+// @Summary Create a new Constellation device and generate its certificates
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body DeviceCreateRequestJSON true "Device creation payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices [post]
 func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		var request DeviceCreateRequestJSON

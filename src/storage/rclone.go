@@ -445,6 +445,14 @@ func remountAll() {
 	utils.Exec("smbcontrol", "all", "reload-config")
 }
 
+// API_Rclone_remountAll godoc
+// @Summary Restart all RClone remote storage mounts
+// @Tags Storage
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/rclone-restart [get]
 func API_Rclone_remountAll(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return

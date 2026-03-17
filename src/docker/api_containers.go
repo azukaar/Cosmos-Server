@@ -12,6 +12,16 @@ import (
 
 var maxLimit = 1000
 
+// ListContainersRoute godoc
+// @Summary List all Docker containers
+// @Tags docker
+// @Produce json
+// @Param limit query int false "Maximum number of containers to return"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps [get]
 func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
@@ -44,6 +54,16 @@ func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ExportContainerRoute godoc
+// @Summary Export a container configuration as a service definition
+// @Tags docker
+// @Produce json
+// @Param containerId path string true "Container ID or name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/servapps/{containerId}/export [get]
 func ExportContainerRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return

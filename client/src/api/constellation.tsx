@@ -182,6 +182,37 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
     }))
   }
 
+  // --- DNS Entry CRUD ---
+  function listDNSEntries(): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/constellation/dns', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function createDNSEntry(entry: { Type: string; Key: string; Value: string }): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/constellation/dns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    }))
+  }
+
+  function updateDNSEntry(key: string, entry: { Type: string; Key: string; Value: string }): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/constellation/dns/${encodeURIComponent(key)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry),
+    }))
+  }
+
+  function deleteDNSEntry(key: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/constellation/dns/${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
   return {
     list,
     addDevice,
@@ -198,5 +229,9 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
     tunnels,
     editDevice,
     getNextIP,
+    listDNSEntries,
+    createDNSEntry,
+    updateDNSEntry,
+    deleteDNSEntry,
   };
 }

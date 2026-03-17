@@ -10,6 +10,16 @@ import (
 	"github.com/pquerna/otp/totp"
 )
 
+// New2FA godoc
+// @Summary Generate new 2FA key
+// @Description Generates a new TOTP key for the current user and returns the provisioning URL
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/mfa [get]
 func New2FA(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN_WEAK) != nil {
 		return

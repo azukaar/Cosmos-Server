@@ -10,6 +10,7 @@ import createCronAPI from './cron';
 import createRcloneAPI from './rclone';
 import createBackupsAPI from './backup';
 import createApiTokensAPI from './apiTokens';
+import createOpenIDAPI from './openid';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -53,6 +54,7 @@ export function createClient({ baseUrl, token }) {
     rclone: createRcloneAPI(apiFetch),
     backups: createBackupsAPI(apiFetch),
     apiTokens: createApiTokensAPI(apiFetch),
+    openid: createOpenIDAPI(apiFetch),
 
     getStatus: () => {
       return wrap(apiFetch('/cosmos/api/status', {
@@ -387,6 +389,7 @@ let cron = createCronAPI(defaultFetch, defaultWs);
 let rclone = createRcloneAPI(defaultFetch);
 let backups = createBackupsAPI(defaultFetch);
 let apiTokens = createApiTokensAPI(defaultFetch);
+let openid = createOpenIDAPI(defaultFetch);
 
 if(isDemo) {
   auth = authDemo;
@@ -431,4 +434,5 @@ export {
   forceAutoUpdate,
   backups,
   apiTokens,
+  openid,
 };

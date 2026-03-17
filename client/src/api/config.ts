@@ -102,6 +102,44 @@ export default function createConfigAPI(apiFetch: ApiFetch) {
     }))
   }
 
+  // --- Individual Route CRUD ---
+  function listRoutes(): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/routes', {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function getRoute(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/routes/${encodeURIComponent(name)}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
+  function createNewRoute(route: Route): Promise<ApiResponse> {
+    return wrap(apiFetch('/cosmos/api/routes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(route),
+    }))
+  }
+
+  function updateRouteByName(name: string, route: Route): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/routes/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(route),
+    }))
+  }
+
+  function deleteRouteByName(name: string): Promise<ApiResponse> {
+    return wrap(apiFetch(`/cosmos/api/routes/${encodeURIComponent(name)}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    }))
+  }
+
   function updateDNS(dnsConfig: {
     dnsPort?: string;
     dnsFallback?: string;
@@ -132,5 +170,10 @@ export default function createConfigAPI(apiFetch: ApiFetch) {
     getBackup,
     getDashboard,
     updateDNS,
+    listRoutes,
+    getRoute,
+    createNewRoute,
+    updateRouteByName,
+    deleteRouteByName,
   };
 }

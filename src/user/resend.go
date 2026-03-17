@@ -14,6 +14,21 @@ type InviteRequestJSON struct {
 	FormType string
 }
 
+// UserResendInviteLink godoc
+// @Summary Resend invite link
+// @Description Generates a new registration key and optionally sends an invite or password reset email
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body InviteRequestJSON true "Nickname and form type"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/invite [post]
 func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		var request InviteRequestJSON

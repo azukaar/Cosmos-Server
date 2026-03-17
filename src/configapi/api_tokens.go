@@ -12,20 +12,29 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/utils"
+	"github.com/gorilla/mux"
 )
 
 var validTokenName = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
 type CreateAPITokenRequest struct {
-	Name                    string   `json:"name"`
-	Description             string   `json:"description,omitempty"`
-	ReadOnly                bool     `json:"readOnly"`
-	IPWhitelist             []string `json:"ipWhitelist,omitempty"`
-	RestrictToConstellation bool     `json:"restrictToConstellation"`
+	Name                    string             `json:"name" validate:"required"`
+	Description             string             `json:"description,omitempty"`
+	ReadOnly                bool               `json:"readOnly"`
+	Permissions             []utils.Permission `json:"permissions,omitempty"`
+	IPWhitelist             []string           `json:"ipWhitelist,omitempty"`
+	RestrictToConstellation bool               `json:"restrictToConstellation"`
 }
 
 type DeleteAPITokenRequest struct {
-	Name string `json:"name"`
+	Name string `json:"name" validate:"required"`
+}
+
+type UpdateAPITokenRequest struct {
+	Description             *string            `json:"description,omitempty"`
+	Permissions             []utils.Permission `json:"permissions,omitempty"`
+	IPWhitelist             []string           `json:"ipWhitelist,omitempty"`
+	RestrictToConstellation *bool              `json:"restrictToConstellation,omitempty"`
 }
 
 func APITokenRoute(w http.ResponseWriter, req *http.Request) {
@@ -41,6 +50,16 @@ func APITokenRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// listAPITokens godoc
+// @Summary List all API tokens
+// @Description Returns all configured API tokens (without the actual token hashes)
+// @Tags api-tokens
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/api-tokens [get]
 func listAPITokens(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN_READ) != nil {
 		return
@@ -67,6 +86,21 @@ func listAPITokens(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// createAPIToken godoc
+// @Summary Create a new API token
+// @Description Generates a new API token with the specified permissions and returns the raw token (shown only once)
+// @Tags api-tokens
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateAPITokenRequest true "Token creation details"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 409 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/api-tokens [post]
 func createAPIToken(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
@@ -104,7 +138,9 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 
 	// Build permissions array
 	var permissions []utils.Permission
-	if request.ReadOnly {
+	if len(request.Permissions) > 0 {
+		permissions = request.Permissions
+	} else if request.ReadOnly {
 		permissions = []utils.Permission{
 			utils.PERM_ADMIN_READ,
 			utils.PERM_USERS_READ,
@@ -179,6 +215,20 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 	})
 }
 
+// deleteAPIToken godoc
+// @Summary Delete an API token
+// @Description Removes an API token by name
+// @Tags api-tokens
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body DeleteAPITokenRequest true "Token name to delete"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/api-tokens [delete]
 func deleteAPIToken(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
@@ -224,6 +274,99 @@ func deleteAPIToken(w http.ResponseWriter, req *http.Request) {
 		"token@"+request.Name,
 		map[string]interface{}{
 			"tokenName": request.Name,
+		},
+	)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+	})
+}
+
+func APITokenIdRoute(w http.ResponseWriter, req *http.Request) {
+	if req.Method == "PUT" {
+		updateAPIToken(w, req)
+	} else {
+		utils.Error("APITokenIdRoute: Method not allowed "+req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// updateAPIToken godoc
+// @Summary Update an API token
+// @Description Updates an existing API token's description, permissions, IP whitelist, or constellation restriction
+// @Tags api-tokens
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param name path string true "Token name"
+// @Param request body UpdateAPITokenRequest true "Fields to update"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/api-tokens/{name} [put]
+func updateAPIToken(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
+		return
+	}
+
+	name := mux.Vars(req)["name"]
+	if name == "" {
+		utils.HTTPError(w, "Token name is required", http.StatusBadRequest, "AT030")
+		return
+	}
+
+	var request UpdateAPITokenRequest
+	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+		utils.Error("UpdateAPIToken: Invalid request", err)
+		utils.HTTPError(w, "Invalid request", http.StatusBadRequest, "AT031")
+		return
+	}
+
+	utils.ConfigLock.Lock()
+	defer utils.ConfigLock.Unlock()
+
+	config := utils.ReadConfigFromFile()
+
+	if config.APITokens == nil {
+		utils.HTTPError(w, "Token not found", http.StatusNotFound, "AT032")
+		return
+	}
+
+	token, exists := config.APITokens[name]
+	if !exists {
+		utils.HTTPError(w, "Token not found", http.StatusNotFound, "AT032")
+		return
+	}
+
+	// Update only the fields that were provided — token hash stays the same
+	if request.Description != nil {
+		token.Description = *request.Description
+	}
+	if request.Permissions != nil {
+		token.Permissions = request.Permissions
+	}
+	if request.IPWhitelist != nil {
+		token.IPWhitelist = request.IPWhitelist
+	}
+	if request.RestrictToConstellation != nil {
+		token.RestrictToConstellation = *request.RestrictToConstellation
+	}
+
+	config.APITokens[name] = token
+	utils.SetBaseMainConfig(config)
+
+	utils.TouchDatabase()
+	go constellation.SendNewDBSyncMessage()
+
+	utils.TriggerEvent(
+		"cosmos.api.token.updated",
+		"API Token updated",
+		"important",
+		"token@"+name,
+		map[string]interface{}{
+			"tokenName": name,
 		},
 	)
 

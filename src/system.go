@@ -22,6 +22,15 @@ import (
 	"github.com/azukaar/cosmos-server/src/cron" 
 )
 
+// StatusRoute godoc
+// @Summary Get server status
+// @Description Returns the current server status including configuration, resource info, and system state
+// @Tags system
+// @Produce json
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/status [get]
 func StatusRoute(w http.ResponseWriter, req *http.Request) {
 	config := utils.GetMainConfig()
 
@@ -108,6 +117,14 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// CanSendEmail godoc
+// @Summary Check if email sending is enabled
+// @Description Returns whether the server has email sending capabilities configured
+// @Tags system
+// @Produce json
+// @Success 200 {object} utils.APIResponse
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/can-send-email [get]
 func CanSendEmail(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
 		json.NewEncoder(w).Encode(map[string]interface{}{
@@ -151,6 +168,17 @@ func getRealSizeOf2(v interface{}) (int) {
 	return b.Len()
 }
 
+// MemStatusRoute godoc
+// @Summary Get internal memory status
+// @Description Returns memory usage details for internal caches and buffers
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/_memory [get]
 func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
 	if (utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil) {
 		return
@@ -179,6 +207,17 @@ func MemStatusRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// LogsRoute godoc
+// @Summary Download server logs
+// @Description Returns the server log file as a plain text attachment
+// @Tags system
+// @Produce plain
+// @Security BearerAuth
+// @Success 200 {file} binary
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /_logs [get]
 func LogsRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN_READ) != nil {
 		return
@@ -216,6 +255,17 @@ func LogsRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ForceUpdateRoute godoc
+// @Summary Force check for server updates
+// @Description Triggers a manual check for available server updates
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/force-server-update [post]
 func ForceUpdateRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return
@@ -231,6 +281,17 @@ func ForceUpdateRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// restartHostMachineRoute godoc
+// @Summary Restart the host machine
+// @Description Triggers a restart of the host machine (not available when running inside a container)
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/restart-server [get]
 func restartHostMachineRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
 		return

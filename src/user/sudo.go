@@ -15,6 +15,19 @@ type SudoRequestJSON struct {
 	Password string `validate:"required,min=8,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 }
 
+// UserSudo godoc
+// @Summary Elevate to sudo mode
+// @Description Re-authenticates the user with their password to grant elevated (sudo) permissions
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body SudoRequestJSON true "Password for sudo elevation"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/sudo [post]
 func UserSudo(w http.ResponseWriter, req *http.Request) {
 	if req.Method == "POST" {
 		time.Sleep(time.Duration(rand.Float64()*2) * time.Second)

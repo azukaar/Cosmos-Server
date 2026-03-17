@@ -16,9 +16,9 @@ import (
 
 // RaidConfig represents the configuration for creating a new RAID array
 type RaidConfig struct {
-	Name     string   `json:"name"`
+	Name     string   `json:"name" validate:"required"`
 	Level    int      `json:"level"`    // 0, 1, 5, 6, 10
-	Devices  []string `json:"devices"`  // List of device paths
+	Devices  []string `json:"devices" validate:"required"`  // List of device paths
 	Spares   []string `json:"spares"`   // List of spare device paths
 	Metadata string   `json:"metadata"` // Metadata version (default: 1.2)
 	Filesystem string `json:"filesystem"` // Filesystem to use (default: ext4)
@@ -300,7 +300,7 @@ func RaidDeleteRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 type RaidDeviceRequest struct {
-	Device string `json:"device"`
+	Device string `json:"device" validate:"required"`
 }
 
 func RaidAddDeviceRoute(w http.ResponseWriter, req *http.Request) {
@@ -338,8 +338,8 @@ func RaidAddDeviceRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 type RaidReplaceDeviceRequest struct {
-	OldDevice string `json:"oldDevice"`
-	NewDevice string `json:"newDevice"`
+	OldDevice string `json:"oldDevice" validate:"required"`
+	NewDevice string `json:"newDevice" validate:"required"`
 }
 
 func RaidReplaceDeviceRoute(w http.ResponseWriter, req *http.Request) {
