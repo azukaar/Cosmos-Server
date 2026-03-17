@@ -10,6 +10,10 @@ definitions:
         type: array
       name:
         type: string
+      permissions:
+        items:
+          $ref: '#/definitions/utils.Permission'
+        type: array
       readOnly:
         type: boolean
       restrictToConstellation:
@@ -145,6 +149,7 @@ definitions:
     required:
     - deviceName
     - ip
+    - nickname
     type: object
   constellation.DeviceEditRequestJSON:
     properties:
@@ -2347,6 +2352,55 @@ paths:
       security:
       - BearerAuth: []
       summary: Create a new backup configuration
+      tags:
+      - Backups
+  /api/backups-config:
+    get:
+      description: Returns a map of all backup configurations from the server config,
+        keyed by backup name.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all backup configurations
+      tags:
+      - Backups
+  /api/backups-config/{name}:
+    get:
+      description: Returns a single backup configuration from the server config.
+      parameters:
+      - description: Backup name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a single backup configuration by name
       tags:
       - Backups
   /api/backups-repository:

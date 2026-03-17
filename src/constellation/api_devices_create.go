@@ -16,7 +16,7 @@ type DeviceCreateRequestJSON struct {
 	PublicKey string `json:"publicKey,omitempty"`
 
 	// for devices only
-	Nickname string `json:"nickname,omitempty" validate:"max=32,alphanum"`
+	Nickname string `json:"nickname" validate:"required,max=32,alphanum"`
 	Invisible bool `json:"invisible,omitempty"`
 
 	// for lighthouse only

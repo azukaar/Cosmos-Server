@@ -6,6 +6,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func OpenIDRoute(w http.ResponseWriter, req *http.Request) {
@@ -49,6 +50,11 @@ func listOpenIDClients(w http.ResponseWriter, req *http.Request) {
 
 	config := utils.ReadConfigFromFile()
 
+	// delete secrets before returning
+	for i := range config.OpenIDClients {
+		config.OpenIDClients[i].Secret = ""
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",
 		"data":   config.OpenIDClients,
@@ -77,6 +83,9 @@ func getOpenIDClient(w http.ResponseWriter, req *http.Request) {
 
 	for _, client := range config.OpenIDClients {
 		if client.ID == id {
+			// delete secret 
+			client.Secret = ""
+
 			json.NewEncoder(w).Encode(map[string]interface{}{
 				"status": "OK",
 				"data":   client,
@@ -133,8 +142,20 @@ func createOpenIDClient(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Generate a secret server-side, store the bcrypt hash, return the plain secret once
+	plainSecret := utils.GenerateRandomString(32)
+	hashedSecret, err := bcrypt.GenerateFromPassword([]byte(plainSecret), bcrypt.DefaultCost)
+	if err != nil {
+		utils.Error("CreateOpenIDClient: Failed to hash secret", err)
+		utils.HTTPError(w, "Failed to generate secret", http.StatusInternalServerError, "OID008")
+		return
+	}
+	newClient.Secret = string(hashedSecret)
+
 	config.OpenIDClients = append(config.OpenIDClients, newClient)
 	utils.SetBaseMainConfig(config)
+
+	utils.Log("OpenID client created: " + newClient.ID)
 
 	utils.TriggerEvent(
 		"cosmos.settings",
@@ -144,9 +165,14 @@ func createOpenIDClient(w http.ResponseWriter, req *http.Request) {
 		map[string]interface{}{
 	})
 
+	// Return the plain secret once — it won't be retrievable after this
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",
-		"data":   newClient,
+		"data": map[string]interface{}{
+			"id":       newClient.ID,
+			"redirect": newClient.Redirect,
+			"secret":   plainSecret,
+		},
 	})
 }
 
@@ -203,6 +229,8 @@ func updateOpenIDClient(w http.ResponseWriter, req *http.Request) {
 	config.OpenIDClients = clients
 	utils.SetBaseMainConfig(config)
 
+	utils.Log("OpenID client updated: " + id)
+
 	utils.TriggerEvent(
 		"cosmos.settings",
 		"OpenID client updated: "+id,
@@ -258,6 +286,8 @@ func deleteOpenIDClient(w http.ResponseWriter, req *http.Request) {
 	clients = append(clients[:clientIndex], clients[clientIndex+1:]...)
 	config.OpenIDClients = clients
 	utils.SetBaseMainConfig(config)
+	
+	utils.Log("OpenID client deleted: " + id)
 
 	utils.TriggerEvent(
 		"cosmos.settings",

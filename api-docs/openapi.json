@@ -804,6 +804,99 @@
         }
       }
     },
+    "/api/backups-config": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a map of all backup configurations from the server config, keyed by backup name.",
+        "tags": [
+          "Backups"
+        ],
+        "summary": "List all backup configurations",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/backups-config/{name}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns a single backup configuration from the server config.",
+        "tags": [
+          "Backups"
+        ],
+        "summary": "Get a single backup configuration by name",
+        "parameters": [
+          {
+            "description": "Backup name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/backups-repository": {
       "get": {
         "security": [
@@ -9582,6 +9675,12 @@
           "name": {
             "type": "string"
           },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/utils.Permission"
+            }
+          },
           "readOnly": {
             "type": "boolean"
           },
@@ -9735,7 +9834,8 @@
         "type": "object",
         "required": [
           "deviceName",
-          "ip"
+          "ip",
+          "nickname"
         ],
         "properties": {
           "PublicHostname": {

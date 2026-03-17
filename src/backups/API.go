@@ -10,6 +10,82 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// ListBackupConfigsRoute godoc
+// @Summary List all backup configurations
+// @Description Returns a map of all backup configurations from the server config, keyed by backup name.
+// @Tags Backups
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups-config [get]
+func ListBackupConfigsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		config := utils.GetMainConfig()
+		backups := config.Backup.Backups
+		if backups == nil {
+			backups = make(map[string]utils.SingleBackupConfig)
+		}
+
+		// Strip passwords from the response
+		sanitized := make(map[string]utils.SingleBackupConfig)
+		for k, v := range backups {
+			v.Password = ""
+			sanitized[k] = v
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   sanitized,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// GetBackupConfigRoute godoc
+// @Summary Get a single backup configuration by name
+// @Description Returns a single backup configuration from the server config.
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/backups-config/{name} [get]
+func GetBackupConfigRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		config := utils.GetMainConfig()
+		backup, exists := config.Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		// Strip password from the response
+		backup.Password = ""
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   backup,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
 // AddBackupRoute godoc
 // @Summary Create a new backup configuration
 // @Description Creates a backup config and initializes the repository if needed. Requires premium licence and non-container mode.
@@ -245,7 +321,7 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 			output, err := ListSnapshots(backup.Repository, backup.Password)
 			if err == nil {
 				var outputJSON []map[string]interface{}
-				if err := json.Unmarshal([]byte(output), &outputJSON); err == nil {
+				if err := json.Unmarshal([]byte(SplitJSONObjects(output)), &outputJSON); err == nil {
 					if len(outputJSON) == 0 {
 						err = DeleteRepository(backup.Repository)
 						if err != nil {

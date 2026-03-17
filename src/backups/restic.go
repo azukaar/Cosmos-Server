@@ -640,8 +640,9 @@ func DeleteByTag(repository string, password string, tag string) error {
 	}
 	
 	// Parse the JSON output to get snapshot IDs
+	// Use SplitJSONObjects to extract JSON from potentially noisy PTY output
 	var snapshots []map[string]interface{}
-	if err := json.Unmarshal([]byte(output), &snapshots); err != nil {
+	if err := json.Unmarshal([]byte(SplitJSONObjects(output)), &snapshots); err != nil {
 			return fmt.Errorf("[Restic] failed to parse snapshots: %w", err)
 	}
 	

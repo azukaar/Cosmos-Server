@@ -1,0 +1,8 @@
+terraform-provider-cosmos
+*.exe
+dist/
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+crash.log

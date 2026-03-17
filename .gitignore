@@ -31,3 +31,10 @@ test-backup
 ca.pem
 sdk/dist
 sdk/node_modules
+
+.terraform
+terraform.tfstate
+terraform.tfstate.*
+.terraform.lock.hcl
+*.log
+main.tf

@@ -120,6 +120,11 @@ func createRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if !newRoute.UseHost && !newRoute.UsePathPrefix {
+		utils.HTTPError(w, "Route must have at least one of UseHost or UsePathPrefix enabled, otherwise it will catch all requests", http.StatusBadRequest, "RT008")
+		return
+	}
+
 	utils.ConfigLock.Lock()
 	defer utils.ConfigLock.Unlock()
 
@@ -135,6 +140,8 @@ func createRoute(w http.ResponseWriter, req *http.Request) {
 
 	config.HTTPConfig.ProxyConfig.Routes = append([]utils.ProxyRouteConfig{newRoute}, routes...)
 	utils.SetBaseMainConfig(config)
+
+	utils.Log("Route created: " + newRoute.Name)
 
 	utils.TriggerEvent(
 		"cosmos.routes",
@@ -203,9 +210,16 @@ func updateRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if !updatedRoute.UseHost && !updatedRoute.UsePathPrefix {
+		utils.HTTPError(w, "Route must have at least one of UseHost or UsePathPrefix enabled, otherwise it will catch all requests", http.StatusBadRequest, "RT008")
+		return
+	}
+
 	routes[routeIndex] = updatedRoute
 	config.HTTPConfig.ProxyConfig.Routes = routes
 	utils.SetBaseMainConfig(config)
+
+	utils.Log("Route updated: " + name)
 
 	utils.TriggerEvent(
 		"cosmos.routes",
@@ -266,6 +280,9 @@ func deleteRoute(w http.ResponseWriter, req *http.Request) {
 	routes = append(routes[:routeIndex], routes[routeIndex+1:]...)
 	config.HTTPConfig.ProxyConfig.Routes = routes
 	utils.SetBaseMainConfig(config)
+
+
+	utils.Log("Route deleted: " + name)
 
 	utils.TriggerEvent(
 		"cosmos.routes",
