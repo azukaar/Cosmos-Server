@@ -3,7 +3,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-VERSION=$(jq -r .version package.json)
+VERSION=$(node -p "require('./package.json').version")
 
 echo "Generating API spec and Go SDK for v${VERSION}..."
 
@@ -18,12 +18,14 @@ npx swagger2openapi api-docs/swagger.json -o api-docs/openapi.json
 
 # 4. Patch OpenAPI spec: replace Go stdlib types with simple schemas
 #    (os.FileMode, time.Duration, nat.PortSet produce uncompilable generated code)
-jq '
-  .components.schemas["os.FileMode"] = {"type": "integer", "format": "uint32"} |
-  .components.schemas["time.Duration"] = {"type": "integer", "format": "int64"} |
-  .components.schemas["nat.PortSet"] = {"type": "object", "additionalProperties": true}
-' api-docs/openapi.json > api-docs/openapi.patched.json
-mv api-docs/openapi.patched.json api-docs/openapi.json
+node -e "
+  const fs = require('fs');
+  const spec = JSON.parse(fs.readFileSync('api-docs/openapi.json', 'utf8'));
+  spec.components.schemas['os.FileMode'] = {type: 'integer', format: 'uint32'};
+  spec.components.schemas['time.Duration'] = {type: 'integer', format: 'int64'};
+  spec.components.schemas['nat.PortSet'] = {type: 'object', additionalProperties: true};
+  fs.writeFileSync('api-docs/openapi.json', JSON.stringify(spec, null, 2));
+"
 
 # 5. Generate Go SDK client (using go run — no install needed)
 cd go-sdk
