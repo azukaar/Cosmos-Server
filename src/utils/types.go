@@ -348,6 +348,7 @@ type ProxyRouteConfig struct {
 	Tunnel                     string                      `yaml:"tunnel,omitempty"`
 	TunneledHost			   string                      `yaml:"tunneled_host,omitempty"`
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
+	DisableLegacyHTTPHeaders   bool                        `yaml:"disable_legacy_http_headers"`
 	SkipURLClean               bool                        `yaml:"skip_url_clean"`
 	UseH2C                     bool                        `yaml:"use_h2c"`
 	LBMode                     string                      `yaml:"lb_mode" json:"LBMode,omitempty"`
@@ -579,10 +580,12 @@ type APITokenConfig struct {
 	Description             string       `json:"description,omitempty"`
 	Owner                   string       `json:"owner,omitempty"`
 	TokenHash               string       `json:"tokenHash"`
+	TokenSuffix             string       `json:"tokenSuffix,omitempty"`
 	Permissions             []Permission `json:"permissions"`
 	IPWhitelist             []string     `json:"ipWhitelist,omitempty"`
 	RestrictToConstellation bool         `json:"restrictToConstellation"`
 	CreatedAt               time.Time    `json:"createdAt"`
+	ExpiresAt               time.Time    `json:"expiresAt,omitempty"`
 }
 
 type APITokenContext struct {

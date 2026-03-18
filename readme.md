@@ -203,9 +203,13 @@ You might also wonder about **cloudflare proxy** and **cloudflare tunnel** when 
  * While they protect your remote access to your applications, they leave your origin server completely unprotected. A rogue device / application in your local network would have no troubles taking advantage of it
  * Those options let **Cloudflare see your entire network unencrypted**. Yes, even if you use HTTPS: Cloudflare proxy de-encrypt your traffic, to re-encrypt it. Meaning that everything that goes through your traffic is plain readable text to Cloudflare. On the other hand, Cosmos is self-hosted so you stay in control of your data.
 
-# SDK
+# SDK and Terraform
 
-A JavaScript/TypeScript SDK is available for programmatic access to the Cosmos API. See the [SDK documentation](./sdk/README.md) for installation, usage, and examples.
+A JavaScript/TypeScript SDK is available for programmatic access to the Cosmos API. See the [JS SDK documentation](./sdk/README.md) for installation, usage, and examples.
+
+The GO SDK can be found in the go-sdk folder and used with [Go SDK documentation](./go-sdk/README.md) 
+
+Finally a Terraform provider is available to fully automate your setup:  [Terraform documentation](./terraform-provider-cosmos/README.md) 
 
 # What is the SmartShield?
 

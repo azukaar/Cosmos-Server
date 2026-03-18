@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.22.0-unstable12"
+    "version": "0.22.0-unstable13"
   },
   "paths": {
     "/_logs": {
@@ -9666,6 +9666,9 @@
           "description": {
             "type": "string"
           },
+          "expiryDays": {
+            "type": "integer"
+          },
           "ipWhitelist": {
             "type": "array",
             "items": {
@@ -11321,6 +11324,9 @@
           "description": {
             "type": "string"
           },
+          "expiresAt": {
+            "type": "string"
+          },
           "ipWhitelist": {
             "type": "array",
             "items": {
@@ -11343,6 +11349,9 @@
             "type": "boolean"
           },
           "tokenHash": {
+            "type": "string"
+          },
+          "tokenSuffix": {
             "type": "string"
           }
         }
@@ -11937,6 +11946,9 @@
             "type": "string"
           },
           "disableHeaderHardening": {
+            "type": "boolean"
+          },
+          "disableLegacyHTTPHeaders": {
             "type": "boolean"
           },
           "disabled": {

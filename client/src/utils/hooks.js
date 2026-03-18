@@ -1,6 +1,5 @@
 import React from 'react';
 import { useCookies } from 'react-cookie';
-import { logout } from '../api/authentication';
 import { SUDO_PERMISSIONS } from './permissions';
 
 const isDemo = import.meta.env.MODE === 'demo';

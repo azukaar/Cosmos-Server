@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64default"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -36,9 +38,12 @@ type apiTokenModel struct {
 	Name                    types.String `tfsdk:"name"`
 	Description             types.String `tfsdk:"description"`
 	ReadOnly                types.Bool   `tfsdk:"read_only"`
+	ExpiryDays              types.Int64  `tfsdk:"expiry_days"`
 	IpWhitelist             types.List   `tfsdk:"ip_whitelist"`
 	RestrictToConstellation types.Bool   `tfsdk:"restrict_to_constellation"`
 	Token                   types.String `tfsdk:"token"`
+	TokenSuffix             types.String `tfsdk:"token_suffix"`
+	ExpiresAt               types.String `tfsdk:"expires_at"`
 }
 
 func (r *apiTokenResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -69,6 +74,15 @@ func (r *apiTokenResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 					// read_only is only sent on create; after that it is immutable.
 				},
 			},
+			"expiry_days": schema.Int64Attribute{
+				Description: "Number of days until the token expires (0 = never). Changing this forces re-creation.",
+				Optional:    true,
+				Computed:    true,
+				Default:     int64default.StaticInt64(0),
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
 			"ip_whitelist": schema.ListAttribute{
 				Description: "List of IP addresses or CIDRs allowed to use this token.",
 				Optional:    true,
@@ -87,6 +101,14 @@ func (r *apiTokenResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
+			},
+			"token_suffix": schema.StringAttribute{
+				Description: "The last 5 characters of the token, for identification purposes.",
+				Computed:    true,
+			},
+			"expires_at": schema.StringAttribute{
+				Description: "The absolute expiration time of the token in ISO 8601 format. Empty if the token never expires.",
+				Computed:    true,
 			},
 		},
 	}
@@ -128,6 +150,10 @@ func (r *apiTokenResource) Create(ctx context.Context, req resource.CreateReques
 	if !plan.RestrictToConstellation.IsNull() && !plan.RestrictToConstellation.IsUnknown() {
 		createReq.RestrictToConstellation = client.BoolPtr(plan.RestrictToConstellation.ValueBool())
 	}
+	if !plan.ExpiryDays.IsNull() && !plan.ExpiryDays.IsUnknown() {
+		ed := int(plan.ExpiryDays.ValueInt64())
+		createReq.ExpiryDays = &ed
+	}
 	if !plan.IpWhitelist.IsNull() && !plan.IpWhitelist.IsUnknown() {
 		var ips []string
 		resp.Diagnostics.Append(plan.IpWhitelist.ElementsAs(ctx, &ips, false)...)
@@ -153,7 +179,9 @@ func (r *apiTokenResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	var createResult struct {
-		Token string `json:"token"`
+		Token       string `json:"token"`
+		TokenSuffix string `json:"tokenSuffix"`
+		ExpiresAt   string `json:"expiresAt"`
 	}
 	if err := json.Unmarshal(rawData, &createResult); err != nil {
 		resp.Diagnostics.AddError("Error unmarshalling create API token response", err.Error())
@@ -161,6 +189,8 @@ func (r *apiTokenResource) Create(ctx context.Context, req resource.CreateReques
 	}
 
 	plan.Token = types.StringValue(createResult.Token)
+	plan.TokenSuffix = types.StringValue(createResult.TokenSuffix)
+	plan.ExpiresAt = types.StringValue(createResult.ExpiresAt)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -224,6 +254,17 @@ func (r *apiTokenResource) Read(ctx context.Context, req resource.ReadRequest, r
 		state.IpWhitelist = listVal
 	} else {
 		state.IpWhitelist = types.ListNull(types.StringType)
+	}
+
+	if found.TokenSuffix != nil {
+		state.TokenSuffix = types.StringValue(*found.TokenSuffix)
+	} else {
+		state.TokenSuffix = types.StringValue("")
+	}
+	if found.ExpiresAt != nil && *found.ExpiresAt != "" {
+		state.ExpiresAt = types.StringValue(*found.ExpiresAt)
+	} else {
+		state.ExpiresAt = types.StringValue("")
 	}
 
 	// The token field is never returned by Read. Preserve whatever is already

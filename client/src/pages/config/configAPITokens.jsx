@@ -41,6 +41,7 @@ const CreateTokenDialog = ({ open, onClose, onCreated, t }) => {
       readOnly: false,
       ipWhitelist: "",
       restrictToConstellation: false,
+      expiryDays: 0,
     },
     validateOnChange: false,
     onSubmit: async (values, { setErrors, setSubmitting }) => {
@@ -107,6 +108,20 @@ const CreateTokenDialog = ({ open, onClose, onCreated, t }) => {
                 name="restrictToConstellation"
                 label={t('mgmt.config.apiTokens.restrictToConstellation')}
               />
+              <TextField
+                fullWidth
+                select
+                id="expiryDays"
+                name="expiryDays"
+                label={t('mgmt.config.apiTokens.expiry')}
+                value={formik.values.expiryDays}
+                onChange={formik.handleChange}
+              >
+                <MenuItem value={0}>{t('mgmt.config.apiTokens.expiryNever')}</MenuItem>
+                <MenuItem value={7}>{t('mgmt.config.apiTokens.expiry7Days')}</MenuItem>
+                <MenuItem value={30}>{t('mgmt.config.apiTokens.expiry30Days')}</MenuItem>
+                <MenuItem value={90}>{t('mgmt.config.apiTokens.expiry90Days')}</MenuItem>
+              </TextField>
               {formik.errors.submit && (
                 <Alert severity="error">{formik.errors.submit}</Alert>
               )}
@@ -299,7 +314,18 @@ const ConfigAPITokens = () => {
           columns={[
             {
               title: t('global.name'),
-              field: (r) => r.name,
+              field: (r) => (
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <span>{r.name}</span>
+                  {r.tokenSuffix && (
+                    <Chip
+                      label={`***${r.tokenSuffix}`}
+                      size="small"
+                      sx={{ fontFamily: "monospace", fontSize: "0.75rem" }}
+                    />
+                  )}
+                </Stack>
+              ),
             },
             {
               title: t('global.owner'),
@@ -331,6 +357,23 @@ const ConfigAPITokens = () => {
                 r.createdAt
                   ? dayjs(r.createdAt).format("L, LT")
                   : "-",
+            },
+            {
+              title: t('mgmt.config.apiTokens.expiryColumn'),
+              field: (r) => {
+                if (!r.expiresAt) return t('mgmt.config.apiTokens.expiryNever');
+                const exp = dayjs(r.expiresAt);
+                const isExpired = exp.isBefore(dayjs());
+                return (
+                  <Chip
+                    label={isExpired
+                      ? t('mgmt.config.apiTokens.expired')
+                      : exp.format("L, LT")}
+                    size="small"
+                    color={isExpired ? "error" : "default"}
+                  />
+                );
+              },
             },
             {
               title: "",

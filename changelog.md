@@ -6,6 +6,9 @@
  - Fixed issue with post-install on compose import
  - Support for mounting network disk
  - Enforce tighter folder permissions on the config folder
+ - Ability to add dynamic extra headers with variables like $user, $origin, $scheme, etc...
+ - Add a UI for extra headers on routes
+ - Added support for legacy HTTP_ headers
  - Fix regression with static/spa folders
  - Fix issue with Constellation sometime not connecting right away on new network
  - Sync more settings accross servers in Constellations (Rclone and api token/permissions configs)

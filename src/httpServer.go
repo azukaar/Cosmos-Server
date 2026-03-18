@@ -258,6 +258,22 @@ func tokenMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
+			if !matchedToken.ExpiresAt.IsZero() && time.Now().After(matchedToken.ExpiresAt) {
+				utils.Error("API Token: Token expired: "+matchedName, nil)
+				utils.TriggerEvent(
+					"cosmos.api.token.expired",
+					"API Token expired",
+					"warning",
+					"token@"+matchedName,
+					map[string]interface{}{
+						"tokenName": matchedName,
+						"expiresAt": matchedToken.ExpiresAt,
+					},
+				)
+				utils.HTTPError(w, "API token has expired", http.StatusUnauthorized, "AT004")
+				return
+			}
+
 			clientIP, _ := r.Context().Value("ClientID").(string)
 			remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
 

@@ -462,9 +462,9 @@ const HomePage = () => {
                 <Grid2 item xs={12} sm={6} md={4} lg={3} xl={3} xxl={3} key={route.Name}>
                     <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                            <Stack direction="row" spacing={2} alignItems="center">
+                            <Stack direction="row" spacing={2} alignItems="center" style={{ overflow: 'hidden' }}>
                                 <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                <div style={{ minWidth: 0 }}>
+                                <div style={{ minWidth: 0, overflow: 'hidden' }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                     <p style={blockStyle}>{route.Description}</p>
                                     <p style={{ ...blockStyle, fontSize: '90%', paddingTop: '3px', opacity: '0.45' }}>{route.Target}</p>
@@ -477,9 +477,9 @@ const HomePage = () => {
                 <Grid2 item xs={6} sm={4} md={3} lg={2} xl={2} xxl={2} key={route.Name}>
                     <Box className='app app-hover' style={{ padding: 25, borderRadius: 10, ...appColor, ...appBorder }}>
                         <Link to={getFullOrigin(route)} target="_blank" style={{ textDecoration: 'none', ...appColor }}>
-                            <Stack direction="column" spacing={2} alignItems="center">
+                            <Stack direction="column" spacing={2} alignItems="center" style={{ overflow: 'hidden', width: '100%' }}>
                                 <DashboardIcon route={route} containerIcon={route.ContainerIcon} className="loading-image" width="70px" />
-                                <div style={{ minWidth: 0 }}>
+                                <div style={{ minWidth: 0, overflow: 'hidden', maxWidth: '100%' }}>
                                     <h3 style={blockStyle}>{route.Name}</h3>
                                 </div>
                             </Stack>

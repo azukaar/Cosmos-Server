@@ -36,6 +36,7 @@ import RouteManagement from '../routes/routeman';
 import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
+import Ellipsis from '../../../components/ellipsis';
 import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
 import { useNavigate } from 'react-router';
 import NewRouteCreate from '../routes/newRoute';
@@ -75,7 +76,7 @@ const ProxyManagement = () => {
   const [openNewModal, setOpenNewModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [tunnels, setTunnels] = React.useState([]);
-  const { hasPermission } = useClientInfos();
+  const { hasPermission, hasRolePermission } = useClientInfos();
   const isAdmin = hasPermission(PERM_CONFIGURATION);
 
   function setRouteEnabled(key) {
@@ -282,8 +283,8 @@ const ProxyManagement = () => {
           },
           { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} /> },
           { title: t('global.target'), screenMin: 'md', search: (r) => r._IsTunnel ? (r._targets || []).map(t => t.targetURL).join(' ') : r.Target, field: (r) => r._IsTunnel && r._targets && r._targets.length > 0
-            ? <><RouteMode route={r} /> {r._targets.map((t, i) => <Chip key={i} label={t.targetURL + ' (' + t.deviceName + ')'} style={{marginBottom: 2}} />)}</>
-            : <><RouteMode route={r} /> <Chip label={r.Target} /></>
+            ? <><RouteMode route={r} /> {r._targets.map((t, i) => <Ellipsis key={i} title={t.targetURL + ' (' + t.deviceName + ')'} maxWidth={250}><Chip label={t.targetURL + ' (' + t.deviceName + ')'} style={{marginBottom: 2}} /></Ellipsis>)}</>
+            : <><RouteMode route={r} /> <Ellipsis title={r.Target} maxWidth={250}><Chip label={r.Target} /></Ellipsis></>
           },
           { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
@@ -316,7 +317,7 @@ const ProxyManagement = () => {
         </div>
       }
       
-      {routes && needSave && <>
+      {routes && needSave && hasRolePermission(PERM_CONFIGURATION) && <>
         <div>
         <br /><br /><br /><br />
         </div>

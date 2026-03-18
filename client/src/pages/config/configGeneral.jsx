@@ -37,6 +37,10 @@ const validateAndDecodeJWT = (token) => {
 };
 
 const verifyJWTSignature = async (token) => {
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    // crypto.subtle unavailable (e.g. HTTP context), skip verification
+    return true;
+  }
   try {
     const publicKey = await importSPKI(LICENSE_PUBLIC_KEY, 'ES256');
     await jwtVerify(token, publicKey);
@@ -188,8 +192,9 @@ const ConfigGeneral = ({ formik, config, status, isAdmin }) => {
             }}
           />
           {(() => {
+            const isMasked = formik.values.Licence && /^\*+$/.test(formik.values.Licence);
             const licenseResult = React.useMemo(() => {
-              if (!formik.values.Licence) return null;
+              if (!formik.values.Licence || isMasked) return null;
               return validateAndDecodeJWT(formik.values.Licence);
             }, [formik.values.Licence]);
 

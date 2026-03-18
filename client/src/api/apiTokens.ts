@@ -7,6 +7,7 @@ export interface CreateAPITokenRequest {
   permissions?: number[];
   ipWhitelist?: string[];
   restrictToConstellation?: boolean;
+  expiryDays?: number;
 }
 
 export interface CreateAPITokenResponse {
@@ -26,10 +27,12 @@ export interface APITokenConfig {
   Description?: string;
   Owner?: string;
   TokenHash: string;
+  TokenSuffix?: string;
   Permissions: number[];
   IPWhitelist?: string[];
   RestrictToConstellation: boolean;
   CreatedAt: string;
+  ExpiresAt?: string;
 }
 
 export default function createApiTokensAPI(apiFetch: ApiFetch) {

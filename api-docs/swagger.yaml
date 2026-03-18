@@ -4,6 +4,8 @@ definitions:
     properties:
       description:
         type: string
+      expiryDays:
+        type: integer
       ipWhitelist:
         items:
           type: string
@@ -1325,6 +1327,8 @@ definitions:
         type: string
       description:
         type: string
+      expiresAt:
+        type: string
       ipWhitelist:
         items:
           type: string
@@ -1340,6 +1344,8 @@ definitions:
       restrictToConstellation:
         type: boolean
       tokenHash:
+        type: string
+      tokenSuffix:
         type: string
     type: object
   utils.AddionalFiltersConfig:
@@ -1743,6 +1749,8 @@ definitions:
         type: string
       disableHeaderHardening:
         type: boolean
+      disableLegacyHTTPHeaders:
+        type: boolean
       disabled:
         type: boolean
       extraHeaders:
@@ -1921,7 +1929,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.0-unstable12
+  version: 0.22.0-unstable13
 paths:
   /_logs:
     get:

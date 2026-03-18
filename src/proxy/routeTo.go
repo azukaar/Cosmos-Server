@@ -198,10 +198,38 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			req.Host = req.URL.Host
 		}
 
-		// Extra headers
-		for name, value := range route.ExtraHeaders {
-			req.Header.Del(name)
-			req.Header.Set(name, value)
+		// Extra headers (applied last so they can overwrite anything)
+		if len(route.ExtraHeaders) > 0 {
+			clientIP := GetClientID(req, route)
+
+			replacer := strings.NewReplacer(
+				"$target", route.Target,
+				"$scheme", originalScheme,
+				"$protocol", originalScheme,
+				"$host", hostname,
+				"$origin", hostname,
+				"$clientIP", clientIP,
+				"$user", req.Header.Get("x-cosmos-user"),
+				"$route", route.Name,
+				"$path", req.URL.Path,
+			)
+
+			for name, value := range route.ExtraHeaders {
+				req.Header.Del(name)
+				req.Header.Set(name, replacer.Replace(value))
+			}
+		}
+
+		// Duplicate X-* headers as HTTP_* equivalents (legacy CGI convention)
+		if !route.DisableLegacyHTTPHeaders {
+			for name, values := range req.Header {
+				if strings.HasPrefix(name, "X-") {
+					httpName := "HTTP_" + strings.ReplaceAll(strings.ToUpper(name), "-", "_")
+					for _, v := range values {
+						req.Header.Set(httpName, v)
+					}
+				}
+			}
 		}
 	}
 
@@ -242,7 +270,10 @@ func TunnelRouteTo(tunnel utils.ConstellationTunnel, lb *TunnelLoadBalancer) htt
 	}
 
 	// For self-tunnel, use the original route handler to avoid proxy loop
-	currentDeviceName, _ := constellation.GetCurrentDeviceName()
+	currentDeviceName, er12 := constellation.GetCurrentDeviceName()
+	if er12 != nil {
+		utils.Error("Get Current Device Name for Tunnel Route", er12)
+	}
 
 	proxies := make([]targetProxy, 0, len(tunnel.Targets))
 	for _, t := range tunnel.Targets {

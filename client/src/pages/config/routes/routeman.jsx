@@ -7,11 +7,15 @@ import {
   Alert,
   Button,
   Grid,
+  IconButton,
+  InputLabel,
+  OutlinedInput,
   Stack,
   FormHelperText,
   TextField,
   MenuItem,
 } from '@mui/material';
+import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
@@ -96,6 +100,10 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           Tunnel: routeConfig.Tunnel,
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
+          DisableLegacyHTTPHeaders: routeConfig.DisableLegacyHTTPHeaders === true,
+          _ExtraHeaders: routeConfig.ExtraHeaders
+            ? Object.entries(routeConfig.ExtraHeaders).map(([key, value]) => ({ key, value }))
+            : [],
         }}
         validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -110,10 +118,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
               values.WhitelistInboundIPs = [];
             }
 
+            // Convert extra headers array to map
+            const extraHeadersMap = {};
+            if (values._ExtraHeaders) {
+              values._ExtraHeaders.forEach(({ key, value }) => {
+                if (key.trim()) extraHeadersMap[key.trim()] = value;
+              });
+            }
+
             let fullValues = {
               ...routeConfig,
               ...values,
+              ExtraHeaders: extraHeadersMap,
             }
+            delete fullValues._ExtraHeaders;
 
             fullValues = sanitizeRoute(fullValues);
 
@@ -147,11 +165,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
         }}
         validate={(values) => {
           let commaSepIps = values.WhitelistInboundIPs;
-          
+
+          const extraHeadersMap = {};
+          if (values._ExtraHeaders) {
+            values._ExtraHeaders.forEach(({ key, value }) => {
+              if (key.trim()) extraHeadersMap[key.trim()] = value;
+            });
+          }
+
           let fullValues = {
             ...routeConfig,
             ...values,
+            ExtraHeaders: extraHeadersMap,
           }
+          delete fullValues._ExtraHeaders;
 
           if(commaSepIps && commaSepIps.length) {
             fullValues.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
@@ -410,6 +437,75 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         name="WhitelistInboundIPs"
                         label={t('mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpLabel')}
                         placeholder={t('mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpPlaceholder')}
+                        formik={formik}
+                      />
+
+                      <CosmosFormDivider title={t('mgmt.urls.edit.advancedSettings.extraHeaders.title')} />
+                      <Alert severity='info'>
+                        {t('mgmt.urls.edit.advancedSettings.extraHeaders.info')}
+                      </Alert>
+
+                      {formik.values._ExtraHeaders.map((header, idx) => (
+                        <Grid container key={idx} spacing={2} alignItems="center">
+                          <Grid item xs={5}>
+                            <TextField
+                              fullWidth
+                              label={t('mgmt.urls.edit.advancedSettings.extraHeaders.headerName')}
+                              placeholder="X-Custom-Header"
+                              value={header.key}
+                              onChange={(e) => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders[idx] = { ...newHeaders[idx], key: e.target.value };
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label={t('mgmt.urls.edit.advancedSettings.extraHeaders.headerValue')}
+                              placeholder="value"
+                              value={header.value}
+                              onChange={(e) => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders[idx] = { ...newHeaders[idx], value: e.target.value };
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={1}>
+                            <IconButton
+                              color="error"
+                              onClick={() => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders.splice(idx, 1);
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            >
+                              <DeleteOutlined />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      ))}
+
+                      <PermissionGuard permission={PERM_CONFIGURATION}>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<PlusCircleOutlined />}
+                          onClick={() => {
+                            const newHeaders = [...formik.values._ExtraHeaders];
+                            newHeaders.push({ key: '', value: '' });
+                            formik.setFieldValue('_ExtraHeaders', newHeaders);
+                          }}
+                        >
+                          {t('mgmt.urls.edit.advancedSettings.extraHeaders.add')}
+                        </Button>
+                      </PermissionGuard>
+
+                      <CosmosCheckbox
+                        name="DisableLegacyHTTPHeaders"
+                        label={t('mgmt.urls.edit.advancedSettings.disableLegacyHTTPHeaders')}
                         formik={formik}
                       />
                     </Stack>

@@ -24,6 +24,7 @@ type CreateAPITokenRequest struct {
 	Permissions             []utils.Permission `json:"permissions,omitempty"`
 	IPWhitelist             []string           `json:"ipWhitelist,omitempty"`
 	RestrictToConstellation bool               `json:"restrictToConstellation"`
+	ExpiryDays              int                `json:"expiryDays,omitempty"`
 }
 
 type DeleteAPITokenRequest struct {
@@ -69,15 +70,20 @@ func listAPITokens(w http.ResponseWriter, req *http.Request) {
 
 	tokens := make(map[string]interface{})
 	for name, tok := range config.APITokens {
-		tokens[name] = map[string]interface{}{
+		entry := map[string]interface{}{
 			"name":                    tok.Name,
 			"description":             tok.Description,
 			"owner":                   tok.Owner,
+			"tokenSuffix":             tok.TokenSuffix,
 			"permissions":             tok.Permissions,
 			"ipWhitelist":             tok.IPWhitelist,
 			"restrictToConstellation": tok.RestrictToConstellation,
 			"createdAt":               tok.CreatedAt,
 		}
+		if !tok.ExpiresAt.IsZero() {
+			entry["expiresAt"] = tok.ExpiresAt
+		}
+		tokens[name] = entry
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
@@ -131,6 +137,7 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	rawToken := "cosmos_" + base64.RawURLEncoding.EncodeToString(rawBytes)
+	tokenSuffix := rawToken[len(rawToken)-5:]
 
 	// Hash for storage
 	h := sha256.Sum256([]byte(rawToken))
@@ -163,15 +170,22 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 
 	owner := utils.GetAuthContext(req).Nickname
 
+	var expiresAt time.Time
+	if request.ExpiryDays > 0 {
+		expiresAt = time.Now().Add(time.Duration(request.ExpiryDays) * 24 * time.Hour)
+	}
+
 	tokenConfig := utils.APITokenConfig{
 		Name:                    request.Name,
 		Description:             request.Description,
 		Owner:                   owner,
 		TokenHash:               tokenHash,
+		TokenSuffix:             tokenSuffix,
 		Permissions:             permissions,
 		IPWhitelist:             request.IPWhitelist,
 		RestrictToConstellation: request.RestrictToConstellation,
 		CreatedAt:               time.Now(),
+		ExpiresAt:               expiresAt,
 	}
 
 	utils.ConfigLock.Lock()
@@ -206,12 +220,18 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 		},
 	)
 
+	responseData := map[string]interface{}{
+		"token":       rawToken,
+		"name":        request.Name,
+		"tokenSuffix": tokenSuffix,
+	}
+	if !expiresAt.IsZero() {
+		responseData["expiresAt"] = expiresAt
+	}
+
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": "OK",
-		"data": map[string]interface{}{
-			"token": rawToken,
-			"name":  request.Name,
-		},
+		"data":   responseData,
 	})
 }
 

@@ -30,7 +30,7 @@ const HostChip = ({route, settings, style, ellipsis}) => {
       paddingRight: '4px',
       // textDecoration: isOnline ? 'none' : 'underline wavy red',
       ...style,
-      ...(ellipsis ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' } : {})
+      ...(ellipsis ? { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '250px' } : {})
     }}
     onClick={() => {
       if(route.UseHost)

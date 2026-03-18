@@ -1068,6 +1068,10 @@ func GetCurrentDeviceName() (string, error) {
 	config := utils.GetMainConfig()
 	name := config.ConstellationConfig.ThisDeviceName
 
+	if !config.ConstellationConfig.Enabled {
+		return "", errors.New("constellation not enabled")
+	}
+	
 	if name == "" {
 		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
 		if err != nil {
