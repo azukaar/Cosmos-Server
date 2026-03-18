@@ -15,6 +15,8 @@ terraform {
   required_providers {
     cosmos = {
       source = "cosmos-cloud.io/azukaar/cosmos"
+      # explicit version (for beta release for ex.)
+      # version = "0.22.0-unstable08"
     }
   }
 }

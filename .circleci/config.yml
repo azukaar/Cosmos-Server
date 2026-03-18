@@ -221,7 +221,8 @@ jobs:
               zip "terraform-provider-cosmos_${VERSION}_${OS}_${ARCH}.zip" "terraform-provider-cosmos_${OS}_${ARCH}"
               rm "terraform-provider-cosmos_${OS}_${ARCH}"
             done
-            gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip --clobber
+            sha256sum terraform-provider-cosmos_${VERSION}_*.zip > terraform-provider-cosmos_${VERSION}_SHA256SUMS
+            gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS --clobber
 
 workflows:
   version: 2
