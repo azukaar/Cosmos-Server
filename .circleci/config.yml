@@ -222,7 +222,9 @@ jobs:
               rm "terraform-provider-cosmos_${OS}_${ARCH}"
             done
             sha256sum terraform-provider-cosmos_${VERSION}_*.zip > terraform-provider-cosmos_${VERSION}_SHA256SUMS
-            gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS --clobber
+            echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+            gpg --batch --detach-sign terraform-provider-cosmos_${VERSION}_SHA256SUMS
+            gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS terraform-provider-cosmos_${VERSION}_SHA256SUMS.sig --clobber
 
 workflows:
   version: 2
