@@ -86,11 +86,11 @@ func GetLatestVersion(includeBeta bool) (*VersionInfo, error) {
         name := strings.ToLower(asset.Name)
         
         // Match AMD64 binary
-        if strings.Contains(name, "amd64") && !strings.HasSuffix(name, ".md5") {
+        if strings.Contains(name, "amd64") && !strings.HasSuffix(name, ".md5") && !strings.Contains(name, "terraform") {
             info.AMDURL = asset.DownloadURL
         }
         // Match ARM64 binary
-        if strings.Contains(name, "arm64") && !strings.HasSuffix(name, ".md5") {
+        if strings.Contains(name, "arm64") && !strings.HasSuffix(name, ".md5") && !strings.Contains(name, "terraform") {
             info.ARMURL = asset.DownloadURL
         }
         // Match MD5 files
