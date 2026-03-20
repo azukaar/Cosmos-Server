@@ -19,6 +19,7 @@ import (
 var (
 	_ resource.Resource                = &backupResource{}
 	_ resource.ResourceWithImportState = &backupResource{}
+	_ resource.ResourceWithModifyPlan  = &backupResource{}
 )
 
 // NewBackupResource returns a new resource.Resource for backup configurations.
@@ -46,7 +47,7 @@ func (r *backupResource) Metadata(_ context.Context, req resource.MetadataReques
 
 func (r *backupResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
-		Description: "Manages a Cosmos Server backup configuration.",
+		Description: "Manages a Cosmos Server backup configuration. WARNING: destroying this resource permanently deletes all its snapshots. Use lifecycle { prevent_destroy = true } to protect against accidental deletion.",
 		Attributes: map[string]schema.Attribute{
 			"name": schema.StringAttribute{
 				Description: "The unique name of the backup configuration (used as the resource ID). Changing this forces re-creation.",
@@ -56,12 +57,18 @@ func (r *backupResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 				},
 			},
 			"repository": schema.StringAttribute{
-				Description: "The repository path for storing backups.",
+				Description: "The repository path for storing backups. Changing this forces re-creation.",
 				Required:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"source": schema.StringAttribute{
-				Description: "The source path to back up.",
+				Description: "The source path to back up. Changing this forces re-creation.",
 				Optional:    true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
 			},
 			"crontab": schema.StringAttribute{
 				Description: "Cron schedule for running backups.",
@@ -260,6 +267,17 @@ func (r *backupResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if err := client.CheckResponse(httpResp); err != nil {
 		resp.Diagnostics.AddError("Error deleting backup", err.Error())
 		return
+	}
+}
+
+func (r *backupResource) ModifyPlan(ctx context.Context, req resource.ModifyPlanRequest, resp *resource.ModifyPlanResponse) {
+	// If the plan is to destroy (plan state is null), warn about data loss.
+	if req.Plan.Raw.IsNull() {
+		resp.Diagnostics.AddWarning(
+			"Destroying this backup will permanently delete all its snapshots",
+			"The Cosmos backup delete endpoint removes all snapshots for this backup from the repository. "+
+				"This is irreversible. Use lifecycle { prevent_destroy = true } to protect against accidental deletion.",
+		)
 	}
 }
 

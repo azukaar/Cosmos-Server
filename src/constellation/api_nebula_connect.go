@@ -1,9 +1,10 @@
 package constellation
 
 import (
-	"net/http"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"gopkg.in/yaml.v2"
 
@@ -156,6 +157,58 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ConnectToExisting applies a Nebula YAML config to connect this node to an
+// existing Constellation network. It returns the updated config. The caller
+// is responsible for persisting the config and restarting Nebula.
+func ConnectToExisting(yamlBody []byte, config utils.Config) (utils.Config, error) {
+	utils.Log("ConnectToExisting: connecting to an external Constellation")
+
+	config.ConstellationConfig.Enabled = true
+
+	var configMap map[string]interface{}
+	err := yaml.Unmarshal(yamlBody, &configMap)
+	if err != nil {
+		return config, err
+	}
+
+	configMap = setDefaultConstConfig(configMap)
+
+	configMapString, err := yaml.Marshal(configMap)
+	if err != nil {
+		return config, err
+	}
+
+	err = ioutil.WriteFile(utils.CONFIGFOLDER+"nebula.yml", configMapString, 0600)
+	if err != nil {
+		return config, err
+	}
+
+	if deviceNameVal, ok := configMap["cstln_device_name"]; ok {
+		config.ConstellationConfig.ThisDeviceName = deviceNameVal.(string)
+	} else {
+		return config, errors.New("device name not found in constellation config")
+	}
+
+	if publicHostnameVal, ok := configMap["cstln_public_hostname"]; ok {
+		config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
+	}
+
+	if licence, ok := configMap["cstln_server_licence"]; ok {
+		config.Licence = licence.(string)
+	}
+
+	if cosmosNode, ok := configMap["cstln_cosmos_node"]; ok {
+		config.AgentMode = cosmosNode.(int) == 1
+	}
+
+	if ipRange, ok := configMap["cstln_ip_range"]; ok {
+		config.ConstellationConfig.IPRange = ipRange.(string)
+	}
+
+	utils.Log("ConnectToExisting: connected to an external Constellation")
+	return config, nil
+}
+
 // API_ConnectToExisting godoc
 // @Summary Connect this node to an existing Constellation VPN network
 // @Tags constellation
@@ -176,69 +229,25 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 		utils.ConfigLock.Lock()
 		defer utils.ConfigLock.Unlock()
 
-		utils.Log("API_ConnectToExisting: connecting to an external Constellation")
-
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			utils.Error("API_Restart: Invalid User Request", err)
-			utils.HTTPError(w, "API_Restart Error",
+			utils.Error("API_ConnectToExisting: Invalid User Request", err)
+			utils.HTTPError(w, "API_ConnectToExisting Error",
 				http.StatusInternalServerError, "AR001")
-			return	
+			return
 		}
 
 		config := utils.ReadConfigFromFile()
-		config.ConstellationConfig.Enabled = true
-		
-		var configMap map[string]interface{}
-
-		err = yaml.Unmarshal(body, &configMap)
+		config, err = ConnectToExisting(body, config)
 		if err != nil {
-			utils.Error("API_ConnectToExisting: Invalid User Request", err)
-			utils.HTTPError(w, "API_ConnectToExisting Error",
+			utils.Error("API_ConnectToExisting: Error", err)
+			utils.HTTPError(w, "API_ConnectToExisting Error: "+err.Error(),
 				http.StatusInternalServerError, "ACE001")
-			return	
-		}
-
-		configMap = setDefaultConstConfig(configMap)
-
-		configMapString, err := yaml.Marshal(configMap)
-		if err != nil {
-			utils.Error("API_ConnectToExisting: Invalid User Request", err)
-			utils.HTTPError(w, "API_ConnectToExisting Error",
-				http.StatusInternalServerError, "ACE002")
 			return
-		}
-
-		// output utils.CONFIGFOLDER + "nebula.yml"
-		err = ioutil.WriteFile(utils.CONFIGFOLDER + "nebula.yml", configMapString, 0600)
-		
-		if deviceNameVal, ok := configMap["cstln_device_name"]; ok {
-			config.ConstellationConfig.ThisDeviceName = deviceNameVal.(string)
-		} else {
-			utils.Error("API_ConnectToExisting: device name not found in config", nil)
-			utils.HTTPError(w, "API_ConnectToExisting Error: device name not found in config",
-				http.StatusInternalServerError, "ACE003")
-			return
-		}
-
-		if publicHostnameVal, ok := configMap["cstln_public_hostname"]; ok {
-			config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
-		}
-
-		if licence, ok := configMap["cstln_server_licence"]; ok {
-			config.Licence = licence.(string)
-		}
-
-		if cosmosNode, ok := configMap["cstln_cosmos_node"]; ok {
-			config.AgentMode = cosmosNode.(int) == 1
-		}
-
-		if ipRange, ok := configMap["cstln_ip_range"]; ok {
-			config.ConstellationConfig.IPRange = ipRange.(string)
 		}
 
 		utils.SetBaseMainConfig(config)
-		
+
 		utils.TriggerEvent(
 			"cosmos.settings",
 			"Settings updated",
@@ -247,14 +256,11 @@ func API_ConnectToExisting(w http.ResponseWriter, req *http.Request) {
 			map[string]interface{}{
 				"from": "Constellation",
 		})
-	
 
-		utils.Log("API_ConnectToExisting: connected to an external Constellation")
-		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 		})
-		
+
 		go func() {
 			RestartNebula()
 			utils.RestartHTTPServer()

@@ -14,6 +14,26 @@ import createApiTokensAPI from '../../client/src/api/apiTokens';
 import createOpenIDAPI from '../../client/src/api/openid';
 import wrap from '../../client/src/api/wrap';
 
+export interface SetupRequest {
+  mongodbMode: string;
+  mongodb?: string;
+  hostname: string;
+  httpsCertificateMode: string;
+  sslEmail?: string;
+  useWildcardCertificate?: boolean;
+  dnsChallengeProvider?: string;
+  DNSChallengeConfig?: Record<string, string>;
+  tlsCert?: string;
+  tlsKey?: string;
+  allowHTTPLocalIPAccess?: boolean;
+  nickname: string;
+  password: string;
+  email?: string;
+  clearConfig?: boolean;
+  constellationConfig?: string;
+  createAdminToken?: boolean;
+}
+
 export function createClient({ baseUrl, token }: { baseUrl: string; token: string }) {
   const { apiFetch, createWs } = createApiClient(baseUrl, token);
 
@@ -31,6 +51,14 @@ export function createClient({ baseUrl, token }: { baseUrl: string; token: strin
     backups: createBackupsAPI(apiFetch),
     apiTokens: createApiTokensAPI(apiFetch),
     openid: createOpenIDAPI(apiFetch),
+
+    setup: (request: SetupRequest) => {
+      return wrap(apiFetch('/cosmos/api/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      }));
+    },
 
     getStatus: () => {
       return wrap(apiFetch('/cosmos/api/status', {

@@ -17,6 +17,33 @@ import (
 
 var validTokenName = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
 
+// GenerateAPIToken creates a new API token with the given parameters and returns
+// the raw token (to be shown once to the caller) and the config to store.
+// The caller is responsible for persisting the config.
+func GenerateAPIToken(name, description, owner string, permissions []utils.Permission) (string, utils.APITokenConfig, error) {
+	rawBytes := make([]byte, 32)
+	if _, err := rand.Read(rawBytes); err != nil {
+		return "", utils.APITokenConfig{}, err
+	}
+	rawToken := "cosmos_" + base64.RawURLEncoding.EncodeToString(rawBytes)
+	tokenSuffix := rawToken[len(rawToken)-5:]
+
+	h := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(h[:])
+
+	tokenConfig := utils.APITokenConfig{
+		Name:        name,
+		Description: description,
+		Owner:       owner,
+		TokenHash:   tokenHash,
+		TokenSuffix: tokenSuffix,
+		Permissions: permissions,
+		CreatedAt:   time.Now(),
+	}
+
+	return rawToken, tokenConfig, nil
+}
+
 type CreateAPITokenRequest struct {
 	Name                    string             `json:"name" validate:"required"`
 	Description             string             `json:"description,omitempty"`
@@ -129,20 +156,6 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Generate raw token: "cosmos_" + base64url(32 random bytes)
-	rawBytes := make([]byte, 32)
-	if _, err := rand.Read(rawBytes); err != nil {
-		utils.Error("CreateAPIToken: Failed to generate random bytes", err)
-		utils.HTTPError(w, "Internal error", http.StatusInternalServerError, "AT012")
-		return
-	}
-	rawToken := "cosmos_" + base64.RawURLEncoding.EncodeToString(rawBytes)
-	tokenSuffix := rawToken[len(rawToken)-5:]
-
-	// Hash for storage
-	h := sha256.Sum256([]byte(rawToken))
-	tokenHash := hex.EncodeToString(h[:])
-
 	// Build permissions array
 	var permissions []utils.Permission
 	if len(request.Permissions) > 0 {
@@ -155,37 +168,23 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 			utils.PERM_CONFIGURATION_READ,
 		}
 	} else {
-		permissions = []utils.Permission{
-			utils.PERM_ADMIN_READ,
-			utils.PERM_ADMIN,
-			utils.PERM_USERS_READ,
-			utils.PERM_USERS,
-			utils.PERM_RESOURCES_READ,
-			utils.PERM_RESOURCES,
-			utils.PERM_CONFIGURATION_READ,
-			utils.PERM_CONFIGURATION,
-			utils.PERM_CREDENTIALS_READ,
-		}
+		permissions = utils.DefaultAdminTokenPermissions
 	}
 
 	owner := utils.GetAuthContext(req).Nickname
 
-	var expiresAt time.Time
-	if request.ExpiryDays > 0 {
-		expiresAt = time.Now().Add(time.Duration(request.ExpiryDays) * 24 * time.Hour)
+	rawToken, tokenConfig, err := GenerateAPIToken(request.Name, request.Description, owner, permissions)
+	if err != nil {
+		utils.Error("CreateAPIToken: Failed to generate token", err)
+		utils.HTTPError(w, "Internal error", http.StatusInternalServerError, "AT012")
+		return
 	}
 
-	tokenConfig := utils.APITokenConfig{
-		Name:                    request.Name,
-		Description:             request.Description,
-		Owner:                   owner,
-		TokenHash:               tokenHash,
-		TokenSuffix:             tokenSuffix,
-		Permissions:             permissions,
-		IPWhitelist:             request.IPWhitelist,
-		RestrictToConstellation: request.RestrictToConstellation,
-		CreatedAt:               time.Now(),
-		ExpiresAt:               expiresAt,
+	// Set extra fields not handled by GenerateAPIToken
+	tokenConfig.IPWhitelist = request.IPWhitelist
+	tokenConfig.RestrictToConstellation = request.RestrictToConstellation
+	if request.ExpiryDays > 0 {
+		tokenConfig.ExpiresAt = time.Now().Add(time.Duration(request.ExpiryDays) * 24 * time.Hour)
 	}
 
 	utils.ConfigLock.Lock()
@@ -223,10 +222,10 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 	responseData := map[string]interface{}{
 		"token":       rawToken,
 		"name":        request.Name,
-		"tokenSuffix": tokenSuffix,
+		"tokenSuffix": tokenConfig.TokenSuffix,
 	}
-	if !expiresAt.IsZero() {
-		responseData["expiresAt"] = expiresAt
+	if !tokenConfig.ExpiresAt.IsZero() {
+		responseData["expiresAt"] = tokenConfig.ExpiresAt
 	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

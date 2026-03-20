@@ -53,7 +53,7 @@ func DB() error {
 
 	if mongoURL == "" {
 		DBStatus = false
-		return errors.New("MongoDB URL is not set, cannot connect to the database.")
+		return errors.New("MongoDB URL is not set, cannot connect to the database. If you are in the setup, this is not an issue, please proceed with the setup.")
 	}
 
 	var err error

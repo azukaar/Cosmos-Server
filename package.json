@@ -1,6 +1,6 @@
 {
   "name": "cosmos-server",
-  "version": "0.22.0-unstable13",
+  "version": "0.22.0-unstable14",
   "description": "",
   "main": "test-server.js",
   "bugs": {
@@ -90,7 +90,7 @@
   "scripts": {
     "client": "vite",
     "client-build": "vite build --base=/cosmos-ui/",
-    "start": "build/cosmos-launcher && env COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
+    "start": "build/cosmos-launcher && env COSMOS_LOG_LEVEL=DEBUG COSMOS_CONFIG_FOLDER=./zz_test_config/ CONFIG_FILE=./config_dev.json EZ=UTC ACME_STAGING=true build/cosmos",
     "build": "sh build-dev.sh",
     "dev": "npm run build && npm run start",
     "dockerdevbuild": "docker build -f dockerfile.local --tag cosmos-dev .",

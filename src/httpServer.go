@@ -611,6 +611,7 @@ func InitServer() *mux.Router {
 	srapiStrict.HandleFunc("/api/mfa", user.API2FA)
 	srapiStrict.HandleFunc("/api/register", user.UserRegister)
 	srapiStrict.HandleFunc("/api/newInstall", NewInstallRoute)
+	srapiStrict.HandleFunc("/api/setup", SetupRoute)
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
 	srapi.HandleFunc("/api/logout", user.UserLogout)

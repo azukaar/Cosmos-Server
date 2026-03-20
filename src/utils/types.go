@@ -39,6 +39,18 @@ const (
 	PERM_LOGIN_WEAK         Permission = 101 // Any logged-in user, no MFA check
 )
 
+var DefaultAdminTokenPermissions = []Permission{
+	PERM_ADMIN_READ,
+	PERM_ADMIN,
+	PERM_USERS_READ,
+	PERM_USERS,
+	PERM_RESOURCES_READ,
+	PERM_RESOURCES,
+	PERM_CONFIGURATION_READ,
+	PERM_CONFIGURATION,
+	PERM_CREDENTIALS_READ,
+}
+
 var PermissionLabels = map[Permission]string{
 	PERM_ADMIN_READ:         "Admin Read (view logs)",
 	PERM_ADMIN:              "Admin (system ops)",

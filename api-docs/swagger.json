@@ -4,7 +4,7 @@
         "description": "REST API for Cosmos Cloud server management",
         "title": "Cosmos Server API",
         "contact": {},
-        "version": "0.22.0-unstable13"
+        "version": "0.22.0-unstable14"
     },
     "basePath": "/cosmos",
     "paths": {
@@ -6442,6 +6442,58 @@
                 }
             }
         },
+        "/api/setup": {
+            "post": {
+                "description": "Performs the entire initial setup in a single call: database, HTTPS, admin user, optional Constellation connect, and optional admin API token creation. Only available when the server is in NewInstall mode.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "system"
+                ],
+                "summary": "One-shot server provisioning",
+                "parameters": [
+                    {
+                        "description": "Setup configuration",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.SetupJSON"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/smart-def": {
             "get": {
                 "security": [
@@ -8987,6 +9039,71 @@
                     "type": "string"
                 },
                 "step": {
+                    "type": "string"
+                },
+                "tlsCert": {
+                    "type": "string"
+                },
+                "tlsKey": {
+                    "type": "string"
+                },
+                "useWildcardCertificate": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "main.SetupJSON": {
+            "type": "object",
+            "properties": {
+                "DNSChallengeConfig": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "allowHTTPLocalIPAccess": {
+                    "type": "boolean"
+                },
+                "clearConfig": {
+                    "description": "Optional: clear config before setup",
+                    "type": "boolean"
+                },
+                "constellationConfig": {
+                    "description": "Optional: Constellation connect",
+                    "type": "string"
+                },
+                "createAdminToken": {
+                    "description": "Optional: create admin API token",
+                    "type": "boolean"
+                },
+                "dnsChallengeProvider": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "hostname": {
+                    "description": "HTTPS",
+                    "type": "string"
+                },
+                "httpsCertificateMode": {
+                    "type": "string"
+                },
+                "mongodb": {
+                    "type": "string"
+                },
+                "mongodbMode": {
+                    "description": "Database",
+                    "type": "string"
+                },
+                "nickname": {
+                    "description": "Admin",
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "sslEmail": {
                     "type": "string"
                 },
                 "tlsCert": {

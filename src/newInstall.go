@@ -1,20 +1,24 @@
 package main
 
 import (
-	"net/http"
 	"encoding/json"
-	"time"
+	"net/http"
 	"os"
-	"golang.org/x/crypto/bcrypt"	
+	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/azukaar/cosmos-server/src/configapi"
+	"github.com/azukaar/cosmos-server/src/constellation"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func waitForDB() {
 	time.Sleep(1 * time.Second)
 	err := utils.DB()
 	if err != nil {
+		utils.Debug("DB error: " + err.Error())
 		utils.Warn("DB Not ready yet")
 		waitForDB()
 	}
@@ -40,7 +44,7 @@ type NewInstallJSON struct {
 
 type AdminJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
-	Password string `validate:"required,min=9,max=128,containsany=~!@#$%^&*()_+=-{[}]:;"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
+	Password string `validate:"required,min=9,max=128,containsany=~!@#$%^&*()_+=-{[}]:;\"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
 }
 
 // NewInstallRoute godoc
@@ -67,9 +71,9 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 		err1 := json.NewDecoder(req.Body).Decode(&request)
 		if err1 != nil {
 			utils.Error("NewInstall: Invalid User Request", err1)
-			utils.HTTPError(w, "New Install: Invalid User Request" + err1.Error(), 
+			utils.HTTPError(w, "New Install: Invalid User Request" + err1.Error(),
 				http.StatusInternalServerError, "NI001")
-			return 
+			return
 		}
 
 		errV := utils.Validate.Struct(request)
@@ -77,7 +81,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			utils.Error("NewInstall: Invalid User Request", errV)
 			utils.HTTPError(w, "New Install: Invalid User Request " + errV.Error(),
 				http.StatusInternalServerError, "NI001")
-			return 
+			return
 		}
 
 		newConfig := utils.GetBaseMainConfig()
@@ -108,18 +112,20 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 				utils.Log("NewInstall: DB Provided")
 				newConfig.DisableUserManagement = false
 				newConfig.MongoDB = request.MongoDB
+				newConfig.Database.PuppetMode = false
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)
 			} else if (request.MongoDBMode == "Create") {
 				utils.Log("NewInstall: Create DB")
 				newConfig.DisableUserManagement = false
+				newConfig.MongoDB = ""
 
 				strco, err := docker.NewDB(w, req)
 				if err != nil {
 					utils.Error("NewInstall: Error creating MongoDB", err)
-					return 
-				}			
-						
+					return
+				}
+
 				newConfig.Database = strco
 				utils.SaveConfigTofile(newConfig)
 				utils.LoadBaseMainConfig(newConfig)
@@ -132,7 +138,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 				utils.Error("NewInstall: Invalid MongoDBMode", nil)
 				utils.HTTPError(w, "New Install: Invalid MongoDBMode",
 					http.StatusInternalServerError, "NI001")
-				return 
+				return
 			}
 		} else if (request.Step == "3") {
 			// HTTPS Certificate Mode & Certs & Let's Encrypt
@@ -154,7 +160,7 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 			adminObj := AdminJSON{
 				Nickname: request.Nickname,
 				Password: request.Password,
-			}		
+			}
 
 			errV2 := utils.Validate.Struct(adminObj)
 			if errV2 != nil {
@@ -221,4 +227,235 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
 	}
+}
+
+// noopResponseWriter discards all output — used to call docker.NewDB without streaming.
+type noopResponseWriter struct {
+	header http.Header
+}
+
+func (n *noopResponseWriter) Header() http.Header        { return n.header }
+func (n *noopResponseWriter) Write(b []byte) (int, error) { return len(b), nil }
+func (n *noopResponseWriter) WriteHeader(int)             {}
+func (n *noopResponseWriter) Flush()                      {}
+
+type SetupJSON struct {
+	// Database
+	MongoDBMode string `json:"mongodbMode"`
+	MongoDB     string `json:"mongodb"`
+
+	// HTTPS
+	Hostname               string            `json:"hostname"`
+	HTTPSCertificateMode   string            `json:"httpsCertificateMode"`
+	SSLEmail               string            `json:"sslEmail"`
+	UseWildcardCertificate bool              `json:"useWildcardCertificate"`
+	DNSChallengeProvider   string            `json:"dnsChallengeProvider"`
+	DNSChallengeConfig     map[string]string `json:"DNSChallengeConfig"`
+	TLSCert                string            `json:"tlsCert"`
+	TLSKey                 string            `json:"tlsKey"`
+	AllowHTTPLocalIPAccess bool              `json:"allowHTTPLocalIPAccess"`
+
+	// Admin
+	Nickname string `json:"nickname"`
+	Password string `json:"password"`
+	Email    string `json:"email,omitempty"`
+
+	// Optional: clear config before setup
+	ClearConfig bool `json:"clearConfig,omitempty"`
+
+	// Optional: Constellation connect
+	ConstellationConfig string `json:"constellationConfig,omitempty"`
+
+	// Optional: create admin API token
+	CreateAdminToken bool `json:"createAdminToken,omitempty"`
+}
+
+// SetupRoute godoc
+// @Summary One-shot server provisioning
+// @Description Performs the entire initial setup in a single call: database, HTTPS, admin user, optional Constellation connect, and optional admin API token creation. Only available when the server is in NewInstall mode.
+// @Tags system
+// @Accept json
+// @Produce json
+// @Param request body SetupJSON true "Setup configuration"
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/setup [post]
+func SetupRoute(w http.ResponseWriter, req *http.Request) {
+	if !utils.GetMainConfig().NewInstall {
+		utils.Error("Setup: not a new install", nil)
+		utils.HTTPError(w, "Server is already configured", http.StatusForbidden, "SU001")
+		return
+	}
+
+	if req.Method != "POST" {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+
+	var request SetupJSON
+	if err := json.NewDecoder(req.Body).Decode(&request); err != nil {
+		utils.Error("Setup: Invalid request", err)
+		utils.HTTPError(w, "Invalid request: "+err.Error(), http.StatusBadRequest, "SU002")
+		return
+	}
+
+	// ── Step 0: Clear config (optional) ──────────────────────────────
+	if request.ClearConfig {
+		utils.Log("Setup: Clearing config")
+		configFile := utils.GetConfigFileName()
+		os.Remove(configFile)
+		if utils.IsInsideContainer {
+			os.RemoveAll("/config")
+			os.Mkdir("/config", 0700)
+		}
+		utils.DisconnectDB()
+		LoadConfig()
+	}
+
+	config := utils.GetBaseMainConfig()
+
+	// ── Step 1: Database ──────────────────────────────────────────────
+	if request.MongoDBMode == "" {
+		utils.HTTPError(w, "mongodbMode is required", http.StatusBadRequest, "SU003")
+		return
+	}
+
+	switch request.MongoDBMode {
+	case "DisableUserManagement":
+		utils.Log("Setup: Disable User Management")
+		config.DisableUserManagement = true
+	case "Provided":
+		utils.Log("Setup: DB Provided")
+		config.DisableUserManagement = false
+		config.MongoDB = request.MongoDB
+		config.Database.PuppetMode = false
+	case "Create":
+		utils.Log("Setup: Create DB")
+		config.DisableUserManagement = false
+		config.MongoDB = ""
+		noop := &noopResponseWriter{header: make(http.Header)}
+		dbConf, err := docker.NewDB(noop, req)
+		if err != nil {
+			utils.Error("Setup: Error creating MongoDB", err)
+			utils.HTTPError(w, "Error creating MongoDB: "+err.Error(), http.StatusInternalServerError, "SU004")
+			return
+		}
+		config.Database = dbConf
+	default:
+		utils.HTTPError(w, "Invalid mongodbMode", http.StatusBadRequest, "SU003")
+		return
+	}
+
+	utils.SaveConfigTofile(config)
+	utils.LoadBaseMainConfig(config)
+
+	if !config.DisableUserManagement {
+		waitForDB()
+	}
+
+	// ── Step 2: HTTPS ─────────────────────────────────────────────────
+	config.HTTPConfig.Hostname = request.Hostname
+	config.HTTPConfig.HTTPSCertificateMode = request.HTTPSCertificateMode
+	config.HTTPConfig.SSLEmail = request.SSLEmail
+	config.HTTPConfig.UseWildcardCertificate = request.UseWildcardCertificate
+	config.HTTPConfig.DNSChallengeProvider = request.DNSChallengeProvider
+	config.HTTPConfig.DNSChallengeConfig = request.DNSChallengeConfig
+	config.HTTPConfig.TLSCert = request.TLSCert
+	config.HTTPConfig.TLSKey = request.TLSKey
+	config.HTTPConfig.AllowHTTPLocalIPAccess = request.AllowHTTPLocalIPAccess
+
+	utils.SaveConfigTofile(config)
+	utils.LoadBaseMainConfig(config)
+
+	// ── Step 3: Admin User ────────────────────────────────────────────
+	if !config.DisableUserManagement {
+		adminObj := AdminJSON{
+			Nickname: request.Nickname,
+			Password: request.Password,
+		}
+		if errV := utils.Validate.Struct(adminObj); errV != nil {
+			utils.Error("Setup: Invalid admin credentials", errV)
+			utils.HTTPError(w, "Invalid admin credentials: "+errV.Error(), http.StatusBadRequest, "SU005")
+			return
+		}
+
+		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+		defer closeDb()
+		if errCo != nil {
+			utils.Error("Setup: Database Connect", errCo)
+			utils.HTTPError(w, "Database error", http.StatusInternalServerError, "SU006")
+			return
+		}
+
+		nickname := utils.Sanitize(request.Nickname)
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), 14)
+		if err != nil {
+			utils.Error("Setup: Error hashing password", err)
+			utils.HTTPError(w, "Error hashing password", http.StatusInternalServerError, "SU007")
+			return
+		}
+
+		c.DeleteMany(nil, map[string]interface{}{})
+		_, err = c.InsertOne(nil, map[string]interface{}{
+			"Nickname":      nickname,
+			"Email":         request.Email,
+			"Password":      hashedPassword,
+			"Role":          utils.ADMIN,
+			"PasswordCycle": 0,
+			"CreatedAt":     time.Now(),
+			"RegisteredAt":  time.Now(),
+		})
+		if err != nil {
+			utils.Error("Setup: Error creating admin user", err)
+			utils.HTTPError(w, "Error creating admin user: "+err.Error(), http.StatusInternalServerError, "SU008")
+			return
+		}
+	}
+
+	// ── Step 4: Constellation (optional) ──────────────────────────────
+	if request.ConstellationConfig != "" {
+		var err error
+		config, err = constellation.ConnectToExisting([]byte(request.ConstellationConfig), config)
+		if err != nil {
+			utils.Error("Setup: Constellation connect error", err)
+			utils.HTTPError(w, "Constellation error: "+err.Error(), http.StatusInternalServerError, "SU009")
+			return
+		}
+		utils.SaveConfigTofile(config)
+		utils.LoadBaseMainConfig(config)
+	}
+
+	// ── Step 5: Admin Token (optional) ────────────────────────────────
+	responseData := map[string]interface{}{}
+
+	if request.CreateAdminToken {
+		tokenName := "provisioning-token"
+		owner := utils.Sanitize(request.Nickname)
+		rawToken, tokenConfig, err := configapi.GenerateAPIToken(tokenName, "Auto-generated during setup", owner, utils.DefaultAdminTokenPermissions)
+		if err != nil {
+			utils.Error("Setup: Error generating token", err)
+			utils.HTTPError(w, "Error generating token", http.StatusInternalServerError, "SU010")
+			return
+		}
+
+		if config.APITokens == nil {
+			config.APITokens = make(map[string]utils.APITokenConfig)
+		}
+		config.APITokens[tokenName] = tokenConfig
+
+		responseData["adminToken"] = rawToken
+		responseData["adminTokenName"] = tokenName
+	}
+
+	// ── Finalize ──────────────────────────────────────────────────────
+	config.NewInstall = false
+	utils.SaveConfigTofile(config)
+	utils.LoadBaseMainConfig(config)
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+		"data":   responseData,
+	})
 }

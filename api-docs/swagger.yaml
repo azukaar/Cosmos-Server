@@ -753,6 +753,51 @@ definitions:
       useWildcardCertificate:
         type: boolean
     type: object
+  main.SetupJSON:
+    properties:
+      DNSChallengeConfig:
+        additionalProperties:
+          type: string
+        type: object
+      allowHTTPLocalIPAccess:
+        type: boolean
+      clearConfig:
+        description: 'Optional: clear config before setup'
+        type: boolean
+      constellationConfig:
+        description: 'Optional: Constellation connect'
+        type: string
+      createAdminToken:
+        description: 'Optional: create admin API token'
+        type: boolean
+      dnsChallengeProvider:
+        type: string
+      email:
+        type: string
+      hostname:
+        description: HTTPS
+        type: string
+      httpsCertificateMode:
+        type: string
+      mongodb:
+        type: string
+      mongodbMode:
+        description: Database
+        type: string
+      nickname:
+        description: Admin
+        type: string
+      password:
+        type: string
+      sslEmail:
+        type: string
+      tlsCert:
+        type: string
+      tlsKey:
+        type: string
+      useWildcardCertificate:
+        type: boolean
+    type: object
   mount.BindOptions:
     properties:
       createMountpoint:
@@ -1929,7 +1974,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.0-unstable13
+  version: 0.22.0-unstable14
 paths:
   /_logs:
     get:
@@ -5993,6 +6038,42 @@ paths:
       summary: Update a Docker container's settings
       tags:
       - docker
+  /api/setup:
+    post:
+      consumes:
+      - application/json
+      description: 'Performs the entire initial setup in a single call: database,
+        HTTPS, admin user, optional Constellation connect, and optional admin API
+        token creation. Only available when the server is in NewInstall mode.'
+      parameters:
+      - description: Setup configuration
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/main.SetupJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      summary: One-shot server provisioning
+      tags:
+      - system
   /api/smart-def:
     get:
       produces:
