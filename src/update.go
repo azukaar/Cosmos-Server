@@ -108,10 +108,10 @@ func GetLatestVersion(includeBeta bool) (*VersionInfo, error) {
             
             md5String := strings.TrimSpace(string(md5Content))
             
-            if strings.Contains(name, "amd64") {
+            if strings.Contains(name, "amd64") && !strings.Contains(name, "terraform") {
                 info.AMDMD5 = parseMD5File(md5String)
             }
-            if strings.Contains(name, "arm64") {
+            if strings.Contains(name, "arm64") && !strings.Contains(name, "terraform") {
                 info.ARMMD5 = parseMD5File(md5String)
             }
         }

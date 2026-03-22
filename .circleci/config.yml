@@ -209,22 +209,22 @@ jobs:
             git tag "go-sdk/v${VERSION}" 2>/dev/null || true
             git push origin "go-sdk/v${VERSION}" 2>/dev/null || true
 
-      # - run:
-      #     name: Build and attach Terraform provider to release
-      #     command: |
-      #       VERSION=$(jq -r .version package.json)
-      #       cd terraform-provider-cosmos
-      #       for PAIR in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
-      #         OS="${PAIR%/*}"
-      #         ARCH="${PAIR#*/}"
-      #         GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w -X main.version=${VERSION}" -o "terraform-provider-cosmos_${OS}_${ARCH}"
-      #         zip "terraform-provider-cosmos_${VERSION}_${OS}_${ARCH}.zip" "terraform-provider-cosmos_${OS}_${ARCH}"
-      #         rm "terraform-provider-cosmos_${OS}_${ARCH}"
-      #       done
-      #       sha256sum terraform-provider-cosmos_${VERSION}_*.zip > terraform-provider-cosmos_${VERSION}_SHA256SUMS
-      #       echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
-      #       gpg --batch --detach-sign terraform-provider-cosmos_${VERSION}_SHA256SUMS
-      #       gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS terraform-provider-cosmos_${VERSION}_SHA256SUMS.sig --clobber
+      - run:
+          name: Build and attach Terraform provider to release
+          command: |
+            VERSION=$(jq -r .version package.json)
+            cd terraform-provider-cosmos
+            for PAIR in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64; do
+              OS="${PAIR%/*}"
+              ARCH="${PAIR#*/}"
+              GOOS=$OS GOARCH=$ARCH go build -ldflags "-s -w -X main.version=${VERSION}" -o "terraform-provider-cosmos_${OS}_${ARCH}"
+              zip "terraform-provider-cosmos_${VERSION}_${OS}_${ARCH}.zip" "terraform-provider-cosmos_${OS}_${ARCH}"
+              rm "terraform-provider-cosmos_${OS}_${ARCH}"
+            done
+            sha256sum terraform-provider-cosmos_${VERSION}_*.zip > terraform-provider-cosmos_${VERSION}_SHA256SUMS
+            echo "$GPG_PRIVATE_KEY" | base64 -d | gpg --batch --import
+            gpg --batch --detach-sign terraform-provider-cosmos_${VERSION}_SHA256SUMS
+            gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS terraform-provider-cosmos_${VERSION}_SHA256SUMS.sig --clobber
 
 workflows:
   version: 2
