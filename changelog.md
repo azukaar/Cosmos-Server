@@ -1,7 +1,7 @@
 ## Version 0.22
  - Adding feature to create API key to directly query the Cosmos API
- - Added GO/TS/Terraform SDK to call the API from any project (AI generated)
- - Refactor the entire permission system for future work on roles and fine-grained permissions (partially AI assisted)
+ - Added GO/TS/Terraform SDK to call the API from any project (AI assisted)
+ - Refactor the entire permission system for future work on roles and fine-grained permissions (AI assisted)
  - You can now create multiple admin users
  - Fixed issue with post-install on compose import
  - Support for mounting network disk
