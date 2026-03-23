@@ -151,7 +151,6 @@ definitions:
     required:
     - deviceName
     - ip
-    - nickname
     type: object
   constellation.DeviceEditRequestJSON:
     properties:
@@ -1974,7 +1973,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.0
+  version: 0.22.1
 paths:
   /_logs:
     get:

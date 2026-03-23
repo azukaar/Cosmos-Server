@@ -1,3 +1,6 @@
+## Version 0.22.1
+ - Fix regression with Constellation server creation flow
+
 ## Version 0.22
  - Adding feature to create API key to directly query the Cosmos API
  - Added GO/TS/Terraform SDK to call the API from any project (AI assisted)

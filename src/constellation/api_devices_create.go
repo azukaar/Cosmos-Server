@@ -11,12 +11,12 @@ import (
 )
 
 type DeviceCreateRequestJSON struct {
-	DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum"`
+	DeviceName string `json:"deviceName" validate:"required,min=3,max=32"`
 	IP string `json:"ip" validate:"required,ipv4"`
 	PublicKey string `json:"publicKey,omitempty"`
 
 	// for devices only
-	Nickname string `json:"nickname" validate:"required,max=32,alphanum"`
+	Nickname string `json:"nickname,omitempty" validate:"omitempty,max=32"`
 	Invisible bool `json:"invisible,omitempty"`
 
 	// for lighthouse only

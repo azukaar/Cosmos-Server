@@ -177,7 +177,7 @@ func (r *constellationDeviceResource) Create(ctx context.Context, req resource.C
 	body := cosmossdk.ConstellationDeviceCreateRequestJSON{
 		DeviceName: deviceName,
 		Ip:         plan.IP.ValueString(),
-		Nickname:   nickname,
+		Nickname:   client.StringPtr(nickname),
 	}
 	if !plan.IsLighthouse.IsNull() && !plan.IsLighthouse.IsUnknown() {
 		body.IsLighthouse = client.BoolPtr(plan.IsLighthouse.ValueBool())

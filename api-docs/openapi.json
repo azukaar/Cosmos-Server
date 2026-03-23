@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.22.0"
+    "version": "0.22.1"
   },
   "paths": {
     "/_logs": {
@@ -9899,8 +9899,7 @@
         "type": "object",
         "required": [
           "deviceName",
-          "ip",
-          "nickname"
+          "ip"
         ],
         "properties": {
           "PublicHostname": {
