@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	cosmossdk "github.com/azukaar/cosmos-server/go-sdk"
 	"github.com/azukaar/terraform-provider-cosmos/internal/client"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -85,8 +86,8 @@ func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
-	body := map[string]interface{}{
-		"name": plan.Name.ValueString(),
+	body := cosmossdk.ProCreateGroupRequest{
+		Name: plan.Name.ValueString(),
 	}
 	if !plan.Permissions.IsNull() && !plan.Permissions.IsUnknown() {
 		var perms []int64
@@ -94,11 +95,11 @@ func (r *groupResource) Create(ctx context.Context, req resource.CreateRequest, 
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		intPerms := make([]int, len(perms))
+		sdkPerms := make([]cosmossdk.UtilsPermission, len(perms))
 		for i, p := range perms {
-			intPerms[i] = int(p)
+			sdkPerms[i] = cosmossdk.UtilsPermission(p)
 		}
-		body["permissions"] = intPerms
+		body.Permissions = &sdkPerms
 	}
 
 	httpResp, err := r.client.Raw.PostApiGroups(ctx, body)
@@ -154,9 +155,10 @@ func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		return
 	}
 
-	body := map[string]interface{}{}
+	body := cosmossdk.ProUpdateGroupRequest{}
 	if !plan.Name.IsNull() && !plan.Name.IsUnknown() {
-		body["name"] = plan.Name.ValueString()
+		name := plan.Name.ValueString()
+		body.Name = &name
 	}
 	if !plan.Permissions.IsNull() && !plan.Permissions.IsUnknown() {
 		var perms []int64
@@ -164,11 +166,11 @@ func (r *groupResource) Update(ctx context.Context, req resource.UpdateRequest, 
 		if resp.Diagnostics.HasError() {
 			return
 		}
-		intPerms := make([]int, len(perms))
+		sdkPerms := make([]cosmossdk.UtilsPermission, len(perms))
 		for i, p := range perms {
-			intPerms[i] = int(p)
+			sdkPerms[i] = cosmossdk.UtilsPermission(p)
 		}
-		body["permissions"] = intPerms
+		body.Permissions = &sdkPerms
 	}
 
 	// SDK uses int for the id path param
