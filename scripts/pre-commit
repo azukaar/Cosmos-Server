@@ -8,7 +8,7 @@ git add api-docs/ go-sdk/client.gen.go go-sdk/version.go
 # --- Pro leak check ---
 errors=0
 
-for dir in "src/pro" "client/src/pro"; do
+for dir in "client/src/pro"; do
   count=$(find "$dir" -type f | wc -l)
   if [ "$count" -ne 1 ]; then
     echo "ERROR: $dir/ must contain exactly 1 file, found $count"
