@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.22.1"
+    "version": "0.22.2"
   },
   "paths": {
     "/_logs": {
@@ -11605,6 +11605,9 @@
               "type": "string"
             }
           },
+          "NATSReplicas": {
+            "type": "integer"
+          },
           "constellationHostname": {
             "type": "string"
           },
@@ -12038,6 +12041,12 @@
           "target"
         ],
         "properties": {
+          "AdditionalTargets": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "LBMode": {
             "type": "string"
           },

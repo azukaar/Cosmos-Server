@@ -26,42 +26,67 @@ func (lb *TunnelLoadBalancer) getCounter(routeName string) *routeCounter {
 	return actual.(*routeCounter)
 }
 
+// Select picks a key from the given list using the configured LB mode.
+// Keys can be numeric indices ("0","1") for regular routes or device names for constellation tunnels.
+func (lb *TunnelLoadBalancer) Select(keys []string, routeName string, mode string, sticky bool, stickyKey string) string {
+	if len(keys) == 0 {
+		return ""
+	}
+
+	// Check sticky assignment
+	if sticky && stickyKey != "" {
+		prev, ok := constellation.GetStickyTarget(stickyKey)
+		if ok {
+			for _, k := range keys {
+				if k == prev {
+					return k
+				}
+			}
+			// Sticky target gone from list, fall through to re-assign
+		}
+	}
+
+	// Mode selection
+	var selected string
+	switch strings.ToLower(mode) {
+	case "round_robin":
+		c := lb.getCounter(routeName)
+		idx := c.val.Add(1) - 1
+		selected = keys[idx%uint64(len(keys))]
+	default: // "first" or ""
+		selected = keys[0]
+	}
+
+	// Store sticky assignment
+	if sticky && stickyKey != "" {
+		constellation.SetStickyTarget(stickyKey, selected)
+	}
+
+	return selected
+}
+
+// SelectTarget is a convenience wrapper for constellation tunnel targets.
 func (lb *TunnelLoadBalancer) SelectTarget(targets []utils.TunnelTarget, routeName string, mode string, sticky bool, stickyKey string) *utils.TunnelTarget {
 	if len(targets) == 0 {
 		return nil
 	}
 
-	// Check sticky assignment
-	if sticky && stickyKey != "" {
-		deviceName, ok := constellation.GetStickyTarget(stickyKey)
-		if ok {
-			for i := range targets {
-				if targets[i].DeviceName == deviceName {
-					return &targets[i]
-				}
-			}
-			// Sticky device gone from targets, fall through to re-assign
+	keys := make([]string, len(targets))
+	for i, t := range targets {
+		keys[i] = t.DeviceName
+	}
+
+	key := lb.Select(keys, routeName, mode, sticky, stickyKey)
+	if key == "" {
+		return nil
+	}
+
+	for i := range targets {
+		if targets[i].DeviceName == key {
+			return &targets[i]
 		}
 	}
-
-	// Mode selection
-	var selected *utils.TunnelTarget
-	mode = strings.ToLower(mode)
-	switch mode {
-	case "round_robin":
-		c := lb.getCounter(routeName)
-		idx := c.val.Add(1) - 1
-		selected = &targets[idx%uint64(len(targets))]
-	default: // "first" or ""
-		selected = &targets[0]
-	}
-
-	// Store sticky assignment
-	if sticky && stickyKey != "" && selected != nil {
-		constellation.SetStickyTarget(stickyKey, selected.DeviceName)
-	}
-
-	return selected
+	return nil
 }
 
 var DefaultTunnelLB = &TunnelLoadBalancer{}

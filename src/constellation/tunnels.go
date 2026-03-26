@@ -12,6 +12,14 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+func getNATSReplicas() int {
+	r := utils.GetMainConfig().ConstellationConfig.NATSReplicas
+	if r < 1 {
+		return 1
+	}
+	return r
+}
+
 func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 	// list routes with a tunnel property matching the device name
 	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
@@ -117,7 +125,7 @@ func ClientHeartbeatInit() {
 			Bucket:   "constellation-nodes",
 			TTL:      10 * time.Second,
 			Storage:  nats.MemoryStorage,
-			Replicas: 1,
+			Replicas: getNATSReplicas(),
 		})
 		clientConfigLock.RUnlock()
 
@@ -425,7 +433,7 @@ func ensureStickyBucket() (nats.KeyValue, error) {
 		Bucket:  "tunnel-sticky",
 		TTL:     120 * time.Second,
 		Storage: nats.MemoryStorage,
-		Replicas: 1,
+		Replicas: getNATSReplicas(),
 	})
 	return kv, err
 }

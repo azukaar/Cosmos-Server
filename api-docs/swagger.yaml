@@ -1472,6 +1472,8 @@ definitions:
         items:
           type: string
         type: array
+      NATSReplicas:
+        type: integer
       constellationHostname:
         type: string
       customDNSEntries:
@@ -1769,6 +1771,10 @@ definitions:
     type: object
   utils.ProxyRouteConfig:
     properties:
+      AdditionalTargets:
+        items:
+          type: string
+        type: array
       LBMode:
         type: string
       LBStickyMode:
@@ -1973,7 +1979,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.1
+  version: 0.22.2
 paths:
   /_logs:
     get:

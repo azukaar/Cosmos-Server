@@ -22,6 +22,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import ResyncDeviceModal from "./resyncDevice";
 import VPNSalesPage from "./free";
 import StatusDot from "../../components/statusDot";
+import proFeatures from "../../pro";
 
 export const ConstellationVPN = ({ freeVersion }) => {
   const { t } = useTranslation();
@@ -392,11 +393,12 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
                   IsLoadBalancer: currentDevice ? currentDevice.isLoadBalancer : false,
+                  NATSReplicas: config.ConstellationConfig.NATSReplicas || 1,
                 }}
                 onSubmit={async (values) => {
                   const isCreating = !config.ConstellationConfig.ThisDeviceName;
                   if (isCreating) {
-                    await API.constellation.create(values.DeviceName, values.IsLighthouse, values.ConstellationHostname, values.IPRange);
+                    await API.constellation.create(values.DeviceName, values.IsLighthouse, values.ConstellationHostname, values.IPRange, values.NATSReplicas);
                     setTimeout(() => {
                       refreshConfig();
                     }, 1500);
@@ -449,6 +451,9 @@ export const ConstellationVPN = ({ freeVersion }) => {
                           <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
                         </Tooltip>
                       </Stack>} /></>}
+
+                      {!config.ConstellationConfig.ThisDeviceName && proFeatures.ConstellationNATSReplicas && <proFeatures.ConstellationNATSReplicas formik={formik} />}
+
                       {constellationEnabled && formik.values.IsLighthouse && <>
                         <CosmosCheckbox disabled={!isAdmin} formik={formik} name="IsRelay" label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
                           <span>{t('mgmt.constellation.setup.relayRequests.label')}</span>

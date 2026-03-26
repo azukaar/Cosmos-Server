@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/int64planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringdefault"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
@@ -34,6 +35,7 @@ type constellationModel struct {
 	IPRange      types.String `tfsdk:"ip_range"`
 	IsLighthouse types.Bool   `tfsdk:"is_lighthouse"`
 	Enabled      types.Bool   `tfsdk:"enabled"`
+	NATSReplicas types.Int64  `tfsdk:"nats_replicas"`
 }
 
 func (r *constellationResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,6 +79,14 @@ func (r *constellationResource) Schema(_ context.Context, _ resource.SchemaReque
 				Description: "Whether the Constellation VPN is currently enabled.",
 				Computed:    true,
 			},
+			"nats_replicas": schema.Int64Attribute{
+				Description: "Number of NATS JetStream replicas for Raft consensus. Set during creation, cannot be changed after. Use odd numbers (1, 3, 5).",
+				Optional:    true,
+				Computed:    true,
+				PlanModifiers: []planmodifier.Int64{
+					int64planmodifier.RequiresReplace(),
+				},
+			},
 		},
 	}
 }
@@ -108,6 +118,9 @@ func (r *constellationResource) Create(ctx context.Context, req resource.CreateR
 		"hostname":     plan.Hostname.ValueString(),
 		"ipRange":      plan.IPRange.ValueString(),
 		"isLighthouse": plan.IsLighthouse.ValueBool(),
+	}
+	if !plan.NATSReplicas.IsNull() && !plan.NATSReplicas.IsUnknown() {
+		body["natsReplicas"] = plan.NATSReplicas.ValueInt64()
 	}
 
 	httpResp, err := r.client.Raw.PostApiConstellationCreate(ctx, body)

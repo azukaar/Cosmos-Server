@@ -181,23 +181,20 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) ([]utils.Permiss
 		userInBase.MFAState = 2
 	}
 
-	// Parse permissions from JWT token
-	rawPerms, hasPerms := claims["permissions"].([]interface{})
-	if !hasPerms {
-		// Old token without permissions claim — force re-login
-		utils.Warn("UserToken: Token missing permissions claim, forcing re-login")
+	// Resolve permissions from the user's current role in DB (not from the JWT)
+	// so that role/permission changes take effect immediately.
+	permissions := utils.GetRolePermissions(userInBase.Role)
+	if permissions == nil {
+		utils.Warn("UserToken: No permissions found for role, forcing re-login")
 		logOutUser(w, req)
 		redirectToReLogin(w, req)
-		return nil, false, utils.User{}, errors.New("Token missing permissions claim")
-	}
-	permissions := make([]utils.Permission, len(rawPerms))
-	for i, rp := range rawPerms {
-		permissions[i] = utils.Permission(int(rp.(float64)))
+		return nil, false, utils.User{}, errors.New("No permissions for user role")
 	}
 
 	// Determine sudo state from sudo-until timestamp
 	isSudoed := false
 	hasSudoPerms := utils.PermissionsHaveSudo(permissions)
+	resendToken := false
 
 	if hasSudoPerms {
 		if sudoUntilRaw, ok := claims["sudo-until"]; ok {
@@ -206,7 +203,7 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) ([]utils.Permiss
 				isSudoed = true
 				// If close to sudo expiry (within 1 hour), refresh
 				if time.Now().Unix() + 3600 > sudoUntil {
-					SendUserToken(w, req, userInBase, mfaDone, true)
+					resendToken = true
 					utils.Debug("UserToken: Sudo refreshing")
 				}
 			}
@@ -217,6 +214,33 @@ func RefreshUserToken(w http.ResponseWriter, req *http.Request) ([]utils.Permiss
 
 	// if close to expiration, refresh
 	if int64(claims["iat"].(float64)) + (24 * 3600) < time.Now().Unix() {
+		resendToken = true
+	}
+
+	// Check if permissions changed since last token — if so, refresh token & cookie
+	rawPerms, hasPerms := claims["permissions"].([]interface{})
+	permissionsChanged := !hasPerms
+	if !permissionsChanged {
+		tokenPerms := map[utils.Permission]bool{}
+		for _, rp := range rawPerms {
+			tokenPerms[utils.Permission(int(rp.(float64)))] = true
+		}
+		for _, p := range permissions {
+			if !tokenPerms[p] {
+				permissionsChanged = true
+				break
+			}
+			delete(tokenPerms, p)
+		}
+		if len(tokenPerms) > 0 {
+			permissionsChanged = true
+		}
+	}
+	if permissionsChanged {
+		resendToken = true
+	}
+
+	if resendToken {
 		SendUserToken(w, req, userInBase, mfaDone, isSudoed)
 	}
 

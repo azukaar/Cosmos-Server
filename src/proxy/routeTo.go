@@ -355,10 +355,9 @@ func TunnelRouteTo(tunnel utils.ConstellationTunnel, lb *TunnelLoadBalancer) htt
 	})
 }
 
-func RouteTo(route utils.ProxyRouteConfig) http.Handler {
-	// initialize a reverse proxy and pass the actual backend server url here
-
-	destination := route.Target
+// routeHandlerForTarget creates a single handler for the given target and mode.
+func routeHandlerForTarget(target string, route utils.ProxyRouteConfig) http.Handler {
+	destination := target
 	routeType := route.Mode
 
 	if (routeType == "STATIC" || routeType == "SPA") && utils.IsInsideContainer {
@@ -367,19 +366,17 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 		}
 	}
 
-	if(routeType == "SERVAPP" || routeType == "PROXY") {
+	if routeType == "SERVAPP" || routeType == "PROXY" {
 		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
 		if err != nil {
-				utils.Error("Create Route", err)
+			utils.Error("Create Route", err)
 		}
-
-		// create a handler function which uses the reverse proxy
 		return proxy
-	}  else if (routeType == "STATIC") {
+	} else if routeType == "STATIC" {
 		return http.FileServer(http.Dir(destination))
-	}  else if (routeType == "SPA") {
+	} else if routeType == "SPA" {
 		return utils.SPAHandler(destination)
-	} else if(routeType == "REDIRECT") {
+	} else if routeType == "REDIRECT" {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, destination, 302)
 		})
@@ -387,4 +384,60 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 		utils.Error("Invalid route type", nil)
 		return nil
 	}
+}
+
+func RouteTo(route utils.ProxyRouteConfig) http.Handler {
+	// No additional targets — single handler, no LB overhead
+	if len(route.AdditionalTargets) == 0 || !utils.IsPro() {
+		return routeHandlerForTarget(route.Target, route)
+	}
+
+	// Build handlers for all targets: primary + additional
+	allTargets := append([]string{route.Target}, route.AdditionalTargets...)
+	keys := make([]string, len(allTargets))
+	handlers := make(map[string]http.Handler, len(allTargets))
+	for i, t := range allTargets {
+		key := strconv.Itoa(i)
+		keys[i] = key
+		handlers[key] = routeHandlerForTarget(t, route)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sticky := route.LBStickyMode
+		stickyKey := ""
+
+		// Check cookie for sticky
+		var selected string
+		if sticky {
+			if cookie, err := r.Cookie("_cosmos_lb"); err == nil && cookie.Value != "" {
+				if _, ok := handlers[cookie.Value]; ok {
+					selected = cookie.Value
+				}
+			}
+			if selected == "" {
+				stickyKey = GetClientID(r, route)
+			}
+		}
+
+		if selected == "" {
+			selected = DefaultTunnelLB.Select(keys, route.Name, route.LBMode, sticky, stickyKey)
+		}
+
+		if selected == "" || handlers[selected] == nil {
+			http.Error(w, "No targets available", http.StatusBadGateway)
+			return
+		}
+
+		if sticky {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "_cosmos_lb",
+				Value:    selected,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   3600,
+			})
+		}
+
+		handlers[selected].ServeHTTP(w, r)
+	})
 }

@@ -63,6 +63,10 @@ var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
 
+func IsPro() bool {
+	return false
+}
+
 var InitPremiumFeatures func()
 
 var ResyncConstellationNodes = func() {}

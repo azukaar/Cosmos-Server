@@ -39,6 +39,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 			IsLighthouse bool   `json:"isLighthouse"`
 			Hostname string `json:"hostname"`
 			IPRange string `json:"ipRange"`
+			NATSReplicas int `json:"natsReplicas,omitempty"`
 		}
 
 		err := json.NewDecoder(req.Body).Decode(&request)
@@ -129,6 +130,9 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		config.ConstellationConfig.ThisDeviceName = deviceName
 		config.ConstellationConfig.ConstellationHostname = request.Hostname
 		config.ConstellationConfig.IPRange = request.IPRange
+		if request.NATSReplicas > 0 && utils.IsPro() {
+			config.ConstellationConfig.NATSReplicas = request.NATSReplicas
+		}
 		utils.SetBaseMainConfig(config)
 
 		utils.TriggerEvent(

@@ -1,3 +1,7 @@
+## Version 0.22.2
+ - Users / roles improvements 
+ - Cosmos Pro scaffolding 
+ 
 ## Version 0.22.1
  - Fix regression with Constellation server creation flow
 

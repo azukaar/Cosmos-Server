@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../../components/filePicker';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_CONFIGURATION } from '../../../utils/permissions';
+import proFeatures from '../../../pro';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -101,6 +102,9 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
           DisableLegacyHTTPHeaders: routeConfig.DisableLegacyHTTPHeaders === true,
+          LBMode: routeConfig.LBMode || '',
+          LBStickyMode: routeConfig.LBStickyMode === true,
+          AdditionalTargets: routeConfig.AdditionalTargets || [],
           _ExtraHeaders: routeConfig.ExtraHeaders
             ? Object.entries(routeConfig.ExtraHeaders).map(([key, value]) => ({ key, value }))
             : [],
@@ -508,6 +512,8 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         label={t('mgmt.urls.edit.advancedSettings.disableLegacyHTTPHeaders')}
                         formik={formik}
                       />
+
+                      {proFeatures.RouteLBSettings && <proFeatures.RouteLBSettings formik={formik} />}
                     </Stack>
                   </CosmosCollapse>
                 </Grid>

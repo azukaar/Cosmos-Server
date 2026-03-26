@@ -21,6 +21,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/proxy"
 	"github.com/azukaar/cosmos-server/src/backups"
+	"github.com/azukaar/cosmos-server/src/pro"
 	
 	"github.com/kardianos/service"
 )
@@ -201,7 +202,7 @@ func main() {
 }
 
 // @title Cosmos Server API
-// @version 0.22.1
+// @version 0.22.2
 // @description REST API for Cosmos Cloud server management
 // @BasePath /cosmos
 // @securityDefinitions.apikey BearerAuth
@@ -217,6 +218,7 @@ func cosmos() {
 	utils.RestartConstellation = constellation.RestartNebula
 	utils.InitSnapRAIDConfig = storage.InitSnapRAIDConfig
 	utils.InitBackups = backups.InitBackups
+	utils.IsPro = pro.IsPro
 	utils.RestartCRON = func() {
 		cron.InitJobs()
 		cron.InitScheduler()

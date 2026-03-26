@@ -88,6 +88,10 @@ const MainRoutes = {
             element: <UserManagement />
         },
         {
+            path: '/cosmos-ui/config-users/*',
+            element: <UserManagement />
+        },
+        {
             path: '/cosmos-ui/config-general',
             element: <ConfigManagement />
         },

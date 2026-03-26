@@ -95,6 +95,7 @@ type routeModel struct {
 	TunneledHost              types.String `tfsdk:"tunneled_host"`
 	LBMode                    types.String `tfsdk:"lb_mode"`
 	LBStickyMode              types.Bool   `tfsdk:"lb_sticky_mode"`
+	AdditionalTargets         types.List   `tfsdk:"additional_targets"`
 	UseHost                   types.Bool   `tfsdk:"use_host"`
 	UseH2C                    types.Bool   `tfsdk:"use_h2c"`
 	UsePathPrefix             types.Bool   `tfsdk:"use_path_prefix"`
@@ -254,6 +255,12 @@ func (r *routeResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 				Description: "Enable sticky sessions for load balancing.",
 				Optional:    true,
 				Computed:    true,
+			},
+			"additional_targets": schema.ListAttribute{
+				Description: "Additional target URLs for load balancing.",
+				Optional:    true,
+				Computed:    true,
+				ElementType: types.StringType,
 			},
 			"use_host": schema.BoolAttribute{
 				Description: "Whether the route matches by hostname.",
@@ -596,6 +603,11 @@ func routeModelToSDK(ctx context.Context, m routeModel, diags *diag.Diagnostics)
 	if !m.LBStickyMode.IsNull() && !m.LBStickyMode.IsUnknown() {
 		cfg.LBStickyMode = client.BoolPtr(m.LBStickyMode.ValueBool())
 	}
+	if !m.AdditionalTargets.IsNull() && !m.AdditionalTargets.IsUnknown() {
+		var targets []string
+		diags.Append(m.AdditionalTargets.ElementsAs(ctx, &targets, false)...)
+		cfg.AdditionalTargets = &targets
+	}
 	if !m.UseHost.IsNull() && !m.UseHost.IsUnknown() {
 		cfg.UseHost = client.BoolPtr(m.UseHost.ValueBool())
 	}
@@ -703,6 +715,13 @@ func sdkToRouteModel(ctx context.Context, route *cosmossdk.UtilsProxyRouteConfig
 	m.TunneledHost = types.StringValue(client.StringPtrVal(route.TunneledHost))
 	m.LBMode = types.StringValue(client.StringPtrVal(route.LBMode))
 	m.LBStickyMode = types.BoolValue(client.BoolPtrVal(route.LBStickyMode))
+	if route.AdditionalTargets != nil && len(*route.AdditionalTargets) > 0 {
+		listVal, d := types.ListValueFrom(ctx, types.StringType, *route.AdditionalTargets)
+		diags.Append(d...)
+		m.AdditionalTargets = listVal
+	} else {
+		m.AdditionalTargets = types.ListNull(types.StringType)
+	}
 	m.UseHost = types.BoolValue(client.BoolPtrVal(route.UseHost))
 	m.UseH2C = types.BoolValue(client.BoolPtrVal(route.UseH2C))
 	m.UsePathPrefix = types.BoolValue(client.BoolPtrVal(route.UsePathPrefix))

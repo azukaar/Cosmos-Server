@@ -5,3 +5,30 @@ echo "regenerating OpenAPI spec and Go SDK..."
 bash scripts/generate-api.sh
 git add api-docs/ go-sdk/client.gen.go go-sdk/version.go
 
+# --- Pro leak check ---
+errors=0
+
+for dir in "src/pro" "client/src/pro"; do
+  count=$(find "$dir" -type f | wc -l)
+  if [ "$count" -ne 1 ]; then
+    echo "ERROR: $dir/ must contain exactly 1 file, found $count"
+    errors=1
+  fi
+done
+
+if ! grep -Pzo 'func IsPro\(\) bool \{\s*\n\s*return false\s*\n\}' src/pro/index.go > /dev/null; then
+  echo "ERROR: src/pro/index.go — IsPro() must return false"
+  errors=1
+fi
+
+if ! grep -Pq 'isPro\s*:\s*false' client/src/pro/index.js; then
+  echo "ERROR: client/src/pro/index.js — isPro must be false"
+  errors=1
+fi
+
+if [ "$errors" -ne 0 ]; then
+  echo "Pro leak check FAILED."
+  exit 1
+fi
+
+echo "Pre-commit checks passed."

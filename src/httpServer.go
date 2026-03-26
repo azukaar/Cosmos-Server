@@ -14,6 +14,7 @@ import (
 		"github.com/azukaar/cosmos-server/src/cron"
 		"github.com/azukaar/cosmos-server/src/storage"
 		"github.com/azukaar/cosmos-server/src/backups"
+		"github.com/azukaar/cosmos-server/src/pro"
 		"github.com/gorilla/mux"
 		"time"
 		"os"
@@ -760,6 +761,8 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/subfolder-restore-size", backups.StatsRepositorySubfolderRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/unlock", backups.UnlockRepositoryRoute)
 	srapiAdmin.HandleFunc("/api/backups-repository/{name}/stats", backups.RepoStatsRoute)
+
+	pro.RegisterRoutes(srapiAdmin)
 
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")

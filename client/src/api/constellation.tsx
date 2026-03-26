@@ -136,7 +136,7 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
     });
   }
 
-  function create(deviceName, isLighthouse, hostname, ipRange) {
+  function create(deviceName, isLighthouse, hostname, ipRange, natsReplicas) {
     return wrap(apiFetch(`/cosmos/api/constellation/create`, {
       method: 'POST',
       headers: {
@@ -146,7 +146,8 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
         deviceName,
         isLighthouse,
         hostname,
-        ipRange
+        ipRange,
+        natsReplicas,
       }),
     }))
   }

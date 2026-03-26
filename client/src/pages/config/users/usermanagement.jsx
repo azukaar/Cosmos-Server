@@ -1,7 +1,7 @@
 // material-ui
 import * as React from 'react';
 import { Button, LinearProgress, Stack, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
-import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined } from '@ant-design/icons';
+import { WarningOutlined, PlusCircleOutlined, CopyOutlined, ExclamationCircleOutlined , SyncOutlined, UserOutlined, KeyOutlined, CheckCircleFilled } from '@ant-design/icons';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -26,6 +26,8 @@ import { Trans, useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_USERS } from '../../../utils/permissions';
+import PrettyTabbedView from '../../../components/tabbedView/tabbedView';
+import proFeatures from '../../../pro';
 
 const UserManagement = () => {
     const { t } = useTranslation();
@@ -56,11 +58,16 @@ const UserManagement = () => {
           setStatus(res.data);
         });
 
-        API.config.get().then((res) => {
+        Promise.all([API.config.get(), API.groups.list()]).then(([configRes, groupsRes]) => {
           const configRoles = {1: 'User', 2: 'Admin'};
-          if (res.data && res.data.Roles) {
-            Object.keys(res.data.Roles).forEach((k) => {
-              configRoles[k] = res.data.Roles[k].name;
+          if (configRes.data && configRes.data.Roles) {
+            Object.keys(configRes.data.Roles).forEach((k) => {
+              configRoles[k] = configRes.data.Roles[k].name;
+            });
+          }
+          if (groupsRes.data) {
+            Object.keys(groupsRes.data).forEach((k) => {
+              configRoles[k] = groupsRes.data[k].name;
             });
           }
           setRoles(configRoles);
@@ -83,7 +90,7 @@ const UserManagement = () => {
         });
     }
 
-    return <div style={{ maxWidth: "1200px", margin: "auto" }}>
+    const usersContent = <div style={{ maxWidth: "1200px", margin: "auto" }}>
         {openInviteForm ? <Dialog open={openInviteForm} onClose={() => setOpenInviteForm(false)}>
             <DialogTitle>{t('mgmt.usermgmt.inviteUserTitle')}</DialogTitle>
             <DialogContent>
@@ -92,7 +99,7 @@ const UserManagement = () => {
                         paddingBottom: '15px',
                         maxWidth: '350px',
                     }}>
-                        {toAction.emailWasSent ? 
+                        {toAction.emailWasSent ?
                             <div>
                                 <strong>{t('mgmt.usermgmt.inviteUser.emailSentConfirmation')}</strong> {t('mgmt.usermgmt.inviteUser.emailSentwithLink')} {toAction.formAction}. {t('mgmt.usermgmt.inviteUser.emailSentAltShareLink')}
                             </div> :
@@ -101,7 +108,7 @@ const UserManagement = () => {
                             </div>
                         }
                     </div>
-                    
+
                     <div>
                     <div style={{float: 'left', width: '300px', padding: '5px', background:'rgba(0,0,0,0.15)', whiteSpace: 'nowrap', wordBreak: 'keep-all', overflow: 'auto', fontStyle: 'italic'}}>{toAction.sendLink}</div>
                         <IconButton size="large" style={{float: 'left'}} aria-label="copy" onClick={
@@ -140,7 +147,7 @@ const UserManagement = () => {
                 }}>{t('global.delete')}</Button>
             </DialogActions>
         </Dialog>
-        
+
         <Dialog open={!!openEditUser} onClose={() => setOpenEditUser(null)}>
             <DialogTitle>{t('mgmt.usermgmt.editEmailTitle')}</DialogTitle>
             <DialogContent>
@@ -242,13 +249,13 @@ const UserManagement = () => {
                 } />
             </div>
         </Stack>
-        
+
         <br /><br />
 
 
         {isLoading && <center><br /><CircularProgress /></center>}
 
-        {!isLoading && rows && (<PrettyTableView 
+        {!isLoading && rows && (<PrettyTableView
             data={rows}
             onRowClick = {(r) => {
                 setOpenEditUser(r);
@@ -269,8 +276,8 @@ const UserManagement = () => {
                         const inviteExpired = new Date(r.registerKeyExp).getTime() < new Date().getTime();
 
                         return <>{isRegistered ? (<Chip
-                                icon={r.role === 2 ? <KeyOutlined /> : <UserOutlined />}
-                                label={roles[r.role] || t('global.user')}
+                                icon={<CheckCircleFilled  />}
+                                label={t('global.active')}
                             />) : (
                                 inviteExpired ? <Chip
                                     icon={<ExclamationCircleOutlined  />}
@@ -285,8 +292,15 @@ const UserManagement = () => {
                     }
                 },
                 {
+                    title: t('global.role'),
+                    screenMin: 'sm',
+                    field: (r) => {
+                        return roles[r.role] || r.role;
+                    }
+                },
+                {
                     title: 'Email',
-                    screenMin: 'md', 
+                    screenMin: 'md',
                     field: (r) => r.email,
                 },
                 {
@@ -296,7 +310,7 @@ const UserManagement = () => {
                 },
                 {
                     title: t('mgmt.usermgmt.lastLogin'),
-                    screenMin: 'lg', 
+                    screenMin: 'lg',
                     field: (r) => {
                         const hasLastLogin = new Date(r.lastLogin).getTime() > 0;
                         return <>{hasLastLogin ? dayjs(new Date(r.lastLogin)).format('L, LT') : t('global.never')}</>
@@ -347,6 +361,28 @@ const UserManagement = () => {
             ]}
         />)}
     </div>;
+
+    const tabs = [
+        {
+            title: t('global.users', 'Users'),
+            children: usersContent,
+            url: '/users',
+        },
+    ];
+
+    if (proFeatures.GroupsTab) {
+        const GroupsTab = proFeatures.GroupsTab;
+        tabs.push({
+            title: t('mgmt.groups.title', 'Groups'),
+            children: <GroupsTab />,
+            url: '/groups',
+        });
+    }
+
+    return <PrettyTabbedView
+        rootURL="/cosmos-ui/config-users"
+        tabs={tabs}
+    />;
 };
 
 export default UserManagement;

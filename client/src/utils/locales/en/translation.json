@@ -39,6 +39,8 @@
 	"global.RAM": "RAM",
 	"global.addAction": "Add",
 	"global.backAction": "Back",
+	"global.active": "Active",
+	"global.role": "Role",
 	"global.cancelAction": "Cancel",
 	"global.close": "Close",
 	"global.confirmAction": "Confirm",

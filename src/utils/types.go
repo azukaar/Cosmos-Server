@@ -365,6 +365,7 @@ type ProxyRouteConfig struct {
 	UseH2C                     bool                        `yaml:"use_h2c"`
 	LBMode                     string                      `yaml:"lb_mode" json:"LBMode,omitempty"`
 	LBStickyMode               bool                        `yaml:"lb_sticky_mode" json:"LBStickyMode,omitempty"`
+	AdditionalTargets          []string                    `yaml:"additional_targets,omitempty" json:"AdditionalTargets,omitempty"`
 	Const_IsTunneled           bool                        `yaml:"-" json:"-"`
 }
 
@@ -410,6 +411,7 @@ type ConstellationConfig struct {
 	ThisDeviceName string
 	ConstellationHostname string
 	IPRange string
+	NATSReplicas int `json:"NATSReplicas,omitempty"`
 }
 
 type TunnelTarget struct {
