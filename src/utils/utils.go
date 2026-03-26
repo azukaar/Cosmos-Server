@@ -62,10 +62,7 @@ var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
-
-func IsPro() bool {
-	return false
-}
+var IsPro func() bool = func() bool { return false }
 
 var InitPremiumFeatures func()
 
