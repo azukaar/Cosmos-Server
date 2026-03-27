@@ -58,17 +58,7 @@ const UserManagement = () => {
           setStatus(res.data);
         });
 
-        API.config.get().then((configRes) => {
-          const configRoles = {1: 'User', 2: 'Admin'};
-          if (configRes.data && configRes.data.Roles) {
-            Object.keys(configRes.data.Roles).forEach((k) => {
-              configRoles[k] = configRes.data.Roles[k].name;
-            });
-          }
-          setRoles(configRoles);
-        });
-
-        if (proFeatures.isPro) {
+        if (proFeatures.isPro()) {
           API.groups.list().then((groupsRes) => {
             if (groupsRes.data) {
               setRoles((prev) => {

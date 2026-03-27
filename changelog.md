@@ -1,3 +1,6 @@
+## Version 0.22.3
+ - fix 404 on user page
+
 ## Version 0.22.2
  - Users / roles improvements 
  - Cosmos Pro scaffolding 

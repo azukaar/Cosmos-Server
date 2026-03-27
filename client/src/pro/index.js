@@ -1,5 +1,5 @@
 export default {
-    isPro: false,
+    isPro: ()=> false,
     GroupsTab: null,
     RouteLBSettings: null,
     ConstellationNATSReplicas: null,
