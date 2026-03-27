@@ -7,4 +7,6 @@ func IsPro() bool {
 }
 
 func RegisterRoutes(router *mux.Router) {
+	router.HandleFunc("/api/groups", GroupsRoute)
+	router.HandleFunc("/api/groups/{id}", GroupsIdRoute)
 }

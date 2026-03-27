@@ -58,20 +58,29 @@ const UserManagement = () => {
           setStatus(res.data);
         });
 
-        Promise.all([API.config.get(), API.groups.list()]).then(([configRes, groupsRes]) => {
+        API.config.get().then((configRes) => {
           const configRoles = {1: 'User', 2: 'Admin'};
           if (configRes.data && configRes.data.Roles) {
             Object.keys(configRes.data.Roles).forEach((k) => {
               configRoles[k] = configRes.data.Roles[k].name;
             });
           }
-          if (groupsRes.data) {
-            Object.keys(groupsRes.data).forEach((k) => {
-              configRoles[k] = groupsRes.data[k].name;
-            });
-          }
           setRoles(configRoles);
         });
+
+        if (proFeatures.isPro) {
+          API.groups.list().then((groupsRes) => {
+            if (groupsRes.data) {
+              setRoles((prev) => {
+                const updated = {...prev};
+                Object.keys(groupsRes.data).forEach((k) => {
+                  updated[k] = groupsRes.data[k].name;
+                });
+                return updated;
+              });
+            }
+          });
+        }
     }
 
     useEffect(() => {
