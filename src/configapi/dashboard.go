@@ -37,7 +37,7 @@ type DashboardRoute struct {
 // @Failure 405 {object} utils.HTTPErrorResult
 // @Router /api/dashboard [get]
 func DashboardApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
@@ -47,7 +47,7 @@ func DashboardApiGet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	isAdmin := utils.HasPermission(req, utils.PERM_ADMIN)
+	isAdmin := utils.HasPermission(req, utils.PERM_ADMIN_READ)
 	config := utils.ReadConfigFromFile()
 
 	// Get containers if docker is available

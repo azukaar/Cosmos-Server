@@ -1,3 +1,6 @@
+## Version 0.22.4
+ - Fix dashboard permission being too stricts
+
 ## Version 0.22.3
  - fix 404 on user page
 
