@@ -73,7 +73,7 @@ func API_RClone_ListRemotes(w http.ResponseWriter, req *http.Request) {
 	dump := config.DumpRcBlob()
 	remotes := make(map[string]interface{})
 	for name, cfg := range dump {
-		if cfgMap, ok := cfg.(map[string]interface{}); ok {
+		if cfgMap, ok := cfg.(rc.Params); ok {
 			remotes[name] = map[string]interface{}{
 				"type": cfgMap["type"],
 			}

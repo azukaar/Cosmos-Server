@@ -202,7 +202,7 @@ func main() {
 }
 
 // @title Cosmos Server API
-// @version 0.22.4
+// @version 0.22.5
 // @description REST API for Cosmos Cloud server management
 // @BasePath /cosmos
 // @securityDefinitions.apikey BearerAuth

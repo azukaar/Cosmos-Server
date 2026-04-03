@@ -1,3 +1,6 @@
+## Version 0.22.5
+ - Fix issue with displaying Remote storages
+
 ## Version 0.22.4
  - Fix dashboard permission being too stricts
 
