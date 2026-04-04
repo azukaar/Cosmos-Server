@@ -57,9 +57,9 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 				protocol = "http://"
 			}
 
-			// if protocol is https, force http
+			// if protocol is https, skip certificate check for tunnel VPN IP
 			if protocol == "https://" {
-				protocol = "http://"
+				route.AcceptInsecureHTTPSTarget = true
 			}
 
 			route.Target = protocol + thisIp
