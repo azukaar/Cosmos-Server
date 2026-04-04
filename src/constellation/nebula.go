@@ -80,8 +80,8 @@ func startNebula() error {
 	}
 
 	UpdateFirewallBlockedClients()
-	AdjustDNS(logBuffer)
 	e := ExportLighthouseFromDB()
+	AdjustDNS(logBuffer)
 	if e != nil {
 		utils.Error("Failed to export lighthouse config from DB", e)	
 	}
