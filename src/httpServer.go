@@ -574,6 +574,9 @@ func InitServer() *mux.Router {
 				return
 			}
 		}
+		
+		utils.Warn("[NotFound] No route matched: Host=" + r.Host + " Path=" + r.URL.Path + " Method=" + r.Method)
+
 		http.NotFound(w, r)
 	})
 

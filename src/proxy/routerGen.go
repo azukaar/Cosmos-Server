@@ -139,12 +139,16 @@ func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler)
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
 	origin := router.NewRoute()
 
+	utils.Debug("[RouterGen] Processing route: Name=" + route.Name + " Host=" + route.Host + " UseHost=" + strconv.FormatBool(route.UseHost) + " Mode=" + string(route.Mode) + " Target=" + route.Target + " IsTunneled=" + strconv.FormatBool(route.Const_IsTunneled))
+
 	if route.UseHost {
 		// If hostname is 0.0.0.0, treat it as a wildcard (match any host with that port)
 		if strings.Contains(route.Host, ":") && (strings.Split(route.Host, ":")[0] == "0.0.0.0" || route.Host[0] == ':') {
 			port := strings.Split(route.Host, ":")[1]
+			utils.Debug("[RouterGen] Registering wildcard host matcher: {host:[^:]+}:" + port)
 			origin = origin.Host("{host:[^:]+}:" + port)
 		} else {
+			utils.Debug("[RouterGen] Registering host matcher: " + route.Host)
 			origin = origin.Host(route.Host)
 		}
 

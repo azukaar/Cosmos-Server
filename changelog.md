@@ -1,3 +1,9 @@
+## Version 0.22.7
+ - No change, just add more logs 
+
+## Version 0.22.6
+ - Fix potential DNS issue with Constellation domains
+
 ## Version 0.22.5
  - Fix issue with displaying Remote storages
 
