@@ -712,7 +712,7 @@ func GetServerURL(overwriteHostname string) string {
 	return ServerURL + "/"
 }
 
-func GetServerRawAccess() (string, string) {
+func GetServerRawAccess() (string, string, string) {
 	Hostname := ""
 	Port := ""
 
@@ -725,7 +725,12 @@ func GetServerRawAccess() (string, string) {
 		Port = MainConfig.HTTPConfig.HTTPPort
 	}
 
-	return Hostname, Port
+	protocol := "http://"
+	if IsHTTPS {
+		protocol = "https://"
+	}
+
+	return protocol, Hostname, Port
 }
 
 func GetServerPort() string {

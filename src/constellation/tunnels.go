@@ -31,7 +31,7 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 		return tunnels
 	}
 	
-	_, configHostport := utils.GetServerRawAccess()
+	serverProtocol, _, configHostport := utils.GetServerRawAccess()
 
 	for _, route := range routesList {
 		if route.Tunnel != "" {
@@ -54,12 +54,16 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 					protocol = route.Target[:idx+3]
 				}
 			} else {
+				// TODO: This wont work needs to copy setting
 				protocol = "http://"
 			}
 
 			// if protocol is https, skip certificate check for tunnel VPN IP
-			if protocol == "https://" {
-				route.AcceptInsecureHTTPSTarget = true
+			if protocol == "https://" || protocol == "http://" {
+				protocol = serverProtocol
+				if protocol == "https://" {
+					route.AcceptInsecureHTTPSTarget = true
+				}
 			}
 
 			route.Target = protocol + thisIp
