@@ -140,6 +140,78 @@ func CanSendEmail(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// SendTestEmail godoc
+// @Summary Send a test email
+// @Description Sends a test email to the currently logged-in admin user to verify SMTP configuration
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/send-test-email [post]
+func SendTestEmail(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		utils.Error("SendTestEmail: Method not allowed "+req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+
+	if utils.CheckPermissions(w, req, utils.PERM_ADMIN) != nil {
+		return
+	}
+
+	if !utils.IsEmailEnabled() {
+		utils.HTTPError(w, "Email is not enabled", http.StatusBadRequest, "TE004")
+		return
+	}
+
+	nickname := utils.GetAuthContext(req).Nickname
+
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+	defer closeDb()
+	if errCo != nil {
+		utils.Error("SendTestEmail: Database Connect", errCo)
+		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
+		return
+	}
+
+	user := utils.User{}
+	err := c.FindOne(nil, map[string]interface{}{"Nickname": nickname}).Decode(&user)
+	if err != nil {
+		utils.Error("SendTestEmail: User not found", err)
+		utils.HTTPError(w, "User not found", http.StatusInternalServerError, "TE001")
+		return
+	}
+
+	if user.Email == "" {
+		utils.Error("SendTestEmail: Admin has no email configured", nil)
+		utils.HTTPError(w, "No email address configured for your account", http.StatusBadRequest, "TE002")
+		return
+	}
+
+	errEmail := utils.SendEmail(
+		[]string{user.Email},
+		"Cosmos Test Email",
+		"<h1>Test Email</h1>Your Cosmos SMTP configuration is working correctly.",
+	)
+
+	if errEmail != nil {
+		utils.Error("SendTestEmail: Failed to send email", errEmail)
+		utils.HTTPError(w, "Failed to send email: "+errEmail.Error(), http.StatusInternalServerError, "TE003")
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"status": "OK",
+		"data": map[string]interface{}{
+			"sentTo": user.Email,
+		},
+	})
+}
+
 func getRealSizeOf(v interface{}) (int) {
 	b := new(bytes.Buffer)
 	// if map return number of keys

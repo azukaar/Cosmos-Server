@@ -34,6 +34,15 @@ export default function createConfigAPI(apiFetch: ApiFetch) {
     })
   }
 
+  function sendTestEmail() {
+    return wrap(apiFetch('/cosmos/api/send-test-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    }), true);
+  }
+
   function canSendEmail() {
     return apiFetch('/cosmos/api/can-send-email', {
       method: 'GET',
@@ -166,6 +175,7 @@ export default function createConfigAPI(apiFetch: ApiFetch) {
     moveRouteDown,
     deleteRoute,
     addRoute,
+    sendTestEmail,
     canSendEmail,
     getBackup,
     getDashboard,
