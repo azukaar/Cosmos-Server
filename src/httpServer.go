@@ -639,6 +639,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/_memory", MemStatusRoute)
 	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 	
+	srapiAdmin.HandleFunc("/api/send-test-email", SendTestEmail)
 	srapiAdmin.HandleFunc("/api/invite", user.UserResendInviteLink)
 	srapiAdmin.HandleFunc("/api/users/{nickname}", user.UsersIdRoute)
 	srapiAdmin.HandleFunc("/api/users", user.UsersRoute)

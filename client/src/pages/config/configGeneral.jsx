@@ -11,6 +11,7 @@ import {
   FormHelperText,
   TextField,
   MenuItem,
+  Tooltip,
 } from '@mui/material';
 import { WarningFilled } from '@ant-design/icons';
 import { CosmosCheckbox, CosmosInputPassword, CosmosInputText } from './users/formShortcuts';
@@ -55,6 +56,8 @@ const ConfigGeneral = ({ formik, config, status, isAdmin }) => {
   const { t } = useTranslation();
   const [isCheckingUpdate, setIsCheckingUpdate] = React.useState(false);
   const [licenseValidation, setLicenseValidation] = React.useState({ checked: false, valid: null });
+  const [isSendingTestEmail, setIsSendingTestEmail] = React.useState(false);
+  const [testEmailResult, setTestEmailResult] = React.useState(null);
 
   return (
     <Stack spacing={3}>
@@ -343,6 +346,37 @@ const ConfigGeneral = ({ formik, config, status, isAdmin }) => {
               name="Email_NotifyLogin"
               formik={formik}
             />
+
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Tooltip title={formik.dirty ? t('mgmt.config.email.testEmailUnsavedTooltip') : ''}>
+                <span>
+                  <LoadingButton
+                    loading={isSendingTestEmail}
+                    disabled={formik.dirty}
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => {
+                      setIsSendingTestEmail(true);
+                      setTestEmailResult(null);
+                      API.config.sendTestEmail().then((res) => {
+                        setIsSendingTestEmail(false);
+                        setTestEmailResult({ success: true, message: t('mgmt.config.email.testEmailSuccess', { email: res.data.sentTo }) });
+                      }).catch((e) => {
+                        setIsSendingTestEmail(false);
+                        setTestEmailResult({ success: false, message: e.message || t('mgmt.config.email.testEmailError') });
+                      });
+                    }}
+                  >
+                    {t('mgmt.config.email.testEmailButton')}
+                  </LoadingButton>
+                </span>
+              </Tooltip>
+              {testEmailResult && (
+                <Alert severity={testEmailResult.success ? 'success' : 'error'} sx={{ flex: 1 }}>
+                  {testEmailResult.message}
+                </Alert>
+              )}
+            </Stack>
           </>)}
         </Stack>
       </MainCard>
