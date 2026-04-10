@@ -15,11 +15,11 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-go build -o build/cosmos src/*.go
+CGO_ENABLED=0 go build -o build/cosmos src/*.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
-go build -o build/cosmos-launcher ./src/launcher/launcher.go ./src/launcher/update.go
+CGO_ENABLED=0 go build -o build/cosmos-launcher ./src/launcher/launcher.go ./src/launcher/update.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
