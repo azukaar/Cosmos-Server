@@ -1,7 +1,7 @@
 default: build
 
 build:
-	go build -o terraform-provider-cosmos
+	CGO_ENABLED=0 go build -o terraform-provider-cosmos
 
 install: build
 	mkdir -p ~/.terraform.d/plugins/cosmos-cloud.io/azukaar/cosmos/0.1.0/linux_amd64

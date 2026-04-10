@@ -6,11 +6,11 @@ rm -rf build
 
 cp src/update.go src/launcher/update.go
 
-env GOARCH=arm64 go build -o build/cosmos-arm64 src/*.go
+env GOARCH=arm64 CGO_ENABLED=0 go build -o build/cosmos-arm64 src/*.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
-env GOARCH=arm64 go build -o build/cosmos-launcher-arm64 ./src/launcher/launcher.go ./src/launcher/update.go
+env GOARCH=arm64 CGO_ENABLED=0 go build -o build/cosmos-launcher-arm64 ./src/launcher/launcher.go ./src/launcher/update.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
