@@ -3,8 +3,10 @@ package utils
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/smtp"
 	"strings"
+	"time"
 )
 
 var Template = `From: %s
@@ -101,8 +103,15 @@ func SendEmail(recipients []string, subject string, body string) error {
 	LogoURL := ServerURL + "logo"
 
 	send := func(addr string, a smtp.Auth, from string, to []string, msg []byte) error {
-		c, err := smtp.Dial(addr)
+		conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
 		if err != nil {
+			return err
+		}
+		conn.SetDeadline(time.Now().Add(10 * time.Second))
+		host, _, _ := net.SplitHostPort(addr)
+		c, err := smtp.NewClient(conn, host)
+		if err != nil {
+			conn.Close()
 			return err
 		}
 		defer c.Close()
