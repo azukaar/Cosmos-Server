@@ -36,6 +36,6 @@ sed -i "s/const Version = \".*\"/const Version = \"$VERSION\"/" version.go
 
 # 7. Resolve dependencies and verify it compiles
 go mod tidy
-go build ./...
+CGO_ENABLED=0 go build ./...
 
 echo "API spec and Go SDK regenerated for v${VERSION}"
