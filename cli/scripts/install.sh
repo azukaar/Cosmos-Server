@@ -39,7 +39,7 @@ if [ -z "$LATEST" ]; then
 fi
 
 BINARY="cosmos-${OS}-${ARCH}"
-URL="https://github.com/${REPO}/releases/download/cli%2Fv${LATEST}/${BINARY}"
+URL="https://github.com/${REPO}/releases/download/cli%2F${LATEST}/${BINARY}"
 
 info "Downloading cosmos CLI v${LATEST} (${OS}/${ARCH})..."
 curl -fsSL -o "${TMP}/cosmos" "${URL}"
