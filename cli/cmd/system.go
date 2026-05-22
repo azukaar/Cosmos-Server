@@ -43,21 +43,40 @@ var systemStatusCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		// Pretty key/value output
+		// Pretty key/value output — skip noisy certificate fields
 		var kv map[string]interface{}
 		if err := json.Unmarshal(ar.Data, &kv); err != nil {
 			return output.JSON(ar.Data)
 		}
+		// Ordered list of fields to display
+		fields := []struct{ key, label string }{
+			{"hostname", "Hostname"},
+			{"CPU", "CPU"},
+			{"docker", "Docker"},
+			{"database", "Database"},
+			{"HTTPSCertificateMode", "HTTPS Mode"},
+			{"letsencrypt", "Let's Encrypt"},
+			{"Licence", "Licence"},
+			{"containerized", "Containerized"},
+			{"hostmode", "Host Mode"},
+			{"needsRestart", "Needs Restart"},
+			{"newVersionAvailable", "New Version"},
+			{"MonitoringDisabled", "Monitoring"},
+			{"backup_status", "Backup Status"},
+			{"ConstellationName", "Constellation"},
+		}
 		maxLen := 0
-		keys := make([]string, 0, len(kv))
-		for k := range kv {
-			keys = append(keys, k)
-			if len(k) > maxLen {
-				maxLen = len(k)
+		for _, f := range fields {
+			if len(f.label) > maxLen {
+				maxLen = len(f.label)
 			}
 		}
-		for _, k := range keys {
-			fmt.Printf("  %-*s  %v\n", maxLen, k, kv[k])
+		for _, f := range fields {
+			v, ok := kv[f.key]
+			if !ok {
+				continue
+			}
+			fmt.Printf("  %-*s  %v\n", maxLen, f.label, v)
 		}
 		return nil
 	},

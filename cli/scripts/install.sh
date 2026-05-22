@@ -41,7 +41,7 @@ fi
 BINARY="cosmos-${OS}-${ARCH}"
 URL="https://github.com/${REPO}/releases/download/cli/${LATEST}/${BINARY}"
 
-info "Downloading cosmos CLI v${LATEST} (${OS}/${ARCH})..."
+info "Downloading cosmos CLI ${LATEST} (${OS}/${ARCH})..."
 curl -fsSL -o "${TMP}/cosmos" "${URL}"
 chmod +x "${TMP}/cosmos"
 
