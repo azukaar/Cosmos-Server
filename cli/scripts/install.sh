@@ -48,7 +48,7 @@ chmod +x "${TMP}/cosmos"
 mkdir -p "${BIN_DIR}"
 mv "${TMP}/cosmos" "${BIN_DIR}/cosmos"
 
-success "cosmos CLI v${LATEST} installed to ${BIN_DIR}/cosmos"
+success "cosmos CLI ${LATEST} installed to ${BIN_DIR}/cosmos"
 echo ""
 
 if ! echo "$PATH" | grep -q "${BIN_DIR}"; then
