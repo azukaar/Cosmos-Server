@@ -6,13 +6,13 @@ Manage containers, routes, users, backups, storage, and more from any terminal â
 ## Installation
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/VHStark/Cosmos-Server/main/cli/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/azukaar/Cosmos-Server/main/cli/scripts/install.sh | bash
 ```
 
 Or build from source:
 
 ```bash
-git clone https://github.com/VHStark/Cosmos-Server
+git clone https://github.com/azukaar/Cosmos-Server
 cd Cosmos-Server/cli
 go build -o cosmos .
 ```

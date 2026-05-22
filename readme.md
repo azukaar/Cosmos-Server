@@ -216,7 +216,7 @@ Finally a Terraform provider is available to fully automate your setup:  [Terraf
 A full-featured command-line interface is available to manage your Cosmos Server from any terminal — locally or remotely.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/VHStark/Cosmos-Server/master/cli/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/azukaar/Cosmos-Server/master/cli/scripts/install.sh | bash
 ```
 
 ```bash

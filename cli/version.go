@@ -1,4 +1,4 @@
 package main
 
-// Version is the CLI version, synced with Cosmos Server at build time.
-const Version = "0.22.18"
+// Version is set at build time via -ldflags "-X main.Version=x.y.z"
+var Version = "0.0.0-dev"
