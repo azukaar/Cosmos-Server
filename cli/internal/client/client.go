@@ -35,7 +35,7 @@ func New(r *config.Resolved) (*cosmossdk.Client, error) {
 
 	addHeaders := func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", "Bearer "+token)
-		req.Header.Set("Host", host)
+		req.Host = host // net/http ignores Header.Set("Host") — must set req.Host
 		return nil
 	}
 
