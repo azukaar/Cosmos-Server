@@ -211,6 +211,25 @@ The GO SDK can be found in the go-sdk folder and used with [Go SDK documentation
 
 Finally a Terraform provider is available to fully automate your setup:  [Terraform documentation](./terraform-provider-cosmos/README.md) 
 
+# CLI
+
+A full-featured command-line interface is available to manage your Cosmos Server from any terminal — locally or remotely.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/VHStark/Cosmos-Server/master/cli/scripts/install.sh | bash
+```
+
+```bash
+cosmos configure          # set up server URL and API token
+cosmos system status      # check server status
+cosmos containers list    # list running containers
+cosmos routes list        # list proxy routes
+```
+
+Covers all 164 API endpoints across 18 command groups. Supports multiple server profiles, OS keychain for token storage, and CI/headless environments via environment variables.
+
+See the [CLI documentation](./cli/README.md) for full usage and configuration.
+
 # What is the SmartShield?
 
 SmartShield is a modern API protection package designed to secure your API by implementing advanced rate-limiting and user restrictions. This helps efficiently allocate and protect your resources without manual adjustment of limits and policies.
