@@ -1,12 +1,9 @@
 // Package config manages CLI configuration and credential storage.
-//
-// Configuration is stored in ~/.cosmos/config.yaml.
-// Tokens are stored in the OS keychain (macOS Keychain, Linux libsecret, Windows Credential Manager).
-// Environment variables COSMOS_URL and COSMOS_TOKEN override config and keychain respectively.
 package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -30,13 +27,13 @@ type Config struct {
 	Profiles       map[string]Profile `yaml:"profiles"`
 }
 
-// Resolved holds the final resolved URL and token for a request.
+// Resolved holds the final URL, host header, and token for a request.
 type Resolved struct {
 	URL   string
+	Host  string
 	Token string
 }
 
-// configDir returns ~/.cosmos
 func configDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -124,19 +121,38 @@ func DeleteToken(profile string) error {
 	return keyring.Delete(keyringService, profile)
 }
 
-// Resolve returns the URL and token to use for a request, applying the
-// following priority: flags > env vars > config file + keychain.
+// hostFromURL extracts the hostname from a URL string.
+func hostFromURL(rawURL string) string {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return rawURL
+	}
+	return u.Hostname()
+}
+
+// Resolve returns the URL, host header, and token to use for a request.
+// Priority: flags > env vars > config file + keychain.
 func Resolve(profileFlag, urlFlag, tokenFlag string) (*Resolved, error) {
-	// 1. Direct flag overrides — used in scripts / one-off commands
+	// 1. Direct flag overrides
 	if urlFlag != "" && tokenFlag != "" {
-		return &Resolved{URL: urlFlag, Token: tokenFlag}, nil
+		host := os.Getenv("COSMOS_HOST")
+		if host == "" {
+			host = hostFromURL(urlFlag)
+		}
+		return &Resolved{URL: urlFlag, Host: host, Token: tokenFlag}, nil
 	}
 
 	// 2. Environment variable overrides — CI / headless servers
 	envURL := os.Getenv("COSMOS_URL")
 	envToken := os.Getenv("COSMOS_TOKEN")
+	envHost := os.Getenv("COSMOS_HOST")
+
 	if envURL != "" && envToken != "" {
-		return &Resolved{URL: envURL, Token: envToken}, nil
+		host := envHost
+		if host == "" {
+			host = hostFromURL(envURL)
+		}
+		return &Resolved{URL: envURL, Host: host, Token: envToken}, nil
 	}
 
 	// 3. Config file + keychain
@@ -161,21 +177,15 @@ func Resolve(profileFlag, urlFlag, tokenFlag string) (*Resolved, error) {
 		return nil, fmt.Errorf("profile %q not found — run 'cosmos configure'", profile)
 	}
 
-	url := urlFlag
-	if url == "" {
-		url = envURL
-	}
-	if url == "" {
-		url = p.URL
-	}
-	if url == "" {
+	rawURL := urlFlag
+	if rawURL == "" { rawURL = envURL }
+	if rawURL == "" { rawURL = p.URL }
+	if rawURL == "" {
 		return nil, fmt.Errorf("no URL configured — run 'cosmos configure' or set COSMOS_URL")
 	}
 
 	token := tokenFlag
-	if token == "" {
-		token = envToken
-	}
+	if token == "" { token = envToken }
 	if token == "" {
 		token, err = GetToken(profile)
 		if err != nil {
@@ -183,5 +193,10 @@ func Resolve(profileFlag, urlFlag, tokenFlag string) (*Resolved, error) {
 		}
 	}
 
-	return &Resolved{URL: url, Token: token}, nil
+	host := envHost
+	if host == "" {
+		host = hostFromURL(rawURL)
+	}
+
+	return &Resolved{URL: rawURL, Host: host, Token: token}, nil
 }

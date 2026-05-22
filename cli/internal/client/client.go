@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/url"
 
 	cosmossdk "github.com/azukaar/cosmos-server/go-sdk"
 	"github.com/azukaar/cosmos-server/cli/internal/config"
@@ -25,13 +24,8 @@ type APIResponse struct {
 
 // New creates a new Cosmos Server API client from a resolved config.
 func New(r *config.Resolved) (*cosmossdk.Client, error) {
-	baseURL, err := url.Parse(r.URL)
-	if err != nil {
-		return nil, fmt.Errorf("invalid URL %q: %w", r.URL, err)
-	}
-
-	hostHeader := baseURL.Hostname()
 	token := r.Token
+	host := r.Host
 
 	httpClient := &http.Client{
 		Transport: &http.Transport{
@@ -41,7 +35,7 @@ func New(r *config.Resolved) (*cosmossdk.Client, error) {
 
 	addHeaders := func(ctx context.Context, req *http.Request) error {
 		req.Header.Set("Authorization", "Bearer "+token)
-		req.Header.Set("Host", hostHeader)
+		req.Header.Set("Host", host)
 		return nil
 	}
 
