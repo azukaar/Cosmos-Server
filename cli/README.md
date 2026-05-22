@@ -144,6 +144,37 @@ cosmos --profile vps containers list
 | `metrics` | Alerts, events, metrics data |
 | `storage` | Disks, mounts, SnapRAID |
 
+## Running on the Cosmos Server host
+
+If you install the CLI on the same machine that runs Cosmos Server, there is **no conflict**.
+
+The Cosmos Server binary lives at `/opt/cosmos/cosmos` and is launched via `/opt/cosmos/start.sh`.
+It is **not in `$PATH`** — it runs as a background process managed by that script.
+
+The CLI installs to `~/.local/bin/cosmos`, which is a separate location.
+
+```bash
+# Verify the CLI is the one responding
+which cosmos
+# → /home/<user>/.local/bin/cosmos   ✓
+
+# The server process is unaffected
+ps aux | grep "./cosmos"
+# → root  ...  ./cosmos   (server still running at /opt/cosmos/)
+```
+
+The only edge case is if someone manually added `/opt/cosmos` to `$PATH`. In that case, whichever
+directory appears first in `$PATH` wins. Run `which cosmos` to confirm which binary is active.
+
+When running the CLI on the same server, you can skip `COSMOS_HOST` — the host header
+is derived automatically from `COSMOS_URL`:
+
+```bash
+export COSMOS_URL=http://localhost:80
+export COSMOS_TOKEN=your_api_token
+cosmos system status
+```
+
 ## Remote usage
 
 The CLI connects to any Cosmos Server over HTTP or HTTPS:
