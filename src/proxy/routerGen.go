@@ -49,14 +49,20 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			enabled := route.AuthEnabled
 			adminOnly := route.AdminOnly
 
-			// bypass auth if from Constellation tunnel
+			// bypass auth if from Constellation tunnel for manager server
+			// necessary when authentication is not sync'd in the constellation 
 			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
 				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 				
 				isConstIP := constellation.IsConstellationIP(remoteAddr)
 				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
+				device := constellation.GetConstellationFromIP(remoteAddr)
+				isManager := false
+				if device != nil {
+					isManager = device.CosmosNode == 2
+				}
 
-				if isConstIP && isConstTokenValid {
+				if isConstIP && isConstTokenValid && isManager {
 					utils.Debug("Bypassing auth for Constellation tunnel")
 					r.Header.Del("x-cstln-auth")
 

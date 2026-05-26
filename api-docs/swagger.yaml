@@ -2057,7 +2057,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.18
+  version: 0.22.19
 paths:
   /_logs:
     get:
@@ -3368,6 +3368,63 @@ paths:
       summary: Update a cluster deployment
       tags:
       - deployments
+  /api/constellation/deployments/{name}/unbroke:
+    post:
+      description: |-
+        Removes a deployment from the scheduler's quarantine set so the
+        next reconcile cycle attempts to place it again (Pro feature).
+      parameters:
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Clear a deployment's quarantine
+      tags:
+      - deployments
+  /api/constellation/deployments/health:
+    get:
+      description: |-
+        Returns desired vs. actual replica placement per deployment plus
+        scheduler quarantine state (Pro feature). Read-only: safe to call
+        from any node, not just the scheduler leader.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Cluster health for all deployments
+      tags:
+      - deployments
   /api/constellation/devices:
     get:
       produces:
@@ -3677,6 +3734,38 @@ paths:
       summary: Get Nebula VPN service logs
       tags:
       - constellation
+  /api/constellation/nodes/{name}/unbroke:
+    post:
+      description: |-
+        Removes a node from the scheduler's quarantine set and resets its
+        fail streak so the next reconcile cycle is free to place work on it
+        again (Pro feature).
+      parameters:
+      - description: Node (device) name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Clear a node's quarantine
+      tags:
+      - deployments
   /api/constellation/ping:
     get:
       produces:

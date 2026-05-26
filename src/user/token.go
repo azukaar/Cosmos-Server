@@ -1,6 +1,7 @@
 package user
 
 import (
+	"net"
 	"net/http"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/golang-jwt/jwt"
@@ -270,7 +271,8 @@ func logOutUser(w http.ResponseWriter, req *http.Request) {
 		HttpOnly: false,
 	}
 
-	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
+	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" || net.ParseIP(reqHostNoPort) != nil {
+		// Must match the host-only scope used when the cookie was set (see SendUserToken).
 		cookie.Domain = ""
 		clientCookie.Domain = ""
 	} else {
@@ -371,7 +373,9 @@ func SendUserToken(w http.ResponseWriter, req *http.Request, user utils.User, mf
 
 	utils.Log("UserLogin: Setting cookie for " + reqHostNoPort)
 
-	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" {
+	if reqHostNoPort == "localhost" || reqHostNoPort == "0.0.0.0" || net.ParseIP(reqHostNoPort) != nil {
+		// IP literals (and localhost) cannot carry a Domain attribute per RFC 6265;
+		// browsers reject such Set-Cookie headers, so use a host-only cookie.
 		cookie.Domain = ""
 		clientCookie.Domain = ""
 	} else {

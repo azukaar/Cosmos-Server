@@ -451,6 +451,16 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		utils.Log(fmt.Sprintf("Checking service %s...", serviceName))
 		OnLog(fmt.Sprintf("Checking service %s...\n", serviceName))
 
+		// Default the container name to the compose service key when no explicit
+		// container_name is given (standard docker-compose behavior). Cluster
+		// deployments routinely omit container_name. Without this, ContainerCreate
+		// auto-generates a random name but the rest of the flow (start, rollback,
+		// network connect) keeps using the empty container.Name, so ContainerStart
+		// hits /containers//start and the daemon returns "page not found".
+		if container.Name == "" {
+			container.Name = serviceName
+		}
+
 		// If container request a Cosmos network, create and attach it
 		if strings.ToLower(container.Labels["cosmos-network-name"]) == "auto" {
 			utils.Log(fmt.Sprintf("Forcing secure %s...", serviceName))

@@ -133,3 +133,78 @@ func deleteDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMut
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
 	return
 }
+
+// DeploymentHealth is the per-deployment cluster status returned by the health
+// endpoint. `desired` is the configured replica count; `actual` is how many
+// nodes currently report running it (from each node's constellation-nodes
+// heartbeat); `broken` mirrors the scheduler's quarantine state.
+type DeploymentHealth struct {
+	Desired      int      `json:"desired"`
+	Actual       int      `json:"actual"`
+	Nodes        []string `json:"nodes"`
+	Broken       bool     `json:"broken"`
+	BrokenReason string   `json:"brokenReason,omitempty"`
+	// Version is the desired (current) spec version. UpToDate counts how many of
+	// the nodes reporting this deployment are running that version. Updating is
+	// true while a spec change is still rolling out — i.e. at least one reporting
+	// node is on an older version. A deployment is only fully healthy when
+	// Actual == Desired AND UpToDate == Actual (Updating == false).
+	Version  int  `json:"version"`
+	UpToDate int  `json:"upToDate"`
+	Updating bool `json:"updating"`
+}
+
+// DeploymentsHealthRoute godoc
+// @Summary Cluster health for all deployments
+// @Description Returns desired vs. actual replica placement per deployment plus
+// @Description scheduler quarantine state (Pro feature). Read-only: safe to call
+// @Description from any node, not just the scheduler leader.
+// @Tags deployments
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 503 {object} utils.HTTPErrorResult
+// @Router /api/constellation/deployments/health [get]
+func DeploymentsHealthRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
+	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
+	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
+	return
+}
+
+// DeploymentsUnbrokeRoute godoc
+// @Summary Clear a deployment's quarantine
+// @Description Removes a deployment from the scheduler's quarantine set so the
+// @Description next reconcile cycle attempts to place it again (Pro feature).
+// @Tags deployments
+// @Produce json
+// @Security BearerAuth
+// @Param name path string true "Deployment name"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/constellation/deployments/{name}/unbroke [post]
+func DeploymentsUnbrokeRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
+	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
+	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
+	return
+}
+
+// NodesUnbrokeRoute godoc
+// @Summary Clear a node's quarantine
+// @Description Removes a node from the scheduler's quarantine set and resets its
+// @Description fail streak so the next reconcile cycle is free to place work on it
+// @Description again (Pro feature).
+// @Tags deployments
+// @Produce json
+// @Security BearerAuth
+// @Param name path string true "Node (device) name"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/constellation/nodes/{name}/unbroke [post]
+func NodesUnbrokeRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
+	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
+	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
+	return
+}

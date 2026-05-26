@@ -1087,7 +1087,7 @@ func GetCurrentDeviceName() (string, error) {
 		}
 
 		if configMap["cstln_device_name"] == nil {
-			return "", errors.New("Invalid new config file for resync")
+			return "", errors.New("Invalid new config file for resync - missing name")
 		}
 
 		deviceName := configMap["cstln_device_name"].(string)
@@ -1129,7 +1129,7 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 		if configMap["cstln_device_name"] != nil  {
 			device.DeviceName = configMap["cstln_device_name"].(string)
 		} else {
-			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
+			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync - missing name")
 		}
 
 		if configMap["cstln_ip"] != nil  {
@@ -1170,7 +1170,7 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 func GetCurrentDeviceAPIKey() (string, error) {
 	device, err := GetCurrentDevice()
 	if err != nil {
-		return "", errors.New("current device not found in cache")
+		return "", err
 	}
 	return device.APIKey, nil
 }
@@ -1178,7 +1178,7 @@ func GetCurrentDeviceAPIKey() (string, error) {
 func GetCurrentDeviceIP() (string, error) {
 	device, err := GetCurrentDevice()
 	if err != nil {
-		return "", errors.New("current device not found in cache")
+		return "", err
 	}
 	return device.IP, nil
 }
@@ -1186,7 +1186,7 @@ func GetCurrentDeviceIP() (string, error) {
 func GetCurrentDeviceIsLoadbalancer() (bool, error) {
 	device, err := GetCurrentDevice()
 	if err != nil {
-		return false, errors.New("current device not found in cache")
+		return false, err
 	}
 	return device.IsLoadBalancer, nil
 }
@@ -1194,7 +1194,7 @@ func GetCurrentDeviceIsLoadbalancer() (bool, error) {
 func GetCurrentDeviceIsRelay() (bool, error) {
 	device, err := GetCurrentDevice()
 	if err != nil {
-		return false, errors.New("current device not found in cache")
+		return false, err
 	}
 	return device.IsRelay, nil
 }
@@ -1202,7 +1202,7 @@ func GetCurrentDeviceIsRelay() (bool, error) {
 func GetCurrentDeviceIsExitNode() (bool, error) {
 	device, err := GetCurrentDevice()
 	if err != nil {
-		return false, errors.New("current device not found in cache")
+		return false, err
 	}
 	return device.IsExitNode, nil
 }
@@ -1213,7 +1213,7 @@ func GetCurrentDeviceHostname() (string, error) {
 		if utils.GetMainConfig().ConstellationConfig.ConstellationHostname != "" {
 			return utils.GetMainConfig().ConstellationConfig.ConstellationHostname, nil
 		}
-		return "", errors.New("current device not found in cache")
+		return "", err
 	}
 	return device.PublicHostname, nil
 }

@@ -18,25 +18,26 @@ const ServappsIndex = () => {
   const { t } = useTranslation();
   const { stack } = useParams();
 
+  const tabs = [
+    {
+      title: t('mgmt.servapps.networks.containers'),
+      children: <ServApps stack={stack} />,
+      path: 'containers'
+    },
+    {
+      title: t('mgmt.servapps.networks.volumes'),
+      children: <VolumeManagementList />,
+      path: 'volumes'
+    },
+    {
+      title: t('global.networks'),
+      children:  <NetworkManagementList />,
+      path: 'networks'
+    },
+  ];
+
   return <div>
-    {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={[
-        {
-          title: t('mgmt.servapps.networks.containers'),
-          children: <ServApps stack={stack} />,
-          path: 'containers'
-        },
-        {
-          title: t('mgmt.servapps.networks.volumes'),
-          children: <VolumeManagementList />,
-          path: 'volumes'
-        },
-        {
-          title: t('global.networks'),
-          children:  <NetworkManagementList />,
-          path: 'networks'
-        },
-      ]}/>
-    }
+    {!stack && <PrettyTabbedView path="/cosmos-ui/servapps/:tab" tabs={tabs}/>}
 
     {stack && <ServApps stack={stack} />}
 

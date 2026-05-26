@@ -17,3 +17,7 @@ func StopScheduler() {
 func DefaultStrategies() map[string]PlacementStrategy {
 	return map[string]PlacementStrategy{}
 }
+
+func GetLeaderName(lock *sync.RWMutex, js nats.JetStreamContext) (string, bool) {
+	return "", false
+}

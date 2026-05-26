@@ -3,7 +3,6 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
-	"strings"
 
 	"github.com/nats-io/nats.go"
 
@@ -34,21 +33,15 @@ type PublicDeviceInfo struct {
 // @Failure 500 {object} utils.HTTPErrorResult
 // @Router /api/constellation/public-devices [get]
 func DevicePublicList(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
+		return
+	}
+
 	// Check for GET method
 	if req.Method != "GET" {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP002")
 		return
 	}
-
-	// Get authorization header
-	auth := req.Header.Get("Authorization")
-	if auth == "" {
-		http.Error(w, "Unauthorized [1]", http.StatusUnauthorized)
-		return
-	}
-
-	// Remove "Bearer " from auth header
-	auth = strings.Replace(auth, "Bearer ", "", 1)
 
 	// Connect to the collection
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")

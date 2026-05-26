@@ -1,3 +1,10 @@
+## Version 0.22.19
+ - Only allow manager server to bypass tunnel authorization
+ - Add authorization check on legacy Public Device endpoint
+ - Pro SDK generation 
+ - cosmos-compose now adds a default container name when missing
+ - Attempt at fixing all MacOS Safari login issues on bare IP
+
 ## Version 0.22.18
  - More Terraform improvemnts
 

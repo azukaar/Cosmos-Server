@@ -1,17 +1,17 @@
 package constellation
 
 import (
-	"strings"
-	"strconv"
-	"time"
-	"sort"
-	"github.com/nats-io/nats.go"
 	"encoding/json"
+	"github.com/nats-io/nats.go"
+	"sort"
+	"strconv"
+	"strings"
 	"sync"
+	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/pro"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/pro"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 func getNATSReplicas() int {
@@ -32,7 +32,7 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 		utils.Error("Error getting current device IP for tunneled routes", err)
 		return tunnels
 	}
-	
+
 	serverProtocol, _, configHostport := utils.GetServerRawAccess()
 
 	for _, route := range routesList {
@@ -69,7 +69,7 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 			}
 
 			route.Target = protocol + thisIp
-			
+
 			if port != "" {
 				route.Target += ":" + port
 			}
@@ -263,23 +263,33 @@ func ClientHeartbeatInit() {
 					running = nil
 				}
 
+				// Per-deployment spec version those containers were created from,
+				// so the scheduler can spot a node running a stale spec. Degrades
+				// to nil on error like the name list above.
+				runningVersions, vrerr := docker.ListDeploymentVersionsRunningHere()
+				if vrerr != nil {
+					utils.Warn("[SCHED-NODE] failed to list cosmos-deployment versions for heartbeat: " + vrerr.Error())
+					runningVersions = nil
+				}
+
 				// Read the latest cached resource sample. Cheap — the
 				// sampler's own goroutine paid the cpu.Percent cost.
 				res := pro.GetCurrentResources()
 
 				heartbeat := NodeHeartbeat{
-					DeviceName: device.DeviceName,
-					IP: device.IP,
-					IsRelay: device.IsRelay,
-					IsLighthouse: device.IsLighthouse,
-					IsExitNode: device.IsExitNode,
-					CosmosNode: device.CosmosNode,
-					Tunnels: GetAllTunneledRoutes(),
-					RunningDeployments: running,
-					CPUPercent: res.CPUPercent,
-					RAMPercent: res.RAMPercent,
-					MonitoringOn: res.MonitoringOn,
-					Tags: device.Tags,
+					DeviceName:                device.DeviceName,
+					IP:                        device.IP,
+					IsRelay:                   device.IsRelay,
+					IsLighthouse:              device.IsLighthouse,
+					IsExitNode:                device.IsExitNode,
+					CosmosNode:                device.CosmosNode,
+					Tunnels:                   GetAllTunneledRoutes(),
+					RunningDeployments:        running,
+					RunningDeploymentVersions: runningVersions,
+					CPUPercent:                res.CPUPercent,
+					RAMPercent:                res.RAMPercent,
+					MonitoringOn:              res.MonitoringOn,
+					Tags:                      device.Tags,
 				}
 
 				heartbeatData, err := json.Marshal(heartbeat)
@@ -358,7 +368,7 @@ func UpdateLocalTunnelCache() {
 	keys, err := kv.Keys()
 	if err != nil {
 		clientConfigLock.RUnlock()
-		utils.Warn("[NATS] Error getting keys from Key-Value store during tunnel cache update "+ err.Error())
+		utils.Warn("[NATS] Error getting keys from Key-Value store during tunnel cache update " + err.Error())
 		return
 	}
 
@@ -427,13 +437,12 @@ func UpdateLocalTunnelCache() {
 		return copied
 	}
 
-	oldJSON, _ := json.Marshal(sortTunnelsForComparison(localTunnelCache))
-	newJSON, _ := json.Marshal(sortTunnelsForComparison(tunnels))
+	changed := !utils.JSONEquals(sortTunnelsForComparison(localTunnelCache), sortTunnelsForComparison(tunnels))
 
 	localTunnelCache = tunnels
 	lastCacheUpdate = time.Now()
 
-	if string(oldJSON) != string(newJSON) {
+	if changed {
 		utils.Log("[constellation] Tunnel cache changed, restarting HTTP server...")
 		go utils.RestartHTTPServer()
 	}
@@ -453,7 +462,7 @@ func GetLocalTunnelCache() []utils.ConstellationTunnel {
 		utils.Debug("[constellation] Failed to get current device load balancer status for tunnel cache retrieval " + err.Error())
 		return []utils.ConstellationTunnel{}
 	}
-	
+
 	if !isLB {
 		return []utils.ConstellationTunnel{}
 	}
@@ -484,9 +493,9 @@ func ensureStickyBucket() (nats.KeyValue, error) {
 		return kv, nil
 	}
 	kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
-		Bucket:  "tunnel-sticky",
-		TTL:     120 * time.Second,
-		Storage: nats.MemoryStorage,
+		Bucket:   "tunnel-sticky",
+		TTL:      120 * time.Second,
+		Storage:  nats.MemoryStorage,
 		Replicas: getNATSReplicas(),
 	})
 	return kv, err

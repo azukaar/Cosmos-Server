@@ -4,7 +4,7 @@
         "description": "REST API for Cosmos Cloud server management",
         "title": "Cosmos Server API",
         "contact": {},
-        "version": "0.22.18"
+        "version": "0.22.19"
     },
     "basePath": "/cosmos",
     "paths": {
@@ -1904,6 +1904,43 @@
                 }
             }
         },
+        "/api/constellation/deployments/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns desired vs. actual replica placement per deployment plus\nscheduler quarantine state (Pro feature). Read-only: safe to call\nfrom any node, not just the scheduler leader.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Cluster health for all deployments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/constellation/deployments/{name}": {
             "get": {
                 "security": [
@@ -2049,6 +2086,52 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/deployments/{name}/unbroke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a deployment from the scheduler's quarantine set so the\nnext reconcile cycle attempts to place it again (Pro feature).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Clear a deployment's quarantine",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
                         "schema": {
                             "$ref": "#/definitions/utils.HTTPErrorResult"
                         }
@@ -2545,6 +2628,52 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/nodes/{name}/unbroke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a node from the scheduler's quarantine set and resets its\nfail streak so the next reconcile cycle is free to place work on it\nagain (Pro feature).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Clear a node's quarantine",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Node (device) name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
                         "schema": {
                             "$ref": "#/definitions/utils.HTTPErrorResult"
                         }

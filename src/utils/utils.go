@@ -34,6 +34,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// JSONEquals reports whether two values serialize to identical JSON. Handy for
+// change-detection where you want to ignore differences that don't survive a
+// marshal round-trip (e.g. comparing a freshly-built struct against a cached
+// one). JSON preserves slice/map-key order, so callers must normalize
+// order-unstable slices (sort them) and zero out volatile fields they don't
+// care about BEFORE calling. A marshal error makes the values compare unequal
+// (fail-open: treat as "changed" rather than silently swallowing a real diff).
+func JSONEquals(a, b interface{}) bool {
+	aj, errA := json.Marshal(a)
+	bj, errB := json.Marshal(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	return string(aj) == string(bj)
+}
+
 var ConfigLock sync.Mutex
 var ConfigLockInternal sync.Mutex
 

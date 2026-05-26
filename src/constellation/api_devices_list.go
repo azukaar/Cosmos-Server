@@ -84,10 +84,15 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Leader is best-effort cluster metadata: "" when there is no cluster /
+	// NATS isn't up / no leader elected yet. Never blocks the device list.
+	leader := GetCurrentLeaderName()
+
 	// Respond with the list of devices
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "OK",
 		"data": devices,
 		"currentDeviceName": n,
+		"leader": leader,
 	})
 }

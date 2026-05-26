@@ -701,7 +701,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/edit-device", constellation.DeviceEdit_API)
 	srapiAdmin.HandleFunc("/api/constellation/get-next-ip", constellation.API_GetNextIP)
 	srapiAdmin.HandleFunc("/api/constellation/deployments", constellation.DeploymentsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/deployments/health", constellation.DeploymentsHealthRoute)
 	srapiAdmin.HandleFunc("/api/constellation/deployments/{name}", constellation.DeploymentsIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/deployments/{name}/unbroke", constellation.DeploymentsUnbrokeRoute)
+	srapiAdmin.HandleFunc("/api/constellation/nodes/{name}/unbroke", constellation.NodesUnbrokeRoute)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 

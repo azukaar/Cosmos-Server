@@ -395,6 +395,7 @@ let backups = createBackupsAPI(defaultFetch);
 let apiTokens = createApiTokensAPI(defaultFetch);
 let openid = createOpenIDAPI(defaultFetch);
 let groups = createGroupsAPI(defaultFetch);
+let deployments = createDeploymentsAPI(defaultFetch);
 
 if(isDemo) {
   auth = authDemo;
@@ -441,4 +442,5 @@ export {
   apiTokens,
   openid,
   groups,
+  deployments,
 };

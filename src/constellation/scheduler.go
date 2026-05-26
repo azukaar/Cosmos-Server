@@ -35,3 +35,17 @@ func StartSchedulerInConstellation() {
 func StopSchedulerInConstellation() {
 	pro.StopScheduler()
 }
+
+// GetCurrentLeaderName returns the sanitized device name of the current
+// scheduler leader, or "" when it cannot be determined (no cluster, NATS not
+// connected, or no leader elected yet). Best-effort — never errors — so it is
+// safe to call from request handlers regardless of cluster state. The name is
+// returned exactly as stored (sanitized via sanitizeNATSUsername); callers
+// match it client-side rather than reversing the sanitization.
+func GetCurrentLeaderName() string {
+	name, ok := pro.GetLeaderName(&clientConfigLock, js)
+	if !ok {
+		return ""
+	}
+	return name
+}

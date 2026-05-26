@@ -1,40 +1,46 @@
 package constellation
 
 import (
-	"time"
-	"errors"
-	"strconv"
-	"sync"
-	"strings"
 	"crypto/tls"
 	"encoding/pem"
-	"io/ioutil"
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
-    "net/url"
+	"io/ioutil"
+	"net/url"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/nats-io/nats-server/v2/server"
 	"github.com/nats-io/nats.go"
 
-	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/pro"
+	"github.com/azukaar/cosmos-server/src/utils"
 
 	natsClient "github.com/nats-io/nats.go"
 )
 
 type NodeHeartbeat struct {
-	DeviceName string
-	IP string
-	IsRelay bool
+	DeviceName   string
+	IP           string
+	IsRelay      bool
 	IsLighthouse bool
-	IsExitNode bool
-	CosmosNode int
-	Tunnels []utils.ProxyRouteConfig
+	IsExitNode   bool
+	CosmosNode   int
+	Tunnels      []utils.ProxyRouteConfig
 	// RunningDeployments is the list of scheduler-managed deployment names
 	// currently running on this node, derived from docker containers carrying
 	// the `cosmos-deployment` label. Populated from docker at heartbeat time;
 	// see UpdateLocalTunnelCache / heartbeat goroutine in tunnels.go.
 	RunningDeployments []string `json:"runningDeployments"`
+	// RunningDeploymentVersions maps each running deployment name to the spec
+	// version its containers were created from (the cosmos-deployment-version
+	// label). The scheduler diffs this against the desired Deployment.Version to
+	// detect a node running a stale spec and trigger a rolling re-apply. Built
+	// from docker alongside RunningDeployments each heartbeat.
+	RunningDeploymentVersions map[string]int `json:"runningDeploymentVersions,omitempty"`
 	// CPUPercent and RAMPercent are the node's latest resource-usage sample,
 	// populated from pro.GetCurrentResources() on each heartbeat tick. Used by
 	// the LeastBusyPlacement strategy. Zero when MonitoringOn is false.
@@ -70,10 +76,10 @@ func sanitizeNATSUsername(username string) string {
 
 func GetClusterIPs() ([]*url.URL, error) {
 	ipsMap := make(map[string]bool)
-	
+
 	// add lighthouse IPs from nebula config
 	lips, _ := GetAllLighthouseIPFromTempConfig()
-	
+
 	for _, ip := range lips {
 		ipsMap[ip] = true
 	}
@@ -141,8 +147,8 @@ func StartNATS() {
 	if ns != nil {
 		return
 	}
-	
-	ip,err := GetCurrentDeviceIP()
+
+	ip, err := GetCurrentDeviceIP()
 	if err != nil {
 		utils.Error("[NATS] Failed to get current device IP", err)
 		return
@@ -151,12 +157,12 @@ func StartNATS() {
 	utils.Log("[NATS] Starting NATS server on " + ip + ":4222")
 
 	time.Sleep(2 * time.Second)
-	
+
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
 
 	var tlsCert = HTTPConfig.TLSCert
-	var tlsKey= HTTPConfig.TLSKey
+	var tlsKey = HTTPConfig.TLSKey
 
 	// Ensure the PEM data is correctly formatted
 	certPEMBlock := []byte(tlsCert)
@@ -165,61 +171,61 @@ func StartNATS() {
 	// Decode PEM encoded certificate
 	certDERBlock, _ := pem.Decode(certPEMBlock)
 	if certDERBlock == nil {
-			utils.MajorError("[NATS] Failed to start NATS: parse certificate PEM", nil)
+		utils.MajorError("[NATS] Failed to start NATS: parse certificate PEM", nil)
 	}
 
 	// Decode PEM encoded private key
 	keyDERBlock, _ := pem.Decode(keyPEMBlock)
 	if keyDERBlock == nil {
-			utils.MajorError("[NATS] Failed to start NATS: parse key PEM", nil)
+		utils.MajorError("[NATS] Failed to start NATS: parse key PEM", nil)
 	}
 
 	// Create tls.Certificate using the original PEM data
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	if err != nil {
-			utils.MajorError("[NATS] Failed to start NATS: create TLS certificate", err)
+		utils.MajorError("[NATS] Failed to start NATS: create TLS certificate", err)
 	}
 
 	// Configure the NATS server options
 	// Make users
-	
+
 	users := []*server.User{}
 
 	for _, devices := range CachedDevices {
 		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + devices.APIKey)
 		username := sanitizeNATSUsername(devices.DeviceName)
-		
-		// TODO: Agent / users with less permissions 
+
+		// TODO: Agent / users with less permissions
 
 		users = append(users, &server.User{
 			Username: username,
 			Password: devices.APIKey,
 			Permissions: &server.Permissions{
 				Publish: &server.SubjectPermission{
-						Allow: []string{
-							"cosmos."+username+".>", "_INBOX.>",
-							"cosmos._global_.>",
-							"_INBOX.>",
-							// Scheduler: leader publishes per-target deployment commands
-							// to cosmos.<target>.deployments.command. Scoped so non-leaders
-							// can't fabricate arbitrary cross-node traffic.
-							"cosmos.*.deployments.>",
-							"$KV.constellation-nodes.>",
-							"$KV.constellation-deployments.>",
-		                    "$JS.API.STREAM.INFO.>",
-							"$JS.API.>",
-						},
+					Allow: []string{
+						"cosmos." + username + ".>", "_INBOX.>",
+						"cosmos._global_.>",
+						"_INBOX.>",
+						// Scheduler: leader publishes per-target deployment commands
+						// to cosmos.<target>.deployments.command. Scoped so non-leaders
+						// can't fabricate arbitrary cross-node traffic.
+						"cosmos.*.deployments.>",
+						"$KV.constellation-nodes.>",
+						"$KV.constellation-deployments.>",
+						"$JS.API.STREAM.INFO.>",
+						"$JS.API.>",
+					},
 				},
 				Subscribe: &server.SubjectPermission{
-						Allow: []string{
-							"cosmos."+username+".>", "_INBOX.>",
-							"cosmos._global_.>",
-							"_INBOX.>",
-		                    "$KV.constellation-nodes.>",
-		                    "$KV.constellation-deployments.>",
-		                    "$JS.API.STREAM.INFO.>",
-							"$JS.API.>",
-						},
+					Allow: []string{
+						"cosmos." + username + ".>", "_INBOX.>",
+						"cosmos._global_.>",
+						"_INBOX.>",
+						"$KV.constellation-nodes.>",
+						"$KV.constellation-deployments.>",
+						"$JS.API.STREAM.INFO.>",
+						"$JS.API.>",
+					},
 				},
 			},
 		})
@@ -232,13 +238,13 @@ func StartNATS() {
 	}
 
 	natsHost := device.IP
-	natsName:= device.DeviceName
+	natsName := device.DeviceName
 
-	// if debug, add debug user 
+	// if debug, add debug user
 	if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
 		users = append(users, &server.User{
-			Username: "DEBUG",
-			Password: "DEBUG",
+			Username:    "DEBUG",
+			Password:    "DEBUG",
 			Permissions: nil,
 		})
 
@@ -268,22 +274,22 @@ func StartNATS() {
 
 		ServerName: natsName,
 
-	    JetStream: true,
-    	StoreDir:  utils.CONFIGFOLDER + "/jetstream",
+		JetStream: true,
+		StoreDir:  utils.CONFIGFOLDER + "/jetstream",
 
 		TLSConfig: &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			ClientAuth:   tls.NoClientCert,
+			Certificates:       []tls.Certificate{cert},
+			ClientAuth:         tls.NoClientCert,
 			InsecureSkipVerify: true,
 		},
 
 		Cluster: server.ClusterOpts{
-        	Name: "Constellation",
+			Name: "Constellation",
 			Host: device.IP,
 			Port: 6222,
 			TLSConfig: &tls.Config{
-				Certificates: []tls.Certificate{cert},
-				ClientAuth:   tls.NoClientCert,
+				Certificates:       []tls.Certificate{cert},
+				ClientAuth:         tls.NoClientCert,
 				InsecureSkipVerify: true,
 			},
 		},
@@ -312,7 +318,7 @@ func StartNATS() {
 		go ns.Start()
 
 		// Wait for the server to be ready
-		if !ns.ReadyForConnections(time.Duration(2 * (retries + 1)) * time.Second) {
+		if !ns.ReadyForConnections(time.Duration(2*(retries+1)) * time.Second) {
 			retries++
 			utils.Debug("[NATS] NATS server not ready...")
 			err = errors.New("NATS server not ready")
@@ -348,6 +354,7 @@ var clientConfigLock = sync.RWMutex{}
 var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
+
 func InitNATSClient() error {
 	if !NATSStarted {
 		utils.Warn("[NATS] NATS server not started, cannot initialize client")
@@ -370,12 +377,12 @@ func InitNATSClient() error {
 	}
 
 	utils.Log("[NATS] Connecting to NATS server...")
-	
+
 	time.Sleep(2 * time.Second)
-	
+
 	user, pwd, err := GetNATSCredentials()
 	user = sanitizeNATSUsername(user)
-	
+
 	if err != nil {
 		utils.MajorError("[NATS] Error getting constellation credentials", err)
 		return err
@@ -392,17 +399,17 @@ func InitNATSClient() error {
 		// nats.DisconnectHandler(func(nc *nats.Conn) {
 		// 		utils.Log("Disconnected from NATS server - trying to reconnect")
 		// }),
-	
+
 		nats.Secure(&tls.Config{
 			InsecureSkipVerify: true,
 		}),
 
 		nats.UserInfo(user, pwd),
-		
+
 		// timeout
 		nats.Timeout(2*time.Second),
 
-    	nats.NoEcho(), 
+		nats.NoEcho(),
 	)
 
 	for err != nil {
@@ -411,15 +418,15 @@ func InitNATSClient() error {
 			nc = nil
 			return err
 		}
-		
+
 		if !NebulaStarted {
 			utils.Error("[NATS] Nebula not started, aborting NATS client connection retry", nil)
 			nc = nil
 			return errors.New("Nebula not started, aborting NATS client connection retry")
 		}
-		
+
 		clientConfigLock.Unlock()
-		time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
+		time.Sleep(time.Duration(2*(retries+1)) * time.Second)
 		clientConfigLock.Lock()
 
 		if !NebulaStarted {
@@ -437,10 +444,10 @@ func InitNATSClient() error {
 
 			// timeout
 			nats.Timeout(2*time.Second),
-		
-    		nats.NoEcho(), 
+
+			nats.NoEcho(),
 		)
-		
+
 		if err != nil {
 			retries++
 			utils.Debug("[NATS] Retrying to start NATS Client: " + err.Error())
@@ -484,26 +491,26 @@ func ClientConnectToJS() error {
 	if nc == nil {
 		return errors.New("NATS client not connected")
 	}
-	
-    if js != nil && time.Since(lastCheck) < 5*time.Second {
-        return nil
-    }
 
-    if js != nil {
-        if _, err := js.AccountInfo(); err == nil {
-            lastCheck = time.Now()
-            return nil
-        }
-    }
+	if js != nil && time.Since(lastCheck) < 5*time.Second {
+		return nil
+	}
 
-    var err error
-    js, err = nc.JetStream(nats.MaxWait(6 * time.Second))
-    if err != nil {
-        return fmt.Errorf("error getting JetStream context: %w", err)
-    }
-    
-    lastCheck = time.Now()
-    return nil
+	if js != nil {
+		if _, err := js.AccountInfo(); err == nil {
+			lastCheck = time.Now()
+			return nil
+		}
+	}
+
+	var err error
+	js, err = nc.JetStream(nats.MaxWait(6 * time.Second))
+	if err != nil {
+		return fmt.Errorf("error getting JetStream context: %w", err)
+	}
+
+	lastCheck = time.Now()
+	return nil
 }
 
 func IsClientConnected() bool {
