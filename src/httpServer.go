@@ -40,10 +40,10 @@ func startHTTPServer(router *mux.Router) error {
 	HTTPServer2 = nil
 	HTTPServer = &http.Server{
 		Addr: "0.0.0.0:" + serverPortHTTP,
-		ReadTimeout: 0,
+		ReadTimeout: 10 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout: 0,
-		IdleTimeout: 30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout: 120 * time.Second,
 		Handler: router,
 		DisableGeneralOptionsHandler: true,
 	}
@@ -126,10 +126,10 @@ func startHTTPSServer(router *mux.Router) error {
 
 		HTTPServer2 = &http.Server{
 			Addr: "0.0.0.0:" + serverPortHTTP,
-			ReadTimeout: 0,
+			ReadTimeout: 10 * time.Second,
 			ReadHeaderTimeout: 10 * time.Second,
-			WriteTimeout: 0,
-			IdleTimeout: 30 * time.Second,
+			WriteTimeout: 30 * time.Second,
+			IdleTimeout: 120 * time.Second,
 			Handler: httpRouter,
 			DisableGeneralOptionsHandler: true,
 		}
@@ -185,13 +185,13 @@ func startHTTPSServer(router *mux.Router) error {
 
 	HTTPServer = &http.Server{
     TLSConfig: &tls.Config{
-			GetCertificate: GetCertificate,
-		},
+		GetCertificate: GetCertificate,
+	},
 		Addr: "0.0.0.0:" + serverPortHTTPS,
-		ReadTimeout: 0,
+		ReadTimeout: 10 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout: 0,
-		IdleTimeout: 30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout: 120 * time.Second,
 		Handler: router,
 		DisableGeneralOptionsHandler: true,
 	}
