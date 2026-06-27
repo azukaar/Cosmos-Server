@@ -29,17 +29,27 @@ func performLogin(w http.ResponseWriter, req *http.Request, route utils.ProxyRou
 					mainDomain = "http://" + mainDomain
 			}
 			
+			// The auto-provisioned client is public, so PKCE is mandatory. Derive the
+			// verifier deterministically from the path (recomputed in detectCallbackEndpoint)
+			// and send its S256 challenge. base64url output needs no URL-escaping.
+			verifier := utils.DerivePKCEVerifier(req.URL.Path)
+			challengeHash := sha256.Sum256([]byte(verifier))
+			codeChallenge := base64.RawURLEncoding.EncodeToString(challengeHash[:])
+
 			//TODO: State should be a random string
 			authURL := fmt.Sprintf("%s/cosmos-ui/openid?"+
 					"response_type=code&"+
 					"client_id=%s&"+
 					"redirect_uri=%s&"+
 					"scope=openid&"+
-					"state=%s",
+					"state=%s&"+
+					"code_challenge=%s&"+
+					"code_challenge_method=S256",
 					mainDomain,
 					client.ID,
 					url.QueryEscape(client.RedirectURIs[0]),
 					url.QueryEscape(state),
+					codeChallenge,
 			)
 			
 			http.Redirect(w, req, authURL, http.StatusFound)

@@ -47,6 +47,7 @@ func Init() {
 		AccessTokenLifespan: time.Minute * 30,
 		GlobalSecret:        secret,
 		SendDebugMessagesToClients: config.LoggingLevel == "DEBUG",
+		EnforcePKCEForPublicClients:    true,
 	}
 
 	store := storage.NewMemoryStore()
@@ -56,13 +57,24 @@ func Init() {
 		utils.Log("Registering OpenID client: " + client.ID)
 
 		// register client
+		grantTypes := []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"}
+		clientSecret := []byte(client.Secret)
+
+		if client.Public {
+			// Public clients (SPA/mobile) authenticate via PKCE instead of a secret,
+			// and are restricted to the authorization_code + refresh_token flows.
+			grantTypes = []string{"authorization_code", "refresh_token"}
+			clientSecret = nil
+		}
+
 		store.Clients[client.ID] = &fosite.DefaultClient{
 			ID:             client.ID,
-			Secret:         []byte(client.Secret),
+			Secret:         clientSecret,
+			Public:         client.Public,
 			RedirectURIs:   strings.Split(client.Redirect, ","),
 			Scopes:         []string{"openid", "email", "profile", "offline", "roles", "groups", "address", "phone", "role"},
 			ResponseTypes:  []string{"id_token", "code", "token", "id_token token", "code id_token", "code token", "code id_token token"},
-			GrantTypes:     []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},
+			GrantTypes:     grantTypes,
 		}
 	}
 	
@@ -207,15 +219,21 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 
 	_, route := utils.FindRouteByReqHost(req.Host)
 	client := utils.GetProxyOIDCredentials(*route, false)
-	strcli := (string)(client.Secret)
-	
+
 	utils.Log("OpenID Direct: Exchanging code for token for client: " + client.ID)
 
-	// Create form data - remove client_id and client_secret from body
+	// The client is public (PKCE), so there is no secret to present. Authenticate the
+	// code exchange by re-deriving the same deterministic verifier whose challenge was
+	// sent in performLogin (keyed off the now-verified path).
+	codeVerifier := utils.DerivePKCEVerifier(path)
+
+	// Create form data - public client, no client_id/client_secret, PKCE verifier instead
 	formData := url.Values{
-			"grant_type":   {"authorization_code"},
-			"code":         {code},
-			"redirect_uri": {client.RedirectURIs[0]},
+			"grant_type":    {"authorization_code"},
+			"code":          {code},
+			"redirect_uri":  {client.RedirectURIs[0]},
+			"client_id":     {client.ID},
+			"code_verifier": {codeVerifier},
 	}
 
 	tokenReq, err := http.NewRequestWithContext(
@@ -231,8 +249,8 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 			return
 	}
 
-	// Set Basic auth header for client authentication
-	tokenReq.SetBasicAuth(client.ID, strcli)
+	// Public client: no Basic auth; the client is identified by client_id and proven by
+	// the PKCE code_verifier, both in the form body above.
 	tokenReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	// Set additional required attributes

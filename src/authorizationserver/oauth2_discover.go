@@ -79,7 +79,7 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 			FrontChannelLogoutSessionSupported:     true,
 			EndSessionEndpoint:                     hostname + "/cosmos-ui/logout",
 			RequestObjectSigningAlgValuesSupported: []string{"RS256"},
-			CodeChallengeMethodsSupported:          []string{"plain", "S256"},
+			CodeChallengeMethodsSupported:          []string{"S256"},
 			IDTokenSigningAlgValuesSupported:       []string{"RS256"},
 	}
 
@@ -100,6 +100,10 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 
 		detectMap["client_id"] = client.ID
 		detectMap["redirect_uri"] = client.RedirectURIs
+		// Auto-provisioned clients are public (PKCE, no secret); signal this so native/SPA
+		// client libraries reading oid_detect use PKCE and expect no client secret.
+		detectMap["token_endpoint_auth_method"] = "none"
+		detectMap["code_challenge_methods_supported"] = []string{"S256"}
 		detectMap["configuration_endpoint"] = realHostname + "/.well-known/openid-configuration"
 		detectMap["auth_endpoint"] = realHostname + "/cosmos-ui/oauth"
 		detectMap["suggested_redirect"] = "/oauth/callback"

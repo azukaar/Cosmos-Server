@@ -21,7 +21,7 @@ const OpenID = () => {
   const redirect_uri = searchParams.get("redirect_uri")
   const scope = searchParams.get("scope")
   const entireSearch = searchParams.toString()
-  const [checkedScopes, setCheckedScopes] = useState(["openid"])
+  const [checkedScopes, setCheckedScopes] = useState(() => [...new Set([...(scope ? scope.split(' ') : []), "openid"])])
   const formRef = useRef(null)
 
   // if only 'account' as scope, auto redirect
@@ -55,11 +55,11 @@ const OpenID = () => {
 
   const onchange = (e, scope) => {
     if (e.target.checked) {
-      setCheckedScopes([...checkedScopes, scope])
+      setCheckedScopes([...new Set([...checkedScopes, scope])])
     } else {
-      setCheckedScopes(checkedScopes.filter((scope) => scope != scope))
+      setCheckedScopes(checkedScopes.filter((s) => s != scope))
     }
-  }      
+  }
 
   return (<AuthWrapper>
     <Grid container spacing={3}>
@@ -80,7 +80,7 @@ const OpenID = () => {
 			  <link rel="openid2.provider openid.server" href={selfHostname + "/oauth2/auth"} />
         <form action={"/oauth2/auth?" + entireSearch} method="post" ref={formRef}>
           <input type="hidden" name="client_id" value={client_id} />
-          {scope.split(' ').map((scope) => {
+          {[...new Set(scope.split(' '))].map((scope) => {
             return scope == "openid" ? <div>
               <input type="checkbox" name="scopes" value={scope} checked hidden />
               <Checkbox checked disabled />
@@ -88,7 +88,7 @@ const OpenID = () => {
             </div>
               : <div>
                 <input type="checkbox" name="scopes" hidden value={scope} checked={checkedScopes.includes(scope)} />
-                <Checkbox onChange={(e) => onchange(e, scope)} />
+                <Checkbox checked={checkedScopes.includes(scope)} onChange={(e) => onchange(e, scope)} />
                 {scope}
               </div>
           })}

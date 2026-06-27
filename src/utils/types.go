@@ -385,6 +385,7 @@ type OpenIDClient struct {
 	ID       string `json:"id" validate:"required"`
 	Secret 	 string `json:"secret"`
 	Redirect string `json:"redirect"`
+	Public   bool   `json:"public"`
 }
 
 type MarketConfig struct {

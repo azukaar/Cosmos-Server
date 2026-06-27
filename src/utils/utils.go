@@ -1266,14 +1266,42 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 		redURls = append(redURls, callbackURL2)
 	}
 	
+	// Auto-provisioned route clients are public (PKCE) clients: a public discovery
+	// endpoint can never hand out a secret, and native/SPA apps cannot keep one. The
+	// deterministic secret above is kept only so existing callers compile; it is not
+	// assigned to the client. The Cosmos-gated proxy flow authenticates via PKCE too
+	// (see performLogin / detectCallbackEndpoint and DerivePKCEVerifier).
+	_ = secret
+
 	return &fosite.DefaultClient{
 			ID:            clientID,
-			Secret: 			 []byte(secret),
+			Public:        true,
 			RedirectURIs:  redURls,
 			Scopes:        []string{"openid", "email", "profile", "offline"},
 			ResponseTypes: []string{"code"},
-			GrantTypes:    []string{"authorization_code"},
+			GrantTypes:    []string{"authorization_code", "refresh_token"},
 	}
+}
+
+// DerivePKCEVerifier deterministically derives a PKCE code_verifier from a request
+// path, so the Cosmos-gated proxy flow can compute the same verifier in performLogin
+// (which sends the code_challenge) and later in detectCallbackEndpoint (which sends the
+// verifier) without storing any session state between the two requests. This mirrors the
+// deterministic-secret pattern in GetProxyOIDCredentials.
+//
+// This is safe ONLY because both ends run server-side inside Cosmos: the verifier never
+// reaches a browser/device (only its challenge hash is sent on the front channel), so its
+// secrecy rests on AuthPrivateKey staying secret - the same assumption the deterministic
+// secret already made. Native/SPA apps (Path B) generate their own random verifier and
+// never use this function.
+//
+// A distinct key slice ([0:32]) and domain-separation prefix are used so the result never
+// collides with the state hash (which uses AuthPrivateKey[32:64]). RawURLEncoding of a
+// 32-byte SHA-256 yields 43 chars from [A-Za-z0-9-_], meeting RFC 7636's verifier rules.
+func DerivePKCEVerifier(path string) string {
+	config := GetMainConfig()
+	h := sha256.Sum256([]byte("cosmos-pkce:" + path + config.HTTPConfig.AuthPrivateKey[0:32]))
+	return base64.RawURLEncoding.EncodeToString(h[:])
 }
 
 func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {

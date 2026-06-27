@@ -12,16 +12,45 @@ import (
 
 )
 
-type oidcUser struct {
-	Name string `json:"name"`
-	Username string `json:"username"`
-	Nickname string `json:"nickname"`
-	Role string `json:"role"`
-	Email string `json:"email"`
-	Subject string `json:"sub"`
-	IssuedAt int64 `json:"iat"`
-	ExpiresAt int64 `json:"exp"`
-	Issuer string `json:"iss"`
+// getUserClaims builds the OIDC profile claims for a user. It is the single
+// source of truth shared by the userinfo endpoint and the id_token, so both
+// always return the same set of claims.
+func getUserClaims(nickname string, scopes fosite.Arguments) (map[string]interface{}, error) {
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
+	defer closeDb()
+	if errCo != nil {
+		return nil, errCo
+	}
+
+	user := utils.User{}
+	err := c.FindOne(nil, map[string]interface{}{
+		"Nickname": nickname,
+	}).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	claims := map[string]interface{}{
+		"name":               nickname,
+		"username":           nickname,
+		"nickname":           nickname,
+		"preferred_username": nickname,
+	}
+
+	if scopes.Has("email") {
+		claims["email"] = user.Email
+	}
+
+	// Derive the role from the fetched user record rather than the request's
+	// auth context: the userinfo endpoint only carries a Bearer token (no Cosmos
+	// session), so HasPermission(req, ...) would always be false there.
+	if user.Role >= utils.ADMIN {
+		claims["role"] = "admin"
+	} else {
+		claims["role"] = "user"
+	}
+
+	return claims, nil
 }
 
 func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {	
@@ -48,49 +77,20 @@ func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {
 
 	nickname := interim["sub"].(string)
 
-	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
-  defer closeDb()
-	if errCo != nil {
-			utils.Error("Database Connect", errCo)
-			utils.HTTPError(rw, "Database", http.StatusInternalServerError, "DB001")
-			return
-	}
-
 	utils.Debug("UserInfosGet: Get user " + nickname)
 
-	user := utils.User{}
-
-	err = c.FindOne(nil, map[string]interface{}{
-		"Nickname": nickname,
-	}).Decode(&user)
-
+	claims, err := getUserClaims(nickname, ar.GetGrantedScopes())
 	if err != nil {
 		utils.Error("UserInfosGet: Error while getting user", err)
 		utils.HTTPError(rw, "User Get Error", http.StatusInternalServerError, "UD001")
 		return
 	}
 
-	baseToken := &oidcUser{
-		Name: interim["sub"].(string),
-		Username: interim["sub"].(string),
-		Nickname: interim["sub"].(string),
-		Subject: interim["sub"].(string),
-		IssuedAt: interim["iat"].(int64),
-		ExpiresAt: interim["exp"].(int64),
-		Issuer: interim["iss"].(string),
-	}
+	claims["sub"] = nickname
+	claims["iat"] = interim["iat"]
+	claims["exp"] = interim["exp"]
+	claims["iss"] = interim["iss"]
 
-	// check scopes has email
-	if ar.GetGrantedScopes().Has("email") {
-		baseToken.Email = user.Email
-	}
-
-	if utils.HasPermission(req, utils.PERM_ADMIN_READ) {
-		baseToken.Role = "admin"
-	} else {
-		baseToken.Role = "user"
-	}
-	
 	rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	json.NewEncoder(rw).Encode(baseToken)
+	json.NewEncoder(rw).Encode(claims)
 }
