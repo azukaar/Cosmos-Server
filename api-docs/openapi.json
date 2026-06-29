@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.22.19"
+    "version": "0.22.20"
   },
   "paths": {
     "/_logs": {
@@ -12813,6 +12813,9 @@
         "properties": {
           "id": {
             "type": "string"
+          },
+          "public": {
+            "type": "boolean"
           },
           "redirect": {
             "type": "string"

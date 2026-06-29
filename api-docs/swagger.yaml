@@ -1783,6 +1783,8 @@ definitions:
     properties:
       id:
         type: string
+      public:
+        type: boolean
       redirect:
         type: string
       secret:
@@ -2057,7 +2059,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.19
+  version: 0.22.20
 paths:
   /_logs:
     get:

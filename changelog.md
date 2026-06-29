@@ -1,3 +1,8 @@
+## Version 0.22.20
+ - Added support for public OAuth2/OIDC via PKCE 
+ - Minor OpenID improvements
+ - Build is now statically linked (CGO_ENABLED=0) for more diverse system compatibility
+
 ## Version 0.22.19
  - Only allow manager server to bypass tunnel authorization
  - Add authorization check on legacy Public Device endpoint

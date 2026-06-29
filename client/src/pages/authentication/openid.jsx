@@ -80,7 +80,7 @@ const OpenID = () => {
 			  <link rel="openid2.provider openid.server" href={selfHostname + "/oauth2/auth"} />
         <form action={"/oauth2/auth?" + entireSearch} method="post" ref={formRef}>
           <input type="hidden" name="client_id" value={client_id} />
-          {[...new Set(scope.split(' '))].map((scope) => {
+          {[...new Set(scope ? scope.split(' ') : [])].map((scope) => {
             return scope == "openid" ? <div>
               <input type="checkbox" name="scopes" value={scope} checked hidden />
               <Checkbox checked disabled />
