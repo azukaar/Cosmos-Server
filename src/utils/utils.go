@@ -1258,12 +1258,17 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 
 	callbackURL := fmt.Sprintf("https://%s/cosmos/oauth2/detect-callback", route.Host)
 	callbackURLClient := fmt.Sprintf("https://%s/oauth2/callback", route.Host)
+	// Also accept the route root, so an app doing its own OIDC with redirect_uri
+	// pointing at its homepage (e.g. https://app.example.com/) is supported without
+	// requiring a manually-created OpenID client.
+	rootURL := fmt.Sprintf("https://%s/", route.Host)
 
-	redURls := []string{callbackURL, callbackURLClient}
+	redURls := []string{callbackURL, callbackURLClient, rootURL}
 
 	if IsHTTPS && config.HTTPConfig.AllowHTTPLocalIPAccess {
 		callbackURL2 := fmt.Sprintf("http://%s/cosmos/oauth2/detect-callback", route.Host)
-		redURls = append(redURls, callbackURL2)
+		rootURL2 := fmt.Sprintf("http://%s/", route.Host)
+		redURls = append(redURls, callbackURL2, rootURL2)
 	}
 	
 	// Auto-provisioned route clients are public (PKCE) clients: a public discovery

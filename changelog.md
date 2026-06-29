@@ -1,3 +1,6 @@
+## Version 0.22.21
+ - Tiny adjustment to openid redirect_uri
+
 ## Version 0.22.20
  - Added support for public OAuth2/OIDC via PKCE 
  - Minor OpenID improvements
