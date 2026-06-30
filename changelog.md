@@ -1,3 +1,6 @@
+## Version 0.22.23
+ - Add RootProtocol and RootHostname to cosmos-installer in cosmos-compose
+
 ## Version 0.22.22
  - Add openID clients to non-auth URLs
  - Allow openID auto-clients to connect native apps

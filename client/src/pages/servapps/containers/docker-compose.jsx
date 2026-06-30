@@ -623,6 +623,8 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         CPU_ARCH: API.CPU_ARCH,
         CPU_AVX: API.CPU_AVX,
         DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/cosmos-storage",
+        RootHostname: (config && config.HTTPConfig && config.HTTPConfig.Hostname) || window.location.hostname,
+        RootProtocol: (config && config.HTTPConfig && config.HTTPConfig.HTTPSCertificateMode === "DISABLED") ? "http" : "https",
       });
 
       console.log('rendered', rendered);
