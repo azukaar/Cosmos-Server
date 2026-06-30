@@ -1,3 +1,7 @@
+## Version 0.22.22
+ - Add openID clients to non-auth URLs
+ - Allow openID auto-clients to connect native apps
+
 ## Version 0.22.21
  - Tiny adjustment to openid redirect_uri
 

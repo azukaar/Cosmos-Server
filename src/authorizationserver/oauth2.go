@@ -94,9 +94,19 @@ func Init() {
 	routes := config.HTTPConfig.ProxyConfig.Routes
 	routes = append(routes, utils.GetConstellationTunnelRoutes()...)
 
-	// Add proxy route clients
+	// Add proxy route clients.
+	// Register the public OpenID client for every host-based route that actually
+	// serves an app at route.Host, regardless of AuthEnabled: the discovery endpoint
+	// (openid-detect) advertises this client_id unconditionally, so native/SPA apps
+	// need it present in the store to be able to initiate login even when the route
+	// does not force auth. AuthEnabled still gates whether the route actually requires
+	// login (see routerGen / app_gate).
+	//
+	// REDIRECT routes are excluded on purpose: they host no app (route.Host just 302s
+	// to an external destination), so a client there would be pointless and its
+	// redirect URIs (all on route.Host) point at a host that bounces off-site.
 	for _, route := range routes {
-		if route.AuthEnabled && route.UseHost && !route.Disabled {
+		if route.UseHost && !route.Disabled && route.Mode != "REDIRECT" {
 			utils.Log("Registering OpenID client for route: " + route.Host)
 			client := utils.GetProxyOIDCredentials(route, true)
 			store.Clients[client.ID] = client

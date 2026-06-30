@@ -1263,7 +1263,17 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 	// requiring a manually-created OpenID client.
 	rootURL := fmt.Sprintf("https://%s/", route.Host)
 
-	redURls := []string{callbackURL, callbackURLClient, rootURL}
+	// Loopback redirect bases for native apps (RFC 8252 §7.3). fosite matches these
+	// with ANY port (only the port is ignored; scheme/host/path/query must match), so
+	// registering the root path here lets a native app use http://127.0.0.1:<random>/ as
+	// its redirect_uri with no per-client configuration. Safe to expose unconditionally:
+	// loopback redirects are delivered only on the user's own machine (the code never
+	// leaves the device), and public clients still require PKCE. Only the "/" path is
+	// covered; an app redirecting to a sub-path would need that path registered too.
+	loopbackRoot := "http://127.0.0.1/"
+	loopbackRootV6 := "http://[::1]/"
+
+	redURls := []string{callbackURL, callbackURLClient, rootURL, loopbackRoot, loopbackRootV6}
 
 	if IsHTTPS && config.HTTPConfig.AllowHTTPLocalIPAccess {
 		callbackURL2 := fmt.Sprintf("http://%s/cosmos/oauth2/detect-callback", route.Host)
