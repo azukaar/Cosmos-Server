@@ -843,8 +843,6 @@ func InitServer() *mux.Router {
 	SecureAPI(OpenIDDetect, true, true, false)
 	authorizationserver.RegisterHandlersDetect(OpenIDDetect, srapiStrict)
 
-	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
-
 	wellKnownRouter := router.PathPrefix("/").Subrouter()
 	SecureAPI(wellKnownRouter, true, true, false)
 
@@ -855,6 +853,8 @@ func InitServer() *mux.Router {
 	SecureAPI(serverRouter, true, true, true)
 
 	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
+
+	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     	http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)

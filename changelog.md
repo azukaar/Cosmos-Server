@@ -1,3 +1,6 @@
+## Version 0.22.25
+ - Move OIDC at edge
+
 ## Version 0.22.24
  - Fix OpenID for tunneled routes
  - Fix tunnels being duplicated when saving
