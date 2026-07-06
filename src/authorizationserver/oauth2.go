@@ -228,6 +228,11 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 	}
 
 	_, route := utils.FindRouteByReqHost(req.Host)
+	if route == nil {
+		utils.Error("OpenID callback: no route found for host "+req.Host, nil)
+		http.Error(w, "Invalid callback host", http.StatusBadRequest)
+		return
+	}
 	client := utils.GetProxyOIDCredentials(*route, false)
 
 	utils.Log("OpenID Direct: Exchanging code for token for client: " + client.ID)

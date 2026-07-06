@@ -1342,9 +1342,19 @@ func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
 	}
 	
 	var proxyRoute *ProxyRouteConfig
-	for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+
+	// Constellation tunnel routes are not stored in ProxyConfig.Routes (they live in the
+	// tunnel cache), so a host lookup must consult both collections or it will miss any
+	// tunneled host - e.g. the OpenID detect-callback landing on a tunnel host would find
+	// no route and callers dereferencing the result would panic. Copy into a fresh slice
+	// so the append never writes into the shared config backing array.
+	allRoutes := append([]ProxyRouteConfig{}, config.HTTPConfig.ProxyConfig.Routes...)
+	allRoutes = append(allRoutes, GetConstellationTunnelRoutes()...)
+
+	for _, route := range allRoutes {
 			if route.Host == hostname {
-					proxyRoute = &route
+					r := route
+					proxyRoute = &r
 					break
 			}
 	}

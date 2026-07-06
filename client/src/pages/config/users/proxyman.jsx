@@ -94,7 +94,10 @@ const ProxyManagement = () => {
         ...config.HTTPConfig,
         ProxyConfig: {
           ...config.HTTPConfig.ProxyConfig,
-          Routes: routes,
+          // Tunnel routes are merged into the list for display only (see the render
+          // below); they live in the constellation tunnel cache, not in the proxy
+          // config. Strip them here so no save path persists them as local routes.
+          Routes: routes.filter((r) => !r._IsTunnel),
         },
       },
     };

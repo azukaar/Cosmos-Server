@@ -1,3 +1,7 @@
+## Version 0.22.24
+ - Fix OpenID for tunneled routes
+ - Fix tunnels being duplicated when saving
+
 ## Version 0.22.23
  - Add RootProtocol and RootHostname to cosmos-installer in cosmos-compose
 
