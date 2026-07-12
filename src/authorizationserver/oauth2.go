@@ -209,16 +209,23 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Verify hash matches path
-	expectedHash := sha256.Sum256([]byte(path + config.HTTPConfig.AuthPrivateKey[32:64]))
+	_, route := utils.FindRouteByReqHost(req.Host)
+	if route == nil {
+		utils.Error("OpenID callback: no route found for host "+req.Host, nil)
+		http.Error(w, "Invalid callback host", http.StatusBadRequest)
+		return
+	}
+
+	// Verify hash matches this route's host+path (see performLogin)
+	expectedHash := sha256.Sum256([]byte(route.Host + "\x00" + path + config.HTTPConfig.AuthPrivateKey[32:64]))
 	expectedHashStr := base64.RawURLEncoding.EncodeToString(expectedHash[:16])
 	if hashStr != expectedHashStr {
 		utils.Error("Invalid state hash", nil)
 		http.Error(w, "Invalid state", http.StatusBadRequest)
-		return		
+		return
 	}
 
-	
+
 	if code == "" {
 			error := req.URL.Query().Get("error")
 			errorDesc := req.URL.Query().Get("error_description")
@@ -227,12 +234,6 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 			return
 	}
 
-	_, route := utils.FindRouteByReqHost(req.Host)
-	if route == nil {
-		utils.Error("OpenID callback: no route found for host "+req.Host, nil)
-		http.Error(w, "Invalid callback host", http.StatusBadRequest)
-		return
-	}
 	client := utils.GetProxyOIDCredentials(*route, false)
 
 	utils.Log("OpenID Direct: Exchanging code for token for client: " + client.ID)
@@ -240,7 +241,7 @@ func detectCallbackEndpoint(w http.ResponseWriter, req *http.Request) {
 	// The client is public (PKCE), so there is no secret to present. Authenticate the
 	// code exchange by re-deriving the same deterministic verifier whose challenge was
 	// sent in performLogin (keyed off the now-verified path).
-	codeVerifier := utils.DerivePKCEVerifier(path)
+	codeVerifier := utils.DerivePKCEVerifier(route.Host, path)
 
 	// Create form data - public client, no client_id/client_secret, PKCE verifier instead
 	formData := url.Values{

@@ -2059,7 +2059,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.26
+  version: 0.22.27
 paths:
   /_logs:
     get:

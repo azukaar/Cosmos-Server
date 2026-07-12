@@ -1298,11 +1298,11 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 	}
 }
 
-// DerivePKCEVerifier deterministically derives a PKCE code_verifier from a request
-// path, so the Cosmos-gated proxy flow can compute the same verifier in performLogin
-// (which sends the code_challenge) and later in detectCallbackEndpoint (which sends the
-// verifier) without storing any session state between the two requests. This mirrors the
-// deterministic-secret pattern in GetProxyOIDCredentials.
+// DerivePKCEVerifier deterministically derives a PKCE code_verifier from a route host
+// and request path, so the Cosmos-gated proxy flow can compute the same verifier in
+// performLogin (which sends the code_challenge) and later in detectCallbackEndpoint
+// (which sends the verifier) without storing any session state between the two requests.
+// The host is mixed in so same-path apps on different hosts don't share a challenge.
 //
 // This is safe ONLY because both ends run server-side inside Cosmos: the verifier never
 // reaches a browser/device (only its challenge hash is sent on the front channel), so its
@@ -1313,9 +1313,9 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 // A distinct key slice ([0:32]) and domain-separation prefix are used so the result never
 // collides with the state hash (which uses AuthPrivateKey[32:64]). RawURLEncoding of a
 // 32-byte SHA-256 yields 43 chars from [A-Za-z0-9-_], meeting RFC 7636's verifier rules.
-func DerivePKCEVerifier(path string) string {
+func DerivePKCEVerifier(host string, path string) string {
 	config := GetMainConfig()
-	h := sha256.Sum256([]byte("cosmos-pkce:" + path + config.HTTPConfig.AuthPrivateKey[0:32]))
+	h := sha256.Sum256([]byte("cosmos-pkce:" + host + "\x00" + path + config.HTTPConfig.AuthPrivateKey[0:32]))
 	return base64.RawURLEncoding.EncodeToString(h[:])
 }
 

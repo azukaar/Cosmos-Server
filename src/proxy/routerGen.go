@@ -49,28 +49,6 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			enabled := route.AuthEnabled
 			adminOnly := route.AdminOnly
 
-			// bypass auth if from Constellation tunnel for manager server
-			// necessary when authentication is not sync'd in the constellation 
-			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
-				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
-				
-				isConstIP := constellation.IsConstellationIP(remoteAddr)
-				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
-				device := constellation.GetConstellationFromIP(remoteAddr)
-				isManager := false
-				if device != nil {
-					isManager = device.CosmosNode == 2
-				}
-
-				if isConstIP && isConstTokenValid && isManager {
-					utils.Debug("Bypassing auth for Constellation tunnel")
-					r.Header.Del("x-cstln-auth")
-
-					next.ServeHTTP(w, r)
-					return
-				}
-			}
-			
 			r.Header.Del("x-cosmos-user")
 			r.Header.Del("x-cosmos-role")
 			r.Header.Del("x-cosmos-user-role")
@@ -104,10 +82,12 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			})
 			r = r.WithContext(ctx)
 
-			ogcookies := r.Header.Get("Cookie")
-			cookieRemoveRegex := regexp.MustCompile(`\s?jwttoken=[^;]*;?\s?`)
-			cookies := cookieRemoveRegex.ReplaceAllString(ogcookies, "")
-			r.Header.Set("Cookie", cookies)
+			if !constellation.IsTunneled(route) {
+				ogcookies := r.Header.Get("Cookie")
+				cookieRemoveRegex := regexp.MustCompile(`\s?jwttoken=[^;]*;?\s?`)
+				cookies := cookieRemoveRegex.ReplaceAllString(ogcookies, "")
+				r.Header.Set("Cookie", cookies)
+			}
 
 			// Replace the token with a application speicfic one
 			//r.Header.Set("x-cosmos-token", "1234567890")

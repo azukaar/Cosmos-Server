@@ -1,3 +1,7 @@
+## Version 0.22.27
+ - segregate oidc states per routes
+ - new attempt at edge OIDC implementation that does not break other OIDC
+
 ## Version 0.22.26
  - reverting 0.22.25, need better approach (#556) 
 
