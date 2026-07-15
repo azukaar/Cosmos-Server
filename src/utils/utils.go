@@ -1239,7 +1239,8 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 			Error("Error parsing host: " + fullhost, err)
 	}
 
-	clientID := route.Name //SanitizeNoSpace(Route.Name) + "_" + hex.EncodeToString(hash[:8])
+	// Prefixed so auto-provisioned route clients never clash with (and overwrite) manual OpenID clients sharing the route name
+	clientID := "__route_" + route.Name
 	plainSecret := hex.EncodeToString(hash[8:24])
 
 
@@ -1279,6 +1280,13 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 		callbackURL2 := fmt.Sprintf("http://%s/cosmos/oauth2/detect-callback", route.Host)
 		rootURL2 := fmt.Sprintf("http://%s/", route.Host)
 		redURls = append(redURls, callbackURL2, rootURL2)
+	}
+
+	// extra redirect URIs configured on the route (advanced settings), comma-separated
+	for _, extraURI := range strings.Split(route.PublicOpenIDRedirectURIs, ",") {
+		if extraURI = strings.TrimSpace(extraURI); extraURI != "" {
+			redURls = append(redURls, extraURI)
+		}
 	}
 	
 	// Auto-provisioned route clients are public (PKCE) clients: a public discovery

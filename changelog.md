@@ -1,3 +1,7 @@
+## Version 0.22.28
+ - prevent openid internal/external name clashes
+ - add PublicOpenIDRedirectURIs for custom internal open id redirect
+
 ## Version 0.22.27
  - segregate oidc states per routes
  - new attempt at edge OIDC implementation that does not break other OIDC
