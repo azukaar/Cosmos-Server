@@ -1,7 +1,10 @@
-## Version 0.22.28
- - Add a way to control the internal OpenID from the route with PublicOpenIDName
+## Version 0.22.30
+ - Add role to internal openid client
 
 ## Version 0.22.29
+ - Add a way to control the internal OpenID from the route with PublicOpenIDName
+
+## Version 0.22.28
  - prevent openid internal/external name clashes
  - add PublicOpenIDRedirectURIs for custom internal open id redirect
 

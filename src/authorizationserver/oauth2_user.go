@@ -44,6 +44,8 @@ func getUserClaims(nickname string, scopes fosite.Arguments) (map[string]interfa
 	// Derive the role from the fetched user record rather than the request's
 	// auth context: the userinfo endpoint only carries a Bearer token (no Cosmos
 	// session), so HasPermission(req, ...) would always be false there.
+	// TODO: Resurface user's real role
+	// TODO: CHeck claim has role/groups
 	if user.Role >= utils.ADMIN {
 		claims["role"] = "admin"
 	} else {

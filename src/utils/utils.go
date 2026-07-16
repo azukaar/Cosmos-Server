@@ -1304,7 +1304,7 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 			ID:            clientID,
 			Public:        true,
 			RedirectURIs:  redURls,
-			Scopes:        []string{"openid", "email", "profile", "offline"},
+			Scopes:        []string{"openid", "email", "profile", "offline", "role", "roles"},
 			ResponseTypes: []string{"code"},
 			GrantTypes:    []string{"authorization_code", "refresh_token"},
 	}
