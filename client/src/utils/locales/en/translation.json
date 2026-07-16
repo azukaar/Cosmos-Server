@@ -743,6 +743,8 @@
 	"mgmt.urls.edit.advancedSettings.hideFromDashboardCheckbox.hideFromDashboardLabel": "Hide from Dashboard",
 	"mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel": "Overwrite Host Header (use this to chain resolve request from another server/ip)",
 	"mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder": "Overwrite Host Header",
+	"mgmt.urls.edit.advancedSettings.publicOpenIDNameInput.publicOpenIDNameLabel": "Custom Internal client ID for this URL",
+	"mgmt.urls.edit.advancedSettings.publicOpenIDNameInput.publicOpenIDNamePlaceholder": "my-app-client",
 	"mgmt.urls.edit.advancedSettings.publicOpenIDRedirectURIsInput.publicOpenIDRedirectURIsLabel": "Additional OpenID redirect URIs for this URL's internal OpenID client (comma separated)",
 	"mgmt.urls.edit.advancedSettings.publicOpenIDRedirectURIsInput.publicOpenIDRedirectURIsPlaceholder": "https://app.example.com/auth/callback, https://app.example.com/api/oidc/callback",
 	"mgmt.urls.edit.advancedSettings.skipURLCleanCheckbox.skipURLCleanLabel": "Skip URL Cleaning (preserve double slashes in path)",

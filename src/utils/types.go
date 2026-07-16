@@ -344,6 +344,7 @@ type ProxyRouteConfig struct {
 	AuthEnabled                bool                        `yaml:"auth_enabled"`
 	AdminOnly                  bool                        `yaml:"admin_only"`
 	PublicOpenIDRedirectURIs   string                      `yaml:"public_openid_redirect_uris,omitempty"`
+	PublicOpenIDName           string                      `yaml:"public_openid_name,omitempty"`
 	Target                     string                      `yaml:"target" validate:"required"`
 	SmartShield                SmartShieldPolicy           `yaml:"smart_shield"`
 	Mode                       ProxyMode                   `yaml:"mode"`

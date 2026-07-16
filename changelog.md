@@ -1,4 +1,7 @@
 ## Version 0.22.28
+ - Add a way to control the internal OpenID from the route with PublicOpenIDName
+
+## Version 0.22.29
  - prevent openid internal/external name clashes
  - add PublicOpenIDRedirectURIs for custom internal open id redirect
 

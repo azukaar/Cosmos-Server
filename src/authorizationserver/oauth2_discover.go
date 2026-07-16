@@ -92,7 +92,8 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 	json.Unmarshal(configurationBytes, &configurationMap)
 
 	// If this is a proxy domain, add proxy-specific metadata
-	if proxyRoute != nil {
+	// (only when the route actually has a registered client, see oauth2.go Init)
+	if proxyRoute != nil && (proxyRoute.AuthEnabled || proxyRoute.PublicOpenIDName != "") {
 		client := utils.GetProxyOIDCredentials(*proxyRoute, false)
 
 		detectMap := map[string]interface{}{}

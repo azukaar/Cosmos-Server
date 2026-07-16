@@ -1241,6 +1241,10 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 
 	// Prefixed so auto-provisioned route clients never clash with (and overwrite) manual OpenID clients sharing the route name
 	clientID := "__route_" + route.Name
+	if route.PublicOpenIDName != "" {
+		// custom client_id set in the route's advanced settings
+		clientID = route.PublicOpenIDName
+	}
 	plainSecret := hex.EncodeToString(hash[8:24])
 
 
