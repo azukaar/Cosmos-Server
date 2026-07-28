@@ -5,10 +5,14 @@ import (
 	"hash/fnv"
 	"runtime"
 	"net/http"
+	neturl "net/url"
 	"os"
 	"path/filepath"
 	"encoding/json"
 	"fmt"
+	"time"
+
+	"github.com/Masterminds/semver"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/storage"
@@ -22,6 +26,10 @@ import (
 
 type Version struct {
 	Version string `json:"version"`
+}
+
+type UpdateCheck struct {
+	Latest string `json:"latest"`
 }
 
 func GetCosmosVersion() string {
@@ -60,8 +68,12 @@ func checkVersion() {
 		utils.Error("checkVersion - Could not get version", nil)
 		return
 	}
-	
-	response, err := http.Get("https://cosmos-cloud.io/versions/" + myVersion)
+
+	response, err := http.Get(fmt.Sprintf(
+		"https://cosmos-cloud.io/update-check/cosmos/server?c=%d&version=%s",
+		time.Now().Unix(),
+		neturl.QueryEscape(myVersion),
+	))
 	if err != nil {
 		utils.Error("checkVersion", err)
 		return
@@ -75,15 +87,32 @@ func checkVersion() {
 		return
 	}
 
-	cp, errc := utils.CompareSemver(myVersion, string(body))
-
-	if errc != nil {
-		utils.Error("checkVersion", errc)
+	var check UpdateCheck
+	if errJ := json.Unmarshal(body, &check); errJ != nil {
+		utils.Error("checkVersion", errJ)
 		return
 	}
 
-	if cp == -1 {
-		utils.Log("New version available: " + string(body))
+	if check.Latest == "" {
+		utils.Error("checkVersion - No latest version in response", nil)
+		return
+	}
+
+	current, errc := semver.NewVersion(myVersion)
+	if errc != nil {
+		utils.Error("checkVersion " + myVersion, errc)
+		return
+	}
+
+	latest, errl := semver.NewVersion(check.Latest)
+	if errl != nil {
+		utils.Error("checkVersion " + check.Latest, errl)
+		return
+	}
+
+	// only notify on a major or minor bump, ignore patches
+	if current.Compare(latest) == -1 && (current.Major() != latest.Major() || current.Minor() != latest.Minor()) {
+		utils.Log("New version available: " + check.Latest)
 		utils.NewVersionAvailable = true
 	} else {
 		utils.Log("No new version available")

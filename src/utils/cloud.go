@@ -155,6 +155,12 @@ func (sdk *FirebaseApiSdk) RenewLicense(oldToken string) (string, int, error) {
 		} else {
 			payload["ram"] = strconv.FormatUint(memInfo.Total, 10)
 		}
+
+		if nbUsers, err := CountUsers(); err != nil {
+			Error("[Cloud] Error counting users for license renewal", err)
+		} else {
+			payload["nbUsers"] = strconv.FormatInt(nbUsers, 10)
+		}
 	}
 
 	jsonPayload, err := json.Marshal(payload)
@@ -361,7 +367,17 @@ func ProcessLicence() {
 		return
 	}
 
-	if licence == "" && serverToken == "" {
+	if licence == "" {
+		// licence removed by the user: flush any leftover server token
+		if serverToken != "" {
+			Log("[Cloud] No licence configured, flushing server token")
+			config.ServerToken = ""
+			SetBaseMainConfig(config)
+		}
+		FBL.ServerToken = ""
+		FBL.LValid = false
+		FBL.UserNumber = 5
+		FBL.CosmosNodeNumber = 1
 		return
 	}
 

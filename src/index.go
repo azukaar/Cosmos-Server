@@ -206,7 +206,7 @@ func main() {
 }
 
 // @title Cosmos Server API
-// @version 0.22.30
+// @version 0.22.31
 // @description REST API for Cosmos Cloud server management
 // @BasePath /cosmos
 // @securityDefinitions.apikey BearerAuth
@@ -322,6 +322,7 @@ func cosmos() {
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
+		MigratePre02231()
 
 		utils.CheckInternet()
 

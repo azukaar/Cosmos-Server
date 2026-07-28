@@ -1,3 +1,7 @@
+## Version 0.22.31
+ - Update to latest LEGO
+ - Solve issue where removing a licence would cause errors spam
+
 ## Version 0.22.30
  - Add role to internal openid client
 

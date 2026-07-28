@@ -1,17 +1,21 @@
-const dnsList = require('./client/src/utils/dns-list.json');
-
-console.log(dnsList);
-
 // for each make a request to https://go-acme.github.io/lego/dns/{dns}/#credentials
 
 let finalList = {};
 
 const fs = require('fs');
 
+// headings carry a trailing anchor <span>, so split on the opening tag then drop the rest of the heading
+const afterHeading = (html, id) => {
+  const rest = html.split(new RegExp(`<h2 id="${id}"`))[1];
+  if (!rest) return undefined;
+  const end = rest.indexOf(`</h2>`);
+  return end === -1 ? rest : rest.slice(end + 5);
+};
+
 let i = 0;
 (async () => {
   let resultList = (await (await fetch(`https://go-acme.github.io/lego/dns/`)).text());
-  resultList = resultList.split(`<h2 id="dns-providers">DNS Providers</h2>`)[1];
+  resultList = afterHeading(resultList, 'dns-providers');
   resultList = resultList.split(`</table>`)[0] + `</table>`;
 
   let dnses = resultList.match(/<code>(.*?)<\/code>/g);
@@ -22,11 +26,11 @@ let i = 0;
 
   fs.writeFileSync('./client/src/utils/dns-list.json', JSON.stringify(dnses, null, 2));
 
-  for(const dns of dnsList) {
+  for(const dns of dnses) {
     console.log(`Fetching ${dns} infos`)
     let result = (await (await fetch(`https://go-acme.github.io/lego/dns/${dns}/#credentials`)).text());
-    result = result.split(`<h2 id="credentials">Credentials</h2>`)[1];
-    let result2 = result.split(`<h2 id="additional-configuration">Additional Configuration</h2>`)[1];
+    result = afterHeading(result, 'credentials');
+    let result2 = afterHeading(result, 'additional-configuration');
     result = result.split(`</table>`)[0] + `</table>`;
     let vars = result.match(/<code>(.*?)<\/code>/g);
     vars = vars.map(v => v.replace(/<\/?code>/g, ''));
@@ -45,11 +49,11 @@ let i = 0;
     finalList[dns] = {
       name: dns,
       url: `https://go-acme.github.io/lego/dns/${dns}/#credentials`,
-      docs: result + result2,
+      docs: result + (result2 || ''),
       vars: vars
     }
 
-    console.log(`${i++}/${dnsList.length} done`)
+    console.log(`${i++}/${dnses.length} done`)
   }
 
   // save to file
