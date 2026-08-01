@@ -436,7 +436,8 @@ type ConstellationDNSEntry struct {
 type ConstellationDevice struct {
 	Nickname string `json:"nickname" bson:"Nickname"`
 	DeviceName string `json:"deviceName" bson:"DeviceName"`
-	PublicKey string `json:"publicKey" bson:"PublicKey"`
+	// legacy field: used to hold the device private key, never expose it
+	PublicKey string `json:"-" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
 	CosmosNode int `json:"cosmosNode" bson:"CosmosNode"`

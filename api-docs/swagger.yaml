@@ -146,8 +146,6 @@ definitions:
         type: string
       port:
         type: string
-      publicKey:
-        type: string
     required:
     - deviceName
     - ip
@@ -2063,7 +2061,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.31
+  version: 0.22.32
 paths:
   /_logs:
     get:

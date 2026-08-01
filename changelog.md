@@ -1,3 +1,16 @@
+## Version 0.22.32
+ - Fix Constellation CA certificates being generated with a 1 year expiry instead of 10
+ - Start NATS on standalone Constellation servers so clients can fetch the device list
+ - Fix permission check when blocking Constellation devices
+ - Harden Constellation DNS (crash fix, stricter hostname matching)
+ - Fix Constellation device private keys being stored and returned by the API as PublicKey
+ - Additional Constellation fixes and cleanups
+ - Multiple bug fixes on the constellation client
+  - windows duplicate window
+  - Linux errors
+  - MacOS DNSes
+  - Mobile battery drain
+
 ## Version 0.22.31
  - Update to latest LEGO
  - Solve issue where removing a licence would cause errors spam

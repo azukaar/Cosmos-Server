@@ -1,13 +1,15 @@
 package constellation
 
 import (
+	"context"
 	"time"
 	"strconv"
 	"strings"
+	"sync"
 	"io/ioutil"
 
 	"github.com/miekg/dns"
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 var DNSBlacklist = map[string]bool{}
@@ -24,7 +26,19 @@ func externalLookup(client *dns.Client, r *dns.Msg, serverAddr string) (*dns.Msg
 	return client.Exchange(rCopy, serverAddr)
 }
 
+// matchesDomain reports whether qName matches hostname exactly or on a label boundary
+func matchesDomain(qName string, hostname string) bool {
+	return qName == hostname + "." || strings.HasSuffix(qName, "." + hostname + ".")
+}
+
 func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
+	if len(r.Question) == 0 {
+		m := new(dns.Msg)
+		m.SetRcode(r, dns.RcodeFormatError)
+		w.WriteMsg(m)
+		return
+	}
+
 	config := utils.GetMainConfig()
 	DNSFallback := config.ConstellationConfig.DNSFallback
 
@@ -52,7 +66,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 				hostname := entry.Key
 				ip := entry.Value
 
-				if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
+				if matchesDomain(q.Name, hostname) && q.Qtype == dns.TypeA {
 					utils.Debug("DNS Overwrite " + hostname + " with " + ip)
 					rr, _ := dns.NewRR(q.Name + " A " + ip)
 					m.Answer = append(m.Answer, rr)
@@ -71,7 +85,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			for _, q := range r.Question {
 				utils.Debug("DNS Question " + q.Name)
 				for _, hostname := range hostnames {
-					if strings.HasSuffix(q.Name, hostname + ".") && q.Qtype == dns.TypeA {
+					if matchesDomain(q.Name, hostname) && q.Qtype == dns.TypeA {
 						utils.Debug("DNS Overwrite " + hostname + " with " + thisIp)
 						rr, _ := dns.NewRR(q.Name + " A " + thisIp)
 						m.Answer = append(m.Answer, rr)
@@ -94,7 +108,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 						}
 						destination := CachedDeviceNames[target.DeviceName]
 						if destination != "" {
-							if strings.HasSuffix(q.Name, tunnel.Route.Host + ".") && q.Qtype == dns.TypeA {
+							if matchesDomain(q.Name, tunnel.Route.Host) && q.Qtype == dns.TypeA {
 								utils.Debug("DNS Overwrite " + tunnel.Route.Host + " with " + destination)
 								rr, _ := dns.NewRR(q.Name + " A " + destination)
 								m.Answer = append(m.Answer, rr)
@@ -114,7 +128,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 			for deviceName, ip := range CachedDeviceNames {
 				procDeviceName := strings.ReplaceAll(deviceName, " ", "-")
 				
-				if strings.HasSuffix(q.Name, procDeviceName + ".") && q.Qtype == dns.TypeA {
+				if matchesDomain(q.Name, procDeviceName) && q.Qtype == dns.TypeA {
 					utils.Debug("DNS Overwrite " + procDeviceName + " with its IP")
 					rr, _ := dns.NewRR(q.Name + " A " + ip)
 					m.Answer = append(m.Answer, rr)
@@ -146,6 +160,8 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 		externalResponse, time, err := externalLookup(client, r, DNSFallback)
 		if err != nil {
 			utils.Error("Failed to forward query:", err)
+			m.SetRcode(r, dns.RcodeServerFailure)
+			w.WriteMsg(m)
 			return
 		}
 		utils.Debug("DNS Forwarded DNS query to "+DNSFallback+" in " + time.String())
@@ -166,18 +182,18 @@ func isDomain(domain string) bool {
 	return false
 }
 
-func loadRawBlockList(DNSBlacklistRaw string) {
+func loadRawBlockList(blacklist map[string]bool, DNSBlacklistRaw string) {
 	DNSBlacklistArray := strings.Split(string(DNSBlacklistRaw), "\n")
 	for _, domain := range DNSBlacklistArray {
 		if domain != "" && !strings.HasPrefix(domain, "#") {
 			splitDomain := strings.Split(domain, " ")
 			if len(splitDomain) == 1 && isDomain(splitDomain[0]) {
-				DNSBlacklist[splitDomain[0]] = true
+				blacklist[splitDomain[0]] = true
 			} else if len(splitDomain) == 2 {
 				if isDomain(splitDomain[0]) {
-					DNSBlacklist[splitDomain[0]] = true
+					blacklist[splitDomain[0]] = true
 				} else if isDomain(splitDomain[1]) {
-					DNSBlacklist[splitDomain[1]] = true
+					blacklist[splitDomain[1]] = true
 				}
 			}
 		}
@@ -185,11 +201,45 @@ func loadRawBlockList(DNSBlacklistRaw string) {
 }
 
 var DNSStarted = false
+var dnsServer *dns.Server
+var dnsStarting = false
+var dnsMux sync.Mutex
+
+// isCurrentDNSServer reports whether s is still the active server (false after StopDNS)
+func isCurrentDNSServer(s *dns.Server) bool {
+	dnsMux.Lock()
+	defer dnsMux.Unlock()
+	return dnsServer == s
+}
+
+func StopDNS() {
+	dnsMux.Lock()
+	server := dnsServer
+	dnsServer = nil
+	DNSStarted = false
+	dnsMux.Unlock()
+
+	if server != nil {
+		utils.Log("Stopping Constellation DNS")
+		// bounded shutdown so a hung handler can never block stop()/RestartNebula
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := server.ShutdownContext(ctx); err != nil {
+			// includes the benign "server not started" case when stopping mid-bind
+			utils.Warn("Failed to stop DNS server: " + err.Error())
+		}
+	}
+}
 
 func InitDNS() {
-	if DNSStarted {
+	dnsMux.Lock()
+	if dnsStarting || DNSStarted || dnsServer != nil {
+		dnsMux.Unlock()
 		return
 	}
+	// claim before the slow blacklist work so a concurrent InitDNS cannot double-start
+	dnsStarting = true
+	dnsMux.Unlock()
 
 	utils.Log("Initializing Constellation DNS setup")
 	
@@ -203,7 +253,8 @@ func InitDNS() {
 	}
 
 	if DNSBlockBlacklist {
-		DNSBlacklist = map[string]bool{}
+		// build into a local map and swap once, so live handlers never see a half-built list
+		newBlacklist := map[string]bool{}
 		blacklistPath := utils.CONFIGFOLDER + "dns-blacklist.txt"
 
 		utils.Log("Loading DNS blacklist from " + blacklistPath)
@@ -214,7 +265,7 @@ func InitDNS() {
 			if err != nil {
 				utils.Error("Failed to load DNS blacklist", err)
 			} else {
-				loadRawBlockList(string(DNSBlacklistRaw))
+				loadRawBlockList(newBlacklist, string(DNSBlacklistRaw))
 			}
 		} else {
 			utils.Log("No DNS blacklist found")
@@ -227,46 +278,77 @@ func InitDNS() {
 			if err != nil {
 				utils.Error("Failed to download DNS blacklist", err)
 			} else {
-				loadRawBlockList(DNSBlacklistRaw)
+				loadRawBlockList(newBlacklist, DNSBlacklistRaw)
 			}
 		}
-		
+
+		DNSBlacklist = newBlacklist
+
 		utils.Log("Loaded " + strconv.Itoa(len(DNSBlacklist)) + " domains")
 	}
 
-	if(!config.ConstellationConfig.DNSDisabled) {
-		utils.Log("Initializing Constellation DNS")
+	if config.ConstellationConfig.DNSDisabled {
+		dnsMux.Lock()
+		dnsStarting = false
+		dnsMux.Unlock()
+		return
+	}
 
-		go (func() {
-			currIp, err := GetCurrentDeviceIP()
-			if err != nil {
-				utils.Error("Constellation DNS: Failed to get current device IP", err)
+	utils.Log("Initializing Constellation DNS")
+
+	go (func() {
+		currIp, err := GetCurrentDeviceIP()
+		if err != nil {
+			utils.Error("Constellation DNS: Failed to get current device IP", err)
+			dnsMux.Lock()
+			dnsStarting = false
+			dnsMux.Unlock()
+			return
+		}
+
+		dns.HandleFunc(".", handleDNSRequest)
+		server := &dns.Server{Addr: currIp + ":" + DNSPort, Net: "udp"}
+
+		// only report started once the socket is actually bound
+		server.NotifyStartedFunc = func() {
+			dnsMux.Lock()
+			// a StopDNS raced the bind: shut this instance down instead of running as a zombie
+			if dnsServer != server {
+				dnsMux.Unlock()
+				go server.Shutdown()
 				return
 			}
-
-			dns.HandleFunc(".", handleDNSRequest)
-			server := &dns.Server{Addr: currIp + ":" + DNSPort, Net: "udp"}
-
-			utils.Log("Starting DNS server on :" + DNSPort)
-			
 			DNSStarted = true
+			dnsMux.Unlock()
+			utils.Log("Constellation DNS started!")
+		}
 
+		dnsMux.Lock()
+		dnsServer = server
+		dnsStarting = false
+		dnsMux.Unlock()
+
+		utils.Log("Starting DNS server on :" + DNSPort)
+
+		err = server.ListenAndServe();
+		retries := 0
+
+		for err != nil && retries < 4 && isCurrentDNSServer(server) {
+			time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
 			err = server.ListenAndServe();
-			retries := 0
+			retries++
+			utils.Debug("Retrying to start DNS server")
+		}
 
-			for err != nil && retries < 4 {
-				time.Sleep(time.Duration(2 * (retries + 1)) * time.Second)
-				err = server.ListenAndServe();
-				retries++
-				utils.Debug("Retrying to start DNS server")
-			}
-			
-			if err != nil {
-				utils.MajorError("Failed to start DNS server", err)
-				DNSStarted = false
-			} else {
-				utils.Log("Constellation DNS started!")
-			}
-		})()
-	}
+		if err != nil && isCurrentDNSServer(server) {
+			utils.MajorError("Failed to start DNS server", err)
+		}
+
+		dnsMux.Lock()
+		if dnsServer == server {
+			dnsServer = nil
+			DNSStarted = false
+		}
+		dnsMux.Unlock()
+	})()
 }

@@ -60,13 +60,12 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		"Invisible": false,
 	})
 
-	defer cursor.Close(nil)
-	
 	if err != nil {
 		utils.Error("DevicePublicList: Error fetching devices", err)
 		utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DPL001")
 		return
 	}
+	defer cursor.Close(nil)
 
 	var devices []utils.ConstellationDevice
 	if err = cursor.All(nil, &devices); err != nil {
@@ -117,13 +116,12 @@ func PublicDeviceListNATS(m *nats.Msg) {
 		"Invisible": false,
 	})
 
-	defer cursor.Close(nil)
-
 	if err != nil {
 		utils.Error("PublicDeviceListNATS: Error fetching devices", err)
 		m.Respond([]byte(`{"status":"error","message":"Error fetching devices"}`))
 		return
 	}
+	defer cursor.Close(nil)
 
 	var devices []utils.ConstellationDevice
 	if err = cursor.All(nil, &devices); err != nil {

@@ -38,3 +38,15 @@ terraform.tfstate.*
 .terraform.lock.hcl
 *.log
 ./main.tf
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/
+.claude/
+.swarm/
+.mcp.json
+ruvector.db
+tickets/
+CLAUDE.md

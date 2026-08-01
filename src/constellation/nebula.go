@@ -12,6 +12,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"io/ioutil"
+	"net"
 	"strconv"
 	"encoding/json"
 	"io"
@@ -24,8 +25,9 @@ import (
 var logBuffer *lumberjack.Logger
 
 var (
-	process    *exec.Cmd
-	ProcessMux sync.Mutex
+	process     *exec.Cmd
+	processDone chan struct{}
+	ProcessMux  sync.Mutex
 )
 
 func binaryToRun() string {
@@ -79,7 +81,9 @@ func startNebula() error {
 		Compress:   false,
 	}
 
-	UpdateFirewallBlockedClients()
+	if eFw := UpdateFirewallBlockedClients(); eFw != nil {
+		utils.Error("Failed to update firewall blocked clients", eFw)
+	}
 	e := ExportLighthouseFromDB()
 	AdjustDNS(logBuffer)
 	if e != nil {
@@ -121,7 +125,8 @@ func startNebula() error {
 	NebulaHasStarted = true
 
 	// Monitor process
-	go monitorNebulaProcess(process)
+	processDone = make(chan struct{})
+	go monitorNebulaProcess(process, processDone)
 
 	// Save PID
 	if err := savePID(process.Process.Pid); err != nil {
@@ -159,6 +164,20 @@ func handleProcessOutput(stdout, stderr io.ReadCloser, logBuffer *lumberjack.Log
 	}()
 }
 
+// isNebulaProcess checks the process identity to avoid killing an unrelated PID after PID reuse
+func isNebulaProcess(pid int) bool {
+	if runtime.GOOS != "linux" {
+		return true
+	}
+
+	cmdline, err := ioutil.ReadFile(fmt.Sprintf("/proc/%d/cmdline", pid))
+	if err != nil {
+		return false
+	}
+
+	return strings.Contains(strings.ToLower(string(cmdline)), "nebula")
+}
+
 func killExistingProcess(pidFile string) error {
 	pidBytes, err := ioutil.ReadFile(pidFile)
 	if err != nil {
@@ -168,6 +187,16 @@ func killExistingProcess(pidFile string) error {
 	pidInt, err := strconv.Atoi(strings.TrimSpace(string(pidBytes)))
 	if err != nil {
 		return fmt.Errorf("invalid pid format: %w", err)
+	}
+
+	if !isNebulaProcess(pidInt) {
+		utils.Warn(fmt.Sprintf("Constellation: PID %d is not a nebula process, removing stale PID file", pidInt))
+
+		if err := os.Remove(pidFile); err != nil {
+			utils.Error("Failed to remove stale PID file", err)
+		}
+
+		return nil
 	}
 
 	proc, err := os.FindProcess(pidInt)
@@ -199,7 +228,7 @@ func savePID(pid int) error {
 	return nil
 }
 
-func monitorNebulaProcess(proc *exec.Cmd) {
+func monitorNebulaProcess(proc *exec.Cmd, done chan struct{}) {
 	err := proc.Wait()
 	if err != nil {
 		if exitErr, ok := err.(*exec.ExitError); ok {
@@ -216,26 +245,34 @@ func monitorNebulaProcess(proc *exec.Cmd) {
 	// The process has stopped, so update the global state
 	// Only clear state if this is still the active process (a new one may have been started)
 	ProcessMux.Lock()
-	defer ProcessMux.Unlock()
-	process = nil
-	NebulaStarted = false
-	NATSStarted = false
+	if process == proc {
+		process = nil
+		NebulaStarted = false
+		NATSStarted = false
+	}
+	ProcessMux.Unlock()
+
+	close(done)
 }
 
 func stop() {
+	// stopped outside of ProcessMux so the DNS goroutine can never block the lock
+	StopDNS()
+
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 
 	if process != nil {
+		done := processDone
+
 		if err := process.Process.Kill(); err != nil {
 			utils.Error("Failed to kill nebula process", err)
 		}
-		// wait for process to be nil
 
+		// wait for the monitor to report the process exited
 		ProcessMux.Unlock()
-		for process != nil {
-			time.Sleep(100 * time.Millisecond)
-			utils.Debug("CCIAJHSODLJALSD")
+		if done != nil {
+			<-done
 		}
 		ProcessMux.Lock()
 
@@ -328,10 +365,12 @@ func GetAllDevicesEvenBlocked() ([]utils.ConstellationDevice, error) {
 	var devices []utils.ConstellationDevice
 
 	cursor, err := c.Find(nil, map[string]interface{}{})
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
 	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+	defer cursor.Close(nil)
+
+	if err := cursor.All(nil, &devices); err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
 
@@ -350,10 +389,12 @@ func GetAllDevices() ([]utils.ConstellationDevice, error) {
 	cursor, err := c.Find(nil, map[string]interface{}{
 		"Blocked": false,
 	})
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
 	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+	defer cursor.Close(nil)
+
+	if err := cursor.All(nil, &devices); err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
 
@@ -373,10 +414,12 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 		"IsLighthouse": true,
 		"Blocked": false,
 	})
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
 	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+	defer cursor.Close(nil)
+
+	if err := cursor.All(nil, &devices); err != nil {
 		return []utils.ConstellationDevice{}, err
 	}
 
@@ -390,16 +433,6 @@ func cleanIp(ip string) string {
 func ExportDefaultConfigToYAML(outputPath string) error {
 	// Combine defaultConfig
 	finalConfig := NebulaDefaultConfig
-
-	hostnames := []string{}
-	hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
-	for _, hostname := range hsraw {
-		// trim
-		hostname = strings.TrimSpace(hostname)
-		if hostname != "" {
-			hostnames = append(hostnames, hostname + ":4242")
-		}
-	}	
 
 	// Marshal the combined config to YAML
 	yamlData, err := yaml.Marshal(finalConfig)
@@ -450,17 +483,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
-		hostnames := []string{}
-		hs, _ := GetCurrentDeviceHostname()
-		hsraw := strings.Split(hs, ",")
-		for _, hostname := range hsraw {
-			// trim
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				hostnames = append(hostnames, hostname + ":4242")
-			}
-		}
-
 		for _, l := range devices {
 			staticHostMap[cleanIp(l.IP)] = []string{}
 
@@ -668,11 +690,28 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 	return strValue, nil
 }
 
-func generateNebulaCert(name, filename, ip, PK string, saveToFile bool) (string, string, string, error) {
+// getCertPrefixLength returns the prefix length of the configured IP range, defaulting to 24
+func getCertPrefixLength() string {
+	ipRange := utils.GetMainConfig().ConstellationConfig.IPRange
+
+	if ipRange != "" {
+		if _, ipNet, err := net.ParseCIDR(ipRange); err == nil {
+			if ones, _ := ipNet.Mask.Size(); ones > 0 {
+				return strconv.Itoa(ones)
+			}
+		}
+
+		utils.Warn("Constellation: invalid IPRange " + ipRange + ", defaulting certificate subnet to /24")
+	}
+
+	return "24"
+}
+
+func generateNebulaCert(name, filename, ip string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
 
-	ip = ip + "/24"
+	ip = ip + "/" + getCertPrefixLength()
 
 	// Read the generated certificate and key files
 	certPath := fmt.Sprintf("./%s.crt", name)
@@ -688,33 +727,14 @@ func generateNebulaCert(name, filename, ip, PK string, saveToFile bool) (string,
 		os.Remove(keyPath)
 	}
 
-	if(PK == "") {
-		cmd = exec.Command(certBinaryToRun(),
-			"sign",
-			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
-			"-ca-key", utils.CONFIGFOLDER + "ca.key",
-			"-subnets", "0.0.0.0/0",
-			"-name", name,
-			"-ip", ip,
-		)
-	} else {
-		// write PK to temp.cert
-		err := ioutil.WriteFile("./temp.key", []byte(PK), 0644)
-		if err != nil {
-			return "", "", "", fmt.Errorf("failed to write temp.key: %s", err)
-		}
-		cmd = exec.Command(certBinaryToRun(),
-			"sign",
-			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
-			"-ca-key", utils.CONFIGFOLDER + "ca.key",
-			"-subnets", "0.0.0.0/0",
-			"-name", name,
-			"-ip", ip,
-			"-in-pub", "./temp.key",
-		)
-		// delete temp.key
-		defer os.Remove("./temp.key")
-	}
+	cmd = exec.Command(certBinaryToRun(),
+		"sign",
+		"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
+		"-ca-key", utils.CONFIGFOLDER + "ca.key",
+		"-subnets", "0.0.0.0/0",
+		"-name", name,
+		"-ip", ip,
+	)
 
 	// Get pipes for stdout and stderr
 	stdout, err := cmd.StdoutPipe()
@@ -812,9 +832,8 @@ func generateNebulaCACert(name string) error {
 	cmd := exec.Command(
 		certBinaryToRun(),
 		"ca",
-		"-name",
+		"-name", name,
 		"-duration", "87600h", // 10 years
-		"\""+name+"\"",
 	)
 	utils.Debug(cmd.String())
 
@@ -1126,38 +1145,70 @@ func GetCurrentDevice() (utils.ConstellationDevice, error) {
 
 		device = utils.ConstellationDevice{}
 
-		if configMap["cstln_device_name"] != nil  {
-			device.DeviceName = configMap["cstln_device_name"].(string)
+		if v, exists := configMap["cstln_device_name"]; exists {
+			if deviceName, ok := v.(string); ok {
+				device.DeviceName = deviceName
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_device_name is not a string, skipping")
+			}
 		} else {
 			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync - missing name")
 		}
 
-		if configMap["cstln_ip"] != nil  {
-			device.IP = configMap["cstln_ip"].(string)
+		if v, exists := configMap["cstln_ip"]; exists {
+			if ip, ok := v.(string); ok {
+				device.IP = ip
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_ip is not a string, skipping")
+			}
 		}
 
-		if configMap["cstln_public_hostname"] != nil  {
-			device.PublicHostname = configMap["cstln_public_hostname"].(string)
+		if v, exists := configMap["cstln_public_hostname"]; exists {
+			if publicHostname, ok := v.(string); ok {
+				device.PublicHostname = publicHostname
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_public_hostname is not a string, skipping")
+			}
 		}
 
-		if configMap["cstln_cosmos_node"] != nil  {
-			device.CosmosNode = configMap["cstln_cosmos_node"].(int)
+		if v, exists := configMap["cstln_cosmos_node"]; exists {
+			if cosmosNode, ok := v.(int); ok {
+				device.CosmosNode = cosmosNode
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_cosmos_node is not an int, skipping")
+			}
 		}
 
-		if configMap["cstln_is_exit_node"] != nil  {
-			device.IsExitNode = configMap["cstln_is_exit_node"].(bool)
+		if v, exists := configMap["cstln_is_exit_node"]; exists {
+			if isExitNode, ok := v.(bool); ok {
+				device.IsExitNode = isExitNode
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_is_exit_node is not a bool, skipping")
+			}
 		}
 
-		if configMap["cstln_is_relay"] != nil  {
-			device.IsRelay = configMap["cstln_is_relay"].(bool)
+		if v, exists := configMap["cstln_is_relay"]; exists {
+			if isRelay, ok := v.(bool); ok {
+				device.IsRelay = isRelay
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_is_relay is not a bool, skipping")
+			}
 		}
 
-		if configMap["cstln_is_lighthouse"] != nil  {
-			device.IsLighthouse = configMap["cstln_is_lighthouse"].(bool)
+		if v, exists := configMap["cstln_is_lighthouse"]; exists {
+			if isLighthouse, ok := v.(bool); ok {
+				device.IsLighthouse = isLighthouse
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_is_lighthouse is not a bool, skipping")
+			}
 		}
 
-		if configMap["cstln_api_key"] != nil  {
-			device.APIKey = configMap["cstln_api_key"].(string)
+		if v, exists := configMap["cstln_api_key"]; exists {
+			if apiKey, ok := v.(string); ok {
+				device.APIKey = apiKey
+			} else {
+				utils.Warn("GetCurrentDevice: cstln_api_key is not a string, skipping")
+			}
 		} else {
 			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
 		}

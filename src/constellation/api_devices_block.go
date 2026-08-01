@@ -51,18 +51,13 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 		
-		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
-		
-		if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_RESOURCES) != nil {
-			return
-		}
 
 		utils.Log("ConstellationDeviceBlocking: Blocking Device " + deviceName)
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
   		defer closeDb()
-		
+
 		if errCo != nil {
 				utils.Error("Database Connect", errCo)
 				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -72,7 +67,7 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		device := utils.Device{}
 
 		utils.Debug("ConstellationDeviceBlocking: Blocking Device " + deviceName)
-		
+
 		err2 := c.FindOne(nil, map[string]interface{}{
 			"DeviceName": deviceName,
 			"Blocked": false,
@@ -80,7 +75,12 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 
 		if err2 == nil {
 			utils.Debug("ConstellationDeviceBlocking: Found Device " + deviceName)
-			
+
+			// authorize against the device's actual nickname, not the request-supplied one
+			if utils.CheckPermissionsOrSelf(w, req, device.Nickname, utils.PERM_RESOURCES) != nil {
+				return
+			}
+
 			_, err3 := c.UpdateMany(nil, map[string]interface{}{
 				"DeviceName": deviceName,
 			}, map[string]interface{}{

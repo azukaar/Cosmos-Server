@@ -96,6 +96,9 @@ func StopHeartbeat() {
 	// only consumer in production.
 	pro.StopResourceSampler()
 
+	heartbeatLock.Lock()
+	defer heartbeatLock.Unlock()
+
 	if heartbeatStopChan != nil {
 		close(heartbeatStopChan)
 		heartbeatStopChan = nil
@@ -167,12 +170,14 @@ func ClientHeartbeatInit() {
 
 	UpdateLocalTunnelCache()
 
+	heartbeatLock.Lock()
 	heartbeatStopChan = make(chan struct{})
 	heartbeatTicker = time.NewTicker(2 * time.Second)
 
 	// Capture in local variables to avoid race conditions
 	stopChan := heartbeatStopChan
 	ticker := heartbeatTicker
+	heartbeatLock.Unlock()
 
 	// Watch KV for changes and refresh tunnel cache
 	go func() {
@@ -329,6 +334,7 @@ var localTunnelCacheMutex = &sync.RWMutex{}
 var lastCacheUpdate time.Time
 var heartbeatStopChan chan struct{}
 var heartbeatTicker *time.Ticker
+var heartbeatLock sync.Mutex
 
 func UpdateLocalTunnelCache() {
 	if IsConstellationStandalone() {

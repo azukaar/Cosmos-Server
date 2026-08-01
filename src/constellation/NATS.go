@@ -64,6 +64,17 @@ func truncateLog(s string) string {
 	return s
 }
 
+// redactSecret returns a short, non-reversible hint of a secret for logs
+func redactSecret(s string) string {
+	if s == "" {
+		return "<empty>"
+	}
+	if len(s) <= 4 {
+		return "****(len " + strconv.Itoa(len(s)) + ")"
+	}
+	return s[:4] + "****(len " + strconv.Itoa(len(s)) + ")"
+}
+
 func sanitizeNATSUsername(username string) string {
 	username = strings.ReplaceAll(username, " ", "_")
 	username = strings.ReplaceAll(username, ".", "_")
@@ -109,7 +120,7 @@ func GetClusterIPs() ([]*url.URL, error) {
 func GetNATSCredentials() (string, string, error) {
 	currentDevice, _ := GetCurrentDevice()
 
-	utils.Debug("GetNATSCredentials: currentDevice.APIKey=" + currentDevice.APIKey + " currentDevice.DeviceName=" + currentDevice.DeviceName)
+	utils.Debug("GetNATSCredentials: currentDevice.APIKey=" + redactSecret(currentDevice.APIKey) + " currentDevice.DeviceName=" + currentDevice.DeviceName)
 
 	if currentDevice.APIKey != "" && currentDevice.DeviceName != "" {
 		return currentDevice.DeviceName, currentDevice.APIKey, nil
@@ -135,12 +146,10 @@ func GetNATSCredentials() (string, string, error) {
 		apiKey := configMap["cstln_api_key"].(string)
 		deviceName := configMap["cstln_device_name"].(string)
 
-		utils.Debug("GetNATSCredentials: found credentials in nebula.yml: deviceName=" + deviceName + " apiKey=" + apiKey)
+		utils.Debug("GetNATSCredentials: found credentials in nebula.yml: deviceName=" + deviceName + " apiKey=" + redactSecret(apiKey))
 
 		return deviceName, apiKey, nil
 	}
-
-	return "", "", errors.New("NATS credentials not found")
 }
 
 func StartNATS() {
@@ -172,18 +181,21 @@ func StartNATS() {
 	certDERBlock, _ := pem.Decode(certPEMBlock)
 	if certDERBlock == nil {
 		utils.MajorError("[NATS] Failed to start NATS: parse certificate PEM", nil)
+		return
 	}
 
 	// Decode PEM encoded private key
 	keyDERBlock, _ := pem.Decode(keyPEMBlock)
 	if keyDERBlock == nil {
 		utils.MajorError("[NATS] Failed to start NATS: parse key PEM", nil)
+		return
 	}
 
 	// Create tls.Certificate using the original PEM data
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	if err != nil {
 		utils.MajorError("[NATS] Failed to start NATS: create TLS certificate", err)
+		return
 	}
 
 	// Configure the NATS server options
@@ -192,7 +204,7 @@ func StartNATS() {
 	users := []*server.User{}
 
 	for _, devices := range CachedDevices {
-		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + devices.APIKey)
+		utils.Debug("[NATS] Adding NATS user for device: " + devices.DeviceName + " With API Key: " + redactSecret(devices.APIKey))
 		username := sanitizeNATSUsername(devices.DeviceName)
 
 		// TODO: Agent / users with less permissions
@@ -251,21 +263,16 @@ func StartNATS() {
 		natsHost = "0.0.0.0"
 	}
 
+	standalone := IsConstellationStandalone()
+
 	cips, err := GetClusterIPs()
-	if err != nil {
+	if err != nil && !standalone {
 		utils.Error("[NATS] Failed to get cluster IPs", err)
 	}
 
 	utils.Debug("[NATS] Cluster IPs: ")
 	for _, cip := range cips {
 		utils.Debug("[NATS] Cluster IP: " + cip.String())
-	}
-
-	// Abort if this server has no peer lighthouses — a single-node NATS cluster
-	// cannot form a JetStream quorum and every downstream op spams errors.
-	if IsConstellationStandalone() {
-		utils.Warn("[NATS] Constellation has no peer lighthouses, NATS server will not start")
-		return
 	}
 
 	opts := &server.Options{
@@ -283,7 +290,14 @@ func StartNATS() {
 			InsecureSkipVerify: true,
 		},
 
-		Cluster: server.ClusterOpts{
+		Users: users,
+	}
+
+	// no peer lighthouses: serve NATS single-node, without cluster opts or routes
+	if standalone {
+		utils.Log("[NATS] Constellation has no peer lighthouses, starting NATS in standalone mode")
+	} else {
+		opts.Cluster = server.ClusterOpts{
 			Name: "Constellation",
 			Host: device.IP,
 			Port: 6222,
@@ -292,11 +306,9 @@ func StartNATS() {
 				ClientAuth:         tls.NoClientCert,
 				InsecureSkipVerify: true,
 			},
-		},
+		}
 
-		Routes: cips,
-
-		Users: users,
+		opts.Routes = cips
 	}
 
 	// Create and start the embedded NATS server
@@ -304,6 +316,13 @@ func StartNATS() {
 	err = errors.New("")
 
 	for err != nil && retries < 5 {
+		// drop any instance left over from a failed attempt
+		if ns != nil {
+			ns.Shutdown()
+			ns.WaitForShutdown()
+			ns = nil
+		}
+
 		ns, err = server.NewServer(opts)
 		if err != nil {
 			retries++
@@ -312,6 +331,8 @@ func StartNATS() {
 
 		if !NebulaStarted {
 			utils.Error("[NATS] Nebula not started, aborting NATS server setup", nil)
+			ns.Shutdown()
+			ns = nil
 			return
 		}
 
@@ -328,14 +349,20 @@ func StartNATS() {
 		utils.Debug("[NATS] Retrying to start NATS server")
 	}
 
+	if err != nil {
+		if ns != nil {
+			ns.Shutdown()
+			ns.WaitForShutdown()
+			ns = nil
+		}
+		utils.MajorError("[NATS] Error starting NATS server", err)
+		return
+	}
+
 	NATSStarted = true
 
-	if err != nil {
-		utils.MajorError("[NATS] Error starting NATS server", err)
-	} else {
-		utils.Log("[NATS] Started NATS server on host " + opts.Host + ":" + strconv.Itoa(opts.Port))
-		InitNATSClient()
-	}
+	utils.Log("[NATS] Started NATS server on host " + opts.Host + ":" + strconv.Itoa(opts.Port))
+	InitNATSClient()
 }
 
 func StopNATS() {
@@ -354,6 +381,21 @@ var clientConfigLock = sync.RWMutex{}
 var NATSClientTopic = ""
 var nc *nats.Conn
 var js nats.JetStreamContext
+
+func connectNATSClient(url string, user string, pwd string) (*nats.Conn, error) {
+	return natsClient.Connect(url,
+		nats.Secure(&tls.Config{
+			InsecureSkipVerify: true,
+		}),
+
+		nats.UserInfo(user, pwd),
+
+		// timeout
+		nats.Timeout(2*time.Second),
+
+		nats.NoEcho(),
+	)
+}
 
 func InitNATSClient() error {
 	if !NATSStarted {
@@ -394,23 +436,9 @@ func InitNATSClient() error {
 		return err
 	}
 
-	nc, err = natsClient.Connect("nats://"+deviceIp+":4222",
+	natsUrl := "nats://" + deviceIp + ":4222"
 
-		// nats.DisconnectHandler(func(nc *nats.Conn) {
-		// 		utils.Log("Disconnected from NATS server - trying to reconnect")
-		// }),
-
-		nats.Secure(&tls.Config{
-			InsecureSkipVerify: true,
-		}),
-
-		nats.UserInfo(user, pwd),
-
-		// timeout
-		nats.Timeout(2*time.Second),
-
-		nats.NoEcho(),
-	)
+	nc, err = connectNATSClient(natsUrl, user, pwd)
 
 	for err != nil {
 		if retries >= 10 {
@@ -435,18 +463,7 @@ func InitNATSClient() error {
 			continue
 		}
 
-		nc, err = natsClient.Connect("nats://localhost:4222",
-			nats.Secure(&tls.Config{
-				InsecureSkipVerify: true,
-			}),
-
-			nats.UserInfo(user, pwd),
-
-			// timeout
-			nats.Timeout(2*time.Second),
-
-			nats.NoEcho(),
-		)
+		nc, err = connectNATSClient(natsUrl, user, pwd)
 
 		if err != nil {
 			retries++
@@ -473,9 +490,14 @@ func InitNATSClient() error {
 		utils.Error("[NATS] Failed to get JetStream context", err)
 	}
 
-	go ClientHeartbeatInit()
+	// standalone has no peers to heartbeat with or sync from
+	if IsConstellationStandalone() {
+		utils.Debug("[NATS] Standalone constellation, skipping heartbeat and sync request")
+	} else {
+		go ClientHeartbeatInit()
 
-	go SendRequestSyncMessage()
+		go SendRequestSyncMessage()
+	}
 
 	// POST CLIENT CONNECTION HOOK
 
@@ -535,8 +557,8 @@ func IsConstellationStandalone() bool {
 	}
 	myIP, err := GetCurrentDeviceIP()
 	if err != nil {
-		utils.Fatal("[NATS] Failed to get current device IP", err)
-		return false
+		utils.Error("[NATS] Failed to get current device IP", err)
+		return true
 	}
 	for _, device := range CachedDevices {
 		if device.IP == myIP {

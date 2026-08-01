@@ -99,10 +99,7 @@ func DevicePing(w http.ResponseWriter, req *http.Request) {
 func pingIP(ip string) bool {
 	var cmd *exec.Cmd
 
-	// remove the CIDR suffix if present
-	if len(ip) > 3 && ip[len(ip)-3] == '/' {
-		ip = ip[:len(ip)-3]
-	}
+	ip = cleanIp(ip)
 
 	// Use platform-specific ping command
 	if runtime.GOOS == "windows" {

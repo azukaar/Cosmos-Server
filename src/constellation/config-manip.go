@@ -113,7 +113,9 @@ func UpdateFirewallBlockedClients() error {
 		return err
 	}
 	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
+	if err := cursor.All(nil, &devices); err != nil {
+		return err
+	}
 
 	// Create a map of device names to IPs
 	deviceIPs := make(map[string]string)
@@ -477,8 +479,7 @@ func ValidateStaticHosts(logBuffer *lumberjack.Logger) error {
 			lighthouseMap["hosts"] = newHosts
 			removedCount := originalCount - len(newHosts)
 			if removedCount > 0 {
-				logger.Printf("level=debug msg=Removed %d completely unreachable IP(s) from relay list", removedCount)
-				logger.Printf("Removed %d completely unreachable IP(s) from lighthouse hosts", removedCount)
+				logger.Printf("level=debug msg=Removed %d completely unreachable IP(s) from lighthouse hosts", removedCount)
 			}
 		}
 	}

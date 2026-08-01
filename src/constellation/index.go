@@ -115,11 +115,11 @@ func Init() {
 			utils.Error("Database Connect", errCo)
 		} else {
 			cursor, err := c.Find(nil, map[string]interface{}{})
-			defer cursor.Close(nil)
 
 			if err != nil {
 				utils.Error("DeviceList: Error fetching devices", err)
 			} else {
+				defer cursor.Close(nil)
 				var devices []utils.ConstellationDevice
 
 				if err = cursor.All(nil, &devices); err != nil {
