@@ -1,3 +1,6 @@
+## Version 0.22.33
+ - Fix Constellation NATS cluster routes being built from the Nebula lighthouse
+
 ## Version 0.22.32
  - Fix Constellation CA certificates being generated with a 1 year expiry instead of 10
  - Start NATS on standalone Constellation servers so clients can fetch the device list

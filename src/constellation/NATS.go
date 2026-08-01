@@ -95,9 +95,11 @@ func GetClusterIPs() ([]*url.URL, error) {
 		ipsMap[ip] = true
 	}
 
-	// read IPs from cached devices
+	// read IPs from cached devices — any device running its own NATS server
+	// (CosmosNode > 0), not just the Nebula lighthouse: a Manager/Agent peer
+	// that isn't the Nebula lighthouse would otherwise never be routed to.
 	for _, device := range CachedDevices {
-		if device.IsLighthouse {
+		if device.CosmosNode > 0 {
 			ipsMap[device.IP] = true
 		}
 	}
@@ -293,21 +295,25 @@ func StartNATS() {
 		Users: users,
 	}
 
-	// no peer lighthouses: serve NATS single-node, without cluster opts or routes
-	if standalone {
-		utils.Log("[NATS] Constellation has no peer lighthouses, starting NATS in standalone mode")
-	} else {
-		opts.Cluster = server.ClusterOpts{
-			Name: "Constellation",
-			Host: device.IP,
-			Port: 6222,
-			TLSConfig: &tls.Config{
-				Certificates:       []tls.Certificate{cert},
-				ClientAuth:         tls.NoClientCert,
-				InsecureSkipVerify: true,
-			},
-		}
+	// Always open the cluster listener, even if we don't yet know of any peer
+	// to dial: a freshly-joined peer may already know about us (e.g. via its
+	// own nebula lighthouse.hosts) and connect in before our own device cache
+	// has synced. Only populate Routes — the peers we actively dial — when we
+	// already know of one; otherwise we just wait to accept an incoming route.
+	opts.Cluster = server.ClusterOpts{
+		Name: "Constellation",
+		Host: device.IP,
+		Port: 6222,
+		TLSConfig: &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			ClientAuth:         tls.NoClientCert,
+			InsecureSkipVerify: true,
+		},
+	}
 
+	if standalone {
+		utils.Log("[NATS] Constellation has no known peers yet, listening for cluster routes without dialing out")
+	} else {
 		opts.Routes = cips
 	}
 
