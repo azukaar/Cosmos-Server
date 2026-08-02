@@ -1,3 +1,6 @@
+## Version 0.22.34
+ - Fix bootstrap issue with NATS cluster 
+
 ## Version 0.22.33
  - Fix Constellation NATS cluster routes being built from the Nebula lighthouse
 

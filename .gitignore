@@ -31,6 +31,7 @@ test-backup
 ca.pem
 sdk/dist
 sdk/node_modules
+debug-constellation
 
 .terraform
 terraform.tfstate

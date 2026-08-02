@@ -154,6 +154,31 @@ func GetNATSCredentials() (string, string, error) {
 	}
 }
 
+// natsLogAdapter forwards the embedded nats-server's own internal logging
+// (route/cluster listener bind errors, JetStream state, etc.) into cosmos's
+// logger. nats-server otherwise logs these to its own discarded/unconfigured
+// logger, so failures like a route listener bind error never reach cosmos.log.
+type natsLogAdapter struct{}
+
+func (natsLogAdapter) Noticef(format string, v ...interface{}) {
+	utils.Debug("[NATS internal] " + fmt.Sprintf(format, v...))
+}
+func (natsLogAdapter) Warnf(format string, v ...interface{}) {
+	utils.Warn("[NATS internal] " + fmt.Sprintf(format, v...))
+}
+func (natsLogAdapter) Fatalf(format string, v ...interface{}) {
+	utils.Error("[NATS internal] "+fmt.Sprintf(format, v...), nil)
+}
+func (natsLogAdapter) Errorf(format string, v ...interface{}) {
+	utils.Error("[NATS internal] "+fmt.Sprintf(format, v...), nil)
+}
+func (natsLogAdapter) Debugf(format string, v ...interface{}) {
+	utils.Debug("[NATS internal] " + fmt.Sprintf(format, v...))
+}
+func (natsLogAdapter) Tracef(format string, v ...interface{}) {
+	utils.Debug("[NATS internal] " + fmt.Sprintf(format, v...))
+}
+
 func StartNATS() {
 	if ns != nil {
 		return
@@ -277,13 +302,23 @@ func StartNATS() {
 		utils.Debug("[NATS] Cluster IP: " + cip.String())
 	}
 
+	// Agents never run their own JetStream: a JetStream Raft group needs a
+	// majority to make progress, and with exactly 2 nodes that majority is
+	// both of them — worse availability than a single node, since either one
+	// going down stalls it. Agents instead just cluster (core NATS routing)
+	// and reach the Manager's JetStream transparently over that route (JS
+	// API subjects are exported via the system account and proxy across
+	// cluster connections), so cluster_size stays 1 regardless of how many
+	// Agents join.
+	isAgent := utils.FBL.AgentMode
+
 	opts := &server.Options{
 		Host: natsHost,
 		Port: 4222,
 
 		ServerName: natsName,
 
-		JetStream: true,
+		JetStream: !isAgent,
 		StoreDir:  utils.CONFIGFOLDER + "/jetstream",
 
 		TLSConfig: &tls.Config{
@@ -295,11 +330,20 @@ func StartNATS() {
 		Users: users,
 	}
 
-	// Always open the cluster listener, even if we don't yet know of any peer
-	// to dial: a freshly-joined peer may already know about us (e.g. via its
-	// own nebula lighthouse.hosts) and connect in before our own device cache
-	// has synced. Only populate Routes — the peers we actively dial — when we
-	// already know of one; otherwise we just wait to accept an incoming route.
+	// Always open the cluster listener so a peer that already knows about us
+	// (e.g. via its own nebula lighthouse.hosts) can connect in, even before
+	// we know of anyone ourselves.
+	//
+	// nats-server refuses to start JetStream at all if Cluster is configured
+	// with zero configured Routes and no leafnode ("JetStream cluster
+	// requires configured routes or solicited leafnode for the system
+	// account") — that check is static (just len(opts.Routes) > 0), it does
+	// not require a route to actually be connected. So when standalone, we
+	// list our own cluster address as the sole route: nats-server always
+	// excludes self-addressed routes from actual connection attempts
+	// (route.go's routesToSelf/excludedAddresses), so this never dials
+	// anything — it only satisfies the startup check while we wait to
+	// accept a real incoming route.
 	opts.Cluster = server.ClusterOpts{
 		Name: "Constellation",
 		Host: device.IP,
@@ -313,6 +357,12 @@ func StartNATS() {
 
 	if standalone {
 		utils.Log("[NATS] Constellation has no known peers yet, listening for cluster routes without dialing out")
+		selfRoute, err := url.Parse("nats-route://" + device.IP + ":6222")
+		if err != nil {
+			utils.Error("[NATS] Failed to build self route", err)
+			return
+		}
+		opts.Routes = []*url.URL{selfRoute}
 	} else {
 		opts.Routes = cips
 	}
@@ -333,6 +383,10 @@ func StartNATS() {
 		if err != nil {
 			retries++
 			continue
+		}
+
+		if utils.LoggingLevelLabels[utils.GetMainConfig().LoggingLevel] == utils.DEBUG {
+			ns.SetLogger(natsLogAdapter{}, true, true)
 		}
 
 		if !NebulaStarted {
