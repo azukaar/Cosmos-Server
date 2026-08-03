@@ -36,6 +36,25 @@ var serverPortHTTPS = ""
 var HTTPServer *http.Server
 var HTTPServer2 *http.Server
 
+func httpsRedirectHandler(httpsPort string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hostname := r.Host
+		if host, _, err := net.SplitHostPort(r.Host); err == nil {
+			hostname = host
+		} else if strings.HasPrefix(hostname, "[") && strings.HasSuffix(hostname, "]") {
+			hostname = strings.TrimPrefix(strings.TrimSuffix(hostname, "]"), "[")
+		}
+
+		if httpsPort != "" && httpsPort != "443" {
+			hostname = net.JoinHostPort(hostname, httpsPort)
+		} else if strings.Contains(hostname, ":") {
+			hostname = "[" + hostname + "]"
+		}
+
+		http.Redirect(w, r, "https://"+hostname+r.URL.RequestURI(), http.StatusPermanentRedirect)
+	})
+}
+
 func startHTTPServer(router *mux.Router) error {
 	HTTPServer2 = nil
 	HTTPServer = &http.Server{
@@ -122,15 +141,13 @@ func startHTTPSServer(router *mux.Router) error {
 		
 	// redirect http to https
 	go (func () {
-		httpRouter := mux.NewRouter()
-
 		HTTPServer2 = &http.Server{
 			Addr: "0.0.0.0:" + serverPortHTTP,
 			ReadTimeout: 0,
 			ReadHeaderTimeout: 10 * time.Second,
 			WriteTimeout: 0,
 			IdleTimeout: 30 * time.Second,
-			Handler: httpRouter,
+			Handler: httpsRedirectHandler(serverPortHTTPS),
 			DisableGeneralOptionsHandler: true,
 		}
 
