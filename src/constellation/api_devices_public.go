@@ -3,7 +3,6 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
-	"strings"
 
 	"github.com/nats-io/nats.go"
 
@@ -34,21 +33,15 @@ type PublicDeviceInfo struct {
 // @Failure 500 {object} utils.HTTPErrorResult
 // @Router /api/constellation/public-devices [get]
 func DevicePublicList(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
+		return
+	}
+
 	// Check for GET method
 	if req.Method != "GET" {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP002")
 		return
 	}
-
-	// Get authorization header
-	auth := req.Header.Get("Authorization")
-	if auth == "" {
-		http.Error(w, "Unauthorized [1]", http.StatusUnauthorized)
-		return
-	}
-
-	// Remove "Bearer " from auth header
-	auth = strings.Replace(auth, "Bearer ", "", 1)
 
 	// Connect to the collection
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
@@ -67,13 +60,12 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		"Invisible": false,
 	})
 
-	defer cursor.Close(nil)
-	
 	if err != nil {
 		utils.Error("DevicePublicList: Error fetching devices", err)
 		utils.HTTPError(w, "Error fetching devices", http.StatusInternalServerError, "DPL001")
 		return
 	}
+	defer cursor.Close(nil)
 
 	var devices []utils.ConstellationDevice
 	if err = cursor.All(nil, &devices); err != nil {
@@ -124,13 +116,12 @@ func PublicDeviceListNATS(m *nats.Msg) {
 		"Invisible": false,
 	})
 
-	defer cursor.Close(nil)
-
 	if err != nil {
 		utils.Error("PublicDeviceListNATS: Error fetching devices", err)
 		m.Respond([]byte(`{"status":"error","message":"Error fetching devices"}`))
 		return
 	}
+	defer cursor.Close(nil)
 
 	var devices []utils.ConstellationDevice
 	if err = cursor.All(nil, &devices); err != nil {

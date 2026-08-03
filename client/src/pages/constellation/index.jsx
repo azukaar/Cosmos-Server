@@ -10,6 +10,7 @@ import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
 import { PERM_RESOURCES_READ } from '../../utils/permissions';
 import { useTranslation } from 'react-i18next';
+import proFeatures from '../../pro';
 
 
 import { ConstellationVPN } from './vpn';
@@ -34,27 +35,29 @@ const ConstellationIndex = () => {
 
   const freeVersion = coStatus && !coStatus.Licence;
 
+  const tabs = [
+    {
+      title: 'VPN',
+      children: <ConstellationVPN freeVersion={freeVersion} />,
+      path: 'vpn'
+    },
+    {
+      title: 'DNS',
+      children: <ConstellationDNS />,
+      path: 'dns'
+    }
+  ];
+
+  if (proFeatures.isPro && proFeatures.isPro() && proFeatures.DeploymentsTab) {
+    tabs.push({
+      title: t('mgmt.deployments.tabTitle'),
+      children: <proFeatures.DeploymentsTab />,
+      path: 'deployments',
+    });
+  }
+
   const ConstContent = isAdmin && !freeVersion ? <div>
-    <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
-        {
-          title: 'VPN',
-          children: <ConstellationVPN freeVersion={freeVersion} />,
-          path: 'vpn'
-        },
-        {
-          title: 'DNS',
-          children: <ConstellationDNS />,
-          path: 'dns'
-        },
-        {
-          title: t('mgmt.constellation.setup.unsafeRoutesTitle'),
-          children: <div>
-            <Alert severity="info">
-              {t('mgmt.constellation.setup.unsafeRoutesText')}
-            </Alert>
-          </div>,
-        }
-      ]}/>
+    <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={tabs}/>
 
   </div> : <ConstellationVPN freeVersion={freeVersion} />;
 

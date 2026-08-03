@@ -93,6 +93,117 @@
 				]
 			},
 			{
+				"name": "Plurality",
+				"description": "Free, self-hosted AI assistant you can see and steer in real time. Run quick conversations or long-running agents that spawn parallel sub-agents — every tool call, edit and sub-agent shown inline as a conversation. Any model via LiteLLM, sandboxed agents, MCP, image generation, CRON, webhooks and per-tool approval. One Flutter app on web, desktop and mobile. Self-contained SQLite. MIT.",
+				"url": "",
+				"longDescription": "\u003cp\u003ePlurality is a free, self-hosted AI assistant you can see in action, steer in real time, and easily debug. Spawn a plain conversation for a quick answer, or hand an agent a goal and let it keep working after you walk away — for minutes, hours, or days — calling tools, monitoring things, and spawning parallel sub-agents.\u003c/p\u003e\u003cp\u003eWhere other platforms only let an agent text you updates, Plurality shows every inference the agent made as a conversation you can open at any moment to watch, stop, steer, or debug. Tool calls render inline with their arguments, file edits show as git-style diffs, long jobs show a live checklist, and even sub-agents appear as nested sub-conversations under the agent that spawned them. Every message carries its token counts and dollar cost.\u003c/p\u003e\u003cp\u003eIt runs (almost) any model from (almost) any provider through a local LiteLLM proxy (OpenAI, Anthropic, Gemini, Fireworks, OpenRouter and more) from a single YAML file, with keys staying on your box. Agents are sandboxed with full control over their virtual environment, support tool calls, MCP, shell execution, image generation, skills and a custom harness with per-tool approval (Off / Ask / On). Attach a folder to any conversation to code in it, draft documents, or organize files. Other features include a CRON scheduler, signed webhook triggers, multimodal support (vision, image generation/editing, speech-to-text, TTS), reusable preset mini-apps, hybrid full-text + semantic search, and local accounts or OpenID/OIDC single sign-on. A single Flutter client runs on web, desktop and mobile. Self-contained per-user SQLite, no external database. MIT licensed.\u003c/p\u003e",
+				"translation": {
+					"en": {
+						"description": "",
+						"longDescription": ""
+					},
+					"de": {
+						"description": "",
+						"longDescription": ""
+					},
+					"de-CH": {
+						"description": "",
+						"longDescription": ""
+					},
+					"en-GB": {
+						"description": "",
+						"longDescription": ""
+					},
+					"cn": {
+						"description": "",
+						"longDescription": ""
+					},
+					"cn-TW": {
+						"description": "",
+						"longDescription": ""
+					},
+					"es": {
+						"description": "",
+						"longDescription": ""
+					},
+					"fr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"hi": {
+						"description": "",
+						"longDescription": ""
+					},
+					"it": {
+						"description": "",
+						"longDescription": ""
+					},
+					"jp": {
+						"description": "",
+						"longDescription": ""
+					},
+					"kr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"nl": {
+						"description": "",
+						"longDescription": ""
+					},
+					"pl": {
+						"description": "",
+						"longDescription": ""
+					},
+					"pt": {
+						"description": "",
+						"longDescription": ""
+					},
+					"ru": {
+						"description": "",
+						"longDescription": ""
+					},
+					"tr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"ar": {
+						"description": "",
+						"longDescription": ""
+					},
+					"en-FUNNYSHAKESPEARE": {
+						"description": "",
+						"longDescription": ""
+					}
+				},
+				"tags": [
+					"AI",
+					"assistant",
+					"chatbot",
+					"LLM",
+					"OpenRouter",
+					"self-hosted",
+					"multi-user",
+					"privacy-focused",
+					"open-source",
+					"Docker"
+				],
+				"repository": "https://github.com/azukaar/plurality",
+				"image": "https://hub.docker.com/r/azukaar/plurality",
+				"screenshots": [
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/1.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/2.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/3.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/4.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/5.png"
+				],
+				"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/icon.png",
+				"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/cosmos-compose.json",
+				"supported_architectures": [
+					"amd64",
+					"arm64"
+				]
+			},
+			{
 				"name": "Nextcloud",
 				"description": "Nextcloud is an open-source, self-hosted file share and collaboration platform, similar to Dropbox. It offers features such as file sharing, syncing, encryption, and collaboration tools. With its extensible app ecosystem, you can tailor your cloud storage service to your needs. Nextcloud is compatible with numerous platforms and can be integrated with many IT infrastructure systems.",
 				"url": "",
@@ -4830,6 +4941,117 @@
 						"arm64"
 					]
 				},
+			{
+				"name": "Plurality",
+				"description": "Free, self-hosted AI assistant you can see and steer in real time. Run quick conversations or long-running agents that spawn parallel sub-agents — every tool call, edit and sub-agent shown inline as a conversation. Any model via LiteLLM, sandboxed agents, MCP, image generation, CRON, webhooks and per-tool approval. One Flutter app on web, desktop and mobile. Self-contained SQLite. MIT.",
+				"url": "",
+				"longDescription": "\u003cp\u003ePlurality is a free, self-hosted AI assistant you can see in action, steer in real time, and easily debug. Spawn a plain conversation for a quick answer, or hand an agent a goal and let it keep working after you walk away — for minutes, hours, or days — calling tools, monitoring things, and spawning parallel sub-agents.\u003c/p\u003e\u003cp\u003eWhere other platforms only let an agent text you updates, Plurality shows every inference the agent made as a conversation you can open at any moment to watch, stop, steer, or debug. Tool calls render inline with their arguments, file edits show as git-style diffs, long jobs show a live checklist, and even sub-agents appear as nested sub-conversations under the agent that spawned them. Every message carries its token counts and dollar cost.\u003c/p\u003e\u003cp\u003eIt runs (almost) any model from (almost) any provider through a local LiteLLM proxy (OpenAI, Anthropic, Gemini, Fireworks, OpenRouter and more) from a single YAML file, with keys staying on your box. Agents are sandboxed with full control over their virtual environment, support tool calls, MCP, shell execution, image generation, skills and a custom harness with per-tool approval (Off / Ask / On). Attach a folder to any conversation to code in it, draft documents, or organize files. Other features include a CRON scheduler, signed webhook triggers, multimodal support (vision, image generation/editing, speech-to-text, TTS), reusable preset mini-apps, hybrid full-text + semantic search, and local accounts or OpenID/OIDC single sign-on. A single Flutter client runs on web, desktop and mobile. Self-contained per-user SQLite, no external database. MIT licensed.\u003c/p\u003e",
+				"translation": {
+					"en": {
+						"description": "",
+						"longDescription": ""
+					},
+					"de": {
+						"description": "",
+						"longDescription": ""
+					},
+					"de-CH": {
+						"description": "",
+						"longDescription": ""
+					},
+					"en-GB": {
+						"description": "",
+						"longDescription": ""
+					},
+					"cn": {
+						"description": "",
+						"longDescription": ""
+					},
+					"cn-TW": {
+						"description": "",
+						"longDescription": ""
+					},
+					"es": {
+						"description": "",
+						"longDescription": ""
+					},
+					"fr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"hi": {
+						"description": "",
+						"longDescription": ""
+					},
+					"it": {
+						"description": "",
+						"longDescription": ""
+					},
+					"jp": {
+						"description": "",
+						"longDescription": ""
+					},
+					"kr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"nl": {
+						"description": "",
+						"longDescription": ""
+					},
+					"pl": {
+						"description": "",
+						"longDescription": ""
+					},
+					"pt": {
+						"description": "",
+						"longDescription": ""
+					},
+					"ru": {
+						"description": "",
+						"longDescription": ""
+					},
+					"tr": {
+						"description": "",
+						"longDescription": ""
+					},
+					"ar": {
+						"description": "",
+						"longDescription": ""
+					},
+					"en-FUNNYSHAKESPEARE": {
+						"description": "",
+						"longDescription": ""
+					}
+				},
+				"tags": [
+					"AI",
+					"assistant",
+					"chatbot",
+					"LLM",
+					"OpenRouter",
+					"self-hosted",
+					"multi-user",
+					"privacy-focused",
+					"open-source",
+					"Docker"
+				],
+				"repository": "https://github.com/azukaar/plurality",
+				"image": "https://hub.docker.com/r/azukaar/plurality",
+				"screenshots": [
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/1.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/2.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/3.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/4.png",
+					"https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/screenshots/5.png"
+				],
+				"icon": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/icon.png",
+				"compose": "https://azukaar.github.io/cosmos-servapps-official/servapps/Plurality/cosmos-compose.json",
+				"supported_architectures": [
+					"amd64",
+					"arm64"
+				]
+			},
 				{
 					"name": "Grav",
 					"description": "Grav is an open-source, self-hosted, flat-file content management system (CMS). It offers features like content filtering, multi-language support, flexible templating with Twig, and simple content creation with Markdown. Grav can be extended with plugins and themes. It can be run on Windows, Linux, MacOS, and Docker.",

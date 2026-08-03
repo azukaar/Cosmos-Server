@@ -65,29 +65,37 @@ func (p *CosmosProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		return
 	}
 
+	// If any field references something not yet known (e.g. a public IP from
+	// an aws_instance still being created), defer Configure. Terraform will
+	// retry once the dependency resolves during apply.
+	if config.BaseURL.IsUnknown() || config.Token.IsUnknown() || config.Insecure.IsUnknown() {
+		return
+	}
+
 	baseURL := os.Getenv("COSMOS_BASE_URL")
 	if !config.BaseURL.IsNull() {
 		baseURL = config.BaseURL.ValueString()
-	}
-	if baseURL == "" {
-		resp.Diagnostics.AddError("Missing base_url", "base_url must be set in the provider configuration or via COSMOS_BASE_URL environment variable.")
-		return
 	}
 
 	token := os.Getenv("COSMOS_TOKEN")
 	if !config.Token.IsNull() {
 		token = config.Token.ValueString()
 	}
-	if token == "" {
-		resp.Diagnostics.AddError("Missing token", "token must be set in the provider configuration or via COSMOS_TOKEN environment variable.")
-		return
-	}
+	// token may be empty: cosmos_install runs against an unconfigured server
+	// where /api/setup is unauthenticated. Resources that require auth will
+	// surface a 401 from the server with a clear error.
 
 	insecure := os.Getenv("COSMOS_INSECURE") == "true"
 	if !config.Insecure.IsNull() {
 		insecure = config.Insecure.ValueBool()
 	}
 
+	// base_url may be empty: a default `provider "cosmos" {}` block can exist
+	// purely to satisfy required_providers when only aliased providers are
+	// actually used (or when cosmos_remote_install — which never touches the
+	// Cosmos API — is the only resource on the default provider). Build the
+	// client anyway; resources that try to make a real request without a
+	// configured base_url will get a clear connection error.
 	cosmosClient, err := client.NewCosmosClient(baseURL, token, insecure)
 	if err != nil {
 		resp.Diagnostics.AddError("Failed to create Cosmos client", err.Error())
@@ -116,6 +124,9 @@ func (p *CosmosProvider) Resources(_ context.Context) []func() resource.Resource
 		resources.NewSnapRAIDResource,
 		resources.NewStorageMountResource,
 		resources.NewGroupResource,
+		resources.NewDeploymentResource,
+		resources.NewInstallResource,
+		resources.NewRemoteInstallResource,
 	}
 }
 

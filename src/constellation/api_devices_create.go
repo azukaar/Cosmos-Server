@@ -5,15 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
+	"sync"
 	"time"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/utils"
 )
+
+// deviceCreateMutex serializes DeviceCreate to close the name/IP check-then-insert race
+var deviceCreateMutex sync.Mutex
 
 type DeviceCreateRequestJSON struct {
 	DeviceName string `json:"deviceName" validate:"required,min=3,max=32"`
 	IP string `json:"ip" validate:"required,ipv4"`
-	PublicKey string `json:"publicKey,omitempty"`
 
 	// for devices only
 	Nickname string `json:"nickname,omitempty" validate:"omitempty,max=32"`
@@ -75,11 +78,15 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 		}
 
 		// Non-admin users can only create client devices
-		if !utils.HasPermission(req, utils.PERM_RESOURCES) && request.IsLighthouse {
-			utils.Error("DeviceCreation: Non-admin users can only create client devices", nil)
-			utils.HTTPError(w, "Device Creation Error: Only administrators can create lighthouse devices",
-				http.StatusForbidden, "DC006")
-			return
+		if !utils.HasPermission(req, utils.PERM_RESOURCES) {
+			if request.IsLighthouse {
+				utils.Error("DeviceCreation: Non-admin users can only create client devices", nil)
+				utils.HTTPError(w, "Device Creation Error: Only administrators can create lighthouse devices",
+					http.StatusForbidden, "DC006")
+				return
+			}
+
+			request.CosmosNode = 0
 		}
 
 		errV := utils.Validate.Struct(request)
@@ -114,7 +121,6 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{
 				Nickname: nickname,
 				DeviceName: deviceName,
-				PublicKey: key,
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
 				CosmosNode: request.CosmosNode,
@@ -152,7 +158,6 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				map[string]interface{}{
 					"deviceName": deviceName,
 					"nickname": nickname,
-					"publicKey": key,
 					"ip": request.IP,
 			})
 
@@ -161,8 +166,8 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 				"data": map[string]interface{}{
 					"Nickname": nickname,
 					"DeviceName": deviceName,
-					"PublicKey": key,
-					"PrivateKey": cert,
+					"Certificate": cert,
+					"PrivateKey": key,
 					"IP": request.IP,
 					"Config": configYml,
 					"CA": capki,
@@ -197,6 +202,9 @@ func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 }
 
 func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, DeviceCreateRequestJSON, error) {
+	deviceCreateMutex.Lock()
+	defer deviceCreateMutex.Unlock()
+
 	nickname := utils.Sanitize(request.Nickname)
 	deviceName := utils.Sanitize(request.DeviceName)
 	APIKey := utils.GenerateRandomString(32)
@@ -240,14 +248,14 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 
 	// Device name and IP are both available, proceed with creation
 	{
-		cert, key, fingerprint, err := generateNebulaCert(deviceName, deviceName, request.IP, request.PublicKey, false)
+		cert, key, fingerprint, err := generateNebulaCert(deviceName, deviceName, request.IP, false)
 
 		if err != nil {
 			return "", "", "", DeviceCreateRequestJSON{}, err
 		}
 
-		// Check cosmos node and devices limit
-		if request.CosmosNode > 0 {
+		// Check cosmos node and devices limit (skipped on Pro — unlimited).
+		if !utils.IsPro() && request.CosmosNode > 0 {
 			countManagers, errCount := c.CountDocuments(nil, map[string]interface{}{
 				"CosmosNode": 2,
 				"Blocked": false,
@@ -282,18 +290,20 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 			}
 		}
 
-		totalClientLimit := 10 * int64(utils.GetNumberUsers())
+		if !utils.IsPro() {
+			totalClientLimit := 10 * int64(utils.GetNumberUsers())
 
-		countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
-			"Blocked": false,
-		})
+			countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
+				"Blocked": false,
+			})
 
-		if errCountDevices != nil {
-			return "", "", "", DeviceCreateRequestJSON{}, errCountDevices
-		}
+			if errCountDevices != nil {
+				return "", "", "", DeviceCreateRequestJSON{}, errCountDevices
+			}
 
-		if countDevices >= totalClientLimit {
-			return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device limit reached")
+			if countDevices >= totalClientLimit {
+				return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device limit reached")
+			}
 		}
 
 		if request.IsLighthouse && request.Nickname != "" {
@@ -314,7 +324,6 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 		_, err3 := c.InsertOne(nil, map[string]interface{}{
 			"Nickname": nickname,
 			"DeviceName": deviceName,
-			"PublicKey": key,
 			"IP": request.IP,
 			"IsLighthouse": request.IsLighthouse,
 			"CosmosNode": request.CosmosNode,
@@ -335,11 +344,6 @@ func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, Devi
 
 		request.Nickname = nickname
 		request.DeviceName = deviceName
-		request.PublicKey = key
-		request.IsLoadBalancer = request.IsLoadBalancer
-		request.IsExitNode = request.IsExitNode
-		request.IsLoadBalancer = request.IsLoadBalancer
-		request.Invisible = request.Invisible
 		request.APIKey = APIKey
 
 		return cert, key, fingerprint, request, nil

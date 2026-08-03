@@ -1,3 +1,100 @@
+## Version 0.22.34
+ - Fix bootstrap issue with NATS cluster 
+
+## Version 0.22.33
+ - Fix Constellation NATS cluster routes being built from the Nebula lighthouse
+
+## Version 0.22.32
+ - Fix Constellation CA certificates being generated with a 1 year expiry instead of 10
+ - Start NATS on standalone Constellation servers so clients can fetch the device list
+ - Fix permission check when blocking Constellation devices
+ - Harden Constellation DNS (crash fix, stricter hostname matching)
+ - Fix Constellation device private keys being stored and returned by the API as PublicKey
+ - Additional Constellation fixes and cleanups
+ - Multiple bug fixes on the constellation client
+  - windows duplicate window
+  - Linux errors
+  - MacOS DNSes
+  - Mobile battery drain
+
+## Version 0.22.31
+ - Update to latest LEGO
+ - Solve issue where removing a licence would cause errors spam
+
+## Version 0.22.30
+ - Add role to internal openid client
+
+## Version 0.22.29
+ - Add a way to control the internal OpenID from the route with PublicOpenIDName
+
+## Version 0.22.28
+ - prevent openid internal/external name clashes
+ - add PublicOpenIDRedirectURIs for custom internal open id redirect
+
+## Version 0.22.27
+ - segregate oidc states per routes
+ - new attempt at edge OIDC implementation that does not break other OIDC
+
+## Version 0.22.26
+ - reverting 0.22.25, need better approach (#556) 
+
+## Version 0.22.25
+ - Move OIDC at edge
+
+## Version 0.22.24
+ - Fix OpenID for tunneled routes
+ - Fix tunnels being duplicated when saving
+
+## Version 0.22.23
+ - Add RootProtocol and RootHostname to cosmos-installer in cosmos-compose
+
+## Version 0.22.22
+ - Add openID clients to non-auth URLs
+ - Allow openID auto-clients to connect native apps
+
+## Version 0.22.21
+ - Tiny adjustment to openid redirect_uri
+
+## Version 0.22.20
+ - Added support for public OAuth2/OIDC via PKCE 
+ - Minor OpenID improvements
+ - Build is now statically linked (CGO_ENABLED=0) for more diverse system compatibility
+
+## Version 0.22.19
+ - Only allow manager server to bypass tunnel authorization
+ - Add authorization check on legacy Public Device endpoint
+ - Pro SDK generation 
+ - cosmos-compose now adds a default container name when missing
+ - Attempt at fixing all MacOS Safari login issues on bare IP
+
+## Version 0.22.18
+ - More Terraform improvemnts
+
+## Version 0.22.17
+ - Fixed bug with some constellation devices not being deletable
+ 
+## Version 0.22.16
+ - Improve standalone constellation check
+ - More Terraform improvements 
+
+## Version 0.22.15
+ - Terraform improvements for first installs 
+ - Some pro scaffolding
+
+## Version 0.22.14
+ - added missing deployments function in the SDK
+
+## Version 0.22.13
+ - Add licence to new install SDK function
+
+## Version 0.22.12
+ - Allow single lighthouse to start NATS (regression)
+
+## Version 0.22.11
+ - Added labels to volumes## Version 0.22.12
+ - Minor improvement on Constellation edit device
+ - Some pro scaffolding
+
 ## Version 0.22.10
  - Fix some Restic warning breaking integration
  - Remove NATS when there's only one server in Constellation

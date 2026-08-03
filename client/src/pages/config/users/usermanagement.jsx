@@ -235,18 +235,20 @@ const UserManagement = () => {
         <Stack direction="row" spacing={2}>
             <PermissionGuard permission={PERM_USERS}><Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
                 setOpenCreateForm(true)
-            }} disabled={(status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button></PermissionGuard>
+            }} disabled={(!proFeatures.isPro() && status && rows) ? (rows.length >= status.LicenceNumber) : false}>{t('global.createAction')}</Button></PermissionGuard>
 
             <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
                     refresh();
             }}>{t('global.refresh')}</Button>
 
-            <div>{t('mgmt.usermgmt.userSeatsUsed')} {rows ? rows.length : 0} / {status ? status.LicenceNumber : 0}
-                <LinearProgress style={{width: '100px'}} variant="determinate" value={(status && rows) ? (rows.length / status.LicenceNumber) * 100 : 0}
-                color={
-                    (status && rows) ? (rows.length >= status.LicenceNumber ? 'error' : 'primary') : 'primary'
-                } />
-            </div>
+            {!proFeatures.isPro() && (
+              <div>{t('mgmt.usermgmt.userSeatsUsed')} {rows ? rows.length : 0} / {status ? status.LicenceNumber : 0}
+                  <LinearProgress style={{width: '100px'}} variant="determinate" value={(status && rows) ? (rows.length / status.LicenceNumber) * 100 : 0}
+                  color={
+                      (status && rows) ? (rows.length >= status.LicenceNumber ? 'error' : 'primary') : 'primary'
+                  } />
+              </div>
+            )}
         </Stack>
 
         <br /><br />

@@ -72,6 +72,22 @@ func IsConstellationIP(ip string) bool {
 	return false
 }
 
+func GetConstellationFromIP(ip string) *utils.ConstellationDevice {
+	if !ConstellationConnected() {
+		return nil
+	}
+
+	// Check if the IP exists in the cached devices
+	for _, device := range CachedDevices {
+		if device.IP == ip {
+			deviceCopy := device
+			return &deviceCopy
+		}
+	}
+
+	return nil
+}
+
 func Init() {
 	utils.Log("Initializing Constellation module...")
 
@@ -99,11 +115,11 @@ func Init() {
 			utils.Error("Database Connect", errCo)
 		} else {
 			cursor, err := c.Find(nil, map[string]interface{}{})
-			defer cursor.Close(nil)
 
 			if err != nil {
 				utils.Error("DeviceList: Error fetching devices", err)
 			} else {
+				defer cursor.Close(nil)
 				var devices []utils.ConstellationDevice
 
 				if err = cursor.All(nil, &devices); err != nil {

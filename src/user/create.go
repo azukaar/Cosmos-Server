@@ -81,15 +81,15 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 
 		utils.Debug("UserCreation: Creating user " + nickname)
 
-		// count users 
-		count, errCount := c.CountDocuments(nil, map[string]interface{}{})
+		// count users
+		count, errCount := utils.CountUsers()
 		if errCount != nil {
 			utils.Error("UserCreation: Error while counting users", errCount)
 			utils.HTTPError(w, "User Creation Error", http.StatusInternalServerError, "UC001")
 			return
 		}
 
-		if count >= int64(utils.GetNumberUsers()) {
+		if !utils.IsPro() && count >= int64(utils.GetNumberUsers()) {
 			utils.Error("UserCreation: User limit reached", nil)
 			utils.HTTPError(w, "User limit reached", http.StatusConflict, "UC014")
 			return

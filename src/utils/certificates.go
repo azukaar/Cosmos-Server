@@ -15,15 +15,17 @@ import (
 	"os"
 	"strings"
 	"net"
-	
-	"github.com/go-acme/lego/v4/certcrypto"
-	"github.com/go-acme/lego/v4/certificate"
-	"github.com/go-acme/lego/v4/challenge/http01"
-	"github.com/go-acme/lego/v4/lego"
-	"github.com/go-acme/lego/v4/registration"
-	"github.com/go-acme/lego/v4/challenge/tlsalpn01"
-	"github.com/go-acme/lego/v4/providers/dns"
-	"github.com/go-acme/lego/v4/challenge/dns01"
+	"context"
+
+	"github.com/go-acme/lego/v5/acme"
+	"github.com/go-acme/lego/v5/certcrypto"
+	"github.com/go-acme/lego/v5/certificate"
+	"github.com/go-acme/lego/v5/challenge/http01"
+	"github.com/go-acme/lego/v5/lego"
+	"github.com/go-acme/lego/v5/registration"
+	"github.com/go-acme/lego/v5/challenge/tlsalpn01"
+	"github.com/go-acme/lego/v5/providers/dns"
+	"github.com/go-acme/lego/v5/challenge/dns01"
 )
 
 type CAConfig struct {
@@ -207,18 +209,18 @@ func GenerateEd25519Certificates() (string, string) {
 
 type CertUser struct {
 	Email        string
-	Registration *registration.Resource
-	key          crypto.PrivateKey
+	Registration *acme.ExtendedAccount
+	key          crypto.Signer
 }
 func (u *CertUser) GetEmail() string {
 	return u.Email
 }
 
-func (u CertUser) GetRegistration() *registration.Resource {
+func (u CertUser) GetRegistration() *acme.ExtendedAccount {
 	return u.Registration
 }
 
-func (u *CertUser) GetPrivateKey() crypto.PrivateKey {
+func (u *CertUser) GetPrivateKey() crypto.Signer {
 	return u.key
 }
 
@@ -226,6 +228,7 @@ func (u *CertUser) GetPrivateKey() crypto.PrivateKey {
 func DoLetsEncrypt() (string, string) {
 	config := GetMainConfig()
 	LetsEncryptErrors = []string{}
+	ctx := context.Background()
 
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -248,8 +251,6 @@ func DoLetsEncrypt() (string, string) {
 	} else {
 		certConfig.CADirURL = "https://acme-v02.api.letsencrypt.org/directory"
 	}
-
-	certConfig.Certificate.KeyType = certcrypto.RSA2048
 
 	client, err := lego.NewClient(certConfig)
 	if err != nil {
@@ -310,11 +311,20 @@ func DoLetsEncrypt() (string, string) {
 		}
 		var PropagationWait = time.Duration(propagationWaitSec) * time.Second
 
+		// lego v5: recursive nameservers moved from a per-challenge option to the shared DNS client
+		dns01.SetDefaultClient(dns01.NewClient(&dns01.Options{
+			RecursiveNameservers: resolvers,
+		}))
+
 		err = client.Challenge.SetDNS01Provider(provider,
-			dns01.AddRecursiveNameservers(resolvers),
-			dns01.CondOption(config.HTTPConfig.DisablePropagationChecks,
+			dns01.CondOptions(config.HTTPConfig.DisablePropagationChecks,
 				dns01.PropagationWait(PropagationWait, true)),
 		)
+		if err != nil {
+			Error("LETSENCRYPT_DNS01", err)
+			LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
+			return "", ""
+		}
 	} else {
 		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 		if err != nil {
@@ -332,7 +342,7 @@ func DoLetsEncrypt() (string, string) {
 	}
 
 	// New users will need to register
-	reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
+	reg, err := client.Registration.Register(ctx, registration.RegisterOptions{TermsOfServiceAgreed: true})
 	if err != nil {
 		Error("LETSENCRYPT_REGISTER", err)
 		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
@@ -343,8 +353,11 @@ func DoLetsEncrypt() (string, string) {
 	request := certificate.ObtainRequest{
 		Domains: LetsEncryptValidOnly(domains, config.HTTPConfig.DNSChallengeProvider != ""),
 		Bundle:  true,
+		// lego v5: moved off lego.Config.Certificate, and CN is now opt-in
+		KeyType:          certcrypto.RSA2048,
+		EnableCommonName: true,
 	}
-	certificates, err := client.Certificate.Obtain(request)
+	certificates, err := client.Certificate.Obtain(ctx, request)
 	if err != nil {
 		Error("LETSENCRYPT_OBTAIN", err)
 		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
@@ -358,16 +371,16 @@ func DoLetsEncrypt() (string, string) {
 // You'll need a user or account type that implements acme.User
 type MyUser struct {
 	Email        string
-	Registration *registration.Resource
-	key          crypto.PrivateKey
+	Registration *acme.ExtendedAccount
+	key          crypto.Signer
 }
 
 func (u *MyUser) GetEmail() string {
 	return u.Email
 }
-func (u MyUser) GetRegistration() *registration.Resource {
+func (u MyUser) GetRegistration() *acme.ExtendedAccount {
 	return u.Registration
 }
-func (u *MyUser) GetPrivateKey() crypto.PrivateKey {
+func (u *MyUser) GetPrivateKey() crypto.Signer {
 	return u.key
 }

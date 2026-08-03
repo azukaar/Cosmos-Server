@@ -34,6 +34,22 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// JSONEquals reports whether two values serialize to identical JSON. Handy for
+// change-detection where you want to ignore differences that don't survive a
+// marshal round-trip (e.g. comparing a freshly-built struct against a cached
+// one). JSON preserves slice/map-key order, so callers must normalize
+// order-unstable slices (sort them) and zero out volatile fields they don't
+// care about BEFORE calling. A marshal error makes the values compare unequal
+// (fail-open: treat as "changed" rather than silently swallowing a real diff).
+func JSONEquals(a, b interface{}) bool {
+	aj, errA := json.Marshal(a)
+	bj, errB := json.Marshal(b)
+	if errA != nil || errB != nil {
+		return false
+	}
+	return string(aj) == string(bj)
+}
+
 var ConfigLock sync.Mutex
 var ConfigLockInternal sync.Mutex
 
@@ -1223,7 +1239,12 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 			Error("Error parsing host: " + fullhost, err)
 	}
 
-	clientID := route.Name //SanitizeNoSpace(Route.Name) + "_" + hex.EncodeToString(hash[:8])
+	// Prefixed so auto-provisioned route clients never clash with (and overwrite) manual OpenID clients sharing the route name
+	clientID := "__route_" + route.Name
+	if route.PublicOpenIDName != "" {
+		// custom client_id set in the route's advanced settings
+		clientID = route.PublicOpenIDName
+	}
 	plainSecret := hex.EncodeToString(hash[8:24])
 
 
@@ -1242,22 +1263,72 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 
 	callbackURL := fmt.Sprintf("https://%s/cosmos/oauth2/detect-callback", route.Host)
 	callbackURLClient := fmt.Sprintf("https://%s/oauth2/callback", route.Host)
+	// Also accept the route root, so an app doing its own OIDC with redirect_uri
+	// pointing at its homepage (e.g. https://app.example.com/) is supported without
+	// requiring a manually-created OpenID client.
+	rootURL := fmt.Sprintf("https://%s/", route.Host)
 
-	redURls := []string{callbackURL, callbackURLClient}
+	// Loopback redirect bases for native apps (RFC 8252 §7.3). fosite matches these
+	// with ANY port (only the port is ignored; scheme/host/path/query must match), so
+	// registering the root path here lets a native app use http://127.0.0.1:<random>/ as
+	// its redirect_uri with no per-client configuration. Safe to expose unconditionally:
+	// loopback redirects are delivered only on the user's own machine (the code never
+	// leaves the device), and public clients still require PKCE. Only the "/" path is
+	// covered; an app redirecting to a sub-path would need that path registered too.
+	loopbackRoot := "http://127.0.0.1/"
+	loopbackRootV6 := "http://[::1]/"
+
+	redURls := []string{callbackURL, callbackURLClient, rootURL, loopbackRoot, loopbackRootV6}
 
 	if IsHTTPS && config.HTTPConfig.AllowHTTPLocalIPAccess {
 		callbackURL2 := fmt.Sprintf("http://%s/cosmos/oauth2/detect-callback", route.Host)
-		redURls = append(redURls, callbackURL2)
+		rootURL2 := fmt.Sprintf("http://%s/", route.Host)
+		redURls = append(redURls, callbackURL2, rootURL2)
+	}
+
+	// extra redirect URIs configured on the route (advanced settings), comma-separated
+	for _, extraURI := range strings.Split(route.PublicOpenIDRedirectURIs, ",") {
+		if extraURI = strings.TrimSpace(extraURI); extraURI != "" {
+			redURls = append(redURls, extraURI)
+		}
 	}
 	
+	// Auto-provisioned route clients are public (PKCE) clients: a public discovery
+	// endpoint can never hand out a secret, and native/SPA apps cannot keep one. The
+	// deterministic secret above is kept only so existing callers compile; it is not
+	// assigned to the client. The Cosmos-gated proxy flow authenticates via PKCE too
+	// (see performLogin / detectCallbackEndpoint and DerivePKCEVerifier).
+	_ = secret
+
 	return &fosite.DefaultClient{
 			ID:            clientID,
-			Secret: 			 []byte(secret),
+			Public:        true,
 			RedirectURIs:  redURls,
-			Scopes:        []string{"openid", "email", "profile", "offline"},
+			Scopes:        []string{"openid", "email", "profile", "offline", "role", "roles"},
 			ResponseTypes: []string{"code"},
-			GrantTypes:    []string{"authorization_code"},
+			GrantTypes:    []string{"authorization_code", "refresh_token"},
 	}
+}
+
+// DerivePKCEVerifier deterministically derives a PKCE code_verifier from a route host
+// and request path, so the Cosmos-gated proxy flow can compute the same verifier in
+// performLogin (which sends the code_challenge) and later in detectCallbackEndpoint
+// (which sends the verifier) without storing any session state between the two requests.
+// The host is mixed in so same-path apps on different hosts don't share a challenge.
+//
+// This is safe ONLY because both ends run server-side inside Cosmos: the verifier never
+// reaches a browser/device (only its challenge hash is sent on the front channel), so its
+// secrecy rests on AuthPrivateKey staying secret - the same assumption the deterministic
+// secret already made. Native/SPA apps (Path B) generate their own random verifier and
+// never use this function.
+//
+// A distinct key slice ([0:32]) and domain-separation prefix are used so the result never
+// collides with the state hash (which uses AuthPrivateKey[32:64]). RawURLEncoding of a
+// 32-byte SHA-256 yields 43 chars from [A-Za-z0-9-_], meeting RFC 7636's verifier rules.
+func DerivePKCEVerifier(host string, path string) string {
+	config := GetMainConfig()
+	h := sha256.Sum256([]byte("cosmos-pkce:" + host + "\x00" + path + config.HTTPConfig.AuthPrivateKey[0:32]))
+	return base64.RawURLEncoding.EncodeToString(h[:])
 }
 
 func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
@@ -1283,9 +1354,19 @@ func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
 	}
 	
 	var proxyRoute *ProxyRouteConfig
-	for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+
+	// Constellation tunnel routes are not stored in ProxyConfig.Routes (they live in the
+	// tunnel cache), so a host lookup must consult both collections or it will miss any
+	// tunneled host - e.g. the OpenID detect-callback landing on a tunnel host would find
+	// no route and callers dereferencing the result would panic. Copy into a fresh slice
+	// so the append never writes into the shared config backing array.
+	allRoutes := append([]ProxyRouteConfig{}, config.HTTPConfig.ProxyConfig.Routes...)
+	allRoutes = append(allRoutes, GetConstellationTunnelRoutes()...)
+
+	for _, route := range allRoutes {
 			if route.Host == hostname {
-					proxyRoute = &route
+					r := route
+					proxyRoute = &r
 					break
 			}
 	}

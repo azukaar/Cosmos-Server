@@ -96,7 +96,7 @@ func API_NewConstellation(w http.ResponseWriter, req *http.Request) {
 		utils.Log("Constellation: cosmos.crt generating with ip " + ip)
 		
 		// generate cosmos.crt
-		_,_,_,errG = generateNebulaCert(request.DeviceName, "cosmos", ip, "", true)
+		_,_,_,errG = generateNebulaCert(request.DeviceName, "cosmos", ip, true)
 		if errG != nil {
 			utils.Error("Constellation: error while generating cosmos.crt", errG)
 		}
@@ -188,25 +188,45 @@ func ConnectToExisting(yamlBody []byte, config utils.Config) (utils.Config, erro
 	}
 
 	if deviceNameVal, ok := configMap["cstln_device_name"]; ok {
-		config.ConstellationConfig.ThisDeviceName = deviceNameVal.(string)
+		deviceName, ok := deviceNameVal.(string)
+		if !ok {
+			return config, errors.New("cstln_device_name is not a string")
+		}
+		config.ConstellationConfig.ThisDeviceName = deviceName
 	} else {
 		return config, errors.New("device name not found in constellation config")
 	}
 
 	if publicHostnameVal, ok := configMap["cstln_public_hostname"]; ok {
-		config.ConstellationConfig.ConstellationHostname = publicHostnameVal.(string)
+		publicHostname, ok := publicHostnameVal.(string)
+		if !ok {
+			return config, errors.New("cstln_public_hostname is not a string")
+		}
+		config.ConstellationConfig.ConstellationHostname = publicHostname
 	}
 
-	if licence, ok := configMap["cstln_server_licence"]; ok {
-		config.Licence = licence.(string)
+	if licenceVal, ok := configMap["cstln_server_licence"]; ok {
+		licence, ok := licenceVal.(string)
+		if !ok {
+			return config, errors.New("cstln_server_licence is not a string")
+		}
+		config.Licence = licence
 	}
 
-	if cosmosNode, ok := configMap["cstln_cosmos_node"]; ok {
-		config.AgentMode = cosmosNode.(int) == 1
+	if cosmosNodeVal, ok := configMap["cstln_cosmos_node"]; ok {
+		cosmosNode, ok := cosmosNodeVal.(int)
+		if !ok {
+			return config, errors.New("cstln_cosmos_node is not an int")
+		}
+		config.AgentMode = cosmosNode == 1
 	}
 
-	if ipRange, ok := configMap["cstln_ip_range"]; ok {
-		config.ConstellationConfig.IPRange = ipRange.(string)
+	if ipRangeVal, ok := configMap["cstln_ip_range"]; ok {
+		ipRange, ok := ipRangeVal.(string)
+		if !ok {
+			return config, errors.New("cstln_ip_range is not a string")
+		}
+		config.ConstellationConfig.IPRange = ipRange
 	}
 
 	utils.Log("ConnectToExisting: connected to an external Constellation")

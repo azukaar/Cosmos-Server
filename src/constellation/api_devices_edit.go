@@ -1,18 +1,20 @@
 package constellation
 
 import (
-	"net/http"
 	"encoding/json"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 type DeviceEditRequestJSON struct {
-	IsLighthouse   bool   `json:"isLighthouse"`
-	IsRelay        bool   `json:"isRelay"`
-	IsExitNode     bool   `json:"isExitNode"`
-	IsLoadBalancer bool   `json:"isLoadBalancer"`
+	IsLighthouse   bool     `json:"isLighthouse"`
+	IsRelay        bool     `json:"isRelay"`
+	IsExitNode     bool     `json:"isExitNode"`
+	IsLoadBalancer bool     `json:"isLoadBalancer"`
+	Tags           []string `json:"tags" validate:"omitempty,dive,min=1,max=64"`
 }
 
 // DeviceEdit_API godoc
@@ -68,6 +70,37 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 		request.IsLoadBalancer = false
 	}
 
+	// Normalize tags: trim whitespace, drop empties, dedupe while preserving
+	// input order. Keeps the persisted list tidy regardless of how the UI
+	// submitted them.
+	cleanTags := make([]string, 0, len(request.Tags))
+	seenTag := map[string]struct{}{}
+	for _, raw := range request.Tags {
+		t := strings.TrimSpace(raw)
+		if t == "" {
+			continue
+		}
+		// Reject commas: the UI renders/parses tags as a comma-separated
+		// list, so an embedded comma would not round-trip.
+		if strings.ContainsAny(t, ",") {
+			utils.Error("DeviceEdit: tag contains comma", nil)
+			utils.HTTPError(w, "Tag cannot contain commas", http.StatusBadRequest, "DE004")
+			return
+		}
+		if _, dup := seenTag[t]; dup {
+			continue
+		}
+		seenTag[t] = struct{}{}
+		cleanTags = append(cleanTags, t)
+	}
+	request.Tags = cleanTags
+
+	if errV := utils.Validate.Struct(request); errV != nil {
+		utils.Error("DeviceEdit: Validation error", errV)
+		utils.HTTPError(w, "Device Edit Validation Error: "+errV.Error(), http.StatusBadRequest, "DE005")
+		return
+	}
+
 	_, err = c.UpdateOne(nil, map[string]interface{}{
 		"DeviceName": deviceName,
 		"Blocked":    false,
@@ -77,6 +110,7 @@ func DeviceEdit_API(w http.ResponseWriter, req *http.Request) {
 			"IsRelay":        request.IsRelay,
 			"IsExitNode":     request.IsExitNode,
 			"IsLoadBalancer": request.IsLoadBalancer,
+			"Tags":           cleanTags,
 		},
 	})
 

@@ -134,6 +134,13 @@ func (r *constellationResource) Create(ctx context.Context, req resource.CreateR
 	}
 
 	plan.Enabled = types.BoolValue(true)
+	// nats_replicas is Optional+Computed. If the user didn't set it, the
+	// server keeps the existing/default value (effectively 0 — single-node).
+	// Materialize that into state so terraform doesn't choke on a still-unknown
+	// computed value after apply.
+	if plan.NATSReplicas.IsNull() || plan.NATSReplicas.IsUnknown() {
+		plan.NATSReplicas = types.Int64Value(0)
+	}
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
 

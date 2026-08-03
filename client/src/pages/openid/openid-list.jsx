@@ -149,9 +149,18 @@ const OpenIdList = () => {
         onSubmit={(values) => {
           if (clientId) {
             let index = clients.findIndex((r) => r.id === clientId);
-            clients[index] = values;
+            const prev = clients[index] || {};
+            // Preserve the existing secret on edit; public clients have no secret.
+            clients[index] = {
+              ...prev,
+              ...values,
+              secret: values.public ? '' : (prev.secret || ''),
+            };
           } else {
-            clients.push(values);
+            clients.push({
+              ...values,
+              secret: '',
+            });
           }
 
           save(updateRoutes(clients));
@@ -185,11 +194,6 @@ const OpenIdList = () => {
         </DialogActions>
       </Dialog>}
 
-      
-      <Alert severity="warning" icon={<WarningOutlined />}>
-        {t('mgmt.openId.experimentalWarning')}
-      </Alert>
-
       {clients && <PrettyTableView
         data={clients}
         getKey={(r) => r.id}
@@ -214,7 +218,8 @@ const OpenIdList = () => {
             },
             underline: true,
             field: (r) => <>
-              <div style={{ display: 'inline-block', textDecoration: 'inherit', fontSize: '125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark }}>{r.id}</div><br />
+              <div style={{ display: 'inline-block', textDecoration: 'inherit', fontSize: '125%', color: isDark ? theme.palette.primary.light : theme.palette.primary.dark }}>{r.id}</div>
+              {r.public && <>&nbsp;<Chip size="small" label={t('mgmt.openId.publicChip')} color="primary" variant="outlined" /></>}<br />
             </>
           },
           {
@@ -225,9 +230,9 @@ const OpenIdList = () => {
           },
           {
             title: '', clickable: true, field: (r, k) => <>
-              <PermissionGuard permission={PERM_CONFIGURATION}><Button variant="contained" color="primary" startIcon={<ArrowRightOutlined />} onClick={() => {
+              {!r.public && <><PermissionGuard permission={PERM_CONFIGURATION}><Button variant="contained" color="primary" startIcon={<ArrowRightOutlined />} onClick={() => {
                 generateNewSecret(r.id)
-              }}>{t('mgmt.openId.resetSecret')}</Button></PermissionGuard>&nbsp;&nbsp;
+              }}>{t('mgmt.openId.resetSecret')}</Button></PermissionGuard>&nbsp;&nbsp;</>}
               <PermissionGuard permission={PERM_CONFIGURATION}><DeleteButton onDelete={(event) => deleteClient(event, k)} /></PermissionGuard>
             </>,
           },

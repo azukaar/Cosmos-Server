@@ -13,7 +13,8 @@ import (
 
 func performLogin(w http.ResponseWriter, req *http.Request, route utils.ProxyRouteConfig) error {
 	config := utils.GetMainConfig()
-	pathHash := sha256.Sum256([]byte(req.URL.Path + config.HTTPConfig.AuthPrivateKey[32:64]))
+	// keyed on host+path so same-path apps on different hosts don't collide
+	pathHash := sha256.Sum256([]byte(route.Host + "\x00" + req.URL.Path + config.HTTPConfig.AuthPrivateKey[32:64]))
 	// Take first 16 bytes of hash and encode to base64url for shorter string
 	hashStr := base64.RawURLEncoding.EncodeToString(pathHash[:16])
 	// Combine hash and original path with comma
@@ -29,17 +30,27 @@ func performLogin(w http.ResponseWriter, req *http.Request, route utils.ProxyRou
 					mainDomain = "http://" + mainDomain
 			}
 			
+			// The auto-provisioned client is public, so PKCE is mandatory. Derive the
+			// verifier deterministically from host+path (recomputed in detectCallbackEndpoint)
+			// and send its S256 challenge. base64url output needs no URL-escaping.
+			verifier := utils.DerivePKCEVerifier(route.Host, req.URL.Path)
+			challengeHash := sha256.Sum256([]byte(verifier))
+			codeChallenge := base64.RawURLEncoding.EncodeToString(challengeHash[:])
+
 			//TODO: State should be a random string
 			authURL := fmt.Sprintf("%s/cosmos-ui/openid?"+
 					"response_type=code&"+
 					"client_id=%s&"+
 					"redirect_uri=%s&"+
 					"scope=openid&"+
-					"state=%s",
+					"state=%s&"+
+					"code_challenge=%s&"+
+					"code_challenge_method=S256",
 					mainDomain,
 					client.ID,
 					url.QueryEscape(client.RedirectURIs[0]),
 					url.QueryEscape(state),
+					codeChallenge,
 			)
 			
 			http.Redirect(w, req, authURL, http.StatusFound)

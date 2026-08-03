@@ -37,6 +37,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
   const [devicePingStatus, setDevicePingStatus] = useState({}); // {deviceName: 'loading' | 'success' | 'error'}
   const [firewallLoading, setFirewallLoading] = useState(null); // deviceName being toggled
   const [currentDeviceName, setCurrentDeviceName] = useState('');
+  const [leader, setLeader] = useState(''); // sanitized device name of the cluster scheduler leader, '' when unknown
   const [enableLoading, setEnableLoading] = useState(false);
 
   const refreshStatus = () => {
@@ -119,6 +120,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
     const deviceList = listRes.data || [];
     setDevices(deviceList);
     setCurrentDeviceName(listRes.currentDeviceName || '');
+    setLeader(listRes.leader || '');
     if (isAdmin)
       setUsers((await API.users.list()).data || []);
     else
@@ -162,6 +164,12 @@ export const ConstellationVPN = ({ freeVersion }) => {
     return <Tooltip title={label}>{icon}</Tooltip>;
   }
 
+  // The backend stores the leader under its sanitized device name (see
+  // sanitizeNATSUsername): space . - : / \ all become '_'. We sanitize each
+  // row the same way to match rather than reversing it server-side.
+  const sanitizeName = (s) => (s || '').replace(/[ .:/\\-]/g, '_');
+  const isLeaderDevice = (r) => !!leader && r && sanitizeName(r.deviceName) === leader;
+
   const currentDevice = devices && devices.find(d => d.deviceName === currentDeviceName);
 
   return <>
@@ -197,6 +205,7 @@ export const ConstellationVPN = ({ freeVersion }) => {
 
               {currentDevice && <>
                 <Stack direction="row" spacing={1} alignItems="center" sx={{ color: 'text.secondary' }}>
+                  {isLeaderDevice(currentDevice) && <Tooltip title={t('mgmt.constellation.leaderTooltip')}><Chip size="small" color="primary" label={t('mgmt.constellation.leader')} /></Tooltip>}
                   {currentDevice.isLighthouse
                     ? <Tooltip title={t('mgmt.constellation.publicLighthouseTooltip')}><CompassOutlined style={{ fontSize: 16 }} /></Tooltip>
                     : <Tooltip title={t('mgmt.constellation.privateServerTooltip')}><DesktopOutlined style={{ fontSize: 16, opacity: 0.5 }} /></Tooltip>
@@ -393,6 +402,11 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   IsRelay: currentDevice ? currentDevice.isRelay : false,
                   IsExitNode: currentDevice ? currentDevice.isExitNode : false,
                   IsLoadBalancer: currentDevice ? currentDevice.isLoadBalancer : false,
+                  // TagsText is the comma-separated string shown in the input;
+                  // parsed on submit into the array the backend expects.
+                  TagsText: (currentDevice && Array.isArray(currentDevice.tags))
+                    ? currentDevice.tags.join(', ')
+                    : '',
                   NATSReplicas: config.ConstellationConfig.NATSReplicas || 1,
                 }}
                 onSubmit={async (values) => {
@@ -405,11 +419,17 @@ export const ConstellationVPN = ({ freeVersion }) => {
                     return;
                   }
 
+                  const parsedTags = (values.TagsText || '')
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter((t) => t.length > 0);
+
                   await API.constellation.editDevice({
                     isLighthouse: values.IsLighthouse,
                     isRelay: values.IsRelay,
                     isExitNode: values.IsExitNode,
                     isLoadBalancer: values.IsLoadBalancer,
+                    tags: parsedTags,
                   });
 
                   setTimeout(() => {
@@ -475,6 +495,23 @@ export const ConstellationVPN = ({ freeVersion }) => {
                         </Stack>} />
                       </>}
 
+                      {/* Tags: pro-only feature. Gated on proFeatures.isPro() (not
+                          !freeVersion, which is also true for non-pro paid tiers).
+                          Any node (lighthouse or client) can have tags — they drive
+                          the scheduler's deployment affinity filter. */}
+                      {proFeatures.isPro && proFeatures.isPro() && constellationEnabled && <CosmosInputText
+                        disabled={!isAdmin}
+                        formik={formik}
+                        name="TagsText"
+                        placeholder={t('mgmt.constellation.setup.tags.placeholder')}
+                        label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.setup.tags.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.tags.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>}
+                      />}
+
                       {(!freeVersion || config.ConstellationConfig.ThisDeviceName) && <PermissionGuard permission={PERM_RESOURCES}>
                         <LoadingButton
                           disableElevation
@@ -513,7 +550,8 @@ export const ConstellationVPN = ({ freeVersion }) => {
           const managers = devices ? devices.filter(d => !d.blocked && d.cosmosNode === 2).length : 0;
           const agents = devices ? devices.filter(d => !d.blocked && d.cosmosNode === 1).length : 0;
           const totalNodes = managers + agents;
-          const limit = coStatus ? coStatus.LicenceNodeNumber : 1;
+          // Pro is unlimited; non-Pro keeps the licensed cap.
+          const limit = proFeatures.isPro() ? Infinity : (coStatus ? coStatus.LicenceNodeNumber : 1);
           let canCreateManager = true;
           let canCreateAgent = true;
           if (totalNodes >= limit) {
@@ -524,32 +562,34 @@ export const ConstellationVPN = ({ freeVersion }) => {
           return <>
           <CosmosFormDivider title={t('mgmt.constellation.devices')} />
 
-          <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
-            <div>
-              <div>{t('mgmt.constellation.deviceSeatsUsed')}: {devices ? devices.filter(d => !d.blocked).length : 0} / {coStatus ? coStatus.LicenceNumber * 10 : 0}</div>
-              <LinearProgress
-                style={{width: '150px'}}
-                variant="determinate"
-                value={(coStatus && devices) ? (devices.filter(d => !d.blocked).length / (coStatus.LicenceNumber * 10)) * 100 : 0}
-                color={(coStatus && devices) ? (devices.filter(d => !d.blocked).length >= coStatus.LicenceNumber * 10 ? 'error' : 'primary') : 'primary'}
-              />
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                {t('mgmt.constellation.cosmosNodeSeatsUsed')}: {devices ? devices.filter(d => !d.blocked && d.cosmosNode > 0).length : 0} / {coStatus ? coStatus.LicenceNodeNumber+1 : 0}
-                <Tooltip title={t('mgmt.constellation.cosmosNodeSeatsTooltip')}>
-                  <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
-                </Tooltip>
+          {!proFeatures.isPro() && (
+            <Stack direction="row" spacing={3} style={{ marginBottom: '20px' }}>
+              <div>
+                <div>{t('mgmt.constellation.deviceSeatsUsed')}: {devices ? devices.filter(d => !d.blocked).length : 0} / {coStatus ? coStatus.LicenceNumber * 10 : 0}</div>
+                <LinearProgress
+                  style={{width: '150px'}}
+                  variant="determinate"
+                  value={(coStatus && devices) ? (devices.filter(d => !d.blocked).length / (coStatus.LicenceNumber * 10)) * 100 : 0}
+                  color={(coStatus && devices) ? (devices.filter(d => !d.blocked).length >= coStatus.LicenceNumber * 10 ? 'error' : 'primary') : 'primary'}
+                />
               </div>
-              <LinearProgress
-                style={{width: '150px'}}
-                variant="determinate"
-                value={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length / (coStatus.LicenceNodeNumber+1)) * 100 : 0}
-                color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length >= coStatus.LicenceNodeNumber+1 ? 'error' : 'primary') : 'primary'}
-              />
-            </div>
-          </Stack>
+
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {t('mgmt.constellation.cosmosNodeSeatsUsed')}: {devices ? devices.filter(d => !d.blocked && d.cosmosNode > 0).length : 0} / {coStatus ? coStatus.LicenceNodeNumber+1 : 0}
+                  <Tooltip title={t('mgmt.constellation.cosmosNodeSeatsTooltip')}>
+                    <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                  </Tooltip>
+                </div>
+                <LinearProgress
+                  style={{width: '150px'}}
+                  variant="determinate"
+                  value={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length / (coStatus.LicenceNodeNumber+1)) * 100 : 0}
+                  color={(coStatus && devices) ? (devices.filter(d => !d.blocked && d.cosmosNode > 0).length >= coStatus.LicenceNodeNumber+1 ? 'error' : 'primary') : 'primary'}
+                />
+              </div>
+            </Stack>
+          )}
 
           <PrettyTableView
             data={devices.filter((d) => !d.blocked)}
@@ -590,7 +630,10 @@ export const ConstellationVPN = ({ freeVersion }) => {
                   return <div style={{display: "flex", alignItems: "center", gap: "8px"}}>
                     {res}
                     <div>
-                      <div><strong>{r.deviceName}</strong></div>
+                      <div style={{display: "flex", alignItems: "center", gap: "6px"}}>
+                        <strong>{r.deviceName}</strong>
+                        {isLeaderDevice(r) && <Tooltip title={t('mgmt.constellation.leaderTooltip')}><Chip size="small" color="primary" label={t('mgmt.constellation.leader')} /></Tooltip>}
+                      </div>
                       <div style={{opacity: 0.8}}>{r.ip}</div>
                     </div>
                   </div>

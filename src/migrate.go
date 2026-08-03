@@ -225,3 +225,57 @@ func MigratePre014_FallBackNoPuppet() {
 	}
 	utils.SetBaseMainConfig(config)
 }
+
+// DNS providers renamed in lego v5, credentials are unchanged.
+// acme-dns/rfc2136/webnames still resolve as aliases, but are no longer listed in dns-list.json
+var legoV5RenamedProviders = map[string]string{
+	"azure":    "azuredns",
+	"acme-dns": "acmedns",
+	"rfc2136":  "dnsupdate",
+	"webnames": "webnamesru",
+}
+
+// DNS providers renamed in lego v5, but backed by a different API so credentials must be re-entered
+var legoV5RenamedProvidersNewCreds = map[string]string{
+	"dnspod": "tencentcloud",
+	"iij":    "iijdpf",
+}
+
+// DNS providers dropped in lego v5 with no replacement
+var legoV5RemovedProviders = []string{
+	"brandit",
+	"cloudxns",
+	"googledomains",
+	"iwantmyname",
+}
+
+func MigratePre02231() {
+	config := utils.ReadConfigFromFile()
+	provider := config.HTTPConfig.DNSChallengeProvider
+
+	if provider == "" {
+		return
+	}
+
+	if newName, ok := legoV5RenamedProviders[provider]; ok {
+		utils.Log("MigratePre02231: renaming DNS challenge provider " + provider + " to " + newName)
+		config.HTTPConfig.DNSChallengeProvider = newName
+		utils.SetBaseMainConfig(config)
+		return
+	}
+
+	if newName, ok := legoV5RenamedProvidersNewCreds[provider]; ok {
+		utils.Log("MigratePre02231: renaming DNS challenge provider " + provider + " to " + newName)
+		config.HTTPConfig.DNSChallengeProvider = newName
+		utils.SetBaseMainConfig(config)
+		utils.MajorError("MigratePre02231: DNS provider '" + provider + "' is now '" + newName + "' and uses a different API. Update its credentials in the HTTPS settings or certificate renewal will fail", nil)
+		return
+	}
+
+	for _, removed := range legoV5RemovedProviders {
+		if provider == removed {
+			utils.MajorError("MigratePre02231: DNS provider '" + provider + "' no longer exists and has no replacement. Pick another provider in the HTTPS settings or certificate renewal will fail", nil)
+			return
+		}
+	}
+}

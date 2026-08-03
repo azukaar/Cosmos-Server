@@ -60,9 +60,9 @@ function addDevice(device) {
         "LighthousesList": [],
         "Nickname": "admin",
         "Port": "4242",
-        "PrivateKey": "-----BEGIN NEBULA CERTIFICATE-----\...//w8o3ZaFqQYwhdGFuAY6IGXmYRCr3z932Y....w\..==\n-----END NEBULA CERTIFICATE-----\n",
-        "PublicHostname": "",
-        "PublicKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\nnS39dWX...hTvP......+43thNrMu7U=\n-----END NEBULA X25519 PRIVATE KEY-----\n"
+        "Certificate": "-----BEGIN NEBULA CERTIFICATE-----\...//w8o3ZaFqQYwhdGFuAY6IGXmYRCr3z932Y....w\..==\n-----END NEBULA CERTIFICATE-----\n",
+        "PrivateKey": "-----BEGIN NEBULA X25519 PRIVATE KEY-----\nnS39dWX...hTvP......+43thNrMu7U=\n-----END NEBULA X25519 PRIVATE KEY-----\n",
+        "PublicHostname": ""
       },
       "status": "OK"
     })

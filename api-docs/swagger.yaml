@@ -146,8 +146,6 @@ definitions:
         type: string
       port:
         type: string
-      publicKey:
-        type: string
     required:
     - deviceName
     - ip
@@ -162,6 +160,10 @@ definitions:
         type: boolean
       isRelay:
         type: boolean
+      tags:
+        items:
+          type: string
+        type: array
     type: object
   container.Config:
     properties:
@@ -521,6 +523,10 @@ definitions:
     properties:
       driver:
         type: string
+      labels:
+        additionalProperties:
+          type: string
+        type: object
       name:
         description: name must be unique
         type: string
@@ -777,6 +783,11 @@ definitions:
         description: HTTPS
         type: string
       httpsCertificateMode:
+        type: string
+      licence:
+        description: |-
+          Optional: Pro licence key — stored on the lighthouse config and
+          validated via utils.ProcessLicence at the end of setup.
         type: string
       mongodb:
         type: string
@@ -1035,6 +1046,51 @@ definitions:
         type: array
     required:
     - name
+    type: object
+  pro.Deployment:
+    properties:
+      compose:
+        $ref: '#/definitions/docker.DockerServiceCreateRequest'
+      name:
+        maxLength: 64
+        minLength: 3
+        type: string
+      replicas:
+        minimum: 1
+        type: integer
+      storage:
+        description: |-
+          Storage lists RCLONE remote names this deployment depends on. Checked
+          node-side in executeApply before docker.CreateService runs — a missing
+          remote produces StatusFail and flows through the existing fail-streak
+          quarantine path. Not a placement filter: RCLONE config is cluster-synced
+          via constellation, so every eligible node has the same remote set.
+          ${storage.NAME} in compose fields resolves to the mount path on apply.
+        items:
+          type: string
+        type: array
+      strategy:
+        description: |-
+          Strategy selects which PlacementStrategy the scheduler uses for this
+          deployment. Empty is treated as "round-robin" for back-compat with
+          KV entries written before this field existed.
+        enum:
+        - round-robin
+        - least-busy
+        type: string
+      tags:
+        description: |-
+          Tags filter eligible placement nodes. A deployment with Tags=["gpu"]
+          will only land on nodes whose ConstellationDevice.Tags contains "gpu".
+          Multiple tags are AND'd: ["gpu","nvme"] requires both. Empty means no
+          filter — any node is eligible.
+        items:
+          type: string
+        type: array
+    required:
+    - compose
+    - name
+    - replicas
     type: object
   pro.UpdateGroupRequest:
     properties:
@@ -1725,6 +1781,8 @@ definitions:
     properties:
       id:
         type: string
+      public:
+        type: boolean
       redirect:
         type: string
       secret:
@@ -1842,6 +1900,10 @@ definitions:
       overwriteHostHeader:
         type: string
       pathPrefix:
+        type: string
+      publicOpenIDName:
+        type: string
+      publicOpenIDRedirectURIs:
         type: string
       restrictToConstellation:
         type: boolean
@@ -1999,7 +2061,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.22.10
+  version: 0.22.34
 paths:
   /_logs:
     get:
@@ -3152,6 +3214,221 @@ paths:
       summary: Create a new Constellation VPN network
       tags:
       - constellation
+  /api/constellation/deployments:
+    get:
+      description: Returns all deployment definitions from the constellation-deployments
+        KV (Pro feature)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all cluster deployments
+      tags:
+      - deployments
+    post:
+      consumes:
+      - application/json
+      description: Creates a new deployment definition in the constellation-deployments
+        KV (Pro feature)
+      parameters:
+      - description: Deployment definition
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.Deployment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a new cluster deployment
+      tags:
+      - deployments
+  /api/constellation/deployments/{name}:
+    delete:
+      description: Removes a deployment from the constellation-deployments KV (Pro
+        feature)
+      parameters:
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a cluster deployment
+      tags:
+      - deployments
+    get:
+      description: Returns a single deployment definition (Pro feature)
+      parameters:
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a cluster deployment by name
+      tags:
+      - deployments
+    put:
+      consumes:
+      - application/json
+      description: Updates an existing deployment definition (Pro feature)
+      parameters:
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated deployment
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.Deployment'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update a cluster deployment
+      tags:
+      - deployments
+  /api/constellation/deployments/{name}/unbroke:
+    post:
+      description: |-
+        Removes a deployment from the scheduler's quarantine set so the
+        next reconcile cycle attempts to place it again (Pro feature).
+      parameters:
+      - description: Deployment name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Clear a deployment's quarantine
+      tags:
+      - deployments
+  /api/constellation/deployments/health:
+    get:
+      description: |-
+        Returns desired vs. actual replica placement per deployment plus
+        scheduler quarantine state (Pro feature). Read-only: safe to call
+        from any node, not just the scheduler leader.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Cluster health for all deployments
+      tags:
+      - deployments
   /api/constellation/devices:
     get:
       produces:
@@ -3461,6 +3738,38 @@ paths:
       summary: Get Nebula VPN service logs
       tags:
       - constellation
+  /api/constellation/nodes/{name}/unbroke:
+    post:
+      description: |-
+        Removes a node from the scheduler's quarantine set and resets its
+        fail streak so the next reconcile cycle is free to place work on it
+        again (Pro feature).
+      parameters:
+      - description: Node (device) name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Clear a node's quarantine
+      tags:
+      - deployments
   /api/constellation/ping:
     get:
       produces:

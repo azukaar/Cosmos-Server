@@ -3,7 +3,6 @@ import wrap, { type ApiResponse, type ApiFetch } from './wrap';
 export interface ConstellationDevice {
   Nickname: string;
   DeviceName: string;
-  PublicKey: string;
   IP: string;
   IsLighthouse: boolean;
   IsRelay: boolean;

@@ -81,15 +81,20 @@ func NewCosmosClient(baseURL, token string, insecure bool) (*CosmosClient, error
 		},
 	}
 
-	addToken := func(ctx context.Context, req *http.Request) error {
-		req.Header.Set("Authorization", "Bearer "+token)
-		return nil
+	opts := []cosmossdk.ClientOption{
+		cosmossdk.WithHTTPClient(httpClient),
+	}
+	if token != "" {
+		addToken := func(ctx context.Context, req *http.Request) error {
+			req.Header.Set("Authorization", "Bearer "+token)
+			return nil
+		}
+		opts = append(opts, cosmossdk.WithRequestEditorFn(addToken))
 	}
 
 	sdkClient, err := cosmossdk.NewClient(
 		baseURL+"/cosmos",
-		cosmossdk.WithHTTPClient(httpClient),
-		cosmossdk.WithRequestEditorFn(addToken),
+		opts...,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("creating cosmos SDK client: %w", err)

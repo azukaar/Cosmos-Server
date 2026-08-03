@@ -39,6 +39,15 @@ func authEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// Now that the user is authorized, we set up a session:
 	mySessionData := newSession(nickname, req)
 
+	// Mirror the userinfo endpoint claims into the id_token so clients that read
+	// profile/email straight off the id_token (the common case) get them.
+	claims, err := getUserClaims(nickname, ar.GetGrantedScopes())
+	if err != nil {
+		utils.Error("Error occurred while building id_token claims:", err)
+	} else {
+		mySessionData.Claims.Extra = claims
+	}
+
 	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
 	// to support open id connect.

@@ -2,12 +2,18 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 	"github.com/golang-jwt/jwt"
+	"github.com/shirou/gopsutil/v3/common"
+	"github.com/shirou/gopsutil/v3/mem"
 
 	"crypto/ecdsa"
 	"crypto/x509"
@@ -124,6 +130,39 @@ func (sdk *FirebaseApiSdk) RenewLicense(oldToken string) (string, int, error) {
 		"agentMode": fmt.Sprintf("%t", FBL.AgentMode),
 	}
 
+	if IsPro() {
+		ctx := context.Background()
+
+		if IsInsideContainer {
+			if _, err := os.Stat("/mnt/host"); err == nil {
+				ctx = context.WithValue(context.Background(),
+					common.EnvKey, common.EnvMap{
+						common.HostProcEnvKey: "/mnt/host/proc",
+						common.HostSysEnvKey:  "/mnt/host/sys",
+						common.HostEtcEnvKey:  "/mnt/host/etc",
+						common.HostVarEnvKey:  "/mnt/host/var",
+						common.HostRunEnvKey:  "/mnt/host/run",
+						common.HostDevEnvKey:  "/mnt/host/dev",
+						common.HostRootEnvKey: "/mnt/host/",
+					},
+				)
+			}
+		}
+
+		memInfo, err := mem.VirtualMemoryWithContext(ctx)
+		if err != nil {
+			Error("[Cloud] Error fetching RAM for license renewal", err)
+		} else {
+			payload["ram"] = strconv.FormatUint(memInfo.Total, 10)
+		}
+
+		if nbUsers, err := CountUsers(); err != nil {
+			Error("[Cloud] Error counting users for license renewal", err)
+		} else {
+			payload["nbUsers"] = strconv.FormatInt(nbUsers, 10)
+		}
+	}
+
 	jsonPayload, err := json.Marshal(payload)
 	if err != nil {
 		return "", 0, fmt.Errorf("failed to marshal payload: %v", err)
@@ -191,6 +230,30 @@ func isTokenOlderThan(token string, duration time.Duration) bool {
 	return result
 }
 
+func GetSubscriptionTypeFromToken(serverToken string) string {
+	token, _, err := new(jwt.Parser).ParseUnverified(serverToken, jwt.MapClaims{})
+	if err != nil {
+		return ""
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return ""
+	}
+
+	subType, _ := claims["subscriptionType"].(string)
+	return subType
+}
+
+// IsTokenValidForProduct returns false when running the Pro build against a
+// non-Pro subscription token — a Pro-only binary must refuse regular licences.
+func IsTokenValidForProduct(serverToken string) bool {
+	if !IsPro() {
+		return true
+	}
+	return GetSubscriptionTypeFromToken(serverToken) == "pro"
+}
+
 func GetNumberUsersFromToken(serverToken string) (int, int) {
 	Debug("[Cloud] GetNumberUsersFromToken")
 
@@ -236,19 +299,27 @@ func GetNumberUsersFromToken(serverToken string) (int, int) {
 
 
 func GetNumberUsers() int {
+	// Pro is unlimited; non-Pro keeps the licensed seat count (or the
+	// 5-seat free tier when no licence is loaded).
+	if IsPro() {
+		return math.MaxInt32
+	}
 	if FBL.LValid {
 		return FBL.UserNumber
-	} else {
-		return 5
 	}
+	return 5
 }
 
 func GetNumberCosmosNode() int {
+	// Pro is unlimited; non-Pro keeps the licensed node count (or the
+	// 1-node free tier when no licence is loaded).
+	if IsPro() {
+		return math.MaxInt32
+	}
 	if FBL.LValid {
 		return FBL.CosmosNodeNumber
-	} else {
-		return 1
 	}
+	return 1
 }
 
 func isTokenExpiringWithin(token string, duration time.Duration) bool {
@@ -296,7 +367,17 @@ func ProcessLicence() {
 		return
 	}
 
-	if licence == "" && serverToken == "" {
+	if licence == "" {
+		// licence removed by the user: flush any leftover server token
+		if serverToken != "" {
+			Log("[Cloud] No licence configured, flushing server token")
+			config.ServerToken = ""
+			SetBaseMainConfig(config)
+		}
+		FBL.ServerToken = ""
+		FBL.LValid = false
+		FBL.UserNumber = 5
+		FBL.CosmosNodeNumber = 1
 		return
 	}
 
@@ -312,6 +393,11 @@ func ProcessLicence() {
 		})
 
 		if err == nil && token.Valid && !isTokenOlderThan(serverToken, 24*time.Hour) {
+			if !IsTokenValidForProduct(serverToken) {
+				MajorError("[Cloud] Licence subscription type is not valid for this product (Pro required)", nil)
+				FBL.LValid = false
+				return
+			}
 			Debug("[Cloud] Existing server token is valid and not too old, using it")
 			FBL.ServerToken = serverToken
 			FBL.LValid = true
@@ -328,6 +414,11 @@ func ProcessLicence() {
 
 		// Offline fallback: use existing token if still valid
 		if serverToken != "" && !isTokenExpiringWithin(serverToken, 0) {
+			if !IsTokenValidForProduct(serverToken) {
+				MajorError("[Cloud] Licence subscription type is not valid for this product (Pro required)", nil)
+				FBL.LValid = false
+				return
+			}
 			Log("[Cloud] Keeping existing token (offline)")
 			FBL.ServerToken = serverToken
 			FBL.LValid = true
@@ -337,6 +428,12 @@ func ProcessLicence() {
 		}
 
 		MajorError("[Cloud] Token expired and renewal failed", err)
+		FBL.LValid = false
+		return
+	}
+
+	if !IsTokenValidForProduct(newToken) {
+		MajorError("[Cloud] Licence subscription type is not valid for this product (Pro required)", nil)
 		FBL.LValid = false
 		return
 	}

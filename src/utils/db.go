@@ -180,6 +180,17 @@ func GetEmbeddedCollection(applicationId string, collection string) (lungo.IColl
 	}, nil
 }
 
+// CountUsers returns the number of users registered on this server.
+func CountUsers() (int64, error) {
+	c, closeDb, errCo := GetEmbeddedCollection(GetRootAppId(), "users")
+	if errCo != nil {
+		return 0, errCo
+	}
+	defer closeDb()
+
+	return c.CountDocuments(nil, map[string]interface{}{})
+}
+
 func GetCollection(applicationId string, collection string) (*mongo.Collection, error) {
 	if client == nil {
 		errCo := DB()

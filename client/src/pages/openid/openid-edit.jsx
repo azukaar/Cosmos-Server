@@ -29,6 +29,7 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
         initialValues={{
           id: clientConfig ? clientConfig.id : '',
           redirect: clientConfig ? clientConfig.redirect : '',
+          public: clientConfig ? !!clientConfig.public : false,
         }}
         validationSchema={yup.object({
           id: yup.string().required(t('global.required')),
@@ -65,6 +66,18 @@ const OpenIdEditModal = ({ clientId, openNewModal, setOpenNewModal, config, onSu
                       error={formik.touched.redirect && Boolean(formik.errors.redirect)}
                       helperText={formik.touched.redirect && formik.errors.redirect}
                     />
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Checkbox
+                        id="public"
+                        name="public"
+                        checked={formik.values.public}
+                        onChange={(e) => formik.setFieldValue('public', e.target.checked)}
+                      />
+                      <Typography>{t('mgmt.openId.publicClient')}</Typography>
+                    </Stack>
+                    {formik.values.public && <Alert severity="info">
+                      {t('mgmt.openId.publicClientHint')}
+                    </Alert>}
                   </Stack>
                 </DialogContentText>
               </DialogContent>

@@ -41,11 +41,11 @@ func CheckConstellationToken(req *http.Request) error {
 		"APIKey": auth,
 		"Blocked": false,
 	})
-	defer cursor.Close(nil)
 	if err != nil {
 		return err
 	}
-	
+	defer cursor.Close(nil)
+
 	// if any device is found, return config without keys
 	if cursor.Next(nil) {
 		return nil
@@ -163,7 +163,8 @@ func API_GetLogs(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
 		logs, err := os.ReadFile(utils.CONFIGFOLDER+"nebula.log")
 		if err != nil {
-			utils.Error("Error reading file:", err)
+			utils.Error("API_GetLogs: Error reading nebula.log", err)
+			utils.HTTPError(w, "Error reading logs", http.StatusInternalServerError, "AGL001")
 			return
 		}
 		

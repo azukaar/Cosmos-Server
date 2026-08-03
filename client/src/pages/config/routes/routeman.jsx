@@ -93,6 +93,8 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           PathPrefix: routeConfig.PathPrefix,
           StripPathPrefix: routeConfig.StripPathPrefix,
           AuthEnabled: routeConfig.AuthEnabled,
+          PublicOpenIDRedirectURIs: routeConfig.PublicOpenIDRedirectURIs || '',
+          PublicOpenIDName: routeConfig.PublicOpenIDName || '',
           HideFromDashboard: routeConfig.HideFromDashboard,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
@@ -417,6 +419,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         name="OverwriteHostHeader"
                         label={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel')}
                         placeholder={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder')}
+                        formik={formik}
+                      />
+
+                      <CosmosInputText
+                        name="PublicOpenIDName"
+                        label={t('mgmt.urls.edit.advancedSettings.publicOpenIDNameInput.publicOpenIDNameLabel')}
+                        placeholder={t('mgmt.urls.edit.advancedSettings.publicOpenIDNameInput.publicOpenIDNamePlaceholder')}
+                        formik={formik}
+                      />
+
+                      <CosmosInputText
+                        name="PublicOpenIDRedirectURIs"
+                        label={t('mgmt.urls.edit.advancedSettings.publicOpenIDRedirectURIsInput.publicOpenIDRedirectURIsLabel')}
+                        placeholder={t('mgmt.urls.edit.advancedSettings.publicOpenIDRedirectURIsInput.publicOpenIDRedirectURIsPlaceholder')}
                         formik={formik}
                       />
 

@@ -4,7 +4,7 @@
         "description": "REST API for Cosmos Cloud server management",
         "title": "Cosmos Server API",
         "contact": {},
-        "version": "0.22.10"
+        "version": "0.22.34"
     },
     "basePath": "/cosmos",
     "paths": {
@@ -1812,6 +1812,333 @@
                 }
             }
         },
+        "/api/constellation/deployments": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns all deployment definitions from the constellation-deployments KV (Pro feature)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "List all cluster deployments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new deployment definition in the constellation-deployments KV (Pro feature)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Create a new cluster deployment",
+                "parameters": [
+                    {
+                        "description": "Deployment definition",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pro.Deployment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/deployments/health": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns desired vs. actual replica placement per deployment plus\nscheduler quarantine state (Pro feature). Read-only: safe to call\nfrom any node, not just the scheduler leader.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Cluster health for all deployments",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/deployments/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a single deployment definition (Pro feature)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Get a cluster deployment by name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an existing deployment definition (Pro feature)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Update a cluster deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated deployment",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/pro.Deployment"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a deployment from the constellation-deployments KV (Pro feature)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Delete a cluster deployment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/deployments/{name}/unbroke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a deployment from the scheduler's quarantine set so the\nnext reconcile cycle attempts to place it again (Pro feature).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Clear a deployment's quarantine",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Deployment name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
         "/api/constellation/devices": {
             "get": {
                 "security": [
@@ -2301,6 +2628,52 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/constellation/nodes/{name}/unbroke": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a node from the scheduler's quarantine set and resets its\nfail streak so the next reconcile cycle is free to place work on it\nagain (Pro feature).",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "deployments"
+                ],
+                "summary": "Clear a node's quarantine",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Node (device) name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.HTTPErrorResult"
+                        }
+                    },
+                    "405": {
+                        "description": "Method Not Allowed",
                         "schema": {
                             "$ref": "#/definitions/utils.HTTPErrorResult"
                         }
@@ -8406,9 +8779,6 @@
                 },
                 "port": {
                     "type": "string"
-                },
-                "publicKey": {
-                    "type": "string"
                 }
             }
         },
@@ -8426,6 +8796,12 @@
                 },
                 "isRelay": {
                     "type": "boolean"
+                },
+                "tags": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -8940,6 +9316,12 @@
                 "driver": {
                     "type": "string"
                 },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "name": {
                     "description": "name must be unique",
                     "type": "string"
@@ -9324,6 +9706,10 @@
                 "httpsCertificateMode": {
                     "type": "string"
                 },
+                "licence": {
+                    "description": "Optional: Pro licence key — stored on the lighthouse config and\nvalidated via utils.ProcessLicence at the end of setup.",
+                    "type": "string"
+                },
                 "mongodb": {
                     "type": "string"
                 },
@@ -9640,6 +10026,50 @@
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/utils.Permission"
+                    }
+                }
+            }
+        },
+        "pro.Deployment": {
+            "type": "object",
+            "required": [
+                "compose",
+                "name",
+                "replicas"
+            ],
+            "properties": {
+                "compose": {
+                    "$ref": "#/definitions/docker.DockerServiceCreateRequest"
+                },
+                "name": {
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 3
+                },
+                "replicas": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "storage": {
+                    "description": "Storage lists RCLONE remote names this deployment depends on. Checked\nnode-side in executeApply before docker.CreateService runs — a missing\nremote produces StatusFail and flows through the existing fail-streak\nquarantine path. Not a placement filter: RCLONE config is cluster-synced\nvia constellation, so every eligible node has the same remote set.\n${storage.NAME} in compose fields resolves to the mount path on apply.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "strategy": {
+                    "description": "Strategy selects which PlacementStrategy the scheduler uses for this\ndeployment. Empty is treated as \"round-robin\" for back-compat with\nKV entries written before this field existed.",
+                    "type": "string",
+                    "enum": [
+                        "round-robin",
+                        "least-busy"
+                    ]
+                },
+                "tags": {
+                    "description": "Tags filter eligible placement nodes. A deployment with Tags=[\"gpu\"]\nwill only land on nodes whose ConstellationDevice.Tags contains \"gpu\".\nMultiple tags are AND'd: [\"gpu\",\"nvme\"] requires both. Empty means no\nfilter — any node is eligible.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
@@ -10562,6 +10992,9 @@
                 "id": {
                     "type": "string"
                 },
+                "public": {
+                    "type": "boolean"
+                },
                 "redirect": {
                     "type": "string"
                 },
@@ -10719,6 +11152,12 @@
                     "type": "string"
                 },
                 "pathPrefix": {
+                    "type": "string"
+                },
+                "publicOpenIDName": {
+                    "type": "string"
+                },
+                "publicOpenIDRedirectURIs": {
                     "type": "string"
                 },
                 "restrictToConstellation": {

@@ -189,6 +189,10 @@ WantedBy=multi-user.target`
 func main() {
 	docker.IsInsideContainer()
 
+	if utils.IsInsideContainer && pro.IsPro() {
+		utils.Fatal("[ERROR] Cosmos Cloud Pro features are not supported inside a container. Please run Cosmos Cloud Pro on a host machine for full functionality.", nil)
+	}
+
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
 		utils.CONFIGFOLDER = os.Getenv("COSMOS_CONFIG_FOLDER")
 	} else if utils.IsInsideContainer {
@@ -202,7 +206,7 @@ func main() {
 }
 
 // @title Cosmos Server API
-// @version 0.22.10
+// @version 0.22.34
 // @description REST API for Cosmos Cloud server management
 // @BasePath /cosmos
 // @securityDefinitions.apikey BearerAuth
@@ -223,8 +227,38 @@ func cosmos() {
 		cron.InitJobs()
 		cron.InitScheduler()
 	}
+
+	// Scheduler template providers. Wired here rather than from the
+	// constellation or storage packages because storage → constellation
+	// already exists (rclone_api.go) so a constellation → storage edge
+	// would be a cycle. Both closures are safe to call at any time —
+	// GetCurrentDevice returns an error before constellation is up, and
+	// CachedRemoteStorageList is just an empty slice before the first
+	// rclone init.
+	pro.SetMountedStorageProvider(func() []string {
+		names := make([]string, 0, len(storage.CachedRemoteStorageList))
+		for _, s := range storage.CachedRemoteStorageList {
+			names = append(names, s.Name)
+		}
+		return names
+	})
+	pro.SetNodeIdentityProvider(func() pro.NodeIdentity {
+		d, err := constellation.GetCurrentDevice()
+		if err != nil {
+			return pro.NodeIdentity{}
+		}
+		return pro.NodeIdentity{
+			DeviceName: d.DeviceName,
+			IP:         d.IP,
+			CosmosNode: d.CosmosNode,
+		}
+	})
 	
 	utils.InitLogs()
+
+	if utils.IsInsideContainer && pro.IsPro() {
+		utils.Fatal("[ERROR] Cosmos Cloud Pro features are not supported inside a container. Please run Cosmos Cloud Pro on a host machine for full functionality.", nil)
+	}
 
 	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
 		err := os.MkdirAll(utils.CONFIGFOLDER, 0700)
@@ -288,6 +322,7 @@ func cosmos() {
 	if !config.NewInstall {
 		MigratePre013()
 		MigratePre014()
+		MigratePre02231()
 
 		utils.CheckInternet()
 

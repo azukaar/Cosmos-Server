@@ -3,4 +3,6 @@ export default {
     GroupsTab: null,
     RouteLBSettings: null,
     ConstellationNATSReplicas: null,
+    DeploymentForm: null,
+    DeploymentsTab: null
 }

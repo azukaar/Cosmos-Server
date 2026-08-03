@@ -31,10 +31,23 @@ test-backup
 ca.pem
 sdk/dist
 sdk/node_modules
+debug-constellation
 
 .terraform
 terraform.tfstate
 terraform.tfstate.*
 .terraform.lock.hcl
 *.log
-main.tf
+./main.tf
+
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/
+.claude/
+.swarm/
+.mcp.json
+ruvector.db
+tickets/
+CLAUDE.md

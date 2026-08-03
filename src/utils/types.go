@@ -343,6 +343,8 @@ type ProxyRouteConfig struct {
 	MaxBandwith                int64                       `yaml:"max_bandwidth"`
 	AuthEnabled                bool                        `yaml:"auth_enabled"`
 	AdminOnly                  bool                        `yaml:"admin_only"`
+	PublicOpenIDRedirectURIs   string                      `yaml:"public_openid_redirect_uris,omitempty"`
+	PublicOpenIDName           string                      `yaml:"public_openid_name,omitempty"`
 	Target                     string                      `yaml:"target" validate:"required"`
 	SmartShield                SmartShieldPolicy           `yaml:"smart_shield"`
 	Mode                       ProxyMode                   `yaml:"mode"`
@@ -385,6 +387,7 @@ type OpenIDClient struct {
 	ID       string `json:"id" validate:"required"`
 	Secret 	 string `json:"secret"`
 	Redirect string `json:"redirect"`
+	Public   bool   `json:"public"`
 }
 
 type MarketConfig struct {
@@ -433,7 +436,8 @@ type ConstellationDNSEntry struct {
 type ConstellationDevice struct {
 	Nickname string `json:"nickname" bson:"Nickname"`
 	DeviceName string `json:"deviceName" bson:"DeviceName"`
-	PublicKey string `json:"publicKey" bson:"PublicKey"`
+	// legacy field: used to hold the device private key, never expose it
+	PublicKey string `json:"-" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
 	CosmosNode int `json:"cosmosNode" bson:"CosmosNode"`
@@ -446,6 +450,11 @@ type ConstellationDevice struct {
 	Fingerprint string `json:"fingerprint" 	bson:"Fingerprint"`
 	APIKey string `json:"-" bson:"APIKey"`
 	Invisible bool `json:"invisible" bson:"Invisible"`
+	// Tags are free-form labels assigned to this device. Deployments with a
+	// matching Tags selector will only land on devices whose Tags contain
+	// every requested tag (AND semantics). Used by the scheduler's placement
+	// filter — see src/pro/scheduler.go.
+	Tags []string `json:"tags,omitempty" bson:"Tags,omitempty"`
 }
 
 type NebulaFirewallRule struct {
