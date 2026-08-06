@@ -226,6 +226,24 @@ jobs:
             gpg --batch --detach-sign terraform-provider-cosmos_${VERSION}_SHA256SUMS
             gh release upload "v${VERSION}" terraform-provider-cosmos_${VERSION}_*.zip terraform-provider-cosmos_${VERSION}_SHA256SUMS terraform-provider-cosmos_${VERSION}_SHA256SUMS.sig --clobber
 
+      - run:
+          name: Build and attach CLI to release
+          command: |
+            VERSION=$(jq -r .version package.json)
+            cd cli
+            for PAIR in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64; do
+              OS="${PAIR%/*}"
+              ARCH="${PAIR#*/}"
+              EXT=""
+              [ "$OS" = "windows" ] && EXT=".exe"
+              GOOS=$OS GOARCH=$ARCH CGO_ENABLED=0 go build \
+                -ldflags "-s -w -X main.Version=${VERSION}" \
+                -o "cosmos-cli${EXT}" .
+              zip "cosmos-cli_${VERSION}_${OS}_${ARCH}.zip" "cosmos-cli${EXT}"
+              rm "cosmos-cli${EXT}"
+            done
+            gh release upload "v${VERSION}" cosmos-cli_${VERSION}_*.zip --clobber
+
 workflows:
   version: 2
   build-all:

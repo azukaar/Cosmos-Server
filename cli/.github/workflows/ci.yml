@@ -1,0 +1,29 @@
+name: CLI CI
+
+on:
+  push:
+    paths:
+      - "cli/**"
+      - "go-sdk/**"
+  pull_request:
+    paths:
+      - "cli/**"
+      - "go-sdk/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+
+      - name: Build
+        working-directory: cli
+        run: go build ./...
+
+      - name: Vet
+        working-directory: cli
+        run: go vet ./...
