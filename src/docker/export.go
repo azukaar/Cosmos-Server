@@ -61,6 +61,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			StorageOpt:       detailedInfo.HostConfig.StorageOpt,
 			Sysctls:          detailedInfo.HostConfig.Sysctls,
 			Isolation:        string(detailedInfo.HostConfig.Isolation),
+			ShmSize:          detailedInfo.HostConfig.ShmSize,
 			CapAdd:           detailedInfo.HostConfig.CapAdd,
 			CapDrop:          detailedInfo.HostConfig.CapDrop,
 			Privileged:       detailedInfo.HostConfig.Privileged,
