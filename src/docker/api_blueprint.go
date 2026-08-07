@@ -83,6 +83,7 @@ type ContainerCreateRequestContainer struct {
 	StorageOpt map[string]string `json:"storage_opt,omitempty"`
 	Sysctls map[string]string `json:"sysctls,omitempty"`
 	Isolation string `json:"isolation,omitempty"`
+	ShmSize int64 `json:"shm_size,omitempty"`
 
 	CapAdd []string `json:"cap_add,omitempty"`
 	CapDrop []string `json:"cap_drop,omitempty"`
@@ -733,6 +734,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			StorageOpt:  container.StorageOpt,
 			Sysctls:     container.Sysctls,
 			Isolation:   conttype.Isolation(container.Isolation),
+			ShmSize:     container.ShmSize,
 			CapAdd:      container.CapAdd,
 			CapDrop:     container.CapDrop,
 			Resources: conttype.Resources{

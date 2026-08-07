@@ -368,6 +368,9 @@ type ContainerConfig struct {
 	// Shell Shell for shell-form of RUN, CMD, ENTRYPOINT
 	Shell *[]string `json:"shell,omitempty"`
 
+	// shm-Size used for the container (defaults to docker default 64M if omitted)
+	ShmSize *int `json:"shm_size,omitempty"`
+
 	// StdinOnce If true, close stdin after the 1 attached client disconnects.
 	StdinOnce *bool `json:"stdinOnce,omitempty"`
 
@@ -450,6 +453,7 @@ type DockerContainerCreateRequestContainer struct {
 	Labels        *map[string]string                                             `json:"labels,omitempty"`
 	Links         *[]string                                                      `json:"links,omitempty"`
 	MacAddress    *string                                                        `json:"mac_address,omitempty"`
+	ShmSize       *int                                                           `json:"shm_size,omitempty"`
 
 	// MemLimit Resource constraints
 	MemLimit        *string                                                `json:"mem_limit,omitempty"`
