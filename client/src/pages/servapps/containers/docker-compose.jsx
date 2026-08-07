@@ -38,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../../components/filePicker';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_RESOURCES } from '../../../utils/permissions';
+import { parse } from 'bytes';
 
 function checkIsOnline() {
   API.isOnline().then((res) => {
@@ -231,6 +232,13 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             if (doc.services[key].command) {
               if (typeof doc.services[key].command !== 'string') {
                 doc.services[key].command = doc.services[key].command.join(' ');
+              }
+            }
+
+            // convert shm_size 
+            if (doc.services[key].shm_size) {
+              if (typeof doc.services[key].shm_size === 'string') {
+                doc.services[key].shm_size = parse(doc.services[key].shm_size);
               }
             }
 
