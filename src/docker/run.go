@@ -62,7 +62,10 @@ func RunDB(db utils.DatabaseConfig) (DockerServiceCreateRequest, error) {
 		Name: db.Hostname,
 		Image: imageName,
 		RestartPolicy: "always",
-		Command: "--wiredTigerCacheSizeGB 0.25",
+		Command: []string{
+			"mongod",
+			"--wiredTigerCacheSizeGB=0.25",
+		},
 		Environment: []string{
 			"MONGO_INITDB_ROOT_USERNAME=" + db.Username,
 			"MONGO_INITDB_ROOT_PASSWORD=" + db.Password,
