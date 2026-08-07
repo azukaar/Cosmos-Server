@@ -115,14 +115,6 @@ func UpdateFirewallBlockedClients() error {
 	defer cursor.Close(nil)
 	cursor.All(nil, &devices)
 
-	// Always add the cosmos lighthouse device
-	cosmosDevice := utils.ConstellationDevice{
-		DeviceName: "cosmos",
-		Nickname:   "cosmos",
-		IP:         "192.168.201.1",
-	}
-	devices = append([]utils.ConstellationDevice{cosmosDevice}, devices...)
-
 	// Create a map of device names to IPs
 	deviceIPs := make(map[string]string)
 	for _, device := range devices {
@@ -153,6 +145,20 @@ func UpdateFirewallBlockedClients() error {
 	// Always allow port 4222 (NATS) from any
 	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
 		"port":  4222,
+		"proto": "any",
+		"host":  "any",
+	})
+	
+	// Always allow port 6222 (NATS Cluster) from any
+	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
+		"port":  6222,
+		"proto": "any",
+		"host":  "any",
+	})
+	
+	// Always allow port 7422 (NATS Leaf) from any
+	newInboundRules = append(newInboundRules, map[interface{}]interface{}{
+		"port":  7422,
 		"proto": "any",
 		"host":  "any",
 	})
@@ -199,7 +205,7 @@ func UpdateFirewallBlockedClients() error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
 	}
@@ -311,7 +317,7 @@ func AdjustDNS(logBuffer *lumberjack.Logger) error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		logger.Printf("level=error msg=failed to write nebula-temp.yml")
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
@@ -504,12 +510,144 @@ func ValidateStaticHosts(logBuffer *lumberjack.Logger) error {
 	}
 
 	// Write back to nebula-temp.yml
-	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0644)
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
 	if err != nil {
 		logger.Printf("level=error msg=failed to write nebula-temp.yml")
 		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
 	}
 
 	logger.Printf("Updated nebula-temp.yml after validation")
+	return nil
+}
+
+func ExportLighthouseFromDB() error {
+	currentDevice,err  := GetCurrentDevice()
+	if err != nil {
+		return err
+	}
+
+	currentIP := currentDevice.IP
+	
+	// Get all lighthouse IPs from the database
+	ll, err := GetAllDevicesEvenBlocked()
+	if err != nil {
+		return err
+	}
+
+	if len(ll) == 0 {
+		return nil
+	}
+
+	// Prepare list of IPs
+	var lighthouses []interface{}
+	var publicHost map[string][]string = make(map[string][]string)
+	var relays []string
+	var Blocklist []string
+	for _, lh := range ll {
+		if lh.Blocked {
+			Blocklist = append(Blocklist, lh.Fingerprint)
+		} else {
+			if lh.IP != ""  && lh.IP != currentIP {
+				if(lh.IsLighthouse) {
+					lighthouses = append(lighthouses, lh.IP)
+				}
+				if lh.IsRelay {
+					relays = append(relays, lh.IP)
+				}
+				if lh.PublicHostname != "" {
+					for _, hostname := range strings.Split(lh.PublicHostname, ",") {
+						hostname = strings.TrimSpace(hostname)
+						if hostname != "" {
+							if publicHost[lh.IP] == nil {
+								publicHost[lh.IP] = make([]string, 0)
+							}
+							publicHost[lh.IP] = append(publicHost[lh.IP], hostname + ":" + lh.Port)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	nebulaYmlPath := utils.CONFIGFOLDER + "nebula-temp.yml"
+
+	// Read the existing nebula-temp.yml file
+	yamlData, err := ioutil.ReadFile(nebulaYmlPath)
+	if err != nil {
+		return fmt.Errorf("failed to read nebula-temp.yml: %w", err)
+	}
+
+	// Unmarshal the YAML data into a map
+	var configMap map[string]interface{}
+	err = yaml.Unmarshal(yamlData, &configMap)
+	if err != nil {
+		return fmt.Errorf("failed to unmarshal nebula-temp.yml: %w", err)
+	}
+
+	// Update lighthouse.hosts
+	lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{})
+	if !ok {
+		lighthouseMap = make(map[interface{}]interface{})
+		configMap["lighthouse"] = lighthouseMap
+	}
+	lighthouseMap["hosts"] = lighthouses
+
+	// set am_lighthouse
+	lighthouseMap["am_lighthouse"] = currentDevice.IsLighthouse
+
+	// Update relay.relays
+	relayMap, ok := configMap["relay"].(map[interface{}]interface{})
+	if !ok {
+		relayMap = make(map[interface{}]interface{})
+		configMap["relay"] = relayMap
+	}
+	var relayInterfaces []interface{}
+	for _, r := range relays {
+		relayInterfaces = append(relayInterfaces, r)
+	}
+	relayMap["relays"] = relayInterfaces
+
+	// set relay am_relay
+	relayMap["am_relay"] = currentDevice.IsRelay
+
+	// Update static_host_map with public hostnames
+	staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{})
+	if !ok {
+		staticHostMap = make(map[interface{}]interface{})
+		configMap["static_host_map"] = staticHostMap
+	}
+	for ip, hostnames := range publicHost {
+		var hostInterfaces []interface{}
+		for _, h := range hostnames {
+			hostInterfaces = append(hostInterfaces, h)
+		}
+		staticHostMap[ip] = hostInterfaces
+	}
+
+	// Update PKI.Blocklist
+	pkiMap, ok := configMap["pki"].(map[interface{}]interface{})
+	if !ok {
+		pkiMap = make(map[interface{}]interface{})
+		configMap["pki"] = pkiMap
+	}
+	var blocklistInterfaces []interface{}
+	for _, b := range Blocklist {
+		blocklistInterfaces = append(blocklistInterfaces, b)
+	}
+	pkiMap["blocklist"] = blocklistInterfaces
+
+	// Marshal back to YAML
+	updatedYaml, err := yaml.Marshal(configMap)
+	if err != nil {
+		return fmt.Errorf("failed to marshal updated config: %w", err)
+	}
+
+	// Write back to nebula-temp.yml
+	err = ioutil.WriteFile(nebulaYmlPath, updatedYaml, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to write nebula-temp.yml: %w", err)
+	}
+
+	utils.Log("Exported lighthouse IPs to nebula-temp.yml")
 	return nil
 }

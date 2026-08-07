@@ -76,8 +76,21 @@ type result struct {
 	Error       error
 }
 
+// GetFavicon godoc
+// @Summary Get favicon for a URL
+// @Description Fetches and caches the favicon for the given URL, returning it as an image
+// @Tags system
+// @Produce octet-stream
+// @Security BearerAuth
+// @Param q query string true "URL-encoded site URL to fetch favicon for"
+// @Param servapp query string false "Service app mode flag"
+// @Success 200 {file} binary
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/favicon [get]
 func GetFavicon(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 	}
 
@@ -268,15 +281,28 @@ func resolveIconURL(iconURL string, baseURL *url.URL) string {
 }
 
 
+// PingURL godoc
+// @Summary Ping a URL
+// @Description Checks if a URL is reachable and returns a non-5xx response
+// @Tags system
+// @Produce json
+// @Security BearerAuth
+// @Param q query string true "URL-encoded site URL to ping"
+// @Param servapp query string false "Service app mode flag"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/ping [get]
 func PingURL(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
 	// get url from query string
 	escsiteurl := req.URL.Query().Get("q")
 	isServappMode := req.URL.Query().Get("servapp")
-	
+
 	// URL decode
 	siteurl, err := url.QueryUnescape(escsiteurl)
 	if err != nil {
@@ -329,9 +355,17 @@ func PingURL(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// SendLogo godoc
+// @Summary Get Cosmos logo
+// @Description Returns the Cosmos server logo as a PNG image
+// @Tags system
+// @Produce png
+// @Success 200 {file} binary
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /logo [get]
 func SendLogo(w http.ResponseWriter, req *http.Request) {
 	pwd,_ := os.Getwd()
-	imgsrc := "Logo.png"
+	imgsrc := "Logo2.png"
 	Logo, err := ioutil.ReadFile(pwd + "/" + imgsrc)
 	if err != nil {
 		utils.Error("Logo", err)

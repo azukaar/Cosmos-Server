@@ -1,11 +1,14 @@
 package proxy
 
 import (
+	"context"
 	"net/http"
+	"net/url"
+	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
-	"net/url"
 
 	"github.com/azukaar/cosmos-server/src/user"
 	"github.com/azukaar/cosmos-server/src/constellation"
@@ -13,6 +16,32 @@ import (
 	"github.com/go-chi/httprate"
 	"github.com/gorilla/mux"
 )
+
+// Borrowed from the net/http package. (Thanks mux!)
+func CleanPathMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		p := r.URL.Path
+		if p == "" {
+			p = "/"
+		}
+		if p[0] != '/' {
+			p = "/" + p
+		}
+		np := path.Clean(p)
+		if p[len(p)-1] == '/' && np != "/" {
+			np += "/"
+		}
+
+		if np != r.URL.Path {
+			url := *r.URL
+			url.Path = np
+			http.Redirect(w, r, url.String(), http.StatusMovedPermanently)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -24,11 +53,10 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			if ((enabled && r.Header.Get("x-cosmos-user") != "") || !enabled) {
 				remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
 				
-				isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
-				isConstIP := utils.IsConstellationIP(remoteAddr)
+				isConstIP := constellation.IsConstellationIP(remoteAddr)
 				isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-				if isTunneledIp && isConstIP && isConstTokenValid {
+				if isConstIP && isConstTokenValid {
 					utils.Debug("Bypassing auth for Constellation tunnel")
 					r.Header.Del("x-cstln-auth")
 
@@ -43,16 +71,32 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 			r.Header.Del("x-cosmos-mfa")
 			r.Header.Del("x-cstln-auth")
 
-			role, u, err := user.RefreshUserToken(w, r)
+			permissions, isSudoed, u, err := user.RefreshUserToken(w, r)
 
 			if err != nil {
 				return
 			}
 
+			// Compute Role for backward compat proxy headers
+			effectiveRole := u.Role
+			if utils.RoleHasSudoPermissions(u.Role) && !isSudoed {
+				effectiveRole = utils.USER
+			}
+
 			r.Header.Set("x-cosmos-user", u.Nickname)
-			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(role)))
+			r.Header.Set("x-cosmos-role", strconv.Itoa((int)(effectiveRole)))
 			r.Header.Set("x-cosmos-user-role", strconv.Itoa((int)(u.Role)))
 			r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
+
+			ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+				Nickname:    u.Nickname,
+				Role:        effectiveRole,
+				UserRole:    u.Role,
+				Permissions: permissions,
+				IsSudoed:    isSudoed,
+				MFAState:    int(u.MFAState),
+			})
+			r = r.WithContext(ctx)
 
 			ogcookies := r.Header.Get("Cookie")
 			cookieRemoveRegex := regexp.MustCompile(`\s?jwttoken=[^;]*;?\s?`)
@@ -81,9 +125,10 @@ func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// If the request is from a Constellation tunnel, add the token
-			if route.TunnelVia == constellation.DeviceName {
+			apiKey, _ := constellation.GetCurrentDeviceAPIKey()
+			if constellation.IsTunneled(route) {
 				// Add the token
-				r.Header.Set("x-cstln-auth", constellation.APIKey)
+				r.Header.Set("x-cstln-auth", apiKey)
 			}
 
 			next.ServeHTTP(w, r)
@@ -94,14 +139,22 @@ func AddConstellationToken(route utils.ProxyRouteConfig) func(next http.Handler)
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
 	origin := router.NewRoute()
 
+	utils.Debug("[RouterGen] Processing route: Name=" + route.Name + " Host=" + route.Host + " UseHost=" + strconv.FormatBool(route.UseHost) + " Mode=" + string(route.Mode) + " Target=" + route.Target + " IsTunneled=" + strconv.FormatBool(route.Const_IsTunneled))
+
 	if route.UseHost {
-		origin = origin.Host(route.Host)
+		// If hostname is 0.0.0.0, treat it as a wildcard (match any host with that port)
+		if strings.Contains(route.Host, ":") && (strings.Split(route.Host, ":")[0] == "0.0.0.0" || route.Host[0] == ':') {
+			port := strings.Split(route.Host, ":")[1]
+			utils.Debug("[RouterGen] Registering wildcard host matcher: {host:[^:]+}:" + port)
+			origin = origin.Host("{host:[^:]+}:" + port)
+		} else {
+			utils.Debug("[RouterGen] Registering host matcher: " + route.Host)
+			origin = origin.Host(route.Host)
+		}
 
 		if route.Mode == "SERVAPP" || route.Mode == "PROXY" || route.Mode == "REDIRECT" {
-			// if Scheme is not http/https, discard
 			urlRoute, err := url.Parse(route.Target)
 			if err != nil {
-				utils.Error("Invalid target URL: "+route.Target, err)
 				return nil
 			}
 
@@ -200,6 +253,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 	}
 
 	destination = tokenMiddleware(route)(utils.SetCosmosHeader(destination))
+
+	if !route.SkipURLClean {
+		destination = CleanPathMiddleware(destination)
+	}
 
 	origin.Handler(destination)
 

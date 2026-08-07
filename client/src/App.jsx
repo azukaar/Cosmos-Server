@@ -5,7 +5,6 @@ import ThemeCustomization from './themes';
 import ScrollTop from './components/ScrollTop';
 import Snackbar from '@mui/material/Snackbar';
 import {Alert, Box} from '@mui/material';
-import logo from './assets/images/icons/cosmos.png';
 
 import * as API from './api';
 

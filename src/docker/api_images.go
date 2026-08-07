@@ -8,8 +8,18 @@ import (
 	
 )
 
+// InspectImageRoute godoc
+// @Summary Inspect a Docker image by name
+// @Tags docker
+// @Produce json
+// @Param imageName query string true "Name of the Docker image to inspect"
+// @Security BearerAuth
+// @Success 200 {object} types.ImageInspect
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/images [get]
 func InspectImageRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 

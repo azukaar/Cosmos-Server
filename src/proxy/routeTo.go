@@ -15,6 +15,9 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/constellation"
+
+	"golang.org/x/net/http2"
 )
 
 
@@ -57,52 +60,59 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 	var transport http.RoundTripper
 	var targetURL *url.URL
 	var err error
+		
+	targetURL, err = url.Parse(targetHost)
+	if err != nil {
+		return nil, err
+	}
 
-	// if strings.HasPrefix(targetHost, "http://unix://") {
-	// 	// Unix socket handling
-	// 	socketPath := strings.TrimPrefix(targetHost, "http://unix://")
-	// 	transport = &http.Transport{
-	// 		DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
-	// 			return net.Dial("unix", socketPath)
-	// 		},
-	// 	}
-	// 	// Use a dummy URL for the director
-	// 	targetURL, _ = url.Parse("http://unix-socket")
-	// } else {
-		// Regular HTTP/HTTPS handling
-		targetURL, err = url.Parse(targetHost)
-		if err != nil {
-			return nil, err
-		}
+	dialer := &net.Dialer{
+		Timeout:   5 * time.Second,
+		KeepAlive: 5 * time.Second,
+	}
 
-		customTransport := &http.Transport{}
+	if utils.GetMainConfig().ConstellationConfig.Enabled {
+			dialer.Resolver = &net.Resolver{                                            
+				PreferGo: true,                                                         
+				Dial: func(ctx context.Context, network, address string) (net.Conn, error) {    
+					currConIp, err := constellation.GetCurrentDeviceIP()
+					if err == nil {
+						// Try Constellation DNS first
+						conn, err := net.Dial(network, currConIp+":53")
+						if err == nil {
+							return conn, nil
+						}
+					} 
 
-		if utils.GetMainConfig().ConstellationConfig.Enabled && utils.GetMainConfig().ConstellationConfig.SlaveMode {
-			customTransport = &http.Transport{
-				DialContext: (&net.Dialer{
-					Timeout:   5 * time.Second,
-					KeepAlive: 5 * time.Second,
-					Resolver: &net.Resolver{
-						PreferGo: true,
-						Dial: func(ctx context.Context, network, address string) (net.Conn, error) {
-							return net.Dial(network, "192.168.201.1:53")
-						},
-					},
-				}).DialContext,
+					// Fallback to system DNS
+					return net.Dial(network, address)
+				},
 			}
-		}
+			
+	}
 
+	if route.UseH2C {
+		transport = &http2.Transport{
+			AllowHTTP: true,
+			DialTLSContext: func(ctx context.Context, network, addr string, _ *tls.Config) (net.Conn, error) {
+				return dialer.DialContext(ctx, network, addr)
+			},
+		}
+	} else {
+		customTransport := &http.Transport{
+			DialContext: dialer.DialContext,
+		}
 		if AcceptInsecureHTTPSTarget {
 			customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 		}
-
 		transport = customTransport
-	// }
+	}
 
 	proxy := &httputil.ReverseProxy{
-		Transport: transport,
+		Transport:     transport,
+		FlushInterval: -1,
 	}
-	
+
 	proxy.Director = func(req *http.Request) {
 		originalScheme := "http"
 		if utils.IsHTTPS {
@@ -118,20 +128,23 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 
 			targetIP, err := docker.GetContainerIPByName(targetHost)
 			if err != nil {
-				utils.Error("Create Route", err)
+				utils.Error("Director Route", err)
 			}
 			utils.Debug("Dockerless Target IP: " + targetIP)
 			req.URL.Host = targetIP + ":" + targetURL.Port()
 		}
 
-		utils.Debug("Request to backend: " + req.URL.String())
 
 		req.URL.Path, req.URL.RawPath = joinURLPath(targetURL, req.URL)
+
+
 		if urlQuery == "" || req.URL.RawQuery == "" {
 			req.URL.RawQuery = urlQuery + req.URL.RawQuery
 		} else {
 			req.URL.RawQuery = urlQuery + "&" + req.URL.RawQuery
 		}
+		
+		utils.Debug("Request to backend: " + req.URL.String())
 		
 		req.Header.Set("X-Forwarded-Proto", originalScheme)
 		
@@ -185,10 +198,38 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			req.Host = req.URL.Host
 		}
 
-		// Extra headers
-		for name, value := range route.ExtraHeaders {
-			req.Header.Del(name)
-			req.Header.Set(name, value)
+		// Extra headers (applied last so they can overwrite anything)
+		if len(route.ExtraHeaders) > 0 {
+			clientIP := GetClientID(req, route)
+
+			replacer := strings.NewReplacer(
+				"$target", route.Target,
+				"$scheme", originalScheme,
+				"$protocol", originalScheme,
+				"$host", hostname,
+				"$origin", hostname,
+				"$clientIP", clientIP,
+				"$user", req.Header.Get("x-cosmos-user"),
+				"$route", route.Name,
+				"$path", req.URL.Path,
+			)
+
+			for name, value := range route.ExtraHeaders {
+				req.Header.Del(name)
+				req.Header.Set(name, replacer.Replace(value))
+			}
+		}
+
+		// Duplicate X-* headers as HTTP_* equivalents (legacy CGI convention)
+		if !route.DisableLegacyHTTPHeaders {
+			for name, values := range req.Header {
+				if strings.HasPrefix(name, "X-") {
+					httpName := "HTTP_" + strings.ReplaceAll(strings.ToUpper(name), "-", "_")
+					for _, v := range values {
+						req.Header.Set(httpName, v)
+					}
+				}
+			}
 		}
 	}
 
@@ -197,7 +238,16 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 	proxy.ModifyResponse = func(resp *http.Response) error {
 		utils.Debug("Response from backend: " + resp.Status)
 		utils.Debug("URL was " + resp.Request.URL.String())
-
+		
+		if !DisableHeaderHardening {
+			resp.Header.Del("Access-Control-Allow-Origin")
+			resp.Header.Del("Access-Control-Allow-Credentials")
+			resp.Header.Del("Strict-Transport-Security")
+			resp.Header.Del("X-Content-Type-Options")
+			resp.Header.Del("Content-Security-Policy")
+			resp.Header.Del("X-XSS-Protection")
+		}
+		
 		// if 502
 		if resp.StatusCode == 502 {
 			// set body
@@ -213,10 +263,101 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 }
 
 
-func RouteTo(route utils.ProxyRouteConfig) http.Handler {
-	// initialize a reverse proxy and pass the actual backend server url here
+func TunnelRouteTo(tunnel utils.ConstellationTunnel, lb *TunnelLoadBalancer) http.Handler {
+	type targetProxy struct {
+		target  utils.TunnelTarget
+		handler http.Handler
+	}
 
-	destination := route.Target
+	// For self-tunnel, use the original route handler to avoid proxy loop
+	currentDeviceName, er12 := constellation.GetCurrentDeviceName()
+	if er12 != nil {
+		utils.Error("Get Current Device Name for Tunnel Route", er12)
+	}
+
+	proxies := make([]targetProxy, 0, len(tunnel.Targets))
+	for _, t := range tunnel.Targets {
+		if t.DeviceName == currentDeviceName {
+			// Find the original config route and use RouteTo directly
+			for _, cfgRoute := range utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes {
+				if cfgRoute.Name == tunnel.Route.Name {
+					proxies = append(proxies, targetProxy{t, RouteTo(cfgRoute)})
+					break
+				}
+			}
+		} else {
+			route := tunnel.Route
+			route.Target = t.TargetURL
+			proxy, err := NewProxy(t.TargetURL, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
+			if err != nil {
+				utils.Error("Create Tunnel Route for "+t.DeviceName, err)
+				continue
+			}
+			proxies = append(proxies, targetProxy{t, proxy})
+		}
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(proxies) == 0 {
+			http.Error(w, "No tunnel targets available", http.StatusBadGateway)
+			return
+		}
+
+		targets := make([]utils.TunnelTarget, len(proxies))
+		for i, p := range proxies {
+			targets[i] = p.target
+		}
+
+		sticky := tunnel.Route.LBStickyMode
+		stickyKey := ""
+		if sticky {
+			stickyKey = GetClientID(r, tunnel.Route)
+		}
+
+		// For HTTP, check cookie first (survives IP changes on mobile)
+		var selected *utils.TunnelTarget
+		if sticky {
+			if cookie, err := r.Cookie("_cosmos_tunnel_lb"); err == nil && cookie.Value != "" {
+				for i, p := range proxies {
+					if p.target.DeviceName == cookie.Value {
+						selected = &proxies[i].target
+						break
+					}
+				}
+				// Cookie device gone — fall through to SelectTarget
+			}
+		}
+
+		if selected == nil {
+			selected = lb.SelectTarget(targets, tunnel.Route.Name, tunnel.Route.LBMode, sticky, stickyKey)
+		}
+		if selected == nil {
+			http.Error(w, "No tunnel targets available", http.StatusBadGateway)
+			return
+		}
+
+		if sticky {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "_cosmos_tunnel_lb",
+				Value:    selected.DeviceName,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   3600,
+			})
+		}
+
+		for _, p := range proxies {
+			if p.target.DeviceName == selected.DeviceName {
+				p.handler.ServeHTTP(w, r)
+				return
+			}
+		}
+	})
+}
+
+// routeHandlerForTarget creates a single handler for the given target and mode.
+func routeHandlerForTarget(target string, route utils.ProxyRouteConfig) http.Handler {
+	destination := target
 	routeType := route.Mode
 
 	if (routeType == "STATIC" || routeType == "SPA") && utils.IsInsideContainer {
@@ -225,19 +366,17 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 		}
 	}
 
-  if(routeType == "SERVAPP" || routeType == "PROXY") {
+	if routeType == "SERVAPP" || routeType == "PROXY" {
 		proxy, err := NewProxy(destination, route.AcceptInsecureHTTPSTarget, route.DisableHeaderHardening, route)
 		if err != nil {
-				utils.Error("Create Route", err)
+			utils.Error("Create Route", err)
 		}
-
-		// create a handler function which uses the reverse proxy
 		return proxy
-	}  else if (routeType == "STATIC") {
+	} else if routeType == "STATIC" {
 		return http.FileServer(http.Dir(destination))
-	}  else if (routeType == "SPA") {
+	} else if routeType == "SPA" {
 		return utils.SPAHandler(destination)
-	} else if(routeType == "REDIRECT") {
+	} else if routeType == "REDIRECT" {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Redirect(w, r, destination, 302)
 		})
@@ -245,4 +384,60 @@ func RouteTo(route utils.ProxyRouteConfig) http.Handler {
 		utils.Error("Invalid route type", nil)
 		return nil
 	}
+}
+
+func RouteTo(route utils.ProxyRouteConfig) http.Handler {
+	// No additional targets — single handler, no LB overhead
+	if len(route.AdditionalTargets) == 0 || !utils.IsPro() {
+		return routeHandlerForTarget(route.Target, route)
+	}
+
+	// Build handlers for all targets: primary + additional
+	allTargets := append([]string{route.Target}, route.AdditionalTargets...)
+	keys := make([]string, len(allTargets))
+	handlers := make(map[string]http.Handler, len(allTargets))
+	for i, t := range allTargets {
+		key := strconv.Itoa(i)
+		keys[i] = key
+		handlers[key] = routeHandlerForTarget(t, route)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sticky := route.LBStickyMode
+		stickyKey := ""
+
+		// Check cookie for sticky
+		var selected string
+		if sticky {
+			if cookie, err := r.Cookie("_cosmos_lb"); err == nil && cookie.Value != "" {
+				if _, ok := handlers[cookie.Value]; ok {
+					selected = cookie.Value
+				}
+			}
+			if selected == "" {
+				stickyKey = GetClientID(r, route)
+			}
+		}
+
+		if selected == "" {
+			selected = DefaultTunnelLB.Select(keys, route.Name, route.LBMode, sticky, stickyKey)
+		}
+
+		if selected == "" || handlers[selected] == nil {
+			http.Error(w, "No targets available", http.StatusBadGateway)
+			return
+		}
+
+		if sticky {
+			http.SetCookie(w, &http.Cookie{
+				Name:     "_cosmos_lb",
+				Value:    selected,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+				MaxAge:   3600,
+			})
+		}
+
+		handlers[selected].ServeHTTP(w, r)
+	})
 }

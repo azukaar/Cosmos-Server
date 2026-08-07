@@ -191,6 +191,7 @@ Cosmos has a few key differences with other alternatives such as YunoHost, Unrai
     <p>* denotes support limited to apps installed with the software itself<br>** Wireguard only. Does not support meshing or bypassing CGNAT</p>
 </div>
 
+
 * **Security**: Cosmos has a unique strong focus on securing your application with exclusive features such as the smart-shield. It has 2FA, OpenID, anti-DDOS, and other security features built-in. It also has a strong focus on privacy, with the latest encryption methods and a strong focus on data protection. Unlike any other solutions, it assumes the software you run are not trustworthy, and protects you from them.
 * **Power-user friendly**: Some of those alternatives can feel a bit "limiting" to someone who knows what they are doing. On the other hand, while Cosmos is designed to be easy to use, it is also powerful and flexible. It is designed to be used by both new and experienced users, and to integrate into your existing home server, the already existing applications you have, and the new ones you want to install. It can even be used from the terminal if you want to!
 * **Flexible**: Unlike the alternatives, Cosmos is not exclusively focused around its app-store. Instead, it lets you freely install any application any way you want, and manage them from the UI, from Portainer, or from docker directly. Any of those applications will still be integrated into Cosmos and will also benefit from all the security features, Let's Encrypt, etc..
@@ -201,6 +202,14 @@ You might also wonder about **cloudflare proxy** and **cloudflare tunnel** when 
 
  * While they protect your remote access to your applications, they leave your origin server completely unprotected. A rogue device / application in your local network would have no troubles taking advantage of it
  * Those options let **Cloudflare see your entire network unencrypted**. Yes, even if you use HTTPS: Cloudflare proxy de-encrypt your traffic, to re-encrypt it. Meaning that everything that goes through your traffic is plain readable text to Cloudflare. On the other hand, Cosmos is self-hosted so you stay in control of your data.
+
+# SDK and Terraform
+
+A JavaScript/TypeScript SDK is available for programmatic access to the Cosmos API. See the [JS SDK documentation](./sdk/README.md) for installation, usage, and examples.
+
+The GO SDK can be found in the go-sdk folder and used with [Go SDK documentation](./go-sdk/README.md) 
+
+Finally a Terraform provider is available to fully automate your setup:  [Terraform documentation](./terraform-provider-cosmos/README.md) 
 
 # What is the SmartShield?
 

@@ -18,6 +18,104 @@ const (
 	ADMIN        = 2
 )
 
+type Permission int
+
+const (
+	PERM_ADMIN_READ         Permission = 1   // View logs
+	PERM_ADMIN              Permission = 2   // System ops: restart, shutdown, update, terminal
+
+	PERM_USERS_READ         Permission = 10  // View user list/details
+	PERM_USERS              Permission = 11  // Create, delete, edit users, 2FA reset
+
+	PERM_RESOURCES_READ     Permission = 20  // View containers, storage, devices, backups, cron, metrics
+	PERM_RESOURCES          Permission = 21  // Manage containers, storage, devices, backups, cron
+
+	PERM_CONFIGURATION_READ Permission = 30  // View config
+	PERM_CONFIGURATION      Permission = 31  // Set/patch config, DNS
+
+	PERM_CREDENTIALS_READ   Permission = 40  // View credentials (env vars, passwords, secrets)
+
+	PERM_LOGIN              Permission = 100 // Any logged-in user, MFA required
+	PERM_LOGIN_WEAK         Permission = 101 // Any logged-in user, no MFA check
+)
+
+var DefaultAdminTokenPermissions = []Permission{
+	PERM_ADMIN_READ,
+	PERM_ADMIN,
+	PERM_USERS_READ,
+	PERM_USERS,
+	PERM_RESOURCES_READ,
+	PERM_RESOURCES,
+	PERM_CONFIGURATION_READ,
+	PERM_CONFIGURATION,
+	PERM_CREDENTIALS_READ,
+}
+
+var PermissionLabels = map[Permission]string{
+	PERM_ADMIN_READ:         "Admin Read (view logs)",
+	PERM_ADMIN:              "Admin (system ops)",
+	PERM_USERS_READ:         "Users Read (view users)",
+	PERM_USERS:              "Users (manage users)",
+	PERM_RESOURCES_READ:     "Resources Read (view containers/storage)",
+	PERM_RESOURCES:          "Resources (manage containers/storage)",
+	PERM_CONFIGURATION_READ: "Configuration Read (view config)",
+	PERM_CONFIGURATION:      "Configuration (modify config)",
+	PERM_CREDENTIALS_READ:   "Credentials Read (view secrets/env vars)",
+	PERM_LOGIN:              "Login",
+	PERM_LOGIN_WEAK:         "Login (weak)",
+}
+
+func PermissionLabel(p Permission) string {
+	if label, ok := PermissionLabels[p]; ok {
+		return label
+	}
+	return "Unknown"
+}
+
+// Built-in role defaults (used when config has no entry for these roles)
+var defaultRoles = map[Role]RoleConfig{
+	USER: {Name: "User", Permissions: []Permission{PERM_LOGIN, PERM_LOGIN_WEAK}},
+	ADMIN: {Name: "Admin", Permissions: []Permission{
+		PERM_LOGIN, PERM_LOGIN_WEAK,
+		PERM_ADMIN_READ, PERM_USERS_READ, PERM_RESOURCES_READ, PERM_CONFIGURATION_READ,
+		PERM_ADMIN, PERM_USERS, PERM_RESOURCES, PERM_CONFIGURATION,
+		PERM_CREDENTIALS_READ,
+	}},
+}
+
+func GetRolePermissions(role Role) []Permission {
+	config := GetMainConfig()
+	if config.Roles != nil {
+		if rc, ok := config.Roles[role]; ok {
+			return rc.Permissions
+		}
+	}
+	if rc, ok := defaultRoles[role]; ok {
+		return rc.Permissions
+	}
+	return nil
+}
+
+func GetRoles() map[Role]RoleConfig {
+	config := GetMainConfig()
+	roles := map[Role]RoleConfig{}
+	for k, v := range defaultRoles {
+		roles[k] = v
+	}
+	if config.Roles != nil {
+		for k, v := range config.Roles {
+			roles[k] = v
+		}
+	}
+	return roles
+}
+
+// Global: permissions that require sudo for ANY role
+var SudoPermissions = []Permission{
+	PERM_ADMIN, PERM_USERS, PERM_RESOURCES, PERM_CONFIGURATION,
+	PERM_CREDENTIALS_READ,
+}
+
 const (
 	DEBUG LogLevel = iota
 	INFO
@@ -108,17 +206,20 @@ type Config struct {
 	CRON map[string]CRONConfig
 	Licence string
 	ServerToken string
+	AgentMode bool
 	RemoteStorage RemoteStorageConfig
 	DisableOpenIDDirect bool
 	Backup BackupConfig
 	Mpdu_ string
 	Mpdn_ string
+	APITokens map[string]APITokenConfig `json:"APITokens,omitempty"`
+	Roles     map[Role]RoleConfig     `json:"Roles,omitempty"`
 }
 
 
 type CRONConfig struct {
 	Enabled bool
-	Name string
+	Name string `validate:"required"`
 	Crontab string
 	Command string
 	Container string
@@ -175,6 +276,8 @@ type HTTPConfig struct {
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
 	DNSChallengeProvider string
+	DisablePropagationChecks bool
+	DNSChallengePropagationWait int
 	ForceHTTPSCertificateRenewal bool
 	HTTPPort string `validate:"required,containsany=0123456789,min=1,max=6"`
 	HTTPSPort string `validate:"required,containsany=0123456789,min=1,max=6"`
@@ -190,6 +293,7 @@ type HTTPConfig struct {
 	UseForwardedFor bool
 	AllowSearchEngine bool
 	PublishMDNS bool
+	TrustedProxies []string
 } 
 
 const (
@@ -253,9 +357,16 @@ type ProxyRouteConfig struct {
 	OverwriteHostHeader        string                      `yaml:"overwrite_host_header,omitempty"`
 	WhitelistInboundIPs        []string                    `yaml:"whitelist_inbound_ips,omitempty"`
 	Icon                       string                      `yaml:"icon,omitempty"`
-	TunnelVia                  string                      `yaml:"tunnel_via,omitempty"`
-	TunneledHost							 string                      `yaml:"tunneled_host,omitempty"`
+	Tunnel                     string                      `yaml:"tunnel,omitempty"`
+	TunneledHost			   string                      `yaml:"tunneled_host,omitempty"`
 	ExtraHeaders               map[string]string           `yaml:"extra_headers,omitempty"`
+	DisableLegacyHTTPHeaders   bool                        `yaml:"disable_legacy_http_headers"`
+	SkipURLClean               bool                        `yaml:"skip_url_clean"`
+	UseH2C                     bool                        `yaml:"use_h2c"`
+	LBMode                     string                      `yaml:"lb_mode" json:"LBMode,omitempty"`
+	LBStickyMode               bool                        `yaml:"lb_sticky_mode" json:"LBStickyMode,omitempty"`
+	AdditionalTargets          []string                    `yaml:"additional_targets,omitempty" json:"AdditionalTargets,omitempty"`
+	Const_IsTunneled           bool                        `yaml:"-" json:"-"`
 }
 
 type EmailConfig struct {
@@ -271,7 +382,7 @@ type EmailConfig struct {
 }
 
 type OpenIDClient struct {
-	ID       string `json:"id"`
+	ID       string `json:"id" validate:"required"`
 	Secret 	 string `json:"secret"`
 	Redirect string `json:"redirect"`
 }
@@ -287,25 +398,35 @@ type MarketSource struct {
 
 type ConstellationConfig struct {
 	Enabled bool
-	SlaveMode bool
 	DoNotSyncNodes bool
 	DNSDisabled bool
 	DNSPort string
 	DNSFallback string
-	IsExitNode bool
 	DNSBlockBlacklist bool
 	DNSAdditionalBlocklists []string
 	CustomDNSEntries []ConstellationDNSEntry
-	NebulaConfig NebulaConfig
-	ConstellationHostname string
 	Tunnels []ProxyRouteConfig
 	FirewallBlockedClients []string `json:"FirewallBlockedClients" bson:"FirewallBlockedClients"`
 	OverrideNebulaExitNodeInterface string
+	ThisDeviceName string
+	ConstellationHostname string
+	IPRange string
+	NATSReplicas int `json:"NATSReplicas,omitempty"`
+}
+
+type TunnelTarget struct {
+	DeviceName string `json:"deviceName"`
+	TargetURL  string `json:"targetURL"`
+}
+
+type ConstellationTunnel struct {
+	Route   ProxyRouteConfig
+	Targets []TunnelTarget
 }
 
 type ConstellationDNSEntry struct {
 	Type string
-	Key string
+	Key string `validate:"required"`
 	Value string
 }
 
@@ -315,8 +436,9 @@ type ConstellationDevice struct {
 	PublicKey string `json:"publicKey" bson:"PublicKey"`
 	IP string `json:"ip" bson:"IP"`
 	IsLighthouse bool `json:"isLighthouse" bson:"IsLighthouse"`
-	IsCosmosNode bool `json:"isCosmosNode" bson:"IsCosmosNode"`
+	CosmosNode int `json:"cosmosNode" bson:"CosmosNode"`
 	IsRelay bool `json:"isRelay" bson:"IsRelay"`
+	IsLoadBalancer bool `json:"isLoadBalancer" bson:"IsLoadBalancer"`
 	IsExitNode bool `json:"isExitNode" bson:"IsExitNode"`
 	PublicHostname string `json:"publicHostname" bson:"PublicHostname"`
 	Port string `json:"port" bson:"Port"`
@@ -330,7 +452,7 @@ type NebulaFirewallRule struct {
 	Port   string   `yaml:"port"`
 	Proto  string   `yaml:"proto"`
 	Host   string   `yaml:"host"`
-	Groups []string `yaml:"groups,omitempty"omitempty"`
+	Groups []string `yaml:"groups,omitempty"`
 }
 
 type NebulaConntrackConfig struct {
@@ -397,15 +519,15 @@ type NebulaConfig struct {
 }
 
 type Device struct {
-	DeviceName string `json:"deviceName"validate:"required,min=3,max=32,alphanum",bson:"DeviceName"`
-	Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum",bson:"Nickname"`
-	PublicKey string `json:"publicKey",omitempty,bson:"PublicKey"`
-	PrivateKey string `json:"privateKey",omitempty,bson:"PrivateKey"`
-	IP string `json:"ip",validate:"required,ipv4",bson:"IP"`
+	DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum" bson:"DeviceName"`
+	Nickname string `json:"nickname" validate:"required,min=3,max=32,alphanum" bson:"Nickname"`
+	PublicKey string `json:"publicKey,omitempty" bson:"PublicKey"`
+	PrivateKey string `json:"privateKey,omitempty" bson:"PrivateKey"`
+	IP string `json:"ip" validate:"required,ipv4" bson:"IP"`
 }
 
 type Alert struct {
-	Name string
+	Name string `validate:"required"`
 	Enabled bool
 	Period string
 	TrackingMetric string
@@ -452,12 +574,48 @@ type BackupConfig struct {
 }
 
 type SingleBackupConfig struct {
-	Name string
-	Repository string
+	Name string `validate:"required"`
+	Repository string `validate:"required"`
 	Password string
-	Source string 
+	Source string
 	Crontab string
 	CrontabForget string
 	RetentionPolicy string
 	AutoStopContainers bool
 }
+
+type RoleConfig struct {
+	Name        string       `json:"name"`
+	Permissions []Permission `json:"permissions"`
+}
+
+type APITokenConfig struct {
+	Name                    string       `json:"name"`
+	Description             string       `json:"description,omitempty"`
+	Owner                   string       `json:"owner,omitempty"`
+	TokenHash               string       `json:"tokenHash"`
+	TokenSuffix             string       `json:"tokenSuffix,omitempty"`
+	Permissions             []Permission `json:"permissions"`
+	IPWhitelist             []string     `json:"ipWhitelist,omitempty"`
+	RestrictToConstellation bool         `json:"restrictToConstellation"`
+	CreatedAt               time.Time    `json:"createdAt"`
+	ExpiresAt               time.Time    `json:"expiresAt,omitempty"`
+}
+
+type APITokenContext struct {
+	Name        string
+	Owner       string
+	Permissions []Permission
+}
+
+type AuthContext struct {
+	Nickname    string
+	Role        Role
+	UserRole    Role
+	Permissions []Permission
+	IsSudoed    bool
+	MFAState    int
+	APIToken    *APITokenContext
+}
+
+const AuthCtxKey = "AuthContext"

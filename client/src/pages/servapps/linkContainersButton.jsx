@@ -19,6 +19,8 @@ import { CosmosCheckbox } from '../config/users/formShortcuts';
 import ResponsiveButton from '../../components/responseiveButton';
 import { CosmosContainerPicker } from '../config/users/containerPicker';
 import { randomString } from '../../utils/indexs';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContainer, OnConnect }) => {
   const { t } = useTranslation();
@@ -101,13 +103,13 @@ const LinkContainersButton = ({ fullWidth, refresh, originContainer, newContaine
           </DialogActions>
         </FormikProvider>
       </Dialog>
-      <ResponsiveButton
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton
         fullWidth={fullWidth}
         onClick={() => setIsOpened(true)}
         startIcon={<PlusCircleOutlined />}
       >
         {t('mgmt.servApps.container.network.linkContainerButton')}
-      </ResponsiveButton>
+      </ResponsiveButton></PermissionGuard>
     </>
   );
 };

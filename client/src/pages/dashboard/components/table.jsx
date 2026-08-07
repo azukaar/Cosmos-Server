@@ -297,7 +297,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                     position: 'relative',
                     display: 'block',
                     maxWidth: '100%',
-                    '& td, & th': { whiteSpace: 'nowrap' },
+                    '& td, & th': { whiteSpace: 'normal', wordBreak: 'break-word' },
                     maxHeight: '474px'
                 }}
             >
@@ -305,7 +305,7 @@ const TableComponent = ({ title, data, displayMax, render, xAxis, slot, zoom}) =
                     aria-labelledby="tableTitle"
                     sx={{
                         '& .MuiTableCell-root:first-child': {
-                            pl: 2
+                            pl: 2,
                         },
                         '& .MuiTableCell-root:last-child': {
                             pr: 3

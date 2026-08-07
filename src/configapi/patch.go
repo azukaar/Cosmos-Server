@@ -6,17 +6,30 @@ import (
 	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type UpdateRouteRequest struct {
 	RouteName string `json:"routeName"`
-	Operation string `json:"operation"`
+	Operation string `json:"operation" validate:"required"`
 	NewRoute  *utils.ProxyRouteConfig `json:"newRoute,omitempty"`
 }
 
+// ConfigApiPatch godoc
+// @Summary Patch route configuration
+// @Description Performs route operations (add, replace, delete, move_up, move_down) on proxy routes
+// @Tags config
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdateRouteRequest true "Route update operation"
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/config [patch]
 func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CONFIGURATION) != nil {
 		return
 	}
 
@@ -106,7 +119,6 @@ func ConfigApiPatch(w http.ResponseWriter, req *http.Request) {
 	})
 	
 	go (func () {
-		constellation.RestartNebula()
 		utils.RestartHTTPServer()
 	})()
 	

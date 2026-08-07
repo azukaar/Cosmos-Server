@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/nats-io/nats.go"
+
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -15,13 +17,22 @@ type PublicDeviceInfo struct {
 	User       string `json:"user"`
 	IP         string `json:"ip"`
 	IsLighthouse bool `json:"isLighthouse"`
-	IsCosmosNode bool `json:"isCosmosNode"`
+	CosmosNode int `json:"cosmosNode"`
 	IsRelay bool `json:"isRelay"`
 	IsExitNode bool `json:"isExitNode"`
 	PublicHostname string `json:"publicHostname"`
 	Port string `json:"port"`
 }
 
+// DevicePublicList godoc
+// @Summary List public information about all non-blocked Constellation devices
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/public-devices [get]
 func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 	// Check for GET method
 	if req.Method != "GET" {
@@ -71,21 +82,6 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Always add the cosmos lighthouse device
-	config := utils.GetMainConfig()
-	cosmosDevice := utils.ConstellationDevice{
-		DeviceName: "cosmos",
-		Nickname:   "cosmos",
-		IP:         "192.168.201.1",
-		IsLighthouse: true,
-		IsCosmosNode: true,
-		IsRelay: config.ConstellationConfig.NebulaConfig.Relay.AMRelay,
-		IsExitNode: config.ConstellationConfig.IsExitNode,
-		PublicHostname: config.ConstellationConfig.ConstellationHostname,
-		Port: "4242",
-	}
-	devices = append([]utils.ConstellationDevice{cosmosDevice}, devices...)
-
 	// Convert to public device info with limited fields
 	publicDevices := make([]PublicDeviceInfo, len(devices))
 	for i, device := range devices {
@@ -95,7 +91,7 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 			User:       device.Nickname,
 			IP:         cleanIp(device.IP),
 			IsLighthouse: device.IsLighthouse,
-			IsCosmosNode: device.IsCosmosNode,
+			CosmosNode: device.CosmosNode,
 			IsRelay: device.IsRelay,
 			IsExitNode: device.IsExitNode,
 			PublicHostname: device.PublicHostname,
@@ -108,4 +104,68 @@ func DevicePublicList(w http.ResponseWriter, req *http.Request) {
 		"status": "OK",
 		"data":   publicDevices,
 	})
+}
+
+func PublicDeviceListNATS(m *nats.Msg) {
+	// Connect to the collection
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
+	if errCo != nil {
+		utils.Error("PublicDeviceListNATS: Database Connect", errCo)
+		m.Respond([]byte(`{"status":"error","message":"Database error"}`))
+		return
+	}
+
+	utils.Debug("PublicDeviceListNATS: Fetching devices")
+
+	// Find all non-blocked, non-invisible devices
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": false,
+		"Invisible": false,
+	})
+
+	defer cursor.Close(nil)
+
+	if err != nil {
+		utils.Error("PublicDeviceListNATS: Error fetching devices", err)
+		m.Respond([]byte(`{"status":"error","message":"Error fetching devices"}`))
+		return
+	}
+
+	var devices []utils.ConstellationDevice
+	if err = cursor.All(nil, &devices); err != nil {
+		utils.Error("PublicDeviceListNATS: Error decoding devices", err)
+		m.Respond([]byte(`{"status":"error","message":"Error decoding devices"}`))
+		return
+	}
+
+	// Convert to public device info with limited fields
+	publicDevices := make([]PublicDeviceInfo, len(devices))
+	for i, device := range devices {
+		publicDevices[i] = PublicDeviceInfo{
+			DeviceID:   device.DeviceName,
+			DeviceName: device.DeviceName,
+			User:       device.Nickname,
+			IP:         cleanIp(device.IP),
+			IsLighthouse: device.IsLighthouse,
+			CosmosNode: device.CosmosNode,
+			IsRelay: device.IsRelay,
+			IsExitNode: device.IsExitNode,
+			PublicHostname: device.PublicHostname,
+			Port: device.Port,
+		}
+	}
+
+	// Respond with the list of public device info
+	response, err := json.Marshal(map[string]interface{}{
+		"status": "OK",
+		"data":   publicDevices,
+	})
+	if err != nil {
+		utils.Error("PublicDeviceListNATS: Error marshalling response", err)
+		m.Respond([]byte(`{"status":"error","message":"Error encoding response"}`))
+		return
+	}
+
+	m.Respond(response)
 }

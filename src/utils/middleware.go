@@ -48,10 +48,25 @@ func GetIPAbuseCounter(ip string) int64 {
 	return atomic.LoadInt64(&counter.val)
 }
 
+func ClientRealIP(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		clientID := GetClientIP(r)
+		if clientID == "" {
+			http.Error(w, "Invalid request", http.StatusBadRequest)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "ClientID", clientID)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
 func BlockBannedIPs(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        ip, _, err := net.SplitHostPort(r.RemoteAddr)
-        if err != nil {
+        ip, ok := r.Context().Value("ClientID").(string)
+        if !ok || ip == "" {
 					if hj, ok := w.(http.Hijacker); ok {
 							conn, _, err := hj.Hijack()
 							if err == nil {
@@ -210,8 +225,8 @@ func GetIPLocation(ip string) (string, error) {
 func BlockByCountryMiddleware(blockedCountries []string, CountryBlacklistIsWhitelist bool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
-			if err != nil {
+			ip, ok := r.Context().Value("ClientID").(string)
+			if !ok || ip == "" {
 				http.Error(w, "Invalid request", http.StatusBadRequest)
 				return
 			}
@@ -379,7 +394,7 @@ func EnsureHostname(next http.Handler) http.Handler {
 
 func AdminOnlyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !IsAdmin(r) {
+		if !HasPermission(r, PERM_ADMIN_READ) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
@@ -477,7 +492,8 @@ func IsValidHostname(hostname string) bool {
 func IPInRange(ipStr, cidrStr string) (bool, error) {
 	_, cidrNet, err := net.ParseCIDR(cidrStr)
 	if err != nil {
-		return false, fmt.Errorf("parse CIDR range: %w", err)
+		// If not a CIDR range, try exact IP match
+		return ipStr == cidrStr, nil
 	}
 
 	ip := net.ParseIP(ipStr)
@@ -488,77 +504,45 @@ func IPInRange(ipStr, cidrStr string) (bool, error) {
 	return cidrNet.Contains(ip), nil
 }
 
+func CheckIPAccess(clientIP string, remoteAddr string, restrictToConstellation bool, whitelistIPs []string) bool {
+	isUsingWhiteList := len(whitelistIPs) > 0
+	isInWhitelist := false
+	isInConstellation := IsConstellationIP(remoteAddr)
+
+	for _, ipRange := range whitelistIPs {
+		if strings.Contains(ipRange, "/") {
+			if ok, _ := IPInRange(clientIP, ipRange); ok {
+				isInWhitelist = true
+				break
+			}
+		} else if clientIP == ipRange {
+			isInWhitelist = true
+			break
+		}
+	}
+
+	if restrictToConstellation {
+		return isInConstellation || isInWhitelist
+	}
+	if isUsingWhiteList {
+		return isInWhitelist
+	}
+	return true
+}
+
 func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
+		ip, ok := r.Context().Value("ClientID").(string)
+		if !ok || ip == "" {
 			http.Error(w, "Invalid request", http.StatusBadRequest)
 			return
 		}
 
-		isUsingWhiteList := len(WhitelistInboundIPs) > 0
+		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-		isInWhitelist := false
-		isInConstellation := strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.")
-
-		for _, ipRange := range WhitelistInboundIPs {
-			Debug("Checking if " + ip + " is in " + ipRange)
-			if strings.Contains(ipRange, "/") {
-				if ok, _ := IPInRange(ip, ipRange); ok {
-					isInWhitelist = true
-				}
-			} else {
-				if ip == ipRange {
-					isInWhitelist = true
-				}
-			}
-		}
-
-		if(RestrictToConstellation) {
-			if(!isInConstellation) {
-				if(!isUsingWhiteList) {
-					PushShieldMetrics("ip-whitelists")
-
-					TriggerEvent(
-						"cosmos.proxy.shield.whitelist",
-						"Proxy Shield IP blocked by whitelist",
-						"warning",
-						"",
-						map[string]interface{}{
-						"clientID": ip,
-						"hostname": r.Host,
-						"url": r.URL.String(),
-					})
-
-					IncrementIPAbuseCounter(ip)
-					Error("Request from " + ip + " is blocked because of restrictions", nil)
-					Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList")
-					http.Error(w, "Access denied", http.StatusForbidden)
-					return
-				} else if (!isInWhitelist) {
-					PushShieldMetrics("ip-whitelists")
-					
-					TriggerEvent(
-						"cosmos.proxy.shield.whitelist",
-						"Proxy Shield IP blocked by whitelist",
-						"warning",
-						"",
-						map[string]interface{}{
-						"clientID": ip,
-						"hostname": r.Host,
-						"url": r.URL.String(),
-					})
-
-					IncrementIPAbuseCounter(ip)
-					Error("Request from " + ip + " is blocked because of restrictions", nil)
-					Debug("Blocked by RestrictToConstellation isInConstellation isInWhitelist")
-					http.Error(w, "Access denied", http.StatusForbidden)
-					return
-				}
-			}
-		} else if(isUsingWhiteList && !isInWhitelist) {
+		if !CheckIPAccess(ip, remoteAddr, RestrictToConstellation, WhitelistInboundIPs) {
 			PushShieldMetrics("ip-whitelists")
 
 			TriggerEvent(
@@ -574,7 +558,6 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 
 			IncrementIPAbuseCounter(ip)
 			Error("Request from " + ip + " is blocked because of restrictions", nil)
-			Debug("Blocked by RestrictToConstellation isInConstellation isUsingWhiteList isInWhitelist")
 			http.Error(w, "Access denied", http.StatusForbidden)
 			return
 		}

@@ -25,8 +25,19 @@ type DashboardRoute struct {
 	ContainerIcon    string `json:"ContainerIcon,omitempty"`
 }
 
+// DashboardApiGet godoc
+// @Summary Get dashboard data
+// @Description Returns dashboard route information with container status for SERVAPP routes
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse{data=[]DashboardRoute}
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/dashboard [get]
 func DashboardApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
@@ -36,7 +47,7 @@ func DashboardApiGet(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	isAdmin := utils.IsAdmin(req)
+	isAdmin := utils.HasPermission(req, utils.PERM_ADMIN_READ)
 	config := utils.ReadConfigFromFile()
 
 	// Get containers if docker is available

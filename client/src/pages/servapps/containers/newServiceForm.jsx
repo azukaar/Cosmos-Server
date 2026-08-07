@@ -93,6 +93,9 @@ const NewDockerServiceForm = () => {
     spacing={1}
     style={{
       maxWidth: '1000px',
+      width: '100%',
+      margin: 'auto',
+      marginTop: '20px',
     }}
     >
     <Button
@@ -181,7 +184,7 @@ const NewDockerServiceForm = () => {
           title: 'URL',
           disabled: maxTab < 1,
           children:  <Stack spacing={2}>
-            <MainCard  style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+            <MainCard  style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
               <Checkbox
                 checked={containerInfo.CreateRoute}
                 onChange={(e) => {
@@ -304,7 +307,7 @@ const NewDockerServiceForm = () => {
         {
           title: t('mgmt.servApp.newContainer.reviewStartButton'),
           disabled: maxTab < 1,
-          children: <Stack spacing={2}><NewDockerService service={service} />{nav()}</Stack>
+          children: <Stack style={{ width: '100%', margin: 'auto', maxWidth: '1000px' }} spacing={2}><NewDockerService service={service} />{nav()}</Stack>
         }
       ]} />}
 

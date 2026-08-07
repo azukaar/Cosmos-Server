@@ -2,11 +2,13 @@ package main
 
 import (
 	"io/ioutil"
+	"hash/fnv"
 	"runtime"
 	"net/http"
 	"os"
 	"path/filepath"
 	"encoding/json"
+	"fmt"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/storage"
@@ -143,7 +145,7 @@ func checkUpdatesAvailable() {
 				if useBeta && !utils.FileExists(betaFile) {
 					// save .BETA file
 					utils.Log("Saving BETA file")
-					err := ioutil.WriteFile(betaFile, []byte("BETA"), 0644)
+					err := ioutil.WriteFile(betaFile, []byte("BETA"), 0600)
 					if err != nil {
 						utils.Error("checkUpdatesAvailable", err)
 						return
@@ -180,7 +182,7 @@ func checkCerts() {
 		utils.Log("Checking certificates for renewal")
 		if !CertificateIsExpiredSoon(HTTPConfig.TLSValidUntil) {
 			utils.Log("Certificates are not valid anymore, renewing")
-			RestartServer()
+			RestartHTTPServer()
 		}
 	}
 }
@@ -211,13 +213,19 @@ func CRON() {
 		s.Every(1).Hours().Do(proxy.CleanUp)
 		s.Every(1).Hours().Do(proxy.CleanUpSocket)
 		s.Every(1).Day().At("2:00").Do(func() {
-			checkVersion()
 			utils.CleanupByDate("notifications")
 			utils.CleanupByDate("events")
 			imageCleanUp()
 			checkCerts()
 			checkUpdatesAvailable()
 		})
+		
+		hostname, _ := os.Hostname()
+		h := fnv.New32a()
+		h.Write([]byte(hostname))
+		randomHour := int(h.Sum32()%23) + 1
+		s.Every(1).Day().At(fmt.Sprintf("%02d:45", randomHour)).Do(utils.ProcessLicence)
+		s.Every(1).Day().At(fmt.Sprintf("%02d:15", randomHour)).Do(checkVersion)
 
 		s.Start()
 	}()

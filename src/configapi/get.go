@@ -8,12 +8,23 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// ConfigApiGet godoc
+// @Summary Get server configuration
+// @Description Returns the full server configuration (sensitive fields masked for non-credential users)
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse{data=utils.Config}
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Router /api/config [get]
 func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
-	isAdmin := utils.IsAdmin(req)
+	isAdmin := utils.HasPermission(req, utils.PERM_CONFIGURATION_READ)
+	canReadCredentials := utils.HasPermission(req, utils.PERM_CREDENTIALS_READ)
 
 	if(req.Method == "GET") {
 		config := utils.ReadConfigFromFile()
@@ -22,7 +33,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 		config.HTTPConfig.AuthPrivateKey = ""
 		config.HTTPConfig.TLSKey = ""
 
-		if !isAdmin {
+		if !canReadCredentials {
 			config.MongoDB = "***"
 			config.EmailConfig.Password = "***"
 			config.EmailConfig.Username = "***"
@@ -33,6 +44,15 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			config.Licence = "***"
 			config.ServerToken = "***"
 
+			for name, b := range config.Backup.Backups {
+				if b.Password != "" {
+					b.Password = "***"
+					config.Backup.Backups[name] = b
+				}
+			}
+		}
+
+		if !isAdmin {
 			// filter admin only routes
 			filteredRoutes := make([]utils.ProxyRouteConfig, 0)
 			for _, route := range config.HTTPConfig.ProxyConfig.Routes {
@@ -57,8 +77,20 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// BackupFileApiGet godoc
+// @Summary Get backup file
+// @Description Returns the backup cosmos-compose JSON file
+// @Tags config
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {file} binary
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/get-backup [get]
 func BackupFileApiGet(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CREDENTIALS_READ) != nil {
 		return
 	}
 

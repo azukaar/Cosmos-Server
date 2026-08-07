@@ -44,7 +44,10 @@ ${JSON.stringify(batch, null, 2)}`;
     });
 
     let rawText = await res.json();
-    // console.log(rawText);
+    if (!rawText.choices || !rawText.choices[0]) {
+      console.error('API error response:', JSON.stringify(rawText, null, 2));
+      return null;
+    }
     rawText = rawText.choices[0].message.content;
     let json = rawText.split('{').slice(1).join('{');
     json = json.split('}').slice(0, -1).join('}');

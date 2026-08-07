@@ -45,7 +45,7 @@ type ContainerCreateRequestContainerDependsOnCont struct {
 
 type ContainerCreateRequestContainer struct {
 	Name 			string            `json:"container_name"`
-	Image       string            `json:"image"`
+	Image       string            `json:"image" validate:"required"`
 	Environment []string `json:"environment"`
 	Labels      map[string]string `json:"labels"`
 	Ports       []string          `json:"ports"`
@@ -219,8 +219,20 @@ func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
 	OnLog("[OPERATION FAILED]. CHANGES HAVE BEEN ROLLEDBACK.\n")
 }
 
+// CreateServiceRoute godoc
+// @Summary Create a Docker service (compose-like) with networks, volumes, and containers
+// @Tags docker
+// @Accept json
+// @Produce plain
+// @Param body body DockerServiceCreateRequest true "Service creation payload"
+// @Security BearerAuth
+// @Success 200 {string} string "Streamed creation output"
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/docker-service [post]
 func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -953,6 +965,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Name:        container.Name,
 			DependsOn:   container.DependsOn,
 			NetworkMode: string(hostConfig.NetworkMode),
+			PostInstall: container.PostInstall,
 		}
 	}
 
@@ -1007,6 +1020,9 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// if post install
 		if len(container.PostInstall) > 0 {
+			utils.Log(fmt.Sprintf("Container %s started. Running %d post install commands...", container.Name, len(container.PostInstall)))
+			OnLog(fmt.Sprintf("Container %s started. Running %d post install commands...\n", container.Name, len(container.PostInstall)))
+			
 			// run post install commands
 			for _, cmd := range container.PostInstall {
 				utils.Log(fmt.Sprintf("Running post install command: %s", cmd))
@@ -1034,19 +1050,9 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 					Rollback(rollbackActions, OnLog)
 					return err
 				}
-				defer response.Close()
-			
-				// run the command
-				err = DockerClient.ContainerExecStart(DockerContext, execResponse.ID, doctype.ExecStartCheck{})
-				if err != nil {
-					utils.Error("CreateService: Post Install", err)
-					OnLog(utils.DoErr("Rolling back changes because of -- Post install error: "+err.Error()))
-					Rollback(rollbackActions, OnLog)
-					return err
-				}
-
 				// read the output
 				out, _ := ioutil.ReadAll(response.Reader)
+				response.Close()
 				OnLog(fmt.Sprintf("----> %s", out))
 			}
 

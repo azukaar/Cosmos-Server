@@ -31,10 +31,11 @@ import DOMPurify from 'dompurify';
 
   import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { CosmosCollapse, CosmosSelect } from '../pages/config/users/formShortcuts';
-  
+import { CosmosCollapse, CosmosSelect,CosmosCheckbox, CosmosInputText } from '../pages/config/users/formShortcuts';
+import { useTranslation } from 'react-i18next';
 
 export const DnsChallengeComp = ({ name, configName, style, multiline, type, placeholder, onChange, label, formik }) => {
+    const { t } = useTranslation();
     const filterVars = (obj) => {
       const newObj = {};
       Object.keys(obj).forEach((key) => {
@@ -58,8 +59,7 @@ export const DnsChallengeComp = ({ name, configName, style, multiline, type, pla
       <Grid item xs={12}>
         <Stack spacing={2}>
         {formik.values[name] && dnsConfig[formik.values[name]] &&<>
-          {dnsConfig[formik.values[name]].vars.length > 0 && <CosmosCollapse title="DNS Challenge setup">
-            
+          {dnsConfig[formik.values[name]].vars.length > 0 && <CosmosCollapse title="DNS Challenge setup" >
           <Stack spacing={2}>
           <Alert severity="info">
             Please be careful you are filling the correct values. Check the doc if unsure. Leave blank unused variables. <br />

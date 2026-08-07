@@ -1,5 +1,6 @@
 // assets
 import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined, CloudServerOutlined} from '@ant-design/icons';
+import { PERM_RESOURCES_READ, PERM_USERS_READ, PERM_CONFIGURATION_READ } from '../utils/permissions';
 import ConstellationIcon from '../assets/images/icons/constellation.png';
 import ConstellationWhiteIcon from '../assets/images/icons/constellation_white.png';
 import { DarkModeSwitch } from '../utils/indexs';
@@ -24,7 +25,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/servapps',
             icon: AppstoreOutlined,
-            adminOnly: true
+            permission: PERM_RESOURCES_READ
         },
         {
             id: 'backups',
@@ -32,7 +33,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/backups',
             icon: CloudServerOutlined,
-            adminOnly: true
+            permission: PERM_RESOURCES_READ
         },
         {
             id: 'url',
@@ -47,7 +48,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/storage',
             icon: icons.FolderOutlined,
-            adminOnly: true            
+            permission: PERM_RESOURCES_READ
         },
         {
             id: 'constellation',
@@ -66,7 +67,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/config-users',
             icon: icons.ProfileOutlined,
-            adminOnly: true
+            permission: PERM_USERS_READ
         },
         {
             id: 'openid',
@@ -74,7 +75,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/openid-manage',
             icon: PicLeftOutlined,
-            adminOnly: true
+            permission: PERM_CONFIGURATION_READ
         },
         {
             id: 'cron',
@@ -82,7 +83,7 @@ const pages = {
             type: 'item',
             url: '/cosmos-ui/cron',
             icon: ClockCircleOutlined,
-            adminOnly: true
+            permission: PERM_RESOURCES_READ
         },
         {
             id: 'config',

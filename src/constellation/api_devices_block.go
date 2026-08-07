@@ -3,17 +3,36 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
+	"time"
 	
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type DeviceBlockRequestJSON struct {
-  Nickname string `json:"nickname",validate:"required,min=3,max=32,alphanum"`
-  DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
-  Block bool `json:"block",omitempty`
+  Nickname string `json:"nickname" validate:"required,min=3,max=32,alphanum"`
+  DeviceName string `json:"deviceName" validate:"required,min=3,max=32,alphanum"`
+  Block bool `json:"block,omitempty"`
 }
 
+// DeviceBlock godoc
+// @Summary Block or unblock a Constellation device
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body DeviceBlockRequestJSON true "Device block/unblock payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/block [post]
 func DeviceBlock(w http.ResponseWriter, req *http.Request) {
+	if utils.FBL.AgentMode {
+		utils.Error("Constellation: Agents cannot manage devices. Use a manager server", nil)
+		utils.HTTPError(w, "Constellation Error: Agents cannot manage devices. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+	
 	if(req.Method == "POST") {
 		var request DeviceBlockRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -35,7 +54,7 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 		nickname := utils.Sanitize(request.Nickname)
 		deviceName := utils.Sanitize(request.DeviceName)
 		
-		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+		if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_RESOURCES) != nil {
 			return
 		}
 
@@ -83,7 +102,11 @@ func DeviceBlock(w http.ResponseWriter, req *http.Request) {
 				utils.Log("ConstellationDeviceBlocking: Device " + deviceName + " unblocked")
 			}
 			
-			go RestartNebula()
+			go func() {
+				go SendNewDBSyncMessage()
+				time.Sleep(2 * time.Second)
+				RestartNebula()
+			}()
 		} else {
 			utils.Error("DeviceBlocking: Error while finding device", err2)
 			utils.HTTPError(w, "Device Creation Error: " + err2.Error(),

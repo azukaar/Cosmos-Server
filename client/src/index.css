@@ -149,3 +149,42 @@
 .force-light > * {
   color: black !important;
 }
+
+/* === GLASSMORPHISM UTILITIES === */
+
+.glass-light {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.glass-medium {
+  background: rgba(255,255,255,0.18);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.glass-heavy {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+@media (prefers-color-scheme: dark) {
+  .glass-light { background: rgba(10,10,10,0.35); border-color: rgba(255,255,255,0.08); }
+  .glass-medium { background: rgba(10,10,10,0.45); border-color: rgba(255,255,255,0.1); }
+  .glass-heavy { background: rgba(10,10,10,0.55); border-color: rgba(255,255,255,0.12); }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(171,71,188,0.15); }
+  50% { box-shadow: 0 0 16px rgba(171,71,188,0.3); }
+}

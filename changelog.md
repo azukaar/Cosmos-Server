@@ -1,3 +1,106 @@
+## Version 0.22.10
+ - Fix some Restic warning breaking integration
+ - Remove NATS when there's only one server in Constellation
+ - Additional safe guards for Restic password
+ - Add restic password logs separated from config (backup-passwords.log)
+ - Show config backup password on UI  
+ - Ensure backup password needs CREDENTIALS authorization to view
+
+## Version 0.22.9
+ - Potentially fix Constellation HTTPS conflicts 
+
+## Version 0.22.8
+ - Potentially fix Constellation HTTPS conflicts 
+
+## Version 0.22.7
+ - No change, just add more logs 
+
+## Version 0.22.6
+ - Fix potential DNS issue with Constellation domains
+
+## Version 0.22.5
+ - Fix issue with displaying Remote storages
+
+## Version 0.22.4
+ - Fix dashboard permission being too stricts
+
+## Version 0.22.3
+ - fix 404 on user page
+
+## Version 0.22.2
+ - Users / roles improvements 
+ - Cosmos Pro scaffolding 
+ 
+## Version 0.22.1
+ - Fix regression with Constellation server creation flow
+
+## Version 0.22
+ - Adding feature to create API key to directly query the Cosmos API
+ - Added GO/TS/Terraform SDK to call the API from any project (AI assisted)
+ - Refactor the entire permission system for future work on roles and fine-grained permissions (AI assisted)
+ - You can now create multiple admin users
+ - Fixed issue with post-install on compose import
+ - Support for mounting network disk
+ - Enforce tighter folder permissions on the config folder
+ - Ability to add dynamic extra headers with variables like $user, $origin, $scheme, etc...
+ - Add a UI for extra headers on routes
+ - Added support for legacy HTTP_ headers
+ - Fix regression with static/spa folders
+ - Fix issue with Constellation sometime not connecting right away on new network
+ - Sync more settings accross servers in Constellations (Rclone and api token/permissions configs)
+ - Fix issue with /logout not clearing cookies normally 
+ - Fix issue with deleting backups
+
+## Version 0.21.7
+ - Fix issue with Constellation routing HTTP tunnels to the wrong protocol
+
+## Version 0.21.6
+ - Prevent potential double counting of server by wrong timing 
+
+## Version 0.21.5
+ - Fix issue with nodes having 2 public hostnames
+
+## Version 0.21.4
+ - Remove tunnel check when Constellation is off 
+
+## Version 0.21.3
+ - fix Bug with table width
+ - Add move to top/bottom
+ - Add chmod Restic
+
+## Version 0.21.2
+ - Publish translations 
+ 
+## Version 0.21.1
+ - Fix regression with Constellation creation 
+
+## Version 0.21.0
+ - UI refresh for most pages
+ - Reworked mount managemenet logic for flexibility
+ - Added "skip clean URL" option for apps that have invalid URLs like Synology
+ - Support for tempFS
+ - Improve support for 0.0.0.0 routes
+ - Reworked the setting page for better clarity
+ - Added support for HTTP2 Cleartext (H2C)
+ - Added advanced DNS options (challenge related, thanks @moham96)
+ - Added trusted proxy option for X-Forwarded-For (Thanks @InterN0te)
+ - Reduce SmartShield false positive on the server panel by having two level of strictness (UI/panel vs. login)
+ - Rclone rework, no more sub processes (increased performance and reliability)
+ - Added the ability to manage Restic locks from the UI
+ - Reworked Constellation cluster synchronisation completely. Now there are no more "Master" server and each server is equally capable.
+ - Any server can be used as DNS (add redundancy too)
+ - Any server can tunnel another server's URL in any direction
+ - Constellation can now use arbitrary IP range
+ - Server can now modify their setup without having to recreate the network
+ - Fully reworked licencing system should reduce friction when moving / resetting servers
+
+## Version 0.20.2
+ - Fix regression with header hardening
+
+## Version 0.20.1
+ - Fix Avahi not working issue
+ - Fix issue with resetting mem limit to 0
+
 ## Version 0.20.0
  - Added Samba for both remote storage and serve share
  - Added .env file upload when uploading compose files

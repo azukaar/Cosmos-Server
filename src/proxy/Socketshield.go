@@ -9,6 +9,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type TCPSmartShieldState struct {
@@ -409,19 +410,19 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 			policy.PerUserTimeBudget = 2 * 60 * 60 * 1000 // 2 hours
 		}
 		if(policy.PerUserRequestLimit == 0) {
-			policy.PerUserRequestLimit = 12000 // 150 requests per minute
+			policy.PerUserRequestLimit = 18000
 		}
 		if(policy.PerUserByteLimit == 0) {
-			policy.PerUserByteLimit = 150 * 1024 * 1024 * 1024 // 150GB
+			policy.PerUserByteLimit = 200 * 1024 * 1024 * 1024 // 200GB
 		}
 		if(policy.PolicyStrictness == 0) {
 			policy.PolicyStrictness = 2 // NORMAL
 		}
 		if(policy.PerUserSimultaneous == 0) {
-			policy.PerUserSimultaneous = 24
+			policy.PerUserSimultaneous = 100
 		}
 		if(policy.MaxGlobalSimultaneous == 0) {
-			policy.MaxGlobalSimultaneous = 250
+			policy.MaxGlobalSimultaneous = 2000
 		}
 		if(policy.PrivilegedGroups == 0) {
 			policy.PrivilegedGroups = utils.ADMIN
@@ -442,7 +443,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 
 		isUsingWhitelist := len(whitelistInboundIPs) > 0
 		isInWhitelist := false
-		isInConstellation := strings.HasPrefix(clientID, "192.168.201.") || strings.HasPrefix(clientID, "192.168.202.")
+		isInConstellation := constellation.IsConstellationIP(clientID)
 
 		for _, ipRange := range whitelistInboundIPs {
 			utils.Debug(fmt.Sprintf("Checking if %s is in %s", clientID, ipRange))

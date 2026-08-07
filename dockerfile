@@ -20,6 +20,7 @@ VOLUME /config
 
 RUN apt-get update \
     && apt-get install -y ca-certificates openssl fdisk mergerfs snapraid \
+       curl unzip wget avahi-daemon avahi-utils samba fuse3 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

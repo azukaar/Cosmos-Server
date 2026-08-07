@@ -1,0 +1,483 @@
+package constellation
+
+import (
+	"strings"
+	"strconv"
+	"time"
+	"sort"
+	"github.com/nats-io/nats.go"
+	"encoding/json"
+	"sync"
+
+	"github.com/azukaar/cosmos-server/src/utils"
+)
+
+func getNATSReplicas() int {
+	r := utils.GetMainConfig().ConstellationConfig.NATSReplicas
+	if r < 1 {
+		return 1
+	}
+	return r
+}
+
+func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
+	// list routes with a tunnel property matching the device name
+	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	tunnels := []utils.ProxyRouteConfig{}
+
+	thisIp, err := GetCurrentDeviceIP()
+	if err != nil {
+		utils.Error("Error getting current device IP for tunneled routes", err)
+		return tunnels
+	}
+	
+	serverProtocol, _, configHostport := utils.GetServerRawAccess()
+
+	for _, route := range routesList {
+		if route.Tunnel != "" {
+			protocol := ""
+			port := configHostport
+
+			if route.UseHost {
+				route.OverwriteHostHeader = route.Host
+
+				// extract port from host if it's a number
+				if strings.Contains(route.Host, ":") {
+					_port := strings.Split(route.Host, ":")[1]
+					if _, err := strconv.Atoi(_port); err == nil {
+						port = _port
+					}
+				}
+
+				// Extract ANY protocol from target, if empty leave empty
+				if idx := strings.Index(route.Target, "://"); idx != -1 {
+					protocol = route.Target[:idx+3]
+				}
+			} else {
+				// TODO: This wont work needs to copy setting
+				protocol = "http://"
+			}
+
+			// if protocol is https, skip certificate check for tunnel VPN IP
+			if protocol == "https://" || protocol == "http://" {
+				protocol = serverProtocol
+				if protocol == "https://" {
+					route.AcceptInsecureHTTPSTarget = true
+				}
+			}
+
+			route.Target = protocol + thisIp
+			
+			if port != "" {
+				route.Target += ":" + port
+			}
+
+			route.Mode = "PROXY"
+
+			if route.TunneledHost != "" {
+				route.Host = route.TunneledHost
+			}
+
+			tunnels = append(tunnels, route)
+		}
+	}
+
+	return tunnels
+}
+
+func StopHeartbeat() {
+	if heartbeatStopChan != nil {
+		close(heartbeatStopChan)
+		heartbeatStopChan = nil
+	}
+	if heartbeatTicker != nil {
+		heartbeatTicker.Stop()
+		heartbeatTicker = nil
+	}
+}
+
+func ClientHeartbeatInit() {
+	// Stop any existing heartbeat
+	StopHeartbeat()
+
+	for i := 0; i < 20; i++ {
+		time.Sleep(3 * time.Second)
+
+		// Reconnect JetStream if needed
+		err := ClientConnectToJS()
+		if err != nil {
+			utils.Debug("[NATS] JetStream not connected, retrying... " + err.Error())
+			continue
+		}
+
+		// Hold read lock for entire KV operation
+		clientConfigLock.RLock()
+		if js == nil {
+			clientConfigLock.RUnlock()
+			utils.Debug("[NATS] JetStream context is nil, retrying...")
+			continue
+		}
+
+		_, err = js.KeyValue("constellation-nodes")
+		if err == nil {
+			clientConfigLock.RUnlock()
+			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
+			break
+		}
+
+		_, err = js.CreateKeyValue(&nats.KeyValueConfig{
+			Bucket:   "constellation-nodes",
+			TTL:      10 * time.Second,
+			Storage:  nats.MemoryStorage,
+			Replicas: getNATSReplicas(),
+		})
+		clientConfigLock.RUnlock()
+
+		if err == nil {
+			utils.Log("[NATS] Created Key-Value store 'constellation-nodes'")
+			break
+		}
+
+		utils.Debug("[NATS] JetStream not ready, retrying... " + err.Error())
+	}
+
+	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
+
+	UpdateLocalTunnelCache()
+
+	heartbeatStopChan = make(chan struct{})
+	heartbeatTicker = time.NewTicker(2 * time.Second)
+
+	// Capture in local variables to avoid race conditions
+	stopChan := heartbeatStopChan
+	ticker := heartbeatTicker
+
+	// Watch KV for changes and refresh tunnel cache
+	go func() {
+		err := ClientConnectToJS()
+		if err != nil {
+			utils.Warn("[NATS] Error connecting to JetStream for KV watcher: " + err.Error())
+			return
+		}
+
+		clientConfigLock.RLock()
+		if js == nil {
+			clientConfigLock.RUnlock()
+			utils.Warn("[NATS] JetStream context is nil for KV watcher")
+			return
+		}
+		kv, err := js.KeyValue("constellation-nodes")
+		clientConfigLock.RUnlock()
+		if err != nil {
+			utils.Warn("[NATS] Error getting KV store for watcher: " + err.Error())
+			return
+		}
+
+		watcher, err := kv.WatchAll()
+		if err != nil {
+			utils.Warn("[NATS] Error creating KV watcher: " + err.Error())
+			return
+		}
+		defer watcher.Stop()
+
+		utils.Log("[NATS] KV watcher started for tunnel cache updates")
+
+		for {
+			select {
+			case <-stopChan:
+				utils.Log("[NATS] KV watcher stopped")
+				return
+			case entry, ok := <-watcher.Updates():
+				if !ok {
+					utils.Warn("[NATS] KV watcher channel closed")
+					return
+				}
+				if entry == nil {
+					// nil marks end of initial values
+					continue
+				}
+				GetLocalTunnelCache()
+			}
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case <-stopChan:
+				utils.Log("[NATS] Heartbeat stopped")
+				return
+			case <-ticker.C:
+				err := ClientConnectToJS()
+				if err != nil {
+					utils.Warn("[NATS] Error connecting to JetStream during heartbeat: " + err.Error())
+					continue
+				}
+
+				// check connected status first
+				if !ConstellationConnected() {
+					utils.Warn("[NATS] Constellation not connected during heartbeat, stopping heartbeat")
+					ticker.Stop()
+					return
+				}
+
+				// Prepare heartbeat data outside the lock
+				device, err := GetCurrentDevice()
+				if err != nil {
+					utils.Warn("[NATS] NATS client not connected getting current device for heartbeat " + err.Error())
+					continue
+				}
+
+				key := sanitizeNATSUsername(device.DeviceName)
+
+				heartbeat := NodeHeartbeat{
+					DeviceName: device.DeviceName,
+					IP: device.IP,
+					IsRelay: device.IsRelay,
+					IsLighthouse: device.IsLighthouse,
+					IsExitNode: device.IsExitNode,
+					CosmosNode: device.CosmosNode,
+					Tunnels: GetAllTunneledRoutes(),
+				}
+
+				heartbeatData, err := json.Marshal(heartbeat)
+				if err != nil {
+					utils.Error("[NATS] Error marshalling heartbeat JSON", err)
+					continue
+				}
+
+				// Hold read lock for entire KV operation
+				clientConfigLock.RLock()
+				if js == nil {
+					clientConfigLock.RUnlock()
+					utils.Warn("[NATS] JetStream context is nil during heartbeat, skipping cycle")
+					continue
+				}
+
+				kv, err := js.KeyValue("constellation-nodes")
+				if err != nil {
+					clientConfigLock.RUnlock()
+					utils.Warn("[NATS] NATS client not connected getting Key-Value store during heartbeat, store is offline will skip this cycle " + err.Error())
+					continue
+				}
+
+				_, err = kv.Put(key, heartbeatData)
+				clientConfigLock.RUnlock()
+
+				if err != nil {
+					utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
+				}
+			}
+		}
+	}()
+}
+
+var localTunnelCache []utils.ConstellationTunnel
+var localTunnelCacheMutex = &sync.RWMutex{}
+var lastCacheUpdate time.Time
+var heartbeatStopChan chan struct{}
+var heartbeatTicker *time.Ticker
+
+func UpdateLocalTunnelCache() {
+	if IsConstellationStandalone() {
+		return
+	}
+
+	localTunnelCacheMutex.Lock()
+	defer localTunnelCacheMutex.Unlock()
+
+	currentDeviceName, err := GetCurrentDeviceName()
+	if err != nil {
+		utils.Warn("[constellation] Failed to get current device name for tunnel cache update: " + err.Error())
+		return
+	}
+
+	err = ClientConnectToJS()
+	if err != nil {
+		utils.Warn("[NATS] Error connecting to JetStream during tunnel cache update: " + err.Error())
+		return
+	}
+
+	// Hold read lock for KV operations
+	clientConfigLock.RLock()
+	if js == nil {
+		clientConfigLock.RUnlock()
+		utils.Warn("[NATS] JetStream context is nil during tunnel cache update")
+		return
+	}
+
+	kv, err := js.KeyValue("constellation-nodes")
+	if err != nil {
+		clientConfigLock.RUnlock()
+		utils.Error("[NATS] Error getting Key-Value store during tunnel cache update, store is offline will skip this cycle", err)
+		return
+	}
+
+	keys, err := kv.Keys()
+	if err != nil {
+		clientConfigLock.RUnlock()
+		utils.Warn("[NATS] Error getting keys from Key-Value store during tunnel cache update "+ err.Error())
+		return
+	}
+
+	byName := map[string]*utils.ConstellationTunnel{}
+
+	for _, key := range keys {
+		entry, err := kv.Get(key)
+		if err != nil {
+			utils.Error("[NATS] Error getting entry from Key-Value store during tunnel cache update", err)
+			continue
+		}
+
+		var heartbeat NodeHeartbeat
+		err = json.Unmarshal(entry.Value(), &heartbeat)
+		if err != nil {
+			utils.Error("[NATS] Error unmarshalling heartbeat JSON during tunnel cache update", err)
+			continue
+		}
+
+		for _, tunnelRoute := range heartbeat.Tunnels {
+			if tunnelRoute.Tunnel == "_ANY_" || tunnelRoute.Tunnel == currentDeviceName {
+				target := utils.TunnelTarget{
+					DeviceName: heartbeat.DeviceName,
+					TargetURL:  tunnelRoute.Target,
+				}
+				if existing, ok := byName[tunnelRoute.Name]; ok {
+					existing.Targets = append(existing.Targets, target)
+				} else {
+					tunnelRoute.Const_IsTunneled = true
+					byName[tunnelRoute.Name] = &utils.ConstellationTunnel{
+						Route:   tunnelRoute,
+						Targets: []utils.TunnelTarget{target},
+					}
+				}
+			}
+		}
+	}
+	clientConfigLock.RUnlock() // Done with KV operations
+
+	tunnels := make([]utils.ConstellationTunnel, 0, len(byName))
+	for _, t := range byName {
+		// Ensure local node is always first in targets
+		for i, target := range t.Targets {
+			if target.DeviceName == currentDeviceName && i != 0 {
+				t.Targets[0], t.Targets[i] = t.Targets[i], t.Targets[0]
+				break
+			}
+		}
+		tunnels = append(tunnels, *t)
+	}
+
+	// Compare old and new cache using sorted copies for consistent comparison
+	sortTunnelsForComparison := func(t []utils.ConstellationTunnel) []utils.ConstellationTunnel {
+		copied := make([]utils.ConstellationTunnel, len(t))
+		for i, tunnel := range t {
+			copied[i] = tunnel
+			copied[i].Targets = make([]utils.TunnelTarget, len(tunnel.Targets))
+			copy(copied[i].Targets, tunnel.Targets)
+			sort.Slice(copied[i].Targets, func(a, b int) bool {
+				return copied[i].Targets[a].DeviceName < copied[i].Targets[b].DeviceName
+			})
+		}
+		sort.Slice(copied, func(i, j int) bool {
+			return copied[i].Route.Name < copied[j].Route.Name
+		})
+		return copied
+	}
+
+	oldJSON, _ := json.Marshal(sortTunnelsForComparison(localTunnelCache))
+	newJSON, _ := json.Marshal(sortTunnelsForComparison(tunnels))
+
+	localTunnelCache = tunnels
+	lastCacheUpdate = time.Now()
+
+	if string(oldJSON) != string(newJSON) {
+		utils.Log("[constellation] Tunnel cache changed, restarting HTTP server...")
+		go utils.RestartHTTPServer()
+	}
+}
+
+func GetLocalTunnelCache() []utils.ConstellationTunnel {
+	if !utils.GetMainConfig().ConstellationConfig.Enabled {
+		return []utils.ConstellationTunnel{}
+	}
+
+	if IsConstellationStandalone() {
+		return []utils.ConstellationTunnel{}
+	}
+
+	isLB, err := GetCurrentDeviceIsLoadbalancer()
+	if err != nil {
+		utils.Debug("[constellation] Failed to get current device load balancer status for tunnel cache retrieval " + err.Error())
+		return []utils.ConstellationTunnel{}
+	}
+	
+	if !isLB {
+		return []utils.ConstellationTunnel{}
+	}
+
+	localTunnelCacheMutex.RLock()
+	defer localTunnelCacheMutex.RUnlock()
+
+	result := make([]utils.ConstellationTunnel, len(localTunnelCache))
+	copy(result, localTunnelCache)
+
+	if time.Since(lastCacheUpdate) > 5*time.Second {
+		go UpdateLocalTunnelCache()
+	}
+
+	return result
+}
+
+func IsTunneled(route utils.ProxyRouteConfig) bool {
+	return route.Const_IsTunneled
+}
+
+func ensureStickyBucket() (nats.KeyValue, error) {
+	if js == nil {
+		return nil, nats.ErrConnectionClosed
+	}
+	kv, err := js.KeyValue("tunnel-sticky")
+	if err == nil {
+		return kv, nil
+	}
+	kv, err = js.CreateKeyValue(&nats.KeyValueConfig{
+		Bucket:  "tunnel-sticky",
+		TTL:     120 * time.Second,
+		Storage: nats.MemoryStorage,
+		Replicas: getNATSReplicas(),
+	})
+	return kv, err
+}
+
+func GetStickyTarget(clientKey string) (string, bool) {
+	clientConfigLock.RLock()
+	defer clientConfigLock.RUnlock()
+
+	kv, err := ensureStickyBucket()
+	if err != nil {
+		return "", false
+	}
+
+	entry, err := kv.Get(clientKey)
+	if err != nil {
+		return "", false
+	}
+	return string(entry.Value()), true
+}
+
+func SetStickyTarget(clientKey string, deviceName string) {
+	clientConfigLock.RLock()
+	defer clientConfigLock.RUnlock()
+
+	kv, err := ensureStickyBucket()
+	if err != nil {
+		utils.Error("[NATS] Error accessing sticky KV bucket", err)
+		return
+	}
+
+	_, err = kv.Put(clientKey, []byte(deviceName))
+	if err != nil {
+		utils.Error("[NATS] Error setting sticky target", err)
+	}
+}

@@ -11,8 +11,21 @@ import (
 
 var maxLimit = 1000
 
+// UserList godoc
+// @Summary List all users
+// @Description Returns a list of all users with optional limit
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Param limit query int false "Maximum number of users to return"
+// @Success 200 {object} utils.APIResponse{data=[]utils.User}
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users [get]
 func UserList(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_USERS_READ) != nil {
 		return
 	} 
 

@@ -16,6 +16,8 @@ import PrettyTableView from '../../components/tableView/prettyTableView';
 import NewVolumeButton from './createVolumes';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 const VolumeManagementList = () => {
     const { t } = useTranslation();
@@ -84,7 +86,7 @@ const VolumeManagementList = () => {
                             clickable: true,
                             field: (r) => (
                                 <>
-                                    <Button
+                                    <PermissionGuard permission={PERM_RESOURCES}><Button
                                         variant="contained"
                                         color="error"
                                         startIcon={<DeleteOutlined />}
@@ -104,7 +106,7 @@ const VolumeManagementList = () => {
                                         }}
                                     >
                                         {tryDelete === r.Name ? t('global.confirmDeletion') : t('global.delete')}
-                                    </Button>
+                                    </Button></PermissionGuard>
                                 </>
                             ),
                         },

@@ -92,7 +92,7 @@ const ContainerMetrics = ({containerName}) => {
     }
 
     return (
-        <>
+    <div style={{  }}>
         {!metrics && <Box style={{
           width: '100%',
           height: '100%',
@@ -106,9 +106,9 @@ const ContainerMetrics = ({containerName}) => {
             size={100}
           />
         </Box>}
-        {metrics && <div style={{zIndex:2, position: 'relative'}}>
+        {metrics && <div style={{zIndex:2, maxWidth: "1000px", margin: "auto"}}>
             <Grid container rowSpacing={4.5} columnSpacing={2.75} >
-                <Grid item xs={12}  xl={8} sx={{ mb: -2.25 }}>
+                <Grid item xs={12}  xl={12} sx={{ mb: -2.25 }}>
                     <Typography variant="h4">{containerName} Monitoring</Typography>
                     <Stack direction="row" alignItems="center" spacing={0} style={{marginTop: 10}}>
                         <Button
@@ -151,16 +151,16 @@ const ContainerMetrics = ({containerName}) => {
                     </Stack>
                 </Grid>
                 
-                <Grid item xs={12} xl={8}>
+                <Grid item xs={12} xl={12}>
                     <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('navigation.monitoring.resourcesTitle')} data={[metrics[metricsKey.CPU], metrics[metricsKey.RAM]]}/>
                 </Grid>
                
-                <Grid item xs={12} xl={8}>
+                <Grid item xs={12} xl={12}>
                     <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('global.network')} data={[metrics[metricsKey.NET_TX], metrics[metricsKey.NET_RX]]}/>
                 </Grid>
             </Grid>
         </div>}
-      </>
+      </div>
     );
 };
 

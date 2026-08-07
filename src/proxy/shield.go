@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
@@ -296,14 +297,12 @@ func calculateLowestExhaustedPercentage(policy utils.SmartShieldPolicy, userCons
 func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 	// when using Docker we need to get the real IP
 	remoteAddr, _ := utils.SplitIP(r.RemoteAddr)
-	UseForwardedFor := utils.GetMainConfig().HTTPConfig.UseForwardedFor
-	isTunneledIp := constellation.GetDeviceIp(route.TunnelVia) == remoteAddr
-	isConstIP := utils.IsConstellationIP(remoteAddr)
+	isConstIP := constellation.IsConstellationIP(remoteAddr)
 	isConstTokenValid := constellation.CheckConstellationToken(r) == nil
 
-	if (UseForwardedFor && r.Header.Get("x-forwarded-for") != "") || 
-		 (isTunneledIp && isConstIP && isConstTokenValid) {
-		ip, _ := utils.SplitIP(r.Header.Get("x-forwarded-for"))
+	if (utils.IsTrustedProxy(remoteAddr) && r.Header.Get("x-forwarded-for") != "") ||
+		(isConstIP && isConstTokenValid) {
+		ip, _ := utils.SplitIP(strings.TrimSpace(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0]))
 		utils.Debug("SmartShield: Getting forwarded client ID " + ip)
 		return ip
 	} else {
@@ -314,8 +313,14 @@ func GetClientID(r *http.Request, route utils.ProxyRouteConfig) string {
 }
 
 func isPrivileged(req *http.Request, policy utils.SmartShieldPolicy) bool {
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-user-role"))
-	return role >= policy.PrivilegedGroups
+	switch {
+	case policy.PrivilegedGroups <= 0:
+		return true
+	case policy.PrivilegedGroups == 1:
+		return utils.HasPermission(req, utils.PERM_LOGIN)
+	default:
+		return utils.HasPermission(req, utils.PERM_ADMIN_READ)
+	}
 }
 
 func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(http.Handler) http.Handler {
@@ -326,19 +331,19 @@ func SmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) func(h
 			policy.PerUserTimeBudget = 2 * 60 * 60 * 1000 // 2 hours
 		}
 		if(policy.PerUserRequestLimit == 0) {
-			policy.PerUserRequestLimit = 12000 // 150 requests per minute
+			policy.PerUserRequestLimit = 18000 // 225 requests per minute
 		}
 		if(policy.PerUserByteLimit == 0) {
-			policy.PerUserByteLimit = 150 * 1024 * 1024 * 1024 // 150GB
+			policy.PerUserByteLimit = 200 * 1024 * 1024 * 1024 // 200GB
 		}
 		if(policy.PolicyStrictness == 0) {
 			policy.PolicyStrictness = 2 // NORMAL
 		}
 		if(policy.PerUserSimultaneous == 0) {
-			policy.PerUserSimultaneous = 24
+			policy.PerUserSimultaneous = 100
 		}
 		if(policy.MaxGlobalSimultaneous == 0) {
-			policy.MaxGlobalSimultaneous = 250
+			policy.MaxGlobalSimultaneous = 2000
 		}
 		if(policy.PrivilegedGroups == 0) {
 			policy.PrivilegedGroups = utils.ADMIN

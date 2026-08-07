@@ -10,6 +10,7 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/azukaar/cosmos-server/src/metrics"
+	"github.com/azukaar/cosmos-server/src/constellation"
 )
 
 type UDPSmartShieldState struct {
@@ -196,7 +197,7 @@ func isAllowedIP(clientID string, route utils.ProxyRouteConfig) bool {
 
 	isUsingWhitelist := len(whitelistInboundIPs) > 0
 	isInWhitelist := false
-	isInConstellation := strings.HasPrefix(clientID, "192.168.201.") || strings.HasPrefix(clientID, "192.168.202.")
+	isInConstellation := constellation.IsConstellationIP(clientID)
 
 	for _, ipRange := range whitelistInboundIPs {
 		if strings.Contains(ipRange, "/") {

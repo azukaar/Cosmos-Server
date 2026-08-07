@@ -34,7 +34,7 @@ const RouteOverview = ({ routeConfig, refreshConfig }) => {
     });
   }
 
-  return <div style={{ maxWidth: '1000px', width: '100%'}}>
+  return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto' }}>
     {routeConfig && <>
       <MainCard name={routeConfig.Name} title={<div>
         {routeConfig.Name} &nbsp;&nbsp;

@@ -1,7 +1,7 @@
 package constellation
 
 import (
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/utils"
 	"os/exec"
 	"os"
 	"fmt"
@@ -26,7 +26,6 @@ var logBuffer *lumberjack.Logger
 var (
 	process    *exec.Cmd
 	ProcessMux sync.Mutex
-	ConstellationInitLock sync.Mutex
 )
 
 func binaryToRun() string {
@@ -36,73 +35,82 @@ func binaryToRun() string {
 	return "./nebula"
 }
 
-var NebulaFailedStarting = false
+func certBinaryToRun() string {
+	if runtime.GOARCH == "arm" || runtime.GOARCH == "arm64" {
+		return "./nebula-arm-cert"
+	}
+	return "./nebula-cert"
+}
 
-func startNebulaInBackground() error {
+func startNebula() error {
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 
+	utils.Log("Starting nebula sub-process...")
+
+	if process != nil {
+		return errors.New("nebula is already running")
+	}
+
 	// copy nebula.yml to nebula-temp.yml
-    source, err := os.Open(utils.CONFIGFOLDER + "nebula.yml")
-    if err != nil {
-        utils.MajorError("Starting Nebula", err)
-    }
-    defer source.Close()
+	source, err := os.Open(utils.CONFIGFOLDER + "nebula.yml")
+	if err != nil {
+		return fmt.Errorf("failed to open nebula.yml: %w", err)
+	}
+	defer source.Close()
 
-    destination, err := os.Create(utils.CONFIGFOLDER + "nebula-temp.yml")
-    if err != nil {
-        utils.MajorError("Starting Nebula", err)
-    }
-    defer destination.Close()
+	destination, err := os.OpenFile(utils.CONFIGFOLDER + "nebula-temp.yml", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to create nebula-temp.yml: %w", err)
+	}
+	defer destination.Close()
 
-    _, err = io.Copy(destination, source)
-    if err != nil {
-        utils.MajorError("Starting Nebula", err)
-    }
+	_, err = io.Copy(destination, source)
+	if err != nil {
+		return fmt.Errorf("failed to copy nebula config: %w", err)
+	}
 
 	// Initialize log buffer
 	logBuffer = &lumberjack.Logger{
-			Filename:   utils.CONFIGFOLDER + "nebula.log",
-			MaxSize:    1, // megabytes
-			MaxBackups: 1,
-			MaxAge:     15, //days
-			Compress:   false,
+		Filename:   utils.CONFIGFOLDER + "nebula.log",
+		MaxSize:    1, // megabytes
+		MaxBackups: 1,
+		MaxAge:     15, //days
+		Compress:   false,
 	}
 
 	UpdateFirewallBlockedClients()
+	e := ExportLighthouseFromDB()
 	AdjustDNS(logBuffer)
-	//ValidateStaticHosts(logBuffer)
-
-	NebulaFailedStarting = false
-	if process != nil {
-			return errors.New("nebula is already running")
+	if e != nil {
+		utils.Error("Failed to export lighthouse config from DB", e)	
 	}
 
 	// Handle existing PID file
 	pidFile := utils.CONFIGFOLDER + "nebula.pid"
 	if _, err := os.Stat(pidFile); err == nil {
-			if err := killExistingProcess(pidFile); err != nil {
-					utils.Error("Constellation: Failed to kill existing process", err)
-					// Continue execution as the process might not exist anymore
-			}
+		if err := killExistingProcess(pidFile); err != nil {
+			utils.Error("Constellation: Failed to kill existing process", err)
+			// Continue execution as the process might not exist anymore
+		}
 	}
 
 	// Create and configure the process
 	process = exec.Command(binaryToRun(), "-config", utils.CONFIGFOLDER+"nebula-temp.yml")
-	
+
 	// Setup stdout and stderr pipes
 	stdout, err := process.StdoutPipe()
 	if err != nil {
-			return fmt.Errorf("failed to create stdout pipe: %s", err)
+		return fmt.Errorf("failed to create stdout pipe: %s", err)
 	}
 	stderr, err := process.StderrPipe()
 	if err != nil {
-			return fmt.Errorf("failed to create stderr pipe: %s", err)
+		return fmt.Errorf("failed to create stderr pipe: %s", err)
 	}
 
 	// Start the process
 	if err := process.Start(); err != nil {
-			return fmt.Errorf("failed to start nebula: %s", err)
+		return fmt.Errorf("failed to start nebula: %s", err)
 	}
 
 	// Handle process output
@@ -110,14 +118,15 @@ func startNebulaInBackground() error {
 
 	// Set process state
 	NebulaStarted = true
+	NebulaHasStarted = true
 
 	// Monitor process
 	go monitorNebulaProcess(process)
 
 	// Save PID
 	if err := savePID(process.Process.Pid); err != nil {
-			utils.Error("Constellation: Error writing PID file", err)
-			// Don't return error as process is already running
+		utils.Error("Constellation: Error writing PID file", err)
+		// Don't return error as process is already running
 	}
 
 	utils.Log(fmt.Sprintf("%s started with PID %d", binaryToRun(), process.Process.Pid))
@@ -127,53 +136,53 @@ func startNebulaInBackground() error {
 func handleProcessOutput(stdout, stderr io.ReadCloser, logBuffer *lumberjack.Logger) {
 	// Handle stdout
 	go func() {
-			scanner := bufio.NewScanner(stdout)
-			for scanner.Scan() {
-					line := scanner.Text()
-					utils.VPNWithLevel(line)
-					if _, err := logBuffer.Write([]byte(line + "\n")); err != nil {
-							utils.Error("Failed to write to log buffer", err)
-					}
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			line := scanner.Text()
+			utils.VPNWithLevel(line)
+			if _, err := logBuffer.Write([]byte(line + "\n")); err != nil {
+				utils.Error("Failed to write to log buffer", err)
 			}
+		}
 	}()
 
 	// Handle stderr
 	go func() {
-			scanner := bufio.NewScanner(stderr)
-			for scanner.Scan() {
-					line := scanner.Text()
-					utils.Error("Nebula error", errors.New(line))
-					if _, err := logBuffer.Write([]byte("ERROR: " + line + "\n")); err != nil {
-							utils.Error("Failed to write to log buffer", err)
-					}
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			line := scanner.Text()
+			utils.Error("Nebula error", errors.New(line))
+			if _, err := logBuffer.Write([]byte("ERROR: " + line + "\n")); err != nil {
+				utils.Error("Failed to write to log buffer", err)
 			}
+		}
 	}()
 }
 
 func killExistingProcess(pidFile string) error {
 	pidBytes, err := ioutil.ReadFile(pidFile)
 	if err != nil {
-			return fmt.Errorf("error reading pid file: %w", err)
+		return fmt.Errorf("error reading pid file: %w", err)
 	}
 
 	pidInt, err := strconv.Atoi(strings.TrimSpace(string(pidBytes)))
 	if err != nil {
-			return fmt.Errorf("invalid pid format: %w", err)
+		return fmt.Errorf("invalid pid format: %w", err)
 	}
 
-	process, err := os.FindProcess(pidInt)
+	proc, err := os.FindProcess(pidInt)
 	if err != nil {
-			return fmt.Errorf("error finding process: %w", err)
+		return fmt.Errorf("error finding process: %w", err)
 	}
 
-	if err := process.Kill(); err != nil {
-			return fmt.Errorf("error killing process: %w", err)
+	if err := proc.Kill(); err != nil {
+		return fmt.Errorf("error killing process: %w", err)
 	}
 
 	// Clean up PID file
 	if err := os.Remove(pidFile); err != nil {
-			utils.Error("Failed to remove old PID file", err)
-			// Continue as this is not critical
+		utils.Error("Failed to remove old PID file", err)
+		// Continue as this is not critical
 	}
 
 	return nil
@@ -182,68 +191,81 @@ func killExistingProcess(pidFile string) error {
 func savePID(pid int) error {
 	pidFile := utils.CONFIGFOLDER + "nebula.pid"
 	pidContent := []byte(fmt.Sprintf("%d", pid))
-	
-	if err := ioutil.WriteFile(pidFile, pidContent, 0644); err != nil {
-			return fmt.Errorf("failed to write PID file: %w", err)
+
+	if err := ioutil.WriteFile(pidFile, pidContent, 0600); err != nil {
+		return fmt.Errorf("failed to write PID file: %w", err)
 	}
-	
+
 	return nil
 }
 
 func monitorNebulaProcess(proc *exec.Cmd) {
 	err := proc.Wait()
 	if err != nil {
-			if exitErr, ok := err.(*exec.ExitError); ok {
-				if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() && status.Signal() == syscall.SIGKILL {
-					utils.Warn("Constellation process killed.")
-				} else {
-					NebulaFailedStarting = true
-					utils.MajorError("Constellation process exited with an error. See logs", exitErr)
-				}
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitErr.Sys().(syscall.WaitStatus); ok && status.Signaled() && status.Signal() == syscall.SIGKILL {
+				utils.Warn("Constellation process killed.")
 			} else {
-				NebulaFailedStarting = true
-				utils.MajorError("Constellation process exited with an error. See logs", err)
+				utils.MajorError("Constellation process exited with an error. See logs", exitErr)
 			}
+		} else {
+			utils.MajorError("Constellation process exited with an error. See logs", err)
+		}
 	}
 
 	// The process has stopped, so update the global state
+	// Only clear state if this is still the active process (a new one may have been started)
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 	process = nil
 	NebulaStarted = false
+	NATSStarted = false
 }
 
-
-func stop() error {
+func stop() {
 	ProcessMux.Lock()
 	defer ProcessMux.Unlock()
 
-	if process == nil {
-		return nil
+	if process != nil {
+		if err := process.Process.Kill(); err != nil {
+			utils.Error("Failed to kill nebula process", err)
+		}
+		// wait for process to be nil
+
+		ProcessMux.Unlock()
+		for process != nil {
+			time.Sleep(100 * time.Millisecond)
+			utils.Debug("CCIAJHSODLJALSD")
+		}
+		ProcessMux.Lock()
+
+		utils.Log("Stopped nebula.")
+
+		// remove PID file
+		if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
+			os.Remove(utils.CONFIGFOLDER + "nebula.pid")
+		}
 	}
 
-	if err := process.Process.Kill(); err != nil {
-		return err
-	}
-
-	process = nil
-	utils.Log("Stopped nebula.")
-
-	// remove PID file
-	if _, err := os.Stat(utils.CONFIGFOLDER + "nebula.pid"); err == nil {
-		os.Remove(utils.CONFIGFOLDER + "nebula.pid")
-	}
-
-	return nil
+	NebulaStarted = false
+	NATSStarted = false
+	cachedCurrentDevice = nil
+	CachedDevices = map[string]utils.ConstellationDevice{}
+	CachedDeviceNames = map[string]string{}
 }
 
+var restartMutex sync.Mutex
+
 func RestartNebula() {
-	if !utils.GetMainConfig().ConstellationConfig.SlaveMode {
-		TriggerClientResync()
-		CloseNATSClient()
-		StopNATS()
-	}
+	restartMutex.Lock()
+	defer restartMutex.Unlock()
+
+	utils.Log("Restarting Constellation...")
+	cachedCurrentDevice = nil
+	StopNATS()
+	CloseNATSClient()
 	stop()
+	utils.Log("Constellation Init...")
 	Init()
 }
 
@@ -251,14 +273,17 @@ func ResetNebula() error {
 	stop()
 	utils.Log("Resetting nebula...")
 	os.RemoveAll(utils.CONFIGFOLDER + "nebula.yml")
+	os.RemoveAll(utils.CONFIGFOLDER + "nebula-temp.yml")
 	os.RemoveAll(utils.CONFIGFOLDER + "ca.crt")
 	os.RemoveAll(utils.CONFIGFOLDER + "ca.key")
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.crt")
 	os.RemoveAll(utils.CONFIGFOLDER + "cosmos.key")
+	os.RemoveAll(utils.CONFIGFOLDER + "jetstream")
+
 	// remove everything in db
 
 	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if err != nil {
 			return err
 	}
@@ -267,18 +292,72 @@ func ResetNebula() error {
 	if err != nil {
 		return err
 	}
-	
+
 	config := utils.ReadConfigFromFile()
 	config.ConstellationConfig.Enabled = false
-	config.ConstellationConfig.SlaveMode = false
 	config.ConstellationConfig.DNSDisabled = false
 	config.ConstellationConfig.FirewallBlockedClients = []string{}
+	config.ConstellationConfig.ThisDeviceName = ""
+	config.ConstellationConfig.IPRange = ""
+	config.ConstellationConfig.ConstellationHostname = strings.Join(GetDefaultHostnames(), ",")
+
+	if config.Licence == "" {
+		config.ServerToken = ""
+	}
 
 	utils.SetBaseMainConfig(config)
 
-	Init()
+	cachedCurrentDevice = nil
+	CachedDevices = map[string]utils.ConstellationDevice{}
+	CachedDeviceNames = map[string]string{}
+
+	utils.SoftRestartServer()
+
+	time.Sleep(2 * time.Second)
 
 	return nil
+}
+
+func GetAllDevicesEvenBlocked() ([]utils.ConstellationDevice, error) {
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+    defer closeDb()
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{})
+	defer cursor.Close(nil)
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
+}
+
+func GetAllDevices() ([]utils.ConstellationDevice, error) {
+	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+    defer closeDb()
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	var devices []utils.ConstellationDevice
+
+	cursor, err := c.Find(nil, map[string]interface{}{
+		"Blocked": false,
+	})
+	defer cursor.Close(nil)
+	cursor.All(nil, &devices)
+
+	if err != nil {
+		return []utils.ConstellationDevice{}, err
+	}
+
+	return devices, nil
 }
 
 func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
@@ -304,34 +383,12 @@ func GetAllLightHouses() ([]utils.ConstellationDevice, error) {
 	return devices, nil
 }
 
-func GetBlockedDevices() ([]utils.ConstellationDevice, error) {
-	c, closeDb, err := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-    defer closeDb()
-	if err != nil {
-		return []utils.ConstellationDevice{}, err
-	}
-
-	var devices []utils.ConstellationDevice
-
-	cursor, err := c.Find(nil, map[string]interface{}{
-		"Blocked": true,
-	})
-	defer cursor.Close(nil)
-	cursor.All(nil, &devices)
-
-	if err != nil {
-		return []utils.ConstellationDevice{}, err
-	}
-
-	return devices, nil
-}
-
 func cleanIp(ip string) string {
 	return strings.Split(ip, "/")[0]
 }
 
-func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath string) error {
-	// Combine defaultConfig and overwriteConfig
+func ExportDefaultConfigToYAML(outputPath string) error {
+	// Combine defaultConfig
 	finalConfig := NebulaDefaultConfig
 
 	hostnames := []string{}
@@ -342,61 +399,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 		if hostname != "" {
 			hostnames = append(hostnames, hostname + ":4242")
 		}
-	}
-
-	finalConfig.StaticHostMap = map[string][]string{
-		"192.168.201.1": hostnames,
-	}
-
-	// for each lighthouse
-	lh, err := GetAllLightHouses()
-	if err != nil {
-		return err
-	}
-
-	for _, l := range lh {
-		finalConfig.StaticHostMap[cleanIp(l.IP)] = []string{
-			// l.PublicHostname + ":" + l.Port,
-		}
-
-		for _, hostname := range strings.Split(l.PublicHostname, ",") {
-			hostname = strings.TrimSpace(hostname)
-			if hostname != "" {
-				finalConfig.StaticHostMap[cleanIp(l.IP)] = append(finalConfig.StaticHostMap[cleanIp(l.IP)], hostname + ":" + l.Port)
-			}
-		}
-	}
-
-	// add blocked devices
-	blockedDevices, err := GetBlockedDevices()
-	if err != nil {
-		return err
-	}
-
-	for _, d := range blockedDevices {
-		finalConfig.PKI.Blocklist = append(finalConfig.PKI.Blocklist, d.Fingerprint)
-	}
-
-
-	finalConfig.Lighthouse.Hosts = []string{}
-	// add other lighthouses 
-	// if !finalConfig.Lighthouse.AMLighthouse {
-		for _, l := range lh {
-			finalConfig.Lighthouse.Hosts = append(finalConfig.Lighthouse.Hosts, cleanIp(l.IP))
-		}
-	// }
-
-	// if no lighthouses, be one
-	finalConfig.Lighthouse.AMLighthouse = len(finalConfig.Lighthouse.Hosts) == 0
-
-	finalConfig.Relay.AMRelay = overwriteConfig.NebulaConfig.Relay.AMRelay
-
-	finalConfig.Relay.Relays = []string{}
-	for _, l := range lh {
-		if l.IsRelay {
-			finalConfig.Relay.Relays = append(finalConfig.Relay.Relays, cleanIp(l.IP))
-		}
-	}
+	}	
 
 	// Marshal the combined config to YAML
 	yamlData, err := yaml.Marshal(finalConfig)
@@ -410,7 +413,7 @@ func ExportConfigToYAML(overwriteConfig utils.ConstellationConfig, outputPath st
 	}
 
 	// Write YAML data to the specified file
-	yamlFile, err := os.Create(outputPath)
+	yamlFile, err := os.OpenFile(outputPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -432,7 +435,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	if err != nil {
 		return "", err
 	}
-	
+
 	// Unmarshal the YAML data into a map interface
 	var configMap map[string]interface{}
 	err = yaml.Unmarshal(yamlData, &configMap)
@@ -440,14 +443,16 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", err
 	}
 
-	lh, err := GetAllLightHouses()
+	// get all devices
+	devices, err := GetAllDevices()
 	if err != nil {
 		return "", err
 	}
 
 	if staticHostMap, ok := configMap["static_host_map"].(map[interface{}]interface{}); ok {
 		hostnames := []string{}
-		hsraw := strings.Split(utils.GetMainConfig().ConstellationConfig.ConstellationHostname, ",")
+		hs, _ := GetCurrentDeviceHostname()
+		hsraw := strings.Split(hs, ",")
 		for _, hostname := range hsraw {
 			// trim
 			hostname = strings.TrimSpace(hostname)
@@ -456,20 +461,28 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			}
 		}
 
-		staticHostMap["192.168.201.1"] = hostnames
+		for _, l := range devices {
+			staticHostMap[cleanIp(l.IP)] = []string{}
 
-		for _, l := range lh {
-			staticHostMap[cleanIp(l.IP)] = []string{
-				// l.PublicHostname + ":" + l.Port,
+			if l.PublicHostname == "" {
+				continue
 			}
 
 			for _, hostname := range strings.Split(l.PublicHostname, ",") {
+				if device.IP == l.IP {
+					continue
+				}
 				hostname = strings.TrimSpace(hostname)
 				staticHostMap[cleanIp(l.IP)] = append(staticHostMap[cleanIp(l.IP)].([]string), hostname + ":" + l.Port)
 			}
 		}
 	} else {
 		return "", errors.New("static_host_map not found in nebula.yml")
+	}
+
+	lh, err := GetAllLightHouses()
+	if err != nil {
+		return "", err
 	}
 
 	// set lightHouse
@@ -482,11 +495,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 			if cleanIp(l.IP) != cleanIp(device.IP) {
 				lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), cleanIp(l.IP))
 			}
-		}
-
-		// if no lighthouse, be one
-		if len(lighthouseMap["hosts"].([]string)) == 0 && !device.IsLighthouse {
-			lighthouseMap["hosts"] = append(lighthouseMap["hosts"].([]string), "192.168.201.1")
 		}
 	} else {
 		return "", errors.New("lighthouse not found in nebula.yml")
@@ -504,9 +512,6 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		relayMap["am_relay"] = device.IsRelay && device.IsLighthouse
 		relayMap["use_relays"] = !(device.IsRelay && device.IsLighthouse)
 		relayMap["relays"] = []string{}
-		if utils.GetMainConfig().ConstellationConfig.NebulaConfig.Relay.AMRelay {
-			relayMap["relays"] = append(relayMap["relays"].([]string), "192.168.201.1")
-		}
 
 		for _, l := range lh {
 			if l.IsRelay && l.IsLighthouse && cleanIp(l.IP) != cleanIp(device.IP) {
@@ -516,7 +521,7 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 	} else {
 		return "", errors.New("relay not found in nebula.yml")
 	}
-	
+
 	if listen, ok := configMap["listen"].(map[interface{}]interface{}); ok {
 		if device.Port != "" {
 			listen["port"] = device.Port
@@ -527,103 +532,31 @@ func getYAMLClientConfig(name, configPath, capki, cert, key, APIKey string, devi
 		return "", errors.New("listen not found in nebula.yml")
 	}
 
-	// configEndpoint := utils.GetServerURL("") + "cosmos/api/constellation/config-sync"
-
-	configHost := utils.GetServerURL("")
-	
-	if !utils.IsDomain(utils.GetMainConfig().HTTPConfig.Hostname) {
-		configHost = "http://192.168.201.1"
-
-		if utils.GetMainConfig().HTTPConfig.HTTPPort != "80" {
-			configHost += ":" + utils.GetMainConfig().HTTPConfig.HTTPPort
-		}
-
-		configHost += "/"
-	}
-
-	configEndpoint := configHost
-
-	configHostname := strings.Split(configHost, "://")[1]
-	configHostname = strings.Split(configHostname, ":")[0]
-	configHostport := ""
-
-	if strings.Contains(configHostname, ":") {
-		configHostport = strings.Split(configHostname, ":")[1]
-
-		if _, err := strconv.Atoi(configHostport); err == nil {
-			configHostport = ":" + configHostport
-		} else {
-			configHostport = ""
-		}
-	}
-
-
-	configHostProto := strings.Split(configHost, "://")[0] + "://"
-
 	configMap["cstln_device_name"] = name
-	configMap["cstln_local_dns_address"] = "192.168.201.1"
 	configMap["cstln_public_hostname"] = device.PublicHostname
 	configMap["cstln_api_key"] = APIKey
-	configMap["cstln_config_endpoint"] = configEndpoint
-	configMap["cstln_https_insecure"] = utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "PROVIDED" || !utils.IsDomain(configHostname)
-	configMap["cstln_is_cosmos_node"] = device.IsCosmosNode
+	configMap["cstln_cosmos_node"] = device.CosmosNode
 	configMap["cstln_is_exit_node"] = device.IsExitNode
+	configMap["cstln_is_relay"] = device.IsRelay
+	configMap["cstln_is_lighthouse"] = device.IsLighthouse
+	configMap["cstln_ip"] = device.IP
+	configMap["cstln_config_endpoint"] = utils.GetServerURL("")
+	configMap["cstln_ip_range"] = utils.GetMainConfig().ConstellationConfig.IPRange
 
-	if getLicence {
+	if getLicence && device.CosmosNode == 0 {
 		// get client licence
 		utils.Log("Creating client license for " + name)
-		lic, err := utils.FBL.CreateClientLicense(name + " // " + configEndpoint)
+		lic, err := utils.FBL.CreateClientLicense(name)
 		if err != nil {
 			return "", err
 		}
 		configMap["cstln_licence"] = lic
 		utils.Log("Client license created for " + name)
 	}
-	
 
-	// list routes with a tunnel property matching the device name
-	routesList := utils.GetMainConfig().HTTPConfig.ProxyConfig.Routes
-	tunnels := []utils.ProxyRouteConfig{}
-
-	for _, route := range routesList {
-		if route.TunnelVia == name {
-			if route.UseHost {
-				route.OverwriteHostHeader = route.Host
-			}
-
-			port := configHostport
-			protocol := configHostProto
-
-			targetProtocol := strings.Split(route.Target, "://")[0]
-			if targetProtocol != "" && targetProtocol != "http" && targetProtocol != "https" && route.Mode != "STATIC" && route.Mode != "SPA" {
-				protocol = strings.Split(route.Target, "://")[0] + "://"
-			} 
-			
-			// extract port from target
-			if strings.Contains(route.Host, ":") {
-				_port := strings.Split(route.Host, ":")[1]
-					// if port is a number
-					if _, err := strconv.Atoi(_port); err == nil {
-						port = ":" + _port
-				}
-			}
-			
-			route.UseHost = true
-			
-			route.Target = protocol + configHostname + port
-
-			if configMap["cstln_https_insecure"].(bool) {
-				route.AcceptInsecureHTTPSTarget = true
-			}
-
-			route.Host = route.TunneledHost
-			route.Mode = "PROXY"
-
-			tunnels = append(tunnels, route)
-		}
+	if getLicence && device.CosmosNode > 0 {
+		configMap["cstln_server_licence"] = utils.GetMainConfig().Licence
 	}
-
-	configMap["cstln_tunnels"] = tunnels
 
 	// lighten the config for QR Codes
 	// remove tun, firewall, punchy and logging
@@ -658,44 +591,11 @@ func getCApki() (string, error) {
 	return string(caCrt), nil
 }
 
-func killAllNebulaInstances() error {
-	ProcessMux.Lock()
-	defer ProcessMux.Unlock()
-
-	cmd := exec.Command("ps", "-e", "-o", "pid,command")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return err
-	}
-
-	lines := strings.Split(string(output), "\n")
-	for _, line := range lines {
-		if strings.Contains(line, binaryToRun()) {
-			fields := strings.Fields(line)
-			if len(fields) > 1 {
-				pid := fields[0]
-				pidInt, _ := strconv.Atoi(pid)
-				process, err := os.FindProcess(pidInt)
-				if err != nil {
-					return err
-				}
-				err = process.Kill()
-				if err != nil {
-					return err
-				}
-				utils.Log(fmt.Sprintf("Killed Nebula instance with PID %s\n", pid))
-			}
-		}
-	}
-
-	return nil
-}
-
 func GetCertFingerprint(certPath string) (string, error) {
-	// nebula-cert print -json 
+	// nebula-cert print -json
 	var cmd *exec.Cmd
-	
-	cmd = exec.Command(binaryToRun() + "-cert",
+
+	cmd = exec.Command(certBinaryToRun(),
 		"print",
 		"-json",
 		"-path", certPath,
@@ -742,7 +642,7 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 
 	// Split the attribute path by dots to support nested attributes
 	attrs := strings.Split(attr, ".")
-	
+
 	// Navigate through the nested structure
 	var value interface{} = config
 	for _, key := range attrs {
@@ -751,7 +651,7 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 			if !ok {
 					return "", fmt.Errorf("invalid path: %s is not a map", key)
 			}
-			
+
 			// Get next value
 			value, ok = m[key]
 			if !ok {
@@ -768,15 +668,18 @@ func GetConfigAttribute(configPath string, attr string) (string, error) {
 	return strValue, nil
 }
 
-func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, string, error) {
+func generateNebulaCert(name, filename, ip, PK string, saveToFile bool) (string, string, string, error) {
 	// Run the nebula-cert command
 	var cmd *exec.Cmd
-	
+
+	ip = ip + "/24"
+
 	// Read the generated certificate and key files
 	certPath := fmt.Sprintf("./%s.crt", name)
 	keyPath := fmt.Sprintf("./%s.key", name)
 
-	
+	utils.Log("Generating certificate for " + name + " with IP " + ip + " and filename " + filename)
+
 	// if the temp exists, delete it
 	if _, err := os.Stat(certPath); err == nil {
 		os.Remove(certPath)
@@ -786,7 +689,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 	}
 
 	if(PK == "") {
-		cmd = exec.Command(binaryToRun() + "-cert",
+		cmd = exec.Command(certBinaryToRun(),
 			"sign",
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
@@ -800,7 +703,7 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 		if err != nil {
 			return "", "", "", fmt.Errorf("failed to write temp.key: %s", err)
 		}
-		cmd = exec.Command(binaryToRun() + "-cert",
+		cmd = exec.Command(certBinaryToRun(),
 			"sign",
 			"-ca-crt", utils.CONFIGFOLDER + "ca.crt",
 			"-ca-key", utils.CONFIGFOLDER + "ca.key",
@@ -875,10 +778,10 @@ func generateNebulaCert(name, ip, PK string, saveToFile bool) (string, string, s
 	}
 
 	if saveToFile {
-		cmd = exec.Command("mv", certPath, utils.CONFIGFOLDER + name + ".crt")
+		cmd = exec.Command("mv", certPath, utils.CONFIGFOLDER + filename + ".crt")
 		utils.Debug(cmd.String())
 		cmd.Run()
-		cmd = exec.Command("mv", keyPath, utils.CONFIGFOLDER + name + ".key")
+		cmd = exec.Command("mv", keyPath, utils.CONFIGFOLDER + filename + ".key")
 		utils.Debug(cmd.String())
 		cmd.Run()
 	} else {
@@ -907,7 +810,7 @@ func generateNebulaCACert(name string) error {
 
 	// Run the nebula-cert command to generate CA certificate and key
 	cmd := exec.Command(
-		binaryToRun()+"-cert",
+		certBinaryToRun(),
 		"ca",
 		"-name",
 		"-duration", "87600h", // 10 years
@@ -957,7 +860,7 @@ func generateNebulaCACert(name string) error {
 			{"./ca.key", utils.CONFIGFOLDER + "ca.key"},
 	} {
 			cmd := exec.Command("mv", moveCmd.src, moveCmd.dst)
-			
+
 			// Get pipes for move command
 			stdout, err := cmd.StdoutPipe()
 			if err != nil {
@@ -998,13 +901,14 @@ func generateNebulaCACert(name string) error {
 }
 
 func GetDeviceIp(device string) string {
-	return strings.ReplaceAll(CachedDeviceNames[device], "/24", "")
+	return CachedDeviceNames[device]
 }
 
 func populateIPTableMasquerade() {
 	config := utils.GetMainConfig()
+	isExitNode, err := GetCurrentDeviceIsExitNode()
 
-	if config.ConstellationConfig.IsExitNode {
+	if isExitNode && err == nil {
 		utils.Log("Constellation: Exit node enabled, configuring iptables masquerade...")
 
 		// Enable IP forwarding
@@ -1044,15 +948,32 @@ func populateIPTableMasquerade() {
 		if err != nil {
 			utils.Error("Constellation: Failed to check existing iptables rules", err)
 			// Continue anyway
-		} else if strings.Contains(string(output), "COSMOS-CLOUD-EXIT-NODE") {
-			utils.Log("Constellation: IPTables rules already exist, skipping")
-			return
+		}
+
+		exRules := string(output)
+
+		if strings.Contains(exRules, "COSMOS-CLOUD-EXIT-NODE") {
+			// Remove rules with our comment marker from nat table (IP range might have changed)
+			cmd = exec.Command("sh", "-c", "iptables-save -t nat | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables -t nat")
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Error removing NAT rules", err)
+			} else {
+				utils.Log("Constellation: NAT rules removed")
+			}
+
+			// Remove rules with our comment marker from filter table
+			cmd = exec.Command("sh", "-c", "iptables-save | grep 'COSMOS-CLOUD-EXIT-NODE' | grep '^-A' | sed 's/-A/-D/' | xargs -r -L1 iptables")
+			if err := cmd.Run(); err != nil {
+				utils.Error("Constellation: Error removing FORWARD rules", err)
+			} else {
+				utils.Log("Constellation: FORWARD rules removed")
+			}
 		}
 
 		// Add iptables rules with comment markers
 		// Using a unique comment for easy identification and removal
 		rules := []string{
-			fmt.Sprintf("iptables -t nat -A POSTROUTING -s 192.168.201.0/24 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
+			fmt.Sprintf("iptables -t nat -A POSTROUTING -s "+utils.GetMainConfig().ConstellationConfig.IPRange+" -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j MASQUERADE", iface),
 			fmt.Sprintf("iptables -A FORWARD -i nebula1 -o %s -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
 			fmt.Sprintf("iptables -A FORWARD -i %s -o nebula1 -m state --state RELATED,ESTABLISHED -m comment --comment 'COSMOS-CLOUD-EXIT-NODE' -j ACCEPT", iface),
 		}
@@ -1104,7 +1025,12 @@ func populateIPTableMasquerade() {
 	}
 }
 
+var inited = false
 func InitPingLighthouses() {
+	if inited {
+		return
+	}
+	inited = true
 	for {
 		PingLighthouses()
 		time.Sleep(1 * time.Minute)
@@ -1136,4 +1062,187 @@ func pingLighthouse(lh utils.ConstellationDevice, retries int) {
 	} else {
 		utils.Debug("Constellation: Lighthouse " + lh.IP + " (" + cleanIp(lh.IP) + ") is reachable")
 	}
+}
+
+func GetCurrentDeviceName() (string, error) {
+	config := utils.GetMainConfig()
+	name := config.ConstellationConfig.ThisDeviceName
+
+	if !config.ConstellationConfig.Enabled {
+		return "", errors.New("constellation not enabled")
+	}
+	
+	if name == "" {
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: error while reading nebula.yml", err)
+			return "", err
+		}
+
+		configMap := make(map[string]interface{})
+		err = yaml.Unmarshal(nebulaFile, &configMap)
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: Invalid new config file for resync", err)
+			return "", err
+		}
+
+		if configMap["cstln_device_name"] == nil {
+			return "", errors.New("Invalid new config file for resync")
+		}
+
+		deviceName := configMap["cstln_device_name"].(string)
+
+		return deviceName, nil
+	}
+	return name, nil
+}
+
+var cachedCurrentDevice *utils.ConstellationDevice
+
+func GetCurrentDevice() (utils.ConstellationDevice, error) {
+	if cachedCurrentDevice != nil {
+		return *cachedCurrentDevice, nil
+	}
+
+	name, err := GetCurrentDeviceName()
+	if err != nil {
+		return utils.ConstellationDevice{}, err
+	}
+
+	device, exists := CachedDevices[name]
+	if !exists {
+		nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula.yml")
+		if err != nil {
+			utils.Error("GetCurrentDeviceName: error while reading nebula.yml", err)
+			return utils.ConstellationDevice{}, err
+		}
+
+		configMap := make(map[string]interface{})
+		err = yaml.Unmarshal(nebulaFile, &configMap)
+		if err != nil {
+			utils.Error("GetCurrentDevice: Invalid new config file for resync", err)
+			return utils.ConstellationDevice{}, err
+		}
+
+		device = utils.ConstellationDevice{}
+
+		if configMap["cstln_device_name"] != nil  {
+			device.DeviceName = configMap["cstln_device_name"].(string)
+		} else {
+			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
+		}
+
+		if configMap["cstln_ip"] != nil  {
+			device.IP = configMap["cstln_ip"].(string)
+		}
+
+		if configMap["cstln_public_hostname"] != nil  {
+			device.PublicHostname = configMap["cstln_public_hostname"].(string)
+		}
+
+		if configMap["cstln_cosmos_node"] != nil  {
+			device.CosmosNode = configMap["cstln_cosmos_node"].(int)
+		}
+
+		if configMap["cstln_is_exit_node"] != nil  {
+			device.IsExitNode = configMap["cstln_is_exit_node"].(bool)
+		}
+
+		if configMap["cstln_is_relay"] != nil  {
+			device.IsRelay = configMap["cstln_is_relay"].(bool)
+		}
+
+		if configMap["cstln_is_lighthouse"] != nil  {
+			device.IsLighthouse = configMap["cstln_is_lighthouse"].(bool)
+		}
+
+		if configMap["cstln_api_key"] != nil  {
+			device.APIKey = configMap["cstln_api_key"].(string)
+		} else {
+			return utils.ConstellationDevice{}, errors.New("Invalid new config file for resync")
+		}
+	}
+
+	cachedCurrentDevice = &device
+	return device, nil
+}
+
+func GetCurrentDeviceAPIKey() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return "", errors.New("current device not found in cache")
+	}
+	return device.APIKey, nil
+}
+
+func GetCurrentDeviceIP() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return "", errors.New("current device not found in cache")
+	}
+	return device.IP, nil
+}
+
+func GetCurrentDeviceIsLoadbalancer() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsLoadBalancer, nil
+}
+
+func GetCurrentDeviceIsRelay() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsRelay, nil
+}
+
+func GetCurrentDeviceIsExitNode() (bool, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		return false, errors.New("current device not found in cache")
+	}
+	return device.IsExitNode, nil
+}
+
+func GetCurrentDeviceHostname() (string, error) {
+	device, err := GetCurrentDevice()
+	if err != nil {
+		if utils.GetMainConfig().ConstellationConfig.ConstellationHostname != "" {
+			return utils.GetMainConfig().ConstellationConfig.ConstellationHostname, nil
+		}
+		return "", errors.New("current device not found in cache")
+	}
+	return device.PublicHostname, nil
+}
+
+func GetAllLighthouseIPFromTempConfig() ([]string, error) {
+	nebulaFile, err := ioutil.ReadFile(utils.CONFIGFOLDER + "nebula-temp.yml")
+	if err != nil {
+		utils.Error("GetAllLighthouseIPFromConfig: error while reading nebula.yml", err)
+		return []string{}, err
+	}
+
+	configMap := make(map[string]interface{})
+	err = yaml.Unmarshal(nebulaFile, &configMap)
+	if err != nil {
+		utils.Error("GetAllLighthouseIPFromConfig: Invalid new config file for resync", err)
+		return []string{}, err
+	}
+
+	lhIPs := []string{}
+
+	if lighthouseMap, ok := configMap["lighthouse"].(map[interface{}]interface{}); ok {
+		if hosts, ok := lighthouseMap["hosts"].([]interface{}); ok {
+			for _, host := range hosts {
+				lhIPs = append(lhIPs, host.(string))
+			}
+		}
+	} else {
+		return []string{}, errors.New("lighthouse not found in nebula.yml")
+	}
+
+	return lhIPs, nil
 }

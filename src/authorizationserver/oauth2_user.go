@@ -85,7 +85,7 @@ func userInfosEndpoint(rw http.ResponseWriter, req *http.Request) {
 		baseToken.Email = user.Email
 	}
 
-	if user.Role == utils.ADMIN {
+	if utils.HasPermission(req, utils.PERM_ADMIN_READ) {
 		baseToken.Role = "admin"
 	} else {
 		baseToken.Role = "user"

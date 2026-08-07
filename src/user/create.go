@@ -12,12 +12,35 @@ import (
 type CreateRequestJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
 	Email string `validate:"omitempty,email"`
+	Role utils.Role `json:"role"`
 }
 
+// UserCreate godoc
+// @Summary Create a new user
+// @Description Creates a new user account with a registration key for invite-based onboarding
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body CreateRequestJSON true "User creation details"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 409 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users [post]
 func UserCreate(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 		return
 	} 
+
+	if utils.FBL.AgentMode {
+		utils.Error("User: Agents cannot manage users. Use a manager server", nil)
+		utils.HTTPError(w, "User Creation Error: Agents cannot manage users. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
 
 	if(req.Method == "POST") {
 		var request CreateRequestJSON
@@ -39,6 +62,11 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 		
 		nickname := utils.Sanitize(request.Nickname)
 		email := utils.Sanitize(request.Email)
+
+		role := request.Role
+		if utils.GetRolePermissions(role) == nil {
+			role = utils.USER
+		}
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
   	
@@ -81,7 +109,7 @@ func UserCreate(w http.ResponseWriter, req *http.Request) {
 				"Password": "",
 				"RegisterKey": RegisterKey,
 				"RegisterKeyExp": RegisterKeyExp,
-				"Role": utils.USER,
+				"Role": role,
 				"PasswordCycle": 0,
 				"CreatedAt": time.Now(),
 			})

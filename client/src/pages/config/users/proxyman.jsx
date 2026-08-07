@@ -36,6 +36,7 @@ import RouteManagement from '../routes/routeman';
 import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
+import Ellipsis from '../../../components/ellipsis';
 import {RouteActions, RouteMode, RouteSecurity} from '../../../components/routeComponents';
 import { useNavigate } from 'react-router';
 import NewRouteCreate from '../routes/newRoute';
@@ -44,12 +45,15 @@ import MiniPlotComponent from '../../dashboard/components/mini-plot';
 import ImageWithPlaceholder from '../../../components/imageWithPlaceholder';
 import { useTranslation } from 'react-i18next';
 import { useClientInfos } from '../../../utils/hooks';
+import { PERM_CONFIGURATION } from '../../../utils/permissions';
+import PermissionGuard from '../../../components/permissionGuard';
 
 const stickyButton = {
   position: 'fixed',
   bottom: '20px',
   width: '300px',
-  boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.50)',
+  borderRadius: '12px',
+  boxShadow: '0 -4px 24px rgba(0,0,0,0.2)',
   right: '20px',
 }
 
@@ -71,8 +75,9 @@ const ProxyManagement = () => {
   const [needSave, setNeedSave] = React.useState(false);
   const [openNewModal, setOpenNewModal] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const [tunnels, setTunnels] = React.useState([]);
+  const { hasPermission, hasRolePermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_CONFIGURATION);
 
   function setRouteEnabled(key) {
     return (event) => {
@@ -109,6 +114,39 @@ const ProxyManagement = () => {
     API.config.get().then((res) => {
       setConfig(res.data);
     });
+    if (!isAdmin) {
+      return;
+    }
+    API.constellation.tunnels().then((res) => {
+      setTunnels((res.data || []).map(r => {
+        let route = r.Route;
+        route._from = (r.Targets || []).map(t => t.deviceName);
+        route._targets = r.Targets || [];
+        return route;
+      }));
+    });
+  }
+
+  function moveToTop(event, key) {
+    event.stopPropagation();
+    if (key > 0) {
+      let tmp = routes.splice(key, 1)[0];
+      routes.unshift(tmp);
+      updateRoutes(routes);
+      setNeedSave(true);
+    }
+    return false;
+  }
+
+  function moveToBottom(event, key) {
+    event.stopPropagation();
+    if (key < routes.length - 1) {
+      let tmp = routes.splice(key, 1)[0];
+      routes.push(tmp);
+      updateRoutes(routes);
+      setNeedSave(true);
+    }
+    return false;
   }
 
   function up(event, key) {
@@ -167,24 +205,24 @@ const ProxyManagement = () => {
 
   let routes = config && (config.HTTPConfig.ProxyConfig.Routes || []);
 
-  if (config && config.ConstellationConfig.Tunnels) {
-    // prepend
-    config.ConstellationConfig.Tunnels = config.ConstellationConfig.Tunnels.map((t) => {
-      t._IsTunnel = true;
-      return t;
-    });
-    
-    routes = [...config.ConstellationConfig.Tunnels, ...routes];
+  if (config && tunnels.length > 0) {
+    const tunnelRoutes = tunnels.map((t) => ({
+      ...t,
+      _IsTunnel: true,
+    }));
+    routes = [...tunnelRoutes, ...routes];
   }
 
-  return <div style={{   }}>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <Stack direction="row" spacing={1} style={{ marginBottom: '20px' }}>
-      <Button variant="contained" color="primary" startIcon={<SyncOutlined />} onClick={() => {
+      <PermissionGuard permission={PERM_CONFIGURATION}>
+        <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
+          setOpenNewModal(true);
+        }}>{t('global.createAction')}</Button>
+      </PermissionGuard>&nbsp;&nbsp;
+      <Button variant="outlined" color="primary" startIcon={<SyncOutlined />} onClick={() => {
           refresh();
-      }}>{t('global.refresh')}</Button>&nbsp;&nbsp;
-      {isAdmin && <Button variant="contained" color="primary" startIcon={<PlusCircleOutlined />} onClick={() => {
-        setOpenNewModal(true);
-      }}>{t('global.createAction')}</Button>}
+      }}>{t('global.refresh')}</Button>
     </Stack>
 
     {config && <>
@@ -198,8 +236,8 @@ const ProxyManagement = () => {
         columns={[
           { 
             title: '', 
-            field: (r) => <LazyLoad width={"64px"} height={"64px"}>
-              <ImageWithPlaceholder className="loading-image" alt="" src={r.Icon || getFaviconURL(r)} width="64px" height="64px"/>
+            field: (r) => <LazyLoad width={"50px"} height={"50px"}>
+              <ImageWithPlaceholder className="loading-image" alt="" src={r.Icon || getFaviconURL(r)} width="50px" height="50px"/>
             </LazyLoad>,
             style: {
               textAlign: 'center',
@@ -229,7 +267,10 @@ const ProxyManagement = () => {
                 {r.Name} {!r._IsTunnel && r.TunnelVia && <span>💫</span>}
               </div>
               <br/>
-              <div style={{display:'inline-block', textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+              <div>
+                <div style={{ textDecoration: 'inherit', fontSize: '90%', opacity: '90%'}}>{r.Description}</div>
+                {r._IsTunnel ? <div style={{ textDecoration: 'inherit', fontSize: '90%', opacity: '60%'}}>From {r._from.join(', ')}</div> : ""}
+              </div>
             </>
           },
           { title: t('global.network'), screenMin: 'lg', clickable:false, field: (r) => 
@@ -240,8 +281,11 @@ const ProxyManagement = () => {
               ]} noLabels noBackground/>
             </div> : <div></div>
           },
-          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip route={r} /> },
-          { title: t('global.target'), screenMin: 'md', search: (r) => r.Target, field: (r) => <><RouteMode route={r} /> <Chip label={r.Target} /></> },
+          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} /> },
+          { title: t('global.target'), screenMin: 'md', search: (r) => r._IsTunnel ? (r._targets || []).map(t => t.targetURL).join(' ') : r.Target, field: (r) => r._IsTunnel && r._targets && r._targets.length > 0
+            ? <><RouteMode route={r} /> {r._targets.map((t, i) => <Ellipsis key={i} title={t.targetURL + ' (' + t.deviceName + ')'} maxWidth={250}><Chip label={t.targetURL + ' (' + t.deviceName + ')'} style={{marginBottom: 2}} /></Ellipsis>)}</>
+            : <><RouteMode route={r} /> <Ellipsis title={r.Target} maxWidth={250}><Chip label={r.Target} /></Ellipsis></>
+          },
           { title: t('global.securityTitle'), screenMin: 'lg', field: (r) => <RouteSecurity route={r} />,
           style: {minWidth: '70px'} },
           { title: '', clickable:true, field: (r, k) => r._IsTunnel ? <Tooltip title={t('tooltip.route.tunnelWarn')}>
@@ -251,14 +295,16 @@ const ProxyManagement = () => {
               verticalAlign: 'middle',
               paddingRight: '5px',
             }} />
-          </Tooltip> : <RouteActions
+          </Tooltip> : <PermissionGuard permission={PERM_CONFIGURATION}><RouteActions
               route={r}
               routeKey={routes.indexOf(r)}
               up={(event) => up(event, routes.indexOf(r))}
               down={(event) => down(event, routes.indexOf(r))}
+              moveToTop={(event) => moveToTop(event, routes.indexOf(r))}
+              moveToBottom={(event) => moveToBottom(event, routes.indexOf(r))}
               deleteRoute={(event) => deleteRoute(event, routes.indexOf(r))}
               duplicateRoute={(event) => duplicateRoute(event, routes.indexOf(r))}
-            />,
+            /></PermissionGuard>,
             style: {
               textAlign: 'right',
             }
@@ -271,7 +317,7 @@ const ProxyManagement = () => {
         </div>
       }
       
-      {routes && needSave && <>
+      {routes && needSave && hasRolePermission(PERM_CONFIGURATION) && <>
         <div>
         <br /><br /><br /><br />
         </div>
@@ -287,7 +333,7 @@ const ProxyManagement = () => {
             {submitErrors.map((err) => {
               return <Alert severity="error">{err}</Alert>
             })}
-            <AnimateButton>
+            <PermissionGuard permission={PERM_CONFIGURATION}>
               <Button
                 className='shinyButton'
                 disableElevation
@@ -308,7 +354,7 @@ const ProxyManagement = () => {
               >
                 {t('mgmt.config.proxy.saveChangesButton')}
               </Button>
-            </AnimateButton>
+            </PermissionGuard>
             </Stack>
         </MainCard>
         </div>

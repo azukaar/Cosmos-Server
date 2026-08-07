@@ -14,14 +14,18 @@ import (
 		"github.com/azukaar/cosmos-server/src/cron"
 		"github.com/azukaar/cosmos-server/src/storage"
 		"github.com/azukaar/cosmos-server/src/backups"
+		"github.com/azukaar/cosmos-server/src/pro"
 		"github.com/gorilla/mux"
-		"strconv"
 		"time"
 		"os"
 		"net"
 		"strings"
+		"path"
 		"github.com/go-chi/httprate"
+		"crypto/sha256"
+		"crypto/subtle"
 		"crypto/tls"
+		"encoding/hex"
 		"github.com/foomo/tlsconfig"
 		"context"
     "net/http/pprof"
@@ -120,27 +124,6 @@ func startHTTPSServer(router *mux.Router) error {
 	go (func () {
 		httpRouter := mux.NewRouter()
 
-		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// if requested hostanme is 192.168.201.1 and path is /cosmos/api/constellation/config-sync
-			if r.Host == "192.168.201.1" && (r.URL.Path == "/cosmos/api/constellation/config-sync" || r.URL.Path == "/cosmos/api/constellation_webhook_sync") && utils.IsConstellationIP(r.RemoteAddr) {
-				router.ServeHTTP(w, r)
-			} else if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)  {
-				// use router 
-				router.ServeHTTP(w, r)
-			} else {
-				// change port in host
-				if strings.HasSuffix(r.Host, ":" + serverPortHTTP) {
-					if serverPortHTTPS != "443" {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)] + ":" + serverPortHTTPS
-						} else {
-						r.Host = r.Host[:len(r.Host)-len(":" + serverPortHTTP)]
-					}
-				}
-
-				http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
-			}
-		})
-
 		HTTPServer2 = &http.Server{
 			Addr: "0.0.0.0:" + serverPortHTTP,
 			ReadTimeout: 0,
@@ -232,51 +215,181 @@ func startHTTPSServer(router *mux.Router) error {
 
 func tokenMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//Header.Del
 		r.Header.Del("x-cosmos-user")
 		r.Header.Del("x-cosmos-role")
 		r.Header.Del("x-cosmos-user-role")
 		r.Header.Del("x-cosmos-mfa")
 
-		role, u, err := user.RefreshUserToken(w, r)
+		// Logout should always work regardless of token state
+		if r.URL.Path == "/cosmos/api/logout" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// API Token path (checked first)
+		// Support token via Authorization header or query param (for WebSocket)
+		authHeader := r.Header.Get("Authorization")
+		if !strings.HasPrefix(authHeader, "Bearer cosmos_") {
+			if qToken := r.URL.Query().Get("token"); strings.HasPrefix(qToken, "cosmos_") {
+				authHeader = "Bearer " + qToken
+			}
+		}
+		if strings.HasPrefix(authHeader, "Bearer cosmos_") {
+			rawToken := strings.TrimPrefix(authHeader, "Bearer ")
+
+			h := sha256.Sum256([]byte(rawToken))
+			tokenHash := hex.EncodeToString(h[:])
+
+			config := utils.GetMainConfig()
+			var matchedToken *utils.APITokenConfig
+			var matchedName string
+
+			for name, tok := range config.APITokens {
+				if subtle.ConstantTimeCompare([]byte(tok.TokenHash), []byte(tokenHash)) == 1 {
+					t := tok
+					matchedToken = &t
+					matchedName = name
+					break
+				}
+			}
+
+			if matchedToken == nil {
+				utils.Error("API Token: Invalid token presented", nil)
+				utils.HTTPError(w, "Invalid API token", http.StatusUnauthorized, "AT001")
+				return
+			}
+
+			if !matchedToken.ExpiresAt.IsZero() && time.Now().After(matchedToken.ExpiresAt) {
+				utils.Error("API Token: Token expired: "+matchedName, nil)
+				utils.TriggerEvent(
+					"cosmos.api.token.expired",
+					"API Token expired",
+					"warning",
+					"token@"+matchedName,
+					map[string]interface{}{
+						"tokenName": matchedName,
+						"expiresAt": matchedToken.ExpiresAt,
+					},
+				)
+				utils.HTTPError(w, "API token has expired", http.StatusUnauthorized, "AT004")
+				return
+			}
+
+			clientIP, _ := r.Context().Value("ClientID").(string)
+			remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
+
+			if !utils.CheckIPAccess(clientIP, remoteAddr, matchedToken.RestrictToConstellation, matchedToken.IPWhitelist) {
+				utils.Error("API Token: IP not allowed for token " + matchedName, nil)
+				utils.TriggerEvent(
+					"cosmos.api.token.ip_blocked",
+					"API Token IP blocked",
+					"warning",
+					"token@"+matchedName,
+					map[string]interface{}{
+						"clientID":  clientIP,
+						"tokenName": matchedName,
+					},
+				)
+				utils.HTTPError(w, "Access denied", http.StatusForbidden, "AT002")
+				return
+			}
+
+			utils.TriggerEvent(
+				"cosmos.api.token.used",
+				"API Token used",
+				"info",
+				"token@"+matchedName,
+				map[string]interface{}{
+					"clientID":  clientIP,
+					"tokenName": matchedName,
+					"owner":     matchedToken.Owner,
+					"path":      r.URL.Path,
+					"method":    r.Method,
+				},
+			)
+
+			ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+				Nickname: matchedToken.Owner,
+				Role:     0,
+				UserRole: 0,
+				MFAState: 0,
+				APIToken: &utils.APITokenContext{
+					Name:        matchedName,
+					Owner:       matchedToken.Owner,
+					Permissions: matchedToken.Permissions,
+				},
+			})
+			r = r.WithContext(ctx)
+
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// JWT Cookie path (existing logic)
+		permissions, isSudoed, u, err := user.RefreshUserToken(w, r)
 
 		if err != nil {
 			return
 		}
 
-		r.Header.Set("x-cosmos-user", u.Nickname)
-		r.Header.Set("x-cosmos-role", strconv.Itoa((int)(role)))
-		r.Header.Set("x-cosmos-user-role", strconv.Itoa((int)(u.Role)))
-		r.Header.Set("x-cosmos-mfa", strconv.Itoa((int)(u.MFAState)))
+		// Compute Role for backward compat (proxy headers, OAuth2, etc.)
+		effectiveRole := u.Role
+		if utils.RoleHasSudoPermissions(u.Role) && !isSudoed {
+			effectiveRole = utils.USER
+		}
+
+		ctx := context.WithValue(r.Context(), utils.AuthCtxKey, &utils.AuthContext{
+			Nickname:    u.Nickname,
+			Role:        effectiveRole,
+			UserRole:    u.Role,
+			Permissions: permissions,
+			IsSudoed:    isSudoed,
+			MFAState:    int(u.MFAState),
+		})
+		r = r.WithContext(ctx)
 
 		next.ServeHTTP(w, r)
 	})
 }
 
-func SecureAPI(userRouter *mux.Router, public bool, publicCors bool) {
+func SecureAPI(userRouter *mux.Router, public bool, publicCors bool, strict bool) {
 	if(!public) {
 		userRouter.Use(tokenMiddleware)
 	}
-	userRouter.Use(proxy.SmartShieldMiddleware(
-		"__COSMOS",
-		utils.ProxyRouteConfig{
-			Name: "Cosmos-Internal",
-			SmartShield: utils.SmartShieldPolicy{
-				Enabled: true,
-				PolicyStrictness: 1,
-				PerUserRequestLimit: 12000,
+
+	if(strict) {
+		userRouter.Use(proxy.SmartShieldMiddleware(
+			"__COSMOS",
+			utils.ProxyRouteConfig{
+				Name: "Cosmos-Internal-login",
+				SmartShield: utils.SmartShieldPolicy{
+					Enabled: true,
+					PolicyStrictness: 1,
+					PerUserRequestLimit: 10000,
+				},
 			},
-		},
-	))
+		))
+	} else {
+		userRouter.Use(proxy.SmartShieldMiddleware(
+			"__COSMOS",
+			utils.ProxyRouteConfig{
+				Name: "Cosmos-Internal",
+				SmartShield: utils.SmartShieldPolicy{
+					Enabled: true,
+					PolicyStrictness: 2,
+				},
+			},
+		))
+	}
 
 	if(publicCors || public) {
 		userRouter.Use(utils.PublicCORS)
 	}
 
 	userRouter.Use(utils.MiddlewareTimeout(45 * time.Second))
-	userRouter.Use(httprate.Limit(180, 1*time.Minute, 
+	userRouter.Use(httprate.Limit(500, 1*time.Minute, 
 		httprate.WithKeyFuncs(httprate.KeyByIP),
-    httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+    	httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
 			utils.Error("Too many requests. Throttling", nil)
 			utils.HTTPError(w, "Too many requests", 
 				http.StatusTooManyRequests, "HTTP003")
@@ -312,7 +425,7 @@ func CertificateIsExpired(validUntil time.Time) bool {
 }
 
 func InitServer() *mux.Router {
-	utils.RestartHTTPServer = RestartServer
+	utils.RestartHTTPServer = RestartHTTPServer
 	baseMainConfig := utils.GetBaseMainConfig()
 	config := utils.GetMainConfig()
 	HTTPConfig := config.HTTPConfig
@@ -451,8 +564,24 @@ func InitServer() *mux.Router {
 
 	utils.Log("Initialising HTTP(S) Router and all routes")
 
-	router := mux.NewRouter().StrictSlash(true)
-	
+	router := mux.NewRouter().StrictSlash(true).SkipClean(true)
+
+	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/cosmos/") || strings.HasPrefix(r.URL.Path, "/cosmos-ui/") {
+			cleaned := path.Clean(r.URL.Path)
+			if cleaned != r.URL.Path {
+				http.Redirect(w, r, cleaned, http.StatusPermanentRedirect)
+				return
+			}
+		}
+		
+		utils.Warn("[NotFound] No route matched: Host=" + r.Host + " Path=" + r.URL.Path + " Method=" + r.Method)
+
+		http.NotFound(w, r)
+	})
+
+	router.Use(utils.ClientRealIP)
+
 	router.Use(utils.BlockBannedIPs)
 
 	router.Use(utils.Logger)
@@ -470,22 +599,26 @@ func InitServer() *mux.Router {
 	}
 	
 	logoAPI := router.PathPrefix("/logo").Subrouter()
-	SecureAPI(logoAPI, true, true)
+	SecureAPI(logoAPI, true, true, false)
 	logoAPI.HandleFunc("/", SendLogo)
 	
 	
 	srapi := router.PathPrefix("/cosmos").Subrouter()
 	srapi.Use(utils.ContentTypeMiddleware("application/json"))
+
+	srapiStrict := router.PathPrefix("/cosmos").Subrouter()
+	srapiStrict.Use(utils.ContentTypeMiddleware("application/json"))
 	
-	srapi.HandleFunc("/api/login", user.UserLogin)
-	srapi.HandleFunc("/api/sudo", user.UserSudo)
-	srapi.HandleFunc("/api/password-reset", user.ResetPassword)
-	srapi.HandleFunc("/api/mfa", user.API2FA)
+	srapiStrict.HandleFunc("/api/login", user.UserLogin)
+	srapiStrict.HandleFunc("/api/sudo", user.UserSudo)
+	srapiStrict.HandleFunc("/api/password-reset", user.ResetPassword)
+	srapiStrict.HandleFunc("/api/mfa", user.API2FA)
+	srapiStrict.HandleFunc("/api/register", user.UserRegister)
+	srapiStrict.HandleFunc("/api/newInstall", NewInstallRoute)
+	srapiStrict.HandleFunc("/api/setup", SetupRoute)
 	srapi.HandleFunc("/api/status", StatusRoute)
 	srapi.HandleFunc("/api/can-send-email", CanSendEmail)
-	srapi.HandleFunc("/api/newInstall", NewInstallRoute)
 	srapi.HandleFunc("/api/logout", user.UserLogout)
-	srapi.HandleFunc("/api/register", user.UserRegister)
 	srapi.HandleFunc("/api/dns", GetDNSRoute)
 	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
 	srapi.HandleFunc("/api/favicon", GetFavicon)
@@ -502,6 +635,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/_logs", LogsRoute)
 	srapiAdmin.HandleFunc("/api/force-server-update", ForceUpdateRoute)
 	srapiAdmin.HandleFunc("/api/config", configapi.ConfigRoute)
+	srapiAdmin.HandleFunc("/api/config/dns", configapi.ConfigApiDNS)
 	srapiAdmin.HandleFunc("/api/_memory", MemStatusRoute)
 	srapiAdmin.HandleFunc("/api/restart", configapi.ConfigApiRestart)
 	
@@ -541,23 +675,36 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/image/{name}", GetImage)
 
 	srapiAdmin.HandleFunc("/api/get-backup", configapi.BackupFileApiGet)
+	srapiAdmin.HandleFunc("/api/api-tokens/{name}", configapi.APITokenIdRoute)
+	srapiAdmin.HandleFunc("/api/api-tokens", configapi.APITokenRoute)
 
+	srapiAdmin.HandleFunc("/api/routes/{name}", configapi.RoutesIdRoute)
+	srapiAdmin.HandleFunc("/api/routes", configapi.RoutesRoute)
+
+	srapiAdmin.HandleFunc("/api/openid/{id}", configapi.OpenIDIdRoute)
+	srapiAdmin.HandleFunc("/api/openid", configapi.OpenIDRoute)
+
+	srapiAdmin.HandleFunc("/api/constellation/dns/{key}", constellation.DNSEntriesIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/dns", constellation.DNSEntriesRoute)
 	srapiAdmin.HandleFunc("/api/constellation/devices", constellation.ConstellationAPIDevices)
 	srapiAdmin.HandleFunc("/api/constellation/public-devices", constellation.DevicePublicList)
 	srapiAdmin.HandleFunc("/api/constellation/devices/{id}/ping", constellation.DevicePing)
 	srapiAdmin.HandleFunc("/api/constellation/restart", constellation.API_Restart)
 	srapiAdmin.HandleFunc("/api/constellation/reset", constellation.API_Reset)
 	srapiAdmin.HandleFunc("/api/constellation/connect", constellation.API_ConnectToExisting)
+	srapiAdmin.HandleFunc("/api/constellation/create", constellation.API_NewConstellation)
 	srapiAdmin.HandleFunc("/api/constellation/config", constellation.API_GetConfig)
 	srapiAdmin.HandleFunc("/api/constellation/logs", constellation.API_GetLogs)
 	srapiAdmin.HandleFunc("/api/constellation/block", constellation.DeviceBlock)
 	srapiAdmin.HandleFunc("/api/constellation/ping", constellation.API_Ping)
-	// device request config
-	srapiAdmin.HandleFunc("/api/constellation/config-sync", constellation.GetDeviceConfigSync)
-	// user manually request constellation config for resync
-	srapiAdmin.HandleFunc("/api/constellation/config-manual-sync", constellation.GetDeviceConfigManualSync)
+	srapiAdmin.HandleFunc("/api/constellation/tunnels", constellation.TunnelList)
+	srapiAdmin.HandleFunc("/api/constellation/edit-device", constellation.DeviceEdit_API)
+	srapiAdmin.HandleFunc("/api/constellation/get-next-ip", constellation.API_GetNextIP)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
+
+	srapiAdmin.HandleFunc("/api/alerts/{name}", metrics.AlertsIdRoute)
+	srapiAdmin.HandleFunc("/api/alerts", metrics.AlertsRoute)
 
 	srapiAdmin.HandleFunc("/api/metrics", metrics.API_GetMetrics)
 	srapiAdmin.HandleFunc("/api/reset-metrics", metrics.API_ResetMetrics)
@@ -565,6 +712,9 @@ func InitServer() *mux.Router {
 
 	srapiAdmin.HandleFunc("/api/notifications/read", utils.MarkAsRead)
 	srapiAdmin.HandleFunc("/api/notifications", utils.NotifGet)
+
+	srapiAdmin.HandleFunc("/api/cron/{name}", cron.CronConfigIdRoute)
+	srapiAdmin.HandleFunc("/api/cron", cron.CronConfigRoute)
 
 	srapiAdmin.HandleFunc("/api/listen=jobs", cron.ListJobs)
 	srapiAdmin.HandleFunc("/api/jobs", cron.ListJobs)
@@ -585,9 +735,23 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/snapraid/{name}", storage.SnapRAIDEditRoute)
 	srapiAdmin.HandleFunc("/api/snapraid/{name}/{action}", storage.SnapRAIDRunRoute)
 	srapiAdmin.HandleFunc("/api/rclone-restart", storage.API_Rclone_remountAll)
+
+	// RClone API handlers (replaces RCD proxy)
+	srapi.HandleFunc("/rclone/config/dump", storage.API_RClone_ConfigDump)
+	srapi.HandleFunc("/rclone/config/listremotes", storage.API_RClone_ListRemotes)
+	srapi.HandleFunc("/rclone/config/create", storage.API_RClone_ConfigCreate)
+	srapi.HandleFunc("/rclone/config/update", storage.API_RClone_ConfigUpdate)
+	srapi.HandleFunc("/rclone/config/delete", storage.API_RClone_ConfigDelete)
+	srapi.HandleFunc("/rclone/config/save", storage.API_RClone_ConfigSave)
+	srapi.HandleFunc("/rclone/operations/about", storage.API_RClone_OperationsAbout)
+	srapi.HandleFunc("/rclone/vfs/stats", storage.API_RClone_VfsStats)
+	srapi.HandleFunc("/rclone/core/stats", storage.API_RClone_CoreStats)
+
 	srapiAdmin.HandleFunc("/api/list-dir", storage.ListDirectoryRoute)
 	srapiAdmin.HandleFunc("/api/new-dir", storage.CreateFolderRoute)
 
+	srapiAdmin.HandleFunc("/api/backups-config", backups.ListBackupConfigsRoute)
+	srapiAdmin.HandleFunc("/api/backups-config/{name}", backups.GetBackupConfigRoute)
 	srapiAdmin.HandleFunc("/api/backups-repository", backups.ListRepos)
 	srapiAdmin.HandleFunc("/api/backups-repository/{name}/snapshots", backups.ListSnapshotsRouteFromRepo)
 	srapiAdmin.HandleFunc("/api/backups/{name}/snapshots", backups.ListSnapshotsRoute)
@@ -598,6 +762,10 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/backups/{name}", backups.RemoveBackupRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/forget", backups.ForgetSnapshotRoute)
 	srapiAdmin.HandleFunc("/api/backups/{name}/{snapshot}/subfolder-restore-size", backups.StatsRepositorySubfolderRoute)
+	srapiAdmin.HandleFunc("/api/backups/{name}/unlock", backups.UnlockRepositoryRoute)
+	srapiAdmin.HandleFunc("/api/backups-repository/{name}/stats", backups.RepoStatsRoute)
+
+	pro.RegisterRoutes(srapiAdmin)
 
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidListRoute).Methods("GET")
 	// srapiAdmin.HandleFunc("/api/storage/raid", storage.RaidCreateRoute).Methods("POST")
@@ -623,22 +791,34 @@ func InitServer() *mux.Router {
 	}
 
 	srapiAdmin.Use(utils.Restrictions(config.AdminConstellationOnly, config.AdminWhitelistIPs))
+	
+	srapi.Use(proxy.CleanPathMiddleware)
+	srapiStrict.Use(proxy.CleanPathMiddleware)
+	srapiAdmin.Use(proxy.CleanPathMiddleware)
 
 	srapi.Use(utils.SetSecurityHeaders)
+	srapiStrict.Use(utils.SetSecurityHeaders)
 	srapiAdmin.Use(utils.SetSecurityHeaders)
 
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
 		srapi.Use(utils.EnsureHostname)
+		srapiStrict.Use(utils.EnsureHostname)
 		srapiAdmin.Use(utils.EnsureHostname)
 	
 		srapi.Use(utils.EnsureHostnameCosmosAPI)
+		srapiStrict.Use(utils.EnsureHostnameCosmosAPI)
 		srapiAdmin.Use(utils.EnsureHostnameCosmosAPI)
 	}
 
-	SecureAPI(srapi, false, false)
-	SecureAPI(srapiAdmin, false, false)
+	SecureAPI(srapiStrict, false, false, true)
+	SecureAPI(srapi, false, false, false)
+	SecureAPI(srapiAdmin, false, false, false)
 	
-	pwd,_ := os.Getwd()
+	pwd, err := os.Getwd()
+	if err != nil {
+		utils.Fatal("Getting pwd", err)
+	}
+	
 	utils.Log("Starting in " + pwd)
 	if _, err := os.Stat(pwd + "/static"); os.IsNotExist(err) {
 		utils.Fatal("Static folder not found at " + pwd + "/static", err)
@@ -647,7 +827,7 @@ func InitServer() *mux.Router {
 	// fs := http.FileServer(http.Dir(pwd + "/static"))
 	uirouter := router.PathPrefix("/cosmos-ui").Subrouter()
 	uirouter.Use(utils.SetSecurityHeaders)
-	SecureAPI(uirouter, true, true)
+	SecureAPI(uirouter, true, true, false)
 	uirouter.PathPrefix("/").Handler(http.StripPrefix("/cosmos-ui", utils.SPAHandler(pwd + "/static")))
 	
 	if(!config.HTTPConfig.AcceptAllInsecureHostname) {
@@ -655,28 +835,28 @@ func InitServer() *mux.Router {
 	}
 
 	OpenIDDetect := router.PathPrefix("/").Subrouter()
-	SecureAPI(OpenIDDetect, true, true)
-	authorizationserver.RegisterHandlersDetect(OpenIDDetect, srapi)
+	SecureAPI(OpenIDDetect, true, true, false)
+	authorizationserver.RegisterHandlersDetect(OpenIDDetect, srapiStrict)
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 
 	wellKnownRouter := router.PathPrefix("/").Subrouter()
-	SecureAPI(wellKnownRouter, true, true)
+	SecureAPI(wellKnownRouter, true, true, false)
 
 	userRouter := router.PathPrefix("/oauth2").Subrouter()
-	SecureAPI(userRouter, false, true)
+	SecureAPI(userRouter, false, true, true)
 
 	serverRouter := router.PathPrefix("/oauth2").Subrouter()
-	SecureAPI(serverRouter, true, true)
+	SecureAPI(serverRouter, true, true, true)
 
 	authorizationserver.RegisterHandlers(wellKnownRouter, userRouter, serverRouter)
 	
 	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
+    	http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
 	}))
 
 	router.HandleFunc("/cosmos-ui", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
+    	http.Redirect(w, r, "/cosmos-ui/", http.StatusTemporaryRedirect)
 	}))
 
 	return router
@@ -722,7 +902,7 @@ func StartServer() {
 	}
 }
 
-func RestartServer() {
+func RestartHTTPServer() {
 	utils.LetsEncryptErrors = []string{}
 	IconCache = map[string]CachedImage{}
 	

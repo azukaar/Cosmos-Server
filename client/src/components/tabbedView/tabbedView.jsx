@@ -22,7 +22,7 @@ const TabPanel = (props) => {
       {...other}
     >
       {value === index && (
-        <Box p={isMobile ? 1 : 3}>
+        <Box p={isMobile ? 1 : 3} style={{paddingTop: 0}}>
           <Typography>{children}</Typography>
         </Box>
       )}

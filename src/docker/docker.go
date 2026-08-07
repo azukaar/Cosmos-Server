@@ -69,7 +69,6 @@ func Connect() error {
 			DockerIsConnected = false
 			return err
 		}
-		defer client.Close()
 
 		DockerClient = client
 		DockerContext = ctx

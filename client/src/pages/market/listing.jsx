@@ -13,6 +13,8 @@ import DockerComposeImport from '../servapps/containers/docker-compose';
 import { AppstoreAddOutlined, SearchOutlined, WarningOutlined } from "@ant-design/icons";
 import ResponsiveButton from "../../components/responseiveButton";
 import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 import EditSourcesModal from "./sources";
 import { PersistentCheckbox } from "../../components/persistentInput";
 import { useTranslation } from 'react-i18next'; 
@@ -74,7 +76,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
     }}>
       <Stack direction="row" spacing={2} style={{ height: '100%', overflow: 'hidden' }} justifyContent="flex-end">
         <Stack direction="column" spacing={2} style={{ height: '100%' }} sx={{
-          backgroundColor: isDark ? '#1A2027' : '#fff',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255)',
           padding: '20px 100px',
           width: '50%',
           filter: 'drop-shadow(-20px 0px 20px rgba(0, 0, 0, 1))',
@@ -97,9 +99,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
-            {isAdmin && <div>
-              <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
-            </div>}
+            <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
             <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
             }}>
@@ -116,7 +116,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
 
 const appCardStyle = (theme) => ({
   width: '100%',
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  backgroundColor: theme.palette.mode === 'dark' ? '#20232b' : 'rgba(255,255,255)',
   ...theme.typography.body2,
   padding: theme.spacing(1),
   color: theme.palette.text.secondary,
@@ -141,15 +141,13 @@ const MarketPage = () => {
   const { appName, appStore } = useParams();
   const [search, setSearch] = useState("");
   const [filterDups, setFilterDups] = useState(false);
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
 
   const backgroundStyle = isDark ? {
-    backgroundColor: 'rgb(0,0,0)',
-    // borderTop: '1px solid #595959'
+    backgroundColor: '#141414',
   } : {
-    backgroundColor: 'rgb(255,255,255)',
-    // borderTop: '1px solid rgb(220,220,220)'
+    backgroundColor: 'rgb(245,245,247)',
   };
 
   const refresh = () => {
@@ -240,7 +238,7 @@ const MarketPage = () => {
 
       <Stack direction="row" spacing={2} style={{ height: '100%' }} justifyContent="flex-end">
         <Stack direction="column" spacing={3} style={{ height: '100%', overflow: "auto" }} sx={{
-          backgroundColor: isDark ? '#1A2027' : '#fff',
+          backgroundColor: isDark ? '#20232b' : 'rgba(255,255,255)',
           padding: '80px 80px',
           width: '100%',
           maxWidth: '800px',
@@ -296,12 +294,7 @@ const MarketPage = () => {
 
           <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription) }}></div>
 
-          {isAdmin ? <div>
-            <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
-          </div> : <div style={{
-            color: 'orange',
-            fontStyle: 'italic',
-          }}>{t('navigation.market.mustBeAdmin')}</div>}
+          <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
         </Stack>
       </Stack>
     </Box>}
@@ -346,12 +339,14 @@ const MarketPage = () => {
             }}
           />
 
-          <Link to="/cosmos-ui/servapps/new-service">
-            <ResponsiveButton
-              variant="contained"
-              startIcon={<AppstoreAddOutlined />}
-            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
-          </Link>
+          <PermissionGuard permission={PERM_RESOURCES}>
+            <Link to="/cosmos-ui/servapps/new-service" style={{ textDecoration: 'none' }}>
+              <ResponsiveButton
+                variant="contained"
+                startIcon={<AppstoreAddOutlined />}
+              >{t('navigation.market.startServAppButton')}</ResponsiveButton>
+            </Link>
+          </PermissionGuard>
           <DockerComposeImport refresh={() => { }} />
           <EditSourcesModal onSave={refresh} />
           <PersistentCheckbox name="filterDups" label={t('navigation.market.filterDuplicateCheckbox')} value={filterDups} onChange={setFilterDups} />

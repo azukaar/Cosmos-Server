@@ -8,6 +8,8 @@ import ResponsiveButton from '../../../components/responseiveButton';
 import { DeleteIconButton } from '../../../components/delete';
 import VMWarning from '../vmWarning';
 import RCloneNewServeConfig from './rclone_serve_new';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const RCloneServePage = ({containerized}) => {
   const { t } = useTranslation();
@@ -28,7 +30,7 @@ const RCloneServePage = ({containerized}) => {
     return <VMWarning />;
   }
 
-  return (<>
+  return (<div style={{ maxWidth: "1200px", margin: "auto" }}>
     {configModal && <RCloneNewServeConfig initialValues={configModal} onClose={() => {setConfigModal(false); refresh();}} open={configModal} setOpen={setConfigModal} />}
     <br/>
     {config ? 
@@ -36,13 +38,13 @@ const RCloneServePage = ({containerized}) => {
     data={(config.RemoteStorage ? (config.RemoteStorage.Shares || []) : [])}
     getKey={(r, k) => `${r.name + k}`}
     buttons={[
-      <ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create-serve')}</ResponsiveButton>,
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton startIcon={<PlusCircleOutlined />} variant="contained" onClick={() => setConfigModal(true)}>{t('mgmt.storage.rclone.create-serve')}</ResponsiveButton></PermissionGuard>,
       <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
         refresh();
       }}>{t('global.refresh')}</ResponsiveButton>,    
-      <ResponsiveButton variant="outlined" startIcon={<SettingOutlined />} onClick={() => {
+      <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton variant="outlined" startIcon={<SettingOutlined />} onClick={() => {
         API.rclone.restart()
-      }}>{t('mgmt.storage.rclone.remountAll')}</ResponsiveButton>
+      }}>{t('mgmt.storage.rclone.remountAll')}</ResponsiveButton></PermissionGuard>
     ]}
     columns={[
       {
@@ -57,7 +59,7 @@ const RCloneServePage = ({containerized}) => {
         title: '',
         field: (r) => <>
           <div style={{position: 'relative'}}>
-            <DeleteIconButton onDelete={() => {
+            <PermissionGuard permission={PERM_RESOURCES}><DeleteIconButton onDelete={() => {
               return API.config.get().then(({data}) => {
                 let shares = data.RemoteStorage.Shares || [];
                 shares = shares.filter((s) => s.Name !== r.Name);
@@ -70,13 +72,13 @@ const RCloneServePage = ({containerized}) => {
                   }
                 })
               });
-            }} />
-            <IconButton variant="outlined"
+            }} /></PermissionGuard>
+            <PermissionGuard permission={PERM_RESOURCES}><IconButton variant="outlined"
              onClick={() => {
               setConfigModal(r);
             }}>
               <EditOutlined />
-            </IconButton>
+            </IconButton></PermissionGuard>
           </div>
         </>,
       }
@@ -85,7 +87,7 @@ const RCloneServePage = ({containerized}) => {
     : <Stack spacing={2} direction="row" justifyContent="center">
       <CircularProgress />
     </Stack>}
-  </>);
+  </div>);
 };
 
 export default RCloneServePage;

@@ -4,15 +4,24 @@ import (
 	"net/http"
 	"encoding/json"
 	"github.com/azukaar/cosmos-server/src/utils"
-	"github.com/azukaar/cosmos-server/src/authorizationserver"
-	"github.com/azukaar/cosmos-server/src/constellation"
-	"github.com/azukaar/cosmos-server/src/cron"
-	"github.com/azukaar/cosmos-server/src/storage"
-	"github.com/azukaar/cosmos-server/src/backups"
 )
 
+// ConfigApiSet godoc
+// @Summary Update server configuration
+// @Description Replaces the entire server configuration (masked credential fields are preserved from existing config)
+// @Tags config
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body utils.Config true "Full configuration object"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/config [put]
 func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_CONFIGURATION) != nil {
 		return
 	} 
 
@@ -34,13 +43,62 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 
-		// restore AuthPrivateKey and TLSKey
+		// restore fields that are never sent to the client or are masked with ***
 		config := utils.ReadConfigFromFile()
 		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
 		request.HTTPConfig.AuthPublicKey = config.HTTPConfig.AuthPublicKey
 		request.HTTPConfig.TLSCert = config.HTTPConfig.TLSCert
 		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
 		request.NewInstall = config.NewInstall
+
+		// restore API token as we cannot edit it here
+		request.APITokens = config.APITokens
+
+		// restore DNS if user cannot read credentials, as they are sent as empty and we don't want to override them
+		canReadCredentials := utils.HasPermission(req, utils.PERM_CREDENTIALS_READ)
+		if !canReadCredentials {
+			request.HTTPConfig.DNSChallengeConfig = config.HTTPConfig.DNSChallengeConfig
+		}
+
+		// restore credential fields if they were masked (sent as "***")
+		if request.MongoDB == "***" {
+			request.MongoDB = config.MongoDB
+		}
+		if request.EmailConfig.Password == "***" {
+			request.EmailConfig.Password = config.EmailConfig.Password
+		}
+		if request.EmailConfig.Username == "***" {
+			request.EmailConfig.Username = config.EmailConfig.Username
+		}
+		if request.EmailConfig.Host == "***" {
+			request.EmailConfig.Host = config.EmailConfig.Host
+		}
+		if request.Database.Password == "***" {
+			request.Database.Password = config.Database.Password
+		}
+		if request.Database.Username == "***" {
+			request.Database.Username = config.Database.Username
+		}
+		if request.Licence == "***" {
+			request.Licence = config.Licence
+		}
+		if request.ServerToken == "***" {
+			request.ServerToken = config.ServerToken
+		}
+
+		// restore backup passwords. Users without PERM_CREDENTIALS_READ can never
+		// set a password — always restore from existing config. Otherwise only
+		// restore when the value is missing or masked, so the settings UI
+		// round-trip doesn't wipe it.
+		for name, b := range request.Backup.Backups {
+			shouldRestore := !canReadCredentials || b.Password == "" || b.Password == "***"
+			if shouldRestore {
+				if existing, ok := config.Backup.Backups[name]; ok && existing.Password != "" {
+					b.Password = existing.Password
+					request.Backup.Backups[name] = b
+				}
+			}
+		}
 
 		utils.SetBaseMainConfig(request)
 		
@@ -52,17 +110,7 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 			map[string]interface{}{
 		})
 
-		utils.InitFBL()
-		utils.DisconnectDB()
-		authorizationserver.Init()
-		go (func() {
-			storage.Restart()
-			constellation.RestartNebula()
-			utils.RestartHTTPServer()
-			cron.InitJobs()
-			cron.InitScheduler()
-			backups.InitBackups()
-		})()
+		go utils.SoftRestartServer()
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

@@ -32,6 +32,8 @@ import { BellOutlined, ClockCircleOutlined, CloseOutlined, CloseSquareOutlined, 
 import * as API from '../../../../api';
 import { redirectToLocal } from '../../../../utils/indexs';
 import { useClientInfos } from '../../../../utils/hooks';
+import { PERM_RESOURCES, PERM_RESOURCES_READ } from '../../../../utils/permissions';
+import PermissionGuard from '../../../../components/permissionGuard';
 
 // sx styles
 const avatarSX = {
@@ -60,8 +62,8 @@ const getStatus = (job) => {
 
 const Jobs = () => {
     const { t, i18n } = useTranslation();
-    const {role} = useClientInfos();
-    const isAdmin = role === "2";
+    const { hasPermission } = useClientInfos();
+    const isAdmin = hasPermission(PERM_RESOURCES_READ);
     const theme = useTheme();
     const matchesXs = useMediaQuery(theme.breakpoints.down('md'));
     const [jobs, setJobs] = useState([]);
@@ -238,20 +240,20 @@ const Jobs = () => {
                                             />
                                                 <ListItemSecondaryAction>
                                                     
-                                                {(job.Running) ? <IconButton disabled={!job.Cancellable} variant="outlined" color="error" onClick={() => {
+                                                {(job.Running) ? <PermissionGuard permission={PERM_RESOURCES}><IconButton disabled={!job.Cancellable} variant="outlined" color="error" onClick={() => {
                                                     API.cron.stop(job.Scheduler, job.Name).then(() => {
                                                         refreshJobs();
                                                     });
                                                 }}>
                                                     <CloseSquareOutlined />
-                                                </IconButton> : ''}
-                                                {(!job.Running) ? <IconButton variant="outlined" color="primary" onClick={() => {
+                                                </IconButton></PermissionGuard> : ''}
+                                                {(!job.Running) ? <PermissionGuard permission={PERM_RESOURCES}><IconButton variant="outlined" color="primary" onClick={() => {
                                                     API.cron.run(job.Scheduler, job.Name).then(() => {
                                                         refreshJobs();
                                                     });
                                                 }}>
                                                     <PlaySquareOutlined />
-                                                </IconButton> : ''}
+                                                </IconButton></PermissionGuard> : ''}
                                                 </ListItemSecondaryAction>
                                             </ListItemButton>
                                             <ListItemButton

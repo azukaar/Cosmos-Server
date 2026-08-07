@@ -7,36 +7,37 @@ import React from "react";
 import RestartModal from "../../../../pages/config/users/restart";
 import { ConfirmModalDirect } from "../../../../components/confirmModal";
 import { useClientInfos } from "../../../../utils/hooks";
+import { PERM_ADMIN } from "../../../../utils/permissions";
+import PermissionGuard from "../../../../components/permissionGuard";
 
 const RestartMenu = () => {
   const { t } = useTranslation();
   const [openResartModal, setOpenRestartModal] = React.useState(false);
   const [openRestartServerModal, setOpenRestartServerModal] = React.useState(false);
   const [status, setStatus] = React.useState({});
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
-  
+  const { hasPermission } = useClientInfos();
+
   React.useEffect(() => {
     API.getStatus().then((res) => {
       setStatus(res.data);
     });
   }, []);
 
-  const restartServer = API.restartServer;
+  return <PermissionGuard permission={PERM_ADMIN}>
+    <>
+    <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
+    <RestartModal openModal={openRestartServerModal} setOpenModal={setOpenRestartModal} isHostMachine/>
 
-  return isAdmin ? <>
-  <RestartModal openModal={openResartModal} setOpenModal={setOpenRestartModal} />
-  <RestartModal openModal={openRestartServerModal} setOpenModal={setOpenRestartModal} isHostMachine/>
-
-  <MenuButton size="medium" icon={<PoweroffOutlined />}>
-    <MenuItem disabled={status.containerized} onClick={() => setOpenRestartServerModal(true)}>
-      <ListItemText>{t('global.restartServer')}</ListItemText>
-    </MenuItem>
-    <MenuItem disabled={false} onClick={() => setOpenRestartModal(true)}>
-      <ListItemText>{t('global.restartCosmos')}</ListItemText>
-    </MenuItem>
-  </MenuButton>
-  </> : <></>;
+    <MenuButton size="medium" icon={<PoweroffOutlined />}>
+      <MenuItem disabled={status.containerized} onClick={() => setOpenRestartServerModal(true)}>
+        <ListItemText>{t('global.restartServer')}</ListItemText>
+      </MenuItem>
+      <MenuItem disabled={false} onClick={() => setOpenRestartModal(true)}>
+        <ListItemText>{t('global.restartCosmos')}</ListItemText>
+      </MenuItem>
+    </MenuButton>
+    </>
+  </PermissionGuard>;
 };
 
 export default RestartMenu;

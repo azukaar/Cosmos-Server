@@ -77,7 +77,7 @@ export default function SingleRepoIndex({singleBackup}) {
   }
 
   return (
-    <Stack spacing={3} className="p-4" style={{ maxWidth: '1000px' }}>
+    <Stack spacing={3} className="p-4" style={{ maxWidth: '1000px', margin: 'auto' }}>
     <Stack direction="row" spacing={2} justifyContent="flex-start">
       <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={fetchBackupDetails}>
         {t('global.refresh')}

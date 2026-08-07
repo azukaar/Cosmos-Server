@@ -3,11 +3,11 @@ package storage
 import (
 	"os"
 	"errors"
-	"k8s.io/utils/mount"
 	"strings"
 	"bufio"
 	"fmt"
 
+	"github.com/moby/sys/mountinfo"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -23,19 +23,16 @@ type MountPoint struct {
 func ListMounts() ([]MountPoint, error) {
 	utils.Log("[STORAGE] Listing all mount points")
 
-	// Create a new mounter
-	mounter := mount.New("")
-
-	// List all mounted filesystems
-	mountPoints, err := mounter.List()
+	// List all mounted filesystems using moby/sys/mountinfo
+	mountPoints, err := mountinfo.GetMounts(nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// filter out the mount points that are not disks in a Set
 	finalMountPoints := map[string]MountPoint{}
-	for i := 0; i < len(mountPoints); i++ {
-		path := mountPoints[i].Path
+	for _, mp := range mountPoints {
+		path := mp.Mountpoint
 		if strings.HasPrefix(path, "/mnt/host") && utils.IsInsideContainer {
 			// remove the host path
 			path = strings.Replace(path, "/mnt/host", "", 1)
@@ -49,24 +46,26 @@ func ListMounts() ([]MountPoint, error) {
 			continue
 		}
 
+		// Skip WSL internal mounts
+		if strings.HasPrefix(path, "/mnt/wsl") {
+			continue
+		}
+
 		isPermenant, err := isMountPointInFstab(path)
 		if err != nil {
 			return nil, err
 		}
-		
+
+		// Parse options string into slice
+		opts := strings.Split(mp.Options, ",")
+
 		finalMountPoints[path] = MountPoint{
-			Device: mountPoints[i].Device,
+			Device: mp.Source,
 			Path: path,
-			Type: mountPoints[i].Type,
-			Opts: mountPoints[i].Opts,
+			Type: mp.FSType,
+			Opts: opts,
 			Permenant: isPermenant,
 		}
-
-		// finalMountPoints = append(finalMountPoints, MountPoint{
-		// 	MountPoint: mountPoints[i],
-		// 	Path: path,
-		// 	Permenant: isPermenant,
-		// })
 	}
 
 	// use df -h to get the disk usage
@@ -78,7 +77,7 @@ func ListMounts() ([]MountPoint, error) {
 
 
 // Mount mounts a filesystem located at 'path' to 'mountpoint'.
-func Mount(path, mountpoint string, permanent bool, chown string) error {
+func Mount(path, mountpoint string, permanent bool, netDisk bool, chown string) error {
 	utils.Log("[STORAGE] Mounting " + path + " to " + mountpoint)
 
 	// Check if mountpoint exists
@@ -129,7 +128,12 @@ func Mount(path, mountpoint string, permanent bool, chown string) error {
 		}
 
 		// Format the fstab entry
-		fstabEntry := fmt.Sprintf("\n%s %s auto defaults 0 0\n", path, mountpoint)
+		var fstabEntry string
+		if netDisk {
+			fstabEntry = fmt.Sprintf("\n%s %s nfs defaults,nofail,_netdev 0 0\n", path, mountpoint)
+		} else {
+			fstabEntry = fmt.Sprintf("\n%s %s auto defaults 0 0\n", path, mountpoint)
+		}
 
 		// Append to /etc/fstab
 		file, err := os.OpenFile("/etc/fstab", os.O_APPEND|os.O_WRONLY, 0644)
@@ -239,20 +243,17 @@ func removeFstabEntry(mountpoint string) error {
 
 // check if disk is mounted
 func IsDiskMounted(diskPath string) (bool, error) {
-	utils.Log("[STORAGE] Checking if disk " + diskPath + " is mounted using kubernetes/mount-utils")
+	utils.Log("[STORAGE] Checking if disk " + diskPath + " is mounted")
 
-	// Create a new mounter
-	mounter := mount.New("")
-
-	// List all mounted filesystems
-	mountPoints, err := mounter.List()
+	// List all mounted filesystems using moby/sys/mountinfo
+	mountPoints, err := mountinfo.GetMounts(nil)
 	if err != nil {
 		return false, err
 	}
 
 	// Check if the disk is in the list of mounted filesystems
 	for _, mp := range mountPoints {
-		if mp.Path == diskPath {
+		if mp.Mountpoint == diskPath {
 			return true, nil
 		}
 	}

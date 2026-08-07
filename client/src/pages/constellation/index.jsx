@@ -8,6 +8,7 @@ import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
+import { PERM_RESOURCES_READ } from '../../utils/permissions';
 import { useTranslation } from 'react-i18next';
 
 
@@ -17,8 +18,8 @@ import VPNSalesPage from './free';
 
 const ConstellationIndex = () => {
   const { t } = useTranslation();
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES_READ);
   const [coStatus, setCoStatus] = React.useState(null);
   
   const refreshStatus = () => {
@@ -31,11 +32,13 @@ const ConstellationIndex = () => {
     refreshStatus();
   }, []);
 
-  const ConstContent = isAdmin ? <div>
+  const freeVersion = coStatus && !coStatus.Licence;
+
+  const ConstContent = isAdmin && !freeVersion ? <div>
     <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={[
         {
           title: 'VPN',
-          children: <ConstellationVPN />,
+          children: <ConstellationVPN freeVersion={freeVersion} />,
           path: 'vpn'
         },
         {
@@ -53,11 +56,10 @@ const ConstellationIndex = () => {
         }
       ]}/>
 
-  </div> : <ConstellationVPN />;
+  </div> : <ConstellationVPN freeVersion={freeVersion} />;
 
-  const pickFree = (coStatus && coStatus.Licence) ? ConstContent : <><ConstellationVPN freeVersion /></>;
 
-  return coStatus ? pickFree : <center><CircularProgress /></center>;
+  return ConstContent;
 }
 
 export default ConstellationIndex;

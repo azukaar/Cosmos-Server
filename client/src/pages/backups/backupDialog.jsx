@@ -6,6 +6,8 @@ import * as yup from "yup";
 import * as API from '../../api';
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import PermissionGuard from "../../components/permissionGuard";
+import { PERM_RESOURCES } from "../../utils/permissions";
 import { crontabToText } from "../../utils/indexs";
 import { Trans, useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../components/filePicker';
@@ -197,16 +199,19 @@ const BackupDialog = ({ refresh, data, preSource, preName }) => {
       {open && <BackupDialogInternal preSource={preSource} preName={preName} refresh={refresh} open={open} setOpen={setOpen} data={data} />}
       <div>
         {!data ? (
-          <ResponsiveButton
-            onClick={() => setOpen(true)}
-            variant="contained"
-            size="small"
-            startIcon={<PlusCircleOutlined />}
-          >
-            {t('mgmt.backup.newBackup')}
-          </ResponsiveButton>
+          <PermissionGuard permission={PERM_RESOURCES}>
+            <ResponsiveButton
+              onClick={() => setOpen(true)}
+              variant="contained"
+              startIcon={<PlusCircleOutlined />}
+            >
+              {t('mgmt.backup.newBackup')}
+            </ResponsiveButton>
+          </PermissionGuard>
         ) : (
-          <div onClick={() => setOpen(true)}>{t('global.edit')}</div>
+          <PermissionGuard permission={PERM_RESOURCES}>
+            <div onClick={() => setOpen(true)}>{t('global.edit')}</div>
+          </PermissionGuard>
         )}
       </div>
     </>

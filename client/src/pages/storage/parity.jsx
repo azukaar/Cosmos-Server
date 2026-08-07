@@ -19,6 +19,9 @@ import diskIcon from '../../assets/images/icons/disk.svg';
 import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from 'react-i18next';
 import VMWarning from "./vmWarning";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 const getStatus = (status) => {
   if (!status) {
@@ -59,7 +62,8 @@ const cleanStatus = (status) => {
 
 export const Parity = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
   const [config, setConfig] = useState(null);
   const [parities, setParities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -73,7 +77,6 @@ export const Parity = () => {
     let configAsync = await API.config.get();
     let status = await API.getStatus();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
     setParities(paritiesData.data);
     setLoading(false);
     
@@ -121,7 +124,7 @@ export const Parity = () => {
     refresh();
   }, []);
 
-  return <>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {deleteRaid && <ConfirmModalDirect
         title="Delete Parity"
@@ -205,38 +208,40 @@ export const Parity = () => {
             title: '',
             field: (r) => {
               return <div style={{position: 'relative'}}>
-                <MenuButton>
-                  <MenuItem disabled={loading || containerized} onClick={() => setEditOpened(r)}>
-                    <ListItemIcon>
-                      <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.edit')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading || containerized} onClick={() => sync(r.Name)}>
-                    <ListItemIcon>
-                      <CloudOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('mgmt.storage.list.syncText')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading || containerized} onClick={() => scrub(r.Name)}>
-                    <ListItemIcon>
-                      <CompassOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('mgmt.storage.list.scrubText')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading || containerized} onClick={() => fix(r.Name)}>
-                    <ListItemIcon>
-                      <CloudOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('mgmt.storage.list.fixText')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading || containerized} onClick={() => tryDeleteRaid(r.Name)}>
-                    <ListItemIcon>
-                      <DeleteOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.delete')}</ListItemText>
-                  </MenuItem>
-                </MenuButton>
+                <PermissionGuard permission={PERM_RESOURCES}>
+                  <MenuButton>
+                    <MenuItem disabled={loading || containerized} onClick={() => setEditOpened(r)}>
+                      <ListItemIcon>
+                        <EditOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.edit')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem disabled={loading || containerized} onClick={() => sync(r.Name)}>
+                      <ListItemIcon>
+                        <CloudOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('mgmt.storage.list.syncText')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem disabled={loading || containerized} onClick={() => scrub(r.Name)}>
+                      <ListItemIcon>
+                        <CompassOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('mgmt.storage.list.scrubText')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem disabled={loading || containerized} onClick={() => fix(r.Name)}>
+                      <ListItemIcon>
+                        <CloudOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('mgmt.storage.list.fixText')}</ListItemText>
+                    </MenuItem>
+                    <MenuItem disabled={loading || containerized} onClick={() => tryDeleteRaid(r.Name)}>
+                      <ListItemIcon>
+                        <DeleteOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.delete')}</ListItemText>
+                    </MenuItem>
+                  </MenuButton>
+                </PermissionGuard>
               </div>
             }
           }
@@ -252,5 +257,5 @@ export const Parity = () => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>
+  </div>
 };

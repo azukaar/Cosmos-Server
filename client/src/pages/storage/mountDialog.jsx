@@ -15,6 +15,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
       device: data ? data.device : '',
       path: data ? data.path : '',
       permanent: false,
+      netDisk: false,
       chown: '1000:1000',
     },
     validationSchema: yup.object({
@@ -46,6 +47,7 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
         mountPoint: values.path,
         chown: values.chown,
         permanent: values.permanent,
+      netDisk: values.netDisk,
       })).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);
@@ -112,6 +114,13 @@ const MountDialogInternal = ({ unmount, refresh, open, setOpen, data }) => {
                           onChange={formik.handleChange}
                         /> {t('mgmt.storage.mount.permanent')} {unmount ? t('global.unmount') : t('global.mount')}
                       </div>
+                      {!unmount && formik.values.permanent && <div>
+                        <Checkbox
+                          name="netDisk"
+                          checked={formik.values.netDisk}
+                          onChange={formik.handleChange}
+                        /> {t('mgmt.storage.mount.netDisk')}
+                      </div>}
                       {formik.errors.submit && (
                         <Grid item xs={12}>
                           <FormHelperText error>{formik.errors.submit}</FormHelperText>

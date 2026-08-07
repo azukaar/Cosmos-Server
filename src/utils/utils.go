@@ -37,10 +37,6 @@ import (
 var ConfigLock sync.Mutex
 var ConfigLockInternal sync.Mutex
 
-var ProxyRClone = false
-var ProxyRCloneUser = ""
-var ProxyRClonePwd = ""
-
 var BaseMainConfig Config
 var MainConfig Config
 var IsHTTPS = false
@@ -53,35 +49,29 @@ var IsHostNetwork = false
 var UpdateAvailable = map[string]bool{}
 
 var RestartHTTPServer = func() {}
+var InitBackups func()
+var RestartConstellation func()
+var InitRemoteStorage func()
+var InitSnapRAIDConfig func()
+var RestartCRON func()
 
-// var ReBootstrapContainer func(string) error
+var IsConstellationIP = func(string) bool { return false }
+
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
 var WaitForAllJobs func()
 var StopAllRCloneProcess func(bool)
+var IsPro func() bool = func() bool { return false }
 
-// late init of advanced features for cosmos slaves nodes
-var InitRemoteStorage func() bool
-var InitBackups func()
-
-var slaveInitialized = false
-
-func InitializeSlaveLicence() {
-	if !slaveInitialized && FBL.LValid && FBL.IsCosmosNode {
-		slaveInitialized = true
-		ProxyRClone = InitRemoteStorage()
-		go InitBackups()
-	}
-}
+var InitPremiumFeatures func()
 
 var ResyncConstellationNodes = func() {}
+var GetConstellationTunnelRoutes = func() []ProxyRouteConfig { return []ProxyRouteConfig{} }
 
 var LetsEncryptErrors = []string{}
 
 var CONFIGFOLDER = "/var/lib/cosmos/"
-
-var ConstellationSlaveIPWarning = ""
 
 var IsInsideContainer = false
 
@@ -101,6 +91,8 @@ var DefaultConfig = Config{
 		ProxyConfig: ProxyConfig{
 			Routes: []ProxyRouteConfig{},
 		},
+		DisablePropagationChecks:    false,
+		DNSChallengePropagationWait: 30,
 	},
 	DockerConfig: DockerConfig{
 		DefaultDataPath: "/cosmos-storage",
@@ -225,7 +217,7 @@ func FileExists(path string) bool {
 	if err == nil {
 		return true
 	}
-	Error("Reading file error: ", err)
+	Warn("File does not exist: " + path)
 	return false
 }
 
@@ -249,6 +241,10 @@ func GenerateRandomString(n int) string {
 		b[i] = AlphaNumRunes[rand.Intn(len(AlphaNumRunes))]
 	}
 	return string(b)
+}
+
+func GetRandomNumber(min int, max int) int {
+	return rand.Intn(max-min) + min
 }
 
 type HTTPErrorResult struct {
@@ -356,7 +352,7 @@ func LoadBaseMainConfig(config Config) {
 	}
 	
 	if MainConfig.DockerConfig.DefaultDataPath == "" {
-		MainConfig.DockerConfig.DefaultDataPath = "/usr"
+		MainConfig.DockerConfig.DefaultDataPath = "/cosmos-storage"
 	}
 }
 
@@ -400,11 +396,11 @@ func CreateDefaultConfigFileIfNecessary() bool {
 	folderPath := strings.Split(configFile, "/")
 	folderPath = folderPath[:len(folderPath)-1]
 	folderPathString := strings.Join(folderPath, "/")
-	os.MkdirAll(folderPathString, os.ModePerm)
+	os.MkdirAll(folderPathString, 0700)
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		Log("Config file does not exist. Creating default config file.")
-		file, err := os.Create(configFile)
+		file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 		if err != nil {
 			Fatal("Creating Default Config File", err)
 		}
@@ -429,7 +425,7 @@ func SaveConfigTofile(config Config) {
 	configFile := GetConfigFileName()
 	CreateDefaultConfigFileIfNecessary()
 
-	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+	file, err := os.OpenFile(configFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		Fatal("Opening Config File", err)
 	}
@@ -445,11 +441,31 @@ func SaveConfigTofile(config Config) {
 	Log("Config file saved.")
 }
 
-func RestartServer() {
+func RestartServer(code int) {
 	Log("Restarting server...")
-	WaitForAllJobs() 
-	StopAllRCloneProcess(false)
-	os.Exit(0)
+	WaitForAllJobs()
+	if StopAllRCloneProcess != nil {
+		StopAllRCloneProcess(false)
+	}
+	os.Exit(code)
+}
+
+func SoftRestartServer() {
+	DisconnectDB()
+	
+	ProcessLicence()
+
+	RestartHTTPServer()
+
+	go func() {
+		WaitForAllJobs()
+		RestartConstellation() // Constellation
+		InitRemoteStorage() // rclone
+		InitBackups() // restic
+		InitSnapRAIDConfig() // snapraid
+		
+		RestartCRON()
+	}()
 }
 
 func LetsEncryptValidOnly(hostnames []string, acceptWildcard bool) []string {
@@ -546,8 +562,8 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		mainHostname,
 	}
 
-	proxies := GetMainConfig().ConstellationConfig.Tunnels
-	proxies = append(proxies, GetMainConfig().HTTPConfig.ProxyConfig.Routes...)
+	proxies := GetMainConfig().HTTPConfig.ProxyConfig.Routes
+	proxies = append(proxies, GetConstellationTunnelRoutes()...)
 	
 	for _, proxy := range proxies {
 		if proxy.UseHost && proxy.Host != "" && !strings.Contains(proxy.Host, ",") && !strings.Contains(proxy.Host, " ") {
@@ -623,23 +639,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 	return uniqueHostnames
 }
 
-// TODO
-func GetAllTunnelHostnames() map[string]string {
-	config := GetMainConfig()
-	tunnels := config.HTTPConfig.ProxyConfig.Routes
-	results := map[string]string{}
-	
-	for _, tunnel := range tunnels {
-		if tunnel.TunnelVia != "" && tunnel.TunneledHost != "" {
-			results[strings.Split(tunnel.TunneledHost, ":")[0]] = tunnel.TunnelVia
-		}
-	}
-
-	Debug("Tunnel Hostnames: " + fmt.Sprint(results))
-
-	return results
-}
-
 func GetAvailableRAM() uint64 {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
@@ -711,6 +710,27 @@ func GetServerURL(overwriteHostname string) string {
 	}
 
 	return ServerURL + "/"
+}
+
+func GetServerRawAccess() (string, string, string) {
+	Hostname := ""
+	Port := ""
+
+	Hostname = MainConfig.HTTPConfig.Hostname
+	
+	if IsHTTPS && MainConfig.HTTPConfig.HTTPSPort != "443" {
+		Port = MainConfig.HTTPConfig.HTTPSPort
+	}
+	if !IsHTTPS && MainConfig.HTTPConfig.HTTPPort != "80" {
+		Port = MainConfig.HTTPConfig.HTTPPort
+	}
+
+	protocol := "http://"
+	if IsHTTPS {
+		protocol = "https://"
+	}
+
+	return protocol, Hostname, Port
 }
 
 func GetServerPort() string {
@@ -876,16 +896,86 @@ func DownloadFileToLocation(path, url string) error {
 }
 
 func GetClientIP(req *http.Request) string {
-	/*ip := req.Header.Get("X-Forwarded-For")
-	if ip == "" {
-		ip = req.RemoteAddr
-	}*/
-	return req.RemoteAddr
+	remoteAddr, _ := SplitIP(req.RemoteAddr)
+
+	if req.Header.Get("x-forwarded-for") != "" && IsTrustedProxy(remoteAddr) {
+		remoteAddr, _ = SplitIP(strings.TrimSpace(strings.Split(req.Header.Get("X-Forwarded-For"), ",")[0]))
+	}
+	return remoteAddr
+}
+
+var (
+	trustedProxyURLCache     = map[string][]string{}
+	trustedProxyURLCacheLock sync.Mutex
+)
+
+func fetchIPRangesFromURL(url string) ([]string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var ranges []string
+	for _, line := range strings.Split(string(body), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			ranges = append(ranges, line)
+		}
+	}
+	return ranges, nil
+}
+
+func getTrustedProxyRanges(url string) []string {
+	trustedProxyURLCacheLock.Lock()
+	defer trustedProxyURLCacheLock.Unlock()
+
+	if cached, ok := trustedProxyURLCache[url]; ok {
+		return cached
+	}
+
+	ranges, err := fetchIPRangesFromURL(url)
+	if err != nil {
+		Error("IsTrustedProxy: failed to fetch URL "+url, err)
+		return nil
+	}
+
+	trustedProxyURLCache[url] = ranges
+	return ranges
+}
+
+func IsTrustedProxy(ip string) bool {
+	for _, trustedProxy := range GetMainConfig().HTTPConfig.TrustedProxies {
+		if strings.HasPrefix(trustedProxy, "http://") || strings.HasPrefix(trustedProxy, "https://") {
+			for _, r := range getTrustedProxyRanges(trustedProxy) {
+				if isInRange, _ := IPInRange(ip, r); isInRange {
+					return true
+				}
+			}
+		} else {
+			if isInRange, _ := IPInRange(ip, trustedProxy); isInRange {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func IsDomain(domain string) bool {
 	// contains . and at least a letter and no special characters invalid in a domain
 	if strings.Contains(domain, ".") && strings.ContainsAny(domain, "abcdefghijklmnopqrstuvwxyz") && !strings.ContainsAny(domain, " !@#$%^&*()+=[]{}\\|;:'\",/<>?") {
+		return true
+	}
+	return false
+}
+
+func IsLocalDomain(domain string) bool {
+	if strings.HasSuffix(domain, ".local") || strings.HasSuffix(domain, ".lan") || strings.HasSuffix(domain, ".home") {
 		return true
 	}
 	return false
@@ -997,14 +1087,6 @@ func IsLocalIP(ip string) bool {
 	return false
 }
 
-func IsConstellationIP(ip string) bool {
-	if strings.HasPrefix(ip, "192.168.201.") || strings.HasPrefix(ip, "192.168.202.") {
-		return true
-	}
-
-	return false 
-}
-
 func SplitIP(ipPort string) (string, string) {
 	host, port, err := osnet.SplitHostPort(ipPort)
 	if err != nil {
@@ -1095,11 +1177,6 @@ func ListIps(skipNebula bool) ([]string, error) {
 	return result, nil
 }
 
-func RemovePIDFile() {
-	if _, err := os.Stat(CONFIGFOLDER + "nebula.pid"); err == nil {
-		os.Remove(CONFIGFOLDER + "nebula.pid")
-	}
-}
 
 func CheckInternet() {
 	_, err := http.Get("https://www.google.com")
@@ -1214,4 +1291,26 @@ func FindRouteByReqHost(hostname string) (string, *ProxyRouteConfig) {
 	}
 
 	return hostname, proxyRoute
+}
+
+func GetFileLastModifiedTime(path string) time.Time {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return time.Time{}
+	}
+	return fileInfo.ModTime()
+}
+
+func SetFileLastModifiedTime(path string, modTime int64) error {
+	err := os.Chtimes(path, time.Now(), time.Unix(modTime, 0))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func TouchDatabase() error {
+	dbPath := CONFIGFOLDER + "database"
+	now := time.Now()
+	return os.Chtimes(dbPath, now, now)
 }

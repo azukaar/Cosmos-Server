@@ -7,6 +7,15 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
+// DeviceList godoc
+// @Summary List Constellation devices for the current user (or all if admin)
+// @Tags constellation
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices [get]
 func DeviceList(w http.ResponseWriter, req *http.Request) {
 	// Check for GET method
 	if req.Method != "GET" {
@@ -14,15 +23,15 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
-	isAdmin := utils.IsAdmin(req)
+	isAdmin := utils.HasPermission(req, utils.PERM_RESOURCES_READ)
 	
 	// Connect to the collection
 	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-  defer closeDb()
+    defer closeDb()
 	if errCo != nil {
 		utils.Error("Database Connect", errCo)
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
@@ -49,7 +58,7 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		}
 	} else {
 		// If not admin, get user's devices based on their nickname
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := utils.GetAuthContext(req).Nickname
 		cursor, err := c.Find(nil, map[string]interface{}{"Nickname": nickname})
 		defer cursor.Close(nil)
 		if err != nil {
@@ -65,9 +74,20 @@ func DeviceList(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	
+	n, _ := GetCurrentDeviceName()
+
+	// If list is empty, include the current device at least
+	if (devices == nil || len(devices) == 0) && n != "" {
+		currentDevice, err := GetCurrentDevice()
+		if err == nil {
+			devices = []utils.ConstellationDevice{currentDevice}
+		}
+	}
+
 	// Respond with the list of devices
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status":  "OK",
 		"data": devices,
+		"currentDeviceName": n,
 	})
 }

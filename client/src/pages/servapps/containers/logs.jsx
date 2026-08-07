@@ -57,7 +57,7 @@ const Logs = ({ containerInfo }) => {
       ws.current.close();
     }
 
-    ws.current = API.docker.attachTerminal(Name.slice(1));
+    ws.current = API.docker.attachTerminal(Name.slice(1), true);
 
     ws.current.onmessage = (event) => {
       if(event.data === '_PONG_') {
@@ -250,7 +250,7 @@ const Logs = ({ containerInfo }) => {
   };
 
   return (
-    <Stack spacing={2} sx={{  width: '100%'}}>
+    <Stack spacing={2} sx={{  width: '100%', margin: 'auto', maxWidth: '1200px' }}>
       <Stack
         spacing={2}
         direction="column"

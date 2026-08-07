@@ -23,6 +23,8 @@ import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from "../../../components/filePicker";
 import { Backups } from "../../backups/backups";
 import BackupDialog from "../../backups/backupDialog";
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../../utils/permissions';
 
 const VolumeContainerSetup = ({
   noCard,
@@ -57,6 +59,7 @@ const VolumeContainerSetup = ({
   };
 
   const formatSource = (mount) => {
+    if (!mount) return null;
     if (mount.startsWith("/")) return mount;
     else return "/var/lib/docker/volumes/" + mount + "/_data";
   }
@@ -129,7 +132,7 @@ const VolumeContainerSetup = ({
   );
 
   return (
-    <Stack spacing={2}>
+    <Stack spacing={2} style={{ alignItems: "center" }}>
       <div
         style={{
           maxWidth: "1000px",
@@ -167,7 +170,7 @@ const VolumeContainerSetup = ({
                           getKey={(r) => r.Id}
                           fullWidth
                           buttons={[
-                            <ResponsiveButton
+                            <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton
                               startIcon={<PlusCircleOutlined />}
                               variant="outlined"
                               color="primary"
@@ -186,7 +189,7 @@ const VolumeContainerSetup = ({
                               }}
                             >
                               {t('mgmt.servapps.newContainer.volumes.newMountButton')}
-                            </ResponsiveButton>,
+                            </ResponsiveButton></PermissionGuard>,
                           ]}
                           columns={[
                             {
@@ -213,6 +216,7 @@ const VolumeContainerSetup = ({
                                   >
                                     <MenuItem value="bind">{t('mgmt.servapps.newContainer.volumes.bindInput')}</MenuItem>
                                     <MenuItem value="volume">{t('global.volume')}</MenuItem>
+                                    <MenuItem value="tmpfs">tmpfs</MenuItem>
                                   </TextField>
                                 </div>
                               ),
@@ -248,6 +252,14 @@ const VolumeContainerSetup = ({
                                       onChange={formik.handleChange}
                                     />
                                     </Stack>
+                                  ) : r.Type == "tmpfs" ? (
+                                    <TextField
+                                      className="px-2 my-2"
+                                      variant="outlined"
+                                      disabled
+                                      style={{ minWidth: "200px" }}
+                                      value="(memory)"
+                                    />
                                   ) : (
                                     <TextField
                                       className="px-2 my-2"
@@ -305,7 +317,7 @@ const VolumeContainerSetup = ({
                               field: (r) => {
                                 return (
                                   <Stack direction="row" spacing={2}>
-                                    <Button
+                                    <PermissionGuard permission={PERM_RESOURCES}><Button
                                     variant="outlined"
                                     color="primary"
                                     disabled={frozenVolumes.includes(r.Source)}
@@ -324,7 +336,7 @@ const VolumeContainerSetup = ({
                                     }}
                                   >
                                     {t('global.unmount')}
-                                  </Button>
+                                  </Button></PermissionGuard>
                                   {!newContainer && containerInfo.Name && (r.Target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null)}
                                   </Stack>
                                 );
@@ -352,18 +364,20 @@ const VolumeContainerSetup = ({
                           </Grid>
                         )}
                         {!newContainer && (
-                          <LoadingButton
-                            fullWidth
-                            disableElevation
-                            disabled={formik.errors.submit}
-                            loading={formik.isSubmitting}
-                            size="large"
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                          >
-                            {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
-                          </LoadingButton>
+                          <PermissionGuard permission={PERM_RESOURCES}>
+                            <LoadingButton
+                              fullWidth
+                              disableElevation
+                              disabled={formik.errors.submit}
+                              loading={formik.isSubmitting}
+                              size="large"
+                              type="submit"
+                              variant="contained"
+                              color="primary"
+                            >
+                              {t('mgmt.servapps.newContainer.volumes.updateVolumesButton')}
+                            </LoadingButton>
+                          </PermissionGuard>
                         )}
                       </Stack>
                     </Grid>
@@ -383,7 +397,7 @@ const VolumeContainerSetup = ({
       }}>
         {containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.Mounts && <MainCard title={t('mgmt.backup.backups')}>
           <Backups pathFilters={
-            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source))
+            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source)).filter(Boolean)
           } />
         </MainCard>}
       </div>}

@@ -114,7 +114,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 		refresh(page);
 	}, [page]);
 
-	return (<div>
+	return ( <div style={{ maxWidth: "1200px", margin: "auto" }}>
 		<Stack spacing={2} direction="column" style={{width: '100%'}}>
 			<Stack spacing={2} direction="row" style={{width: '100%'}}>
 				<div>

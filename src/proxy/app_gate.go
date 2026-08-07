@@ -3,7 +3,6 @@ package proxy
 import (
 	"errors"
 	"net/http"
-	"strconv"
 	"fmt"
 	"net/url"
 	"crypto/sha256"
@@ -51,12 +50,7 @@ func performLogin(w http.ResponseWriter, req *http.Request, route utils.ProxyRou
 }
 
 func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request, route utils.ProxyRouteConfig) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	// mfa, _ := strconv.Atoi(req.Header.Get("x-cosmos-mfa"))
-	isUserLoggedIn := role >= 0
-
-	if !isUserLoggedIn || userNickname == "" {
+	if utils.GetAuthContext(req).Nickname == "" {
 		utils.Error("App gate: User is not logged in", nil)
 		return performLogin(w, req, route)
 	}
@@ -65,20 +59,13 @@ func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request, route ut
 }
 
 func AdminOnlyWithRedirect(w http.ResponseWriter, req *http.Request, route utils.ProxyRouteConfig) error {
-	userNickname := req.Header.Get("x-cosmos-user")
-	role, _ := strconv.Atoi(req.Header.Get("x-cosmos-role"))
-	userRole, _ := strconv.Atoi(req.Header.Get("x-cosmos-user-role"))
-	
-	isUserLoggedIn := role >= 0
-	isUserAdmin := userRole > 1
-
-	if !isUserLoggedIn || userNickname == "" {
+	if utils.GetAuthContext(req).Nickname == "" {
 		utils.Error("App gate: User is not logged in", nil)
 		return performLogin(w, req, route)
 	}
 
-	if isUserLoggedIn && !isUserAdmin && userNickname != "" {
-		utils.Error("App gate:  User is not Authorized (not admin)", nil)
+	if !utils.HasPermission(req, utils.PERM_ADMIN_READ) {
+		utils.Error("App gate: User is not Authorized (not admin)", nil)
 		utils.HTTPError(w, "User not Authorized", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User is not Admin")
 	}

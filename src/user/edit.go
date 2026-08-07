@@ -8,17 +8,40 @@ import (
 )
 
 type EditRequestJSON struct {
-	Email string `validate:"email"`
+	Email string     `validate:"omitempty,email"`
+	Role  *utils.Role `json:"role"`
 }
 
+// UserEdit godoc
+// @Summary Edit a user
+// @Description Updates user details such as email and role
+// @Tags users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param nickname path string true "User nickname"
+// @Param request body EditRequestJSON true "Fields to update"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/users/{nickname} [patch]
 func UserEdit(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
-	nickname := vars["nickname"]
+	nickname := utils.Sanitize(vars["nickname"])
 
-	if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+	if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_USERS) != nil {
 		return
 	} 
 
+	if utils.FBL.AgentMode {
+		utils.Error("User: Agents cannot manage users. Use a manager server", nil)
+		utils.HTTPError(w, "User Creation Error: Agents cannot manage users. Use a manager server",
+			http.StatusInternalServerError, "UC001")
+		return
+	}
+	
 	if(req.Method == "PATCH") {
 		var request EditRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -48,12 +71,19 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 
 		toSet := map[string]interface{}{}
 		if request.Email != "" {
-			
-			if utils.AdminOnly(w, req) != nil {
+
+			if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 				return
-			} 
+			}
 
 			toSet["Email"] = request.Email
+		}
+
+		if request.Role != nil && utils.GetRolePermissions(*request.Role) != nil {
+			if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
+				return
+			}
+			toSet["Role"] = *request.Role
 		}
 
 		_, err := c.UpdateOne(nil, map[string]interface{}{

@@ -2,19 +2,45 @@ import React from "react";
 import { useEffect, useState } from "react";
 import * as API from "../../api";
 import PrettyTableView from "../../components/tableView/prettyTableView";
-import { CloudOutlined, CloudServerOutlined, DeleteOutlined, EditOutlined, LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
-import { Checkbox, CircularProgress, ListItemIcon, ListItemText, MenuItem, Stack } from "@mui/material";
+import { CloudOutlined, CloudServerOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EyeInvisibleOutlined, EyeOutlined, LoadingOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Checkbox, CircularProgress, IconButton, ListItemIcon, ListItemText, MenuItem, Stack, Tooltip } from "@mui/material";
 import { crontabToText } from "../../utils/indexs";
 import MenuButton from "../../components/MenuButton";
 import ResponsiveButton from "../../components/responseiveButton";
 import { useTranslation } from "react-i18next";
 import { ConfirmModalDirect } from "../../components/confirmModal";
 import BackupDialog, { BackupDialogInternal } from "./backupDialog";
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
+
+const PasswordCell = ({ password, t }) => {
+  const [shown, setShown] = useState(false);
+  if (!password) return null;
+  return (
+    <Stack direction="row" spacing={0.5} alignItems="center" onClick={(e) => e.stopPropagation()}>
+      <span style={{ fontFamily: 'monospace', userSelect: 'all' }}>
+        {shown ? password : '••••••••'}
+      </span>
+      <Tooltip title={shown ? t('global.hide') : t('global.show')}>
+        <IconButton size="small" onClick={() => setShown((s) => !s)}>
+          {shown ? <EyeInvisibleOutlined /> : <EyeOutlined />}
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={t('global.copy')}>
+        <IconButton size="small" onClick={() => navigator.clipboard.writeText(password)}>
+          <CopyOutlined />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  );
+};
 
 export const Backups = ({pathFilters}) => {
   const { t } = useTranslation();
-  // const [isAdmin, setIsAdmin] = useState(false);
-  let isAdmin = true;
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
+  const canReadCredentials = hasPermission(PERM_CREDENTIALS_READ);
   const [config, setConfig] = useState(null);
   const [backups, setBackups] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +85,7 @@ export const Backups = ({pathFilters}) => {
     refresh();
   }, []);
 
-  return <>
+  return  <div style={{ maxWidth: "1200px", margin: "auto" }}>
     {(config) ? <>
       {deleteBackup && <ConfirmModalDirect
         title="Delete Backup"
@@ -117,9 +143,15 @@ export const Backups = ({pathFilters}) => {
             field: (r) => (loading && r.Name == loading) ? '' : crontabToText(r.Crontab, t),
             underline: true,
           },
+          ...(canReadCredentials ? [{
+            title: t('mgmt.backup.passwordTitle'),
+            screenMin: 'md',
+            clickable: true,
+            field: (r) => (loading && r.Name == loading) ? '' : <PasswordCell password={r.Password === '***' ? '' : r.Password} t={t} />,
+          }] : []),
           {
             title: '',
-            clickable:true, 
+            clickable:true,
             field: (r) => {
               return <div style={{position: 'relative'}}>
                 <MenuButton>
@@ -131,18 +163,22 @@ export const Backups = ({pathFilters}) => {
                     </ListItemIcon>
                     <ListItemText>{t('global.open')}</ListItemText>
                   </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
-                    <ListItemIcon>
-                      <EditOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.edit')}</ListItemText>
-                  </MenuItem>
-                  <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.Name)}>
-                    <ListItemIcon>
-                      <DeleteOutlined fontSize="small" />
-                    </ListItemIcon>
-                    <ListItemText>{t('global.delete')}</ListItemText>
-                  </MenuItem>
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <MenuItem disabled={loading} onClick={() => setEditOpened(r)}>
+                      <ListItemIcon>
+                        <EditOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.edit')}</ListItemText>
+                    </MenuItem>
+                  </PermissionGuard>
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <MenuItem disabled={loading} onClick={() => tryDeleteBackup(r.Name)}>
+                      <ListItemIcon>
+                        <DeleteOutlined fontSize="small" />
+                      </ListItemIcon>
+                      <ListItemText>{t('global.delete')}</ListItemText>
+                    </MenuItem>
+                  </PermissionGuard>
                 </MenuButton>
               </div>
             }
@@ -159,5 +195,5 @@ export const Backups = ({pathFilters}) => {
     </> : <center>
       <CircularProgress color="inherit" size={20} />
     </center>}
-  </>;
+  </div>;
 };

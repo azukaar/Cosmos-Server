@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 
 import * as API from '../../api';
 import { DownCircleOutlined, UpCircleOutlined } from "@ant-design/icons";
+import PermissionGuard from "../../components/permissionGuard";
+import { PERM_RESOURCES } from "../../utils/permissions";
 
 const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
   const { t } = useTranslation();
@@ -32,6 +34,7 @@ const MountDiskDialogInternal = ({disk, unmount, refresh, open, setOpen }) => {
         mountPoint: values.path,
         chown: values.chown,
         permanent: values.permanent,
+        netDisk: false,
       })).then((res) => {
         setStatus({ success: true });
         setSubmitting(false);
@@ -113,13 +116,15 @@ const MountDiskDialog = ({ disk, unmount, refresh, disabled }) => {
   return <>
     {open && <MountDiskDialogInternal disk={disk} unmount={unmount} refresh={refresh} open={open} setOpen={setOpen}/>}
     
-    <Button
-      onClick={() => {setOpen(true);}}
-      variant="outlined"
-      size="small"
-      disabled={disabled}
-      startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
-    >{unmount ? t('global.unmount') : t('global.mount')}</Button>
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <Button
+        onClick={() => {setOpen(true);}}
+        variant="outlined"
+        size="small"
+        disabled={disabled}
+        startIcon={unmount ?  <DownCircleOutlined /> : <UpCircleOutlined />}
+      >{unmount ? t('global.unmount') : t('global.mount')}</Button>
+    </PermissionGuard>
   </>
 }
 

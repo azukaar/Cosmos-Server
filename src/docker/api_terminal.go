@@ -42,8 +42,16 @@ func splitIntoChunks(input string) []string {
 }
 
 func TerminalRoute(w http.ResponseWriter, r *http.Request) {
-	if utils.AdminOnly(w, r) != nil {
-		return
+	readOnly := r.URL.Query().Get("readonly") == "true"
+
+	if readOnly {
+		if utils.CheckPermissions(w, r, utils.PERM_RESOURCES_READ) != nil {
+			return
+		}
+	} else {
+		if utils.CheckPermissions(w, r, utils.PERM_RESOURCES) != nil {
+			return
+		}
 	}
 	utils.Log("Attempting to attach container")
 
@@ -83,6 +91,12 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 
 	var resp types.HijackedResponse
 
+	if readOnly && action == "new" {
+		utils.Error("Cannot create new shell in read-only mode", nil)
+		http.Error(w, "Cannot create new shell in read-only mode", http.StatusForbidden)
+		return
+	}
+
 	if action == "new" {
 		execConfig := types.ExecConfig{
 			Tty:    true,
@@ -95,14 +109,14 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 		execStart := types.ExecStartCheck{
 			Tty: true,
 		}
-	
+
 		execResp, errExec := DockerClient.ContainerExecCreate(ctx, containerID, execConfig)
 		if errExec != nil {
 			utils.Error("ContainerExecCreate failed: ", errExec)
 			http.Error(w, "ContainerExecCreate failed: "+errExec.Error(), http.StatusInternalServerError)
 			return
 		}
-	
+
 		resp, err = DockerClient.ContainerExecAttach(ctx, execResp.ID, execStart)
 		if err != nil {
 			utils.Error("ContainerExecAttach failed: ", err)
@@ -111,17 +125,17 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Start bash if it exists
-		resp.Conn.Write([]byte("bash\n")) 
-	
+		resp.Conn.Write([]byte("bash\n"))
+
 		utils.Log("Created new shell and attached to it in container " + containerID)
 	} else {
 		options := conttype.AttachOptions{
 			Stream: true,
-			Stdin:  true,
+			Stdin:  !readOnly,
 			Stdout: true,
 			Stderr: true,
 		}
-	
+
 		// Attach to the container
 		resp, err = DockerClient.ContainerAttach(ctx, containerID, options)
 		if err != nil {
@@ -129,7 +143,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "ContainerAttach failed: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
-	
+
 		utils.Log("Attached to existing process in container " + containerID)
 	}
 	defer resp.Close()
@@ -205,7 +219,7 @@ func TerminalRoute(w http.ResponseWriter, r *http.Request) {
 					utils.Error("Failed to write to websocket: ", err)
 					return
 				}
-			} else {
+			} else if !readOnly {
 				utils.Debug("Writing message to container " + string(message))
 				_, err := resp.Conn.Write(message)
 				if err != nil {

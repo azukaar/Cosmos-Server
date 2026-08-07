@@ -9,6 +9,8 @@ import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import PermissionGuard from "../../components/permissionGuard";
+import { PERM_RESOURCES } from "../../utils/permissions";
 import { Trans, useTranslation } from 'react-i18next';
 
 const MergerDialogInternal = ({ refresh, open, setOpen, data }) => {  
@@ -129,14 +131,16 @@ const MergerDialog = ({ refresh, disabled }) => {
 
   return <>
     {open && <MergerDialogInternal refresh={refresh} open={open} setOpen={setOpen}/>}
-    
-    <ResponsiveButton
-      disabled={disabled}
-      onClick={() => {setOpen(true);}}
-      variant="contained"
-      startIcon={<PlusCircleOutlined />}
-      size="small"
-    >{t('mgmt.storage.newMerge.newMergeButton')}</ResponsiveButton>
+
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <ResponsiveButton
+        disabled={disabled}
+        onClick={() => {setOpen(true);}}
+        variant="contained"
+        startIcon={<PlusCircleOutlined />}
+        size="small"
+      >{t('mgmt.storage.newMerge.newMergeButton')}</ResponsiveButton>
+    </PermissionGuard>
   </>
 }
 

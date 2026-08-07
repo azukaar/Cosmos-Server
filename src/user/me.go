@@ -8,13 +8,24 @@ import (
 )
 
 
+// Me godoc
+// @Summary Get current user info
+// @Description Returns the profile information of the currently authenticated user
+// @Tags auth
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse{data=utils.User}
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/me [get]
 func Me(w http.ResponseWriter, req *http.Request) {
   if (req.Method == "GET") {
-		if utils.LoggedInOnly(w, req) != nil {
+		if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 			return
 		}
 
-		nickname := req.Header.Get("x-cosmos-user")
+		nickname := utils.GetAuthContext(req).Nickname
 
 		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "users")
   	defer closeDb()

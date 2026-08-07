@@ -83,7 +83,7 @@ export default function BackupRestore({backupName}) {
   }
 
   return (
-    <Stack spacing={2} style={{ maxWidth: '1000px' }}>
+    <Stack spacing={2} style={{ maxWidth: '1000px', margin: 'auto' }}>
       <div>
       <Select value={selectedSnapshot} onChange={(event) => setSelectedSnapshot(event.target.value)} sx={{ minWidth: 120, marginBottom: '15px' }}>
           {snapshots && snapshots.map((snap, index) => (

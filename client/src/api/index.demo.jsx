@@ -20,7 +20,8 @@ export const getStatus = () => {
           "Widgets": null,
           "Expanded": false
         },
-        "LicenceNumber": 9,
+        "LicenceNumber": 20,
+        "LicenceNodeNumber": 5,
         "hostname": "yann-server.com",
         "letsencrypt": false,
         "needsRestart": false,

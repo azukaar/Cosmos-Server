@@ -18,8 +18,7 @@ import { useTranslation } from 'react-i18next';
 const SudoModal = () => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const {userRole, role} = useClientInfos();
-  const canSudo = role !== "2" && userRole === "2";
+  const { needsSudo } = useClientInfos();
   const {t} = useTranslation();
   
   const formik = useFormik({
@@ -50,7 +49,7 @@ const SudoModal = () => {
   };
 
   return (
-    canSudo ?
+    needsSudo ?
     <>
       <Chip 
         label="Admin" 

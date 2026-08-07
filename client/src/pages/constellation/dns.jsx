@@ -15,31 +15,28 @@ import { isDomain } from "../../utils/indexs";
 import ConfirmModal from "../../components/confirmModal";
 import UploadButtons from "../../components/fileUpload";
 import { useTranslation } from 'react-i18next';
+import { useClientInfos } from "../../utils/hooks";
+import { PERM_CONFIGURATION } from "../../utils/permissions";
+import PermissionGuard from "../../components/permissionGuard";
 
 export const ConstellationDNS = () => {
   const { t } = useTranslation();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_CONFIGURATION);
   const [config, setConfig] = useState(null);
 
   const refreshConfig = async () => {
     let configAsync = await API.config.get();
     setConfig(configAsync.data);
-    setIsAdmin(configAsync.isAdmin);
   };
 
   useEffect(() => {
     refreshConfig();
   }, []);
 
-  if(config && config.ConstellationConfig.SlaveMode) {
-    return <>
-      <Alert severity="info" style={{marginBottom: "20px"}}>{t('mgmt.constellation.dns.slaveModeInfo')}</Alert>
-    </>
-  }
-
   return <>
     {(config) ? <>
-      <Stack spacing={2} style={{maxWidth: "1000px"}}>
+      <Stack spacing={2} style={{maxWidth: "1000px", margin: "auto"}}>
       <div>
         <MainCard title={t('mgmt.constellation.dnsTitle')} content={config.constellationIP}>
           <Stack spacing={2}>
@@ -52,13 +49,12 @@ export const ConstellationDNS = () => {
               CustomDNSEntries: config.ConstellationConfig.CustomDNSEntries || []
             }}
             onSubmit={(values) => {
-              let newConfig = { ...config };
-              newConfig.ConstellationConfig.DNSFallback = values.Fallback;
-              newConfig.ConstellationConfig.DNSBlockBlacklist = values.DNSBlockBlacklist;
-              newConfig.ConstellationConfig.DNSAdditionalBlocklists = values.DNSAdditionalBlocklists;
-              newConfig.ConstellationConfig.CustomDNSEntries = values.CustomDNSEntries;
-              
-              return API.config.set(newConfig);
+              return API.config.updateDNS({
+                dnsFallback: values.Fallback,
+                dnsBlockBlacklist: values.DNSBlockBlacklist,
+                dnsAdditionalBlocklists: values.DNSAdditionalBlocklists,
+                customDNSEntries: values.CustomDNSEntries,
+              });
             }}
           >
             {(formik) => (
@@ -154,7 +150,8 @@ export const ConstellationDNS = () => {
                     }}>{t('mgmt.constellation.dns.resetButton')}</Button>
                   </Stack>
 
-                  <LoadingButton
+                  <PermissionGuard permission={PERM_CONFIGURATION}>
+                    <LoadingButton
                       disableElevation
                       loading={formik.isSubmitting}
                       type="submit"
@@ -162,7 +159,8 @@ export const ConstellationDNS = () => {
                       color="primary"
                     >
                       {t('global.saveAction')}
-                  </LoadingButton>
+                    </LoadingButton>
+                  </PermissionGuard>
                 </Stack>
               </form>
             )}

@@ -16,16 +16,17 @@ import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
 import { useTranslation } from 'react-i18next';
+import StatusDot from '../../components/statusDot';
 
 const temperatureChip = (temperature) => {
   if (temperature < 45) {
-    return "🟢" 
+    return <StatusDot status="success" />
   } else if (temperature < 55) {
-    return "🟡"
+    return <StatusDot status="warning" />
   } else if (temperature < 65) {
-    return "🟠"
+    return <StatusDot status="orange" />
   } else {
-    return "🔴"
+    return <StatusDot status="error" />
   }
 }
 
@@ -69,19 +70,19 @@ const diskColor = (disk) => {
 }
 const diskChip = (disk) => {
   if (!disk) {
-    return "⚪"
+    return <StatusDot status="unknown" />
   } else if (!disk.rota) {
     return  temperatureChip(disk.smart.Temperature);
   } else if (diskColor(disk) == "gray") {
-    return "⚪"
+    return <StatusDot status="unknown" />
   } else if (diskColor(disk) == "green") {
-    return "🟢" 
+    return <StatusDot status="success" />
   } else if (diskColor(disk) == "yellow") {
-    return "🟡"
+    return <StatusDot status="warning" />
   } else if (diskColor(disk) == "orange") {
-    return "🟠"
+    return <StatusDot status="orange" />
   } else {
-    return "🔴"
+    return <StatusDot status="error" />
   }
 }
 
@@ -105,19 +106,19 @@ const healthStatus = (disk, fullData) => {
 
 const healthChip = (disk) => {
   if (!disk || !disk.rota) {
-    return "⚪"
+    return <StatusDot status="unknown" />
   }
 
   let health = disk.smart && healthStatus(disk, Object.values(disk.smart.AdditionalData.Attrs));
 
   if (health < 50) {
-    return "🔴"
+    return <StatusDot status="error" />
   } else if (health < 80) {
-    return "🟠"
+    return <StatusDot status="orange" />
   } else if (health < 90) {
-    return "🟡"
+    return <StatusDot status="warning" />
   } else {
-    return "🟢"
+    return <StatusDot status="success" />
   }
 }
 
@@ -227,7 +228,7 @@ const SMARTDialog = ({disk, OnClose}) => {
                 </div>
                 <div>
                   <InputLabel>{t('global.temperature')}</InputLabel>
-                  {(disk.smart && disk.smart.Temperature) ? `${temperatureChip(disk.smart.Temperature)} ${disk.smart.Temperature}°C` : '⚪ ?'}
+                  {(disk.smart && disk.smart.Temperature) ? <>{temperatureChip(disk.smart.Temperature)} {disk.smart.Temperature}°C</> : <><StatusDot status="unknown" /> ?</>}
                 </div>
                 <div style={{maxWidth: '200px'}}>  
                 <MiniPlotComponent noLabels agglo metrics={[

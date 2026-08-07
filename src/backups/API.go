@@ -10,8 +10,97 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// ListBackupConfigsRoute godoc
+// @Summary List all backup configurations
+// @Description Returns a map of all backup configurations from the server config, keyed by backup name.
+// @Tags Backups
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups-config [get]
+func ListBackupConfigsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		config := utils.GetMainConfig()
+		backups := config.Backup.Backups
+		if backups == nil {
+			backups = make(map[string]utils.SingleBackupConfig)
+		}
+
+		// Strip passwords from the response
+		sanitized := make(map[string]utils.SingleBackupConfig)
+		for k, v := range backups {
+			v.Password = ""
+			sanitized[k] = v
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   sanitized,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// GetBackupConfigRoute godoc
+// @Summary Get a single backup configuration by name
+// @Description Returns a single backup configuration from the server config.
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Router /api/backups-config/{name} [get]
+func GetBackupConfigRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		config := utils.GetMainConfig()
+		backup, exists := config.Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		// Strip password from the response
+		backup.Password = ""
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   backup,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// AddBackupRoute godoc
+// @Summary Create a new backup configuration
+// @Description Creates a backup config and initializes the repository if needed. Requires premium licence and non-container mode.
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param body body utils.SingleBackupConfig true "Backup configuration"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups [post]
 func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -119,8 +208,19 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// EditBackupRoute godoc
+// @Summary Edit an existing backup configuration
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param body body utils.SingleBackupConfig true "Updated backup configuration"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups/edit [post]
 func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -158,8 +258,19 @@ func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RemoveBackupRoute godoc
+// @Summary Remove a backup configuration and its snapshots
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name} [delete]
 func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -210,7 +321,7 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 			output, err := ListSnapshots(backup.Repository, backup.Password)
 			if err == nil {
 				var outputJSON []map[string]interface{}
-				if err := json.Unmarshal([]byte(output), &outputJSON); err == nil {
+				if err := json.Unmarshal([]byte(SplitJSONObjects(output)), &outputJSON); err == nil {
 					if len(outputJSON) == 0 {
 						err = DeleteRepository(backup.Repository)
 						if err != nil {
@@ -237,8 +348,19 @@ func RemoveBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListSnapshotsRoute godoc
+// @Summary List snapshots for a specific backup
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/snapshots [get]
 func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -262,7 +384,7 @@ func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var outputJSON []map[string]interface{}
-		if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
+		if err := json.Unmarshal([]byte(SplitJSONObjects(output)), &outputJSON); err != nil {
 			utils.Error("ListSnapshots: Failed to parse snapshots", err)
 			utils.HTTPError(w, "Failed to parse snapshots: "+err.Error(), http.StatusInternalServerError, "BCK007")
 			return
@@ -276,8 +398,21 @@ func ListSnapshotsRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListFoldersRoute godoc
+// @Summary List folders in a backup snapshot
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID"
+// @Param path query string false "Directory path within the snapshot"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/folders [get]
 func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -318,8 +453,22 @@ func ListFoldersRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// RestoreBackupRoute godoc
+// @Summary Restore files from a backup snapshot
+// @Tags Backups
+// @Accept json
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param body body object true "Restore request with snapshotId, target, and optional include paths"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/restore [post]
 func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -354,7 +503,7 @@ func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		var snapshotsArray []map[string]interface{}
-		if err := json.Unmarshal([]byte(snapshots), &snapshotsArray); err != nil {
+		if err := json.Unmarshal([]byte(SplitJSONObjects(snapshots)), &snapshotsArray); err != nil {
 			utils.Error("RestoreBackup: Failed to parse snapshots", err)
 			utils.HTTPError(w, "Failed to parse snapshots: "+err.Error(), http.StatusInternalServerError, "BCK010")
 			return
@@ -393,8 +542,19 @@ func RestoreBackupRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListSnapshotsRouteFromRepo godoc
+// @Summary List all snapshots in a backup repository (all backup tags)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name (used to resolve repository)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository/{name}/snapshots [get]
 func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -418,7 +578,7 @@ func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
 		var outputJSON []map[string]interface{}
-		if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
+		if err := json.Unmarshal([]byte(SplitJSONObjects(output)), &outputJSON); err != nil {
 			utils.Error("ListSnapshots: Failed to parse snapshots", err)
 			utils.HTTPError(w, "Failed to parse snapshots: "+err.Error(), http.StatusInternalServerError, "BCK007")
 			return
@@ -432,65 +592,111 @@ func ListSnapshotsRouteFromRepo(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ListRepos godoc
+// @Summary List all backup repositories with their lock status
+// @Tags Backups
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository [get]
 func ListRepos(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
 	if req.Method == "GET" {
 		config := utils.GetMainConfig()
-		repos := map[string]utils.SingleBackupConfig{}
+		seen := map[string]bool{}
 		results := map[string]interface{}{}
 
 		for _, backup := range config.Backup.Backups {
-			found := false
-			if _, exists := repos[backup.Repository]; exists {
-				found = true
+			if seen[backup.Repository] {
+				continue
 			}
-			
-			if !found {
-				repos[backup.Repository] = backup
+			seen[backup.Repository] = true
 
-				output, err := StatsRepository(backup.Repository, backup.Password)
-				if err != nil {
-					utils.Error("ListRepos: Failed to get repository stats", err)
-					results[backup.Repository] = map[string]interface{}{
-						"status": "error",
-						"id": backup.Name,
-						"error": err.Error(),
-					}
-				} else {
-					var outputJSON map[string]interface{}
-					if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
-						utils.Error("ListRepos: Failed to parse repository stats", err)
-						results[backup.Repository] = map[string]interface{}{
-							"status": "error",
-							"id": backup.Name,
-							"error": err.Error(),
-						}
-					} else {
-						results[backup.Repository] = map[string]interface{}{
-							"status": "ok",
-							"id": backup.Name,
-							"stats": outputJSON,
-							"path": backup.Repository,
-						}
-					}
-				}
+			locks := GetLocks(backup.Repository, backup.Password)
+			results[backup.Repository] = map[string]interface{}{
+				"status": "ok",
+				"id":     backup.Name,
+				"path":   backup.Repository,
+				"locks":  locks,
 			}
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data":	 results,
+			"data":   results,
 		})
 	} else {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 	}
 }
 
+// RepoStatsRoute godoc
+// @Summary Get repository statistics (size, file count, etc.)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name (used to resolve repository)"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups-repository/{name}/stats [get]
+func RepoStatsRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
+		return
+	}
+
+	if req.Method == "GET" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		backup, exists := utils.GetMainConfig().Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		output, err := StatsRepository(backup.Repository, backup.Password)
+		if err != nil {
+			utils.Error("RepoStats: Failed to get repository stats", err)
+			utils.HTTPError(w, "Failed to get repository stats: "+err.Error(), http.StatusInternalServerError, "BCK013")
+			return
+		}
+
+		var outputJSON map[string]interface{}
+		if err := json.Unmarshal([]byte(output), &outputJSON); err != nil {
+			utils.Error("RepoStats: Failed to parse repository stats", err)
+			utils.HTTPError(w, "Failed to parse repository stats: "+err.Error(), http.StatusInternalServerError, "BCK014")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data":   outputJSON,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// ForgetSnapshotRoute godoc
+// @Summary Forget (delete) a specific snapshot from a backup repository
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID to forget"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/forget [delete]
 func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
 		return
 	}
 
@@ -522,8 +728,21 @@ func ForgetSnapshotRoute(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// StatsRepositorySubfolderRoute godoc
+// @Summary Get restore size stats for a subfolder within a snapshot
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Param snapshot path string true "Snapshot ID"
+// @Param path query string false "Subfolder path within the snapshot"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/{snapshot}/subfolder-restore-size [get]
 func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
-	if utils.AdminOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
 	}
 
@@ -557,6 +776,48 @@ func StatsRepositorySubfolderRoute(w http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data":	 outputJSON,
+		})
+	} else {
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+	}
+}
+
+// UnlockRepositoryRoute godoc
+// @Summary Unlock a backup repository (remove stale locks)
+// @Tags Backups
+// @Produce json
+// @Param name path string true "Backup name"
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/backups/{name}/unlock [post]
+func UnlockRepositoryRoute(w http.ResponseWriter, req *http.Request) {
+	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES) != nil {
+		return
+	}
+
+	if req.Method == "POST" {
+		vars := mux.Vars(req)
+		name := vars["name"]
+
+		backup, exists := utils.GetMainConfig().Backup.Backups[name]
+		if !exists {
+			utils.HTTPError(w, "Backup not found", http.StatusNotFound, "BCK004")
+			return
+		}
+
+		err := UnlockRepository(backup.Repository, backup.Password)
+		if err != nil {
+			utils.Error("UnlockRepository: Failed to unlock repository", err)
+			utils.HTTPError(w, "Failed to unlock repository: "+err.Error(), http.StatusInternalServerError, "BCK012")
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status":  "OK",
+			"message": fmt.Sprintf("Unlocked repository for backup %s", name),
 		})
 	} else {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")

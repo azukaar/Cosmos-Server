@@ -7,11 +7,15 @@ import {
   Alert,
   Button,
   Grid,
+  IconButton,
+  InputLabel,
+  OutlinedInput,
   Stack,
   FormHelperText,
   TextField,
   MenuItem,
 } from '@mui/material';
+import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
 import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
@@ -20,6 +24,9 @@ import { IsRouteSocketProxy, ValidateRouteSchema, getHostnameFromName, sanitizeR
 import { isDomain } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../../components/filePicker';
+import PermissionGuard from '../../../components/permissionGuard';
+import { PERM_CONFIGURATION } from '../../../utils/permissions';
+import proFeatures from '../../../pro';
 
 const Hide = ({ children, h }) => {
   return h ? <div style={{ display: 'none' }}>
@@ -62,13 +69,13 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
 
     (async () => {
       setTunnels((await API.constellation.list()).data.filter(
-        (device) => device.isLighthouse
+        (device) => device.isLighthouse && device.isLoadBalancer
       ) || []);
     })();
 
   }, [])
  
-  return <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
+  return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
     <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
     
     {routeConfig && <>
@@ -81,6 +88,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           UseHost: routeConfig.UseHost,
           Host: routeConfig.Host,
           AcceptInsecureHTTPSTarget: routeConfig.AcceptInsecureHTTPSTarget === true,
+          UseH2C: routeConfig.UseH2C === true,
           UsePathPrefix: routeConfig.UsePathPrefix,
           PathPrefix: routeConfig.PathPrefix,
           StripPathPrefix: routeConfig.StripPathPrefix,
@@ -88,10 +96,18 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
           HideFromDashboard: routeConfig.HideFromDashboard,
           _SmartShield_Enabled: (routeConfig.SmartShield ? routeConfig.SmartShield.Enabled : false),
           RestrictToConstellation: routeConfig.RestrictToConstellation === true,
+          SkipURLClean: routeConfig.SkipURLClean === true,
           OverwriteHostHeader: routeConfig.OverwriteHostHeader,
-          TunnelVia: routeConfig.TunnelVia || '',
+          Tunnel: routeConfig.Tunnel,
           TunneledHost: routeConfig.TunneledHost,
           WhitelistInboundIPs: routeConfig.WhitelistInboundIPs && routeConfig.WhitelistInboundIPs.join(', '),
+          DisableLegacyHTTPHeaders: routeConfig.DisableLegacyHTTPHeaders === true,
+          LBMode: routeConfig.LBMode || '',
+          LBStickyMode: routeConfig.LBStickyMode === true,
+          AdditionalTargets: routeConfig.AdditionalTargets || [],
+          _ExtraHeaders: routeConfig.ExtraHeaders
+            ? Object.entries(routeConfig.ExtraHeaders).map(([key, value]) => ({ key, value }))
+            : [],
         }}
         validationSchema={ValidateRouteSchema}
         onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
@@ -106,10 +122,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
               values.WhitelistInboundIPs = [];
             }
 
+            // Convert extra headers array to map
+            const extraHeadersMap = {};
+            if (values._ExtraHeaders) {
+              values._ExtraHeaders.forEach(({ key, value }) => {
+                if (key.trim()) extraHeadersMap[key.trim()] = value;
+              });
+            }
+
             let fullValues = {
               ...routeConfig,
               ...values,
+              ExtraHeaders: extraHeadersMap,
             }
+            delete fullValues._ExtraHeaders;
 
             fullValues = sanitizeRoute(fullValues);
 
@@ -143,11 +169,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
         }}
         validate={(values) => {
           let commaSepIps = values.WhitelistInboundIPs;
-          
+
+          const extraHeadersMap = {};
+          if (values._ExtraHeaders) {
+            values._ExtraHeaders.forEach(({ key, value }) => {
+              if (key.trim()) extraHeadersMap[key.trim()] = value;
+            });
+          }
+
           let fullValues = {
             ...routeConfig,
             ...values,
+            ExtraHeaders: extraHeadersMap,
           }
+          delete fullValues._ExtraHeaders;
 
           if(commaSepIps && commaSepIps.length) {
             fullValues.WhitelistInboundIPs = commaSepIps.split(',').map((ip) => ip.trim());
@@ -347,24 +382,21 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                     formik={formik}
                   />
 
-                  {(formik.values.TunnelVia || tunnels.length > 0) && (<>
+                  {(formik.values.Tunnel || tunnels.length > 0) && (<>
                     <CosmosSelect
-                      name="TunnelVia"
-                      label={t('mgmt.urls.edit.tunnelViaSelection.tunnelViaLabel')}
+                      name="Tunnel"
+                      label={t('mgmt.urls.edit.tunnelSelection.tunnelLabel')}
                       formik={formik}
-                      onChange={(e) => {
-                        const newHostname = tunnels.find((t) => t.deviceName === e.target.value)?.publicHostname;
-                        formik.setFieldValue('TunneledHost', getHostnameFromName(formik.values.Name, null, config, newHostname));
-                      }}
                       options={[
-                        ['', 'None'],
+                        ['',  t('mgmt.urls.edit.tunnelSelection.noNode')],
+                        ['_ANY_', t('mgmt.urls.edit.tunnelSelection.anyNode')],
                         ...tunnels.map((t) => [t.deviceName, `${t.deviceName} (${t.publicHostname})`])
                       ]}
                     />
 
-                    {formik.values.TunnelVia && <CosmosInputText
+                    {formik.values.Tunnel && <CosmosInputText
                       name="TunneledHost"
-                      label={t('mgmt.urls.edit.tunneledHostInput.tunneledHostLabel')}
+                      label={t('mgmt.urls.edit.tunneledHostInput.tunneledHostLabel2')}
                       placeholder="other-host.com"
                       formik={formik}
                     />}
@@ -386,7 +418,20 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         label={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderLabel')}
                         placeholder={t('mgmt.urls.edit.advancedSettings.overwriteHostHeaderInput.overwriteHostHeaderPlaceholder')}
                         formik={formik}
-                      /></>}
+                      />
+
+                      <CosmosCheckbox
+                        name="SkipURLClean"
+                        label={t('mgmt.urls.edit.advancedSettings.skipURLCleanCheckbox.skipURLCleanLabel')}
+                        formik={formik}
+                      />
+
+                      {(formik.values.Mode === "SERVAPP" || formik.values.Mode === "PROXY") && <CosmosCheckbox
+                        name="UseH2C"
+                        label={t('mgmt.urls.edit.useH2CCheckbox.useH2CLabel')}
+                        formik={formik}
+                      />}
+                      </>}
 
                       <Alert severity='warning'>
                         {t('mgmt.urls.edit.advancedSettings.filterIpWarning')}
@@ -398,11 +443,82 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                         placeholder={t('mgmt.urls.edit.advancedSettings.whitelistInboundIpInput.whitelistInboundIpPlaceholder')}
                         formik={formik}
                       />
+
+                      <CosmosFormDivider title={t('mgmt.urls.edit.advancedSettings.extraHeaders.title')} />
+                      <Alert severity='info'>
+                        {t('mgmt.urls.edit.advancedSettings.extraHeaders.info')}
+                      </Alert>
+
+                      {formik.values._ExtraHeaders.map((header, idx) => (
+                        <Grid container key={idx} spacing={2} alignItems="center">
+                          <Grid item xs={5}>
+                            <TextField
+                              fullWidth
+                              label={t('mgmt.urls.edit.advancedSettings.extraHeaders.headerName')}
+                              placeholder="X-Custom-Header"
+                              value={header.key}
+                              onChange={(e) => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders[idx] = { ...newHeaders[idx], key: e.target.value };
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label={t('mgmt.urls.edit.advancedSettings.extraHeaders.headerValue')}
+                              placeholder="value"
+                              value={header.value}
+                              onChange={(e) => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders[idx] = { ...newHeaders[idx], value: e.target.value };
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={1}>
+                            <IconButton
+                              color="error"
+                              onClick={() => {
+                                const newHeaders = [...formik.values._ExtraHeaders];
+                                newHeaders.splice(idx, 1);
+                                formik.setFieldValue('_ExtraHeaders', newHeaders);
+                              }}
+                            >
+                              <DeleteOutlined />
+                            </IconButton>
+                          </Grid>
+                        </Grid>
+                      ))}
+
+                      <PermissionGuard permission={PERM_CONFIGURATION}>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          startIcon={<PlusCircleOutlined />}
+                          onClick={() => {
+                            const newHeaders = [...formik.values._ExtraHeaders];
+                            newHeaders.push({ key: '', value: '' });
+                            formik.setFieldValue('_ExtraHeaders', newHeaders);
+                          }}
+                        >
+                          {t('mgmt.urls.edit.advancedSettings.extraHeaders.add')}
+                        </Button>
+                      </PermissionGuard>
+
+                      <CosmosCheckbox
+                        name="DisableLegacyHTTPHeaders"
+                        label={t('mgmt.urls.edit.advancedSettings.disableLegacyHTTPHeaders')}
+                        formik={formik}
+                      />
+
+                      {proFeatures.RouteLBSettings && <proFeatures.RouteLBSettings formik={formik} />}
                     </Stack>
                   </CosmosCollapse>
                 </Grid>
               </MainCard>
-              {submitButton && <MainCard ><Button
+              {submitButton && <MainCard ><PermissionGuard permission={PERM_CONFIGURATION}><Button
                 fullWidth
                 disableElevation
                 size="large"
@@ -411,7 +527,7 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                 color="primary"
               >
                 {t('global.saveAction')}
-              </Button></MainCard>}
+              </Button></PermissionGuard></MainCard>}
             </Stack>
           </form>
         )}

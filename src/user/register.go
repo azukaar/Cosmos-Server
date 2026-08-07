@@ -17,6 +17,18 @@ type RegisterRequestJSON struct {
 	RegisterKey string `validate:"required,min=1,max=512,alphanum"`
 }
 
+// UserRegister godoc
+// @Summary Register a new user
+// @Description Completes user registration using a registration key (invite link)
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequestJSON true "Registration details including register key"
+// @Success 200 {object} utils.APIResponse
+// @Failure 401 {object} utils.HTTPErrorResult
+// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/register [post]
 func UserRegister(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		time.Sleep(time.Duration(rand.Float64()*2)*time.Second)

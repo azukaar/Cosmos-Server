@@ -23,9 +23,16 @@ import MiniPlotComponent from '../dashboard/components/mini-plot';
 import { DownloadFile } from '../../api/downloadButton';
 import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from '../../utils/permissions';
 
 const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  backgroundColor: theme.palette.mode === 'dark' ? 'rgba(20,24,35,0.7)' : 'rgba(255,255,255)',
+  backdropFilter: 'blur(8px)',
+  WebkitBackdropFilter: 'blur(8px)',
+  borderRadius: '12px',
+  border: theme.palette.mode === 'dark' ? '1px solid rgba(40,48,70,0.6)' : '1px solid rgba(0,0,0,0.06)',
+  boxShadow: theme.customShadows?.glass || 'none',
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: 'center',
@@ -45,7 +52,7 @@ const noOver = {
   overflowX: 'auto',
   width: "100%",
   maxWidth: "800px",
-  height: "50px"
+  height: "55px"
 }
 
 const ServApps = ({stack}) => {
@@ -227,7 +234,7 @@ const ServApps = ({stack}) => {
     }
   });
 
-  return <div>
+  return <div style={{ maxWidth: "1200px", margin: "auto" }}>
     <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} newRoute />
     <ExposeModal
       openModal={openModal} 
@@ -248,6 +255,30 @@ const ServApps = ({stack}) => {
         {stack && <Link to="/cosmos-ui/servapps">
           <ResponsiveButton variant="secondary" startIcon={<RollbackOutlined />}>Back</ResponsiveButton>
         </Link>}
+        {!stack && <>
+        <PermissionGuard permission={PERM_RESOURCES}>
+          <Link to="/cosmos-ui/servapps/new-service" style={{ textDecoration: 'none' }}>
+            <ResponsiveButton
+              variant="contained"
+              startIcon={<AppstoreAddOutlined />}
+              >{t('navigation.market.startServAppButton')}</ResponsiveButton>
+          </Link>
+        </PermissionGuard>
+        <ResponsiveButton variant="outlined" startIcon={<ReloadOutlined />} onClick={() => {
+          refreshServApps();
+        }}>{t('global.refresh')}</ResponsiveButton>
+        <DockerComposeImport refresh={refreshServApps}/>
+        <PermissionGuard permission={PERM_CREDENTIALS_READ}>
+          <DownloadFile
+            filename={'backup.cosmos-compose.json'}
+            label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
+            contentGetter={API.config.getBackup}
+          />
+        </PermissionGuard>
+        </>}
+      </Stack>
+
+      <div>
         <Input placeholder={t('global.searchPlaceholder')}
           value={search}
           startAdornment={
@@ -259,24 +290,7 @@ const ServApps = ({stack}) => {
             setSearch(e.target.value);
           }}
         />
-        <ResponsiveButton variant="contained" startIcon={<ReloadOutlined />} onClick={() => {
-          refreshServApps();
-        }}>{t('global.refresh')}</ResponsiveButton>
-        {!stack && <>
-        <Link to="/cosmos-ui/servapps/new-service">
-          <ResponsiveButton
-            variant="contained" 
-            startIcon={<AppstoreAddOutlined />}
-            >{t('navigation.market.startServAppButton')}</ResponsiveButton>
-        </Link>
-        <DockerComposeImport refresh={refreshServApps}/>
-        <DownloadFile
-          filename={'backup.cosmos-compose.json'}
-          label={t('mgmt.servApps.exportDockerBackupButton.exportDockerBackupLabel')}
-          contentGetter={API.config.getBackup}
-        />
-        </>}
-      </Stack>
+      </div>
       
       <Grid2 container spacing={{xs: 1, sm: 1, md: 2 }}>
         {updatesAvailable && updatesAvailable.length && <Grid2 style={gridAnim} xs={12} item>
@@ -313,7 +327,7 @@ const ServApps = ({stack}) => {
                   </Typography>
                   <Stack direction="row" spacing={2} alignItems="center">
                     {app.type === 'app' && <ServAppIcon container={app.app} route={getFirstRoute(app.app)} className="loading-image" width="40px"/>}
-                    {app.type === 'stack' && <StyledBadge  overlap="circular" 
+                    {app.type === 'stack' && <StyledBadge  overlap="circular"
                       anchorOrigin={{
                         vertical: 'bottom',
                         horizontal: 'right',
@@ -333,7 +347,7 @@ const ServApps = ({stack}) => {
                   </Stack>
                 </Stack>
                 <Stack direction="row" spacing={1} width='100%'>
-                  <GetActions 
+                  <GetActions
                     Id={app.app.Names[0].replace('/', '')}
                     Ids={app.apps.map((app) => {
                       return app.Names[0].replace('/', '');
@@ -349,41 +363,16 @@ const ServApps = ({stack}) => {
                   />
                 </Stack>
               </Stack>
-              <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
-                <Typography  variant="h6" color="text.secondary">
-                  Ports
-                </Typography> 
-                <Stack style={noOver} margin={1} direction="row" spacing={1}>
-                  {console.log(app.ports)}
-                  {app.ports && (app.ports.filter(p => p && p.IP != '::').map((port) => {
-                    return <Tooltip title={port.PublicPort ? 'Warning, this port is publicly accessible' : ''}>
-                      <Chip style={{ fontSize: '80%' }} label={(port.PublicPort ? (port.PublicPort + ":") : '') + port.PrivatePort} color={port.PublicPort ? 'warning' : 'default'} />
-                    </Tooltip>
-                  }))}
-                </Stack>
-              </Stack>
-              <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
-                <Typography  variant="h6" color="text.secondary">
-                  {t('global.networks')}
-                </Typography> 
-                <Stack style={noOver} margin={1} direction="row" spacing={1}>
-                  {app.networkSettings.Networks && Object.keys(app.networkSettings.Networks).map((network) => {
-                    return <Chip style={{ fontSize: '80%' }} label={network} color={network === 'bridge' ? 'warning' : 'default'} />
-                  })}
-                </Stack>
-              </Stack>
-              <Stack margin={1} direction="column" spacing={1} alignItems="flex-start">
-                <Typography  variant="h6" color="text.secondary">
-                  {t('menu-items.management.urls')}
-                </Typography>
-                <Stack style={noOver} spacing={2} direction="row">
-                  {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
-                    return <HostChip route={route} settings/>
-                  })}
-                  {/* {getContainersRoutes(config, app.Names[0].replace('/', '')).length == 0 && */}
-                    <Chip 
+              <Stack margin={1} direction="column" spacing={1} alignItems="flex-start" width="100%">
+                <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between" width="100%">
+                  <Typography variant="h6" color="text.secondary">
+                    {t('menu-items.management.urls')}
+                  </Typography>
+                  <PermissionGuard permission={PERM_RESOURCES}>
+                    <Chip
                       label={t('mgmt.servApps.newChip.newLabel')}
                       color="primary"
+                      size="small"
                       style={{paddingRight: '4px'}}
                       deleteIcon={<PlusCircleOutlined />}
                       onClick={() => {
@@ -393,7 +382,24 @@ const ServApps = ({stack}) => {
                         setOpenModal(app.app);
                       }}
                     />
-                    {/* } */}
+                  </PermissionGuard>
+                </Stack>
+                <Stack style={noOver} spacing={1} direction="row" alignItems="center" >
+                  {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
+                    return <HostChip route={route} settings/>
+                  })}
+                  {app.networkSettings && app.networkSettings.Networks && app.networkSettings.Networks['host'] &&
+                    <Chip style={{ fontSize: '80%' }} label="Host Network" color="warning" variant='outlined' />
+                  }
+                  {app.ports && app.ports.filter(p => p && p.IP != '::' && p.PublicPort).map((port) => {
+                    return <Chip
+                      style={{ fontSize: '80%', cursor: 'pointer' }}
+                      label={port.PublicPort + ":" + port.PrivatePort}
+                      color="warning"
+                      variant='outlined'
+                      onClick={() => window.open(`${window.location.protocol}//${window.location.hostname}:${port.PublicPort}`, '_blank')}
+                    />
+                  })}
                 </Stack>
               </Stack>
               {app.isUpdating ? <div>

@@ -304,8 +304,17 @@ func DoLetsEncrypt() (string, string) {
 			}
 		}
 
+		propagationWaitSec := config.HTTPConfig.DNSChallengePropagationWait
+		if propagationWaitSec <= 0 {
+			propagationWaitSec = 30
+		}
+		var PropagationWait = time.Duration(propagationWaitSec) * time.Second
+
 		err = client.Challenge.SetDNS01Provider(provider,
-			dns01.AddRecursiveNameservers(resolvers))
+			dns01.AddRecursiveNameservers(resolvers),
+			dns01.CondOption(config.HTTPConfig.DisablePropagationChecks,
+				dns01.PropagationWait(PropagationWait, true)),
+		)
 	} else {
 		err = client.Challenge.SetHTTP01Provider(http01.NewProviderServer("", config.HTTPConfig.HTTPPort))
 		if err != nil {

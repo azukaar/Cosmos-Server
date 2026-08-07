@@ -1,5 +1,6 @@
 // assets
 import { HomeOutlined, AppstoreOutlined, DashboardOutlined, AppstoreAddOutlined, CheckOutlined } from '@ant-design/icons';
+import { PERM_ADMIN_READ } from '../utils/permissions';
 import { isDomain } from '../utils/indexs';
 
 // icons
@@ -31,7 +32,7 @@ const dashboard = {
             url: '/cosmos-ui/monitoring',
             icon: DashboardOutlined,
             breadcrumbs: false,
-            adminOnly: true
+            permission: PERM_ADMIN_READ
         },
         {
             id: 'market',

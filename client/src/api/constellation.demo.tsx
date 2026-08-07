@@ -41,6 +41,7 @@ function list() {
           "fingerprint": "..."
         }
       ],
+      "currentDeviceName": "cosmos",
       "status": "OK"
     })
   });
@@ -137,6 +138,25 @@ function pingDevice() {
   });
 }
 
+function tunnels() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": []
+    })
+  });
+}
+
+function getNextIP() {
+  return new Promise((resolve, reject) => {
+    resolve({
+      "status": "ok",
+      "data": "192.168.201.10"
+    })
+  });
+}
+
+
 export {
   list,
   addDevice,
@@ -147,5 +167,6 @@ export {
   connect,
   block,
   ping,
-  pingDevice
+  pingDevice,
+  tunnels
 };

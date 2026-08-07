@@ -1,5 +1,5 @@
 // material-ui
-import { Alert, Button, InputLabel, OutlinedInput, Stack, TextField } from '@mui/material';
+import { Alert, Button, InputLabel, OutlinedInput, Stack, TextField, Tooltip } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -9,7 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import * as React from 'react';
 import { useState } from 'react';
 import ResponsiveButton from '../../components/responseiveButton';
-import { PlusCircleFilled } from '@ant-design/icons';
+import { PlusCircleFilled, QuestionCircleOutlined } from '@ant-design/icons';
 import { Formik } from 'formik';
 import * as yup from 'yup';
 import * as API from '../../api';
@@ -17,33 +17,30 @@ import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect } from
 import { DownloadFile } from '../../api/downloadButton';
 import QRCode from 'qrcode';
 import { useClientInfos } from '../../utils/hooks';
+import { PERM_RESOURCES } from '../../utils/permissions';
+import PermissionGuard from '../../components/permissionGuard';
 import { useTranslation } from 'react-i18next';
 import { json } from 'react-router';
 
-const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
+const AddDeviceModal = ({ users, config, refreshConfig, devices, canCreateManager, canCreateAgent }) => {
   const { t } = useTranslation();
   const [openModal, setOpenModal] = useState(false);
   const [isDone, setIsDone] = useState(null);
+  const [nextIP, setNextIP] = useState("");
   const canvasRef = React.useRef(null);
-  const {role, nickname} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission, nickname } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES);
 
-  let firstIP = "192.168.201.2/24";
-  if (devices && devices.length > 0) { 
-    const isIpFree = (ip) => {
-      return devices.filter((d) => d.ip === ip).length === 0;
-    }
-    let i = 1;
-    let j = 201;
-    while (!isIpFree(firstIP)) {
-      i++;
-      if (i > 254) {
-        i = 0;
-        j++;
+  const fetchNextIP = async () => {
+    try {
+      const res = await API.constellation.getNextIP();
+      if (res.data) {
+        setNextIP(res.data);
       }
-      firstIP = "192.168." + j + "." + i + "/24";
+    } catch (err) {
+      console.error("Error fetching next IP:", err);
     }
-  }
+  };
 
   const renderCanvas = (data) => {
     if (!canvasRef.current) return setTimeout(() => {
@@ -67,33 +64,38 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
   return <>
     <Dialog open={openModal} onClose={() => setOpenModal(false)}>
       <Formik
+        enableReinitialize
         initialValues={{
           nickname: nickname,
           deviceName: '',
-          ip: firstIP,
+          ip: nextIP,
           publicKey: '',
           Port: "4242",
           PublicHostname: '',
           IsRelay: true,
           IsExitNode: true,
+          IsLoadBalancer: true,
           deviceType: 'client',
+          isLighthouse: true,
           invisible: false,
         }}
 
         validationSchema={yup.object({
+          deviceName: yup.string().required().min(3).max(32)
+            .matches(/^[a-z0-9-]+$/, t('mgmt.constellation.setup.deviceName.validationError')),
         })}
 
         onSubmit={(values, { setSubmitting, setStatus, setErrors }) => {
-          // Convert deviceType to boolean flags
-          const isLighthouse = values.deviceType === 'lighthouse' || values.deviceType === 'cosmos';
-          const isCosmosNode = values.deviceType === 'cosmos';
+          const isCosmosServer = values.deviceType === 'cosmos-manager' || values.deviceType === 'cosmos-agent';
+          const isLighthouse = values.deviceType === 'lighthouse' || (isCosmosServer && values.isLighthouse);
+          const cosmosNode = values.deviceType === 'cosmos-manager' ? 2 : values.deviceType === 'cosmos-agent' ? 1 : 0;
 
           if(isLighthouse) values.nickname = null;
 
           const payload = {
             ...values,
             isLighthouse,
-            isCosmosNode,
+            cosmosNode,
           };
 
           return API.constellation.addDevice(payload).then(({data}) => {
@@ -154,12 +156,21 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                   <Stack spacing={2} style={{}}>
                   <CosmosSelect
                     name="deviceType"
-                    label={t('mgmt.constellation.setup.deviceType.label')}
+                    label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                      <span>{t('mgmt.constellation.setup.deviceType.label')}</span>
+                      <Tooltip title={t('mgmt.constellation.setup.deviceType.tooltip')}>
+                        <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                      </Tooltip>
+                    </Stack>}
                     formik={formik}
-                    options={[
+                    disabled={!isAdmin}
+                    options={isAdmin ? [
                       ['client', t('mgmt.constellation.setup.deviceType.client')],
-                      ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
-                      ['cosmos', t('mgmt.constellation.setup.deviceType.cosmos')],
+                      // ['lighthouse', t('mgmt.constellation.setup.deviceType.lighthouse')],
+                      ['cosmos-agent', t('mgmt.constellation.setup.deviceType.cosmosAgent'), !canCreateAgent],
+                      ['cosmos-manager', t('mgmt.constellation.setup.deviceType.cosmosManager'), !canCreateManager],
+                    ] : [
+                      ['client', t('mgmt.constellation.setup.deviceType.client')],
                     ]}
                   />
                   {formik.values.deviceType === 'client' &&
@@ -211,24 +222,60 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
                       />
                     </>}
 
-                    {(formik.values.deviceType === 'lighthouse' || formik.values.deviceType === 'cosmos') && <>
+                    {(formik.values.deviceType === 'lighthouse' || formik.values.deviceType === 'cosmos-manager' || formik.values.deviceType === 'cosmos-agent') && <>
                       <CosmosFormDivider title={t('mgmt.constellation.setuplighthouseTitle')} />
 
-                      <CosmosInputText
+                      {(formik.values.deviceType === 'cosmos-manager' || formik.values.deviceType === 'cosmos-agent') && <>
+                        <CosmosCheckbox
+                          name="isLighthouse"
+                          label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                            <span>{t('mgmt.constellation.setup.isLighthouse.label')}</span>
+                            <Tooltip title={t('mgmt.constellation.setup.isLighthouse.tooltip')}>
+                              <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                            </Tooltip>
+                          </Stack>}
+                          formik={formik}
+                        />
+                      </>}
+
+                      {formik.values.isLighthouse && <CosmosInputText
                         name="PublicHostname"
                         label={t('mgmt.constellation.setup.pubHostname.label')}
                         formik={formik}
-                      />
+                      />}
+
+                      {(formik.values.deviceType === 'cosmos-manager' || formik.values.deviceType === 'cosmos-agent') && <>
+                        <CosmosCheckbox
+                          name="IsLoadBalancer"
+                          label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                            <span>{t('mgmt.constellation.isLoadBalancer.label')}</span>
+                            <Tooltip title={t('mgmt.constellation.setup.loadBalancer.tooltip')}>
+                              <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                            </Tooltip>
+                          </Stack>}
+                          formik={formik}
+                        />
+                      </>}
 
                       <CosmosCheckbox
                         name="IsRelay"
-                        label={t('mgmt.constellation.isRelay.label')}
+                        label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.isRelay.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.relayRequests.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>}
                         formik={formik}
                       />
 
                       <CosmosCheckbox
                         name="IsExitNode"
-                        label={t('mgmt.constellation.isExitNode.label')}
+                        label={<Stack direction="row" spacing={0.5} alignItems="center" component="span">
+                          <span>{t('mgmt.constellation.isExitNode.label')}</span>
+                          <Tooltip title={t('mgmt.constellation.setup.exitNode.tooltip')}>
+                            <QuestionCircleOutlined style={{ fontSize: 14, cursor: 'help', opacity: 0.6 }} />
+                          </Tooltip>
+                        </Stack>}
                         formik={formik}
                       />
                     </>}
@@ -256,19 +303,22 @@ const AddDeviceModal = ({ users, config, refreshConfig, devices }) => {
       </Formik>
     </Dialog>
 
-    <ResponsiveButton
-      color="primary"
-      onClick={() => {
-        setIsDone(null);
-        setOpenModal(true);
-      }}
-      variant={
-        "contained"
-      }
-      startIcon={<PlusCircleFilled />}
-    >
-      {t('mgmt.constellation.setup.addDeviceTitle')}
-    </ResponsiveButton>
+    <PermissionGuard permission={PERM_RESOURCES}>
+      <ResponsiveButton
+        color="primary"
+        onClick={() => {
+          setIsDone(null);
+          fetchNextIP();
+          setOpenModal(true);
+        }}
+        variant={
+          "contained"
+        }
+        startIcon={<PlusCircleFilled />}
+      >
+        {t('mgmt.constellation.setup.addDeviceTitle')}
+      </ResponsiveButton>
+    </PermissionGuard>
   </>;
 };
 

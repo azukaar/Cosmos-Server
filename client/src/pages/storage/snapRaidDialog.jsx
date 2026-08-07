@@ -9,6 +9,8 @@ import * as API from '../../api';
 import { MountPicker } from "./mountPicker";
 import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import PermissionGuard from "../../components/permissionGuard";
+import { PERM_RESOURCES } from "../../utils/permissions";
 import { crontabToText } from "../../utils/indexs";
 import { MountPickerEntry } from "./mountPickerEntry";
 import { json } from "react-router";
@@ -195,14 +197,14 @@ const SnapRAIDDialog = ({ refresh, data, disabled }) => {
     {open && <SnapRAIDDialogInternal refresh={refresh} open={open} setOpen={setOpen} data={data} />}
     
     <div>
-      {!data ? <ResponsiveButton
+      {!data ? <PermissionGuard permission={PERM_RESOURCES}><ResponsiveButton
         onClick={() => {setOpen(true);}}
         variant="contained"
         size="small"
         disabled={disabled}
         startIcon={<PlusCircleOutlined />}
-      >{t('mgmt.storage.snapraid.createParity.newDisks')}</ResponsiveButton> :
-      <div onClick={() => setOpen(true)}>{t('global.edit')}</div>}
+      >{t('mgmt.storage.snapraid.createParity.newDisks')}</ResponsiveButton></PermissionGuard> :
+      <PermissionGuard permission={PERM_RESOURCES}><div onClick={() => setOpen(true)}>{t('global.edit')}</div></PermissionGuard>}
     </div>
   </>
 }

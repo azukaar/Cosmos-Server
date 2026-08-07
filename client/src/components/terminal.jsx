@@ -6,6 +6,8 @@ import { Alert, Input, Stack, useMediaQuery, useTheme } from '@mui/material';
 import { ApiOutlined, SendOutlined } from '@ant-design/icons';
 import ResponsiveButton from './responseiveButton';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from './permissionGuard';
+import { PERM_RESOURCES } from '../utils/permissions';
 
 import { Terminal } from '@xterm/xterm'
 import '@xterm/xterm/css/xterm.css'
@@ -227,7 +229,7 @@ const TerminalComponent = ({refresh, connectButtons}) => {
       ) :
         <>  
           {connectButtons && connectButtons.map((button, index) => (
-            <ResponsiveButton key={index} variant="contained" onClick={() => button.onClick(connect)}>{button.label}</ResponsiveButton>
+            <PermissionGuard key={index} permission={PERM_RESOURCES}><ResponsiveButton variant="contained" onClick={() => button.onClick(connect)}>{button.label}</ResponsiveButton></PermissionGuard>
           ))}
         </>
       }

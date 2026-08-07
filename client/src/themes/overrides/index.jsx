@@ -6,6 +6,7 @@ import Badge from './Badge';
 import Button from './Button';
 import CardContent from './CardContent';
 import Checkbox from './Checkbox';
+import Dialog from './Dialog';
 import Chip from './Chip';
 import IconButton from './IconButton';
 import InputLabel from './InputLabel';
@@ -16,6 +17,7 @@ import OutlinedInput from './OutlinedInput';
 import Tab from './Tab';
 import TableCell from './TableCell';
 import Tabs from './Tabs';
+import Tooltip from './Tooltip';
 import Typography from './Typography';
 
 // ==============================|| OVERRIDES - MAIN ||============================== //
@@ -27,6 +29,7 @@ export default function ComponentsOverrides(theme) {
         CardContent(),
         Checkbox(theme),
         Chip(theme),
+        Dialog(theme),
         IconButton(theme),
         InputLabel(theme),
         LinearProgress(),
@@ -36,6 +39,7 @@ export default function ComponentsOverrides(theme) {
         Tab(theme),
         TableCell(theme),
         Tabs(),
+        Tooltip(theme),
         Typography(),
     );
 }

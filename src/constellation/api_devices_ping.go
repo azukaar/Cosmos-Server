@@ -10,13 +10,25 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
+// DevicePing godoc
+// @Summary Ping a Constellation device to check reachability
+// @Tags constellation
+// @Produce json
+// @Param id path string true "Device name/ID"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 400 {object} utils.HTTPErrorResult
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices/{id}/ping [get]
 func DevicePing(w http.ResponseWriter, req *http.Request) {
 	if req.Method != "GET" {
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP002")
 		return
 	}
 
-	if utils.LoggedInOnly(w, req) != nil {
+	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
 		return
 	}
 
@@ -37,11 +49,24 @@ func DevicePing(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
 		return
 	}
+	
+	currentDeviceName, err := GetCurrentDeviceName()
+	if deviceID == currentDeviceName {
+		// Respond with the ping result
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"status": "OK",
+			"data": map[string]interface{}{
+				"deviceName": currentDeviceName,
+				"reachable":  true,
+			},
+		})
+		return
+	}
 
 	var device utils.ConstellationDevice
 
 	// Find the device by DeviceName
-	err := c.FindOne(nil, map[string]interface{}{
+	err = c.FindOne(nil, map[string]interface{}{
 		"DeviceName": deviceID,
 	}).Decode(&device)
 

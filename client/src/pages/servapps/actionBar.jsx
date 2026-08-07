@@ -5,6 +5,8 @@ import * as API from '../../api';
 import LogsInModal from '../../components/logsInModal';
 import DeleteModal from './deleteModal';
 import { useTranslation } from 'react-i18next';
+import PermissionGuard from '../../components/permissionGuard';
+import { PERM_RESOURCES } from '../../utils/permissions';
 
 const GetActions = ({
   Id,
@@ -67,70 +69,70 @@ const GetActions = ({
     {
       t: t('mgmt.servapps.actionBar.update') + (isStack ? ', go the stack details to update' : ', Click to Update'),
       if: ['update_available'],
-      es:  <IconButton className="shinyButton" style={{cursor: 'not-allowed'}} color='primary' onClick={()=>{}} size={isMiniMobile ? 'medium' : 'large'}>
+      es: <PermissionGuard permission={PERM_RESOURCES}><IconButton className="shinyButton" style={{cursor: 'not-allowed'}} color='primary' onClick={()=>{}} size={isMiniMobile ? 'medium' : 'large'}>
       <UpCircleOutlined />
-    </IconButton>,
-      e: <IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
+    </IconButton></PermissionGuard>,
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton className="shinyButton" color='primary' onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.noUpdate'),
       if: ['update_not_available'],
       hideStack: true,
-      e: <IconButton onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => {doTo('update')}} size={isMiniMobile ? 'medium' : 'large'}>
         <UpCircleOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.start'),
       if: ['exited', 'created'],
-      e: <IconButton onClick={() => {doTo('start')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => {doTo('start')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.unpause'),
       if: ['paused'],
-      e: <IconButton onClick={() => {doTo('unpause')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => {doTo('unpause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PlaySquareOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.pause'),
       if: ['running'],
-      e: <IconButton onClick={() => {doTo('pause')}} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => {doTo('pause')}} size={isMiniMobile ? 'medium' : 'large'}>
         <PauseCircleOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.stop'),
       if: ['paused', 'restarting', 'running'],
-      e: <IconButton onClick={() => {doTo('stop')}} size={isMiniMobile ? 'medium' : 'large'} variant="outlined">
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => {doTo('stop')}} size={isMiniMobile ? 'medium' : 'large'} variant="outlined">
         <StopOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.restart'),
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
-      e: <IconButton onClick={() => doTo('restart')} size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => doTo('restart')} size={isMiniMobile ? 'medium' : 'large'}>
         <ReloadOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.recreate'),
       if: ['exited', 'running', 'paused', 'created', 'restarting'],
       hideStack: true,
-      e: <IconButton onClick={() => doTo('recreate')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => doTo('recreate')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <RollbackOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('mgmt.servapps.actionBar.kill'),
       if: ['running', 'paused', 'created', 'restarting'],
-      e: <IconButton onClick={() => doTo('kill')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
+      e: <PermissionGuard permission={PERM_RESOURCES}><IconButton onClick={() => doTo('kill')} color="error" size={isMiniMobile ? 'medium' : 'large'}>
         <CloseSquareOutlined />
-      </IconButton>
+      </IconButton></PermissionGuard>
     },
     {
       t: t('global.delete'),

@@ -298,7 +298,7 @@ func ExportDocker() {
 		yamlData := buf.Bytes()
 
 		// Write the JSON data to a file
-		err = ioutil.WriteFile(utils.CONFIGFOLDER + "cosmos.docker-compose.yaml", yamlData, 0644)
+		err = ioutil.WriteFile(utils.CONFIGFOLDER + "cosmos.docker-compose.yaml", yamlData, 0600)
 		if err != nil {
 				utils.MajorError("Export Docker - Cannot save docker backup", err)
 				ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
@@ -330,7 +330,7 @@ func ExportDocker() {
 	jsonData := buf.Bytes()
 
 	// Write the JSON data to a file
-	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0644)
+	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0600)
 	if err != nil {
 		utils.MajorError("Export Docker - Cannot save docker backup", err)
 		ExportError = "Export Docker - Cannot save docker backup - " + err.Error()

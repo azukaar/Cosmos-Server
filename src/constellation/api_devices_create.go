@@ -3,31 +3,47 @@ package constellation
 import (
 	"net/http"
 	"encoding/json"
+	"errors"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 )
 
 type DeviceCreateRequestJSON struct {
-	DeviceName string `json:"deviceName",validate:"required,min=3,max=32,alphanum"`
-	IP string `json:"ip",validate:"required,ipv4"`
-	PublicKey string `json:"publicKey",omitempty`
+	DeviceName string `json:"deviceName" validate:"required,min=3,max=32"`
+	IP string `json:"ip" validate:"required,ipv4"`
+	PublicKey string `json:"publicKey,omitempty"`
 
 	// for devices only
-	Nickname string `json:"nickname",validate:"max=32,alphanum",omitempty`
-	Invisible bool `json:"invisible",omitempty`
+	Nickname string `json:"nickname,omitempty" validate:"omitempty,max=32"`
+	Invisible bool `json:"invisible,omitempty"`
 
 	// for lighthouse only
-	IsLighthouse bool `json:"isLighthouse",omitempty`
-	IsCosmosNode bool `json:"isCosmosNode",omitempty`
-	IsRelay bool `json:"isRelay",omitempty`
-	IsExitNode bool `json:"isExitNode",omitempty`
-	PublicHostname string `json:"PublicHostname",omitempty`
-	Port string `json:"port",omitempty`
+	IsLighthouse bool `json:"isLighthouse,omitempty"`
+	CosmosNode int `json:"cosmosNode,omitempty"`
+	IsRelay bool `json:"isRelay,omitempty"`
+	IsLoadBalancer bool `json:"isLoadBalancer,omitempty"`
+	IsExitNode bool `json:"isExitNode,omitempty"`
+	PublicHostname string `json:"PublicHostname,omitempty"`
+	Port string `json:"port,omitempty"`
 
+	// internal
+	APIKey string `json:"-"`
 }
 
-func DeviceCreate(w http.ResponseWriter, req *http.Request) {
+// DeviceCreate_API godoc
+// @Summary Create a new Constellation device and generate its certificates
+// @Tags constellation
+// @Accept json
+// @Produce json
+// @Param body body DeviceCreateRequestJSON true "Device creation payload"
+// @Security BearerAuth
+// @Success 200 {object} utils.APIResponse
+// @Failure 403 {object} utils.HTTPErrorResult
+// @Failure 500 {object} utils.HTTPErrorResult
+// @Router /api/constellation/devices [post]
+func DeviceCreate_API(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "POST") {
 		var request DeviceCreateRequestJSON
 		err1 := json.NewDecoder(req.Body).Decode(&request)
@@ -38,10 +54,31 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 			return 
 		}
 
-		if !utils.FBL.LValid && !utils.FBL.IsCosmosNode {
+		if !utils.FBL.LValid {
 			utils.Error("ConstellationDeviceCreation: No valid licence found to use Constellation.", nil)
 			utils.HTTPError(w, "Device Creation Error: No valid licence found to use Constellation.",
 				http.StatusInternalServerError, "DC001")
+			return
+		}
+
+		if utils.FBL.AgentMode {
+			utils.Error("ConstellationDeviceCreation: Agents cannot create devices. Use a manager server", nil)
+			utils.HTTPError(w, "Device Creation Error: Agents cannot create devices. Use a manager server",
+				http.StatusInternalServerError, "DC001")
+			return
+		}
+
+		nickname := utils.Sanitize(request.Nickname)
+
+		if utils.CheckPermissionsOrSelf(w, req, nickname, utils.PERM_RESOURCES) != nil {
+			return
+		}
+
+		// Non-admin users can only create client devices
+		if !utils.HasPermission(req, utils.PERM_RESOURCES) && request.IsLighthouse {
+			utils.Error("DeviceCreation: Non-admin users can only create client devices", nil)
+			utils.HTTPError(w, "Device Creation Error: Only administrators can create lighthouse devices",
+				http.StatusForbidden, "DC006")
 			return
 		}
 
@@ -52,147 +89,27 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				http.StatusInternalServerError, "DC002")
 			return 
 		}
-		
-		nickname := utils.Sanitize(request.Nickname)
-		deviceName := utils.Sanitize(request.DeviceName)
-		APIKey := utils.GenerateRandomString(32)
 
-		// name cannot be "cosmos"
-		if deviceName == "cosmos" {
-			utils.Error("DeviceCreation: Device name cannot be 'cosmos'", nil)
-			utils.HTTPError(w, "Device Creation Error: Device name cannot be 'cosmos'",
-				http.StatusBadRequest, "DC008")
-			return
-		}
-		
-		if utils.AdminOrItselfOnly(w, req, nickname) != nil {
+		cert, key, _, request, err := DeviceCreate(request)
+		if err != nil {
+			utils.Error("DeviceCreation: Error creating device", err)
+			utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+				http.StatusInternalServerError, "DC003")
 			return
 		}
 
-		utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
-
-		c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
-        defer closeDb()
+		APIKey := request.APIKey
+		deviceName := request.DeviceName
 		
-		if errCo != nil {
-				utils.Error("Database Connect", errCo)
-				utils.HTTPError(w, "Database", http.StatusInternalServerError, "DB001")
-				return
+		capki, err := getCApki()
+		if err != nil {
+			utils.Error("DeviceCreation: Error while reading CA", err)
+			utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+				http.StatusInternalServerError, "DC003")
+			return
 		}
 
-		device := utils.Device{}
-
-		utils.Debug("ConstellationDeviceCreation: Creating Device " + deviceName)
-		
-		err2 := c.FindOne(nil, map[string]interface{}{
-			"DeviceName": deviceName,
-			"Blocked": false,
-		}).Decode(&device)
-
-		if err2 == mongo.ErrNoDocuments {
-
-			cert, key, fingerprint, err := generateNebulaCert(deviceName, request.IP, request.PublicKey, false)
-
-			if err != nil {
-				utils.Error("DeviceCreation: Error while creating Device", err)
-				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
-					http.StatusInternalServerError, "DC001")
-				return
-			}
-
-			// Cosmos nodes are also lighthouses
-			if request.IsCosmosNode {
-				request.IsLighthouse = true
-			}
-
-			// Check cosmos node and devices limit
-			if request.IsCosmosNode {
-				totalClientLimit := 10 * int64(utils.GetNumberUsers())
-
-				count, errCount := c.CountDocuments(nil, map[string]interface{}{
-					"IsCosmosNode": true,
-					"Blocked": false,
-				})
-				if errCount != nil {
-					utils.Error("DeviceCreation: Error while counting cosmos nodes", errCount)
-					utils.HTTPError(w, "Device Creation Error", http.StatusInternalServerError, "DC009")
-					return
-				}
-
-				countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
-					"Blocked": false,
-				})
-				if errCountDevices != nil {
-					utils.Error("DeviceCreation: Error while counting devices", errCountDevices)
-					utils.HTTPError(w, "Device Creation Error", http.StatusInternalServerError, "DC011")
-					return
-				}
-
-				if countDevices >= totalClientLimit {
-					utils.Error("DeviceCreation: Device limit reached", nil)
-					utils.HTTPError(w, "Device limit reached", http.StatusConflict, "DC012")
-					return
-				}
-
-				if count >= int64(utils.GetNumberCosmosNode()) {
-					utils.Error("DeviceCreation: Cosmos node limit reached", nil)
-					utils.HTTPError(w, "Cosmos node limit reached", http.StatusConflict, "DC010")
-					return
-				}
-			}
-
-			if request.IsLighthouse && request.Nickname != "" {
-				utils.Error("DeviceCreation: Lighthouse cannot belong to a user", nil)
-				utils.HTTPError(w, "Device Creation Error: Lighthouse cannot have a nickname",
-					http.StatusInternalServerError, "DC003")
-				return
-			}
-
-			if err != nil {
-				utils.Error("DeviceCreation: Error while getting fingerprint", err)
-				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
-					http.StatusInternalServerError, "DC007")
-				return
-			}
-
-			_, err3 := c.InsertOne(nil, map[string]interface{}{
-				"Nickname": nickname,
-				"DeviceName": deviceName,
-				"PublicKey": key,
-				"IP": request.IP,
-				"IsLighthouse": request.IsLighthouse,
-				"IsCosmosNode": request.IsCosmosNode,
-				"IsRelay": request.IsLighthouse && request.IsRelay,
-				"IsExitNode": request.IsLighthouse && request.IsExitNode,
-				"PublicHostname": request.PublicHostname,
-				"Port": request.Port,
-				"Fingerprint": fingerprint,
-				"APIKey": APIKey,
-				"Blocked": false,
-				"Invisible": request.Invisible && !request.IsLighthouse,
-			})
-
-			if err3 != nil {
-				utils.Error("DeviceCreation: Error while creating Device", err3)
-				utils.HTTPError(w, "Device Creation Error: " + err3.Error(),
-					http.StatusInternalServerError, "DC004")
-				return 
-			} 
-
-			capki, err := getCApki()
-			if err != nil {
-				utils.Error("DeviceCreation: Error while reading ca.crt", err)
-				utils.HTTPError(w, "Device Creation Error: " + err.Error(),
-					http.StatusInternalServerError, "DC006")
-				return
-			}
-
-			lightHousesList := []utils.ConstellationDevice{}
-			if request.IsLighthouse {
-				lightHousesList, err = GetAllLightHouses()
-			}
-
-			
+		if err == nil {
 			// read configYml from config/nebula.yml
 			configYml, err := getYAMLClientConfig(deviceName, utils.CONFIGFOLDER + "nebula.yml", capki, cert, key, APIKey, utils.ConstellationDevice{
 				Nickname: nickname,
@@ -200,14 +117,25 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 				PublicKey: key,
 				IP: request.IP,
 				IsLighthouse: request.IsLighthouse,
-				IsCosmosNode: request.IsCosmosNode,
-				IsRelay: request.IsLighthouse && request.IsRelay,
-				IsExitNode: request.IsLighthouse && request.IsExitNode,
+				CosmosNode: request.CosmosNode,
+				IsRelay: request.IsRelay,
+				IsExitNode: request.IsExitNode,
+				IsLoadBalancer: request.IsLoadBalancer,
 				PublicHostname: request.PublicHostname,
 				Port: request.Port,
 				APIKey: APIKey,
 			}, true, true)
 
+			if err != nil {
+				utils.Error("DeviceCreation: Error while reading config", err)
+				utils.HTTPError(w, "Device Creation Error: " + err.Error(), http.StatusInternalServerError, "DC004") 
+				return
+			}
+
+			lightHousesList := []utils.ConstellationDevice{}
+			if request.IsLighthouse {
+				lightHousesList, err = GetAllLightHouses()
+			}
 
 			if err != nil {
 				utils.Error("DeviceCreation: Error while reading config", err)
@@ -239,30 +167,181 @@ func DeviceCreate(w http.ResponseWriter, req *http.Request) {
 					"Config": configYml,
 					"CA": capki,
 					"IsLighthouse": request.IsLighthouse,
-					"IsCosmosNode": request.IsCosmosNode,
-					"IsRelay": request.IsLighthouse && request.IsRelay,
-					"IsExitNode": request.IsLighthouse && request.IsExitNode,
+					"CosmosNode": request.CosmosNode,
+					"IsLoadBalancer": request.IsLoadBalancer,
+					"IsRelay": request.IsRelay,
+					"IsExitNode": request.IsExitNode,
 					"PublicHostname": request.PublicHostname,
 					"Port": request.Port,
 					"LighthousesList": lightHousesList,
-					"Invisible": request.Invisible && !request.IsLighthouse,
+					"Invisible": request.Invisible,
 				},
 			})
 			
-			go RestartNebula()
-		} else if err2 == nil {
-			utils.Error("DeviceCreation: Device already exists", nil)
-			utils.HTTPError(w, "Device name already exists", http.StatusConflict, "DC002")
-		  return 
+			go func() {
+				go SendNewDBSyncMessage()
+				time.Sleep(2 * time.Second)
+				RestartNebula()
+			}()
 		} else {
-			utils.Error("DeviceCreation: Error while finding device", err2)
-			utils.HTTPError(w, "Device Creation Error: " + err2.Error(),
-				 http.StatusInternalServerError, "DC001")
-			return 
+			utils.Error("DeviceCreation: Error creating device", err)
+			utils.HTTPError(w, "Device Creation Error: " + err.Error(),
+				http.StatusInternalServerError, "DC004")
+			return
 		}
 	} else {
 		utils.Error("DeviceCreation: Method not allowed" + req.Method, nil)
 		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
 		return
+	}
+}
+
+func DeviceCreate(request DeviceCreateRequestJSON) (string, string, string, DeviceCreateRequestJSON, error) {
+	nickname := utils.Sanitize(request.Nickname)
+	deviceName := utils.Sanitize(request.DeviceName)
+	APIKey := utils.GenerateRandomString(32)
+
+	utils.Log("ConstellationDeviceCreation: Creating Device " + deviceName)
+
+	c, closeDb, errCo := utils.GetEmbeddedCollection(utils.GetRootAppId(), "devices")
+	defer closeDb()
+	
+	if errCo != nil {
+		return "", "", "", DeviceCreateRequestJSON{}, errCo
+	}
+
+	device := utils.Device{}
+
+	utils.Debug("ConstellationDeviceCreation: Creating Device " + deviceName)
+	
+	err2 := c.FindOne(nil, map[string]interface{}{
+		"DeviceName": deviceName,
+		"Blocked": false,
+	}).Decode(&device)
+
+	if err2 == nil {
+		return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device with this name already exists")
+	} else if err2 != mongo.ErrNoDocuments {
+		return "", "", "", DeviceCreateRequestJSON{}, err2
+	}
+
+	// Check if IP is already in use
+	ipDevice := utils.Device{}
+	errIP := c.FindOne(nil, map[string]interface{}{
+		"IP": request.IP,
+		"Blocked": false,
+	}).Decode(&ipDevice)
+
+	if errIP == nil {
+		return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: IP address is already in use")
+	} else if errIP != mongo.ErrNoDocuments {
+		return "", "", "", DeviceCreateRequestJSON{}, errIP
+	}
+
+	// Device name and IP are both available, proceed with creation
+	{
+		cert, key, fingerprint, err := generateNebulaCert(deviceName, deviceName, request.IP, request.PublicKey, false)
+
+		if err != nil {
+			return "", "", "", DeviceCreateRequestJSON{}, err
+		}
+
+		// Check cosmos node and devices limit
+		if request.CosmosNode > 0 {
+			countManagers, errCount := c.CountDocuments(nil, map[string]interface{}{
+				"CosmosNode": 2,
+				"Blocked": false,
+			})
+
+			if errCount != nil {
+				return "", "", "", DeviceCreateRequestJSON{}, errCount
+			}
+
+			countAgent, errCount := c.CountDocuments(nil, map[string]interface{}{
+				"CosmosNode": 1,
+				"Blocked": false,
+			})
+
+			if errCount != nil {
+				return "", "", "", DeviceCreateRequestJSON{}, errCount
+			}
+
+			totalCount := countManagers + countAgent
+
+			if totalCount >= int64(utils.GetNumberCosmosNode()) {
+				// we are creating the extra agent allowed in the licence
+				if request.CosmosNode == 1 && totalCount == int64(utils.GetNumberCosmosNode()) {
+
+				// We are creating a manager but one slot was already taken by an agent using the extra slot allowed in the licence
+				} else if request.CosmosNode == 2 && totalCount == int64(utils.GetNumberCosmosNode()) &&
+					countAgent >= 1 {
+
+				} else {
+					return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Cosmos Node limit reached")
+				}
+			}
+		}
+
+		totalClientLimit := 10 * int64(utils.GetNumberUsers())
+
+		countDevices, errCountDevices := c.CountDocuments(nil, map[string]interface{}{
+			"Blocked": false,
+		})
+
+		if errCountDevices != nil {
+			return "", "", "", DeviceCreateRequestJSON{}, errCountDevices
+		}
+
+		if countDevices >= totalClientLimit {
+			return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Device limit reached")
+		}
+
+		if request.IsLighthouse && request.Nickname != "" {
+			return "", "", "", DeviceCreateRequestJSON{}, errors.New("DeviceCreation: Lighthouse cannot belong to a user")
+		}
+
+		if err != nil {
+			return "", "", "", DeviceCreateRequestJSON{}, err
+		}
+
+		if (!request.IsLighthouse ) {
+			request.IsRelay = false
+			request.IsExitNode = false
+			request.Invisible = false
+			request.IsLoadBalancer = false
+		}
+
+		_, err3 := c.InsertOne(nil, map[string]interface{}{
+			"Nickname": nickname,
+			"DeviceName": deviceName,
+			"PublicKey": key,
+			"IP": request.IP,
+			"IsLighthouse": request.IsLighthouse,
+			"CosmosNode": request.CosmosNode,
+			"IsRelay": request.IsRelay,
+			"IsExitNode": request.IsExitNode,
+			"PublicHostname": request.PublicHostname,
+			"IsLoadBalancer": request.IsLoadBalancer,
+			"Port": request.Port,
+			"Fingerprint": fingerprint,
+			"APIKey": APIKey,
+			"Blocked": false,
+			"Invisible": request.Invisible,
+		})
+
+		if err3 != nil {
+			return "", "", "", DeviceCreateRequestJSON{}, err3
+		} 
+
+		request.Nickname = nickname
+		request.DeviceName = deviceName
+		request.PublicKey = key
+		request.IsLoadBalancer = request.IsLoadBalancer
+		request.IsExitNode = request.IsExitNode
+		request.IsLoadBalancer = request.IsLoadBalancer
+		request.Invisible = request.Invisible
+		request.APIKey = APIKey
+
+		return cert, key, fingerprint, request, nil
 	}
 }

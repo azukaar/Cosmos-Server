@@ -8,6 +8,7 @@ import * as API from '../../api';
 import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
+import { PERM_RESOURCES_READ } from '../../utils/permissions';
 import { StorageMounts } from './mounts';
 import { StorageDisks } from './disks';
 import { StorageMerges } from './merges';
@@ -20,8 +21,8 @@ import RCloneServePage from './rclone/rclone_serve_config';
 
 const StorageIndex = () => {
   const { t } = useTranslation();
-  const {role} = useClientInfos();
-  const isAdmin = role === "2";
+  const { hasPermission } = useClientInfos();
+  const isAdmin = hasPermission(PERM_RESOURCES_READ);
   const [coStatus, setCoStatus] = React.useState(null);
 
   const refreshStatus = () => {

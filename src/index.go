@@ -5,6 +5,7 @@ import (
 	"time"
 	"context"
 	"os"
+	"os/exec"
 	"strings"
 	"fmt"
 	"log"
@@ -20,6 +21,7 @@ import (
 	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/proxy"
 	"github.com/azukaar/cosmos-server/src/backups"
+	"github.com/azukaar/cosmos-server/src/pro"
 	
 	"github.com/kardianos/service"
 )
@@ -185,13 +187,6 @@ WantedBy=multi-user.target`
 }
 
 func main() {
-	if HandleCLIArgs() {
-		return
-	}
-	cosmos()
-}
-
-func cosmos() {
 	docker.IsInsideContainer()
 
 	if os.Getenv("COSMOS_CONFIG_FOLDER") != "" {
@@ -200,7 +195,47 @@ func cosmos() {
 		utils.CONFIGFOLDER = "/config/"
 	}
 
+	if HandleCLIArgs() {
+		return
+	}
+	cosmos()
+}
+
+// @title Cosmos Server API
+// @version 0.22.10
+// @description REST API for Cosmos Cloud server management
+// @BasePath /cosmos
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+func cosmos() {
+	utils.PushShieldMetrics = metrics.PushShieldMetrics
+	utils.GetContainerIPByName = docker.GetContainerIPByName
+	utils.DoesContainerExist = docker.DoesContainerExist
+	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
+	utils.InitPremiumFeatures = InitPremiumFeatures
+	utils.InitRemoteStorage = storage.InitRemoteStorage
+	utils.RestartConstellation = constellation.RestartNebula
+	utils.InitSnapRAIDConfig = storage.InitSnapRAIDConfig
+	utils.InitBackups = backups.InitBackups
+	utils.IsPro = pro.IsPro
+	utils.RestartCRON = func() {
+		cron.InitJobs()
+		cron.InitScheduler()
+	}
+	
 	utils.InitLogs()
+
+	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
+		err := os.MkdirAll(utils.CONFIGFOLDER, 0700)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// Fix permissions on existing config folder files
+	exec.Command("chmod", "-R", "600", utils.CONFIGFOLDER).Run()
+	exec.Command("chmod", "-R", "+X", utils.CONFIGFOLDER).Run()
 
 	if utils.IsInsideContainer {
 		utils.Log("Running inside Docker container")
@@ -211,28 +246,15 @@ func cosmos() {
 	i, _ := utils.ListInterfaces(false)
 	utils.Log("Interfaces are: " + strings.Join(i, ", "))
 	
-	if _, err := os.Stat(utils.CONFIGFOLDER); os.IsNotExist(err) {
-		err := os.MkdirAll(utils.CONFIGFOLDER, os.ModePerm)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 
 	utils.Log("------------------------------------------")
 	utils.Log("Starting Cosmos-Server version " + GetCosmosVersion())
 	utils.Log("------------------------------------------")
 	
-	// utils.ReBootstrapContainer = docker.BootstrapContainerFromTags
-	utils.PushShieldMetrics = metrics.PushShieldMetrics
-	utils.GetContainerIPByName = docker.GetContainerIPByName
-	utils.DoesContainerExist = docker.DoesContainerExist
-	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 
 	rand.Seed(time.Now().UnixNano())
 	
 	LoadConfig()
-
-	utils.RemovePIDFile()
 
 	utils.CheckHostNetwork()
 	
@@ -289,26 +311,37 @@ func cosmos() {
 
 		utils.InitFBL()
 
-		constellation.Init()
-
-		utils.InitRemoteStorage = storage.InitRemoteStorage
-		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
-			utils.ProxyRClone = storage.InitRemoteStorage()
+		if !utils.FBL.LValid {
+			storage.InitSnapRAIDConfig()			
 		}
 
-		storage.InitSnapRAIDConfig()
-		
 		// Has to be done last, so scheduler does not re-init
 		cron.Init()
-
-		
-		utils.InitBackups = backups.InitBackups
-		if utils.FBL.LValid && !utils.FBL.IsCosmosNode {
-			go backups.InitBackups()
-		}
 
 		utils.Log("Starting server...")
 	}
 
 	StartServer()
+}
+
+var InitPremiumFeaturesDone = false
+func InitPremiumFeatures() {
+
+	if InitPremiumFeaturesDone {
+		return
+	}
+
+	if utils.FBL.LValid {
+		constellation.Init()
+		storage.InitRemoteStorage()
+	}
+
+	// Restart snapRAID to account for remote storages
+	storage.InitSnapRAIDConfig()
+	
+	if utils.FBL.LValid {
+		go backups.InitBackups()
+	}
+
+	InitPremiumFeaturesDone = true
 }
