@@ -482,7 +482,7 @@ func setupSignalHandler() {
 		utils.Log(fmt.Sprintf("[RemoteStorage] Received signal %v, unmounting all storages...", sig))
 		rcloneUnmountAll()
 		utils.Log("[RemoteStorage] All storages unmounted, exiting...")
-		os.Exit(0)
+		utils.RestartServer(0)
 	}()
 }
 

@@ -478,6 +478,10 @@ func SaveConfigTofile(config Config) {
 func RestartServer(code int) {
 	Log("Restarting server...")
 	WaitForAllJobs()
+
+	// Cancel any ongoing Let's Encrypt processes so they can CleanUp!
+	CancelAndCleanUpLetsEncrypt(15 * time.Second)
+
 	if StopAllRCloneProcess != nil {
 		StopAllRCloneProcess(false)
 	}
