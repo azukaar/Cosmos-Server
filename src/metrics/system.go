@@ -171,34 +171,31 @@ func GetSystemMetrics() {
 
 	// Temperature
 	temps, err := host.SensorsTemperatures()
-	if err != nil {
+	usable := usableTemperatures(temps, err)
+	if err != nil && len(usable) == 0 {
 		utils.Error("Metrics - Error fetching Temperature:", err)
-	} else {
-		avgTemp := 0
-		avgTempCount := 0
+	}
+	avgTemp := 0
+	avgTempCount := 0
+	for _, temp := range usable {
+		utils.Debug("Metrics - Temperature " + temp.SensorKey + " : " + strconv.Itoa(int(temp.Temperature)))
+		avgTemp += int(temp.Temperature)
+		avgTempCount++
 
-		for _, temp := range temps {
-			utils.Debug("Metrics - Temperature " + temp.SensorKey + " : " + strconv.Itoa(int(temp.Temperature)))
-			if temp.Temperature > 0 {
-				avgTemp += int(temp.Temperature)
-				avgTempCount++
+		PushSetMetric("system.temp."+temp.SensorKey, int(temp.Temperature), DataDef{
+			Max:    0,
+			Period: time.Second * 30,
+			Label:  "Temperature " + temp.SensorKey,
+			Unit:   "°C",
+		})
+	}
 
-				PushSetMetric("system.temp."+temp.SensorKey, int(temp.Temperature), DataDef{
-					Max:    0,
-					Period: time.Second * 30,
-					Label:  "Temperature " + temp.SensorKey,
-					Unit:   "°C",
-				})
-			}
-		}
-
-		if avgTempCount > 0 {
-			PushSetMetric("system.temp.all", avgTemp/avgTempCount, DataDef{
-				Max:    0,
-				Period: time.Second * 30,
-				Label:  "Temperature - All",
-			})
-		}
+	if avgTempCount > 0 {
+		PushSetMetric("system.temp.all", avgTemp/avgTempCount, DataDef{
+			Max:    0,
+			Period: time.Second * 30,
+			Label:  "Temperature - All",
+		})
 	}
 
 	// docker stats
@@ -289,4 +286,20 @@ func GetSystemMetrics() {
 			Decumulate:   true,
 		})
 	}
+}
+
+// usableTemperatures returns the sensor readings Cosmos should record.
+// gopsutil returns a Warnings error when some sensors fail (for example
+// iwlwifi ENODATA) while still returning valid readings from other sensors.
+func usableTemperatures(temps []host.TemperatureStat, err error) []host.TemperatureStat {
+	if err != nil && len(temps) == 0 {
+		return nil
+	}
+	var out []host.TemperatureStat
+	for _, temp := range temps {
+		if temp.Temperature > 0 {
+			out = append(out, temp)
+		}
+	}
+	return out
 }
