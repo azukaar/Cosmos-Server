@@ -526,7 +526,7 @@ type DockerContainerCreateRequestContainer struct {
 	Labels        *map[string]string                                             `json:"labels,omitempty"`
 	Links         *[]string                                                      `json:"links,omitempty"`
 	MacAddress    *string                                                        `json:"mac_address,omitempty"`
-	ShmSize       *int                                                           `json:"shm_size,omitempty"`
+	ShmSize       *string                                                        `json:"shm_size,omitempty"`
 
 	// MemLimit Resource constraints
 	MemLimit        *string                                                `json:"mem_limit,omitempty"`

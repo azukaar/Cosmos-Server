@@ -84,7 +84,7 @@ type ContainerCreateRequestContainer struct {
 	StorageOpt map[string]string `json:"storage_opt,omitempty"`
 	Sysctls map[string]string `json:"sysctls,omitempty"`
 	Isolation string `json:"isolation,omitempty"`
-	ShmSize int64 `json:"shm_size,omitempty"`
+	ShmSize string `json:"shm_size,omitempty"`
 
 	CapAdd []string `json:"cap_add,omitempty"`
 	CapDrop []string `json:"cap_drop,omitempty"`
@@ -734,6 +734,19 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 
+		// shm_size is a docker-style byte-size string (e.g. "64mb", "1gb").
+		// Parse it into raw bytes for the docker daemon, mirroring mem_limit.
+		var shmSize int64
+		if container.ShmSize != "" {
+			shmSize, err = units.RAMInBytes(container.ShmSize)
+			if err != nil {
+				utils.Error("CreateService: Invalid shm_size", err)
+				OnLog(utils.DoErr("Invalid shm_size value: %s\n", err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+		}
+
 		hostConfig := &conttype.HostConfig{
 			PortBindings: PortBindings,
 			Mounts:       container.Volumes,
@@ -749,7 +762,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			StorageOpt:  container.StorageOpt,
 			Sysctls:     container.Sysctls,
 			Isolation:   conttype.Isolation(container.Isolation),
-			ShmSize:     container.ShmSize,
+			ShmSize:     shmSize,
 			CapAdd:      container.CapAdd,
 			CapDrop:     container.CapDrop,
 			Resources: conttype.Resources{
