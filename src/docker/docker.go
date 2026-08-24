@@ -23,7 +23,6 @@ import (
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
 	conttype "github.com/docker/docker/api/types/container"
-	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
 
@@ -154,7 +153,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		// create missing folders
 		
 		for _, newmount := range newConfig.HostConfig.Mounts {
-			if newmount.Type == mountType.TypeBind {
+			if newmount.Type == "bind" {
 				newSource := newmount.Source
 
 				if utils.IsInsideContainer {
@@ -681,9 +680,9 @@ func SelfAction(action string) error {
 			"ACTION=" + action,
 			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
 		},
-		Volumes: []mountType.Mount{
+		Volumes: []CosmosMount{
 			{
-				Type: mountType.TypeBind,
+				Type: "bind",
 				Source: "/var/run/docker.sock",
 				Target: "/var/run/docker.sock",
 			},
