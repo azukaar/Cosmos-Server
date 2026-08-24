@@ -16,6 +16,7 @@ import (
 
 	conttype "github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
+	strslice "github.com/docker/docker/api/types/strslice"
 )
 
 var ExportError = "" 
@@ -35,8 +36,8 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			Image:        detailedInfo.Config.Image,
 			Environment:  detailedInfo.Config.Env,
 			Labels:       detailedInfo.Config.Labels,
-			Command:      strings.Join(detailedInfo.Config.Cmd, " "),
-			Entrypoint:   strings.Join(detailedInfo.Config.Entrypoint, " "),
+			Command:      strslice.StrSlice(detailedInfo.Config.Cmd),
+			Entrypoint:   strslice.StrSlice(detailedInfo.Config.Entrypoint),
 			WorkingDir:   detailedInfo.Config.WorkingDir,
 			User:         detailedInfo.Config.User,
 			Tty:          detailedInfo.Config.Tty,
