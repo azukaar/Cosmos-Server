@@ -1027,9 +1027,9 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                           Binds: [],
                           Mounts: value.volumes && Object.keys(value.volumes).map(k => {
                             return {
-                              Type: value.volumes[k].type || (k.startsWith('/') ? t('mgmt.servapps.newContainer.volumes.bindInput') : t('global.volume')),
-                              Source: value.volumes[k].source || "",
-                              Target: value.volumes[k].target || "",
+                              type: value.volumes[k].type || (k.startsWith('/') ? 'bind' : 'volume'),
+                              source: value.volumes[k].source || "",
+                              target: value.volumes[k].target || "",
                             }
                           }) || [],
                         }
@@ -1041,10 +1041,10 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                             ...overrides[value.container_name],
                             volumes: containerInfo.volumes.map((v, k) => {
                               return {
-                                type: v.Type,
-                                source: v.Source,
-                                target: v.Target,
-                                existing: v.Type == 'volume' && volumes.find(v2 => v2.Source === v.Name),
+                                type: v.type,
+                                source: v.source,
+                                target: v.target,
+                                existing: v.type == 'volume' && volumes.find(v2 => v2.source === v.name),
                               }
                             })
                           }

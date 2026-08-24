@@ -14,7 +14,6 @@ import (
 	"errors"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	conttype "github.com/docker/docker/api/types/container"
 	doctype "github.com/docker/docker/api/types"
@@ -49,7 +48,7 @@ type ContainerCreateRequestContainer struct {
 	Environment []string `json:"environment"`
 	Labels      map[string]string `json:"labels"`
 	Ports       []string          `json:"ports"`
-	Volumes     []mount.Mount          `json:"volumes"`
+	Volumes     []CosmosMount          `json:"volumes"`
 	Networks    map[string]ContainerCreateRequestServiceNetwork `json:"networks"`
 	Routes 			[]utils.ProxyRouteConfig          `json:"routes"`
 	Links       []string  `json:"links,omitempty"`
@@ -645,7 +644,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// Create missing folders for bind mounts
 		for _, newmount := range container.Volumes {
-			if newmount.Type == mount.TypeBind {
+			if newmount.Type == "bind" {
 				newSource := newmount.Source
 
 				if utils.IsInsideContainer {
@@ -734,7 +733,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		hostConfig := &conttype.HostConfig{
 			PortBindings: PortBindings,
-			Mounts:       container.Volumes,
+			Mounts:       ToDockerMountSlice(container.Volumes),
 			RestartPolicy: conttype.RestartPolicy{
 				Name: conttype.RestartPolicyMode(container.RestartPolicy),
 			},
