@@ -20,6 +20,32 @@ import (
 
 var ExportError = "" 
 
+// FormatShmSize converts a raw byte count (as reported by the docker daemon's
+// HostConfig.ShmSize) into a docker-compose-style byte-size string such as
+// "64mb" or "1gb". This keeps shm_size consistent with the {amount}{unit}
+// format docker-compose expects, so round-tripped exports behave the same as
+// the originals.
+func FormatShmSize(bytes int64) string {
+	if bytes <= 0 {
+		return ""
+	}
+	const (
+		KiB = 1024
+		MiB = 1024 * KiB
+		GiB = 1024 * MiB
+	)
+	switch {
+	case bytes % GiB == 0:
+		return strconv.FormatInt(bytes / GiB, 10) + "gb"
+	case bytes % MiB == 0:
+		return strconv.FormatInt(bytes / MiB, 10) + "mb"
+	case bytes % KiB == 0:
+		return strconv.FormatInt(bytes / KiB, 10) + "kb"
+	default:
+		return strconv.FormatInt(bytes, 10) + "b"
+	}
+} 
+
 func ExportContainer(containerID string) (ContainerCreateRequestContainer, error)  {
 		// Fetch detailed info of each container
 		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, containerID)
@@ -61,7 +87,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			StorageOpt:       detailedInfo.HostConfig.StorageOpt,
 			Sysctls:          detailedInfo.HostConfig.Sysctls,
 			Isolation:        string(detailedInfo.HostConfig.Isolation),
-			ShmSize:          detailedInfo.HostConfig.ShmSize,
+			ShmSize:          FormatShmSize(detailedInfo.HostConfig.ShmSize),
 			CapAdd:           detailedInfo.HostConfig.CapAdd,
 			CapDrop:          detailedInfo.HostConfig.CapDrop,
 			Privileged:       detailedInfo.HostConfig.Privileged,
