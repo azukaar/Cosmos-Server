@@ -120,6 +120,22 @@ func startHTTPSServer(router *mux.Router) error {
 	// redirect http to https
 	go (func () {
 		httpRouter := mux.NewRouter()
+		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr) {
+				router.ServeHTTP(w, r)
+			} else {
+				// change port in host
+				if strings.HasSuffix(r.Host, ":"+serverPortHTTP) {
+					if serverPortHTTPS != "443" {
+						r.Host = r.Host[:len(r.Host)-len(":"+serverPortHTTP)] + ":" + serverPortHTTPS
+					} else {
+						r.Host = r.Host[:len(r.Host)-len(":"+serverPortHTTP)]
+					}
+				}
+
+				http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
+			}
+		})
 
 		HTTPServer2 = &http.Server{
 			Addr: "0.0.0.0:" + serverPortHTTP,
