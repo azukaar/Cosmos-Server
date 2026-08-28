@@ -239,17 +239,21 @@ func WaitForDependsOn(ctx context.Context, containerName string) error {
 		return nil
 	}
 
+	// Build the lookup index once (service name -> container name) so keys
+	// that docker-compose stored by SERVICE name resolve to CONTAINER names.
+	idx := buildContainerNameIndex()
+
 	// Deterministic order (sorted) so logs are stable.
-	names := make([]string, 0, len(deps))
-	for name := range deps {
-		names = append(names, name)
+	keys := make([]string, 0, len(deps))
+	for k := range deps {
+		keys = append(keys, k)
 	}
-	sort.Strings(names)
+	sort.Strings(keys)
 
 	waiting := []string{}
-	for _, name := range names {
-		if deps[name].Condition != DepConditionStarted {
-			waiting = append(waiting, name)
+	for _, key := range keys {
+		if deps[key].Condition != DepConditionStarted {
+			waiting = append(waiting, key)
 		}
 	}
 	if len(waiting) == 0 {
@@ -259,8 +263,9 @@ func WaitForDependsOn(ctx context.Context, containerName string) error {
 	utils.Log(fmt.Sprintf("depends_on: container %s waiting for %d dependencies: %s",
 		containerName, len(waiting), strings.Join(waiting, ", ")))
 
-	for _, depName := range waiting {
-		cond := deps[depName].Condition
+	for _, depKey := range waiting {
+		cond := deps[depKey].Condition
+		depName := resolveDepKey(idx, depKey)
 		utils.Log(fmt.Sprintf("depends_on: waiting for %s (%s)", depName, cond))
 		if err := WaitForDepCondition(ctx, depName, cond); err != nil {
 			return err
@@ -318,16 +323,40 @@ func ReorderDependedOn(containerID string) {
 
 	stoppedDependents := []string{}
 	seen := map[string]bool{}
-	var collect func(depName string)
-	collect = func(depName string) {
+	// targetService is the started container's compose service name (for
+	// matching depends_on keys that docker-compose stores by service name).
+	startedService := ""
+	if started.ContainerJSONBase != nil && started.Config != nil && started.Config.Labels != nil {
+		startedService = started.Config.Labels["com.docker.compose.service"]
+	}
+
+	// resolveName returns (containerName, serviceName) identity for recursion
+	resolveIdent := func(n string) (string, string) {
+		if full, ok := byName["/"+n]; ok {
+			svc := ""
+			if full.full.Config != nil && full.full.Config.Labels != nil {
+				svc = full.full.Config.Labels["com.docker.compose.service"]
+			}
+			return n, svc
+		}
+		return n, ""
+	}
+
+	// collect starts from the started container and walks dependents whose
+	// depends_on (by container name OR service name) matches.
+	var collect func(depName, depService string)
+	collect = func(depName, depService string) {
 		for cName, cInfo := range byName {
 			if seen[cName] {
 				continue
 			}
 			deps := DependsOnFromLabels(cInfo.full.Config)
-			depEntry, hasDep := deps[depName]
+			depEntry, hasDep := DependsOnIncludesTarget(deps, depName, depService)
+			// network_mode may reference by container name or service name
 			sharesNetNS := strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depName) ||
-				strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depName)
+				strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depName) ||
+				(depService != "" && (strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depService) ||
+					strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depService)))
 			if !hasDep && !sharesNetNS {
 				continue
 			}
@@ -339,7 +368,8 @@ func ReorderDependedOn(containerID string) {
 				if !cInfo.full.State.Running {
 					stoppedDependents = append(stoppedDependents, cName)
 				}
-				collect(cName[1:])
+				n, svc := resolveIdent(cName[1:])
+				collect(n, svc)
 				continue
 			}
 
@@ -355,10 +385,11 @@ func ReorderDependedOn(containerID string) {
 			if !cInfo.full.State.Running {
 				stoppedDependents = append(stoppedDependents, cName)
 			}
-			collect(cName[1:]) // transitive
+			n, svc := resolveIdent(cName[1:])
+			collect(n, svc) // transitive
 		}
 	}
-	collect(startedName)
+	collect(startedName, startedService)
 
 	if len(stoppedDependents) == 0 {
 		utils.Debug("ReorderDependedOn: no stopped dependents for " + startedName)
@@ -406,8 +437,12 @@ func DependsOnFieldFromLabels(conf *conttype.Config) map[string]ContainerCreateR
 	if conf == nil || conf.Labels == nil {
 		return out
 	}
+	// Resolve docker-compose SERVICE-name keys to CONTAINER names so the field
+	// shown to the user (and round-tripped into Cosmos) uses the same
+	// container-name convention Cosmos expects.
+	idx := buildContainerNameIndex()
 	for dep, entry := range DependsOnFromLabels(conf) {
-		out[dep] = ContainerCreateRequestContainerDependsOnCont{
+		out[resolveDepKey(idx, dep)] = ContainerCreateRequestContainerDependsOnCont{
 			Condition: entry.Condition,
 			Restart:   strconv.FormatBool(entry.Restart),
 		}
@@ -457,8 +492,8 @@ func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
 // stackLabelCandidates are the label keys (in priority order) that Cosmos and
 // docker-compose use to mark a container's stack/project membership.
 var stackLabelCandidates = []string{
-	"cosmos.stack",              // what the compose editor writes
-	"cosmos.stack.main",         // main marker
+	"cosmos.stack",               // what the compose editor writes
+	"cosmos.stack.main",          // main marker
 	"com.docker.compose.project", // real docker-compose
 }
 
@@ -555,11 +590,16 @@ func RestartStackDependents(containerName string) []string {
 	}
 
 	// Collect dependents.
+	targetService := ""
+	if target.Config != nil && target.Config.Labels != nil {
+		targetService = target.Config.Labels["com.docker.compose.service"]
+	}
+
 	dependentNames := []string{}
 	for name, cInfo := range byName {
 		full := cInfo.full
 		deps := DependsOnFromLabels(full.Config)
-		if entry, ok := deps[target.Name[1:]]; ok {
+		if entry, ok := DependsOnIncludesTarget(deps, target.Name[1:], targetService); ok {
 			if restartDependentsNeeded(entry, string(full.HostConfig.NetworkMode)) {
 				utils.Log(fmt.Sprintf("RestartStackDependents: %s depends_on %s (restart=%t) -> restarting", name, target.Name[1:], entry.Restart))
 				dependentNames = append(dependentNames, name)
@@ -606,4 +646,115 @@ func RestartStackDependents(containerName string) []string {
 		restarted = append(restarted, name)
 	}
 	return restarted
+}
+
+// ---------------------------------------------------------------------------
+// service-name <-> container-name resolution
+//
+// docker-compose persists depends_on using SERVICE names (its label
+// com.docker.compose.depends_on = "svc:cond:restart,..."), and tags every
+// container with com.docker.compose.service = <service name>. Cosmos, on the
+// other hand, writes depends_on using CONTAINER names (the compose editor
+// rewrites service keys to container names at import). So a stack created by
+// real docker-compose and then recreated in Cosmos would fail because Cosmos
+// looked up a container by the service name.
+//
+// ResolveDepKey is the compatibility wrapper: given a depends_on key, it
+// returns the container name that key refers to, trying, in order:
+//   1. the key as-is, if a container by that name exists (Cosmos-created)
+//   2. the container whose com.docker.compose.service label == key
+//      (docker-compose-created)
+//   3. the key unchanged (caller surfaces the error)
+//
+// It caches the container list per call, so it is safe to call repeatedly.
+// ---------------------------------------------------------------------------
+
+// listContainersByName returns name (no leading "/") -> container, plus
+// service-name (com.docker.compose.service) -> container, for every container.
+// This is the lookup base for ResolveDepKey. It includes stopped containers so
+// a stopped dependency can still be resolved.
+type containerNameIndex struct {
+	byName    map[string]doctype.ContainerJSON
+	byService map[string]doctype.ContainerJSON
+}
+
+func buildContainerNameIndex() *containerNameIndex {
+	idx := &containerNameIndex{
+		byName:    map[string]doctype.ContainerJSON{},
+		byService: map[string]doctype.ContainerJSON{},
+	}
+
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Debug("buildContainerNameIndex: cannot list containers: " + err.Error())
+		return idx
+	}
+
+	for _, c := range containers {
+		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
+		if err != nil {
+			continue
+		}
+		name := ""
+		if len(c.Names) > 0 {
+			name = strings.TrimPrefix(c.Names[0], "/")
+		} else if full.ContainerJSONBase != nil {
+			name = strings.TrimPrefix(full.Name, "/")
+		}
+		if name != "" {
+			idx.byName[name] = full
+		}
+		if full.Config != nil && full.Config.Labels != nil {
+			if svc := full.Config.Labels["com.docker.compose.service"]; svc != "" {
+				idx.byService[svc] = full
+			}
+		}
+	}
+	return idx
+}
+
+// resolveDepKey maps a depends_on key (service name, as docker-compose stores
+// it) to the container name it refers to, using a prebuilt index. If key is
+// already a container name it is returned unchanged. Falls back to the key
+// itself when unresolvable.
+func resolveDepKey(idx *containerNameIndex, key string) string {
+	if idx == nil {
+		return key
+	}
+	if _, ok := idx.byName[key]; ok {
+		return key
+	}
+	if full, ok := idx.byService[key]; ok {
+		name := ""
+		if full.ContainerJSONBase != nil {
+			name = strings.TrimPrefix(full.Name, "/")
+		}
+		if name != "" {
+			return name
+		}
+	}
+	return key
+}
+
+// ResolveDepKey maps a depends_on key (service name, as docker-compose stores
+// it) to the container name it refers to. If key is already a container name
+// it is returned unchanged. Falls back to the key itself when unresolvable.
+func ResolveDepKey(key string) string {
+	return resolveDepKey(buildContainerNameIndex(), key)
+}
+
+// DependsOnIncludesTarget reports whether deps (a depends_on map keyed by
+// service OR container name) references targetName / targetService. Works for
+// both Cosmos-created stacks (keys = container names) and docker-compose
+// stacks (keys = service names).
+func DependsOnIncludesTarget(deps map[string]dependsOnEntry, targetName, targetService string) (dependsOnEntry, bool) {
+	if entry, ok := deps[targetName]; ok {
+		return entry, true
+	}
+	if targetService != "" && targetService != targetName {
+		if entry, ok := deps[targetService]; ok {
+			return entry, true
+		}
+	}
+	return dependsOnEntry{}, false
 }

@@ -332,7 +332,7 @@ func TestContainerStackVariants(t *testing.T) {
 		{map[string]string{"cosmos.stack": "mystack"}, "mystack"},
 		{map[string]string{"com.docker.compose.project": "proj"}, "proj"},
 		{map[string]string{"com.docker.compose.project": "proj", "cosmos.stack": "other"}, "other"}, // cosmos wins priority
-		{map[string]string{"cosmos.stack.main": "true"}, ""},                                      // main marker alone -> no name
+		{map[string]string{"cosmos.stack.main": "true"}, ""},                                        // main marker alone -> no name
 		{nil, ""},
 	}
 	for i, c := range cases {
@@ -362,5 +362,64 @@ func TestRestartDependentsNeeded(t *testing.T) {
 	// plain depends_on no restart -> default false -> no restart
 	if restartDependentsNeeded(dependsOnEntry{}, "bridge") {
 		t.Error("default depends_on (restart false) should NOT restart")
+	}
+}
+
+// Service-name <-> container-name resolution (docker-compose compatibility).
+func TestResolveDepKey(t *testing.T) {
+	mk := func(name, svc string) doctype.ContainerJSON {
+		full := doctype.ContainerJSON{
+			ContainerJSONBase: &doctype.ContainerJSONBase{Name: "/" + name},
+			Config:            &conttype.Config{Labels: map[string]string{}},
+		}
+		if svc != "" {
+			full.Config.Labels["com.docker.compose.service"] = svc
+		}
+		return full
+	}
+
+	idx := &containerNameIndex{byName: map[string]doctype.ContainerJSON{}, byService: map[string]doctype.ContainerJSON{}}
+	idx.byName["my-db"] = mk("my-db", "db")
+	idx.byName["my-web"] = mk("my-web", "web")
+	idx.byService["db"] = idx.byName["my-db"]
+	idx.byService["web"] = idx.byName["my-web"]
+
+	// Cosmos-style key (container name) -> unchanged
+	if got := resolveDepKey(idx, "my-db"); got != "my-db" {
+		t.Errorf("container-name key: got %q want my-db", got)
+	}
+	// docker-compose-style key (service name) -> resolved to container name
+	if got := resolveDepKey(idx, "db"); got != "my-db" {
+		t.Errorf("service-name key db: got %q want my-db", got)
+	}
+	if got := resolveDepKey(idx, "web"); got != "my-web" {
+		t.Errorf("service-name key web: got %q want my-web", got)
+	}
+	// unresolvable -> unchanged
+	if got := resolveDepKey(idx, "missing"); got != "missing" {
+		t.Errorf("missing key: got %q want missing", got)
+	}
+	// nil index -> unchanged
+	if got := resolveDepKey(nil, "db"); got != "db" {
+		t.Errorf("nil index: got %q want db", got)
+	}
+}
+
+func TestDependsOnIncludesTarget(t *testing.T) {
+	deps := map[string]dependsOnEntry{
+		"db":    {Condition: "service_healthy", Restart: true},
+		"my-db": {Condition: "service_started", Restart: true},
+	}
+	// container-name match
+	if _, ok := DependsOnIncludesTarget(deps, "my-db", "db"); !ok {
+		t.Error("should match by container name my-db")
+	}
+	// service-name match
+	if entry, ok := DependsOnIncludesTarget(deps, "custom-db", "db"); !ok || entry.Condition != "service_healthy" {
+		t.Errorf("should match by service name db, got %+v ok=%v", entry, ok)
+	}
+	// no match
+	if _, ok := DependsOnIncludesTarget(deps, "web", "web"); ok {
+		t.Error("should not match web")
 	}
 }

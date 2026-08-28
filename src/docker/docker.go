@@ -446,8 +446,15 @@ func RecreateDepedencies(containerID, containerName string) {
 
 		byName[container.Names[0]] = fullContainer
 
+		// targetService lets we match depends_on keys that docker-compose stored
+		// by SERVICE name (in addition to Cosmos's container-name keys).
+		targetService := ""
+		if target.Config != nil && target.Config.Labels != nil {
+			targetService = target.Config.Labels["com.docker.compose.service"]
+		}
+
 		depends := DependsOnFromLabels(fullContainer.Config)
-		if depEntry, hasDepLabel := depends[containerName[1:]]; hasDepLabel {
+		if depEntry, hasDepLabel := DependsOnIncludesTarget(depends, containerName[1:], targetService); hasDepLabel {
 			if depEntry.Restart || NetworkModeContainerRef(string(fullContainer.HostConfig.NetworkMode)) || NetworkModeServiceRef(string(fullContainer.HostConfig.NetworkMode)) {
 				utils.Log("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:] + " (restart=" + strconv.FormatBool(depEntry.Restart) + ") -> recreating")
 				dependentNames = append(dependentNames, container.Names[0])
@@ -519,6 +526,18 @@ func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) 
 	remaining := make([]string, len(names))
 	copy(remaining, names)
 
+	// Index container names -> container so a depends_on key stored by SERVICE
+	// name (docker-compose) can be matched against the container names in this
+	// batch (Cosmos keys are container names already).
+	serviceToName := map[string]string{}
+	for name, full := range byName {
+		if full.Config != nil && full.Config.Labels != nil {
+			if svc := full.Config.Labels["com.docker.compose.service"]; svc != "" {
+				serviceToName[svc] = strings.TrimPrefix(name, "/")
+			}
+		}
+	}
+
 	for len(remaining) > 0 {
 		changed := false
 		next := []string{}
@@ -527,7 +546,11 @@ func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) 
 			deps := DependsOnFromLabels(full.Config)
 			ready := true
 			for dep := range deps {
+				// resolve service-name key to container name (fallback: dep)
 				depName := "/" + dep
+				if resolved, ok := serviceToName[dep]; ok {
+					depName = "/" + resolved
+				}
 				// only wait for deps that are part of this recreate batch
 				for _, r := range remaining {
 					if r == depName {
