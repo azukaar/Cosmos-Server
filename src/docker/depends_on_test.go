@@ -329,6 +329,7 @@ func TestContainerStackVariants(t *testing.T) {
 		labels map[string]string
 		want   string
 	}{
+		{map[string]string{"cosmos-stack": "dashstack"}, "dashstack"},
 		{map[string]string{"cosmos.stack": "mystack"}, "mystack"},
 		{map[string]string{"com.docker.compose.project": "proj"}, "proj"},
 		{map[string]string{"com.docker.compose.project": "proj", "cosmos.stack": "other"}, "other"}, // cosmos wins priority

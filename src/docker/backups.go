@@ -50,7 +50,7 @@ func getStackContainers(containerID string) ([]string, error) {
 	// Check for compose project name (stack name)
 	stackName := ""
 	for label, value := range container.Config.Labels {
-		if label == "com.docker.compose.project" || label == "cosmos.stack" {
+		if label == "com.docker.compose.project" || label == "cosmos-stack" || label == "cosmos.stack" {
 			stackName = value
 			break
 		}
@@ -75,7 +75,7 @@ func getStackContainers(containerID string) ([]string, error) {
 		}
 
 		for label, value := range fullContainer.Config.Labels {
-			if (label == "com.docker.compose.project" || label == "cosmos.stack") && value == stackName {
+			if (label == "com.docker.compose.project" || label == "cosmos-stack" || label == "cosmos.stack") && value == stackName {
 				stackContainers = append(stackContainers, cont.ID)
 				break
 			}

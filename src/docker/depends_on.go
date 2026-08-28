@@ -454,7 +454,7 @@ func ContainerStack(conf *conttype.Config) string {
 	if conf == nil || conf.Labels == nil {
 		return ""
 	}
-	for _, key := range []string{"cosmos.stack", "com.docker.compose.project"} {
+	for _, key := range []string{"cosmos-stack", "cosmos.stack", "com.docker.compose.project"} {
 		if v := conf.Labels[key]; v != "" {
 			return v
 		}

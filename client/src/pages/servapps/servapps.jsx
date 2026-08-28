@@ -144,10 +144,10 @@ const ServApps = ({stack}) => {
   ]
 
   const servAppsStacked = servApps && servApps.reduce((acc, app) => {
-    // if has label cosmos.stack, add to stack
-    if(!stack && (app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'])) {
-      let stackName = app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'];
-      let stackMain = app.Labels['cosmos.stack.main'] || (app.Labels['com.docker.compose.container-number'] == '1' && app.Names[0].replace('/', ''));
+    // if has label cosmos-stack, add to stack
+    if(!stack && (app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'])) {
+      let stackName = app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'];
+      let stackMain = app.Labels['cosmos-stack-main'] ||  app.Labels['cosmos.stack.main'] || (app.Labels['com.docker.compose.container-number'] == '1' && app.Names[0].replace('/', ''));
       
       if(!acc[stackName]) {
         acc[stackName] = {
@@ -199,7 +199,7 @@ const ServApps = ({stack}) => {
       if(stackMain == app.Names[0].replace('/', '') || !acc[stackName].app) {
         acc[stackName].app = app;
       }
-    } else if (!stack || (stack && (app.Labels['cosmos.stack'] === stack || app.Labels['com.docker.compose.project'] === stack))){
+    } else if (!stack || (stack && (app.Labels['cosmos-stack'] === stack || app.Labels['cosmos.stack'] === stack || app.Labels['com.docker.compose.project'] === stack))){
       // else add to default stack
       acc[app.Names[0]] = {
         type: 'app',
