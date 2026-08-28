@@ -159,6 +159,14 @@ func onDockerStarted(containerID string) {
 	utils.Debug("onDockerStarted: " + containerID)
 	BootstrapContainerFromTags(containerID)
 	DebouncedExportDocker()
+
+	// Best-effort depends_on cascade for containers started outside Cosmos
+	// (host reboot, manual `docker start`, ...). Docker's own restart policy
+	// may already be bringing dependents back up; we only fill the gaps for
+	// compose-style depends_on that Docker knows nothing about. Runs in a
+	// goroutine so a long dependency wait never blocks the event loop, and all
+	// failures are logged, not fatal.
+	go ReorderDependedOn(containerID)
 }
 
 func onDockerDestroyed(containerID string) {

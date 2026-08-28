@@ -526,6 +526,21 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			OpenStdin:    container.StdinOpen,
 		}
 
+		// Persist the depends_on graph on the container so runtime paths
+		// (restart / recreate / update) can honor it even though they bypass
+		// CreateService's pre-start ordering.
+		if len(container.DependsOn) > 0 {
+			deps := make(map[string]string, len(container.DependsOn))
+			for depName, depCfg := range container.DependsOn {
+				cond := depCfg.Condition
+				if cond == "" {
+					cond = DepConditionStarted
+				}
+				deps[depName] = cond
+			}
+			SetDependsOnLabels(containerConfig, deps)
+		}
+
 		// check if there's an empty TZ env, if so, replace it with the host's TZ
 		if containerConfig.Env != nil {
 			for i, env := range containerConfig.Env {
@@ -1009,8 +1024,30 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		return err
 	}
 
-	// Start all the newly created containers
+	// Start all the newly created containers.
+	//
+	// ReOrderServices guarantees dependencies are created first (and their
+	// start attempt happens before this loop reaches the dependent). For
+	// service_healthy / service_completed_successfully conditions we also need
+	// to *wait* for the condition to be met before starting the dependent.
 	for _, container := range startOrder {
+		if len(container.DependsOn) > 0 {
+			for depName, depCfg := range container.DependsOn {
+				cond := depCfg.Condition
+				if cond == "" {
+					cond = DepConditionStarted
+				}
+				utils.Log(fmt.Sprintf("Waiting for dependency %s (%s) before starting %s", depName, cond, container.Name))
+				OnLog(fmt.Sprintf("Waiting for dependency %s (%s) before starting %s\n", depName, cond, container.Name))
+				if err := WaitForDepCondition(DockerContext, depName, cond); err != nil {
+					utils.Error("CreateService: Start Container", err)
+					OnLog(utils.DoErr("Rolling back changes because of -- dependency wait error: "+err.Error()))
+					Rollback(rollbackActions, OnLog)
+					return err
+				}
+			}
+		}
+
 		err = DockerClient.ContainerStart(DockerContext, container.Name, conttype.StartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)

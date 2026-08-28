@@ -219,6 +219,15 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			return "", err
 		}
 
+		// Carry the depends_on graph across re-creates. The labels are the only
+		// durable record of it (compose defines it at the service level, Docker
+		// has no native depends_on), so if we drop them here a recreated
+		// container loses its dependency ordering at runtime.
+		dependsOn := DependsOnFromLabels(oldContainer.Config)
+		if len(dependsOn) > 0 && newConfig.Config != nil {
+			SetDependsOnLabels(newConfig.Config, dependsOn)
+		}
+
 		// check if new image exists, if not, pull it
 		_, _, errImage := DockerClient.ImageInspectWithRaw(DockerContext, newConfig.Config.Image)
 		if errImage != nil {
@@ -395,6 +404,16 @@ func RecreateDepedencies(containerID, containerName string) {
 		return
 	}
 
+	// Collect every container that directly depends on the recreated one,
+	// either through network_mode (container:/service:) or through the
+	// depends_on labels Cosmos persists at create time.
+	//
+	// Recreating a dependency under compose semantics means the dependent must
+	// be re-created too (its network endpoints/aliases to the old container
+	// are gone), then started again in dependency order.
+	dependentNames := []string{}
+	byName := map[string]types.ContainerJSON{}
+
 	for _, container := range containers {
 		if container.ID == containerID {
 			continue
@@ -406,13 +425,20 @@ func RecreateDepedencies(containerID, containerName string) {
 			continue
 		}
 
+		byName[container.Names[0]] = fullContainer
+
+		depends := DependsOnFromLabels(fullContainer.Config)
+		_, hasDepLabel := depends[containerName[1:]]
+		if hasDepLabel {
+			utils.Log("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:])
+			dependentNames = append(dependentNames, container.Names[0])
+			continue
+		}
+
 		// check if network mode contains containerID
 		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
 			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			_, err := EditContainer(container.ID, fullContainer, true)
-			if err != nil {
-				utils.Error("RecreateDepedencies - Failed to update - ", err)
-			}
+			dependentNames = append(dependentNames, container.Names[0])
 			continue
 		}
 
@@ -423,12 +449,90 @@ func RecreateDepedencies(containerID, containerName string) {
 		labelTarget := NetworkModeRefTarget(labelMode)
 		if labelTarget != "" && (labelTarget == containerName[1:] || labelTarget == containerID) {
 			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			_, err := EditContainer(container.ID, fullContainer, true)
-			if err != nil {
-				utils.Error("RecreateDepedencies - Failed to update - ", err)
-			}
+			dependentNames = append(dependentNames, container.Names[0])
 		}
 	}
+
+	if len(dependentNames) == 0 {
+		return
+	}
+
+	// Recreate dependents in dependency order (dependencies first), then start
+	// them in the same order, waiting for each one's own dependencies.
+	orderedNames := OrderByDependencies(dependentNames, byName)
+
+	for _, name := range orderedNames {
+		fullContainer := byName[name]
+		if fullContainer.ID == "" {
+			continue
+		}
+		utils.Log("RecreateDepedencies - Recreating " + name)
+		_, err := EditContainer(fullContainer.ID, fullContainer, true)
+		if err != nil {
+			utils.Error("RecreateDepedencies - Failed to update - ", err)
+			continue
+		}
+
+		utils.Log("RecreateDepedencies - Starting " + name)
+		errStart := DockerClient.ContainerStart(DockerContext, fullContainer.ID, conttype.StartOptions{})
+		if errStart != nil {
+			utils.Error("RecreateDepedencies - Failed to start - ", errStart)
+		} else if errW := WaitForDependsOn(DockerContext, fullContainer.ID); errW != nil {
+			utils.Error("RecreateDepedencies - Dependency wait failed for "+name, errW)
+		}
+	}
+}
+
+// OrderByDependencies topologically sorts names (dependencies before
+// dependents) based solely on the persisted labels. Containers whose
+// dependency is not in names (already satisfied, or external) are left in
+// place; cycles are broken by keeping the original order. This is a small,
+// iterate-until-stable ordering, fine for realistic compose stacks.
+func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) []string {
+	if len(names) < 2 {
+		return names
+	}
+
+	ordered := make([]string, 0, len(names))
+	remaining := make([]string, len(names))
+	copy(remaining, names)
+
+	for len(remaining) > 0 {
+		changed := false
+		next := []string{}
+		for _, name := range remaining {
+			full := byName[name]
+			deps := DependsOnFromLabels(full.Config)
+			ready := true
+			for dep := range deps {
+				depName := "/" + dep
+				// only wait for deps that are part of this recreate batch
+				for _, r := range remaining {
+					if r == depName {
+						ready = false
+						break
+					}
+				}
+				if !ready {
+					break
+				}
+			}
+			if ready {
+				ordered = append(ordered, name)
+				changed = true
+			} else {
+				next = append(next, name)
+			}
+		}
+		remaining = next
+		if !changed {
+			// cycle / unresolvable: take the rest as-is
+			ordered = append(ordered, remaining...)
+			break
+		}
+	}
+
+	return ordered
 }
 
 func ListContainers() ([]types.Container, error) {

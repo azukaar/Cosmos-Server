@@ -68,8 +68,20 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "stop":
 			err = DockerClient.ContainerStop(DockerContext, container.ID, contstuff.StopOptions{})
 		case "start":
+			// honor depends_on at runtime: wait for dependencies before starting
+			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
+				utils.Error("ManageContainer: depends_on wait failed before start", errW)
+				utils.HTTPError(w, "Cannot start container: "+errW.Error(), http.StatusInternalServerError, "DS004")
+				return
+			}
 			err = DockerClient.ContainerStart(DockerContext, container.ID, contstuff.StartOptions{})
 		case "restart":
+			// honor depends_on at runtime: wait for dependencies before restarting
+			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
+				utils.Error("ManageContainer: depends_on wait failed before restart", errW)
+				utils.HTTPError(w, "Cannot restart container: "+errW.Error(), http.StatusInternalServerError, "DS004")
+				return
+			}
 			err = DockerClient.ContainerRestart(DockerContext, container.ID, contstuff.StopOptions{})
 		case "kill":
 			err = DockerClient.ContainerKill(DockerContext, container.ID, "")
