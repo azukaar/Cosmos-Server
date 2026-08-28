@@ -10,8 +10,8 @@ import (
 func TestSetAndReadDependsOnComposeLabel(t *testing.T) {
 	conf := &conttype.Config{}
 	deps := map[string]dependsOnEntry{
-		"db":    {Condition: "service_healthy", Restart: true, Required: true},
-		"redis": {Condition: "service_started", Restart: true, Required: true},
+		"db":    {Condition: "service_healthy", Restart: true},
+		"redis": {Condition: "service_started", Restart: true},
 	}
 	SetDependsOnLabels(conf, deps)
 
@@ -178,7 +178,7 @@ func containerWithDeps(deps ...string) doctype.ContainerJSON {
 	if len(deps) > 0 && deps[0] != "" {
 		m := map[string]dependsOnEntry{}
 		for _, d := range deps {
-			m[d] = dependsOnEntry{Condition: "service_started", Restart: true, Required: true}
+			m[d] = dependsOnEntry{Condition: "service_started", Restart: true}
 		}
 		SetDependsOnLabels(conf, m)
 	}
@@ -286,7 +286,7 @@ func TestDependsOnFieldFromLabelsAndHide(t *testing.T) {
 		composeDependenciesLabel: "db:service_healthy:true,redis:service_started:false",
 		"some.other.label":       "value",
 	}}
-	field := DependsOnFieldFromLabels(conf)
+	field := DependsOnFieldFromLabels(conf, nil)
 	if len(field) != 2 {
 		t.Fatalf("expected 2 field entries, got %d: %v", len(field), field)
 	}
@@ -315,7 +315,7 @@ func TestDependsOnFieldFromLabelsAndHide(t *testing.T) {
 // No label -> empty field, and strip is a no-op that returns the same map.
 func TestDependsOnFieldNoLabel(t *testing.T) {
 	conf := &conttype.Config{Labels: map[string]string{"a": "b"}}
-	if len(DependsOnFieldFromLabels(conf)) != 0 {
+	if len(DependsOnFieldFromLabels(conf, nil)) != 0 {
 		t.Fatal("no label should mean no depends_on field")
 	}
 	labels := stripInternalDependsOnLabel(conf.Labels)

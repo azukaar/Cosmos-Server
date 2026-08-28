@@ -526,12 +526,9 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			OpenStdin:    container.StdinOpen,
 		}
 
-		// Tag multi-service compose stacks with the stack labels so the UI
-		// groups them (servapps.jsx reads cosmos.stack / com.docker.compose.project)
-		// and so the restart/recreate dependents cascade can scope itself to the
-		// same stack. The frontend also writes these, but doing it server-side
-		// makes creation deterministic. A single-service compose is NOT a stack
-		// and stays untagged.
+		// Tag multi-service compose stacks with cosmos.stack (+ .main) so the
+		// UI groups them and the dependents cascade can scope by stack. Single
+		// services stay untagged.
 		if len(serviceRequest.Services) > 1 {
 			if containerConfig.Labels == nil {
 				containerConfig.Labels = make(map[string]string)
@@ -550,11 +547,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 
-		// Persist the depends_on graph on the container in docker-compose's own
-		// format (com.docker.compose.depends_on label) so runtime paths
-		// (restart / recreate / update) honor it even though they bypass
-		// CreateService's pre-start ordering, and so compose-imported stacks
-		// keep working.
+		// Persist depends_on in compose's com.docker.compose.depends_on label
+		// so runtime restart/recreate paths and compose-imported stacks work.
 		if len(container.DependsOn) > 0 {
 			deps := make(map[string]dependsOnEntry, len(container.DependsOn))
 			for depName, depCfg := range container.DependsOn {
@@ -803,10 +797,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			},
 		}
 
-		// cosmos-force-network-mode logic: normalize container/service refs to
-		// stable container:<name> so the reference survives recreations of the
-		// referenced container (an ID would go stale; service: is a compose
-		// alias that Docker itself resolves to container:<id> at create time).
+		// normalize container/service refs to stable container:<name>
 		if containerConfig.Labels["cosmos-force-network-mode"] == "" {
 			if NetworkModeContainerRef(string(hostConfig.NetworkMode)) || NetworkModeServiceRef(string(hostConfig.NetworkMode)) {
 				normalized := ContainerRefToName(string(hostConfig.NetworkMode))
@@ -1053,12 +1044,8 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		return err
 	}
 
-	// Start all the newly created containers.
-	//
-	// ReOrderServices guarantees dependencies are created first (and their
-	// start attempt happens before this loop reaches the dependent). For
-	// service_healthy / service_completed_successfully conditions we also need
-	// to *wait* for the condition to be met before starting the dependent.
+	// Start containers in dependency order, waiting for non-started
+	// conditions (service_healthy / service_completed_successfully).
 	for _, container := range startOrder {
 		if len(container.DependsOn) > 0 {
 			for depName, depCfg := range container.DependsOn {
@@ -1193,17 +1180,10 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 	startOrder := []ContainerCreateRequestContainer{}
 	mustStart := false
 
-	// Build a map of service key -> container name so dependencies (which
-	// reference services by their compose key, per docker-compose) can be
-	// matched against the containers in startOrder (which are keyed by
-	// container name). docker-compose's dependency graph is built entirely
-	// from the `depends_on` field. network_mode / ipc / pid / volumes_from
-	// references are NOT graph edges in compose: "service:" aliases are
-	// resolved to container:<id> at create time and Docker enforces the
-	// referenced container exists first. We keep a *soft* ordering constraint
-	// for network_mode targets that are part of this same batch (the target
-	// must be created and started first), but an external target (e.g. a
-	// tailscale sidecar already running) is never a hard dependency error.
+	// depends_on keys are compose service names; startOrder is keyed by
+	// container name. network_mode is NOT a depends_on edge in compose: it is
+	// resolved at create and Docker enforces the target exists, so we only add
+	// a soft in-batch ordering constraint (external targets never hard-error).
 	nameByService := map[string]string{}
 	for key, svc := range serviceMap {
 		// container.Name defaults to the service key when container_name is
@@ -1211,7 +1191,7 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 		nameByService[key] = svc.Name
 	}
 
-	// Invert: also allow matching by container name directly (defensive).
+	// also allow matching by container name
 	serviceByName := map[string]string{}
 	for key, svc := range serviceMap {
 		serviceByName[svc.Name] = key

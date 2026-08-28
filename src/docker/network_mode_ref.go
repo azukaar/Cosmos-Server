@@ -32,22 +32,9 @@ func NetworkModeRefTarget(mode string) string {
 	return ""
 }
 
-// ContainerRefToName resolves the target of a "container:<...>" /
-// "service:<...>" network mode to the target container's stable name (without
-// the leading "/"). Non-reference modes are returned unchanged.
-//
-// This is the heart of the container-mode durability fix. Docker accepts both
-// a name and an ID in "container:<ref>", but the daemon does NOT rewrite the
-// stored reference when the target container is recreated — the old ID then
-// points at a deleted container and the network sharing silently breaks
-// (commonly after an update/recreate of the referenced container). The
-// container name, on the other hand, is deliberately stable across recreations
-// (unless the user actively renames it), so we always persist/resolve to the
-// name.
-//
-// If the target cannot be resolved (Docker unreachable, or the container does
-// not exist yet — e.g. a compose stack mid-creation), the input is returned
-// unchanged so a valid setup is never broken by a failed normalization.
+// ContainerRefToName resolves a "container:<ref>" / "service:<ref>" network
+// mode target to its stable container name (IDs go stale on recreate; names
+// do not). Unresolvable refs are returned unchanged.
 func ContainerRefToName(mode string) string {
 	target := NetworkModeRefTarget(mode)
 	if target == "" {
@@ -60,17 +47,12 @@ func ContainerRefToName(mode string) string {
 		return mode
 	}
 
-	// Always normalize to container:<name> — never service:<...>, never an ID.
-	// service: is a compose-only convenience that Docker itself turns into
-	// container:<id> at create time; persisting a container name makes the
-	// reference survive recreations of both containers.
+	// always persist container:<name> (service: and IDs go stale on recreate)
 	return "container:" + name
 }
 
-// ResolveContainerRefToName resolves a container name / full ID / unambiguous
-// ID prefix to its stable name (without the leading "/"). Returns "" when the
-// container cannot be found or Docker is unreachable — callers decide whether
-// to fall back to the original input.
+// ResolveContainerRefToName resolves a container name/ID/prefix to its stable
+// name, or "" when not found / Docker unreachable.
 func ResolveContainerRefToName(ref string) string {
 	if ref == "" {
 		return ""

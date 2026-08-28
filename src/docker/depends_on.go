@@ -43,14 +43,13 @@ const composeDependenciesLabel = "com.docker.compose.depends_on"
 // (waitDependencies returns immediately for ServiceConditionStarted).
 const dependencyTimeout = 10 * time.Minute
 
-// DependsOnConfig mirrors compose-go's DependsOnConfig map value.
+// dependsOnEntry is one entry of the persisted depends_on graph.
 type dependsOnEntry struct {
 	Condition string
 	Restart   bool
-	Required  bool
 }
 
-// ValidDepCondition reports whether cond is a condition we understand.
+// ValidDepCondition reports whether cond is a supported depends_on condition.
 func ValidDepCondition(cond string) bool {
 	switch cond {
 	case DepConditionStarted, DepConditionRunningOrHealthy, DepConditionHealthy, DepConditionCompletedSuccess:
@@ -60,17 +59,10 @@ func ValidDepCondition(cond string) bool {
 }
 
 // NormalizeDepCondition maps an empty/unknown condition to service_started
-// (compose-default), with one exception: compose's CLI treats a missing/empty
-// condition as running_or_healthy (its `ServiceConditionRunningOrHealthy`
-// const). We keep empty => service_started when we WRITE the label (compose-go
-// writes whatever was parsed, default service_started), but when we READ back
-// a legacy label fragment without a condition we fall back to running_or_healthy
-// exactly like compose.go does.
+// (compose default when writing; legacy label fragments without a condition
+// are read back as running_or_healthy in DependsOnFromLabels).
 func NormalizeDepCondition(cond string) string {
-	if cond == "" {
-		return DepConditionStarted
-	}
-	if !ValidDepCondition(cond) {
+	if cond == "" || !ValidDepCondition(cond) {
 		return DepConditionStarted
 	}
 	return cond
@@ -98,7 +90,6 @@ func DependsOnFromLabels(conf *conttype.Config) map[string]dependsOnEntry {
 		dcArr := strings.Split(dc, ":")
 		condition := DepConditionRunningOrHealthy
 		restart := true
-		required := true
 		dependency := dcArr[0]
 
 		if len(dcArr) > 1 {
@@ -108,11 +99,7 @@ func DependsOnFromLabels(conf *conttype.Config) map[string]dependsOnEntry {
 			}
 		}
 
-		deps[dependency] = dependsOnEntry{
-			Condition: condition,
-			Restart:   restart,
-			Required:  required,
-		}
+		deps[dependency] = dependsOnEntry{Condition: condition, Restart: restart}
 	}
 	return deps
 }
@@ -147,18 +134,7 @@ func SetDependsOnLabels(conf *conttype.Config, deps map[string]dependsOnEntry) {
 	conf.Labels[composeDependenciesLabel] = strings.Join(parts, ",")
 }
 
-// DepConditions returns the map service->condition for convenience (used by
-// the HTTP/ordering layer).
-func DepConditions(conf *conttype.Config) map[string]string {
-	out := map[string]string{}
-	for k, v := range DependsOnFromLabels(conf) {
-		out[k] = v.Condition
-	}
-	return out
-}
-
-// depConditionMet reports whether dep (as currently inspected) satisfies the
-// condition cond. Models compose's isServiceHealthy / isServiceCompleted.
+// depConditionMet reports whether dep satisfies condition cond.
 func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
 	if dep.ContainerJSONBase == nil || dep.State == nil {
 		return false
@@ -166,14 +142,11 @@ func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
 
 	switch cond {
 	case DepConditionStarted, DepConditionRunningOrHealthy:
-		// compose's checkDependencyRunningOrHealthy: healthy if running, or
-		// falls back to "running" when there's no healthcheck.
 		if dep.State.Status == "exited" {
 			return false
 		}
-		noHealthcheck := dep.Config == nil || dep.Config.Healthcheck == nil ||
-			(len(dep.Config.Healthcheck.Test) > 0 && dep.Config.Healthcheck.Test[0] == "NONE")
-		if noHealthcheck {
+		// no healthcheck => running counts as satisfied (compose fallback)
+		if !depHasHealthcheck(dep) {
 			return dep.State.Running
 		}
 		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
@@ -181,11 +154,8 @@ func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
 		if dep.State.Status == "exited" {
 			return false
 		}
-		if dep.Config == nil || dep.Config.Healthcheck == nil ||
-			(len(dep.Config.Healthcheck.Test) > 0 && dep.Config.Healthcheck.Test[0] == "NONE") {
-			// compose with fallbackRunning=false errors; for robustness treat a
-			// healthcheck-less running container as unhealthy-ish but keep
-			// waiting is wrong -> treat as not-met so dependent keeps waiting.
+		// a healthcheck-less container never satisfies service_healthy
+		if !depHasHealthcheck(dep) {
 			return false
 		}
 		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
@@ -196,9 +166,16 @@ func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
 	}
 }
 
-// WaitForDepCondition polls depName until cond is met, or returns an error
-// after dependencyTimeout. A missing dependency is an error (compose:
-// "%s is missing dependency %s").
+// depHasHealthcheck reports whether dep declares an active healthcheck.
+func depHasHealthcheck(dep doctype.ContainerJSON) bool {
+	if dep.Config == nil || dep.Config.Healthcheck == nil {
+		return false
+	}
+	return len(dep.Config.Healthcheck.Test) == 0 || dep.Config.Healthcheck.Test[0] != "NONE"
+}
+
+// WaitForDepCondition polls depName until cond is met or dependencyTimeout
+// elapses. A missing dependency is an error (compose parity).
 func WaitForDepCondition(ctx context.Context, depName string, cond string) error {
 	if cond == "" {
 		cond = DepConditionStarted
@@ -223,11 +200,8 @@ func WaitForDepCondition(ctx context.Context, depName string, cond string) error
 	}
 }
 
-// WaitForDependsOn waits for every dependency of containerName, using the
-// depends_on graph persisted on the container's compose label. It is used by
-// the runtime paths (restart / recreate / update). mirroring compose, only
-// conditions other than service_started are waited on: service_started is
-// already guaranteed by start ordering.
+// WaitForDependsOn waits for containerName's dependencies (runtime restart /
+// recreate paths). Only conditions other than service_started are waited on.
 func WaitForDependsOn(ctx context.Context, containerName string) error {
 	current, err := DockerClient.ContainerInspect(ctx, containerName)
 	if err != nil {
@@ -274,13 +248,9 @@ func WaitForDependsOn(ctx context.Context, containerName string) error {
 	return nil
 }
 
-// ReorderDependedOn is the boot-up cascade: after containerID starts, any
-// container whose depends_on graph references it (directly or transitively)
-// gets started again in dependency order, plus any stopped container that
-// shares its network namespace (network_mode: container:) since that reference
-// requires the target to exist. Best-effort and non-blocking: running
-// dependents are left alone, failures are logged not fatal, runs in its own
-// goroutine (see onDockerStarted).
+// ReorderDependedOn starts stopped dependents (depends_on restart:true or
+// network_mode sharers) after containerID starts — best-effort, non-blocking,
+// same-stack scoped. Called from onDockerStarted.
 func ReorderDependedOn(containerID string) {
 	startedName := ""
 	started, err := DockerClient.ContainerInspect(DockerContext, containerID)
@@ -288,43 +258,17 @@ func ReorderDependedOn(containerID string) {
 		startedName = started.Name[1:]
 	}
 
-	containers, err := ListContainers()
-	if err != nil {
-		utils.Debug("ReorderDependedOn: cannot list containers: " + err.Error())
-		return
-	}
-
-	byName := map[string]depContainerInfo{}
-	for _, c := range containers {
-		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
-		if err != nil {
-			continue
-		}
-		name := ""
-		if len(c.Names) > 0 {
-			name = c.Names[0]
-		} else if full.ContainerJSONBase != nil {
-			name = full.Name
-		}
-		if name == "" {
-			continue
-		}
-		byName[name] = depContainerInfo{full: full, name: name}
-	}
-
-	// Find containers that (transitively) depend on the started one, or share
-	// its network namespace, and are currently stopped. Scoped to the same
-	// stack, and only depends_on entries with restart:true or network_mode
-	// references are honored (docker-compose parity).
 	startedStack := ""
 	if started.ContainerJSONBase != nil && started.Config != nil {
 		startedStack = ContainerStack(started.Config)
 	}
 
+	// network_mode sharers may live outside the started one's stack
+	byName := buildSameStackIndex("", "")
+
 	stoppedDependents := []string{}
 	seen := map[string]bool{}
-	// targetService is the started container's compose service name (for
-	// matching depends_on keys that docker-compose stores by service name).
+	// compose service name for matching service-keyed depends_on
 	startedService := ""
 	if started.ContainerJSONBase != nil && started.Config != nil && started.Config.Labels != nil {
 		startedService = started.Config.Labels["com.docker.compose.service"]
@@ -342,8 +286,6 @@ func ReorderDependedOn(containerID string) {
 		return n, ""
 	}
 
-	// collect starts from the started container and walks dependents whose
-	// depends_on (by container name OR service name) matches.
 	var collect func(depName, depService string)
 	collect = func(depName, depService string) {
 		for cName, cInfo := range byName {
@@ -412,7 +354,7 @@ func ReorderDependedOn(containerID string) {
 	}
 }
 
-// depContainerInfo carries the few fields ReorderDependedOn needs per container.
+// depContainerInfo carries the fields the dependents-cascade functions need.
 type depContainerInfo struct {
 	full doctype.ContainerJSON
 	name string
@@ -428,19 +370,48 @@ func depContainerConfigs(byName map[string]depContainerInfo) map[string]doctype.
 	return out
 }
 
+// buildSameStackIndex lists every container in stack (excluding excludeID),
+// keyed by container name. Used by the depends_on / network_mode cascades.
+func buildSameStackIndex(stack, excludeID string) map[string]depContainerInfo {
+	byName := map[string]depContainerInfo{}
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Debug("buildSameStackIndex: cannot list containers: " + err.Error())
+		return byName
+	}
+	for _, c := range containers {
+		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
+		if err != nil || full.ID == excludeID {
+			continue
+		}
+		if stack != "" && ContainerStack(full.Config) != stack {
+			continue
+		}
+		name := ""
+		if len(c.Names) > 0 {
+			name = c.Names[0]
+		} else if full.ContainerJSONBase != nil {
+			name = full.Name
+		}
+		if name != "" {
+			byName[name] = depContainerInfo{full: full, name: name}
+		}
+	}
+	return byName
+}
+
 // DependsOnFieldFromLabels converts the persisted compose depends_on label back
 // into the depends_on *field* shape (map[service]DependsOnCont) that Cosmos's
 // compose model exposes. This is what the user should see/edit: the field, not
 // the label. Mirrors compose.go's projectFromName reconstruction.
-func DependsOnFieldFromLabels(conf *conttype.Config) map[string]ContainerCreateRequestContainerDependsOnCont {
+// DependsOnFieldFromLabels converts the persisted depends_on label into the
+// depends_on *field* shape, resolving service-name keys to container names via
+// idx (may be nil when no container index is available).
+func DependsOnFieldFromLabels(conf *conttype.Config, idx *containerNameIndex) map[string]ContainerCreateRequestContainerDependsOnCont {
 	out := map[string]ContainerCreateRequestContainerDependsOnCont{}
 	if conf == nil || conf.Labels == nil {
 		return out
 	}
-	// Resolve docker-compose SERVICE-name keys to CONTAINER names so the field
-	// shown to the user (and round-tripped into Cosmos) uses the same
-	// container-name convention Cosmos expects.
-	idx := buildContainerNameIndex()
 	for dep, entry := range DependsOnFromLabels(conf) {
 		out[resolveDepKey(idx, dep)] = ContainerCreateRequestContainerDependsOnCont{
 			Condition: entry.Condition,
@@ -472,54 +443,23 @@ func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
 }
 
 // ---------------------------------------------------------------------------
-// Stack membership + restart-of-dependents
-//
-// docker-compose (pkg/compose/restart.go prepareRestartProject) restart
-// behavior, which we mirror:
-//   - depends_on entries with restart:true make the dependent restart together
-//     with the dependency (entries with restart:false are pruned from the
-//     graph before restarting)
-//   - network_mode / ipc / pid: service:X dependents MUST be re-created when
-//     the target restarts (their shared namespace dies) — compose handles this
-//     as an implicit edge, not via restart:true
-//   - everything runs in dependency order, dependencies first
-//
-// We additionally scope the cascade to containers of the SAME stack, so a
-// single restarted container does not rebuild unrelated containers that happen
-// to reference it.
+// Restart-of-dependents (docker-compose parity, pkg/compose/restart.go):
+//   - depends_on with restart:false is pruned; restart:true restarts together
+//   - network_mode/ipc/pid namespace sharers always restart (namespace died)
+//   - everything runs in dependency order, scoped to the same stack
 // ---------------------------------------------------------------------------
 
-// stackLabelCandidates are the label keys (in priority order) that Cosmos and
-// docker-compose use to mark a container's stack/project membership.
-var stackLabelCandidates = []string{
-	"cosmos.stack",               // what the compose editor writes
-	"cosmos.stack.main",          // main marker
-	"com.docker.compose.project", // real docker-compose
-}
-
-// ContainerStack returns the stack/project name a container belongs to, or ""
-// if it is standalone. It accepts every variant Cosmos and compose use.
+// ContainerStack returns the stack/project name a container belongs to, or "".
 func ContainerStack(conf *conttype.Config) string {
 	if conf == nil || conf.Labels == nil {
 		return ""
 	}
-	// main markers don't carry a name; look for the actual stack/project name
 	for _, key := range []string{"cosmos.stack", "com.docker.compose.project"} {
 		if v := conf.Labels[key]; v != "" {
 			return v
 		}
 	}
 	return ""
-}
-
-// containerStackMatches reports whether two container configs belong to the
-// same stack. A standalone container (no stack) matches nothing but itself.
-func containerStackMatches(a, b *conttype.Config) bool {
-	sa, sb := ContainerStack(a), ContainerStack(b)
-	if sa == "" || sb == "" {
-		return false
-	}
-	return sa == sb
 }
 
 // restartDependentsNeeded decides whether a dependent must be (re)started when
@@ -534,13 +474,9 @@ func restartDependentsNeeded(depEntry dependsOnEntry, networkMode string) bool {
 	return depEntry.Restart
 }
 
-// RestartStackDependents restarts (or re-creates) every same-stack container
-// that depends on containerName, either through depends_on (restart:true) or
-// by sharing its network namespace (network_mode: container:/service:), in
-// dependency order. It mirrors docker-compose restart semantics and is scoped
-// to the stack to avoid surprising restarts of unrelated containers.
-//
-// Returns the names of containers it restarted (for logging/UI).
+// RestartStackDependents restarts same-stack dependents of containerName:
+// network_mode sharers (always) and depends_on restart:true, in dependency
+// order. Returns the names it restarted.
 func RestartStackDependents(containerName string) []string {
 	restarted := []string{}
 
@@ -551,43 +487,12 @@ func RestartStackDependents(containerName string) []string {
 	}
 	targetStack := ContainerStack(target.Config)
 	if targetStack == "" {
-		// no stack to scope against: only restart direct network_mode dependents
-		// anywhere (namespace sharing is independent of stack), but be safe and
-		// require the same stack like compose's project scope.
 		utils.Debug("RestartStackDependents: " + containerName + " is not part of a stack; nothing to cascade")
 		return restarted
 	}
 
-	containers, err := ListContainers()
-	if err != nil {
-		utils.Error("RestartStackDependents", err)
-		return restarted
-	}
-
-	// Build same-stack container set.
-	byName := map[string]depContainerInfo{}
-	for _, c := range containers {
-		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
-		if err != nil {
-			continue
-		}
-		if full.ID == target.ID {
-			continue
-		}
-		if ContainerStack(full.Config) != targetStack {
-			continue // scope to same stack
-		}
-		name := ""
-		if len(c.Names) > 0 {
-			name = c.Names[0]
-		} else if full.ContainerJSONBase != nil {
-			name = full.Name
-		}
-		if name == "" {
-			continue
-		}
-		byName[name] = depContainerInfo{full: full, name: name}
-	}
+	// same-stack dependents only (network_mode sharers included via stack scope)
+	byName := buildSameStackIndex(targetStack, target.ID)
 
 	// Collect dependents.
 	targetService := ""
@@ -649,30 +554,17 @@ func RestartStackDependents(containerName string) []string {
 }
 
 // ---------------------------------------------------------------------------
-// service-name <-> container-name resolution
+// Service-name <-> container-name resolution.
 //
-// docker-compose persists depends_on using SERVICE names (its label
-// com.docker.compose.depends_on = "svc:cond:restart,..."), and tags every
-// container with com.docker.compose.service = <service name>. Cosmos, on the
-// other hand, writes depends_on using CONTAINER names (the compose editor
-// rewrites service keys to container names at import). So a stack created by
-// real docker-compose and then recreated in Cosmos would fail because Cosmos
-// looked up a container by the service name.
-//
-// ResolveDepKey is the compatibility wrapper: given a depends_on key, it
-// returns the container name that key refers to, trying, in order:
-//   1. the key as-is, if a container by that name exists (Cosmos-created)
-//   2. the container whose com.docker.compose.service label == key
-//      (docker-compose-created)
-//   3. the key unchanged (caller surfaces the error)
-//
-// It caches the container list per call, so it is safe to call repeatedly.
+// docker-compose persists depends_on with SERVICE names and tags each
+// container with com.docker.compose.service = <service>; Cosmos uses CONTAINER
+// names (the compose editor rewrites service keys to container names at
+// import). ResolveDepKey(resolveDepKey) bridges the two: a depends_on key is
+// first looked up as a container name, then as a service label.
 // ---------------------------------------------------------------------------
 
-// listContainersByName returns name (no leading "/") -> container, plus
-// service-name (com.docker.compose.service) -> container, for every container.
-// This is the lookup base for ResolveDepKey. It includes stopped containers so
-// a stopped dependency can still be resolved.
+// containerNameIndex maps container names and compose service names to
+// containers (including stopped ones).
 type containerNameIndex struct {
 	byName    map[string]doctype.ContainerJSON
 	byService map[string]doctype.ContainerJSON
@@ -713,10 +605,8 @@ func buildContainerNameIndex() *containerNameIndex {
 	return idx
 }
 
-// resolveDepKey maps a depends_on key (service name, as docker-compose stores
-// it) to the container name it refers to, using a prebuilt index. If key is
-// already a container name it is returned unchanged. Falls back to the key
-// itself when unresolvable.
+// resolveDepKey maps a depends_on key to the container name it refers to,
+// falling back to the key itself when unresolvable.
 func resolveDepKey(idx *containerNameIndex, key string) string {
 	if idx == nil {
 		return key
@@ -734,13 +624,6 @@ func resolveDepKey(idx *containerNameIndex, key string) string {
 		}
 	}
 	return key
-}
-
-// ResolveDepKey maps a depends_on key (service name, as docker-compose stores
-// it) to the container name it refers to. If key is already a container name
-// it is returned unchanged. Falls back to the key itself when unresolvable.
-func ResolveDepKey(key string) string {
-	return resolveDepKey(buildContainerNameIndex(), key)
 }
 
 // DependsOnIncludesTarget reports whether deps (a depends_on map keyed by

@@ -68,7 +68,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "stop":
 			err = DockerClient.ContainerStop(DockerContext, container.ID, contstuff.StopOptions{})
 		case "start":
-			// honor depends_on at runtime: wait for dependencies before starting
+			// wait for dependencies before starting
 			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
 				utils.Error("ManageContainer: depends_on wait failed before start", errW)
 				utils.HTTPError(w, "Cannot start container: "+errW.Error(), http.StatusInternalServerError, "DS004")
@@ -76,7 +76,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 			}
 			err = DockerClient.ContainerStart(DockerContext, container.ID, contstuff.StartOptions{})
 		case "restart":
-			// honor depends_on at runtime: wait for dependencies before restarting
+			// wait for dependencies before restarting
 			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
 				utils.Error("ManageContainer: depends_on wait failed before restart", errW)
 				utils.HTTPError(w, "Cannot restart container: "+errW.Error(), http.StatusInternalServerError, "DS004")
@@ -84,9 +84,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 			}
 			err = DockerClient.ContainerRestart(DockerContext, container.ID, contstuff.StopOptions{})
 			if err == nil {
-				// Same-stack dependents must come back with their dependency:
-				// network_mode/ipc/pid namespace sharers (always) and
-				// depends_on restart:true dependents (docker-compose parity).
+				// same-stack dependents (network_mode, depends_on restart:true)
 				restarted := RestartStackDependents(container.ID)
 				if len(restarted) > 0 {
 					utils.Log(fmt.Sprintf("ManageContainer: restarted %d stack dependents of %s: %v", len(restarted), containerName, restarted))

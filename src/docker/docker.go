@@ -398,21 +398,9 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 }
 
 func RecreateDepedencies(containerID, containerName string) {
-	containers, err := ListContainers()
-	if err != nil {
-		utils.Error("RecreateDepedencies", err)
-		return
-	}
-
-	// Recreating one container invalidates the container: references of its
-	// stack siblings, so those siblings must be re-created too, then started
-	// in dependency order. Mirror docker-compose restart semantics:
-	//   - network_mode/ipc/pid namespace sharers always re-create (the shared
-	//     namespace died with the old container)
-	//   - depends_on dependents re-create only when restart:true
-	// The cascade is scoped to the SAME stack (com.docker.compose.project /
-	// cosmos.stack) so unrelated containers that happen to reference this one
-	// are not touched.
+	// Recreating a container invalidates its stack siblings' references
+	// (network_mode namespace and depends_on restart:true), so recreate them in
+	// dependency order. Scoped to the same stack.
 
 	target, err := DockerClient.ContainerInspect(DockerContext, containerID)
 	if err != nil {
@@ -425,49 +413,32 @@ func RecreateDepedencies(containerID, containerName string) {
 		return
 	}
 
+	targetService := ""
+	if target.Config != nil && target.Config.Labels != nil {
+		targetService = target.Config.Labels["com.docker.compose.service"]
+	}
+
+	index := buildSameStackIndex(targetStack, containerID)
+	byName := depContainerConfigs(index)
+
 	dependentNames := []string{}
-	byName := map[string]types.ContainerJSON{}
-
-	for _, container := range containers {
-		if container.ID == containerID {
-			continue
-		}
-
-		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
-		if err != nil {
-			utils.Error("RecreateDepedencies", err)
-			continue
-		}
-
-		// scope to same stack
-		if ContainerStack(fullContainer.Config) != targetStack {
-			continue
-		}
-
-		byName[container.Names[0]] = fullContainer
-
-		// targetService lets we match depends_on keys that docker-compose stored
-		// by SERVICE name (in addition to Cosmos's container-name keys).
-		targetService := ""
-		if target.Config != nil && target.Config.Labels != nil {
-			targetService = target.Config.Labels["com.docker.compose.service"]
-		}
-
+	for name, fullContainer := range byName {
+		// docker-compose stores depends_on keys by service name
 		depends := DependsOnFromLabels(fullContainer.Config)
 		if depEntry, hasDepLabel := DependsOnIncludesTarget(depends, containerName[1:], targetService); hasDepLabel {
 			if depEntry.Restart || NetworkModeContainerRef(string(fullContainer.HostConfig.NetworkMode)) || NetworkModeServiceRef(string(fullContainer.HostConfig.NetworkMode)) {
-				utils.Log("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:] + " (restart=" + strconv.FormatBool(depEntry.Restart) + ") -> recreating")
-				dependentNames = append(dependentNames, container.Names[0])
+				utils.Log("RecreateDepedencies - depends_on: " + name + " depends on " + containerName[1:] + " (restart=" + strconv.FormatBool(depEntry.Restart) + ") -> recreating")
+				dependentNames = append(dependentNames, name)
 			} else {
-				utils.Debug("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:] + " (restart=false) -> skipping")
+				utils.Debug("RecreateDepedencies - depends_on: " + name + " depends on " + containerName[1:] + " (restart=false) -> skipping")
 			}
 			continue
 		}
 
 		// check if network mode contains containerID
 		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
-			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			dependentNames = append(dependentNames, container.Names[0])
+			utils.Log("RecreateDepedencies - Recreating " + name)
+			dependentNames = append(dependentNames, name)
 			continue
 		}
 
@@ -477,8 +448,8 @@ func RecreateDepedencies(containerID, containerName string) {
 		labelMode := GetLabel(fullContainer, "cosmos-force-network-mode")
 		labelTarget := NetworkModeRefTarget(labelMode)
 		if labelTarget != "" && (labelTarget == containerName[1:] || labelTarget == containerID) {
-			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			dependentNames = append(dependentNames, container.Names[0])
+			utils.Log("RecreateDepedencies - Recreating " + name)
+			dependentNames = append(dependentNames, name)
 		}
 	}
 
@@ -512,11 +483,8 @@ func RecreateDepedencies(containerID, containerName string) {
 	}
 }
 
-// OrderByDependencies topologically sorts names (dependencies before
-// dependents) based solely on the persisted labels. Containers whose
-// dependency is not in names (already satisfied, or external) are left in
-// place; cycles are broken by keeping the original order. This is a small,
-// iterate-until-stable ordering, fine for realistic compose stacks.
+// OrderByDependencies topologically sorts names (dependencies first) from the
+// persisted depends_on labels; unresolvable cycles keep the original order.
 func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) []string {
 	if len(names) < 2 {
 		return names
@@ -526,9 +494,7 @@ func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) 
 	remaining := make([]string, len(names))
 	copy(remaining, names)
 
-	// Index container names -> container so a depends_on key stored by SERVICE
-	// name (docker-compose) can be matched against the container names in this
-	// batch (Cosmos keys are container names already).
+	// map compose service names to container names for service-keyed deps
 	serviceToName := map[string]string{}
 	for name, full := range byName {
 		if full.Config != nil && full.Config.Labels != nil {

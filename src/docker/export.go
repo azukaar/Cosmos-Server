@@ -131,11 +131,9 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 					return networks
 			}(),
 
-			// depends_on is reconstructed from compose's com.docker.compose.depends_on
-			// label (the internal serialization of the field). The label itself is
-			// stripped from Labels below so the depends_on *field* is the source of
-			// truth the user sees and edits.
-			DependsOn:      DependsOnFieldFromLabels(detailedInfo.Config),
+			// depends_on is reconstructed from the compose label (stripped from
+			// Labels below) so the *field* is the source of truth for the user.
+			DependsOn:      DependsOnFieldFromLabels(detailedInfo.Config, buildContainerNameIndex()),
 			RestartPolicy:  string(detailedInfo.HostConfig.RestartPolicy.Name),
 			Devices:        func() []string {
 					var devices []string
@@ -176,9 +174,7 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			
 		// }
 
-		// The com.docker.compose.depends_on label is an internal serialization
-		// detail of the depends_on field; hide it so the UI/backup shows the
-		// field (DependsOn), not the label.
+		// hide the internal depends_on label; the field is the source of truth
 		service.Labels = stripInternalDependsOnLabel(service.Labels)
 
 		return service, nil
