@@ -457,10 +457,8 @@ func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
 // stackLabelCandidates are the label keys (in priority order) that Cosmos and
 // docker-compose use to mark a container's stack/project membership.
 var stackLabelCandidates = []string{
-	"cosmos-stack",      // dash variant (referenced by user + backups.go)
-	"cosmos.stack",      // dot variant (what the compose editor writes)
-	"cosmos.stack.main", // main marker
-	"cosmos-stack-main",
+	"cosmos.stack",              // what the compose editor writes
+	"cosmos.stack.main",         // main marker
 	"com.docker.compose.project", // real docker-compose
 }
 
@@ -471,7 +469,7 @@ func ContainerStack(conf *conttype.Config) string {
 		return ""
 	}
 	// main markers don't carry a name; look for the actual stack/project name
-	for _, key := range []string{"cosmos-stack", "cosmos.stack", "com.docker.compose.project"} {
+	for _, key := range []string{"cosmos.stack", "com.docker.compose.project"} {
 		if v := conf.Labels[key]; v != "" {
 			return v
 		}

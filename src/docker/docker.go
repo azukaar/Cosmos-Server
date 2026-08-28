@@ -411,8 +411,8 @@ func RecreateDepedencies(containerID, containerName string) {
 	//     namespace died with the old container)
 	//   - depends_on dependents re-create only when restart:true
 	// The cascade is scoped to the SAME stack (com.docker.compose.project /
-	// cosmos.stack / cosmos-stack) so unrelated containers that happen to
-	// reference this one are not touched.
+	// cosmos.stack) so unrelated containers that happen to reference this one
+	// are not touched.
 
 	target, err := DockerClient.ContainerInspect(DockerContext, containerID)
 	if err != nil {
