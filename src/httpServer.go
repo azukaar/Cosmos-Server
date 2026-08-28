@@ -121,7 +121,9 @@ func startHTTPSServer(router *mux.Router) error {
 	go (func () {
 		httpRouter := mux.NewRouter()
 		httpRouter.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if (utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(r.RemoteAddr)) || constellation.IsConstellationIP(r.RemoteAddr) {
+			remoteIP, _ := utils.SplitIP(r.RemoteAddr)
+
+			if (utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(remoteIP)) || constellation.IsConstellationIP(remoteIP) {
 				router.ServeHTTP(w, r)
 			} else {
 				// change port in host
