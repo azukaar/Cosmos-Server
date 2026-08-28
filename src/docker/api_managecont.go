@@ -83,6 +83,15 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			err = DockerClient.ContainerRestart(DockerContext, container.ID, contstuff.StopOptions{})
+			if err == nil {
+				// Same-stack dependents must come back with their dependency:
+				// network_mode/ipc/pid namespace sharers (always) and
+				// depends_on restart:true dependents (docker-compose parity).
+				restarted := RestartStackDependents(container.ID)
+				if len(restarted) > 0 {
+					utils.Log(fmt.Sprintf("ManageContainer: restarted %d stack dependents of %s: %v", len(restarted), containerName, restarted))
+				}
+			}
 		case "kill":
 			err = DockerClient.ContainerKill(DockerContext, container.ID, "")
 		case "remove":

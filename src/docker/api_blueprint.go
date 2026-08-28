@@ -526,6 +526,30 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			OpenStdin:    container.StdinOpen,
 		}
 
+		// Tag multi-service compose stacks with the stack labels so the UI
+		// groups them (servapps.jsx reads cosmos-stack / cosmos.stack /
+		// com.docker.compose.project) and so the restart/recreate dependents
+		// cascade can scope itself to the same stack. The frontend also writes
+		// these, but doing it server-side makes creation deterministic. A
+		// single-service compose is NOT a stack and stays untagged.
+		if len(serviceRequest.Services) > 1 {
+			if containerConfig.Labels == nil {
+				containerConfig.Labels = make(map[string]string)
+			}
+			if containerConfig.Labels["cosmos-stack"] == "" && containerConfig.Labels["cosmos.stack"] == "" && containerConfig.Labels["com.docker.compose.project"] == "" {
+				containerConfig.Labels["cosmos.stack"] = serviceName
+			}
+			// mark the first service as the stack main
+			first := ""
+			for k := range serviceRequest.Services {
+				first = k
+				break
+			}
+			if containerConfig.Labels["cosmos-stack-main"] == "" && containerConfig.Labels["cosmos.stack.main"] == "" && serviceName == first {
+				containerConfig.Labels["cosmos.stack.main"] = "true"
+			}
+		}
+
 		// Persist the depends_on graph on the container in docker-compose's own
 		// format (com.docker.compose.depends_on label) so runtime paths
 		// (restart / recreate / update) honor it even though they bypass

@@ -308,7 +308,14 @@ func ReorderDependedOn(containerID string) {
 	}
 
 	// Find containers that (transitively) depend on the started one, or share
-	// its network namespace, and are currently stopped.
+	// its network namespace, and are currently stopped. Scoped to the same
+	// stack, and only depends_on entries with restart:true or network_mode
+	// references are honored (docker-compose parity).
+	startedStack := ""
+	if started.ContainerJSONBase != nil && started.Config != nil {
+		startedStack = ContainerStack(started.Config)
+	}
+
 	stoppedDependents := []string{}
 	seen := map[string]bool{}
 	var collect func(depName string)
@@ -318,11 +325,32 @@ func ReorderDependedOn(containerID string) {
 				continue
 			}
 			deps := DependsOnFromLabels(cInfo.full.Config)
-			_, hasDep := deps[depName]
-			sharesNetNS := strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depName)
+			depEntry, hasDep := deps[depName]
+			sharesNetNS := strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depName) ||
+				strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depName)
 			if !hasDep && !sharesNetNS {
 				continue
 			}
+
+			if sharesNetNS {
+				// network-mode dependents are hard-bound to the target: always
+				// cascade, regardless of stack (scope like compose's project)
+				seen[cName] = true
+				if !cInfo.full.State.Running {
+					stoppedDependents = append(stoppedDependents, cName)
+				}
+				collect(cName[1:])
+				continue
+			}
+
+			// depends_on: only cascade same-stack dependents with restart:true
+			if !depEntry.Restart {
+				continue
+			}
+			if startedStack != "" && ContainerStack(cInfo.full.Config) != startedStack {
+				continue
+			}
+
 			seen[cName] = true
 			if !cInfo.full.State.Running {
 				stoppedDependents = append(stoppedDependents, cName)
@@ -406,4 +434,178 @@ func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
 		out[k] = v
 	}
 	return out
+}
+
+// ---------------------------------------------------------------------------
+// Stack membership + restart-of-dependents
+//
+// docker-compose (pkg/compose/restart.go prepareRestartProject) restart
+// behavior, which we mirror:
+//   - depends_on entries with restart:true make the dependent restart together
+//     with the dependency (entries with restart:false are pruned from the
+//     graph before restarting)
+//   - network_mode / ipc / pid: service:X dependents MUST be re-created when
+//     the target restarts (their shared namespace dies) — compose handles this
+//     as an implicit edge, not via restart:true
+//   - everything runs in dependency order, dependencies first
+//
+// We additionally scope the cascade to containers of the SAME stack, so a
+// single restarted container does not rebuild unrelated containers that happen
+// to reference it.
+// ---------------------------------------------------------------------------
+
+// stackLabelCandidates are the label keys (in priority order) that Cosmos and
+// docker-compose use to mark a container's stack/project membership.
+var stackLabelCandidates = []string{
+	"cosmos-stack",      // dash variant (referenced by user + backups.go)
+	"cosmos.stack",      // dot variant (what the compose editor writes)
+	"cosmos.stack.main", // main marker
+	"cosmos-stack-main",
+	"com.docker.compose.project", // real docker-compose
+}
+
+// ContainerStack returns the stack/project name a container belongs to, or ""
+// if it is standalone. It accepts every variant Cosmos and compose use.
+func ContainerStack(conf *conttype.Config) string {
+	if conf == nil || conf.Labels == nil {
+		return ""
+	}
+	// main markers don't carry a name; look for the actual stack/project name
+	for _, key := range []string{"cosmos-stack", "cosmos.stack", "com.docker.compose.project"} {
+		if v := conf.Labels[key]; v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// containerStackMatches reports whether two container configs belong to the
+// same stack. A standalone container (no stack) matches nothing but itself.
+func containerStackMatches(a, b *conttype.Config) bool {
+	sa, sb := ContainerStack(a), ContainerStack(b)
+	if sa == "" || sb == "" {
+		return false
+	}
+	return sa == sb
+}
+
+// restartDependentsNeeded decides whether a dependent must be (re)started when
+// its dependency is restarted, mirroring docker-compose:
+//   - network_mode/ipc/pid namespace sharing => always restart
+//   - depends_on with restart:true            => restart
+//   - depends_on with restart:false           => no restart
+func restartDependentsNeeded(depEntry dependsOnEntry, networkMode string) bool {
+	if NetworkModeContainerRef(networkMode) || NetworkModeServiceRef(networkMode) {
+		return true
+	}
+	return depEntry.Restart
+}
+
+// RestartStackDependents restarts (or re-creates) every same-stack container
+// that depends on containerName, either through depends_on (restart:true) or
+// by sharing its network namespace (network_mode: container:/service:), in
+// dependency order. It mirrors docker-compose restart semantics and is scoped
+// to the stack to avoid surprising restarts of unrelated containers.
+//
+// Returns the names of containers it restarted (for logging/UI).
+func RestartStackDependents(containerName string) []string {
+	restarted := []string{}
+
+	target, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	if err != nil {
+		utils.Error("RestartStackDependents: cannot inspect "+containerName, err)
+		return restarted
+	}
+	targetStack := ContainerStack(target.Config)
+	if targetStack == "" {
+		// no stack to scope against: only restart direct network_mode dependents
+		// anywhere (namespace sharing is independent of stack), but be safe and
+		// require the same stack like compose's project scope.
+		utils.Debug("RestartStackDependents: " + containerName + " is not part of a stack; nothing to cascade")
+		return restarted
+	}
+
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("RestartStackDependents", err)
+		return restarted
+	}
+
+	// Build same-stack container set.
+	byName := map[string]depContainerInfo{}
+	for _, c := range containers {
+		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
+		if err != nil {
+			continue
+		}
+		if full.ID == target.ID {
+			continue
+		}
+		if ContainerStack(full.Config) != targetStack {
+			continue // scope to same stack
+		}
+		name := ""
+		if len(c.Names) > 0 {
+			name = c.Names[0]
+		} else if full.ContainerJSONBase != nil {
+			name = full.Name
+		}
+		if name == "" {
+			continue
+		}
+		byName[name] = depContainerInfo{full: full, name: name}
+	}
+
+	// Collect dependents.
+	dependentNames := []string{}
+	for name, cInfo := range byName {
+		full := cInfo.full
+		deps := DependsOnFromLabels(full.Config)
+		if entry, ok := deps[target.Name[1:]]; ok {
+			if restartDependentsNeeded(entry, string(full.HostConfig.NetworkMode)) {
+				utils.Log(fmt.Sprintf("RestartStackDependents: %s depends_on %s (restart=%t) -> restarting", name, target.Name[1:], entry.Restart))
+				dependentNames = append(dependentNames, name)
+			}
+			continue
+		}
+		// network_mode / ipc / pid namespace sharing (implicit edge)
+		nm := string(full.HostConfig.NetworkMode)
+		if NetworkModeContainerRef(nm) || NetworkModeServiceRef(nm) {
+			refTarget := NetworkModeRefTarget(nm)
+			if refTarget == target.Name[1:] || refTarget == target.ID {
+				utils.Log(fmt.Sprintf("RestartStackDependents: %s shares network namespace with %s -> restarting", name, target.Name[1:]))
+				dependentNames = append(dependentNames, name)
+			}
+			continue
+		}
+		// cosmos-force-network-mode label (durable network_mode reference)
+		labelMode := GetLabel(full, "cosmos-force-network-mode")
+		labelTarget := NetworkModeRefTarget(labelMode)
+		if labelTarget != "" && (labelTarget == target.Name[1:] || labelTarget == target.ID) {
+			utils.Log(fmt.Sprintf("RestartStackDependents: %s shares network namespace with %s (label) -> restarting", name, target.Name[1:]))
+			dependentNames = append(dependentNames, name)
+		}
+	}
+
+	if len(dependentNames) == 0 {
+		return restarted
+	}
+
+	// Restart in dependency order (dependencies first), respecting each
+	// dependent's own depends_on waits.
+	ordered := OrderByDependencies(dependentNames, depContainerConfigs(byName))
+	for _, name := range ordered {
+		full := byName[name].full
+		utils.Log(fmt.Sprintf("RestartStackDependents: restarting %s", name))
+		if errW := WaitForDependsOn(DockerContext, full.ID); errW != nil {
+			utils.Error("RestartStackDependents: dependency wait failed for "+name, errW)
+			continue
+		}
+		if errR := DockerClient.ContainerRestart(DockerContext, full.ID, conttype.StopOptions{}); errR != nil {
+			utils.Error("RestartStackDependents: cannot restart "+name, errR)
+			continue
+		}
+		restarted = append(restarted, name)
+	}
+	return restarted
 }

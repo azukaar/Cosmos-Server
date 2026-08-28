@@ -323,3 +323,45 @@ func TestDependsOnFieldNoLabel(t *testing.T) {
 		t.Fatalf("labels should be unchanged: %v", labels)
 	}
 }
+
+func TestContainerStackVariants(t *testing.T) {
+	cases := []struct {
+		labels map[string]string
+		want   string
+	}{
+		{map[string]string{"cosmos-stack": "mystack"}, "mystack"},
+		{map[string]string{"cosmos.stack": "mystack"}, "mystack"},
+		{map[string]string{"com.docker.compose.project": "proj"}, "proj"},
+		{map[string]string{"com.docker.compose.project": "proj", "cosmos.stack": "other"}, "other"}, // cosmos wins priority
+		{map[string]string{"cosmos-stack-main": "true"}, ""},                                        // main marker alone -> no name
+		{nil, ""},
+	}
+	for i, c := range cases {
+		conf := &conttype.Config{Labels: c.labels}
+		if got := ContainerStack(conf); got != c.want {
+			t.Errorf("case %d: ContainerStack = %q, want %q", i, got, c.want)
+		}
+	}
+}
+
+func TestRestartDependentsNeeded(t *testing.T) {
+	// depends_on restart:true -> restart
+	if !restartDependentsNeeded(dependsOnEntry{Restart: true}, "") {
+		t.Error("depends_on restart:true should restart dependent")
+	}
+	// depends_on restart:false -> no restart
+	if restartDependentsNeeded(dependsOnEntry{Restart: false}, "") {
+		t.Error("depends_on restart:false should NOT restart dependent")
+	}
+	// network_mode container: (even restart:false) -> restart (namespace shared)
+	if !restartDependentsNeeded(dependsOnEntry{Restart: false}, "container:db") {
+		t.Error("network_mode container: should restart dependent even with restart:false")
+	}
+	if !restartDependentsNeeded(dependsOnEntry{Restart: false}, "service:db") {
+		t.Error("network_mode service: should restart dependent even with restart:false")
+	}
+	// plain depends_on no restart -> default false -> no restart
+	if restartDependentsNeeded(dependsOnEntry{}, "bridge") {
+		t.Error("default depends_on (restart false) should NOT restart")
+	}
+}

@@ -404,13 +404,27 @@ func RecreateDepedencies(containerID, containerName string) {
 		return
 	}
 
-	// Collect every container that directly depends on the recreated one,
-	// either through network_mode (container:/service:) or through the
-	// depends_on labels Cosmos persists at create time.
-	//
-	// Recreating a dependency under compose semantics means the dependent must
-	// be re-created too (its network endpoints/aliases to the old container
-	// are gone), then started again in dependency order.
+	// Recreating one container invalidates the container: references of its
+	// stack siblings, so those siblings must be re-created too, then started
+	// in dependency order. Mirror docker-compose restart semantics:
+	//   - network_mode/ipc/pid namespace sharers always re-create (the shared
+	//     namespace died with the old container)
+	//   - depends_on dependents re-create only when restart:true
+	// The cascade is scoped to the SAME stack (com.docker.compose.project /
+	// cosmos.stack / cosmos-stack) so unrelated containers that happen to
+	// reference this one are not touched.
+
+	target, err := DockerClient.ContainerInspect(DockerContext, containerID)
+	if err != nil {
+		utils.Error("RecreateDepedencies: cannot inspect target", err)
+		return
+	}
+	targetStack := ContainerStack(target.Config)
+	if targetStack == "" {
+		utils.Debug("RecreateDepedencies: " + containerName + " not part of a stack; no cascade")
+		return
+	}
+
 	dependentNames := []string{}
 	byName := map[string]types.ContainerJSON{}
 
@@ -425,13 +439,21 @@ func RecreateDepedencies(containerID, containerName string) {
 			continue
 		}
 
+		// scope to same stack
+		if ContainerStack(fullContainer.Config) != targetStack {
+			continue
+		}
+
 		byName[container.Names[0]] = fullContainer
 
 		depends := DependsOnFromLabels(fullContainer.Config)
-		_, hasDepLabel := depends[containerName[1:]]
-		if hasDepLabel {
-			utils.Log("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:])
-			dependentNames = append(dependentNames, container.Names[0])
+		if depEntry, hasDepLabel := depends[containerName[1:]]; hasDepLabel {
+			if depEntry.Restart || NetworkModeContainerRef(string(fullContainer.HostConfig.NetworkMode)) || NetworkModeServiceRef(string(fullContainer.HostConfig.NetworkMode)) {
+				utils.Log("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:] + " (restart=" + strconv.FormatBool(depEntry.Restart) + ") -> recreating")
+				dependentNames = append(dependentNames, container.Names[0])
+			} else {
+				utils.Debug("RecreateDepedencies - depends_on: " + container.Names[0] + " depends on " + containerName[1:] + " (restart=false) -> skipping")
+			}
 			continue
 		}
 
