@@ -368,3 +368,42 @@ func depContainerConfigs(byName map[string]depContainerInfo) map[string]doctype.
 	}
 	return out
 }
+
+// DependsOnFieldFromLabels converts the persisted compose depends_on label back
+// into the depends_on *field* shape (map[service]DependsOnCont) that Cosmos's
+// compose model exposes. This is what the user should see/edit: the field, not
+// the label. Mirrors compose.go's projectFromName reconstruction.
+func DependsOnFieldFromLabels(conf *conttype.Config) map[string]ContainerCreateRequestContainerDependsOnCont {
+	out := map[string]ContainerCreateRequestContainerDependsOnCont{}
+	if conf == nil || conf.Labels == nil {
+		return out
+	}
+	for dep, entry := range DependsOnFromLabels(conf) {
+		out[dep] = ContainerCreateRequestContainerDependsOnCont{
+			Condition: entry.Condition,
+			Restart:   strconv.FormatBool(entry.Restart),
+		}
+	}
+	return out
+}
+
+// stripInternalDependsOnLabel removes compose's internal
+// com.docker.compose.depends_on label from a labels map without mutating the
+// input. The label is an internal serialization detail: the source of truth
+// exposed to the user is the depends_on field.
+func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
+	if labels == nil {
+		return nil
+	}
+	if _, ok := labels[composeDependenciesLabel]; !ok {
+		return labels
+	}
+	out := make(map[string]string, len(labels)-1)
+	for k, v := range labels {
+		if k == composeDependenciesLabel {
+			continue
+		}
+		out[k] = v
+	}
+	return out
+}

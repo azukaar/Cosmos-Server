@@ -278,3 +278,48 @@ func TestReOrderServicesCircular(t *testing.T) {
 		t.Fatal("circular depends_on should error")
 	}
 }
+
+// The depends_on *field* must be reconstructed from the label, and the label
+// itself hidden, so the source of truth the user sees/edits is the field.
+func TestDependsOnFieldFromLabelsAndHide(t *testing.T) {
+	conf := &conttype.Config{Labels: map[string]string{
+		composeDependenciesLabel: "db:service_healthy:true,redis:service_started:false",
+		"some.other.label":       "value",
+	}}
+	field := DependsOnFieldFromLabels(conf)
+	if len(field) != 2 {
+		t.Fatalf("expected 2 field entries, got %d: %v", len(field), field)
+	}
+	if field["db"].Condition != "service_healthy" || field["db"].Restart != "true" {
+		t.Errorf("db = %+v", field["db"])
+	}
+	if field["redis"].Condition != "service_started" || field["redis"].Restart != "false" {
+		t.Errorf("redis = %+v", field["redis"])
+	}
+
+	// The internal label must be hidden; other labels kept.
+	labels := stripInternalDependsOnLabel(conf.Labels)
+	if _, ok := labels[composeDependenciesLabel]; ok {
+		t.Fatal("com.docker.compose.depends_on label should be hidden")
+	}
+	if labels["some.other.label"] != "value" {
+		t.Errorf("other labels should be preserved, got %v", labels)
+	}
+
+	// Original labels map must not be mutated.
+	if _, ok := conf.Labels[composeDependenciesLabel]; !ok {
+		t.Fatal("original labels map should not be mutated")
+	}
+}
+
+// No label -> empty field, and strip is a no-op that returns the same map.
+func TestDependsOnFieldNoLabel(t *testing.T) {
+	conf := &conttype.Config{Labels: map[string]string{"a": "b"}}
+	if len(DependsOnFieldFromLabels(conf)) != 0 {
+		t.Fatal("no label should mean no depends_on field")
+	}
+	labels := stripInternalDependsOnLabel(conf.Labels)
+	if labels["a"] != "b" {
+		t.Fatalf("labels should be unchanged: %v", labels)
+	}
+}
