@@ -526,17 +526,22 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			OpenStdin:    container.StdinOpen,
 		}
 
-		// Persist the depends_on graph on the container so runtime paths
-		// (restart / recreate / update) can honor it even though they bypass
-		// CreateService's pre-start ordering.
+		// Persist the depends_on graph on the container in docker-compose's own
+		// format (com.docker.compose.depends_on label) so runtime paths
+		// (restart / recreate / update) honor it even though they bypass
+		// CreateService's pre-start ordering, and so compose-imported stacks
+		// keep working.
 		if len(container.DependsOn) > 0 {
-			deps := make(map[string]string, len(container.DependsOn))
+			deps := make(map[string]dependsOnEntry, len(container.DependsOn))
 			for depName, depCfg := range container.DependsOn {
 				cond := depCfg.Condition
 				if cond == "" {
 					cond = DepConditionStarted
 				}
-				deps[depName] = cond
+				deps[depName] = dependsOnEntry{
+					Condition: cond,
+					Restart:   depCfg.Restart == "true" || depCfg.Restart == "always",
+				}
 			}
 			SetDependsOnLabels(containerConfig, deps)
 		}
@@ -1164,6 +1169,52 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 	startOrder := []ContainerCreateRequestContainer{}
 	mustStart := false
 
+	// Build a map of service key -> container name so dependencies (which
+	// reference services by their compose key, per docker-compose) can be
+	// matched against the containers in startOrder (which are keyed by
+	// container name). docker-compose's dependency graph is built entirely
+	// from the `depends_on` field. network_mode / ipc / pid / volumes_from
+	// references are NOT graph edges in compose: "service:" aliases are
+	// resolved to container:<id> at create time and Docker enforces the
+	// referenced container exists first. We keep a *soft* ordering constraint
+	// for network_mode targets that are part of this same batch (the target
+	// must be created and started first), but an external target (e.g. a
+	// tailscale sidecar already running) is never a hard dependency error.
+	nameByService := map[string]string{}
+	for key, svc := range serviceMap {
+		// container.Name defaults to the service key when container_name is
+		// unset (see CreateService), so this mapping is usually identity.
+		nameByService[key] = svc.Name
+	}
+
+	// Invert: also allow matching by container name directly (defensive).
+	serviceByName := map[string]string{}
+	for key, svc := range serviceMap {
+		serviceByName[svc.Name] = key
+	}
+
+	// Resolve a dependency reference to a container name. Dependencies are
+	// declared by service key (compose semantics); fall back to matching the
+	// container name directly for robustness.
+	resolveDep := func(dep string) string {
+		if name, ok := nameByService[dep]; ok && name != "" {
+			return name
+		}
+		return dep
+	}
+
+	// inBatch reports whether a service/container name is part of this compose
+	// creation batch (by service key OR by container name).
+	inBatch := func(name string) bool {
+		if _, ok := serviceMap[name]; ok {
+			return true
+		}
+		if _, ok := serviceByName[name]; ok {
+			return true
+		}
+		return false
+	}
+
 	for len(serviceMap) > 0 {
 		// Keep track of whether we've added any services in this iteration
 		changed := false
@@ -1173,12 +1224,20 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			if dependencies == nil {
 				dependencies = make(map[string]ContainerCreateRequestContainerDependsOnCont)
 			}
-			
-			// if network_mode is container: then we need to add a dependency
-			if strings.HasPrefix(string(service.NetworkMode), "container:") {
-				depService := strings.TrimPrefix(string(service.NetworkMode), "container:")
-				dependencies[depService] = ContainerCreateRequestContainerDependsOnCont{
-					Condition: "service_started",
+
+			// Soft ordering constraint: if network_mode references another
+			// service that is part of this batch, that service must start
+			// first. Unlike depends_on this never hard-fails for an external
+			// target: if the referenced container is not in the batch, Docker
+			// enforces it exists at create time (compose parity).
+			if nm := string(service.NetworkMode); strings.HasPrefix(nm, "container:") || strings.HasPrefix(nm, "service:") {
+				target := strings.TrimPrefix(strings.TrimPrefix(nm, "container:"), "service:")
+				if target != "" && inBatch(target) {
+					if _, ok := dependencies[target]; !ok {
+						dependencies[target] = ContainerCreateRequestContainerDependsOnCont{
+							Condition: "service_started",
+						}
+					}
 				}
 			}
 
@@ -1186,9 +1245,10 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			// Check if all dependencies are already in startOrder
 			allDependenciesStarted := true
 			for dependency, dependencyDetails := range dependencies {
+				depName := resolveDep(dependency)
 				dependencyStarted := false
 				for _, startedService := range startOrder {
-					if startedService.Name == dependency {
+					if startedService.Name == depName {
 						dependencyStarted = true
 
 						if dependencyDetails.Condition == "service_healthy" || dependencyDetails.Condition == "service_started" {
@@ -1196,6 +1256,14 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 						}
 
 						break
+					}
+				}
+				// A dependency on a service not in this compose batch (e.g. an
+				// external/named container): the target must already exist; we
+				// treat it as satisfied (Docker will fail create if it doesn't).
+				if !dependencyStarted {
+					if !inBatch(dependency) {
+						dependencyStarted = true
 					}
 				}
 				if !dependencyStarted {
@@ -1226,15 +1294,8 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			errorMessage += "Could not start service: " + name + "\n"
 			errorMessage += "Unsatisfied dependencies:\n"
 
-			// if network_mode is container: then we need to add a dependency
-			if strings.HasPrefix(string(serviceMap[name].NetworkMode), "container:") {
-				depService := strings.TrimPrefix(string(serviceMap[name].NetworkMode), "container:")
-				errorMessage += depService + " (network_mode)\n"
-			}
-
 			for dependency, _ := range serviceMap[name].DependsOn {
-				_, ok := serviceMap[dependency]
-				if ok {
+				if inBatch(dependency) {
 					errorMessage += dependency + "\n"
 				}
 			}

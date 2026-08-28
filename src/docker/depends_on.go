@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,86 +14,115 @@ import (
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
-// Container dependency conditions, mirroring docker-compose's depends_on
-// condition field. A dependency without an explicit condition is treated as
-// service_started (docker-compose default).
+// Dependency conditions, mirroring docker-compose's depends_on condition
+// field exactly (compose-go types.go). A dependency without an explicit
+// condition defaults to service_started, exactly like docker-compose.
 const (
-	DepConditionStarted          = "service_started"
+	DepConditionStarted          = "service_started"    // default
+	DepConditionRunningOrHealthy = "running_or_healthy" // compose CLI's implicit fallback
 	DepConditionHealthy          = "service_healthy"
 	DepConditionCompletedSuccess = "service_completed_successfully"
-
-	// Cosmos-native extension (same semantics as compose, different key so
-	// compose specs keep working unchanged).
-	depConditionRestart = "restart"
 )
 
-// Labels used to persist the dependency graph on the container itself so the
-// runtime restart/recreate paths (which go through EditContainer, not
-// CreateService) can honor depends_on too.
-const (
-	depLabelPrefix = "cosmos.depends_on."
-	depLabelList   = "cosmos.depends_on.list"
-)
+// composeDependenciesLabel is the SAME label docker-compose itself uses to
+// persist the depends_on field on each container
+// (pkg/api/labels.go: com.docker.compose.depends_on), value format:
+//
+//	"<service>:<condition>:<restart>,<service2>:<condition2>:<restart2>,..."
+//
+// Matching compose exactly means a stack that was created by docker-compose
+// and then imported into Cosmos keeps working, and vice-versa. This is the
+// only durable, per-container record of the depends_on graph (compose stores
+// it nowhere else).
+const composeDependenciesLabel = "com.docker.compose.depends_on"
 
-// dependencyTimeout is the maximum time we wait for a dependency condition
-// (service_healthy / service_completed_successfully) to be satisfied before
-// giving up. service_started only waits for the container to be running,
-// which is fast.
+// dependencyTimeout is the max time we wait for a dependency condition
+// (service_healthy / service_completed_successfully / running_or_healthy) to
+// be satisfied before giving up. service_started is NOT waited on here — it is
+// handled purely by the DAG start order, same as docker-compose
+// (waitDependencies returns immediately for ServiceConditionStarted).
 const dependencyTimeout = 10 * time.Minute
 
-func depLabelFor(service string) string {
-	return depLabelPrefix + service
+// DependsOnConfig mirrors compose-go's DependsOnConfig map value.
+type dependsOnEntry struct {
+	Condition string
+	Restart   bool
+	Required  bool
 }
 
-// ValidDepCondition reports whether cond is a condition value we understand.
-// Unknown conditions degrade to service_started (compose ignores unknown
-// values for ordering; we do the same but keep the value in labels so the
-// graph is still visible).
+// ValidDepCondition reports whether cond is a condition we understand.
 func ValidDepCondition(cond string) bool {
 	switch cond {
-	case DepConditionStarted, DepConditionHealthy, DepConditionCompletedSuccess, depConditionRestart:
+	case DepConditionStarted, DepConditionRunningOrHealthy, DepConditionHealthy, DepConditionCompletedSuccess:
 		return true
 	}
 	return false
 }
 
-// NormalizeDepCondition maps an empty/invalid condition to service_started.
+// NormalizeDepCondition maps an empty/unknown condition to service_started
+// (compose-default), with one exception: compose's CLI treats a missing/empty
+// condition as running_or_healthy (its `ServiceConditionRunningOrHealthy`
+// const). We keep empty => service_started when we WRITE the label (compose-go
+// writes whatever was parsed, default service_started), but when we READ back
+// a legacy label fragment without a condition we fall back to running_or_healthy
+// exactly like compose.go does.
 func NormalizeDepCondition(cond string) string {
+	if cond == "" {
+		return DepConditionStarted
+	}
 	if !ValidDepCondition(cond) {
 		return DepConditionStarted
 	}
 	return cond
 }
 
-// DependsOnFromLabels reconstructs the depends_on map from the labels Cosmos
-// writes at container creation. Returns an empty map when the container has
-// no dependency labels (the common case).
-func DependsOnFromLabels(conf *conttype.Config) map[string]string {
-	deps := map[string]string{}
+// DependsOnFromLabels reconstructs the depends_on map from a container's
+// Config.Labels, exactly like docker-compose's projectFromName does
+// (pkg/compose/compose.go). Returns an empty map when there is no label.
+func DependsOnFromLabels(conf *conttype.Config) map[string]dependsOnEntry {
+	deps := map[string]dependsOnEntry{}
 	if conf == nil || conf.Labels == nil {
 		return deps
 	}
 
-	list := conf.Labels[depLabelList]
-	if list == "" {
+	raw := conf.Labels[composeDependenciesLabel]
+	if raw == "" {
 		return deps
 	}
 
-	for _, service := range strings.Split(list, ",") {
-		service = strings.TrimSpace(service)
-		if service == "" {
+	for _, dc := range strings.Split(raw, ",") {
+		dc = strings.TrimSpace(dc)
+		if dc == "" {
 			continue
 		}
-		cond := conf.Labels[depLabelFor(service)]
-		deps[service] = NormalizeDepCondition(cond)
+		dcArr := strings.Split(dc, ":")
+		condition := DepConditionRunningOrHealthy
+		restart := true
+		required := true
+		dependency := dcArr[0]
+
+		if len(dcArr) > 1 {
+			condition = dcArr[1]
+			if len(dcArr) > 2 {
+				restart, _ = strconv.ParseBool(dcArr[2])
+			}
+		}
+
+		deps[dependency] = dependsOnEntry{
+			Condition: condition,
+			Restart:   restart,
+			Required:  required,
+		}
 	}
 	return deps
 }
 
-// SetDependsOnLabels writes the depends_on graph as labels on the container
-// config (mutating conf.Labels). Call this right before ContainerCreate so
-// the graph survives re-creates and can be inspected at runtime.
-func SetDependsOnLabels(conf *conttype.Config, deps map[string]string) {
+// SetDependsOnLabels writes the depends_on graph as compose's
+// com.docker.compose.depends_on label, in compose's own
+// "<svc>:<cond>:<restart>,..." format. Call this right before
+// ContainerCreate so the graph survives re-creates and can be inspected at
+// runtime (compose does the same).
+func SetDependsOnLabels(conf *conttype.Config, deps map[string]dependsOnEntry) {
 	if conf == nil {
 		return
 	}
@@ -106,48 +136,69 @@ func SetDependsOnLabels(conf *conttype.Config, deps map[string]string) {
 	}
 	sort.Strings(keys)
 
-	conf.Labels[depLabelList] = strings.Join(keys, ",")
+	parts := make([]string, 0, len(keys))
 	for _, service := range keys {
-		conf.Labels[depLabelFor(service)] = NormalizeDepCondition(deps[service])
+		d := deps[service]
+		if d.Condition == "" {
+			d.Condition = DepConditionStarted
+		}
+		parts = append(parts, fmt.Sprintf("%s:%s:%t", service, d.Condition, d.Restart))
 	}
+	conf.Labels[composeDependenciesLabel] = strings.Join(parts, ",")
+}
+
+// DepConditions returns the map service->condition for convenience (used by
+// the HTTP/ordering layer).
+func DepConditions(conf *conttype.Config) map[string]string {
+	out := map[string]string{}
+	for k, v := range DependsOnFromLabels(conf) {
+		out[k] = v.Condition
+	}
+	return out
 }
 
 // depConditionMet reports whether dep (as currently inspected) satisfies the
-// condition cond. state may be nil for a container that no longer exists.
+// condition cond. Models compose's isServiceHealthy / isServiceCompleted.
 func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
-	if cond == "" {
-		cond = DepConditionStarted
-	}
-
 	if dep.ContainerJSONBase == nil || dep.State == nil {
 		return false
 	}
 
 	switch cond {
-	case DepConditionStarted:
-		return dep.State.Running
-	case DepConditionHealthy:
-		if !dep.State.Running {
+	case DepConditionStarted, DepConditionRunningOrHealthy:
+		// compose's checkDependencyRunningOrHealthy: healthy if running, or
+		// falls back to "running" when there's no healthcheck.
+		if dep.State.Status == "exited" {
 			return false
 		}
-		// A container without a healthcheck never becomes "healthy"; treat it
-		// as healthy once it is running (same as compose's service_healthy
-		// behavior for healthcheck-less images).
-		if dep.Config == nil || dep.Config.Healthcheck == nil {
-			return true
+		noHealthcheck := dep.Config == nil || dep.Config.Healthcheck == nil ||
+			(len(dep.Config.Healthcheck.Test) > 0 && dep.Config.Healthcheck.Test[0] == "NONE")
+		if noHealthcheck {
+			return dep.State.Running
+		}
+		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
+	case DepConditionHealthy:
+		if dep.State.Status == "exited" {
+			return false
+		}
+		if dep.Config == nil || dep.Config.Healthcheck == nil ||
+			(len(dep.Config.Healthcheck.Test) > 0 && dep.Config.Healthcheck.Test[0] == "NONE") {
+			// compose with fallbackRunning=false errors; for robustness treat a
+			// healthcheck-less running container as unhealthy-ish but keep
+			// waiting is wrong -> treat as not-met so dependent keeps waiting.
+			return false
 		}
 		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
 	case DepConditionCompletedSuccess:
 		return !dep.State.Running && dep.State.ExitCode == 0
 	default:
-		// Unknown condition: fall back to started.
 		return dep.State.Running
 	}
 }
 
 // WaitForDepCondition polls depName until cond is met, or returns an error
-// after dependencyTimeout. A missing dependency is an error (mirrors compose
-// depending on a service that does not exist).
+// after dependencyTimeout. A missing dependency is an error (compose:
+// "%s is missing dependency %s").
 func WaitForDepCondition(ctx context.Context, depName string, cond string) error {
 	if cond == "" {
 		cond = DepConditionStarted
@@ -173,10 +224,10 @@ func WaitForDepCondition(ctx context.Context, depName string, cond string) error
 }
 
 // WaitForDependsOn waits for every dependency of containerName, using the
-// dependency graph persisted on the container's labels. It is used by the
-// runtime paths (restart / recreate / update) that do not go through
-// CreateService's pre-start ordering. Missing dependency containers are
-// considered an error and surfaced.
+// depends_on graph persisted on the container's compose label. It is used by
+// the runtime paths (restart / recreate / update). mirroring compose, only
+// conditions other than service_started are waited on: service_started is
+// already guaranteed by start ordering.
 func WaitForDependsOn(ctx context.Context, containerName string) error {
 	current, err := DockerClient.ContainerInspect(ctx, containerName)
 	if err != nil {
@@ -188,18 +239,28 @@ func WaitForDependsOn(ctx context.Context, containerName string) error {
 		return nil
 	}
 
-	// Deterministic order (sorted labels) so logs are stable.
+	// Deterministic order (sorted) so logs are stable.
 	names := make([]string, 0, len(deps))
 	for name := range deps {
 		names = append(names, name)
 	}
 	sort.Strings(names)
 
-	utils.Log(fmt.Sprintf("depends_on: container %s waiting for %d dependencies: %s",
-		containerName, len(names), strings.Join(names, ", ")))
+	waiting := []string{}
+	for _, name := range names {
+		if deps[name].Condition != DepConditionStarted {
+			waiting = append(waiting, name)
+		}
+	}
+	if len(waiting) == 0 {
+		return nil
+	}
 
-	for _, depName := range names {
-		cond := deps[depName]
+	utils.Log(fmt.Sprintf("depends_on: container %s waiting for %d dependencies: %s",
+		containerName, len(waiting), strings.Join(waiting, ", ")))
+
+	for _, depName := range waiting {
+		cond := deps[depName].Condition
 		utils.Log(fmt.Sprintf("depends_on: waiting for %s (%s)", depName, cond))
 		if err := WaitForDepCondition(ctx, depName, cond); err != nil {
 			return err
@@ -210,15 +271,11 @@ func WaitForDependsOn(ctx context.Context, containerName string) error {
 
 // ReorderDependedOn is the boot-up cascade: after containerID starts, any
 // container whose depends_on graph references it (directly or transitively)
-// gets started again in dependency order. Docker knows nothing about
-// depends_on, so without this a dependent that crashed (or never started on
-// boot) would stay down even though its dependency is back.
-//
-// It is deliberately best-effort and non-blocking:
-//   - only containers that are stopped AND depend on containerID are started;
-//     running dependents are left alone (no restarts, no churn)
-//   - failures are logged, never fatal
-//   - runs in its own goroutine (see onDockerStarted)
+// gets started again in dependency order, plus any stopped container that
+// shares its network namespace (network_mode: container:) since that reference
+// requires the target to exist. Best-effort and non-blocking: running
+// dependents are left alone, failures are logged not fatal, runs in its own
+// goroutine (see onDockerStarted).
 func ReorderDependedOn(containerID string) {
 	startedName := ""
 	started, err := DockerClient.ContainerInspect(DockerContext, containerID)
@@ -232,7 +289,6 @@ func ReorderDependedOn(containerID string) {
 		return
 	}
 
-	// Build a name -> (config, stopped?, running?) map once.
 	byName := map[string]depContainerInfo{}
 	for _, c := range containers {
 		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
@@ -251,18 +307,20 @@ func ReorderDependedOn(containerID string) {
 		byName[name] = depContainerInfo{full: full, name: name}
 	}
 
-	// Find all containers that (transitively) depend on the started one and
-	// are currently stopped.
+	// Find containers that (transitively) depend on the started one, or share
+	// its network namespace, and are currently stopped.
 	stoppedDependents := []string{}
 	seen := map[string]bool{}
-	var collect func(name string)
+	var collect func(depName string)
 	collect = func(depName string) {
 		for cName, cInfo := range byName {
 			if seen[cName] {
 				continue
 			}
 			deps := DependsOnFromLabels(cInfo.full.Config)
-			if _, ok := deps[depName]; !ok {
+			_, hasDep := deps[depName]
+			sharesNetNS := strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depName)
+			if !hasDep && !sharesNetNS {
 				continue
 			}
 			seen[cName] = true
@@ -281,7 +339,6 @@ func ReorderDependedOn(containerID string) {
 
 	utils.Log(fmt.Sprintf("ReorderDependedOn: %s started; waking %d stopped dependents", startedName, len(stoppedDependents)))
 
-	// Start them in dependency order, waiting for each one's own deps.
 	ordered := OrderByDependencies(stoppedDependents, depContainerConfigs(byName))
 	for _, name := range ordered {
 		cInfo := byName[name]
