@@ -194,7 +194,7 @@ export const HostnameChecker = ({hostname}) => {
 
 const hostnameIsDomainReg = /^((?!localhost|\d+\.\d+\.\d+\.\d+)[a-zA-Z0-9\-]{1,63}\.)+[a-zA-Z]{2,63}$/
 
-export const getHostnameFromName = (name, route, config, overrideOrigin) => {
+export const getHostnameFromName = (name, route, config, overrideOrigin, claimedHosts = []) => {
   let origin = overrideOrigin || window.location.origin.split('://')[1];
   let protocol = overrideOrigin || window.location.origin.split('://')[0];
   let port = origin.split(':')[1];
@@ -223,8 +223,12 @@ export const getHostnameFromName = (name, route, config, overrideOrigin) => {
     let port = protocol == "https" ? 7200 : 7351;
     let endPort = protocol == "https" ? 7350 : 7500;
     while(port < endPort) {
-      if(!existingRoutes.find((exiroute) => exiroute.Host == (origin + ":" + port))) {
-        res = origin + ":" + port;
+      const candidate = origin + ":" + port;
+      // claimedHosts covers the routes being generated alongside this one, which
+      // are not in the config yet: without it every route of a multi-service
+      // servapp is handed the same first free port.
+      if(!existingRoutes.find((exiroute) => exiroute.Host == candidate) && !claimedHosts.includes(candidate)) {
+        res = candidate;
         return res;
       }
       else
