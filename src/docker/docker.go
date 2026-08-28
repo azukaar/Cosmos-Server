@@ -136,13 +136,26 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 
-	if !HasLabel(newConfig, "cosmos-force-network-mode") {
-		if (strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
-			strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:")) {
-				AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
+	// Normalize container/service network-mode references to stable container
+	// names BEFORE persisting anything. Docker accepts both names and IDs in
+	// "container:<ref>" but an ID goes stale when the referenced container is
+	// recreated, breaking the network sharing. The name is stable across
+	// recreations, so resolve any ID (or compose "service:" alias) to
+	// container:<name> here and keep the cosmos-force-network-mode label in
+	// sync — this is the single choke point every recreate/update path flows
+	// through, and it self-heals references that were previously stored as IDs.
+	labelNetworkMode := ""
+	if GetLabel(newConfig, "cosmos-force-network-mode") != "" {
+		labelNetworkMode = ContainerRefToName(GetLabel(newConfig, "cosmos-force-network-mode"))
+		newConfig.HostConfig.NetworkMode = container.NetworkMode(labelNetworkMode)
+		AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": labelNetworkMode})
+	} else if strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
+		strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:") {
+		labelNetworkMode = ContainerRefToName(string(newConfig.HostConfig.NetworkMode))
+		AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": labelNetworkMode})
+		if labelNetworkMode != string(newConfig.HostConfig.NetworkMode) {
+			newConfig.HostConfig.NetworkMode = container.NetworkMode(labelNetworkMode)
 		}
-	} else {
-		newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
 	}
 	
 	newName := newConfig.Name
@@ -400,10 +413,15 @@ func RecreateDepedencies(containerID, containerName string) {
 			if err != nil {
 				utils.Error("RecreateDepedencies - Failed to update - ", err)
 			}
+			continue
 		}
 
-		// check if network_mode force 's label contains the container name
-		if GetLabel(fullContainer, "cosmos-force-network-mode") == "container:" + containerName[1:] {
+		// check if the cosmos-force-network-mode label references this container
+		// (container:<name> after normalization, or the compose-created
+		// service:<service> alias stored by the compose editor).
+		labelMode := GetLabel(fullContainer, "cosmos-force-network-mode")
+		labelTarget := NetworkModeRefTarget(labelMode)
+		if labelTarget != "" && (labelTarget == containerName[1:] || labelTarget == containerID) {
 			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
 			_, err := EditContainer(container.ID, fullContainer, true)
 			if err != nil {
@@ -430,6 +448,12 @@ func ListContainers() ([]types.Container, error) {
 }
 
 func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) error {
+	if containerConfig.Config == nil {
+		return errors.New("AddLabels: container config is nil")
+	}
+	if containerConfig.Config.Labels == nil {
+		containerConfig.Config.Labels = make(map[string]string)
+	}
 	for key, value := range labels {
 		containerConfig.Config.Labels[key] = value
 	}
@@ -438,6 +462,9 @@ func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) er
 }
 
 func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return nil
+	}
 	for _, label := range labels {
 		delete(containerConfig.Config.Labels, label)
 	}
@@ -446,18 +473,18 @@ func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
 }
 
 func IsLabel(containerConfig types.ContainerJSON, label string) bool {
-	if containerConfig.Config.Labels[label] == "true" {
-		return true
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return false
 	}
-	return false
+	return containerConfig.Config.Labels[label] == "true"
 }
 func HasLabel(containerConfig types.ContainerJSON, label string) bool {
-	if containerConfig.Config.Labels[label] != "" {
-		return true
-	}
-	return false
+	return GetLabel(containerConfig, label) != ""
 }
 func GetLabel(containerConfig types.ContainerJSON, label string) string {
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return ""
+	}
 	return containerConfig.Config.Labels[label]
 }
 

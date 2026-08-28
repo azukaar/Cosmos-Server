@@ -759,14 +759,22 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			},
 		}
 
-		// cosmos-force-network-mode logic
+		// cosmos-force-network-mode logic: normalize container/service refs to
+		// stable container:<name> so the reference survives recreations of the
+		// referenced container (an ID would go stale; service: is a compose
+		// alias that Docker itself resolves to container:<id> at create time).
 		if containerConfig.Labels["cosmos-force-network-mode"] == "" {
-			if (strings.HasPrefix(string(hostConfig.NetworkMode), "service:") ||
-				strings.HasPrefix(string(hostConfig.NetworkMode), "container:")) {
-					containerConfig.Labels["cosmos-force-network-mode"] = string(hostConfig.NetworkMode)
+			if NetworkModeContainerRef(string(hostConfig.NetworkMode)) || NetworkModeServiceRef(string(hostConfig.NetworkMode)) {
+				normalized := ContainerRefToName(string(hostConfig.NetworkMode))
+				containerConfig.Labels["cosmos-force-network-mode"] = normalized
+				if normalized != string(hostConfig.NetworkMode) {
+					hostConfig.NetworkMode = conttype.NetworkMode(normalized)
+				}
 			}
 		} else {
-			hostConfig.NetworkMode = conttype.NetworkMode(containerConfig.Labels["cosmos-force-network-mode"])
+			normalized := ContainerRefToName(containerConfig.Labels["cosmos-force-network-mode"])
+			hostConfig.NetworkMode = conttype.NetworkMode(normalized)
+			containerConfig.Labels["cosmos-force-network-mode"] = normalized
 			utils.Debug("Forcing network mode to " + string(hostConfig.NetworkMode))
 		}
 

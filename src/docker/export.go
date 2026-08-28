@@ -49,7 +49,9 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			}(),
 			Domainname:   detailedInfo.Config.Domainname,
 			MacAddress:   detailedInfo.NetworkSettings.MacAddress,
-			NetworkMode:  string(detailedInfo.HostConfig.NetworkMode),
+			// Normalize container/service refs to stable container:<name>: the
+			// inspect may report a container ID that goes stale on recreate.
+			NetworkMode:  ContainerRefToName(string(detailedInfo.HostConfig.NetworkMode)),
 			StopSignal:   detailedInfo.Config.StopSignal,
 			HealthCheck:  ContainerCreateRequestContainerHealthcheck {
 			},

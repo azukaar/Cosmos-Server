@@ -135,17 +135,23 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.OpenStdin = form.Interactive == 2
 		}
 		if(form.NetworkMode != "") {
-			container.HostConfig.NetworkMode = containerType.NetworkMode(form.NetworkMode)
+			// Normalize container/service refs to stable container:<name> so the
+			// reference survives recreations of the referenced container. The
+			// UI may send a container ID (e.g. when the container picker was
+			// filled from an inspect that got a container:<id> from Docker);
+			// storing an ID would break on the next recreate of that container.
+			networkMode := ContainerRefToName(form.NetworkMode)
+			container.HostConfig.NetworkMode = containerType.NetworkMode(networkMode)
 			// if not bridge, remove mac address
-			if form.NetworkMode != "bridge" &&
-				 form.NetworkMode != "default" {
+			if networkMode != "bridge" &&
+				 networkMode != "default" {
 					container.Config.MacAddress = ""
 			}
 			// update cosmos-force-network-mode label
 			if container.Config.Labels == nil {
 				container.Config.Labels = make(map[string]string)
 			}
-			container.Config.Labels["cosmos-force-network-mode"] = form.NetworkMode
+			container.Config.Labels["cosmos-force-network-mode"] = networkMode
 		}
 
 		// Resource constraints
