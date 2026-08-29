@@ -316,10 +316,10 @@ const ServApps = ({stack}) => {
                         "healthy": <Chip label={t('mgmt.servApps.healthyChip.healthyLabel')} color="success" />,
                         "starting": <Chip label={t('mgmt.servApps.startingChip.startingLabel')} color="warning" />,
                         "unhealthy": <Chip label={t('mgmt.servApps.unhealthyChip.unhealthyLabel')} color="error" />,
-                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
+                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="warning" />,
                         "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
                         "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
-                        "completed": <Chip label={t('mgmt.servApps.completedChip.completedLabel')} color="success" />,
+                        "completed": <Chip label={t('mgmt.servApps.completedChip.completedLabel')} color="default" />,
                         "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
                       })[app.state]
                     }
