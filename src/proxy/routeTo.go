@@ -249,16 +249,20 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			resp.Header.Del("X-Content-Type-Options")
 			resp.Header.Del("Content-Security-Policy")
 			resp.Header.Del("X-XSS-Protection")
-			// Strip cross-origin resource policy headers coming from the backend.
-			// These are written for the backend's own origin and break proxied
-			// apps used under a different domain (e.g. a servapp on a subdomain
-			// while the Cosmos UI runs on the apex domain), causing the browser
-			// to block cross-origin subresource fetches such as the status HEAD
-			// probe made by HostChip.
-			resp.Header.Del("Cross-Origin-Resource-Policy")
-			resp.Header.Del("Cross-Origin-Embedder-Policy")
-			resp.Header.Del("Cross-Origin-Opener-Policy")
 		}
+
+		// Always strip cross-origin resource policy headers coming from the
+		// backend, even when header hardening is disabled. These are written
+		// for the backend's own origin and, when the app is served under a
+		// different domain than the Cosmos UI (e.g. a servapp on a subdomain
+		// while the UI runs on the apex domain), make the browser block
+		// cross-origin subresource fetches such as the status HEAD probe made
+		// by HostChip. Keeping them with DisableHeaderHardening would break
+		// the servapp's status chip even though the app is up, so they must
+		// always be removed at the reverse-proxied edge.
+		resp.Header.Del("Cross-Origin-Resource-Policy")
+		resp.Header.Del("Cross-Origin-Embedder-Policy")
+		resp.Header.Del("Cross-Origin-Opener-Policy")
 		
 		// if 502
 		if resp.StatusCode == 502 {
