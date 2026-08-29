@@ -7,10 +7,24 @@ import (
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 
+	"github.com/docker/docker/api/types"
 	"github.com/gorilla/mux"
 )
 
 var maxLimit = 1000
+
+// ContainerWithState is the /api/servapps list entry. It embeds the Docker
+// summary (State is the plain run-state string: running, paused, exited, ...)
+// and adds the inspect-only details the UI needs:
+//   - Health:    "starting", "healthy" or "unhealthy" when the container has a
+//                healthcheck configured (empty otherwise)
+//   - ExitCode:  set for exited containers so the UI can tell a clean stop
+//                ("completed", exit 0) from a failure ("exited", non-zero)
+type ContainerWithState struct {
+	types.Container
+	Health   string `json:"Health,omitempty"`
+	ExitCode *int   `json:"ExitCode,omitempty"`
+}
 
 // ListContainersRoute godoc
 // @Summary List all Docker containers
@@ -42,10 +56,28 @@ func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "Containers Get Error", http.StatusInternalServerError, "DL001")
 			return	
 		}
+
+		// Enrich with health / exit code (only the states that need them).
+		withState := make([]ContainerWithState, 0, len(containers))
+		for _, c := range containers {
+			entry := ContainerWithState{Container: c}
+			if c.State == "running" || c.State == "exited" {
+				if inspect, iErr := DockerClient.ContainerInspect(DockerContext, c.ID); iErr == nil && inspect.State != nil {
+					if inspect.State.Health != nil {
+						entry.Health = inspect.State.Health.Status
+					}
+					if c.State == "exited" {
+						code := inspect.State.ExitCode
+						entry.ExitCode = &code
+					}
+				}
+			}
+			withState = append(withState, entry)
+		}
 		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data": containers,
+			"data": withState,
 		})
 	} else {
 		utils.Error("UserList: Method not allowed" + req.Method, nil)
