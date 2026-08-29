@@ -249,6 +249,15 @@ func NewProxy(targetHost string, AcceptInsecureHTTPSTarget bool, DisableHeaderHa
 			resp.Header.Del("X-Content-Type-Options")
 			resp.Header.Del("Content-Security-Policy")
 			resp.Header.Del("X-XSS-Protection")
+			// Strip cross-origin resource policy headers coming from the backend.
+			// These are written for the backend's own origin and break proxied
+			// apps used under a different domain (e.g. a servapp on a subdomain
+			// while the Cosmos UI runs on the apex domain), causing the browser
+			// to block cross-origin subresource fetches such as the status HEAD
+			// probe made by HostChip.
+			resp.Header.Del("Cross-Origin-Resource-Policy")
+			resp.Header.Del("Cross-Origin-Embedder-Policy")
+			resp.Header.Del("Cross-Origin-Opener-Policy")
 		}
 		
 		// if 502
