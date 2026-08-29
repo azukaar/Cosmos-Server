@@ -13,13 +13,9 @@ import (
 
 var maxLimit = 1000
 
-// ContainerWithState is the /api/servapps list entry. It embeds the Docker
-// summary (State is the plain run-state string: running, paused, exited, ...)
-// and adds the inspect-only details the UI needs:
-//   - Health:    "starting", "healthy" or "unhealthy" when the container has a
-//                healthcheck configured (empty otherwise)
-//   - ExitCode:  set for exited containers so the UI can tell a clean stop
-//                ("completed", exit 0) from a failure ("exited", non-zero)
+// ContainerWithState adds inspect-only Health/ExitCode to the /api/servapps
+// summary: Health is set when a healthcheck exists, ExitCode lets the UI
+// distinguish a clean stop (exit 0) from an exited-with-error container.
 type ContainerWithState struct {
 	types.Container
 	Health   string `json:"Health,omitempty"`

@@ -134,11 +134,8 @@ const ServApps = ({stack}) => {
     }
   }
 
-  // Resolve the raw Docker run state (used for actions/editing gates) from
-  // either the summary shape (State is a string, from the servapps list) or
-  // the inspect shape (State.Status, from the container overview). We must not
-  // use the display status here: a healthy container reports 'healthy' but is
-  // still running and its settings (e.g. auto-update) must stay editable.
+  // Gate editing on the raw run state, not the display status: a healthy
+  // container is still running and its settings (e.g. auto-update) stay editable.
   const isContainerRunning = (app) => {
     const raw = app && app.app ? app.app.State : null;
     if (typeof raw === 'object' && raw !== null) {
