@@ -134,6 +134,19 @@ const ServApps = ({stack}) => {
     }
   }
 
+  // Resolve the raw Docker run state (used for actions/editing gates) from
+  // either the summary shape (State is a string, from the servapps list) or
+  // the inspect shape (State.Status, from the container overview). We must not
+  // use the display status here: a healthy container reports 'healthy' but is
+  // still running and its settings (e.g. auto-update) must stay editable.
+  const isContainerRunning = (app) => {
+    const raw = app && app.app ? app.app.State : null;
+    if (typeof raw === 'object' && raw !== null) {
+      return raw.Status === 'running';
+    }
+    return raw === 'running';
+  }
+
   const servAppsStacked = servApps && servApps.reduce((acc, app) => {
     const displayStatus = getContainerDisplayStatus(app);
     // if has label cosmos-stack, add to stack
@@ -432,7 +445,7 @@ const ServApps = ({stack}) => {
                     <Checkbox
                       checked={app.labels['cosmos-auto-update'] === 'true' ||
                         (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
-                      disabled={app.type == "stack" || app.state !== 'running'}
+                      disabled={app.type == "stack" || !isContainerRunning(app)}
                       onChange={(e) => {
                         const name = app.name.replace('/', '');
                         setIsUpdatingId(name, true);
