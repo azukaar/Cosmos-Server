@@ -29,9 +29,11 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 	if(req.Method == "GET") {
 		config := utils.ReadConfigFromFile()
 
-		// delete AuthPrivateKey and TLSKey
+		// delete private keys
 		config.HTTPConfig.AuthPrivateKey = ""
 		config.HTTPConfig.TLSKey = ""
+		config.HTTPConfig.CAPrivateKey = ""
+		config.HTTPConfig.SelfTLSKey = ""
 
 		if !canReadCredentials {
 			config.EmailConfig.Password = "***"

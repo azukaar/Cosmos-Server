@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func GetAuthContext(req *http.Request) *AuthContext {
@@ -209,4 +210,83 @@ func HasPermission(req *http.Request, permission Permission) bool {
 	}
 
 	return true
+}
+
+func callerPermissions(req *http.Request) []Permission {
+	ctx := GetAuthContext(req)
+	if ctx.APIToken != nil {
+		return ctx.APIToken.Permissions
+	}
+	if ctx.Nickname == "" {
+		return nil
+	}
+	return ctx.Permissions
+}
+
+// CanGrant: nobody can hand out a permission they do not hold themselves
+func CanGrant(req *http.Request, perms []Permission) bool {
+	own := callerPermissions(req)
+	for _, p := range perms {
+		if p == PERM_LOGIN || p == PERM_LOGIN_WEAK {
+			continue
+		}
+		if !containsPermission(own, p) {
+			return false
+		}
+	}
+	return true
+}
+
+// MissingGrants returns the permissions in perms the caller cannot grant
+func MissingGrants(req *http.Request, perms []Permission) []Permission {
+	own := callerPermissions(req)
+	var missing []Permission
+	for _, p := range perms {
+		if p == PERM_LOGIN || p == PERM_LOGIN_WEAK || containsPermission(own, p) {
+			continue
+		}
+		missing = append(missing, p)
+	}
+	return missing
+}
+
+// permissions the built-in Admin role can never lose, so nobody locks the server out
+var AdminRoleRequiredPermissions = []Permission{PERM_LOGIN, PERM_ADMIN, PERM_USERS, PERM_CONFIGURATION}
+
+// NewlyGrantedPermissions lists permissions next grants that prev did not
+func NewlyGrantedPermissions(prev, next map[Role]RoleConfig) []Permission {
+	seen := map[Permission]bool{}
+	var out []Permission
+	for role, rc := range next {
+		old := prev[role]
+		if _, ok := prev[role]; !ok {
+			old = defaultRoles[role]
+		}
+		for _, p := range rc.Permissions {
+			if !containsPermission(old.Permissions, p) && !seen[p] {
+				seen[p] = true
+				out = append(out, p)
+			}
+		}
+	}
+	return out
+}
+
+// ValidateRolesChange enforces grant rules for a roles-matrix update
+func ValidateRolesChange(req *http.Request, prev, next map[Role]RoleConfig) error {
+	if missing := MissingGrants(req, NewlyGrantedPermissions(prev, next)); len(missing) > 0 {
+		labels := make([]string, len(missing))
+		for i, p := range missing {
+			labels[i] = PermissionLabel(p)
+		}
+		return fmt.Errorf("cannot grant permissions you do not hold: %s", strings.Join(labels, ", "))
+	}
+	if admin, ok := next[ADMIN]; ok {
+		for _, p := range AdminRoleRequiredPermissions {
+			if !containsPermission(admin.Permissions, p) {
+				return fmt.Errorf("the Admin role must keep permission: %s", PermissionLabel(p))
+			}
+		}
+	}
+	return nil
 }

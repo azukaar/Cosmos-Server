@@ -157,7 +157,7 @@ type FileStats struct {
 type User struct {
 	Nickname      string     `validate:"required" json:"nickname" bson:"Nickname"`
 	Password       string    `validate:"required" json:"-" bson:"Password"`
-	RegisterKey       string  `json:"registerKey" bson:"RegisterKey"`
+	RegisterKey       string  `json:"-" bson:"RegisterKey"`
 	RegisterKeyExp       time.Time  `json:"registerKeyExp" bson:"RegisterKeyExp"`
 	Role       Role    `validate:"required" json:"role" bson:"Role"`
 	PasswordCycle			 int    `json:"-" bson:"PasswordCycle"`

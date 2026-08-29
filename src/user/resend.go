@@ -61,9 +61,6 @@ func UserResendInviteLink(w http.ResponseWriter, req *http.Request) {
 			RegisterKeyExp := time.Now().Add(time.Hour * 24 * 7)
 			RegisterKey := utils.GenerateRandomString(48)
 
-			utils.Debug(RegisterKey)
-			utils.Debug(RegisterKeyExp.String())
-
 			err := utils.UpdateUser(nickname, map[string]interface{}{
 				"RegisterKeyExp": RegisterKeyExp,
 				"RegisterKey": RegisterKey,

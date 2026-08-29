@@ -277,12 +277,29 @@ func API_RClone_OperationsAbout(w http.ResponseWriter, req *http.Request) {
 	}
 
 	ctx := context.Background()
-	fsPath := payload.Fs
-	if !strings.HasSuffix(fsPath, ":") && !strings.Contains(fsPath, ":/") {
-		fsPath = fsPath + ":"
+
+	ensureRCloneConfig()
+
+	// payload.Fs must be a bare, admin-configured remote name because command can be injected otherwise
+	name := strings.TrimSuffix(strings.TrimSuffix(payload.Fs, "/"), ":")
+	if name == "" || strings.ContainsAny(name, ":,/") {
+		utils.HTTPError(w, "Invalid remote name", http.StatusBadRequest, "RCL006")
+		return
 	}
 
-	f, err := fs.NewFs(ctx, fsPath)
+	allowed := false
+	for _, n := range config.GetRemoteNames() {
+		if n == name {
+			allowed = true
+			break
+		}
+	}
+	if !allowed {
+		utils.HTTPError(w, "Unknown remote", http.StatusBadRequest, "RCL006")
+		return
+	}
+
+	f, err := fs.NewFs(ctx, name+":")
 	if err != nil {
 		utils.HTTPError(w, "Failed to access remote: "+err.Error(), http.StatusInternalServerError, "RCL007")
 		return

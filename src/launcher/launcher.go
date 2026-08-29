@@ -31,6 +31,34 @@ import (
 // 	return nil
 // }
 
+// closing handles per entry rather than deferring them all in unzip's loop
+func extractEntry(f *zip.File, fpath string) error {
+    if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
+        return err
+    }
+    rc, err := f.Open()
+    if err != nil {
+        return err
+    }
+    defer rc.Close()
+    outFile, err := os.Create(fpath)
+    if err != nil {
+        return err
+    }
+    defer outFile.Close()
+    _, err = io.Copy(outFile, rc)
+    return err
+}
+
+// insideDir rejects paths that escape dest (Zip Slip)
+func insideDir(dest, fpath string) bool {
+    rel, err := filepath.Rel(dest, fpath)
+    if err != nil {
+        return false
+    }
+    return rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator))
+}
+
 func unzip(src string, dest string) error {
     // Open the zip file
     r, err := zip.OpenReader(src)
@@ -38,6 +66,11 @@ func unzip(src string, dest string) error {
         return err
     }
     defer r.Close()
+
+    dest, err = filepath.Abs(dest)
+    if err != nil {
+        return err
+    }
 
     // Determine the root directory name in the zip
     var rootFolder string
@@ -48,16 +81,24 @@ func unzip(src string, dest string) error {
 
     // Loop through each file in the archive
     for _, f := range r.File {
+        // symlinks could point anywhere; the update never ships them
+        if f.Mode()&os.ModeSymlink != 0 {
+            return fmt.Errorf("refusing symlink entry in archive: %s", f.Name)
+        }
+
         // Skip the root folder from the file path
         fpath := filepath.Join(dest, strings.TrimPrefix(f.Name, rootFolder))
+        if filepath.IsAbs(f.Name) || !insideDir(dest, fpath) {
+            return fmt.Errorf("refusing archive entry outside destination: %s", f.Name)
+        }
 
         // Check if the file matches "cosmos-launcher" or "cosmos-launcher-arm64" for renaming
         baseName := filepath.Base(fpath)
-				
-				if baseName == "start.sh" {
-					// skip
-					continue
-				}
+
+        if baseName == "start.sh" {
+            // skip
+            continue
+        }
 
         if baseName == "cosmos-launcher" || baseName == "cosmos-launcher-arm64" {
             fpath = filepath.Join(filepath.Dir(fpath), baseName+".updated")
@@ -69,28 +110,7 @@ func unzip(src string, dest string) error {
             continue
         }
 
-        // Ensure that directories are created if necessary
-        if err := os.MkdirAll(filepath.Dir(fpath), os.ModePerm); err != nil {
-            return err
-        }
-
-        // Open the file inside the zip archive
-        rc, err := f.Open()
-        if err != nil {
-            return err
-        }
-        defer rc.Close()
-
-        // Create the destination file
-        outFile, err := os.Create(fpath)
-        if err != nil {
-            return err
-        }
-        defer outFile.Close()
-
-        // Copy the content of the file
-        _, err = io.Copy(outFile, rc)
-        if err != nil {
+        if err := extractEntry(f, fpath); err != nil {
             return err
         }
     }

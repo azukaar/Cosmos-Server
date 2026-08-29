@@ -44,7 +44,7 @@ func ListDisks() ([]BlockDevice, error) {
 
 	filteredDevices := make([]lsblk.BlockDevice, 0)
 	for _, device := range devices {
-		if strings.HasPrefix(device.MountPoint, "/snap") {
+		if strings.HasPrefix(device.MountPoint, "/snap") || device.MountPoint == "[SWAP]" {
 			continue
 		}
 		filteredDevices = append(filteredDevices, device)

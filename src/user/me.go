@@ -37,7 +37,6 @@ func Me(w http.ResponseWriter, req *http.Request) {
 
 		user.Link = "/api/user/" + user.Nickname
 		user.Email = ""
-		user.RegisterKey = ""
 		
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",

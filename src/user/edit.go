@@ -75,6 +75,11 @@ func UserEdit(w http.ResponseWriter, req *http.Request) {
 			if utils.CheckPermissions(w, req, utils.PERM_USERS) != nil {
 				return
 			}
+			if !utils.CanGrant(req, utils.GetRolePermissions(*request.Role)) {
+				utils.Error("UserEdit: cannot assign a role with permissions the caller lacks", nil)
+				utils.HTTPError(w, "Cannot assign a role with permissions you do not hold", http.StatusForbidden, "UE003")
+				return
+			}
 			toSet["Role"] = *request.Role
 		}
 

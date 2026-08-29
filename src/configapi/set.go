@@ -174,6 +174,14 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		// restore API token as we cannot edit it here
 		request.APITokens = config.APITokens
 
+		if !sameRoles(request.Roles, config.Roles) {
+			if err := utils.ValidateRolesChange(req, utils.GetRoles(), request.Roles); err != nil {
+				utils.Error("SettingsUpdate: "+err.Error(), nil)
+				utils.HTTPError(w, err.Error(), http.StatusForbidden, "UC006")
+				return
+			}
+		}
+
 		// restore DNS if user cannot read credentials, as they are sent as empty and we don't want to override them
 		canReadCredentials := utils.HasPermission(req, utils.PERM_CREDENTIALS_READ)
 		if !canReadCredentials {

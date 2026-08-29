@@ -171,6 +171,11 @@ func createAPIToken(w http.ResponseWriter, req *http.Request) {
 		permissions = utils.DefaultAdminTokenPermissions
 	}
 
+	if !utils.CanGrant(req, permissions) {
+		utils.HTTPError(w, "Cannot create a token with permissions you do not hold", http.StatusForbidden, "AT016")
+		return
+	}
+
 	owner := utils.GetAuthContext(req).Nickname
 
 	rawToken, tokenConfig, err := GenerateAPIToken(request.Name, request.Description, owner, permissions)
@@ -362,6 +367,11 @@ func updateAPIToken(w http.ResponseWriter, req *http.Request) {
 		token.Description = *request.Description
 	}
 	if request.Permissions != nil {
+		if !utils.CanGrant(req, request.Permissions) {
+			utils.ConfigLock.Unlock()
+			utils.HTTPError(w, "Cannot grant a token permissions you do not hold", http.StatusForbidden, "AT034")
+			return
+		}
 		token.Permissions = request.Permissions
 	}
 	if request.IPWhitelist != nil {

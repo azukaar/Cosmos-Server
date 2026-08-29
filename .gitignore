@@ -38,7 +38,7 @@ terraform.tfstate
 terraform.tfstate.*
 .terraform.lock.hcl
 *.log
-./main.tf
+/main.tf
 
 # Ruflo local secrets and runtime data
 .env

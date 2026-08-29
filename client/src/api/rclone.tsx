@@ -71,7 +71,7 @@ export default function createRcloneAPI(apiFetch: ApiFetch) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        "fs": remoteName + ":/",
+        "fs": remoteName,
       })
     }))
   }

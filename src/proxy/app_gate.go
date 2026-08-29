@@ -60,10 +60,36 @@ func performLogin(w http.ResponseWriter, req *http.Request, route utils.ProxyRou
 	return nil
 }
 
+// redirectToMFA sends a half-authenticated session to the MFA page on the main domain
+func redirectToMFA(w http.ResponseWriter, req *http.Request, mfaState int) error {
+	config := utils.GetMainConfig()
+	mainDomain := config.HTTPConfig.Hostname
+	scheme := "http://"
+	if utils.IsHTTPS {
+		scheme = "https://"
+	}
+	// cross-host apps can't redirect back to themselves; bounce to the UI home
+	back := "/cosmos-ui"
+	if req.Host == mainDomain {
+		back = req.URL.Path
+	}
+	page := "loginmfa"
+	if mfaState == 2 {
+		page = "newmfa"
+	}
+	http.Redirect(w, req, scheme+mainDomain+"/cosmos-ui/"+page+"?invalid=1&redirect="+url.QueryEscape(back), http.StatusTemporaryRedirect)
+	return errors.New("User requires MFA")
+}
+
 func LoggedInOnlyWithRedirect(w http.ResponseWriter, req *http.Request, route utils.ProxyRouteConfig) error {
 	if utils.GetAuthContext(req).Nickname == "" {
 		utils.Error("App gate: User is not logged in", nil)
 		return performLogin(w, req, route)
+	}
+
+	if st := utils.GetAuthContext(req).MFAState; st != 0 {
+		utils.Error("App gate: MFA required", nil)
+		return redirectToMFA(w, req, st)
 	}
 
 	return nil
@@ -79,6 +105,11 @@ func AdminOnlyWithRedirect(w http.ResponseWriter, req *http.Request, route utils
 		utils.Error("App gate: User is not Authorized (not admin)", nil)
 		utils.HTTPError(w, "User not Authorized", http.StatusUnauthorized, "HTTP004")
 		return errors.New("User is not Admin")
+	}
+
+	if st := utils.GetAuthContext(req).MFAState; st != 0 {
+		utils.Error("App gate: MFA required", nil)
+		return redirectToMFA(w, req, st)
 	}
 
 	return nil
