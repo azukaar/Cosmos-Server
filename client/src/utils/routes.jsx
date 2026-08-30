@@ -224,9 +224,6 @@ export const getHostnameFromName = (name, route, config, overrideOrigin, claimed
     let endPort = protocol == "https" ? 7350 : 7500;
     while(port < endPort) {
       const candidate = origin + ":" + port;
-      // claimedHosts covers the routes being generated alongside this one, which
-      // are not in the config yet: without it every route of a multi-service
-      // servapp is handed the same first free port.
       if(!existingRoutes.find((exiroute) => exiroute.Host == candidate) && !claimedHosts.includes(candidate)) {
         res = candidate;
         return res;
