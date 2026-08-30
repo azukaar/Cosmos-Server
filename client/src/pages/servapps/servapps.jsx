@@ -25,7 +25,7 @@ import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import PermissionGuard from '../../components/permissionGuard';
 import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from '../../utils/permissions';
-import { getContainerDisplayStatus, rankDisplayStatus } from '../../utils/container-status';
+import { getContainerDisplayStatus, rankDisplayStatus, isContainerRunning } from '../../utils/container-status';
 
 // Exported: the Constellation feature pages reuse this card.
 export const Item = styled(Paper)(({ theme }) => ({
@@ -132,16 +132,6 @@ const ServApps = ({stack}) => {
     } else {
       return getFaviconURL('');
     }
-  }
-
-  // Gate editing on the raw run state, not the display status: a healthy
-  // container is still running and its settings (e.g. auto-update) stay editable.
-  const isContainerRunning = (app) => {
-    const raw = app && app.app ? app.app.State : null;
-    if (typeof raw === 'object' && raw !== null) {
-      return raw.Status === 'running';
-    }
-    return raw === 'running';
   }
 
   const servAppsStacked = servApps && servApps.reduce((acc, app) => {
@@ -442,7 +432,7 @@ const ServApps = ({stack}) => {
                     <Checkbox
                       checked={app.labels['cosmos-auto-update'] === 'true' ||
                         (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
-                      disabled={app.type == "stack" || !isContainerRunning(app)}
+                      disabled={app.type == "stack" || !isContainerRunning(app.app)}
                       onChange={(e) => {
                         const name = app.name.replace('/', '');
                         setIsUpdatingId(name, true);
