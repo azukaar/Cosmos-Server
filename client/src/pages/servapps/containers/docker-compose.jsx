@@ -653,6 +653,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
         if (jsoned.services) {
           // GENERATE HOSTNAMES FORM
           let newHostnames = {};
+          let claimedHosts = [];
           Object.keys(jsoned.services).forEach((key) => {
             if (jsoned.services[key].routes) {
               let routeId = 0;
@@ -660,7 +661,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                 if (route.useHost) {
                   let newRoute = Object.assign({}, route);
                   if (route.useHost === true) {
-                    newRoute.host = getHostnameFromName(key + (routeId > 0 ? '-' + routeId : ''), newRoute, config);
+                    newRoute.host = getHostnameFromName(key + (routeId > 0 ? '-' + routeId : ''), newRoute, config, undefined, claimedHosts);
                   }
                   
                   if(!newHostnames[key]) newHostnames[key] = {};
@@ -671,6 +672,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     if(hostnames[key] && hostnames[key][route.name]) {
                       newHostnames[key][route.name].host = hostnames[key][route.name].host;
                     }
+                    claimedHosts.push(newHostnames[key][route.name].host);
                   }
                 }
               });
