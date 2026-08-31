@@ -17,12 +17,18 @@ curl -fsSL https://get.docker.com | sudo sh
 
 Install Node **V16**: https://nodejs.org/en/download
 
-Install GOlang v1.21.6: https://go.dev/doc/install
+Install GOlang version required by `go.mod`: https://go.dev/doc/install
 
 ### Required files
 
-Aside from those, you will need a bunch of files. First, You optionally need GeoLite2-Country.tar.gz if you want to test the geolocation (contains IP infos). You can get it from https://maxmind.com/
-Second you need the Nebula binaries from https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-arm64.tar.gz and https://github.com/slackhq/nebula/releases/download/v1.7.2/nebula-linux-amd64.tar.gz
+Aside from those, you will need a bunch of files. First, You optionally need `GeoLite2-Country.mmdb` if you want to test the geolocation (contains IP infos). CI currently downloads the `GeoLite2-Country.tar.gz` archive from https://maxmind.com/ and extracts the `.mmdb` file from it.
+Second you need the Nebula binaries and Restic binaries in the root of your workspace. The versions currently used in CI are:
+
+ * Nebula ARM64: https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-arm64.tar.gz
+ * Nebula AMD64: https://github.com/slackhq/nebula/releases/download/v1.8.2/nebula-linux-amd64.tar.gz
+ * Restic ARM64: https://github.com/restic/restic/releases/download/v0.17.3/restic_0.17.3_linux_arm64.bz2
+ * Restic AMD64: https://github.com/restic/restic/releases/download/v0.17.3/restic_0.17.3_linux_amd64.bz2
+
 Make sure you have the binary set in the root of your workspace like  this:
 
 ![image](https://github.com/azukaar/Cosmos-Server/assets/7872597/11de2778-e799-47b7-b0ba-443e658965dd)
@@ -40,8 +46,8 @@ One you are done developing, you can build the client locally with `npm run clie
 
 ### Setting up the dev server
 
-Server is a bit more tricky. Once Go is installed, first use `npm run build` to build the server. it will be built in the build/ folder.
-Make sure you build the client at least once (previous section) as the build script simply copy paste the output of the `client-build` script.
+Server is a bit more tricky. Once Go is installed, first run `npm run client-build`, then use `npm run build` to build the server. it will be built in the build/ folder.
+The build script copies the client bundle from `static/` into the `build/` folder, so `npm run build` expects `npm run client-build` to have been run first.
 
 The server can be started with `npm run start` this will run Cosmos with a bunch of arguments. The most importants are
 
