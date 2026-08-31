@@ -9,6 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import * as React from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { toHjson } from '../utils/hjson';
 
 const preStyle = {
   backgroundColor: '#000',
@@ -46,6 +47,25 @@ const ApiModal = ({ callback, label, processContent }) => {
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(true);
 
+    // Show API payloads as HJSON when they are JSON: much easier to read
+    // (no quotes / escaping noise), and semantically identical to the raw
+    // JSON the API returned.
+    const prettyContent = (raw) => {
+      if (processContent) {
+        return processContent(raw);
+      }
+      if (typeof raw !== 'string' || raw.trim() === '') {
+        return raw;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        return toHjson(parsed);
+      } catch (e) {
+        // Not JSON (e.g. plain logs / text) — leave as-is.
+        return raw;
+      }
+    };
+
     const getContent = async () => {
       setLoading(true);
       let content = await callback();
@@ -64,7 +84,7 @@ const ApiModal = ({ callback, label, processContent }) => {
           <DialogContent>
               <DialogContentText>
                 <pre style={preStyle}>
-                  {processContent ? processContent(content) : content}
+                  {prettyContent(content)}
                 </pre>
               </DialogContentText>
           </DialogContent>
