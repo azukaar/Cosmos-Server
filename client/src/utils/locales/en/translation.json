@@ -587,6 +587,7 @@
 	"mgmt.servapps.compose": "Compose",
 	"mgmt.servapps.compose.installButton": "Install",
 	"mgmt.servapps.compose.installTitle": "Installation",
+	"mgmt.servapps.compose.invalidEscapeChars": "This value cannot contain backslashes (\\), double quotes (\") or line breaks. Note that spaces do not need to be escaped: write /media/TV Shows instead of /media/TV\\ Shows.",
 	"mgmt.servapps.compose.uploadCompose": "Upload Compose",
 	"mgmt.servapps.compose.uploadEnv": "Upload .env",
 	"mgmt.servapps.compose.envVarsDetected": "Environment variables detected - fill in the values below:",

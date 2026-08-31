@@ -79,6 +79,8 @@ const isNewerVersion = (minver) => {
   return cmp(version, minver) === -1;
 }
 
+const UNSAFE_TEMPLATE_CHARS = /[\\"\n\r]/;
+
 const cleanUpStore = (service) => {
   let newService = Object.assign({}, service);
   delete newService['cosmos-installer'];
@@ -553,6 +555,20 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     return broken;
   }
 
+  const getUnsafeTemplateCharsError = (value) => {
+    if (typeof value === 'string' && value.match(UNSAFE_TEMPLATE_CHARS)) {
+      return t('mgmt.servapps.compose.invalidEscapeChars');
+    }
+    return null;
+  };
+
+  const hasUnsafeTemplateChars = () => {
+    return !!getUnsafeTemplateCharsError(serviceName) ||
+      Object.values(context).some((value) => getUnsafeTemplateCharsError(value)) ||
+      Object.values(hostnames).some((service) =>
+        Object.values(service).some((route) => getUnsafeTemplateCharsError(route.host)));
+  };
+
   const [passwords, setPasswords] = useState([
     randomString(24),
     randomString(24),
@@ -605,7 +621,11 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
       if (dockerCompose === '') {
         return;
       }
-    
+
+    if (hasUnsafeTemplateChars()) {
+      return;
+    }
+
     try {
       // Apply env substitution
       const envMap = parseEnvContent(envContent);
@@ -877,7 +897,10 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
             {!ymlError && (<><FormLabel>{t('mgmt.servApps.newContainer.serviceNameInput')}</FormLabel>
 
-              <TextField label="" value={serviceName} onChange={(e) => setServiceName(e.target.value)} />
+              <TextField label="" value={serviceName}
+                error={!!getUnsafeTemplateCharsError(serviceName)}
+                helperText={getUnsafeTemplateCharsError(serviceName)}
+                onChange={(e) => setServiceName(e.target.value)} />
 
               {service['cosmos-installer'] && service['cosmos-installer'].form && service['cosmos-installer'].form.map((formElement) => {
                 return formElement.type === 'checkbox' ?
@@ -892,6 +915,8 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                   label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                   value={context[formElement.name]}
                   type={formElement.type}
+                  error={!!getUnsafeTemplateCharsError(context[formElement.name])}
+                  helperText={getUnsafeTemplateCharsError(context[formElement.name])}
                   onChange={(e) => {
                     setContext({ ...context, [formElement.name]: e.target.value });
                   }
@@ -919,6 +944,8 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     <TextField
                       label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                       value={context[formElement.name]}
+                      error={!!getUnsafeTemplateCharsError(context[formElement.name])}
+                      helperText={getUnsafeTemplateCharsError(context[formElement.name])}
                       onChange={(e) => {
                         setContext({ ...context, [formElement.name]: e.target.value });
                       }
@@ -957,13 +984,17 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                       style={{ width: '100%' }}
                       label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                       value={context[formElement.name]}
+                      error={!!getUnsafeTemplateCharsError(context[formElement.name])}
+                      helperText={getUnsafeTemplateCharsError(context[formElement.name])}
                       onChange={(e) => {
                         setContext({ ...context, [formElement.name]: e.target.value });
-                      }} />   
+                      }} />
                     </Stack>
                   : <TextField
                     label={ service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage]?.['form.'+formElement.name+'.label'] || service['cosmos-installer']?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.['form.'+formElement.name+'.label'] || formElement.label }
                     value={context[formElement.name]}
+                    error={!!getUnsafeTemplateCharsError(context[formElement.name])}
+                    helperText={getUnsafeTemplateCharsError(context[formElement.name])}
                     onChange={(e) => {
                       setContext({ ...context, [formElement.name]: e.target.value });
                     }} />
@@ -977,7 +1008,10 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                     <FormLabel>{t('mgmt.servApps.newContainer.chooseUrl')} {hostname.name}</FormLabel>
                     <div style={{ opacity: 0.9, fontSize: '0.8em', textDecoration: 'italic' }}
                     >{hostname.description}</div>
-                    <TextField key={serviceIndex + hostIndex} label="Hostname" value={hostname.host} onChange={(e) => {
+                    <TextField key={serviceIndex + hostIndex} label="Hostname" value={hostname.host}
+                    error={!!getUnsafeTemplateCharsError(hostname.host)}
+                    helperText={getUnsafeTemplateCharsError(hostname.host)}
+                    onChange={(e) => {
                       hostnames[serviceIndex][hostname.name].host = e.target.value;
                       setHostnames({...hostnames});
                     }} />
@@ -1085,7 +1119,7 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
           setHostnames({});
           setOverrides({});
         }}>{t('global.close')}</Button>
-        <Button disabled={!dockerCompose || ymlError || hostnameErrors()} onClick={() => {
+        <Button disabled={!dockerCompose || ymlError || hostnameErrors() || hasUnsafeTemplateChars()} onClick={() => {
           if (step === 0) {
             setStep(1);
           } else {
