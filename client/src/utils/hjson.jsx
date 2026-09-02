@@ -64,17 +64,74 @@ const postProcessMultiline = (hjson) => {
   return out;
 };
 
+// Bare array elements containing ':' (e.g. BACKEND_HOSTNAME=https://piped...,
+// or 8080:80) are emitted unquoted by quotes:'min'. Our Prism grammar would
+// then misread them as key:value (the : splits) or a comment (//). This pass
+// tracks [ ] scope by indentation and quotes those elements so they stay single
+// green strings. Object values are left alone (the grammar colors them; a bare
+// object value may also legitimately contain ':').
+const quoteArrayColons = (hjson) => {
+  const lines = hjson.split('\n');
+  const scope = []; // { indent, kind: 'obj' | 'arr' } - current open bracket scopes
+  const out = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+    const indent = raw.length - raw.trimStart().length;
+
+    // pop scopes strictly deeper than this indent (dedent)
+    while (scope.length && scope[scope.length - 1].indent > indent) {
+      scope.pop();
+    }
+    // closing brace/bracket pops the matching scope
+    if (trimmed === '}' || trimmed === ']' || /^}[,}]?$/.test(trimmed) || /^][,}]?$/.test(trimmed)) {
+      if (scope.length) scope.pop();
+      out.push(raw);
+      continue;
+    }
+    if (!trimmed) { out.push(raw); continue; }
+
+    const arrScope = scope.length ? scope[scope.length - 1] : null;
+    const insideArr = arrScope && arrScope.kind === 'arr' && indent > arrScope.indent;
+
+    // Inside an array there are no object key:value lines (nested objects are
+    // separate { } scopes tracked above), so any BARE element containing ':' is
+    // an ambiguous string (BACKEND_HOSTNAME=..., 8080:80). Quote it so the
+    // grammar colors it green instead of splitting at ':' / treating // as a
+    // comment. Always valid HJSON and round-trips exactly.
+    if (insideArr && !trimmed.startsWith('"') && trimmed.includes(':')) {
+      const indentStr = raw.slice(0, raw.length - raw.trimStart().length);
+      out.push(indentStr + JSON.stringify(trimmed));
+      continue;
+    }
+
+    out.push(raw);
+
+    // track nested scopes opened by this line's value
+    const afterColon = trimmed.replace(/^.*?:\s*/, '');
+    if (afterColon.startsWith('[')) {
+      scope.push({ indent, kind: 'arr' });
+    } else if (afterColon.startsWith('{')) {
+      scope.push({ indent, kind: 'obj' });
+    }
+  }
+  return out.join('\n');
+};
+
 // Render a JS object as pretty HJSON.
 export const toHjson = (obj) => {
   try {
     return postProcessMultiline(
-      Hjson.stringify(obj, {
-        space: 2,
-        quotes: 'min',
-        separator: false,
-        bracesSameLine: true,
-        multiline: 'off',
-      })
+      quoteArrayColons(
+        Hjson.stringify(obj, {
+          space: 2,
+          quotes: 'min',
+          separator: false,
+          bracesSameLine: true,
+          multiline: 'off',
+        })
+      )
     );
   } catch (e) {
     // Never break the UI on a malformed payload — fall back to JSON.
