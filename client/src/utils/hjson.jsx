@@ -22,21 +22,46 @@ import Hjson from 'hjson';
 // returns) into HJSON multiline ''' ... ''' blocks, preserving indentation.
 // Strings that contain \r are left as escaped single-line strings (HJSON
 // would lose the \r when parsing ''' blocks, so we never emit them).
+// indent = indent of the opening ''' token. contentIndent = indent of the
+// body lines. HJSON strips the body's common indent, so contentIndent must
+// make each body line exactly contentIndent wide for a clean round-trip.
+const toMultilineBlock = (indent, value, contentIndent) => {
+  const lines = value.split('\n');
+  const body = lines.map((l) => (contentIndent || indent) + (l || '')).join('\n');
+  return `${indent}'''\n${body}\n${indent}'''`;
+};
+
+// Rewrite values containing real newlines (but no carriage returns) into
+// HJSON multiline ''' ... ''' blocks. Handles both:
+//   key: "a\nb"            (object value)
+//   "a\nb"                 (array element, on its own line)
+// CRLF strings (\r) are left escaped, since HJSON strips \r in ''' blocks.
 const postProcessMultiline = (hjson) => {
-  return hjson.replace(
+  let out = hjson.replace(
     /^(\s*)([^:\n]+):\s*("(?:(?:\\.)|[^"\\])*")(,?)$/gm,
     (match, indent, key, quoted, comma) => {
-      // quoted is a double-quoted string, possibly with \n escapes.
       let value;
       try { value = JSON.parse(quoted); } catch (e) { return match; }
       if (typeof value !== 'string' || !value.includes('\n') || value.includes('\r')) {
         return match;
       }
-      const lines = value.split('\n');
-      const body = lines.map((l) => indent + '  ' + (l || '')).join('\n');
-      return `${indent}${key}:'''\n${body}\n${indent}'''${comma}`;
+      const block = toMultilineBlock(indent, value, indent + '  ');
+      return `${indent}${key}:${block}${comma}`;
     }
   );
+  // array element: a double-quoted string alone on its line.
+  out = out.replace(
+    /^(\s*)("(?:(?:\\.)|[^"\\])*")(,?)$/gm,
+    (match, indent, quoted, comma) => {
+      let value;
+      try { value = JSON.parse(quoted); } catch (e) { return match; }
+      if (typeof value !== 'string' || !value.includes('\n') || value.includes('\r')) {
+        return match;
+      }
+      return `${toMultilineBlock(indent, value, indent)}${comma}`;
+    }
+  );
+  return out;
 };
 
 // Render a JS object as pretty HJSON.

@@ -61,10 +61,29 @@ const hjsonUnquotedValue = {
 };
 
 
+const hjsonArrayElement = {
+  // Bare array element (quotes: 'min'): a line inside [ ... ] whose whole
+  // body has NO ':' (so it can't be confused with a key:value line or a
+  // bare num:num like 8080:80). Excludes full scalars and comments so
+  // numbers / booleans / null keep their own colors.
+  // (?!''') keeps ''' ... ''' blocks for ml-string.
+  pattern: /(?<=[\r\n,\[])\s*(?!''')(?!(?:#|\/\/|\/\*)|"|\[|\{)(?!\s)(?!(?:-?\d+(?:\.\d+)?(?:e[+-]?\d+)?|true\b|false\b|null\b)(?=$|[,\]\}\r\n]))[^:,\]\}\r\n]+/,
+  greedy: true,
+  alias: 'string',
+};
+
 const hjsonGrammar = {
-  'unquoted-property': hjsonUnquotedProperty,
-  property: hjsonProperty,
+  // Order matters for greedy Prism matching:
+  //   1. ml-string first  -> a ''' ... ''' block is one green token (its
+  //      # / : / // contents are not re-tokenized as comments/keys).
+  //   2. unquoted-property -> keys (which contain ':') become red before
+  //      array-string can swallow them.
+  //   3. array-string -> bare array elements without ':' (TZ=..., DEBUG=on)
+  //      become green; '8080:80' style stays as number/operator/number.
   'ml-string': hjsonMlString,
+  'unquoted-property': hjsonUnquotedProperty,
+  'array-string': hjsonArrayElement,
+  property: hjsonProperty,
   string: hjsonString,
   'unquoted-string': hjsonUnquotedValue,
 
