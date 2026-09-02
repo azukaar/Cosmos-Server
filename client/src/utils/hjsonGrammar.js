@@ -46,11 +46,27 @@ const hjsonMlString = {
   alias: 'string',
 };
 
+const hjsonUnquotedValue = {
+  // Bare string value right after 'key: ' (quotes: 'min' emits a space).
+  // Anything from the first char to end of value is the string — matching
+  // HJSON's own parse (p@ss#word, http://x?a=b#frag, echo "hi" && # x,
+  // 8080:80 are all single values). We only reject (negative lookahead):
+  //   - comments (#, //, /*)
+  //   - quoted strings / objects / arrays (handled by their own tokens)
+  //   - values that are ENTIRELY a number / boolean / null (so those keep
+  //     their own colors). A digit-lead like 8080:80 is a string.
+  pattern: /(?<=:\s)(?!(?:#|\/\/|\/\*)|"|\[|\{)(?!(?:-?\d+(?:\.\d+)?(?:e[+-]?\d+)?|true\b|false\b|null\b)(?=$|[,\]\}\r\n]))[^,\]\}\r\n]+/,
+  greedy: true,
+  alias: 'string',
+};
+
+
 const hjsonGrammar = {
   'unquoted-property': hjsonUnquotedProperty,
   property: hjsonProperty,
   'ml-string': hjsonMlString,
   string: hjsonString,
+  'unquoted-string': hjsonUnquotedValue,
 
   comment: [
     // /* ... */ block comments (multiline). Tried first so they span lines.
