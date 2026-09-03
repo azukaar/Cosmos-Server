@@ -52,14 +52,101 @@ export const redirectToLocal = (url) => {
   window.location.href = url;
 }
 
-export const crontabToText = (crontab, t) => {
-  const parts = crontab.split(' ');
+// Validates a crontab expression. Accepts:
+//   - 5-field standard:  minute hour dom month dow
+//   - 6-field seconds:   second minute hour dom month dow
+//   - descriptors:       @daily, @hourly, @yearly, @weekly, @monthly, @every 10m
+//   - timezone prefix:   CRON_TZ=Europe/Paris <expr>
+// Returns true when the field count and values are valid cron syntax.
+export const isValidCrontab = (crontab) => {
+  if (!crontab) return false;
+  let expr = crontab.trim();
+  if (expr.startsWith('@')) return true;
 
-  if (parts.length !== 6) {
-      return t('mgmt.cron.invalidCron');
+  // strip a leading TZ= / CRON_TZ= prefix
+  const m = expr.match(/^(TZ|CRON_TZ)=[^\s]+\s+(.*)$/);
+  if (m) expr = m[2].trim();
+
+  const parts = expr.split(/\s+/).filter(Boolean);
+  if (parts.length !== 5 && parts.length !== 6) return false;
+
+  const ranges = {
+    sec: [0, 59],
+    min: [0, 59],
+    hour: [0, 23],
+    dom: [1, 31],
+    month: [1, 12],
+    dow: [0, 7], // 0 and 7 both mean Sunday
+  };
+  const names = parts.length === 6
+    ? ['sec','min','hour','dom','month','dow']
+    : ['min','hour','dom','month','dow'];
+
+  const parseRange = (field) => {
+    if (field === '*') return true;
+    // steps: */5 or 1-10/2 or 5/15
+    const base = field.split('/')[0];
+    if (base === '*') return true;
+    if (base.includes(',')) return base.split(',').every(parseRange);
+    if (base.includes('-')) {
+      const [a, b] = base.split('-');
+      return !isNaN(a) && !isNaN(b) && parseInt(a) >= 0 && parseInt(b) >= 0 && parseInt(a) <= parseInt(b);
+    }
+    return !isNaN(base);
+  };
+
+  return parts.every((p, i) => {
+    if (!parseRange(p)) return false;
+    // validate literal values are within range (ignore wildcards/steps/ranges)
+    const range = ranges[names[i]];
+    const vals = p.split('/')[0];
+    if (vals.includes(',')) {
+      return vals.split(',').every(v => {
+        if (v.includes('-')) return true; // range checked above
+        const n = parseInt(v);
+        return !isNaN(n) && n >= range[0] && n <= range[1];
+      });
+    }
+    if (vals.includes('-') || vals === '*') return true;
+    const n = parseInt(vals);
+    return !isNaN(n) && n >= range[0] && n <= range[1];
+  });
+};
+
+export const crontabToText = (crontab, t) => {
+  if (!crontab) return t('mgmt.cron.invalidCron');
+
+  let expr = crontab.trim();
+  let tzPrefix = '';
+  const m = expr.match(/^(TZ|CRON_TZ)=([^\s]+)\s+(.*)$/);
+  if (m) {
+    tzPrefix = `${m[1]}=${m[2]} `;
+    expr = m[3].trim();
   }
 
-  const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts;
+  // Descriptors
+  if (expr.startsWith('@')) {
+    const map = {
+      '@yearly': t('mgmt.cron.descriptor.yearly'),
+      '@annually': t('mgmt.cron.descriptor.yearly'),
+      '@monthly': t('mgmt.cron.descriptor.monthly'),
+      '@weekly': t('mgmt.cron.descriptor.weekly'),
+      '@daily': t('mgmt.cron.descriptor.daily'),
+      '@midnight': t('mgmt.cron.descriptor.daily'),
+      '@hourly': t('mgmt.cron.descriptor.hourly'),
+      '@every': t('mgmt.cron.descriptor.every'),
+    };
+    const key = expr.startsWith('@every ') ? '@every' : expr;
+    return tzPrefix + (map[key] ? (key === '@every' ? `${map[key]} ${expr.slice(7)}` : map[key]) : expr);
+  }
+
+  const parts = expr.split(/\s+/).filter(Boolean);
+  if (parts.length !== 5 && parts.length !== 6) {
+    return t('mgmt.cron.invalidCron');
+  }
+
+  // Canonical 6-field view: seconds first. 5-field gets an implicit "0" seconds.
+  const [second, minute, hour, dayOfMonth, month, dayOfWeek] = parts.length === 6 ? parts : ['0', ...parts];
 
   const parseField = (field, unit = "", date=false) => {
     const count = (nb) => {
@@ -169,7 +256,8 @@ export const crontabToText = (crontab, t) => {
     intro = 'Every day, ';
   }
 
-  return intro + text + dateText + timeText;
+
+  return tzPrefix + intro + text + dateText + timeText;
 }
 
 export const PascalToSnake = (str) => {

@@ -11,7 +11,7 @@ import { Formik, FormikProvider, useFormik } from "formik";
 import { LoadingButton, TreeItem, TreeView } from "@mui/lab";
 import ApiModal from "../../components/apiModal";
 import ConfirmModal from "../../components/confirmModal";
-import { PascalToSnake, crontabToText, isDomain } from "../../utils/indexs";
+import { PascalToSnake, crontabToText, isDomain, isValidCrontab } from "../../utils/indexs";
 import UploadButtons from "../../components/fileUpload";
 import { useTheme } from '@mui/material/styles';
 import MiniPlotComponent from '../dashboard/components/mini-plot';
@@ -106,11 +106,18 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
                     name="Crontab"
                     label={t('mgmt.cron.newCron.crontabInput.crontabLabel')}
                     value={formik.values.Crontab}
-                    onChange={formik.handleChange}
-                    error={formik.touched.Crontab && Boolean(formik.errors.Crontab)}
-                    helperText={formik.touched.Crontab && formik.errors.Crontab}
+                    onChange={(e) => {
+                      formik.handleChange(e);
+                      const v = e.target.value;
+                      if (v && !isValidCrontab(v)) {
+                        formik.setFieldError('Crontab', t('mgmt.cron.invalidCron'));
+                      } else {
+                        formik.setFieldError('Crontab', undefined);
+                      }
+                    }}
+                    error={Boolean(formik.errors.Crontab)}
+                    helperText={formik.errors.Crontab || crontabToText(formik.values.Crontab, t)}
                   />
-                  <InputLabel>{crontabToText(formik.values.Crontab, t)}</InputLabel>
 
                   <TextField
                     fullWidth

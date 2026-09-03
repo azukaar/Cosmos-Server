@@ -263,6 +263,16 @@ func InitJobs() {
 			cmd = JobFromContainerCommand(job.Container, "sh", "-c", job.Command)
 		}
 
+		// Normalize to the canonical 6-field form on load. This heals legacy
+		// 5-field configs written before dual-format support, so they schedule
+		// correctly even if the user never re-saves them.
+		normalizedCrontab, err := NormalizeCrontab(job.Crontab)
+		if err != nil {
+			utils.MajorError("CRON job "+job.Name+" has an invalid crontab ("+job.Crontab+"): "+err.Error(), err)
+		} else {
+			job.Crontab = normalizedCrontab
+		}
+
 		j := ConfigJob{
 			Scheduler: "Custom",
 			Name: job.Name,
@@ -481,8 +491,17 @@ func InitScheduler() {
 				continue
 			}
 
-			_, err := scheduler.NewJob(
-				gocron.CronJob(job.Crontab, true),
+			// Dual-format crontab support: standard 5-field and seconds-based
+			// 6-field expressions are both accepted (see crontab.go). Invalid
+			// crontabs are reported and skipped instead of failing silently.
+			normalized, err := NormalizeCrontab(job.Crontab)
+			if err != nil {
+				utils.MajorError("CRON job scheduling: invalid crontab for job "+job.Name+" ("+job.Crontab+"): "+err.Error(), err)
+				continue
+			}
+
+			_, err = scheduler.NewJob(
+				gocron.CronJob(normalized, true),
 				gocron.NewTask(
 					jobRunner(job.Scheduler, job.Name),
 					jobRunner_OnLog(job.Scheduler, job.Name),
