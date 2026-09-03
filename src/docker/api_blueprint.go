@@ -39,6 +39,59 @@ type ContainerCreateRequestContainerHealthcheck struct {
 	StartPeriod int `json:"start_period"`
 }
 
+// UnmarshalJSON accepts the docker-compose forms of the healthcheck test
+// command. docker-compose allows BOTH:
+//
+//	exec form (array):   test: ["CMD", "curl", "-f", "http://localhost"]
+//	shell form (string): test: curl -f http://localhost || exit 1
+//
+// The shell string form is implicitly wrapped by docker-compose as
+// ["CMD-SHELL", "<command>"] before being handed to the Docker daemon. Cosmos
+// stores the canonical array form, so a bare string is converted the same way
+// docker-compose would. This also fixes imports of compose files that use the
+// string form, which previously failed with
+// "cannot unmarshal string into Go struct field ...test of type []string".
+func (h *ContainerCreateRequestContainerHealthcheck) UnmarshalJSON(data []byte) error {
+	type shadow struct {
+		Test        json.RawMessage `json:"test"`
+		Interval    DurationStr     `json:"interval"`
+		Timeout     DurationStr     `json:"timeout"`
+		Retries     int             `json:"retries"`
+		StartPeriod DurationStr     `json:"start_period"`
+	}
+	var raw shadow
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	h.Interval = raw.Interval
+	h.Timeout = raw.Timeout
+	h.Retries = raw.Retries
+	h.StartPeriod = raw.StartPeriod
+
+	if len(raw.Test) == 0 || string(raw.Test) == "null" {
+		h.Test = nil
+		return nil
+	}
+
+	var asStr string
+	if err := json.Unmarshal(raw.Test, &asStr); err == nil {
+		// docker-compose shell-form string => CMD-SHELL array
+		if strings.TrimSpace(asStr) == "" {
+			h.Test = nil
+		} else {
+			h.Test = []string{"CMD-SHELL", asStr}
+		}
+		return nil
+	}
+
+	var asArr []string
+	if err := json.Unmarshal(raw.Test, &asArr); err != nil {
+		return fmt.Errorf("healthcheck test must be a string or an array of strings: %s", string(raw.Test))
+	}
+	h.Test = asArr
+	return nil
+}
+
 type ContainerCreateRequestContainerDependsOnCont struct {
 	Condition string `json:"condition"`
 	Restart string `json:"restart"`
