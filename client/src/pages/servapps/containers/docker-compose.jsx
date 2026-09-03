@@ -266,6 +266,23 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                   doc.services[key].healthcheck[valT] = value;
                 }
               });
+
+              // docker-compose accepts the healthcheck test command in two
+              // forms: an array (exec form, e.g. ["CMD", "curl", "-f", "url"])
+              // or a plain string (shell form, e.g. "curl -f url || exit 1").
+              // A bare string is shell-form and docker-compose implicitly wraps
+              // it as ["CMD-SHELL", "<command>"]. Normalize here so the compose
+              // editor always shows the canonical array form and the backend
+              // (which stores an array) receives a well-formed value.
+              const hcTest = doc.services[key].healthcheck.test;
+              if (typeof hcTest === 'string' && hcTest.trim() !== '') {
+                doc.services[key].healthcheck.test = ["CMD-SHELL", hcTest];
+              } else if (hcTest === undefined || hcTest === null || (typeof hcTest === 'string' && hcTest.trim() === '')) {
+                // Remove empty/missing test values so the backend doesn't
+                // receive an empty CMD-SHELL. An omitted healthcheck test
+                // means "use the image default" in docker-compose.
+                delete doc.services[key].healthcheck.test;
+              }
             }
 
             // ensure hostname
