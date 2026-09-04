@@ -117,6 +117,7 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
                     }}
                     error={Boolean(formik.errors.Crontab)}
                     helperText={formik.errors.Crontab || crontabToText(formik.values.Crontab, t)}
+                    InputLabelProps={{ shrink: formik.values.Crontab !== undefined && formik.values.Crontab !== '' }}
                   />
 
                   <TextField
@@ -128,6 +129,7 @@ const NewJobDialog = ({job, OnClose, refresh}) => {
                     onChange={formik.handleChange}
                     error={formik.touched.Command && Boolean(formik.errors.Command)}
                     helperText={formik.touched.Command && formik.errors.Command}
+                    InputLabelProps={{ shrink: formik.values.Command !== undefined && formik.values.Command !== '' }}
                   />
 
                   <CosmosContainerPicker
