@@ -103,9 +103,44 @@ func CleanBannedIPs() {
 	})
 }
 
+// IsStreamingEndpoint reports whether the request targets a long-running
+// streaming endpoint (install/service create, container update/recreate,
+// image pulls). These endpoints stream progress over minutes and must not be
+// cut off by the short MiddlewareTimeout.
+func IsStreamingEndpoint(r *http.Request) bool {
+	p := r.URL.Path
+	if strings.HasPrefix(p, "/cosmos/api/docker-service") {
+		return true
+	}
+	if strings.HasPrefix(p, "/cosmos/api/servapps/") {
+		// /api/servapps/{containerId}/manage/{action} and
+		// /api/servapps/{containerId}/update stream progress (image pull,
+		// recreate). Logs, terminal, and plain GETs are fast or WebSocket.
+		if strings.Contains(p, "/manage/") || strings.HasSuffix(p, "/update") {
+			return true
+		}
+	}
+	if strings.HasPrefix(p, "/cosmos/api/images/pull") {
+		// /api/images/pull and /api/images/pull-if-missing stream pull progress.
+		return true
+	}
+	return false
+}
+
 func MiddlewareTimeout(timeout time.Duration) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
+			if IsStreamingEndpoint(r) {
+				// Long-running streaming endpoints (install, container
+				// update/recreate, image pulls) can legitimately exceed the
+				// short API timeout. The operation itself runs against a
+				// background context, so skipping the deadline only stops us
+				// from killing the stream mid-progress and surfacing a bogus
+				// "Gateway Timeout" (HTTP002) to the UI.
+				next.ServeHTTP(w, r)
+				return
+			}
+
 			ctx, cancel := context.WithTimeout(r.Context(), timeout)
 			defer func() {
 				cancel()
