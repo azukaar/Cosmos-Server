@@ -39,6 +39,17 @@ const validateAndDecodeJWT = (token) => {
   }
 };
 
+// The licence key is a JWT that may contain hyphens ('-'). Browsers treat a
+// hyphen as a legal line-break opportunity, so when one lands at the edge of
+// the (wrapping) textarea the key breaks right after it - which looks wrong
+// and makes the key hard to read/copy. We therefore render the key with
+// non-breaking hyphens (U+2011, visually identical to '-') so it can only
+// wrap at the field edge, while formik.values.Licence always keeps the real
+// key (U+002D) untouched for validation and saving.
+const NB_HYPHEN = '\u2011';
+const displayLicence = (value) => (value || '').replace(/-/g, NB_HYPHEN);
+const rawLicence = (value) => (value || '').replace(new RegExp(NB_HYPHEN, 'g'), '-');
+
 const verifyJWTSignature = async (token) => {
   if (typeof crypto === 'undefined' || !crypto.subtle) {
     // crypto.subtle unavailable (e.g. HTTP context), skip verification
@@ -229,8 +240,13 @@ const ConfigGeneral = ({ formik, config, status, isAdmin }) => {
             formik={formik}
             multiline
             autoComplete="off"
-            inputProps={{ 'data-1p-ignore': true, 'data-lpignore': 'true', 'data-bwignore': true, style: { fontFamily: 'monospace' } }}
+            value={displayLicence(formik.values.Licence)}
+            inputProps={{ 'data-1p-ignore': true, 'data-lpignore': 'true', 'data-bwignore': true, style: { fontFamily: 'monospace', overflowWrap: 'anywhere' } }}
             onChange={(e) => {
+              // Transform the display value (with non-breaking hyphens) back
+              // to the real key BEFORE formik.handleChange stores it, so the
+              // stored/validated value always contains regular hyphens (U+002D).
+              e.target.value = rawLicence(e.target.value);
               formik.setFieldValue("ServerToken", "");
             }}
           />
