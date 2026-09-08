@@ -109,7 +109,7 @@ const AuthRegister = ({nickname, isRegister, isInviteLink, regkey}) => {
                                     <InputLabel htmlFor="nickname-signup">{t('global.nicknameLabel')}</InputLabel>
                                     <OutlinedInput
                                         id="nickname-login"
-                                        type="nickname"
+                                        type="text"
                                         value={nickname}
                                         name="nickname"
                                         onBlur={handleBlur}
