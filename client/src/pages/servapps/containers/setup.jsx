@@ -267,15 +267,6 @@ const DockerContainerSetup = ({
             <Stack spacing={2}>
               {wrapCard(
                 <>
-                  {containerInfo.State &&
-                    containerInfo.State.Status !== "running" && (
-                      <Alert
-                        severity="warning"
-                        style={{ marginBottom: "15px" }}
-                      >
-                        {t('mgmt.servApps.volumes.containerNotRunningWarning')}
-                      </Alert>
-                    )}
                   <Grid container spacing={4}>
                     {!installer && (
                       <>

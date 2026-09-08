@@ -13,36 +13,49 @@ import (
 const localSubnetsTTL = 30 * time.Second
 
 var (
-	localSubnetsMu      sync.Mutex
-	localSubnets        []*net.IPNet
-	localSubnetsExpires time.Time
+	localSubnetsMu         sync.Mutex
+	localSubnets           []*net.IPNet
+	localSubnetsExpires    time.Time
+	localSubnetsRefreshing bool
 )
 
-// ForgetLocalNetworkSubnets drops the cached subnet list (called from the docker event loop).
+// ForgetLocalNetworkSubnets expires the cache (called from the docker event loop); the
+// stale list keeps answering until the next lookup triggers a refresh.
 func ForgetLocalNetworkSubnets() {
 	localSubnetsMu.Lock()
 	defer localSubnetsMu.Unlock()
-	localSubnets = nil
 	localSubnetsExpires = time.Time{}
 }
 
-// localNetworkSubnets returns the CIDRs of host-local bridge networks; on docker error the previous answer is kept.
+// localNetworkSubnets returns the cached CIDRs of host-local bridge networks. Never blocks on
+// docker: an expired cache is served as-is and refreshed by one background goroutine.
 func localNetworkSubnets() []*net.IPNet {
 	localSubnetsMu.Lock()
 	defer localSubnetsMu.Unlock()
 
-	if time.Now().Before(localSubnetsExpires) {
-		return localSubnets
+	if !time.Now().Before(localSubnetsExpires) && !localSubnetsRefreshing {
+		localSubnetsRefreshing = true
+		go refreshLocalNetworkSubnets()
 	}
+	return localSubnets
+}
+
+// refreshLocalNetworkSubnets lists docker networks and replaces the cache; on error the previous answer is kept.
+func refreshLocalNetworkSubnets() {
+	defer func() {
+		localSubnetsMu.Lock()
+		localSubnetsRefreshing = false
+		localSubnetsMu.Unlock()
+	}()
 
 	if err := Connect(); err != nil {
-		return localSubnets
+		return
 	}
 
 	networks, err := DockerClient.NetworkList(DockerContext, types.NetworkListOptions{})
 	if err != nil {
 		utils.Error("Docker - Cannot list networks for the local subnet cache", err)
-		return localSubnets
+		return
 	}
 
 	subnets := []*net.IPNet{}
@@ -61,9 +74,10 @@ func localNetworkSubnets() []*net.IPNet {
 		}
 	}
 
+	localSubnetsMu.Lock()
 	localSubnets = subnets
 	localSubnetsExpires = time.Now().Add(localSubnetsTTL)
-	return localSubnets
+	localSubnetsMu.Unlock()
 }
 
 // IsLocalDockerIP reports whether ip sits on a network of this docker host; wired into utils.IsLocalDockerIP at startup.

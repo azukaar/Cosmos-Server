@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Checkbox, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
+import { Checkbox, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, useMediaQuery } from '@mui/material';
 import MainCard from '../../../components/MainCard';
 import { ContainerOutlined, DashboardOutlined, DesktopOutlined, InfoCircleOutlined, NodeExpandOutlined, PlayCircleOutlined, PlusCircleOutlined, SafetyCertificateOutlined, SettingOutlined } from '@ant-design/icons';
 import { getFaviconURL, getContainersRoutes } from '../../../utils/routes';
@@ -135,11 +135,6 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                 config={config}
               />
             </Stack>
-            {containerInfo.State.Status !== 'running' && (
-            <Alert severity="warning" style={{ marginBottom: '10px' }}>
-                {t('mgmt.servApps.notRunningWarning')}
-              </Alert>
-            )}
             <strong><ContainerOutlined /> {t('mgmt.servApps.container.overview.imageTitle')}</strong>
             <div style={info}>{Image}</div>
             <strong><DesktopOutlined /> ID</strong>
@@ -206,6 +201,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
                   <TextField
                     select
                     size="small"
+                    sx={{ minWidth: 160 }}
                     label={t('mgmt.servApps.lazyIdleSelect')}
                     value={Config.Labels['cosmos-lazy-idle'] || '1h'}
                     disabled={isUpdating}

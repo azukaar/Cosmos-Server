@@ -326,7 +326,10 @@ func operatorMap(value interface{}) (map[string]interface{}, bool) {
 }
 
 // regexMeta are the characters a regex gives special meaning to; escaped they are the literal character.
-const regexMeta = `.*+?()[]{}|^$\/`
+const regexMeta = `.*+?()[]{}|^$\`
+
+// regexEscapable is what may follow a backslash: the metacharacters plus "/", which JS-style patterns escape.
+const regexEscapable = regexMeta + `/`
 
 // regexToLike converts the small regex subset the events UI produces into a LIKE
 // pattern. Anything else is rejected rather than silently mistranslated.
@@ -353,7 +356,7 @@ func regexToLike(pattern string) (string, error) {
 			}
 			esc, escSize := utf8.DecodeRuneInString(body[i:])
 			// only escaped metacharacters are literals; \d, \w, \s ... are classes
-			if !strings.ContainsRune(regexMeta, esc) {
+			if !strings.ContainsRune(regexEscapable, esc) {
 				return "", fmt.Errorf("unsupported regex %q", pattern)
 			}
 			writeLikeLiteral(&b, esc)

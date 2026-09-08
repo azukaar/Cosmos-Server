@@ -59,36 +59,6 @@ func describeKVTopology(storage nats.StorageType, replicas int) string {
 	return name + "/R" + strconv.Itoa(replicas)
 }
 
-// migrateNodesKVTopology recreates 'constellation-nodes' when it exists at a
-// shape this build no longer declares (e.g. memory-backed after an upgrade
-// into the file-backed HA shape). Safe to drop: a 10s-TTL cache refilled by
-// every node's 2s heartbeat. Must be called with clientConfigLock read-held,
-// and never from an agent.
-func migrateNodesKVTopology() {
-	want := nodesKVConfig()
-	want.Replicas = getNATSReplicas()
-
-	si, err := js.StreamInfo("KV_" + want.Bucket)
-	if err != nil || !kvTopologyOutdated(si.Config, want) {
-		return
-	}
-
-	have := describeKVTopology(si.Config.Storage, si.Config.Replicas)
-	creator, isCreator := designatedKVCreator()
-	if !isCreator {
-		utils.Debug("[NATS] 'constellation-nodes' is " + have + ", waiting for designated creator '" +
-			creator + "' to migrate it to " + describeKVTopology(want.Storage, want.Replicas))
-		return
-	}
-
-	utils.Log("[NATS] Migrating 'constellation-nodes' from " + have + " to " +
-		describeKVTopology(want.Storage, want.Replicas) + "; heartbeats refill it within ~2s")
-	if _, errCreate := createKVAtTopology(nodesKVConfig()); errCreate != nil {
-		utils.Warn("[NATS] Could not migrate 'constellation-nodes' to " +
-			describeKVTopology(want.Storage, want.Replicas) + ": " + errCreate.Error())
-	}
-}
-
 // kvCreatorFallbackAfter: how long a non-designated manager waits on a missing
 // bucket before assuming the designated creator is down and creating it itself.
 const kvCreatorFallbackAfter = 60 * time.Second
@@ -272,10 +242,6 @@ func ClientHeartbeatInit() {
 
 		_, err = js.KeyValue("constellation-nodes")
 		if err == nil {
-			// migrate a pre-upgrade bucket to the shape this build declares (see nodesKVStorage)
-			if !isAgent {
-				migrateNodesKVTopology()
-			}
 			clientConfigLock.RUnlock()
 			utils.Log("[NATS] Connected to existing Key-Value store 'constellation-nodes'")
 			break

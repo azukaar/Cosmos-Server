@@ -88,6 +88,13 @@ func TestEventFilterTranslator(t *testing.T) {
 			wantArg: []interface{}{"cosmos.scheduler.%"},
 		},
 		{
+			name:    "slashes are literal, escaped or not",
+			dialect: DialectSQLite,
+			filter:  `{"object": {"$regex": "^route@/api\\/v1"}}`,
+			wantSQL: `((object LIKE ? ESCAPE '\'))`,
+			wantArg: []interface{}{"route@/api/v1%"},
+		},
+		{
 			name:    "wildcards and end anchor",
 			dialect: DialectSQLite,
 			filter:  `{"label": {"$regex": "deploy.*done$"}}`,
