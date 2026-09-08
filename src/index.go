@@ -206,7 +206,7 @@ func main() {
 }
 
 // @title Cosmos Server API
-// @version 0.23.2-unstable002
+// @version 0.24.0-unstable007
 // @description REST API for Cosmos Cloud server management
 // @BasePath /cosmos
 // @securityDefinitions.apikey BearerAuth
@@ -215,6 +215,7 @@ func main() {
 func cosmos() {
 	utils.PushShieldMetrics = metrics.PushShieldMetrics
 	utils.GetContainerIPByName = docker.GetContainerIPByName
+	utils.IsLocalDockerIP = docker.IsLocalDockerIP
 	utils.DoesContainerExist = docker.DoesContainerExist
 	utils.CheckDockerNetworkMode = docker.CheckDockerNetworkMode
 	utils.InitPremiumFeatures = InitPremiumFeatures
@@ -242,9 +243,23 @@ func cosmos() {
 		}
 		return pro.NodeIdentity{
 			DeviceName: d.DeviceName,
-			IP:         d.IP,
-			CosmosNode: d.CosmosNode,
+			// deviceNameRe already guarantees a legal NATS subject token; use the raw name.
+			SanitizedName: d.DeviceName,
+			IP:            d.IP,
+			CosmosNode:    d.CosmosNode,
 		}
+	})
+	pro.SetManagedDatabaseProvider(constellation.ManagedDatabaseList)
+	pro.SetSeaweedFSProvider(constellation.SeaweedFSList)
+	pro.SetSeaweedFSMetricPusher(func(key string, value int, max uint64, label, unit, object string) {
+		metrics.PushSetMetric(key, value, metrics.DataDef{
+			Max:       max,
+			Period:    time.Minute * 5,
+			Label:     label,
+			AggloType: "avg",
+			Unit:      unit,
+			Object:    object,
+		})
 	})
 	
 	utils.InitLogs()
@@ -292,6 +307,8 @@ func cosmos() {
 	docker.ExportDocker()
 
 	docker.DockerListenEvents()
+
+	docker.StartLazyReaper()
 
 	docker.BootstrapAllContainersFromTags()
 

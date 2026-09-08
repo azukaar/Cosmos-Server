@@ -106,7 +106,7 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 			scanner := bufio.NewScanner(out)
 			for scanner.Scan() {
 				utils.Log(scanner.Text())
-				fmt.Fprintf(w, scanner.Text() + "\n")
+				fmt.Fprintf(w, "%s", scanner.Text() + "\n")
 				flusher.Flush()
 			}
 

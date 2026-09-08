@@ -13,6 +13,22 @@ export interface ConstellationDevice {
   [key: string]: any;
 }
 
+// `live` is heartbeat-derived: only the server knows whether the node is up.
+export interface TagMatchNode {
+  name: string;
+  live: boolean;
+  tags: string[];
+}
+
+export interface TagMatchResult {
+  tags: string[];
+  matched: TagMatchNode[];
+  matchedCount: number;
+  liveMatchedCount: number;
+  totalNodes: number;
+  liveNodes: number;
+}
+
 export default function createConstellationAPI(apiFetch: ApiFetch) {
   function list() {
     return wrap(apiFetch('/cosmos/api/constellation/devices', {
@@ -232,6 +248,15 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
     }))
   }
 
+  // noError on the wrap: a transient 503 (JetStream reconnecting) must not pop a snackbar per keystroke.
+  function tagNodes(tags: string[]): Promise<ApiResponse<TagMatchResult>> {
+    const query = (tags || []).join(',');
+    return wrap(apiFetch('/cosmos/api/constellation/tag-nodes?tags=' + encodeURIComponent(query), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    }), true)
+  }
+
   return {
     list,
     addDevice,
@@ -254,5 +279,6 @@ export default function createConstellationAPI(apiFetch: ApiFetch) {
     createDNSEntry,
     updateDNSEntry,
     deleteDNSEntry,
+    tagNodes,
   };
 }

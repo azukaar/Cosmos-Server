@@ -76,6 +76,9 @@ var RestartCRON func()
 
 var IsConstellationIP = func(string) bool { return false }
 
+// Wired to docker.IsLocalDockerIP in src/index.go (utils cannot import docker); defaults to strict "no".
+var IsLocalDockerIP = func(string) bool { return false }
+
 var GetContainerIPByName func(string) (string, error)
 var DoesContainerExist func(string) bool
 var CheckDockerNetworkMode func() string
@@ -1081,6 +1084,17 @@ func Exec(cmd string, args ...string) (string, error) {
 		errF = errors.New(err.Error() + ": " + string(out))
 	}
 	return string(out), errF
+}
+
+// IsLocalPeer reports whether a peer address belongs to this very machine: loopback, or one of our own docker networks. Deliberately separate from IsConstellationIP, which also gates trust of node tokens and X-Forwarded-For — a local container must not inherit those.
+func IsLocalPeer(ip string) bool {
+	if parsed := osnet.ParseIP(ip); parsed != nil && parsed.IsLoopback() {
+		return true
+	}
+	if IsInsideContainer && !IsHostNetwork {
+		return false
+	}
+	return IsLocalDockerIP(ip)
 }
 
 func IsLocalIP(ip string) bool {

@@ -19,6 +19,27 @@ const (
 	// consecutive failed sweeps before a backend is withdrawn — a single blip
 	// would otherwise restart the HTTP server of every load balancer twice
 	tunnelProbeFailuresToWithdraw = 2
+	// min uptime before a SERVAPP container counts as serving — a crash-looper is briefly "running"
+	tunnelProbeMinUptime = 5 * time.Second
+)
+
+// probeVerdict is what a sweep should do with a route; only "cannot probe" may fail open.
+type probeVerdict int
+
+const (
+	// probeSkip: nothing probeable — keep prior health (deliberately the zero value)
+	probeSkip probeVerdict = iota
+	// probeDial: dial the address and let the result speak
+	probeDial
+	// probeDown: known not to be serving, counted as a failed probe
+	probeDown
+)
+
+// docker call seams, so the probe rules can be unit-tested without a daemon
+var (
+	probeContainerLiveness = docker.GetContainerLiveness
+	probeContainerIP       = docker.GetContainerIPByName
+	probeContainerDormant  = docker.LazyIsDormant
 )
 
 type tunnelProbeState struct {
@@ -46,24 +67,22 @@ func isTunnelBackendHealthy(route utils.ProxyRouteConfig) bool {
 	return state.healthy
 }
 
-// tunnelProbeAddress resolves the host:port a tunneled route's backend actually
-// listens on, mirroring what the proxy director dials. Returns false when the
-// route has no probeable TCP backend (static content, non-http target) or when
-// the address cannot be resolved — both fail open.
-func tunnelProbeAddress(route utils.ProxyRouteConfig) (string, bool) {
+// tunnelProbeAddress resolves the host:port the proxy director would dial for
+// a tunneled route's backend, and what the sweep should do with it.
+func tunnelProbeAddress(route utils.ProxyRouteConfig) (string, probeVerdict) {
 	// static content is served by cosmos itself, a redirect never reaches a backend
 	if route.Mode == "STATIC" || route.Mode == "SPA" || route.Mode == "REDIRECT" {
-		return "", false
+		return "", probeSkip
 	}
 
 	target, err := url.Parse(route.Target)
 	if err != nil || (target.Scheme != "http" && target.Scheme != "https") {
-		return "", false
+		return "", probeSkip
 	}
 
 	host := target.Hostname()
 	if host == "" {
-		return "", false
+		return "", probeSkip
 	}
 
 	port := target.Port()
@@ -77,14 +96,29 @@ func tunnelProbeAddress(route utils.ProxyRouteConfig) (string, bool) {
 	// same condition as the proxy director: a SERVAPP hostname is a container
 	// name that only Docker can resolve when Cosmos is not on its network
 	if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
-		ip, err := docker.GetContainerIPByName(host)
+		// a dormant lazy container is asleep by design and gets woken by the
+		// proxy on the next request — withdrawing the route would break that
+		if probeContainerDormant(host) {
+			return "", probeSkip
+		}
+
+		live, err := probeContainerLiveness(host)
+		if err != nil {
+			// docker unreachable is not evidence of anything: fail open
+			return "", probeSkip
+		}
+		if !live.Exists || !live.Running || live.Uptime < tunnelProbeMinUptime {
+			return "", probeDown
+		}
+
+		ip, err := probeContainerIP(host)
 		if err != nil || ip == "" {
-			return "", false
+			return "", probeDown
 		}
 		host = ip
 	}
 
-	return net.JoinHostPort(host, port), true
+	return net.JoinHostPort(host, port), probeDial
 }
 
 // isBackendDownError distinguishes a backend that is unambiguously not
@@ -123,22 +157,28 @@ func sweepTunnelBackends() {
 	}
 	results := make(chan probeResult, len(routes))
 	pending := 0
+	fresh := map[string]bool{}
 
 	for _, route := range routes {
 		if route.Tunnel == "" || route.Disabled {
 			continue
 		}
-		addr, probeable := tunnelProbeAddress(route)
-		if !probeable {
+		addr, verdict := tunnelProbeAddress(route)
+		switch verdict {
+		case probeSkip:
 			continue
+		case probeDown:
+			// record as failed so the route stays withdrawn rather than
+			// reverting to unknown-is-healthy
+			fresh[route.Name] = false
+		case probeDial:
+			pending++
+			go func(name string, addr string) {
+				results <- probeResult{name: name, up: probeTunnelBackend(addr)}
+			}(route.Name, addr)
 		}
-		pending++
-		go func(name string, addr string) {
-			results <- probeResult{name: name, up: probeTunnelBackend(addr)}
-		}(route.Name, addr)
 	}
 
-	fresh := map[string]bool{}
 	for i := 0; i < pending; i++ {
 		result := <-results
 		fresh[result.name] = result.up

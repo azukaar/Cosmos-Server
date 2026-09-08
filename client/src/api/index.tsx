@@ -13,6 +13,10 @@ import createApiTokensAPI from './apiTokens';
 import createOpenIDAPI from './openid';
 import createGroupsAPI from './groups';
 import createDeploymentsAPI from './deployments';
+import createDatabasesAPI from './databases';
+import createSeaweedFSAPI from './seaweedfs';
+import createRegistryAPI from './registry';
+import createFunctionsAPI from './functions';
 
 import * as authDemo from './authentication.demo';
 import * as usersDemo from './users.demo';
@@ -59,6 +63,10 @@ export function createClient({ baseUrl, token }) {
     openid: createOpenIDAPI(apiFetch),
     groups: createGroupsAPI(apiFetch),
     deployments: createDeploymentsAPI(apiFetch),
+    databases: createDatabasesAPI(apiFetch),
+    seaweedfs: createSeaweedFSAPI(apiFetch),
+    registry: createRegistryAPI(apiFetch),
+    functions: createFunctionsAPI(apiFetch),
 
     getStatus: () => {
       return wrap(apiFetch('/cosmos/api/status', {
@@ -396,6 +404,10 @@ let apiTokens = createApiTokensAPI(defaultFetch);
 let openid = createOpenIDAPI(defaultFetch);
 let groups = createGroupsAPI(defaultFetch);
 let deployments = createDeploymentsAPI(defaultFetch);
+let databases = createDatabasesAPI(defaultFetch);
+let seaweedfs = createSeaweedFSAPI(defaultFetch);
+let registry = createRegistryAPI(defaultFetch);
+let functions = createFunctionsAPI(defaultFetch);
 
 if(isDemo) {
   auth = authDemo;
@@ -443,4 +455,8 @@ export {
   openid,
   groups,
   deployments,
+  databases,
+  seaweedfs,
+  registry,
+  functions,
 };

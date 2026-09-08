@@ -166,7 +166,12 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 	}
 	
-	destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
+	// host-wildcard ":<port>" routes are restricted at the socket-proxy listener (see SocketProxy.go)
+	if route.UseHost && strings.HasPrefix(route.Host, ":") {
+		destination = utils.RestrictionsAllowLocalHop(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
+	} else {
+		destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
+	}
 	
 	if route.BlockCommonBots {
 		destination = BotDetectionMiddleware(destination)

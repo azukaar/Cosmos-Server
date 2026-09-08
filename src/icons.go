@@ -1,21 +1,21 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	// "fmt"
-	"strings"
 	"os"
-	"io/ioutil"
-	"encoding/json"
 	"path"
-	"time"
-	"context"
+	"strings"
 	"sync"
+	"time"
 
 	"go.deanishe.net/favicon"
 
-	"github.com/azukaar/cosmos-server/src/utils" 
+	"github.com/azukaar/cosmos-server/src/docker"
+	"github.com/azukaar/cosmos-server/src/utils"
 )
 
 type CachedImage struct {
@@ -76,140 +76,209 @@ type result struct {
 	Error       error
 }
 
+func faviconTarget(routeName string, clientID string) (siteurl string, container string, err error) {
+	config := utils.GetMainConfig()
+
+	if routeName != "" {
+		for _, route := range config.HTTPConfig.ProxyConfig.Routes {
+			if route.Name != routeName {
+				continue
+			}
+			switch route.Mode {
+			case "SERVAPP":
+				target, perr := url.Parse(route.Target)
+				if perr != nil {
+					return "", "", perr
+				}
+				return route.Target, target.Hostname(), nil
+			case "PROXY":
+				return route.Target, "", nil
+			case "STATIC":
+				return "", "", nil
+			default:
+				// Served by Cosmos itself: fetch through the public origin.
+				origin := strings.TrimSuffix(utils.GetServerURL(""), "/")
+				if route.UseHost {
+					scheme := "http://"
+					if utils.IsHTTPS {
+						scheme = "https://"
+					}
+					origin = scheme + route.Host
+				}
+				if route.UsePathPrefix {
+					origin += route.PathPrefix
+				}
+				return origin, "", nil
+			}
+		}
+		return "", "", errors.New("no route named " + routeName)
+	}
+
+	if clientID != "" {
+		for _, client := range config.OpenIDClients {
+			if client.ID != clientID {
+				continue
+			}
+			// Clients may list several redirect URIs; the first one is the application's origin.
+			first := strings.TrimSpace(strings.Split(client.Redirect, ",")[0])
+			redirect, perr := url.Parse(first)
+			if perr != nil {
+				return "", "", perr
+			}
+			if redirect.Scheme == "" || redirect.Host == "" {
+				return "", "", errors.New("OpenID client " + clientID + " has no usable redirect URI")
+			}
+			return redirect.Scheme + "://" + redirect.Host, "", nil
+		}
+		return "", "", errors.New("no OpenID client named " + clientID)
+	}
+
+	return "", "", errors.New("favicon request names neither a route nor an OpenID client")
+}
+
+func faviconDialURL(siteurl string, container string) string {
+	if container == "" || (utils.IsInsideContainer && !utils.IsHostNetwork) {
+		return siteurl
+	}
+	ip, _ := utils.GetContainerIPByName(container)
+	if ip == "" {
+		return siteurl
+	}
+	parsed, err := url.Parse(siteurl)
+	if err != nil {
+		return siteurl
+	}
+	host := ip
+	if port := parsed.Port(); port != "" {
+		host += ":" + port
+	}
+	parsed.Host = host
+	return parsed.String()
+}
+
 // GetFavicon godoc
-// @Summary Get favicon for a URL
-// @Description Fetches and caches the favicon for the given URL, returning it as an image
+// @Summary Get favicon for a route or OpenID client
+// @Description Fetches and caches the favicon of a configured route or OpenID client, returning it as an image. Exactly one of route or openid must be given.
 // @Tags system
 // @Produce octet-stream
 // @Security BearerAuth
-// @Param q query string true "URL-encoded site URL to fetch favicon for"
-// @Param servapp query string false "Service app mode flag"
+// @Param route query string false "Name of the configured route"
+// @Param openid query string false "ID of the configured OpenID client"
 // @Success 200 {file} binary
-// @Failure 401 {object} utils.HTTPErrorResult
-// @Failure 405 {object} utils.HTTPErrorResult
+// @Failure 404 {object} utils.HTTPErrorResult
 // @Failure 500 {object} utils.HTTPErrorResult
 // @Router /api/favicon [get]
 func GetFavicon(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
-			return
+		return
 	}
 
-	// get url from query string
-	escsiteurl := req.URL.Query().Get("q")
-	isServappMode := req.URL.Query().Get("servapp")
+	if req.Method != "GET" {
+		utils.Error("Favicon: Method not allowed "+req.Method, nil)
+		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
+		return
+	}
+
+	siteurl, container, err := faviconTarget(req.URL.Query().Get("route"), req.URL.Query().Get("openid"))
+	if err != nil {
+		utils.Error("Favicon: target", err)
+		utils.HTTPError(w, "Favicon target", http.StatusNotFound, "FA001")
+		return
+	}
+	if siteurl == "" {
+		sendFallback(w)
+		return
+	}
+
+	// Keyed by the configured URL, not the dialed address: container IPs and redirects change and must not invalidate a cached icon.
+	cacheKey := siteurl
 
 	IconCacheLock <- true
 	defer func() { <-IconCacheLock }()
 
-	// URL decode
-	siteurl, err := url.QueryUnescape(escsiteurl)
+	if cached, ok := IconCache[cacheKey]; ok {
+		utils.Debug("Favicon in cache")
+		sendImage(w, cached)
+		return
+	}
+
+	// A dormant lazy container must never be woken for an icon; serve the placeholder.
+	if container != "" && docker.LazyIsDormant(container) {
+		utils.Debug("Favicon: " + container + " is dormant, serving fallback")
+		sendFallback(w)
+		return
+	}
+
+	siteurl = faviconDialURL(siteurl, container)
+	utils.Log("Fetch favicon for " + siteurl)
+
+	var icons []*favicon.Icon
+	var defaultIcons = []*favicon.Icon{
+		{URL: "/favicon.ico", Width: 0},
+		{URL: "/favicon.png", Width: 0},
+		{URL: "favicon.ico", Width: 0},
+		{URL: "favicon.png", Width: 0},
+	}
+
+	// follow siteurl and check if any redirect.
+	respNew, err := httpGetWithTimeout(siteurl)
 	if err != nil {
-			utils.Error("Favicon: URL decode", err)
-			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "FA002")
-			return
-	}
-	
-	if !utils.IsInsideContainer || utils.IsHostNetwork && isServappMode != "" {
-		parsedURL, err := url.Parse(siteurl)
-		if err != nil {
-			utils.Error("Favicon: URL parse", err)
-			utils.HTTPError(w, "URL parse", http.StatusInternalServerError, "FA001")
-			return
-		}
-
-		hostname := parsedURL.Hostname()
-
-		ip, _ := utils.GetContainerIPByName(hostname)
-		if ip != "" {
-			siteurl = strings.Replace(siteurl, hostname, ip, 1)
-		}
-	}
-
-
-	if req.Method == "GET" {
-			utils.Log("Fetch favicon for " + siteurl)
-
-			// Check if we have the favicon in cache
-			if resp, ok := IconCache[siteurl]; ok {
-					utils.Debug("Favicon in cache")
-					sendImage(w, resp)
-					return
-			}
-
-			var icons []*favicon.Icon
-			var defaultIcons = []*favicon.Icon{
-					{URL: "/favicon.ico", Width: 0},
-					{URL: "/favicon.png", Width: 0},
-					{URL: "favicon.ico", Width: 0},
-					{URL: "favicon.png", Width: 0},
-			}
-
-			// follow siteurl and check if any redirect.
-			respNew, err := httpGetWithTimeout(siteurl)
-			if err != nil {
-					utils.Error("FaviconFetch", err)
-					icons = append(icons, defaultIcons...)
-			} else {
-					siteurl = respNew.Request.URL.String()
-					icons, err = favicon.Find(siteurl)
-
-					if err != nil || len(icons) == 0 {
-							icons = append(icons, defaultIcons...)
-					} else {
-							// Check if icons list is missing any default values
-							for _, defaultIcon := range defaultIcons {
-									found := false
-									for _, icon := range icons {
-											if icon.URL == defaultIcon.URL {
-													found = true
-													break
-											}
-									}
-									if !found {
-											icons = append(icons, defaultIcon)
-									}
-							}
-					}
-			}
-
-			// Create a channel to collect favicon fetch results
-			resultsChan := make(chan result)
-			// Create a wait group to wait for all goroutines to finish
-			var wg sync.WaitGroup
-
-			// Loop through each icon and start a goroutine to fetch it
-			for _, icon := range icons {
-					if icon.Width <= 256 {
-							wg.Add(1)
-							go func(icon *favicon.Icon) {
-									defer wg.Done()
-									fetchAndCacheIcon(icon, siteurl, resultsChan)
-							}(icon)
-					}
-			}
-
-			// Close the results channel when all fetches are done
-			go func() {
-					wg.Wait()
-					close(resultsChan)
-			}()
-
-			// Collect the results
-			for result := range resultsChan {
-					IconCache[siteurl] = result.CachedImage
-					sendImage(w, IconCache[siteurl])
-					return
-			}
-
-			utils.Log("Favicon final fallback")
-			sendFallback(w)
-			return
-
+		utils.Error("FaviconFetch", err)
+		icons = append(icons, defaultIcons...)
 	} else {
-			utils.Error("Favicon: Method not allowed "+req.Method, nil)
-			utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
-			return
+		siteurl = respNew.Request.URL.String()
+		icons, err = favicon.Find(siteurl)
+
+		if err != nil || len(icons) == 0 {
+			icons = append(icons, defaultIcons...)
+		} else {
+			// Check if icons list is missing any default values
+			for _, defaultIcon := range defaultIcons {
+				found := false
+				for _, icon := range icons {
+					if icon.URL == defaultIcon.URL {
+						found = true
+						break
+					}
+				}
+				if !found {
+					icons = append(icons, defaultIcon)
+				}
+			}
+		}
 	}
+
+	// Create a channel to collect favicon fetch results
+	resultsChan := make(chan result)
+	// Create a wait group to wait for all goroutines to finish
+	var wg sync.WaitGroup
+
+	// Loop through each icon and start a goroutine to fetch it
+	for _, icon := range icons {
+		if icon.Width <= 256 {
+			wg.Add(1)
+			go func(icon *favicon.Icon) {
+				defer wg.Done()
+				fetchAndCacheIcon(icon, siteurl, resultsChan)
+			}(icon)
+		}
+	}
+
+	// Close the results channel when all fetches are done
+	go func() {
+		wg.Wait()
+		close(resultsChan)
+	}()
+
+	// Collect the results
+	for result := range resultsChan {
+		IconCache[cacheKey] = result.CachedImage
+		sendImage(w, IconCache[cacheKey])
+		return
+	}
+
+	utils.Log("Favicon final fallback")
+	sendFallback(w)
 }
 
 // fetchAndCacheIcon is a helper function to fetch and cache the icon
@@ -277,81 +346,6 @@ func resolveIconURL(iconURL string, baseURL *url.URL) string {
 					baseURLPath = ""
 			}
 			return baseURL.Scheme + "://" + baseURL.Host + baseURLPath + "/" + iconURL
-	}
-}
-
-
-// PingURL godoc
-// @Summary Ping a URL
-// @Description Checks if a URL is reachable and returns a non-5xx response
-// @Tags system
-// @Produce json
-// @Security BearerAuth
-// @Param q query string true "URL-encoded site URL to ping"
-// @Param servapp query string false "Service app mode flag"
-// @Success 200 {object} utils.APIResponse
-// @Failure 401 {object} utils.HTTPErrorResult
-// @Failure 405 {object} utils.HTTPErrorResult
-// @Failure 500 {object} utils.HTTPErrorResult
-// @Router /api/ping [get]
-func PingURL(w http.ResponseWriter, req *http.Request) {
-	if utils.CheckPermissions(w, req, utils.PERM_LOGIN) != nil {
-		return
-	}
-
-	// get url from query string
-	escsiteurl := req.URL.Query().Get("q")
-	isServappMode := req.URL.Query().Get("servapp")
-
-	// URL decode
-	siteurl, err := url.QueryUnescape(escsiteurl)
-	if err != nil {
-		utils.Error("Ping: URL decode", err)
-		utils.HTTPError(w, "Ping URL decode", http.StatusInternalServerError, "FA002")
-		return
-	}
-	
-	if !utils.IsInsideContainer || utils.IsHostNetwork && isServappMode != "" {
-		parsedURL, err := url.Parse(siteurl)
-		if err != nil {
-			utils.Error("Favicon: URL parse", err)
-			utils.HTTPError(w, "URL parse", http.StatusInternalServerError, "FA001")
-			return
-		}
-
-		hostname := parsedURL.Hostname()
-
-		ip, _ := utils.GetContainerIPByName(hostname)
-		if ip != "" {
-			siteurl = strings.Replace(siteurl, hostname, ip, 1)
-		}
-	}
-
-	if(req.Method == "GET") { 
-		utils.Log("Ping for " + siteurl)
-
-		resp, err := httpGetWithTimeout(siteurl)
-		if err != nil {
-			utils.Error("Ping", err)
-			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "PI0001")
-			return
-		}
-		
-		if resp.StatusCode >= 500 {
-			utils.Error("Ping", err)
-			utils.HTTPError(w, "URL decode", http.StatusInternalServerError, "PI0002")
-			return
-		}
-
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status": "OK",
-			"data": map[string]interface{}{
-			},
-		})
-	} else {
-		utils.Error("Favicon: Method not allowed" + req.Method, nil)
-		utils.HTTPError(w, "Method not allowed", http.StatusMethodNotAllowed, "HTTP001")
-		return
 	}
 }
 

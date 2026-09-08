@@ -258,14 +258,14 @@ func GetAllPorts(container types.ContainerJSON) []string {
 
 func IsConnectedToNetwork(containerConfig types.ContainerJSON, networkName string) bool {
 	if(containerConfig.NetworkSettings == nil) {
-		return false
 		utils.Debug("IsConnectedToNetwork - " + containerConfig.Name + ": has no settings")
+		return false
 	}
 
 	for name, _ := range containerConfig.NetworkSettings.Networks {
 		if name == networkName {
-			return true
 			utils.Debug("IsConnectedToNetwork - " + containerConfig.Name + ": is connected to " + networkName)
+			return true
 		}
 	}
 

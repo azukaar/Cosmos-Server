@@ -145,11 +145,6 @@ const NetworkContainerSetup = ({ config, containerInfo, refresh, newContainer, O
 
               <MainCard title={t('mgmt.servApps.newContainer.networkSettingsTitle')}>
                 <Stack spacing={4}>
-                  {containerInfo.State && containerInfo.State.Status !== 'running' && (
-                  <Alert severity="warning" style={{ marginBottom: '0px' }}>
-                      {t('mgmt.servApps.networks.containerotRunningWarning')}
-                    </Alert>
-                  )}
                   {/* {isForceSecure && (
                     <Alert severity="warning" style={{ marginBottom: '0px' }}>
                       {t('mgmt.servApps.networks.forcedSecurityWarning')}          

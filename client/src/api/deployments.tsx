@@ -2,7 +2,13 @@ import wrap, { type ApiResponse, type ApiFetch } from './wrap';
 
 export interface Deployment {
   name: string;
-  replicas: number;
+  // Exactly one replica mode: fixed count, load-based autoscale, or fill (one per eligible node).
+  replicas?: number;
+  minReplicas?: number;
+  maxReplicas?: number;
+  replicaFill?: boolean;
+  // empty = bare + lazy containers: the idle replica sleeps until the next request.
+  replicaFillMode?: 'full' | 'bare' | 'empty';
   strategy?: 'round-robin' | 'least-busy';
   tags?: string[];
   storage?: string[];
@@ -12,6 +18,10 @@ export interface Deployment {
 export interface DeploymentHealth {
   desired: number;
   actual: number;
+  minReplicas?: number;
+  maxReplicas?: number;
+  replicaFill?: boolean;
+  replicaFillMode?: 'full' | 'bare' | 'empty';
   nodes: string[];
   broken: boolean;
   brokenReason?: string;

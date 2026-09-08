@@ -6,7 +6,6 @@ import (
     "sync"
     "strings"
     "strconv"
-    "net/url"
     "time"
 
 
@@ -18,6 +17,12 @@ import (
 var (
     activeProxies = make(map[string]*ProxyInfo)
     proxiesLock   sync.Mutex
+)
+
+var (
+    netDial                    = net.Dial
+    dockerGetContainerIPByName = docker.GetContainerIPByName
+    tcpShieldMiddleware        = TCPSmartShieldMiddleware
 )
 
 func stripTargetProtocol(target string) string {
@@ -48,8 +53,9 @@ func handleClient(client net.Conn, server net.Conn, proxyInfo *ProxyInfo) {
     defer client.Close()
     defer server.Close()
 
-    // Forward data between client and server, and watch for stop signal
-    done := make(chan struct{})
+    // Forward data between client and server, and watch for stop signal.
+    // Buffered so the second copy goroutine never parks on send.
+    done := make(chan struct{}, 2)
     go func() {
         io.Copy(server, client)
         done <- struct{}{}
@@ -96,20 +102,22 @@ var mapToTCPUDP = map[string]string{
     "quic":     "udp", // QUIC is a transport protocol that runs over UDP
 }
 
-func startProxy(listenAddr string, target string, targets []utils.TunnelTarget, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig) {
-    // remove any protocol
-    destinationArr := strings.Split(target, "://")
-    listenProtocol := "tcp"
-   
-    if len(destinationArr) > 1 {
-        target = destinationArr[1]
-        listenProtocol = destinationArr[0]
-        if protocol, ok := mapToTCPUDP[listenProtocol]; ok {
-            listenProtocol = protocol
-        }
-    } else {
-        target = destinationArr[0]
+// targetProtocol splits a target into listener protocol and bare host:port.
+func targetProtocol(target string) (protocol string, hostPort string) {
+    parts := strings.Split(target, "://")
+    if len(parts) == 1 {
+        return "tcp", parts[0]
     }
+    protocol = parts[0]
+    if mapped, ok := mapToTCPUDP[protocol]; ok {
+        protocol = mapped
+    }
+    return protocol, parts[1]
+}
+
+func startProxy(pair PortsPair, proxyInfo *ProxyInfo) {
+    listenAddr := pair.From
+    listenProtocol, target := targetProtocol(pair.To)
 
     var err error
     var listener net.Listener
@@ -145,13 +153,16 @@ func startProxy(listenAddr string, target string, targets []utils.TunnelTarget, 
 
     if listenProtocol == "tcp" {
         utils.Debug("[SocketProxy] Starting TCP proxy on " + listenAddr + " -> " + target)
-        handleTCPProxy(listener, target, targets, proxyInfo, isHTTPProxy, route, listenAddr)
+        handleTCPProxy(listener, target, pair, proxyInfo)
     } else {
-        handleUDPProxy(packetConn, target, targets, proxyInfo, route, listenAddr)
+        handleUDPProxy(packetConn, target, pair.Targets, proxyInfo, pair.route, listenAddr)
     }
 }
 
-func handleTCPProxy(listener net.Listener, target string, targets []utils.TunnelTarget, proxyInfo *ProxyInfo, isHTTPProxy bool, route utils.ProxyRouteConfig, listenAddr string) {
+func handleTCPProxy(listener net.Listener, target string, pair PortsPair, proxyInfo *ProxyInfo) {
+    listenAddr := pair.From
+    route := pair.route
+
     for {
         acceptChan := make(chan net.Conn)
         acceptErrChan := make(chan error)
@@ -172,9 +183,13 @@ func handleTCPProxy(listener net.Listener, target string, targets []utils.Tunnel
             utils.Error("[SocketProxy] Failed to accept TCP connection", err)
         case client := <-acceptChan:
             var shieldedClient net.Conn
-            if !isHTTPProxy {
-                shieldedClient = TCPSmartShieldMiddleware("proxy-"+listenAddr, route)(client)
+            // this listener is the only place the client's real address exists;
+            // restricted/whitelisted routes must be enforced here
+            if !pair.isHTTPProxy || route.RestrictToConstellation || len(route.WhitelistInboundIPs) > 0 {
+                shieldedClient = tcpShieldMiddleware("proxy-"+listenAddr, route)(client)
                 if shieldedClient == nil {
+                    // the shield skips Close on the abuse-counter path
+                    client.Close()
                     continue
                 }
             } else {
@@ -188,19 +203,49 @@ func handleTCPProxy(listener net.Listener, target string, targets []utils.Tunnel
                 ip, _ := utils.SplitIP(client.RemoteAddr().String())
                 stickyKey = ip
             }
-            selected := DefaultTunnelLB.SelectTarget(targets, route.Name, route.LBMode, route.LBStickyMode, stickyKey)
+            selected := DefaultTunnelLB.SelectTarget(pair.Targets, route.Name, route.LBMode, route.LBStickyMode, stickyKey)
             dialTarget := target
+            release := func() {}
+
             if selected != nil {
+                // a tunnel hop: the peer owns that container, nothing to wake here
                 dialTarget = stripTargetProtocol(selected.TargetURL)
+            } else if pair.lazyContainer != "" {
+                // wake and resolve per connection: the IP changes on restart
+                if err := lazyWakeForDial(pair.lazyContainer, pair.lazyPort); err != nil {
+                    if isLazyStarting(err) {
+                        utils.Debug("[SocketProxy] Container " + pair.lazyContainer + " is still starting, dropping the connection on " + listenAddr)
+                    } else {
+                        utils.Error("[SocketProxy] Failed to wake container "+pair.lazyContainer, err)
+                    }
+                    shieldedClient.Close()
+                    continue
+                }
+
+                targetIP, err := dockerGetContainerIPByName(pair.lazyContainer)
+                if err != nil {
+                    utils.Error("[SocketProxy] Can't find container "+pair.lazyContainer, err)
+                    shieldedClient.Close()
+                    continue
+                }
+
+                utils.Debug("[SocketProxy] Dockerless socket Target IP: " + targetIP)
+                dialTarget = targetIP + ":" + pair.lazyPort
+                // held for the connection's lifetime so the idle reaper can't stop the container
+                release = lazyTrackConn(pair.lazyContainer)
             }
 
-            server, err := net.Dial("tcp", dialTarget)
+            server, err := netDial("tcp", dialTarget)
             if err != nil {
                 utils.Error("[SocketProxy] Failed to connect to TCP server", err)
+                release()
                 shieldedClient.Close()
                 continue
             }
-            go handleClient(shieldedClient, server, proxyInfo)
+            go func() {
+                defer release()
+                handleClient(shieldedClient, server, proxyInfo)
+            }()
         }
     }
 }
@@ -283,12 +328,45 @@ func handleUDPResponse(packetConn net.PacketConn, clientAddr net.Addr, targetAdd
     }
 }
 
+// socketDestination decides what a non-HTTP route's listener forwards to.
+func socketDestination(route utils.ProxyRouteConfig, destination string) (dest string, lazyContainer string, lazyPort string) {
+    if route.Mode != "SERVAPP" || (utils.IsInsideContainer && !utils.IsHostNetwork) {
+        return destination, "", ""
+    }
+
+    containerName, containerPort := lazyTargetContainer(route)
+    if containerName == "" {
+        utils.Error("[SocketProxy] Create socket Route: no container name in target "+route.Target, nil)
+        return destination, "", ""
+    }
+
+    if protocol, _ := targetProtocol(destination); protocol == "tcp" {
+        return destination, containerName, containerPort
+    }
+
+    targetIP, err := dockerGetContainerIPByName(containerName)
+    if err != nil {
+        utils.Error("[SocketProxy] Can't find container", err)
+        return destination, "", ""
+    }
+
+    utils.Debug("[SocketProxy] Dockerless socket Target IP: " + targetIP)
+    destination = targetIP + ":" + containerPort
+    if scheme := strings.Split(route.Target, "://"); len(scheme) > 1 {
+        destination = scheme[0] + "://" + destination
+    }
+    return destination, "", ""
+}
+
 type PortsPair struct {
     From string
     To string
     Targets []utils.TunnelTarget
     isHTTPProxy bool
     route utils.ProxyRouteConfig
+    // dockerless SERVAPP TCP routes keep the container name to wake it and resolve its IP per connection
+    lazyContainer string
+    lazyPort string
 }
 
 func initInternalPortProxy(ports []PortsPair) {
@@ -303,7 +381,7 @@ func initInternalPortProxy(ports []PortsPair) {
         }
         activeProxies[port.From] = proxyInfo
 
-        go startProxy(port.From, port.To, port.Targets, proxyInfo, port.isHTTPProxy, port.route)
+        go startProxy(port, proxyInfo)
     }
 }
 
@@ -349,7 +427,7 @@ func InitInternalSocketProxy() {
     utils.Log("[SocketProxy] Initializing internal TCP/UDP proxy")
     
     config := utils.GetMainConfig()
-    expectedPorts := []PortsPair{}
+    claims := []PortClaim{}
 	isHTTPS := utils.IsHTTPS
 	HTTPPort := config.HTTPConfig.HTTPPort
 	HTTPSPort := config.HTTPConfig.HTTPSPort
@@ -372,7 +450,7 @@ func InitInternalSocketProxy() {
 		targetPort = HTTPSPort
 	}
 
-    addPortPair := func(route utils.ProxyRouteConfig, targets []utils.TunnelTarget) {
+    addPortPair := func(route utils.ProxyRouteConfig, targets []utils.TunnelTarget, isLocal bool) {
         if !route.UseHost || !strings.Contains(route.Host, ":") || route.Disabled {
             return
         }
@@ -384,6 +462,8 @@ func InitInternalSocketProxy() {
         destination := ""
         isHTTPProxy := strings.HasPrefix(route.Target, "http://") || strings.HasPrefix(route.Target, "https://")
         sourceHostname := hostname
+        lazyContainer := ""
+        lazyPort := ""
         var pairTargets []utils.TunnelTarget
         if isHTTPProxy {
             destination = "localhost:" + targetPort
@@ -392,61 +472,95 @@ func InitInternalSocketProxy() {
             destination = route.Target
             pairTargets = targets
 
-            if route.Mode == "SERVAPP" && (!utils.IsInsideContainer || utils.IsHostNetwork) {
-                url, err := url.Parse(destination)
-                if err != nil {
-                    utils.Error("[SocketProxy] Create socket Route", err)
-                } else {
-                    targetHost := url.Hostname()
-
-                    targetIP, err := docker.GetContainerIPByName(targetHost)
-                    if err != nil {
-                        utils.Error("[SocketProxy] Can't find container", err)
-                    } else {
-                        utils.Debug("[SocketProxy] Dockerless socket Target IP: " + targetIP)
-                        destination = targetIP + ":" + url.Port()
-                        if url.Scheme != "" {
-                            destination = url.Scheme + "://" + destination
-                        }
-                    }
-                }
-            }
+            destination, lazyContainer, lazyPort = socketDestination(route, destination)
         }
 
-        portpair := PortsPair{sourceHostname, destination, pairTargets, isHTTPProxy, route}
+        portpair := PortsPair{
+            From: sourceHostname,
+            To: destination,
+            Targets: pairTargets,
+            isHTTPProxy: isHTTPProxy,
+            route: route,
+            lazyContainer: lazyContainer,
+            lazyPort: lazyPort,
+        }
 
         if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
             portpair.To = "localhost:" + HTTPPort
         }
 
-        // Check if this port is already in the list (avoid duplicates)
-        alreadyExists := false
-        for _, existing := range expectedPorts {
-            if existing.From == portpair.From {
-                alreadyExists = true
-                break
-            }
-        }
-        if alreadyExists {
-            utils.MajorError("[SocketProxy] Duplicate port detected: "+portpair.From+". Multiple routes are trying to use the same port.", nil)
-        } else {
-            expectedPorts = append(expectedPorts, portpair)
-        }
+        claims = append(claims, PortClaim{Pair: portpair, IsLocal: isLocal})
     }
 
-	for _, tunnel := range remoteTunnels {
-		if !tunnel.Route.Disabled {
-            addPortPair(tunnel.Route, tunnel.Targets)
-		}
-	}
+    // Local routes first: they take precedence over tunnel advertisements.
     for _, route := range remoteListRoutes {
-        addPortPair(route, nil)
+        addPortPair(route, nil, true)
     }
 	for _, route := range routes {
-        addPortPair(route, nil)
+        addPortPair(route, nil, true)
 	}
+	for _, tunnel := range remoteTunnels {
+		if !tunnel.Route.Disabled {
+            addPortPair(tunnel.Route, tunnel.Targets, false)
+		}
+	}
+
+    expectedPorts, shadowed, conflicts := ResolvePortClaims(claims)
+
+    for _, port := range shadowed {
+        utils.Debug("[SocketProxy] Port " + port + " is served locally, ignoring the tunnel advertisement for it")
+    }
+    for _, port := range conflicts {
+        utils.MajorError("[SocketProxy] Duplicate port detected: "+port+". Multiple routes are trying to use the same port.", nil)
+    }
 
     StopAllProxies()
 
     initInternalPortProxy(expectedPorts)
+}
+
+// PortClaim is one route's bid for a listening port.
+type PortClaim struct {
+	Pair    PortsPair
+	IsLocal bool
+}
+
+// ResolvePortClaims picks one route per port: a local claim always beats a
+// tunnel advertisement for the same port.
+func ResolvePortClaims(claims []PortClaim) (accepted []PortsPair, shadowed []string, conflicts []string) {
+	claimedLocally := map[string]bool{}
+	claimed := map[string]bool{}
+
+	for _, claim := range claims {
+		if !claim.IsLocal {
+			continue
+		}
+		port := claim.Pair.From
+		if claimed[port] {
+			conflicts = append(conflicts, port)
+			continue
+		}
+		claimed[port] = true
+		claimedLocally[port] = true
+		accepted = append(accepted, claim.Pair)
+	}
+
+	for _, claim := range claims {
+		if claim.IsLocal {
+			continue
+		}
+		port := claim.Pair.From
+		if claimedLocally[port] {
+			shadowed = append(shadowed, port)
+			continue
+		}
+		if claimed[port] {
+			conflicts = append(conflicts, port)
+			continue
+		}
+		claimed[port] = true
+		accepted = append(accepted, claim.Pair)
+	}
+
+	return accepted, shadowed, conflicts
 }

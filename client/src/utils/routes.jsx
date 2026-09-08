@@ -55,28 +55,35 @@ export const getFullOrigin = (route) => {
 
 const isDemo = import.meta.env.MODE === 'demo';
 
+// The favicon endpoint only accepts a route name or OpenID client id: taking a target URL would be an SSRF hole.
 export const getFaviconURL = (route) => {
   if (isDemo) {
-    if (route.Mode == "STATIC")
+    if (route && route.Mode == "STATIC")
       return Folder;
-    return demoicons[route.Name] || logogray;
+    return (route && demoicons[route.Name]) || logogray;
   }
 
-  if (!route) {
+  if (!route || !route.Name) {
     return logogray;
   }
 
-  const addRemote = (url, servapp) => {
-    return '/cosmos/api/favicon?q=' + encodeURIComponent(url) + (servapp ? '&servapp=true' : '');
+  if (route.Mode == "STATIC") {
+    return Folder;
   }
 
-  if (route.Mode == "SERVAPP" || route.Mode == "PROXY") {
-    return addRemote(route.Target, route.Mode == "SERVAPP")
-  } else if (route.Mode == "STATIC") {
-    return Folder;
-  } else {
-    return addRemote(addProtocol(getOrigin(route)));
+  return '/cosmos/api/favicon?route=' + encodeURIComponent(route.Name);
+}
+
+export const getOpenIDClientFaviconURL = (clientID) => {
+  if (isDemo) {
+    return (clientID && demoicons[clientID]) || logogray;
   }
+
+  if (!clientID) {
+    return logogray;
+  }
+
+  return '/cosmos/api/favicon?openid=' + encodeURIComponent(clientID);
 }
 
 export const ValidateRouteSchema = Yup.object().shape({

@@ -4,8 +4,8 @@ import * as API from "../../api";
 import AddDeviceModal from "./addDevice";
 import PrettyTableView from "../../components/tableView/prettyTableView";
 import { DeleteButton } from "../../components/delete";
-import { ApiOutlined, CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, DownOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, NodeIndexOutlined, QuestionCircleOutlined, SyncOutlined, TabletOutlined, UpOutlined } from "@ant-design/icons";
-import { Alert, Box, Button, Chip, CircularProgress, IconButton, LinearProgress, Skeleton, Stack, Switch, Tooltip, Typography } from "@mui/material";
+import { ApiOutlined, CloudOutlined, CloudServerOutlined, CompassOutlined, DesktopOutlined, DownOutlined, EditOutlined, ExportOutlined, LaptopOutlined, MobileOutlined, NodeIndexOutlined, QuestionCircleOutlined, SyncOutlined, TabletOutlined, UpOutlined } from "@ant-design/icons";
+import { Alert, Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, LinearProgress, Skeleton, Stack, Switch, TextField, Tooltip, Typography } from "@mui/material";
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText } from "../config/users/formShortcuts";
 import MainCard from "../../components/MainCard";
 import { Formik } from "formik";
@@ -41,6 +41,13 @@ export const ConstellationVPN = ({ freeVersion }) => {
   const [currentDeviceName, setCurrentDeviceName] = useState('');
   const [leader, setLeader] = useState(''); // sanitized device name of the cluster scheduler leader, '' when unknown
   const [enableLoading, setEnableLoading] = useState(false);
+
+  // Pro only (false in the community build): edit any device's affinity tags from the list.
+  const canEditTags = !!(proFeatures.isPro && proFeatures.isPro());
+  const [tagsDevice, setTagsDevice] = useState(null);
+  const [tagsText, setTagsText] = useState('');
+  const [tagsBusy, setTagsBusy] = useState(false);
+  const [tagsError, setTagsError] = useState('');
 
   const refreshStatus = () => {
     API.getStatus().then((res) => {
@@ -151,6 +158,41 @@ export const ConstellationVPN = ({ freeVersion }) => {
     refreshConfig();
   }, []);
 
+  const openTagsEditor = (device) => {
+    setTagsDevice(device);
+    setTagsText(Array.isArray(device.tags) ? device.tags.join(', ') : '');
+    setTagsError('');
+  };
+
+  // Send ONLY tags: a full edit-device call also rewrites the lighthouse/relay/exit/LB flags baked
+  // into every node's nebula config — do not send flags (deviceEditFields, src/constellation/api_devices_edit.go).
+  const saveTags = async () => {
+    if (!tagsDevice) return;
+    setTagsBusy(true);
+    setTagsError('');
+    try {
+      const parsedTags = (tagsText || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+
+      await API.constellation.editDevice({
+        deviceName: tagsDevice.deviceName,
+        tags: parsedTags,
+      });
+
+      // Op-log replication lags; the pause also throttles back-to-back device edits.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const listRes = await API.constellation.list();
+      setDevices(listRes.data || []);
+      setTagsDevice(null);
+    } catch (e) {
+      setTagsError((e && e.message) || t('mgmt.constellation.setup.tags.saveError'));
+    } finally {
+      setTagsBusy(false);
+    }
+  };
+
   const getIcon = (r) => {
     const name = r.deviceName.toLowerCase();
     let icon, label;
@@ -191,6 +233,41 @@ export const ConstellationVPN = ({ freeVersion }) => {
         <ResyncDeviceModal nickname={resynDevice[0]} deviceName={resynDevice[1]} OnClose={
           () => setResyncDevice(null)
         } />
+      }
+      {canEditTags && tagsDevice &&
+        <Dialog open onClose={() => { if (!tagsBusy) setTagsDevice(null); }} maxWidth="sm" fullWidth>
+          <DialogTitle>{t('mgmt.constellation.setup.tags.editTitle', { device: tagsDevice.deviceName })}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} style={{ marginTop: '10px' }}>
+              <DialogContentText>{t('mgmt.constellation.setup.tags.tooltip')}</DialogContentText>
+              <TextField
+                fullWidth
+                autoFocus
+                id="deviceTags"
+                name="deviceTags"
+                label={t('mgmt.constellation.setup.tags.label')}
+                placeholder={t('mgmt.constellation.setup.tags.placeholder')}
+                value={tagsText}
+                disabled={tagsBusy}
+                onChange={(e) => setTagsText(e.target.value)}
+                helperText={t('mgmt.constellation.setup.tags.editHelp')}
+              />
+              {tagsError && <Alert severity="error">{tagsError}</Alert>}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button disabled={tagsBusy} onClick={() => setTagsDevice(null)}>{t('global.cancelAction')}</Button>
+            <LoadingButton
+              disableElevation
+              variant="contained"
+              color="primary"
+              loading={tagsBusy}
+              onClick={saveTags}
+            >
+              {t('global.saveAction')}
+            </LoadingButton>
+          </DialogActions>
+        </Dialog>
       }
       <Stack spacing={2} style={{ maxWidth: "1000px", margin: "auto" }}>
 
@@ -845,6 +922,27 @@ export const ConstellationVPN = ({ freeVersion }) => {
                 screenMin: 'md',
                 field: (r) => r.publicHostname,
               },
+              /* Spread (not a falsy entry) keeps the community build's columns
+                 array unchanged; clickable keeps the cell out of the row link. */
+              ...(canEditTags ? [{
+                title: t('mgmt.constellation.setup.tags.label'),
+                screenMin: 'md',
+                clickable: true,
+                field: (r) => {
+                  const tags = Array.isArray(r.tags) ? r.tags : [];
+                  return <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap" useFlexGap style={{ maxWidth: 240 }}>
+                    {tags.map((tag) => <Chip key={tag} size="small" label={tag} />)}
+                    {tags.length === 0 && <Typography variant="body2" color="textSecondary">{t('mgmt.constellation.setup.tags.none')}</Typography>}
+                    <PermissionGuard permission={PERM_RESOURCES}>
+                      <Tooltip title={t('mgmt.constellation.setup.tags.editAction')}>
+                        <IconButton size="small" onClick={() => openTagsEditor(r)}>
+                          <EditOutlined style={{ fontSize: 14 }} />
+                        </IconButton>
+                      </Tooltip>
+                    </PermissionGuard>
+                  </Stack>;
+                },
+              }] : []),
               {
                 title: t('mgmt.constellation.setup.firewallStatus'),
                 field: (r) => {

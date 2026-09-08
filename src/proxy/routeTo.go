@@ -444,7 +444,10 @@ func routeHandlerForTarget(target string, route utils.ProxyRouteConfig) http.Han
 		if err != nil {
 			utils.Error("Create Route", err)
 		}
-		return proxy
+		// innermost wrapper; targetRoute pins the exact LB target about to be dialed
+		targetRoute := route
+		targetRoute.Target = destination
+		return lazyMiddleware(targetRoute)(proxy)
 	} else if routeType == "STATIC" {
 		return http.FileServer(http.Dir(destination))
 	} else if routeType == "SPA" {

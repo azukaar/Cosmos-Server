@@ -310,6 +310,19 @@ type SmartShieldPolicy struct {
 	PrivilegedGroups int `yaml:"privileged_groups"`
 }
 
+// LenientExternalSmartShield is a SmartShield policy sized for external bulk-traffic routes (e.g. registry pushes, websites).
+func LenientExternalSmartShield(byteLimit int64) SmartShieldPolicy {
+	return SmartShieldPolicy{
+		Enabled:               true,
+		PolicyStrictness:      LENIENT,
+		PerUserTimeBudget:     24 * 60 * 60 * 1000,
+		PerUserRequestLimit:   200000,
+		PerUserByteLimit:      byteLimit,
+		PerUserSimultaneous:   200,
+		MaxGlobalSimultaneous: 4000,
+	}
+}
+
 type DockerConfig struct {
 	SkipPruneNetwork bool
 	SkipPruneImages bool

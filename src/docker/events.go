@@ -37,7 +37,19 @@ func DockerListenEvents() error {
 
 				case msg := <-msgs:
 					utils.Debug("Docker Event: " + (string)(msg.Type) + " " + (string)(msg.Action) + " " + msg.Actor.Attributes["name"])
-					if msg.Type == "container" && msg.Action == "start" {
+
+					lazySuppress := false
+					lazyLevel := ""
+					if msg.Type == "container" {
+						lazySuppress, lazyLevel = lazyOnContainerEvent(
+							(string)(msg.Action),
+							msg.Actor.ID,
+							msg.Actor.Attributes["name"],
+							msg.Actor.Attributes,
+						)
+					}
+
+					if msg.Type == "container" && msg.Action == "start" && !lazySuppress {
 						onDockerStarted(msg.Actor.ID)
 					}
 
@@ -52,9 +64,11 @@ func DockerListenEvents() error {
 						onNetworkDisconnect(msg.Actor.ID)
 					}
 					if msg.Type == "network" && msg.Action == "destroy" {
+						ForgetLocalNetworkSubnets()
 						onNetworkDestroy(msg.Actor.ID)
 					}
 					if msg.Type == "network" && msg.Action == "create" {
+						ForgetLocalNetworkSubnets()
 						onNetworkCreate(msg.Actor.ID)
 					}
 					if msg.Type == "network" && msg.Action == "connect" {
@@ -71,6 +85,9 @@ func DockerListenEvents() error {
 						}
 						if msg.Action == "create" || msg.Action == "start" {
 							level = "success"
+						}
+						if lazyLevel != "" {
+							level = lazyLevel
 						}
 						
 						object := ""

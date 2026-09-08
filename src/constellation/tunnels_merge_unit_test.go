@@ -36,11 +36,9 @@ func findTunnel(tunnels []utils.ConstellationTunnel, name string) *utils.Constel
 	return nil
 }
 
-// The governing Route must be the lowest sanitized advertiser's, whatever the
-// order the heartbeats arrive in (KV iteration order changes every heartbeat).
+// The governing Route must be the lowest advertiser's, whatever the heartbeat order.
 func TestUnitMergeTunnelHeartbeatsIsOrderIndependent(t *testing.T) {
-	// "node-a" sanitizes to "node_a", which is the lowest sanitized name even
-	// though the raw "node-a" / "node_b" ordering would rank differently.
+	// plain string order: '-' (0x2D) < '_' (0x5F), so "node-a" beats every "node_*"
 	heartbeats := []NodeHeartbeat{
 		tunnelAdvertiser("node_b", "round_robin", true, true, 30*time.Second),
 		tunnelAdvertiser("node-a", "", false, false, 10*time.Second),

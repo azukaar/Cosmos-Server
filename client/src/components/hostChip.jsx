@@ -1,14 +1,18 @@
 import { SettingOutlined } from "@ant-design/icons";
-import { Chip } from "@mui/material";
+import { Chip, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getOrigin, getFullOrigin, IsRouteSocketProxy } from "../utils/routes";
 import { isContainerRunning } from "../utils/container-status";
 import StatusDot from "./statusDot";
 
-// Green: 2xx/3xx (incl. opaqueredirect for cross-origin login redirects) and
-// the 4xx codes that mean the reverse proxy answered while refusing this
-// caller/method (401, 403, 405, 407, 429, 511) - the service is up.
-// Red: everything else (404, 408, 5xx, ...) and network errors.
+// Green (service is up): 2xx/3xx (incl. opaqueredirect for cross-origin login
+// redirects) and the 4xx codes that mean the reverse proxy answered while
+// refusing this caller/method (401, 403, 405, 407, 429, 511) - the app is
+// running and reachable, it just won't serve this HEAD/probe.
+// A 503 from the lazy probe means "container is dormant" -> still reachable
+// (sleeping), handled by the caller.
+// Red (service is down): 404, 408, genuine 5xx, and network errors.
 function classifyProbeStatus(res) {
   if (res.type === 'opaqueredirect') return true;
   const s = res.status;
@@ -17,44 +21,73 @@ function classifyProbeStatus(res) {
   return false;
 }
 
-const HostChip = ({route, settings, container, style, ellipsis}) => {
-  const [isOnline, setIsOnline] = useState(null);
-  const url = getOrigin(route);
+// Probes the route through the Cosmos reverse proxy without waking a lazy
+// (sleeping) container. The proxy answers the __cosmos_probe HEAD request
+// itself with X-Cosmos-Container: sleeping (HTTP 503) when the container is
+// dormant - that is "reachable but asleep", not "offline".
+const probeRoute = async (route) => {
+  const origin = getFullOrigin(route);
+  const probeUrl = origin + (origin.includes('?') ? '&' : '?') + '__cosmos_probe=1';
 
-  // Raw TCP/UDP socket proxies (e.g. 0.0.0.0:32400) have no HTTP layer to
-  // probe: "online" simply means the container is running. Show green instead
-  // of firing a meaningless HTTP HEAD.
+  try {
+    const res = await fetch(probeUrl, {
+      method: 'HEAD',
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'manual',
+      cache: 'no-store',
+    });
+    const sleeping = res.headers.get('X-Cosmos-Container') === 'sleeping';
+    // A sleeping lazy container is 503 + sleeping header: reachable, not offline.
+    const online = sleeping || classifyProbeStatus(res);
+    return { sleeping, online };
+  } catch (e) {
+    // CORS error: the proxy answered but hid the status (cross-origin route,
+    // header hardening). Fall back to an opaque no-cors probe of the same URL.
+    try {
+      await fetch(probeUrl, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' });
+      return { sleeping: false, online: true };
+    } catch (e2) {
+      return { sleeping: false, online: false };
+    }
+  }
+};
+
+const HostChip = ({route, settings, container, style, ellipsis}) => {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState(null); // null | { sleeping: bool, online: bool }
+  const url = getOrigin(route);
   const isSocketProxy = route && IsRouteSocketProxy(route);
 
+  // Container run state gating: when a container is passed and it is not
+  // actually running, show a grey dot and do not probe. Socket proxies show
+  // green purely from container run state (no HTTP layer to probe).
+  const containerDown = container && !isContainerRunning(container);
+
   useEffect(() => {
-    // When a container is passed and it is not running, show a grey dot and do
-    // not probe. When no container is passed (e.g. the routes/URLs page), we
-    // have no run state to gate on, so probe as usual.
-    if (container && !isContainerRunning(container)) {
-      setIsOnline(null);
+    if (containerDown) {
+      setStatus({ sleeping: false, online: null });
       return;
     }
     if (isSocketProxy) {
-      setIsOnline(true);
+      setStatus({ sleeping: false, online: true });
       return;
     }
-    // HEAD + cors exposes the real status; no-store bypasses stale caches.
-    // redirect: 'manual' keeps 3xx (incl. login redirects) from being followed
-    // into a CORS failure (e.g. a data: URL).
-    fetch(getFullOrigin(route), {
-      method: 'HEAD',
-      mode: 'cors',
-      cache: 'no-store',
-      redirect: 'manual',
-    }).then((res) => {
-      setIsOnline(classifyProbeStatus(res));
-    }).catch(() => {
-      setIsOnline(false);
-    });
-  }, [url, container, isSocketProxy]);
+    let cancelled = false;
+    probeRoute(route).then((s) => { if (!cancelled) setStatus(s); });
+    return () => { cancelled = true; };
+  }, [url, containerDown, isSocketProxy, route]);
+
+  const dot = status && status.sleeping
+    ? <Tooltip title={t('global.containerSleeping')}><StatusDot status="unknown" hollow size={8} style={{ marginRight: 6 }} /></Tooltip>
+    : <StatusDot
+        status={!status || status.online === null ? "unknown" : status.online ? "success" : "error"}
+        size={8}
+        style={{ marginRight: 6 }}
+      />;
 
   return <Chip
-    label={<><StatusDot status={isOnline == null ? "unknown" : isOnline ? "success" : "error"} size={8} style={{ marginRight: 6 }} />{url}</>}
+    label={<>{dot}{url}</>}
     color="primary"
     variant="outlined"
     style={{

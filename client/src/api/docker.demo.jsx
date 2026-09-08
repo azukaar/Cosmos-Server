@@ -182,6 +182,17 @@ function autoUpdate(name) {
   });
 }
 
+function lazy(name, toggle, opts) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        "status": "ok",
+      })},
+      1000
+    );
+  });
+}
+
 function pullImage(imageName, onProgress, ifMissing) {
   onProgress('Updating...')
     new Promise((resolve, reject) => {
@@ -224,5 +235,6 @@ export {
   createService,
   pullImage,
   autoUpdate,
+  lazy,
   updateContainerImage,
 };

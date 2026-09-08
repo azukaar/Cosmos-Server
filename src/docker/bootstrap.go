@@ -76,6 +76,12 @@ func BootstrapContainerFromTags(containerID string) error {
 		return err
 	}
 
+	// bootstrapping a lazy container would recreate it on every wake
+	if container.Config != nil && IsLazyLabels(container.Config.Labels) {
+		utils.Debug("Skipping bootstrap of lazy container " + container.Name)
+		return nil
+	}
+
 	// check if any route has been added to the container
 	config := utils.GetMainConfig()
 	if(!HasLabel(container, "cosmos-network-name")) {

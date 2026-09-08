@@ -50,6 +50,17 @@ func (c *Cache) Set(key string, value string, duration time.Duration) {
 	}
 }
 
+func (c *Cache) Delete(key string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	delete(c.data, key)
+}
+
+// ForgetContainerIP drops the cached IP of a container.
+func ForgetContainerIP(containerName string) {
+	cache.Delete(containerName)
+}
+
 func _getContainerIPByName(containerName string) (string, error) {
 	errD := Connect()
 	if errD != nil {

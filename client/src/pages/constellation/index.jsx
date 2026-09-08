@@ -1,68 +1,51 @@
 import * as React from 'react';
-import MainCard from '../../components/MainCard';
-import { Alert, Chip, CircularProgress, Divider, LinearProgress, Stack, useMediaQuery } from '@mui/material';
-import HostChip from '../../components/hostChip';
-import { RouteMode, RouteSecurity } from '../../components/routeComponents';
-import { getFaviconURL } from '../../utils/routes';
-import * as API from '../../api';
-import { CheckOutlined, ClockCircleOutlined, DashboardOutlined, DeleteOutlined, DownOutlined, LockOutlined, UpOutlined } from "@ant-design/icons";
 import PrettyTabbedView from '../../components/tabbedView/tabbedView';
 import { useClientInfos } from '../../utils/hooks';
 import { PERM_RESOURCES_READ } from '../../utils/permissions';
 import { useTranslation } from 'react-i18next';
-import proFeatures from '../../pro';
-
+import { useHasLicence } from '../../utils/pro';
+import EventExplorerStandalone from '../dashboard/eventsExplorerStandalone';
 
 import { ConstellationVPN } from './vpn';
 import { ConstellationDNS } from './dns';
-import VPNSalesPage from './free';
 
 const ConstellationIndex = () => {
   const { t } = useTranslation();
   const { hasPermission } = useClientInfos();
   const isAdmin = hasPermission(PERM_RESOURCES_READ);
-  const [coStatus, setCoStatus] = React.useState(null);
-  
-  const refreshStatus = () => {
-    API.getStatus().then((res) => {
-      setCoStatus(res.data);
-    });
-  }
+  const licence = useHasLicence();
 
-  React.useEffect(() => {
-    refreshStatus();
-  }, []);
-
-  const freeVersion = coStatus && !coStatus.Licence;
+  // Hold the free/paid decision until /status answers so a licensed user never sees the sales page flash.
+  const freeVersion = licence === false;
 
   const tabs = [
     {
       title: 'VPN',
       children: <ConstellationVPN freeVersion={freeVersion} />,
-      path: 'vpn'
+      url: '/',
     },
     {
       title: 'DNS',
       children: <ConstellationDNS />,
-      path: 'dns'
-    }
+      url: '/dns',
+    },
+    {
+      title: t('navigation.monitoring.eventsTitle'),
+      children: <EventExplorerStandalone
+        initLevel="info"
+        initSearch={'{"$or":[{"eventId":{"$regex":"^cosmos\\\\.constellation\\\\."}},{"object":{"$regex":"^device@"}}]}'}
+      />,
+      url: '/events',
+    },
   ];
 
-  if (proFeatures.isPro && proFeatures.isPro() && proFeatures.DeploymentsTab) {
-    tabs.push({
-      title: t('mgmt.deployments.tabTitle'),
-      children: <proFeatures.DeploymentsTab />,
-      path: 'deployments',
-    });
+  if (!isAdmin || freeVersion) {
+    return <ConstellationVPN freeVersion={freeVersion} />;
   }
 
-  const ConstContent = isAdmin && !freeVersion ? <div>
-    <PrettyTabbedView path="/cosmos-ui/constellation/:tab" tabs={tabs}/>
-
-  </div> : <ConstellationVPN freeVersion={freeVersion} />;
-
-
-  return ConstContent;
+  return <div>
+    <PrettyTabbedView rootURL="/cosmos-ui/constellation" tabs={tabs} />
+  </div>;
 }
 
 export default ConstellationIndex;

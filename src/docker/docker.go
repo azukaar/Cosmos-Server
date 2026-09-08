@@ -300,12 +300,18 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 	
-	utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
+	// a container that was stopped stays stopped: an update or edit must not start it
+	var runError error
+	if oldContainer.State != nil && !oldContainer.State.Running {
+		utils.Log("EditContainer - Networks Connected. Previous container was stopped, leaving new container " + createResponse.ID + " stopped")
+	} else {
+		utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
 
-	runError := DockerClient.ContainerStart(DockerContext, createResponse.ID, container.StartOptions{})
+		runError = DockerClient.ContainerStart(DockerContext, createResponse.ID, container.StartOptions{})
 
-	if runError != nil {
-		utils.Error("EditContainer - Failed to run container", runError)
+		if runError != nil {
+			utils.Error("EditContainer - Failed to run container", runError)
+		}
 	}
 
 	if createError != nil || runError != nil {
@@ -502,12 +508,8 @@ func CheckUpdatesAvailable() map[string]bool {
 			continue
 		}
 
-		// check container is running 
-		if container.State != "running" {
-			utils.Log("Container " + container.Names[0] + " is not running, skipping")
-			continue
-		}
-
+		// stopped containers are checked too: the pull needs no running container, and
+		// EditContainer leaves a stopped container stopped after the update
 		rc, err := DockerPullImage(container.Image)
 		if err != nil {
 			utils.Error("CheckUpdatesAvailable", err)

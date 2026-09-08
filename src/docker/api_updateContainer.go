@@ -168,6 +168,11 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.HostConfig.Resources.NanoCPUs = 0
 		}
 
+		// docker must not auto-restart a container Cosmos put to sleep
+		if IsLazyLabels(container.Config.Labels) {
+			container.HostConfig.RestartPolicy = containerType.RestartPolicy{Name: containerType.RestartPolicyMode("no")}
+		}
+
 		_, err = EditContainer(container.ID, container, false)
 		if err != nil {
 			utils.Error("UpdateContainer: EditContainer", err)

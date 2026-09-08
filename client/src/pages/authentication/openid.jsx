@@ -6,7 +6,7 @@ import { Checkbox, Grid, Stack, Typography } from '@mui/material';
 // project import
 import AuthLogin from './auth-forms/AuthLogin';
 import AuthWrapper from './AuthWrapper';
-import { getFaviconURL } from '../../utils/routes';
+import { getOpenIDClientFaviconURL } from '../../utils/routes';
 import { LoadingButton } from '@mui/lab';
 import { Field, useFormik } from 'formik';
 import { useEffect, useRef, useState } from 'react';
@@ -32,22 +32,7 @@ const OpenID = () => {
   }, [formRef]);
   
 
-  let icon;
-
-  // get hostname from redirect_uri with port
-  let port, protocol, appHostname;
-
-  try {
-    port = new URL(redirect_uri).port
-    protocol = new URL(redirect_uri).protocol + "//"
-    appHostname = protocol + (new URL(redirect_uri).hostname) + (port ? ":" + port : "")
-    icon = getFaviconURL({
-      Mode: 'PROXY',
-      Target: appHostname
-    });
-  } catch (e) {
-    icon = getFaviconURL();
-  }
+  const icon = getOpenIDClientFaviconURL(client_id);
 
   const selfport = new URL(window.location.href).port
   const selfprotocol = new URL(window.location.href).protocol + "//"

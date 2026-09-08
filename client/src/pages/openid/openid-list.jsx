@@ -26,7 +26,7 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../components/@extended/AnimateButton';
 import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
-import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../utils/routes';
+import { getOpenIDClientFaviconURL, sanitizeRoute, ValidateRoute } from '../../utils/routes';
 import PrettyTableView from '../../components/tableView/prettyTableView';
 import HostChip from '../../components/hostChip';
 import { RouteActions, RouteMode, RouteSecurity } from '../../components/routeComponents';
@@ -89,18 +89,7 @@ const OpenIdList = () => {
   }
 
   function getClientIcon(client) {
-    try {
-      let hostname = new URL(client.redirect).hostname;
-      let port = new URL(client.redirect).port;
-      let protocol = new URL(client.redirect).protocol + '//';
-      return getFaviconURL({
-        Mode: 'PROXY',
-        Name: client.id,
-        Target: protocol + hostname + (port ? ':' + port : ''),
-      })
-    } catch (e) {
-      return getFaviconURL()
-    }
+    return getOpenIDClientFaviconURL(client.id);
   }
 
   function deleteClient(event, key) {

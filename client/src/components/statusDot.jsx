@@ -6,7 +6,7 @@ const colors = {
   unknown: '#9e9e9e',
 };
 
-const StatusDot = ({ status, size = 10, style }) => {
+const StatusDot = ({ status, size = 10, style, hollow }) => {
   const color = colors[status] || colors.unknown;
   return <span style={{
     display: 'inline-block',
@@ -14,7 +14,8 @@ const StatusDot = ({ status, size = 10, style }) => {
     height: size,
     minWidth: size,
     borderRadius: '50%',
-    backgroundColor: color,
+    boxSizing: 'border-box',
+    ...(hollow ? { border: '2px solid ' + color } : { backgroundColor: color }),
     ...style,
   }} />;
 };

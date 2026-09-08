@@ -433,6 +433,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 		clientID, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
 
 		if(utils.GetIPAbuseCounter(clientID) > 275) {
+			conn.Close()
 			return nil
 		}
 
@@ -444,6 +445,8 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 		isUsingWhitelist := len(whitelistInboundIPs) > 0
 		isInWhitelist := false
 		isInConstellation := constellation.IsConstellationIP(clientID)
+		// a local peer's packets never crossed Nebula but satisfy restrictToConstellation too
+		isLocalPeer := utils.IsLocalPeer(clientID)
 
 		for _, ipRange := range whitelistInboundIPs {
 			utils.Debug(fmt.Sprintf("Checking if %s is in %s", clientID, ipRange))
@@ -458,7 +461,7 @@ func TCPSmartShieldMiddleware(shieldID string, route utils.ProxyRouteConfig) fun
 			}
 		}
 
-		if restrictToConstellation && !isInConstellation {
+		if restrictToConstellation && !isInConstellation && !isLocalPeer {
 			if !isUsingWhitelist || (isUsingWhitelist && !isInWhitelist) {
 				utils.PushShieldMetrics("ip-whitelists")
 				utils.TriggerEvent(
