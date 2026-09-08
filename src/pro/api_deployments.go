@@ -1,48 +1,63 @@
+// Community build stub of the Cosmos Pro feature set; handlers answer PRO001 and hooks do nothing.
+
 package pro
 
 import (
-	"net/http"
-	"sync"
-
 	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/nats-io/nats.go"
+	"net/http"
+	"sync"
 )
 
-
 type Deployment struct {
-	Name     string                              `json:"name" validate:"required,min=3,max=64,alphanum"`
-	Replicas int                                 `json:"replicas" validate:"required,min=1"`
+	Name string `json:"name" validate:"required,min=3,max=64,alphanum"`
+	// Exactly one of the three replica modes (fixed Replicas, autoscale Min/MaxReplicas, fill ReplicaFill)
+	// must be set; ValidateReplicaConfig enforces the exclusivity.
+	Replicas int `json:"replicas,omitempty" validate:"omitempty,min=1"`
+	// MinReplicas/MaxReplicas select load-based autoscaling clamped to [min,max], one step per cooldown.
+	MinReplicas int `json:"minReplicas,omitempty" validate:"omitempty,min=1"`
+	MaxReplicas int `json:"maxReplicas,omitempty" validate:"omitempty,min=1"`
+	// ReplicaFill: one replica on every alive node matching Tags (DaemonSet-style).
+	ReplicaFill bool `json:"replicaFill,omitempty"`
+	// fill sub-mode: "full" (default) = every eligible node; "bare" = autoscale between 1 and the
+	// eligible set; "empty" = bare with lazy scale-to-zero.
+	ReplicaFillMode string `json:"replicaFillMode,omitempty" validate:"omitempty,oneof=full bare empty"`
 	// Strategy selects which PlacementStrategy the scheduler uses for this
 	// deployment. Empty is treated as "round-robin" for back-compat with
 	// KV entries written before this field existed.
-	Strategy string                              `json:"strategy" validate:"omitempty,oneof=round-robin least-busy"`
+	Strategy string `json:"strategy" validate:"omitempty,oneof=round-robin least-busy"`
 	// Tags filter eligible placement nodes. A deployment with Tags=["gpu"]
 	// will only land on nodes whose ConstellationDevice.Tags contains "gpu".
 	// Multiple tags are AND'd: ["gpu","nvme"] requires both. Empty means no
 	// filter — any node is eligible.
-	Tags     []string                            `json:"tags,omitempty" validate:"omitempty,dive,min=1,max=64"`
+	Tags []string `json:"tags,omitempty" validate:"omitempty,dive,min=1,max=64"`
 	// Storage lists RCLONE remote names this deployment depends on. Checked
 	// node-side in executeApply before docker.CreateService runs — a missing
 	// remote produces StatusFail and flows through the existing fail-streak
 	// quarantine path. Not a placement filter: RCLONE config is cluster-synced
 	// via constellation, so every eligible node has the same remote set.
 	// ${storage.NAME} in compose fields resolves to the mount path on apply.
-	Storage  []string                            `json:"storage,omitempty" validate:"omitempty,dive,min=1,max=64"`
-	Compose  docker.DockerServiceCreateRequest   `json:"compose" validate:"required"`
+	Storage []string                          `json:"storage,omitempty" validate:"omitempty,dive,min=1,max=64"`
+	Compose docker.DockerServiceCreateRequest `json:"compose" validate:"required"`
+	// PreserveVolumesOnRemove keeps the deployment's named volumes on disk on replica removal or
+	// full delete; stamped as the cosmos-deployment-keep-volumes label on containers and volumes.
+	PreserveVolumesOnRemove bool `json:"preserveVolumesOnRemove,omitempty"`
+	// Owner marks a system-owned deployment (e.g. "seaweedfs:<instance>"); the HTTP API refuses user create/update/delete on it.
+	Owner string `json:"owner,omitempty"`
+	// Version is a server-assigned monotonic integer bumped on every create/update, stamped on containers
+	// as cosmos-deployment-version so the scheduler can detect stale specs.
+	Version int `json:"version"`
 }
-
 
 func DeploymentsRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 func DeploymentsIdRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // listDeployments godoc
@@ -58,7 +73,6 @@ func DeploymentsIdRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWM
 func listDeployments(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // createDeployment godoc
@@ -77,7 +91,6 @@ func listDeployments(w http.ResponseWriter, req *http.Request, lock *sync.RWMute
 func createDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // getDeployment godoc
@@ -94,7 +107,6 @@ func createDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMut
 func getDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // updateDeployment godoc
@@ -114,7 +126,6 @@ func getDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex,
 func updateDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // deleteDeployment godoc
@@ -131,7 +142,6 @@ func updateDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMut
 func deleteDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // DeploymentHealth is the per-deployment cluster status returned by the health
@@ -139,11 +149,19 @@ func deleteDeployment(w http.ResponseWriter, req *http.Request, lock *sync.RWMut
 // nodes currently report running it (from each node's constellation-nodes
 // heartbeat); `broken` mirrors the scheduler's quarantine state.
 type DeploymentHealth struct {
-	Desired      int      `json:"desired"`
-	Actual       int      `json:"actual"`
-	Nodes        []string `json:"nodes"`
-	Broken       bool     `json:"broken"`
-	BrokenReason string   `json:"brokenReason,omitempty"`
+	// Desired is mode-dependent: the fixed count, the alive tag-matching node count in full-fill,
+	// or the current actual clamped to [min,max] in autoscale.
+	Desired int `json:"desired"`
+	Actual  int `json:"actual"`
+	// echo of the deployment's replica-mode config so the UI needn't re-fetch the spec
+	MinReplicas int  `json:"minReplicas,omitempty"`
+	MaxReplicas int  `json:"maxReplicas,omitempty"`
+	ReplicaFill bool `json:"replicaFill,omitempty"`
+	// echoes the fill sub-mode ("" = full)
+	ReplicaFillMode string   `json:"replicaFillMode,omitempty"`
+	Nodes           []string `json:"nodes"`
+	Broken          bool     `json:"broken"`
+	BrokenReason    string   `json:"brokenReason,omitempty"`
 	// Version is the desired (current) spec version. UpToDate counts how many of
 	// the nodes reporting this deployment are running that version. Updating is
 	// true while a spec change is still rolling out — i.e. at least one reporting
@@ -169,7 +187,6 @@ type DeploymentHealth struct {
 func DeploymentsHealthRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // DeploymentsUnbrokeRoute godoc
@@ -187,7 +204,6 @@ func DeploymentsHealthRoute(w http.ResponseWriter, req *http.Request, lock *sync
 func DeploymentsUnbrokeRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }
 
 // NodesUnbrokeRoute godoc
@@ -206,5 +222,4 @@ func DeploymentsUnbrokeRoute(w http.ResponseWriter, req *http.Request, lock *syn
 func NodesUnbrokeRoute(w http.ResponseWriter, req *http.Request, lock *sync.RWMutex, js nats.JetStreamContext) {
 	utils.Error("This is a pro and is not currently available on your server. Please upgrade to Cosmos Pro to access this feature.", nil)
 	utils.HTTPError(w, "This feature is only available in Cosmos Pro", http.StatusForbidden, "PRO001")
-	return
 }

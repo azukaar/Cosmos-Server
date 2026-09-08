@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	cosmossdk "github.com/azukaar/cosmos-server/go-sdk"
 	"github.com/azukaar/terraform-provider-cosmos/internal/client"
@@ -340,6 +341,17 @@ func (r *constellationDeviceResource) Delete(ctx context.Context, req resource.D
 		return
 	}
 	if err := client.CheckResponse(httpResp); err != nil {
+		// The API refuses to block manager servers (DB003) by design. For
+		// Terraform "delete" means "stop managing this device", so tolerate
+		// that specific refusal: the device stays in the Constellation but the
+		// resource is removed from state (e.g. on full destroy or replacement).
+		if strings.Contains(err.Error(), "DB003") {
+			resp.Diagnostics.AddWarning(
+				"Constellation manager not blocked",
+				fmt.Sprintf("Device %q is a manager server and cannot be blocked via the API. It has been removed from Terraform state but remains in the Constellation.", name),
+			)
+			return
+		}
 		resp.Diagnostics.AddError("Error deleting (blocking) constellation device", err.Error())
 		return
 	}

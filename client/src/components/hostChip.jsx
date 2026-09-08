@@ -1,29 +1,51 @@
 import { SettingOutlined } from "@ant-design/icons";
-import { Chip } from "@mui/material";
+import { Chip, Tooltip } from "@mui/material";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getOrigin, getFullOrigin } from "../utils/routes";
 import { useTheme } from '@mui/material/styles';
 import StatusDot from "./statusDot";
 
+const probeRoute = async (route) => {
+  const origin = getFullOrigin(route);
+  try {
+    const res = await fetch(origin + (origin.includes('?') ? '&' : '?') + '__cosmos_probe=1', {
+      method: 'HEAD',
+      mode: 'cors',
+      credentials: 'include',
+      redirect: 'manual',
+      cache: 'no-store',
+    });
+    return res.headers.get('X-Cosmos-Container') === 'sleeping' ? 'sleeping' : 'online';
+  } catch (e) {
+    try {
+      await fetch(origin, { method: 'HEAD', mode: 'no-cors' });
+      return 'online';
+    } catch (e2) {
+      return 'offline';
+    }
+  }
+};
+
 const HostChip = ({route, settings, style, ellipsis}) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [isOnline, setIsOnline] = useState(null);
+  const [status, setStatus] = useState(null);
   const url = getOrigin(route)
 
   useEffect(() => {
-    fetch(getFullOrigin(route), {
-      method: 'HEAD',
-      mode: 'no-cors',
-    }).then((res) => {
-      setIsOnline(true);
-    }).catch((err) => {
-      setIsOnline(false);
-    });
+    let cancelled = false;
+    probeRoute(route).then((s) => { if (!cancelled) setStatus(s); });
+    return () => { cancelled = true; };
   }, [url]);
 
+  const dot = status === 'sleeping'
+    ? <Tooltip title={t('global.containerSleeping')}><StatusDot status="unknown" hollow size={8} style={{ marginRight: 6 }} /></Tooltip>
+    : <StatusDot status={status == null ? "unknown" : status === 'online' ? "success" : "error"} size={8} style={{ marginRight: 6 }} />;
+
   return <Chip
-    label={<><StatusDot status={isOnline == null ? "unknown" : isOnline ? "success" : "error"} size={8} style={{ marginRight: 6 }} />{url}</>}
+    label={<>{dot}{url}</>}
     color="primary"
     variant="outlined"
     style={{

@@ -198,6 +198,8 @@ func isAllowedIP(clientID string, route utils.ProxyRouteConfig) bool {
 	isUsingWhitelist := len(whitelistInboundIPs) > 0
 	isInWhitelist := false
 	isInConstellation := constellation.IsConstellationIP(clientID)
+	// see the matching comment in TCPSmartShieldMiddleware
+	isLocalPeer := utils.IsLocalPeer(clientID)
 
 	for _, ipRange := range whitelistInboundIPs {
 		if strings.Contains(ipRange, "/") {
@@ -211,7 +213,7 @@ func isAllowedIP(clientID string, route utils.ProxyRouteConfig) bool {
 		}
 	}
 
-	if restrictToConstellation && !isInConstellation {
+	if restrictToConstellation && !isInConstellation && !isLocalPeer {
 		if !isUsingWhitelist || (isUsingWhitelist && !isInWhitelist) {
 			utils.PushShieldMetrics("ip-whitelists")
 			utils.TriggerEvent(

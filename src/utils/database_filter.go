@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // eventFilterColumns maps the field names users type in the events query box to columns.
@@ -324,37 +325,58 @@ func operatorMap(value interface{}) (map[string]interface{}, bool) {
 	return m, true
 }
 
-var regexUnsupported = regexp.MustCompile(`[\[\](){}|+?*\\^$]`)
+// regexMeta are the characters a regex gives special meaning to; escaped they are the literal character.
+const regexMeta = `.*+?()[]{}|^$\`
+
+// regexEscapable is what may follow a backslash: the metacharacters plus "/", which JS-style patterns escape.
+const regexEscapable = regexMeta + `/`
 
 // regexToLike converts the small regex subset the events UI produces into a LIKE
 // pattern. Anything else is rejected rather than silently mistranslated.
 func regexToLike(pattern string) (string, error) {
-	anchoredStart := strings.HasPrefix(pattern, "^")
-	anchoredEnd := strings.HasSuffix(pattern, "$") && !strings.HasSuffix(pattern, `\$`)
-
-	body := strings.TrimPrefix(pattern, "^")
+	body := pattern
+	anchoredStart := strings.HasPrefix(body, "^")
+	if anchoredStart {
+		body = body[1:]
+	}
+	anchoredEnd := endsWithAnchor(body)
 	if anchoredEnd {
 		body = body[:len(body)-1]
 	}
 
-	// ".*" is a wildcard, a lone "." is a single character; nothing else is supported
-	body = strings.ReplaceAll(body, ".*", "\x00")
-	if regexUnsupported.MatchString(body) {
-		return "", fmt.Errorf("unsupported regex %q", pattern)
-	}
-
+	// ".*" is a wildcard, a lone "." one character, "\x" a literal x; nothing else is supported
 	var b strings.Builder
-	for _, r := range body {
-		switch r {
-		case '\x00':
-			b.WriteString("%")
-		case '.':
-			b.WriteString("_")
-		case '%', '_', '\\':
-			b.WriteByte('\\')
-			b.WriteRune(r)
+	for i := 0; i < len(body); {
+		r, size := utf8.DecodeRuneInString(body[i:])
+		switch {
+		case r == '\\':
+			i += size
+			if i >= len(body) {
+				return "", fmt.Errorf("unsupported regex %q", pattern)
+			}
+			esc, escSize := utf8.DecodeRuneInString(body[i:])
+			// only escaped metacharacters are literals; \d, \w, \s ... are classes
+			if !strings.ContainsRune(regexEscapable, esc) {
+				return "", fmt.Errorf("unsupported regex %q", pattern)
+			}
+			writeLikeLiteral(&b, esc)
+			i += escSize
+
+		case r == '.':
+			if strings.HasPrefix(body[i+size:], "*") {
+				b.WriteByte('%')
+				i += size + 1
+			} else {
+				b.WriteByte('_')
+				i += size
+			}
+
+		case strings.ContainsRune(regexMeta, r):
+			return "", fmt.Errorf("unsupported regex %q", pattern)
+
 		default:
-			b.WriteRune(r)
+			writeLikeLiteral(&b, r)
+			i += size
 		}
 	}
 
@@ -366,4 +388,23 @@ func regexToLike(pattern string) (string, error) {
 		out = out + "%"
 	}
 	return out, nil
+}
+
+// endsWithAnchor reports whether a trailing "$" is the end anchor (even count of preceding backslashes) or an escaped literal.
+func endsWithAnchor(s string) bool {
+	if !strings.HasSuffix(s, "$") {
+		return false
+	}
+	slashes := 0
+	for i := len(s) - 2; i >= 0 && s[i] == '\\'; i-- {
+		slashes++
+	}
+	return slashes%2 == 0
+}
+
+func writeLikeLiteral(b *strings.Builder, r rune) {
+	if r == '%' || r == '_' || r == '\\' {
+		b.WriteByte('\\')
+	}
+	b.WriteRune(r)
 }

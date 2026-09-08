@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.23.2-unstable002"
+    "version": "0.24.0-unstable007"
   },
   "paths": {
     "/_logs": {
@@ -2196,6 +2196,974 @@
         }
       }
     },
+    "/api/constellation/databases": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every managed database record in the cluster, with live/down\nstatus merged in from node heartbeats (Pro feature). Secrets are\nredacted; use the connection endpoint to read them.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "List all managed databases",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Creates a single-node postgres container on THIS node and records\nit in the cluster store (Pro feature). Not scheduled: the node that\nserves this request becomes the instance's home node.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Provision a managed database instance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.ManagedDBCreateRequest"
+              }
+            }
+          },
+          "description": "Instance definition",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/restore": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Restores one snapshot of an instance's backup into a BRAND-NEW\ninstance on the node serving this request (Pro feature). The source\ninstance is never modified. Each logical database in the snapshot is\nrecreated with a FRESHLY generated role password — the roles in the\nbackup's globals.sql carry password hashes the cluster cannot\nreproduce, so that file is kept for manual recovery only.\nThe repository must be reachable from this node.\nPartial failures are reported per database in the response body; the\nnew instance is kept either way.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Restore a managed database backup into a new instance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.ManagedDBRestoreRequest"
+              }
+            }
+          },
+          "description": "Restore request",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns one record with live status and, when the home node answers,\nits container/server state (Pro feature). Secrets are redacted.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Get a managed database",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Changes settings that do not require recreating the container —\ncurrently only the constellation restriction, which is re-applied to\nthe instance's proxy route on its home node (Pro feature).",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Update a managed database instance",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.ManagedDBUpdateRequest"
+              }
+            }
+          },
+          "description": "Updated settings",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Stops and removes the instance's container on its home node and drops\nthe record (Pro feature). The data volume is KEPT unless\n?removeVolume=true is passed.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Delete a managed database instance",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Also destroy the data volume",
+            "name": "removeVolume",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/backup": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Sets the restic repository and schedules for an instance's backups\n(Pro feature). The repository is interpreted on the instance's HOME\nnode and is initialised lazily, on the first run. The repository\npassword is generated once and never rotated by this endpoint, since\nit is the only key to the existing snapshots.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Configure backups for a managed database",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.ManagedDBBackupRequest"
+              }
+            }
+          },
+          "description": "Backup configuration",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Clears the instance's backup settings and deregisters its scheduled\njobs (Pro feature). The restic repository and every snapshot in it\nare left untouched — but the password is dropped with the record, so\nrecovering those snapshots afterwards means recovering the password\nfrom the backup password log.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Remove a managed database's backup configuration",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/backup/run": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Starts a backup of the instance on its home node and returns\nimmediately (Pro feature): a dump plus an upload is unbounded work.\nProgress and outcome are reported through the instance's events and\nthrough the snapshot listing.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Back up a managed database now",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/backup/snapshots": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the restic snapshots tagged for this instance, newest first\n(Pro feature). An empty list is returned — not an error — while the\nrepository has not been written to yet.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "List a managed database's backup snapshots",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Bad Gateway",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/connection": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the superuser credentials and connection URL for an instance,\nplus one URL per logical database (Pro feature). This is the only\nendpoint that returns secrets.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Get connection info for a managed database",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/databases": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Creates one application database inside an instance, owned by a\nfreshly generated role scoped to it (Pro feature). Returns the\ncredentials once, in the response.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Create a logical database and role",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.ManagedDBLogicalRequest"
+              }
+            }
+          },
+          "description": "Logical database definition",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/databases/{database}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Drops one application database inside an instance, terminating its\nopen sessions first (Pro feature). Destroys that database's data.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Delete a logical database and its role",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Logical database name",
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/databases/{name}/databases/{database}/rotate": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Generates a new password for one application role and returns the new\nconnection URL (Pro feature). Existing sessions keep working until\nthey reconnect.",
+        "tags": [
+          "databases"
+        ],
+        "summary": "Rotate a logical database role's password",
+        "parameters": [
+          {
+            "description": "Database instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Logical database name",
+            "name": "database",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/constellation/deployments": {
       "get": {
         "security": [
@@ -3067,7 +4035,7 @@
         "tags": [
           "constellation"
         ],
-        "summary": "Edit the current Constellation device properties",
+        "summary": "Edit Constellation device properties (this device, or another device's tags)",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3090,8 +4058,28 @@
               }
             }
           },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
             "content": {
               "application/json": {
                 "schema": {
@@ -3167,6 +4155,111 @@
             }
           }
         }
+      }
+    },
+    "/api/constellation/function-runtimes": {
+      "get": {
+        "responses": {}
+      }
+    },
+    "/api/constellation/functions": {
+      "get": {
+        "responses": {}
+      },
+      "post": {
+        "responses": {}
+      }
+    },
+    "/api/constellation/functions/{name}": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+      },
+      "put": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+      },
+      "delete": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/api/constellation/functions/{name}/deploy": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/api/constellation/functions/{name}/invoke": {
+      "post": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/api/constellation/functions/{name}/versions": {
+      "get": {
+        "parameters": [
+          {
+            "description": "Function name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {}
       }
     },
     "/api/constellation/get-next-ip": {
@@ -3432,6 +4525,1069 @@
         }
       }
     },
+    "/api/constellation/registries": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every registry with the accesses publishing it and its stored-size rollup, secrets redacted (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "List package registries",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Claims the name, provisions the backing bucket and marks the registry ready.\nA registry is typed storage (docker/npm/static/generic): publish it by creating\nan access (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Create a package registry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistryCreateRequest"
+              }
+            }
+          },
+          "description": "Registry to create",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the registry with the accesses publishing it and its stored-size rollup, secrets redacted (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Get one package registry",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Removes the record and every metadata key. Refused while an access\nstill publishes it. Stored blobs are PRESERVED unless purgeData=true,\nwhich best-effort empties the backing bucket (the bucket itself is\nleft in place) (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Delete a package registry",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Also delete every stored blob",
+            "name": "purgeData",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/gc": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Starts a mark-and-sweep of the registry's blob store and reconciles its\nstored-size and package counters. Returns 202 immediately; the outcome\narrives as a cosmos.registry.gc event. Blobs younger than 24 hours are\nnever collected, whether or not anything references them (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Run a registry's garbage collection now",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/packages": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every package with its versions and their files (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "List the packages of a generic or pypi registry",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/packages/{package}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "GET returns the package with its versions and files; DELETE removes the\npackage and every version (the stored files are reclaimed by the next\nGC pass) (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Get or delete one generic or pypi package",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name",
+            "name": "package",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/packages/{package}/versions": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Stores one or more files under a version. Accepts a multipart form (every\nfile part is stored under its own filename) or a single raw file as the\nrequest body, in which case the filename query parameter is required.\nQuery parameters: version (default: a UTC timestamp), filename. A file\nthat already exists in the version is refused (409): upload a new version\nor delete it first. Accepts a Cosmos token with the Resources permission\nOR a registry deploy token with push scope on an access that exposes this\nregistry (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Upload files into a generic package version",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name",
+            "name": "package",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Version (default: UTC timestamp)",
+            "name": "version",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filename, required for a raw body",
+            "name": "filename",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/packages/{package}/versions/{version}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Removes the version and its file entries; the stored files are reclaimed\nby the next GC pass. \"latest\" is re-pointed at the newest remaining\nversion (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Delete one generic or pypi package version",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name",
+            "name": "package",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Version",
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/packages/{package}/versions/{version}/files/{file}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "GET streams the file (the version may be \"latest\"); accepts a Cosmos token\nwith the Resources read permission OR a registry deploy token with pull\nscope. DELETE removes the file entry — and the version, when it was its\nlast file; the stored bytes are reclaimed by the next GC pass (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Download or delete one file of a generic or pypi package version",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Package name",
+            "name": "package",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Version, or latest",
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Filename",
+            "name": "file",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/settings": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Replaces the quota. Absent fields keep their stored value (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Update a registry's storage settings",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistrySettingsRequest"
+              }
+            }
+          },
+          "description": "Settings to change",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every site with its deployments, which one is active, and its\nroute configuration (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "List the sites of a static registry",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites/{site}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "GET returns the site with its deployments; PUT replaces its route\nconfiguration (host, internal, spa, tags — absent fields keep their\nstored value); DELETE removes the site and all its deployments (the\nstored zips are reclaimed by the next GC pass) (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Get, configure or delete one static site",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Site name",
+            "name": "site",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites/{site}/activate": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Moves the site's active pointer. This is BOTH deploy and rollback: the\ndeployments are immutable, so switching between them is instant and\ncannot half-apply. Accepts a Cosmos token with the Resources permission\nOR a registry deploy token with push scope (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Activate a static-site deployment",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Site name",
+            "name": "site",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistryStaticActivateRequest"
+              }
+            }
+          },
+          "description": "Deployment to activate",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites/{site}/versions": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Stores a zip as one immutable deployment. Accepts a multipart form\n(field \"file\") or the raw zip as the request body. Query parameters:\nversion (default: a UTC timestamp), activate (default true for the\nsite's first deployment), host/internal/spa/tags to configure the\nsite's route on first upload. Accepts a Cosmos token with the\nResources permission OR a registry deploy token with push scope on an\naccess that exposes this registry (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Upload a static-site deployment",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Site name",
+            "name": "site",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites/{site}/versions/{version}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Removes the deployment record; the stored zip is reclaimed by the next\nGC pass. Refused for the deployment that is currently active (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Delete one static-site deployment",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Site name",
+            "name": "site",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Deployment version",
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registries/{name}/sites/{site}/versions/{version}/download": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Streams the zip exactly as it was uploaded (the version may be \"active\"\nfor the one currently served). Accepts a Cosmos token with the Resources\nread permission OR a registry deploy token with pull scope (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Download one static-site deployment archive",
+        "parameters": [
+          {
+            "description": "Registry name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Site name",
+            "name": "site",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Deployment version, or active",
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registry-accesses": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every registry endpoint with the nodes currently serving it, token hashes redacted (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "List registry accesses",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Publishes one or more registries on a hostname. Every exposed registry\nmust share ONE type, so an access serves exactly one protocol (several\ndocker registries are fine — they namespace by path; an npm or generic\naccess exposes exactly one registry); an empty tag list means every node\nserves it; internal restricts the endpoint to the constellation (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Create a registry access",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistryAccessCreateRequest"
+              }
+            }
+          },
+          "description": "Access to create",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registry-accesses/{name}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the endpoint with the nodes currently serving it, token hashes redacted (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Get one registry access",
+        "parameters": [
+          {
+            "description": "Access name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Removes the endpoint. The registries it published and everything\nstored in them are untouched (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Delete a registry access",
+        "parameters": [
+          {
+            "description": "Access name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registry-accesses/{name}/settings": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Replaces the host, exposed registries, visibility, anonymous-pull toggle\nand/or serving tags. Absent fields keep their stored value (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Update a registry access",
+        "parameters": [
+          {
+            "description": "Access name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistryAccessSettingsRequest"
+              }
+            }
+          },
+          "description": "Settings to change",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registry-accesses/{name}/tokens": {
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the raw token ONCE — only its sha256 is stored. Scopes are\npull/push, optionally qualified by protocol (e.g. \"docker:push\") (Pro feature).",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Mint a registry deploy token",
+        "parameters": [
+          {
+            "description": "Access name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.RegistryAccessTokenCreateRequest"
+              }
+            }
+          },
+          "description": "Token to mint",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/registry-accesses/{name}/tokens/{tokenName}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Revokes the token on every node (Pro feature)",
+        "tags": [
+          "registry"
+        ],
+        "summary": "Delete a registry deploy token",
+        "parameters": [
+          {
+            "description": "Access name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Token name",
+            "name": "tokenName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/constellation/reset": {
       "get": {
         "security": [
@@ -3491,6 +5647,176 @@
           },
           "403": {
             "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/seaweedfs": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns every instance with heartbeat-derived status, secrets redacted (Pro feature)",
+        "tags": [
+          "seaweedfs"
+        ],
+        "summary": "List managed SeaweedFS instances",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Provisions 3 pinned masters on the first three constellation managers,\na fill-mode volume-server deployment on the chosen tags, a filer+S3\ndeployment behind the tunnel LB, and a managed postgres for the filer\nstore (Pro feature). Refused when fewer than 3 managers are online.",
+        "tags": [
+          "seaweedfs"
+        ],
+        "summary": "Create a managed SeaweedFS instance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/pro.SeaweedFSCreateRequest"
+              }
+            }
+          },
+          "description": "Instance to create",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/seaweedfs/{name}": {
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Tears down deployments, masters and (by default) the filer database.\nVolume-server data volumes are PRESERVED unless purgeData=true;\nkeepFilerDB=true keeps the managed database entirely (Pro feature).",
+        "tags": [
+          "seaweedfs"
+        ],
+        "summary": "Delete a managed SeaweedFS instance",
+        "parameters": [
+          {
+            "description": "Instance name",
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Also remove the data volumes on every node",
+            "name": "purgeData",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Keep the auto-provisioned filer database",
+            "name": "keepFilerDB",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/constellation/tag-nodes": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns the nodes whose tags satisfy every requested tag (AND\nsemantics; an empty tag set matches every node), each flagged with\nwhether it is currently heartbeating, plus the cluster totals the\nUI needs for a \"matches N of M nodes\" hint (Pro feature).\nRead-only and answerable from any node.",
+        "tags": [
+          "deployments"
+        ],
+        "summary": "Which nodes a tag set selects",
+        "parameters": [
+          {
+            "description": "Comma-separated tags, ANDed together",
+            "name": "tags",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method Not Allowed",
             "content": {
               "application/json": {
                 "schema": {
@@ -4364,24 +6690,23 @@
             "BearerAuth": []
           }
         ],
-        "description": "Fetches and caches the favicon for the given URL, returning it as an image",
+        "description": "Fetches and caches the favicon of a configured route or OpenID client, returning it as an image. Exactly one of route or openid must be given.",
         "tags": [
           "system"
         ],
-        "summary": "Get favicon for a URL",
+        "summary": "Get favicon for a route or OpenID client",
         "parameters": [
           {
-            "description": "URL-encoded site URL to fetch favicon for",
-            "name": "q",
+            "description": "Name of the configured route",
+            "name": "route",
             "in": "query",
-            "required": true,
             "schema": {
               "type": "string"
             }
           },
           {
-            "description": "Service app mode flag",
-            "name": "servapp",
+            "description": "ID of the configured OpenID client",
+            "name": "openid",
             "in": "query",
             "schema": {
               "type": "string"
@@ -4400,18 +6725,8 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/octet-stream": {
-                "schema": {
-                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed",
+          "404": {
+            "description": "Not Found",
             "content": {
               "application/octet-stream": {
                 "schema": {
@@ -7152,81 +9467,6 @@
         }
       }
     },
-    "/api/ping": {
-      "get": {
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "description": "Checks if a URL is reachable and returns a non-5xx response",
-        "tags": [
-          "system"
-        ],
-        "summary": "Ping a URL",
-        "parameters": [
-          {
-            "description": "URL-encoded site URL to ping",
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "description": "Service app mode flag",
-            "name": "servapp",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/utils.APIResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Unauthorized",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
-                }
-              }
-            }
-          },
-          "405": {
-            "description": "Method Not Allowed",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "Internal Server Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/rclone-restart": {
       "get": {
         "security": [
@@ -8134,6 +10374,97 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/servapps/{containerId}/lazy/{status}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "tags": [
+          "docker"
+        ],
+        "summary": "Enable or disable lazy start (stop when idle) for a Docker container",
+        "parameters": [
+          {
+            "description": "Container ID or name",
+            "name": "containerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Lazy status (true or false)",
+            "name": "status",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Idle duration before the container is stopped (Go duration, ex 1h)",
+            "name": "idle",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Readiness timeout after a wake (Go duration, ex 60s)",
+            "name": "startTimeout",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.APIResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/utils.HTTPErrorResult"
                 }
               }
             }
@@ -10809,6 +13140,12 @@
       "constellation.DeviceEditRequestJSON": {
         "type": "object",
         "properties": {
+          "deviceName": {
+            "description": "Empty means \"this node\" (full edit); set means a remote tags-only edit.",
+            "type": "string",
+            "maxLength": 32,
+            "minLength": 3
+          },
           "isExitNode": {
             "type": "boolean"
           },
@@ -11985,19 +14322,49 @@
         "type": "object",
         "required": [
           "compose",
-          "name",
-          "replicas"
+          "name"
         ],
         "properties": {
           "compose": {
             "$ref": "#/components/schemas/docker.DockerServiceCreateRequest"
+          },
+          "maxReplicas": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minReplicas": {
+            "description": "MinReplicas/MaxReplicas select load-based autoscaling clamped to [min,max], one step per cooldown.",
+            "type": "integer",
+            "minimum": 1
           },
           "name": {
             "type": "string",
             "maxLength": 64,
             "minLength": 3
           },
+          "owner": {
+            "description": "Owner marks a system-owned deployment (e.g. \"seaweedfs:<instance>\"); the HTTP API refuses user create/update/delete on it.",
+            "type": "string"
+          },
+          "preserveVolumesOnRemove": {
+            "description": "PreserveVolumesOnRemove keeps the deployment's named volumes on disk on replica removal or\nfull delete; stamped as the cosmos-deployment-keep-volumes label on containers and volumes.",
+            "type": "boolean"
+          },
+          "replicaFill": {
+            "description": "ReplicaFill: one replica on every alive node matching Tags (DaemonSet-style).",
+            "type": "boolean"
+          },
+          "replicaFillMode": {
+            "description": "fill sub-mode: \"full\" (default) = every eligible node; \"bare\" = autoscale between 1 and the\neligible set; \"empty\" = bare with lazy scale-to-zero.",
+            "type": "string",
+            "enum": [
+              "full",
+              "bare",
+              "empty"
+            ]
+          },
           "replicas": {
+            "description": "Exactly one of the three replica modes (fixed Replicas, autoscale Min/MaxReplicas, fill ReplicaFill)\nmust be set; ValidateReplicaConfig enforces the exclusivity.",
             "type": "integer",
             "minimum": 1
           },
@@ -12022,6 +14389,317 @@
             "items": {
               "type": "string"
             }
+          },
+          "version": {
+            "description": "Version is a server-assigned monotonic integer bumped on every create/update, stamped on containers\nas cosmos-deployment-version so the scheduler can detect stale specs.",
+            "type": "integer"
+          }
+        }
+      },
+      "pro.ManagedDBBackupRequest": {
+        "type": "object",
+        "properties": {
+          "crontab": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "crontabForget": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "repository": {
+            "type": "string",
+            "maxLength": 512
+          },
+          "retentionPolicy": {
+            "type": "string",
+            "maxLength": 512
+          }
+        }
+      },
+      "pro.ManagedDBCreateRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "engine": {
+            "type": "string",
+            "enum": [
+              "postgres"
+            ]
+          },
+          "image": {
+            "description": "Image overrides the pinned default; never inferred from a running container.",
+            "type": "string",
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 48,
+            "minLength": 3
+          },
+          "port": {
+            "description": "Port overrides proxy listen-port allocation. Zero means \"allocate one\".",
+            "type": "integer",
+            "maximum": 65535,
+            "minimum": 1024
+          },
+          "restrictToConstellation": {
+            "description": "Pointer: the default is true, so a plain bool cannot tell \"client sent\nfalse\" from \"client omitted the field\".",
+            "type": "boolean"
+          }
+        }
+      },
+      "pro.ManagedDBLogicalRequest": {
+        "type": "object",
+        "required": [
+          "database"
+        ],
+        "properties": {
+          "database": {
+            "type": "string",
+            "maxLength": 48,
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "maxLength": 48,
+            "minLength": 1
+          }
+        }
+      },
+      "pro.ManagedDBRestoreRequest": {
+        "type": "object",
+        "required": [
+          "newName",
+          "snapshotId",
+          "sourceName"
+        ],
+        "properties": {
+          "databases": {
+            "description": "Databases restricts what is restored; empty means every logical database.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "newName": {
+            "description": "NewName is the instance to create. It must not exist.",
+            "type": "string",
+            "maxLength": 48,
+            "minLength": 3
+          },
+          "port": {
+            "description": "Port and RestrictToConstellation default as in a plain create (allocate a\nport; restrict to the constellation).",
+            "type": "integer",
+            "maximum": 65535,
+            "minimum": 1024
+          },
+          "restrictToConstellation": {
+            "type": "boolean"
+          },
+          "snapshotId": {
+            "description": "SnapshotID is a restic snapshot id, long or short; \"latest\" works.",
+            "type": "string"
+          },
+          "sourceName": {
+            "description": "SourceName's backup configuration (repository AND password) is used to\nread the snapshot; the source instance itself is never touched.",
+            "type": "string"
+          }
+        }
+      },
+      "pro.ManagedDBUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "restrictToConstellation": {
+            "type": "boolean"
+          }
+        }
+      },
+      "pro.RegistryAccessCreateRequest": {
+        "type": "object",
+        "properties": {
+          "allowAnonymousPull": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "registries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "pro.RegistryAccessSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "allowAnonymousPull": {
+            "type": "boolean"
+          },
+          "host": {
+            "type": "string"
+          },
+          "internal": {
+            "type": "boolean"
+          },
+          "registries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "pro.RegistryAccessTokenCreateRequest": {
+        "type": "object",
+        "properties": {
+          "expiryDays": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "pro.RegistryCreateRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "quotaBytes": {
+            "type": "integer"
+          },
+          "storage": {
+            "$ref": "#/components/schemas/pro.RegistryStorage"
+          },
+          "type": {
+            "description": "Type is docker, npm, static or generic. Required and immutable afterwards.",
+            "type": "string"
+          }
+        }
+      },
+      "pro.RegistrySettingsRequest": {
+        "type": "object",
+        "properties": {
+          "quotaBytes": {
+            "type": "integer"
+          }
+        }
+      },
+      "pro.RegistryStaticActivateRequest": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "pro.RegistryStorage": {
+        "type": "object",
+        "required": [
+          "backend"
+        ],
+        "properties": {
+          "accessKey": {
+            "type": "string"
+          },
+          "backend": {
+            "type": "string",
+            "enum": [
+              "seaweedfs",
+              "s3",
+              "local"
+            ]
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "endpoint": {
+            "description": "External S3 only.",
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "region": {
+            "type": "string"
+          },
+          "seaweedfs": {
+            "description": "SeaweedFS is the managed instance name when Backend is \"seaweedfs\".",
+            "type": "string"
+          },
+          "secretKey": {
+            "type": "string"
+          }
+        }
+      },
+      "pro.SeaweedFSCreateRequest": {
+        "type": "object",
+        "properties": {
+          "defaultReplication": {
+            "type": "string"
+          },
+          "filerReplicas": {
+            "type": "integer"
+          },
+          "image": {
+            "type": "string"
+          },
+          "indexMode": {
+            "type": "string"
+          },
+          "maxStorageGBPerNode": {
+            "type": "integer"
+          },
+          "minFreeSpace": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "restrictToConstellation": {
+            "type": "boolean"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "volumeSizeLimitMB": {
+            "type": "integer"
           }
         }
       },

@@ -1,3 +1,19 @@
+## Version 0.24.0
+ - Lazy loading
+ - Improve TCP proxy support
+ - Fix issue with the port allocation when load balancing TCP
+ - Minor load balancing quirk fixes
+ - Fix issue with regex in event tab of monitoring
+ - Fix PingURL / Favicon fetcher exposing some scanning surface
+ - Can edit stopped containers
+
+## Version 0.23.04
+ - Allow terraform to remove Constellation managers
+
+## Version 0.23.03
+ - Update NATS to v2.14.6 (server) / v1.53.1 (client)
+ - Update Go to 1.26
+
 ## Version 0.23.02
  - Hardened RClone /about path
  - Hardened set/get config path

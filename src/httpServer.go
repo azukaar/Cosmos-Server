@@ -22,10 +22,7 @@ import (
 		"strings"
 		"path"
 		"github.com/go-chi/httprate"
-		"crypto/sha256"
-		"crypto/subtle"
 		"crypto/tls"
-		"encoding/hex"
 		"github.com/foomo/tlsconfig"
 		"context"
     "net/http/pprof"
@@ -237,20 +234,11 @@ func tokenMiddleware(next http.Handler) http.Handler {
 		if strings.HasPrefix(authHeader, "Bearer cosmos_") {
 			rawToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-			h := sha256.Sum256([]byte(rawToken))
-			tokenHash := hex.EncodeToString(h[:])
-
-			config := utils.GetMainConfig()
+			// Shared with the registry protocol auth path (src/pro/registry_auth.go).
 			var matchedToken *utils.APITokenConfig
-			var matchedName string
-
-			for name, tok := range config.APITokens {
-				if subtle.ConstantTimeCompare([]byte(tok.TokenHash), []byte(tokenHash)) == 1 {
-					t := tok
-					matchedToken = &t
-					matchedName = name
-					break
-				}
+			matchedName, foundToken, tokenOK := utils.VerifyAPIToken(rawToken)
+			if tokenOK {
+				matchedToken = &foundToken
 			}
 
 			if matchedToken == nil {
@@ -641,7 +629,6 @@ func InitServer() *mux.Router {
 	srapi.HandleFunc("/api/dns", GetDNSRoute)
 	srapi.HandleFunc("/api/dns-check", CheckDNSRoute)
 	srapi.HandleFunc("/api/favicon", GetFavicon)
-	srapi.HandleFunc("/api/ping", PingURL)
 	srapi.HandleFunc("/api/me", user.Me)
 	srapi.HandleFunc("/api/dashboard", configapi.DashboardApiGet)
 
@@ -677,6 +664,7 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/manage/{action}", docker.ManageContainerRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/secure/{status}", docker.SecureContainerRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/auto-update/{status}", docker.AutoUpdateContainerRoute)
+	srapiAdmin.HandleFunc("/api/servapps/{containerId}/lazy/{status}", docker.LazyContainerRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/logs", docker.GetContainerLogsRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/terminal/{action}", docker.TerminalRoute)
 	srapiAdmin.HandleFunc("/api/servapps/{containerId}/update", docker.UpdateContainerRoute)
@@ -727,6 +715,62 @@ func InitServer() *mux.Router {
 	srapiAdmin.HandleFunc("/api/constellation/deployments/{name}", constellation.DeploymentsIdRoute)
 	srapiAdmin.HandleFunc("/api/constellation/deployments/{name}/unbroke", constellation.DeploymentsUnbrokeRoute)
 	srapiAdmin.HandleFunc("/api/constellation/nodes/{name}/unbroke", constellation.NodesUnbrokeRoute)
+	srapiAdmin.HandleFunc("/api/constellation/tag-nodes", constellation.TagNodesRoute)
+	// Cloud Functions (Pro). Sub-resources before the {name} catch-all.
+	srapiAdmin.HandleFunc("/api/constellation/function-runtimes", constellation.FunctionRuntimesRoute)
+	srapiAdmin.HandleFunc("/api/constellation/functions", constellation.FunctionsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/functions/{name}/deploy", constellation.FunctionsDeployRoute)
+	srapiAdmin.HandleFunc("/api/constellation/functions/{name}/versions", constellation.FunctionsVersionsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/functions/{name}/invoke", constellation.FunctionsInvokeRoute)
+	srapiAdmin.HandleFunc("/api/constellation/functions/{name}", constellation.FunctionsIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases", constellation.ManagedDBRoute)
+	// Before {name}: mux matches in registration order, so "databases/restore" must precede the catch-all.
+	srapiAdmin.HandleFunc("/api/constellation/databases/restore", constellation.ManagedDBRestoreRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}", constellation.ManagedDBIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/connection", constellation.ManagedDBConnectionRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/databases", constellation.ManagedDBDatabasesRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/databases/{database}", constellation.ManagedDBDatabaseIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/databases/{database}/rotate", constellation.ManagedDBRotateRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/backup", constellation.ManagedDBBackupRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/backup/run", constellation.ManagedDBBackupRunRoute)
+	srapiAdmin.HandleFunc("/api/constellation/databases/{name}/backup/snapshots", constellation.ManagedDBBackupSnapshotsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs", constellation.SeaweedFSRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}", constellation.SeaweedFSIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/status", constellation.SeaweedFSStatusRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/restrict", constellation.SeaweedFSRestrictRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/jobs", constellation.SeaweedFSJobsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/storage", constellation.SeaweedFSStorageRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/backup", constellation.SeaweedFSBackupRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/backup/run", constellation.SeaweedFSBackupRunRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/backup/snapshots", constellation.SeaweedFSBackupSnapshotsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/repair", constellation.SeaweedFSRepairRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/drain", constellation.SeaweedFSDrainRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/upgrade", constellation.SeaweedFSUpgradeRoute)
+	srapiAdmin.HandleFunc("/api/constellation/seaweedfs/{name}/replace-master", constellation.SeaweedFSReplaceMasterRoute)
+
+	srapiAdmin.HandleFunc("/api/constellation/registries", constellation.RegistryRoute)
+	// Sub-resource routes before "{name}", same ordering rule as above.
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/settings", constellation.RegistrySettingsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/gc", constellation.RegistryGCRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites/{site}/versions/{version}/download", constellation.RegistryStaticVersionDownloadRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites/{site}/versions/{version}", constellation.RegistryStaticVersionIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites/{site}/versions", constellation.RegistryStaticVersionsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites/{site}/activate", constellation.RegistryStaticActivateRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites/{site}", constellation.RegistryStaticSiteIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/sites", constellation.RegistryStaticSitesRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/packages/{package}/versions/{version}/files/{file}", constellation.RegistryGenericFileRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/packages/{package}/versions/{version}", constellation.RegistryGenericVersionIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/packages/{package}/versions", constellation.RegistryGenericVersionsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/packages/{package}", constellation.RegistryGenericPackageIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}/packages", constellation.RegistryGenericPackagesRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registries/{name}", constellation.RegistryIdRoute)
+
+	// Registry accesses: the endpoints that publish registries.
+	srapiAdmin.HandleFunc("/api/constellation/registry-accesses", constellation.RegistryAccessRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registry-accesses/{name}/tokens", constellation.RegistryAccessTokensRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registry-accesses/{name}/tokens/{tokenName}", constellation.RegistryAccessTokenIdRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registry-accesses/{name}/settings", constellation.RegistryAccessSettingsRoute)
+	srapiAdmin.HandleFunc("/api/constellation/registry-accesses/{name}", constellation.RegistryAccessIdRoute)
 
 	srapiAdmin.HandleFunc("/api/events", metrics.API_ListEvents)
 
@@ -864,6 +908,9 @@ func InitServer() *mux.Router {
 	OpenIDDetect := router.PathPrefix("/").Subrouter()
 	SecureAPI(OpenIDDetect, true, true, false)
 	authorizationserver.RegisterHandlersDetect(OpenIDDetect, srapiStrict)
+
+	// Registry protocol endpoints: registered BEFORE BuildFromConfig so mux registration order keeps the serving route targeting this node's own listener from answering (see pro.BuildRegistryAccessRoute).
+	pro.RegisterRegistryProtocolRoutes(router)
 
 	router = proxy.BuildFromConfig(router, HTTPConfig.ProxyConfig)
 

@@ -47,9 +47,17 @@ type NodeHeartbeat struct {
 	// detect a node running a stale spec and trigger a rolling re-apply. Built
 	// from docker alongside RunningDeployments each heartbeat.
 	RunningDeploymentVersions map[string]int `json:"runningDeploymentVersions,omitempty"`
-	// CPUPercent and RAMPercent are the node's latest resource-usage sample,
-	// populated from pro.GetCurrentResources() on each heartbeat tick. Used by
-	// the LeastBusyPlacement strategy. Zero when MonitoringOn is false.
+	// Liveness only, from the `cosmos-managed-db` label; never folded into
+	// RunningDeployments, which the scheduler prunes of unrecognized entries.
+	ManagedDBs []string `json:"managedDBs,omitempty"`
+	// Same contract as ManagedDBs, from the `cosmos-seaweedfs` label (masters
+	// only; the volume/filer tiers are deployments and report normally).
+	SeaweedFS []string `json:"seaweedfs,omitempty"`
+	// Registry endpoints this node serves. Same contract as ManagedDBs, but
+	// derived from the access records and this node's tags, not from docker.
+	Registries []string `json:"registries,omitempty"`
+	// Load sample from pro.GetCurrentResources(); RAMPercent is memory
+	// pressure (PSI + exhaustion guard), not occupancy. Zero when MonitoringOn is false.
 	CPUPercent float64 `json:"cpuPercent,omitempty"`
 	RAMPercent float64 `json:"ramPercent,omitempty"`
 	// MonitoringOn signals whether CPU/RAM numbers are trustworthy. False when
@@ -1257,6 +1265,26 @@ func MasterNATSClientRouter() {
 		if subErr := pro.RegisterNodeDispatchHandler(nc, self); subErr != nil {
 			utils.Warn("[SCHED-NODE] failed to register dispatch handler: " + subErr.Error())
 		}
+
+		if _, subErr := pro.RegisterManagedDBResponder(nc, self); subErr != nil {
+			utils.Warn("[MDB] failed to register op responder: " + subErr.Error())
+		}
+		pro.StartManagedDBBackupReconciler()
+
+		if _, subErr := pro.RegisterSeaweedFSResponder(nc, self); subErr != nil {
+			utils.Warn("[SWFS] failed to register op responder: " + subErr.Error())
+		}
+		pro.SetSeaweedFSClusterHandles(SeaweedFSClusterHandles)
+		pro.StartSeaweedFSReconciler()
+
+		pro.SetRegistryClusterHandles(RegistryClusterHandles)
+		pro.SetRegistryNodeProvider(RegistryNodeInfo)
+		pro.StartRegistryServing()
+		// GC and cron triggers are leadership-bound so each runs once per cluster.
+		pro.StartRegistryGC()
+		pro.StartFunctionTriggers()
+
+		pro.StartFeatureMetrics()
 	} else {
 		utils.Warn("[SCHED-NODE] cannot register dispatch handler: GetCurrentDevice failed: " + err.Error())
 	}

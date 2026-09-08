@@ -1,11 +1,39 @@
 package utils
 
 import (
+	"crypto/sha256"
+	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 )
+
+// APITokenPrefix is the raw-value marker of a Cosmos API token.
+const APITokenPrefix = "cosmos_"
+
+// VerifyAPIToken returns the name and config of the configured token matching rawToken (constant-time hash comparison). Expiry, IP restrictions and permissions are NOT checked here.
+func VerifyAPIToken(rawToken string) (string, APITokenConfig, bool) {
+	if !strings.HasPrefix(rawToken, APITokenPrefix) {
+		return "", APITokenConfig{}, false
+	}
+
+	sum := sha256.Sum256([]byte(rawToken))
+	tokenHash := hex.EncodeToString(sum[:])
+
+	for name, token := range GetMainConfig().APITokens {
+		if subtle.ConstantTimeCompare([]byte(token.TokenHash), []byte(tokenHash)) == 1 {
+			return name, token, true
+		}
+	}
+	return "", APITokenConfig{}, false
+}
+
+// APITokenHasPermission reports whether an API token carries a permission.
+func APITokenHasPermission(token APITokenConfig, permission Permission) bool {
+	return containsPermission(token.Permissions, permission)
+}
 
 func GetAuthContext(req *http.Request) *AuthContext {
 	ctx, _ := req.Context().Value(AuthCtxKey).(*AuthContext)

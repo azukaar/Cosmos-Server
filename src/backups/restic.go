@@ -350,6 +350,39 @@ func EditRepositoryPassword(repository, currentPassword, newPassword string) err
 	return nil
 }
 
+// RepositoryInitialized reports whether repository exists and password opens it (cheap `cat config`, not the full `restic check`).
+func RepositoryInitialized(repository, password string) bool {
+	args := []string{"cat", "config", "--no-lock", "--repo", repository}
+	env := []string{fmt.Sprintf("RESTIC_PASSWORD=%s", password)}
+
+	if _, err := ExecRestic(args, env); err != nil {
+		utils.Debug("[Restic] repository " + repository + " is not readable yet: " + err.Error())
+		return false
+	}
+	return true
+}
+
+// EnsureRepository initialises repository on first use if it does not exist yet.
+func EnsureRepository(repository, password string) error {
+	if RepositoryInitialized(repository, password) {
+		return nil
+	}
+
+	utils.Log("[Restic] Initialising repository: " + repository)
+	err := CreateRepository(repository, password)
+	if err == nil {
+		return nil
+	}
+
+	// The repository exists but this password does not open it.
+	lower := strings.ToLower(err.Error())
+	if strings.Contains(lower, "already initialized") || strings.Contains(lower, "already exists") ||
+		strings.Contains(lower, "already a repository") {
+		return fmt.Errorf("[Restic] repository %s already exists but could not be opened with the stored password: %w", repository, err)
+	}
+	return err
+}
+
 // CheckRepository verifies if a repository exists and is valid
 func CheckRepository(repository, password string) error {
 	args := []string{"check", "--no-lock", "--repo", repository}

@@ -151,6 +151,12 @@ definitions:
     type: object
   constellation.DeviceEditRequestJSON:
     properties:
+      deviceName:
+        description: Empty means "this node" (full edit); set means a remote tags-only
+          edit.
+        maxLength: 32
+        minLength: 3
+        type: string
       isExitNode:
         type: boolean
       isLighthouse:
@@ -1061,11 +1067,43 @@ definitions:
     properties:
       compose:
         $ref: '#/definitions/docker.DockerServiceCreateRequest'
+      maxReplicas:
+        minimum: 1
+        type: integer
+      minReplicas:
+        description: MinReplicas/MaxReplicas select load-based autoscaling clamped
+          to [min,max], one step per cooldown.
+        minimum: 1
+        type: integer
       name:
         maxLength: 64
         minLength: 3
         type: string
+      owner:
+        description: Owner marks a system-owned deployment (e.g. "seaweedfs:<instance>");
+          the HTTP API refuses user create/update/delete on it.
+        type: string
+      preserveVolumesOnRemove:
+        description: |-
+          PreserveVolumesOnRemove keeps the deployment's named volumes on disk on replica removal or
+          full delete; stamped as the cosmos-deployment-keep-volumes label on containers and volumes.
+        type: boolean
+      replicaFill:
+        description: 'ReplicaFill: one replica on every alive node matching Tags (DaemonSet-style).'
+        type: boolean
+      replicaFillMode:
+        description: |-
+          fill sub-mode: "full" (default) = every eligible node; "bare" = autoscale between 1 and the
+          eligible set; "empty" = bare with lazy scale-to-zero.
+        enum:
+        - full
+        - bare
+        - empty
+        type: string
       replicas:
+        description: |-
+          Exactly one of the three replica modes (fixed Replicas, autoscale Min/MaxReplicas, fill ReplicaFill)
+          must be set; ValidateReplicaConfig enforces the exclusivity.
         minimum: 1
         type: integer
       storage:
@@ -1097,10 +1135,235 @@ definitions:
         items:
           type: string
         type: array
+      version:
+        description: |-
+          Version is a server-assigned monotonic integer bumped on every create/update, stamped on containers
+          as cosmos-deployment-version so the scheduler can detect stale specs.
+        type: integer
     required:
     - compose
     - name
-    - replicas
+    type: object
+  pro.ManagedDBBackupRequest:
+    properties:
+      crontab:
+        maxLength: 128
+        type: string
+      crontabForget:
+        maxLength: 128
+        type: string
+      enabled:
+        type: boolean
+      repository:
+        maxLength: 512
+        type: string
+      retentionPolicy:
+        maxLength: 512
+        type: string
+    type: object
+  pro.ManagedDBCreateRequest:
+    properties:
+      engine:
+        enum:
+        - postgres
+        type: string
+      image:
+        description: Image overrides the pinned default; never inferred from a running
+          container.
+        maxLength: 128
+        type: string
+      name:
+        maxLength: 48
+        minLength: 3
+        type: string
+      port:
+        description: Port overrides proxy listen-port allocation. Zero means "allocate
+          one".
+        maximum: 65535
+        minimum: 1024
+        type: integer
+      restrictToConstellation:
+        description: |-
+          Pointer: the default is true, so a plain bool cannot tell "client sent
+          false" from "client omitted the field".
+        type: boolean
+    required:
+    - name
+    type: object
+  pro.ManagedDBLogicalRequest:
+    properties:
+      database:
+        maxLength: 48
+        minLength: 1
+        type: string
+      role:
+        maxLength: 48
+        minLength: 1
+        type: string
+    required:
+    - database
+    type: object
+  pro.ManagedDBRestoreRequest:
+    properties:
+      databases:
+        description: Databases restricts what is restored; empty means every logical
+          database.
+        items:
+          type: string
+        type: array
+      newName:
+        description: NewName is the instance to create. It must not exist.
+        maxLength: 48
+        minLength: 3
+        type: string
+      port:
+        description: |-
+          Port and RestrictToConstellation default as in a plain create (allocate a
+          port; restrict to the constellation).
+        maximum: 65535
+        minimum: 1024
+        type: integer
+      restrictToConstellation:
+        type: boolean
+      snapshotId:
+        description: SnapshotID is a restic snapshot id, long or short; "latest" works.
+        type: string
+      sourceName:
+        description: |-
+          SourceName's backup configuration (repository AND password) is used to
+          read the snapshot; the source instance itself is never touched.
+        type: string
+    required:
+    - newName
+    - snapshotId
+    - sourceName
+    type: object
+  pro.ManagedDBUpdateRequest:
+    properties:
+      restrictToConstellation:
+        type: boolean
+    type: object
+  pro.RegistryAccessCreateRequest:
+    properties:
+      allowAnonymousPull:
+        type: boolean
+      host:
+        type: string
+      internal:
+        type: boolean
+      name:
+        type: string
+      registries:
+        items:
+          type: string
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  pro.RegistryAccessSettingsRequest:
+    properties:
+      allowAnonymousPull:
+        type: boolean
+      host:
+        type: string
+      internal:
+        type: boolean
+      registries:
+        items:
+          type: string
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  pro.RegistryAccessTokenCreateRequest:
+    properties:
+      expiryDays:
+        type: integer
+      name:
+        type: string
+      scopes:
+        items:
+          type: string
+        type: array
+    type: object
+  pro.RegistryCreateRequest:
+    properties:
+      name:
+        type: string
+      quotaBytes:
+        type: integer
+      storage:
+        $ref: '#/definitions/pro.RegistryStorage'
+      type:
+        description: Type is docker, npm, static or generic. Required and immutable
+          afterwards.
+        type: string
+    type: object
+  pro.RegistrySettingsRequest:
+    properties:
+      quotaBytes:
+        type: integer
+    type: object
+  pro.RegistryStaticActivateRequest:
+    properties:
+      version:
+        type: string
+    type: object
+  pro.RegistryStorage:
+    properties:
+      accessKey:
+        type: string
+      backend:
+        enum:
+        - seaweedfs
+        - s3
+        - local
+        type: string
+      bucket:
+        type: string
+      endpoint:
+        description: External S3 only.
+        type: string
+      path:
+        type: string
+      region:
+        type: string
+      seaweedfs:
+        description: SeaweedFS is the managed instance name when Backend is "seaweedfs".
+        type: string
+      secretKey:
+        type: string
+    required:
+    - backend
+    type: object
+  pro.SeaweedFSCreateRequest:
+    properties:
+      defaultReplication:
+        type: string
+      filerReplicas:
+        type: integer
+      image:
+        type: string
+      indexMode:
+        type: string
+      maxStorageGBPerNode:
+        type: integer
+      minFreeSpace:
+        type: string
+      name:
+        type: string
+      restrictToConstellation:
+        type: boolean
+      tags:
+        items:
+          type: string
+        type: array
+      volumeSizeLimitMB:
+        type: integer
     type: object
   pro.UpdateGroupRequest:
     properties:
@@ -2067,7 +2330,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.23.2-unstable002
+  version: 0.24.0-unstable007
 paths:
   /_logs:
     get:
@@ -3220,6 +3483,549 @@ paths:
       summary: Create a new Constellation VPN network
       tags:
       - constellation
+  /api/constellation/databases:
+    get:
+      description: |-
+        Returns every managed database record in the cluster, with live/down
+        status merged in from node heartbeats (Pro feature). Secrets are
+        redacted; use the connection endpoint to read them.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List all managed databases
+      tags:
+      - databases
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates a single-node postgres container on THIS node and records
+        it in the cluster store (Pro feature). Not scheduled: the node that
+        serves this request becomes the instance's home node.
+      parameters:
+      - description: Instance definition
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.ManagedDBCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Provision a managed database instance
+      tags:
+      - databases
+  /api/constellation/databases/{name}:
+    delete:
+      description: |-
+        Stops and removes the instance's container on its home node and drops
+        the record (Pro feature). The data volume is KEPT unless
+        ?removeVolume=true is passed.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Also destroy the data volume
+        in: query
+        name: removeVolume
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a managed database instance
+      tags:
+      - databases
+    get:
+      description: |-
+        Returns one record with live status and, when the home node answers,
+        its container/server state (Pro feature). Secrets are redacted.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get a managed database
+      tags:
+      - databases
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Changes settings that do not require recreating the container —
+        currently only the constellation restriction, which is re-applied to
+        the instance's proxy route on its home node (Pro feature).
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Updated settings
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.ManagedDBUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Update a managed database instance
+      tags:
+      - databases
+  /api/constellation/databases/{name}/backup:
+    delete:
+      description: |-
+        Clears the instance's backup settings and deregisters its scheduled
+        jobs (Pro feature). The restic repository and every snapshot in it
+        are left untouched — but the password is dropped with the record, so
+        recovering those snapshots afterwards means recovering the password
+        from the backup password log.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Remove a managed database's backup configuration
+      tags:
+      - databases
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Sets the restic repository and schedules for an instance's backups
+        (Pro feature). The repository is interpreted on the instance's HOME
+        node and is initialised lazily, on the first run. The repository
+        password is generated once and never rotated by this endpoint, since
+        it is the only key to the existing snapshots.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Backup configuration
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.ManagedDBBackupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Configure backups for a managed database
+      tags:
+      - databases
+  /api/constellation/databases/{name}/backup/run:
+    post:
+      description: |-
+        Starts a backup of the instance on its home node and returns
+        immediately (Pro feature): a dump plus an upload is unbounded work.
+        Progress and outcome are reported through the instance's events and
+        through the snapshot listing.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Back up a managed database now
+      tags:
+      - databases
+  /api/constellation/databases/{name}/backup/snapshots:
+    get:
+      description: |-
+        Returns the restic snapshots tagged for this instance, newest first
+        (Pro feature). An empty list is returned — not an error — while the
+        repository has not been written to yet.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "502":
+          description: Bad Gateway
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: List a managed database's backup snapshots
+      tags:
+      - databases
+  /api/constellation/databases/{name}/connection:
+    get:
+      description: |-
+        Returns the superuser credentials and connection URL for an instance,
+        plus one URL per logical database (Pro feature). This is the only
+        endpoint that returns secrets.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Get connection info for a managed database
+      tags:
+      - databases
+  /api/constellation/databases/{name}/databases:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Creates one application database inside an instance, owned by a
+        freshly generated role scoped to it (Pro feature). Returns the
+        credentials once, in the response.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Logical database definition
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.ManagedDBLogicalRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Create a logical database and role
+      tags:
+      - databases
+  /api/constellation/databases/{name}/databases/{database}:
+    delete:
+      description: |-
+        Drops one application database inside an instance, terminating its
+        open sessions first (Pro feature). Destroys that database's data.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Logical database name
+        in: path
+        name: database
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Delete a logical database and its role
+      tags:
+      - databases
+  /api/constellation/databases/{name}/databases/{database}/rotate:
+    post:
+      description: |-
+        Generates a new password for one application role and returns the new
+        connection URL (Pro feature). Existing sessions keep working until
+        they reconnect.
+      parameters:
+      - description: Database instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Logical database name
+        in: path
+        name: database
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Rotate a logical database role's password
+      tags:
+      - databases
+  /api/constellation/databases/restore:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Restores one snapshot of an instance's backup into a BRAND-NEW
+        instance on the node serving this request (Pro feature). The source
+        instance is never modified. Each logical database in the snapshot is
+        recreated with a FRESHLY generated role password — the roles in the
+        backup's globals.sql carry password hashes the cluster cannot
+        reproduce, so that file is kept for manual recovery only.
+        The repository must be reachable from this node.
+        Partial failures are reported per database in the response body; the
+        new instance is kept either way.
+      parameters:
+      - description: Restore request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.ManagedDBRestoreRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Restore a managed database backup into a new instance
+      tags:
+      - databases
   /api/constellation/deployments:
     get:
       description: Returns all deployment definitions from the constellation-deployments
@@ -3687,8 +4493,16 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
         "403":
           description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/utils.HTTPErrorResult'
         "500":
@@ -3697,7 +4511,8 @@ paths:
             $ref: '#/definitions/utils.HTTPErrorResult'
       security:
       - BearerAuth: []
-      summary: Edit the current Constellation device properties
+      summary: Edit Constellation device properties (this device, or another device's
+        tags)
       tags:
       - constellation
   /api/constellation/force-reform:
@@ -3730,6 +4545,66 @@ paths:
       summary: Force the constellation to re-form around this manager
       tags:
       - constellation
+  /api/constellation/function-runtimes:
+    get:
+      responses: {}
+  /api/constellation/functions:
+    get:
+      responses: {}
+    post:
+      responses: {}
+  /api/constellation/functions/{name}:
+    delete:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
+    get:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
+    put:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
+  /api/constellation/functions/{name}/deploy:
+    post:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
+  /api/constellation/functions/{name}/invoke:
+    post:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
+  /api/constellation/functions/{name}/versions:
+    get:
+      parameters:
+      - description: Function name
+        in: path
+        name: name
+        required: true
+        type: string
+      responses: {}
   /api/constellation/get-next-ip:
     get:
       produces:
@@ -3866,6 +4741,692 @@ paths:
       summary: List public information about all non-blocked Constellation devices
       tags:
       - constellation
+  /api/constellation/registries:
+    get:
+      description: Returns every registry with the accesses publishing it and its
+        stored-size rollup, secrets redacted (Pro feature)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List package registries
+      tags:
+      - registry
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Claims the name, provisions the backing bucket and marks the registry ready.
+        A registry is typed storage (docker/npm/static/generic): publish it by creating
+        an access (Pro feature).
+      parameters:
+      - description: Registry to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistryCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a package registry
+      tags:
+      - registry
+  /api/constellation/registries/{name}:
+    delete:
+      description: |-
+        Removes the record and every metadata key. Refused while an access
+        still publishes it. Stored blobs are PRESERVED unless purgeData=true,
+        which best-effort empties the backing bucket (the bucket itself is
+        left in place) (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Also delete every stored blob
+        in: query
+        name: purgeData
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a package registry
+      tags:
+      - registry
+    get:
+      description: Returns the registry with the accesses publishing it and its stored-size
+        rollup, secrets redacted (Pro feature)
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one package registry
+      tags:
+      - registry
+  /api/constellation/registries/{name}/gc:
+    post:
+      description: |-
+        Starts a mark-and-sweep of the registry's blob store and reconciles its
+        stored-size and package counters. Returns 202 immediately; the outcome
+        arrives as a cosmos.registry.gc event. Blobs younger than 24 hours are
+        never collected, whether or not anything references them (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Run a registry's garbage collection now
+      tags:
+      - registry
+  /api/constellation/registries/{name}/packages:
+    get:
+      description: Returns every package with its versions and their files (Pro feature)
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List the packages of a generic or pypi registry
+      tags:
+      - registry
+  /api/constellation/registries/{name}/packages/{package}:
+    get:
+      description: |-
+        GET returns the package with its versions and files; DELETE removes the
+        package and every version (the stored files are reclaimed by the next
+        GC pass) (Pro feature)
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Package name
+        in: path
+        name: package
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get or delete one generic or pypi package
+      tags:
+      - registry
+  /api/constellation/registries/{name}/packages/{package}/versions:
+    post:
+      consumes:
+      - application/octet-stream
+      description: |-
+        Stores one or more files under a version. Accepts a multipart form (every
+        file part is stored under its own filename) or a single raw file as the
+        request body, in which case the filename query parameter is required.
+        Query parameters: version (default: a UTC timestamp), filename. A file
+        that already exists in the version is refused (409): upload a new version
+        or delete it first. Accepts a Cosmos token with the Resources permission
+        OR a registry deploy token with push scope on an access that exposes this
+        registry (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Package name
+        in: path
+        name: package
+        required: true
+        type: string
+      - description: 'Version (default: UTC timestamp)'
+        in: query
+        name: version
+        type: string
+      - description: Filename, required for a raw body
+        in: query
+        name: filename
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload files into a generic package version
+      tags:
+      - registry
+  /api/constellation/registries/{name}/packages/{package}/versions/{version}:
+    delete:
+      description: |-
+        Removes the version and its file entries; the stored files are reclaimed
+        by the next GC pass. "latest" is re-pointed at the newest remaining
+        version (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Package name
+        in: path
+        name: package
+        required: true
+        type: string
+      - description: Version
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete one generic or pypi package version
+      tags:
+      - registry
+  /api/constellation/registries/{name}/packages/{package}/versions/{version}/files/{file}:
+    get:
+      description: |-
+        GET streams the file (the version may be "latest"); accepts a Cosmos token
+        with the Resources read permission OR a registry deploy token with pull
+        scope. DELETE removes the file entry — and the version, when it was its
+        last file; the stored bytes are reclaimed by the next GC pass (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Package name
+        in: path
+        name: package
+        required: true
+        type: string
+      - description: Version, or latest
+        in: path
+        name: version
+        required: true
+        type: string
+      - description: Filename
+        in: path
+        name: file
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Download or delete one file of a generic or pypi package version
+      tags:
+      - registry
+  /api/constellation/registries/{name}/settings:
+    put:
+      consumes:
+      - application/json
+      description: Replaces the quota. Absent fields keep their stored value (Pro
+        feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Settings to change
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistrySettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a registry's storage settings
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites:
+    get:
+      description: |-
+        Returns every site with its deployments, which one is active, and its
+        route configuration (Pro feature)
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List the sites of a static registry
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites/{site}:
+    get:
+      consumes:
+      - application/json
+      description: |-
+        GET returns the site with its deployments; PUT replaces its route
+        configuration (host, internal, spa, tags — absent fields keep their
+        stored value); DELETE removes the site and all its deployments (the
+        stored zips are reclaimed by the next GC pass) (Pro feature)
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Site name
+        in: path
+        name: site
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get, configure or delete one static site
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites/{site}/activate:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Moves the site's active pointer. This is BOTH deploy and rollback: the
+        deployments are immutable, so switching between them is instant and
+        cannot half-apply. Accepts a Cosmos token with the Resources permission
+        OR a registry deploy token with push scope (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Site name
+        in: path
+        name: site
+        required: true
+        type: string
+      - description: Deployment to activate
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistryStaticActivateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Activate a static-site deployment
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites/{site}/versions:
+    post:
+      consumes:
+      - application/octet-stream
+      description: |-
+        Stores a zip as one immutable deployment. Accepts a multipart form
+        (field "file") or the raw zip as the request body. Query parameters:
+        version (default: a UTC timestamp), activate (default true for the
+        site's first deployment), host/internal/spa/tags to configure the
+        site's route on first upload. Accepts a Cosmos token with the
+        Resources permission OR a registry deploy token with push scope on an
+        access that exposes this registry (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Site name
+        in: path
+        name: site
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload a static-site deployment
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites/{site}/versions/{version}:
+    delete:
+      description: |-
+        Removes the deployment record; the stored zip is reclaimed by the next
+        GC pass. Refused for the deployment that is currently active (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Site name
+        in: path
+        name: site
+        required: true
+        type: string
+      - description: Deployment version
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete one static-site deployment
+      tags:
+      - registry
+  /api/constellation/registries/{name}/sites/{site}/versions/{version}/download:
+    get:
+      description: |-
+        Streams the zip exactly as it was uploaded (the version may be "active"
+        for the one currently served). Accepts a Cosmos token with the Resources
+        read permission OR a registry deploy token with pull scope (Pro feature).
+      parameters:
+      - description: Registry name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Site name
+        in: path
+        name: site
+        required: true
+        type: string
+      - description: Deployment version, or active
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/zip
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: file
+      security:
+      - BearerAuth: []
+      summary: Download one static-site deployment archive
+      tags:
+      - registry
+  /api/constellation/registry-accesses:
+    get:
+      description: Returns every registry endpoint with the nodes currently serving
+        it, token hashes redacted (Pro feature)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List registry accesses
+      tags:
+      - registry
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Publishes one or more registries on a hostname. Every exposed registry
+        must share ONE type, so an access serves exactly one protocol (several
+        docker registries are fine — they namespace by path; an npm or generic
+        access exposes exactly one registry); an empty tag list means every node
+        serves it; internal restricts the endpoint to the constellation (Pro feature).
+      parameters:
+      - description: Access to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistryAccessCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a registry access
+      tags:
+      - registry
+  /api/constellation/registry-accesses/{name}:
+    delete:
+      description: |-
+        Removes the endpoint. The registries it published and everything
+        stored in them are untouched (Pro feature).
+      parameters:
+      - description: Access name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a registry access
+      tags:
+      - registry
+    get:
+      description: Returns the endpoint with the nodes currently serving it, token
+        hashes redacted (Pro feature)
+      parameters:
+      - description: Access name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one registry access
+      tags:
+      - registry
+  /api/constellation/registry-accesses/{name}/settings:
+    put:
+      consumes:
+      - application/json
+      description: |-
+        Replaces the host, exposed registries, visibility, anonymous-pull toggle
+        and/or serving tags. Absent fields keep their stored value (Pro feature).
+      parameters:
+      - description: Access name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Settings to change
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistryAccessSettingsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a registry access
+      tags:
+      - registry
+  /api/constellation/registry-accesses/{name}/tokens:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Returns the raw token ONCE — only its sha256 is stored. Scopes are
+        pull/push, optionally qualified by protocol (e.g. "docker:push") (Pro feature).
+      parameters:
+      - description: Access name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Token to mint
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.RegistryAccessTokenCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Mint a registry deploy token
+      tags:
+      - registry
+  /api/constellation/registry-accesses/{name}/tokens/{tokenName}:
+    delete:
+      description: Revokes the token on every node (Pro feature)
+      parameters:
+      - description: Access name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Token name
+        in: path
+        name: tokenName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a registry deploy token
+      tags:
+      - registry
   /api/constellation/reset:
     get:
       produces:
@@ -3902,6 +5463,114 @@ paths:
       summary: Restart the Nebula VPN service and HTTP server
       tags:
       - constellation
+  /api/constellation/seaweedfs:
+    get:
+      description: Returns every instance with heartbeat-derived status, secrets redacted
+        (Pro feature)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: List managed SeaweedFS instances
+      tags:
+      - seaweedfs
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Provisions 3 pinned masters on the first three constellation managers,
+        a fill-mode volume-server deployment on the chosen tags, a filer+S3
+        deployment behind the tunnel LB, and a managed postgres for the filer
+        store (Pro feature). Refused when fewer than 3 managers are online.
+      parameters:
+      - description: Instance to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/pro.SeaweedFSCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a managed SeaweedFS instance
+      tags:
+      - seaweedfs
+  /api/constellation/seaweedfs/{name}:
+    delete:
+      description: |-
+        Tears down deployments, masters and (by default) the filer database.
+        Volume-server data volumes are PRESERVED unless purgeData=true;
+        keepFilerDB=true keeps the managed database entirely (Pro feature).
+      parameters:
+      - description: Instance name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Also remove the data volumes on every node
+        in: query
+        name: purgeData
+        type: boolean
+      - description: Keep the auto-provisioned filer database
+        in: query
+        name: keepFilerDB
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a managed SeaweedFS instance
+      tags:
+      - seaweedfs
+  /api/constellation/tag-nodes:
+    get:
+      description: |-
+        Returns the nodes whose tags satisfy every requested tag (AND
+        semantics; an empty tag set matches every node), each flagged with
+        whether it is currently heartbeating, plus the cluster totals the
+        UI needs for a "matches N of M nodes" hint (Pro feature).
+        Read-only and answerable from any node.
+      parameters:
+      - description: Comma-separated tags, ANDed together
+        in: query
+        name: tags
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "405":
+          description: Method Not Allowed
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Which nodes a tag set selects
+      tags:
+      - deployments
   /api/constellation/tunnels:
     get:
       produces:
@@ -4364,17 +6033,16 @@ paths:
       - Metrics
   /api/favicon:
     get:
-      description: Fetches and caches the favicon for the given URL, returning it
-        as an image
+      description: Fetches and caches the favicon of a configured route or OpenID
+        client, returning it as an image. Exactly one of route or openid must be given.
       parameters:
-      - description: URL-encoded site URL to fetch favicon for
+      - description: Name of the configured route
         in: query
-        name: q
-        required: true
+        name: route
         type: string
-      - description: Service app mode flag
+      - description: ID of the configured OpenID client
         in: query
-        name: servapp
+        name: openid
         type: string
       produces:
       - application/octet-stream
@@ -4383,12 +6051,8 @@ paths:
           description: OK
           schema:
             type: file
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.HTTPErrorResult'
-        "405":
-          description: Method Not Allowed
+        "404":
+          description: Not Found
           schema:
             $ref: '#/definitions/utils.HTTPErrorResult'
         "500":
@@ -4397,7 +6061,7 @@ paths:
             $ref: '#/definitions/utils.HTTPErrorResult'
       security:
       - BearerAuth: []
-      summary: Get favicon for a URL
+      summary: Get favicon for a route or OpenID client
       tags:
       - system
   /api/force-server-update:
@@ -5813,43 +7477,6 @@ paths:
       summary: Request a password reset
       tags:
       - auth
-  /api/ping:
-    get:
-      description: Checks if a URL is reachable and returns a non-5xx response
-      parameters:
-      - description: URL-encoded site URL to ping
-        in: query
-        name: q
-        required: true
-        type: string
-      - description: Service app mode flag
-        in: query
-        name: servapp
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.APIResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/utils.HTTPErrorResult'
-        "405":
-          description: Method Not Allowed
-          schema:
-            $ref: '#/definitions/utils.HTTPErrorResult'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.HTTPErrorResult'
-      security:
-      - BearerAuth: []
-      summary: Ping a URL
-      tags:
-      - system
   /api/rclone-restart:
     get:
       produces:
@@ -6316,6 +7943,52 @@ paths:
       security:
       - BearerAuth: []
       summary: Export a container configuration as a service definition
+      tags:
+      - docker
+  /api/servapps/{containerId}/lazy/{status}:
+    get:
+      parameters:
+      - description: Container ID or name
+        in: path
+        name: containerId
+        required: true
+        type: string
+      - description: Lazy status (true or false)
+        in: path
+        name: status
+        required: true
+        type: string
+      - description: Idle duration before the container is stopped (Go duration, ex
+          1h)
+        in: query
+        name: idle
+        type: string
+      - description: Readiness timeout after a wake (Go duration, ex 60s)
+        in: query
+        name: startTimeout
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.HTTPErrorResult'
+      security:
+      - BearerAuth: []
+      summary: Enable or disable lazy start (stop when idle) for a Docker container
       tags:
       - docker
   /api/servapps/{containerId}/logs:

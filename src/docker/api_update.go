@@ -49,12 +49,12 @@ func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 		_, _, errImage := DockerClient.ImageInspectWithRaw(DockerContext, imageName)
 		if errImage != nil {
 			utils.Log("PullImageIfMissing - Image not found, pulling " + imageName)
-			fmt.Fprintf(w, "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
+			fmt.Fprintf(w, "%s", "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
 			flusher.Flush()
 			out, errPull := DockerPullImage(imageName)
 			if errPull != nil {
 				utils.Error("PullImageIfMissing - Image not found.", errPull)
-				fmt.Fprintf(w, "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")
+				fmt.Fprintf(w, "%s", "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")
 				flusher.Flush()
 				return
 			}
@@ -64,7 +64,7 @@ func PullImageIfMissing(w http.ResponseWriter, req *http.Request) {
 			scanner := bufio.NewScanner(out)
 			for scanner.Scan() {
 				utils.Log(scanner.Text())
-				fmt.Fprintf(w, scanner.Text() + "\n")
+				fmt.Fprintf(w, "%s", scanner.Text() + "\n")
 				flusher.Flush()
 			}
 
@@ -120,12 +120,12 @@ func PullImage(w http.ResponseWriter, req *http.Request) {
     }
 		
 		utils.Log("PullImageIfMissing - Image not found, pulling " + imageName)
-		fmt.Fprintf(w, "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
+		fmt.Fprintf(w, "%s", "PullImageIfMissing - Image not found, pulling " + imageName + "\n")
 		flusher.Flush()
 		out, errPull := DockerPullImage(imageName)
 		if errPull != nil {
 			utils.Error("PullImageIfMissing - Image not found.", errPull)
-			fmt.Fprintf(w, "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")
+			fmt.Fprintf(w, "%s", "[OPERATION FAILED] PullImageIfMissing - Image not found. " + errPull.Error() + "\n")
 			flusher.Flush()
 			return
 		}
@@ -135,7 +135,7 @@ func PullImage(w http.ResponseWriter, req *http.Request) {
 		scanner := bufio.NewScanner(out)
 		for scanner.Scan() {
 			utils.Log(scanner.Text())
-			fmt.Fprintf(w, scanner.Text() + "\n")
+			fmt.Fprintf(w, "%s", scanner.Text() + "\n")
 			flusher.Flush()
 		}
 

@@ -1,11 +1,14 @@
 package constellation
 
 import (
+	"errors"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
+	"github.com/azukaar/cosmos-server/src/docker"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -41,28 +44,147 @@ func TestUnitTunnelProbeAddress(t *testing.T) {
 	setupTestEnv(t, nil)
 
 	tests := []struct {
-		name      string
-		route     utils.ProxyRouteConfig
-		want      string
-		probeable bool
+		name    string
+		route   utils.ProxyRouteConfig
+		want    string
+		verdict probeVerdict
 	}{
-		{"explicit port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "http://backend:8080"}, "backend:8080", true},
-		{"default http port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "http://backend"}, "backend:80", true},
-		{"default https port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "https://backend"}, "backend:443", true},
-		{"static", utils.ProxyRouteConfig{Mode: "STATIC", Target: "/var/www"}, "", false},
-		{"spa", utils.ProxyRouteConfig{Mode: "SPA", Target: "/var/www"}, "", false},
-		{"redirect", utils.ProxyRouteConfig{Mode: "REDIRECT", Target: "https://elsewhere.com"}, "", false},
-		{"non http scheme", utils.ProxyRouteConfig{Mode: "PROXY", Target: "unix:///var/run/x.sock"}, "", false},
-		{"empty target", utils.ProxyRouteConfig{Mode: "PROXY", Target: ""}, "", false},
+		{"explicit port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "http://backend:8080"}, "backend:8080", probeDial},
+		{"default http port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "http://backend"}, "backend:80", probeDial},
+		{"default https port", utils.ProxyRouteConfig{Mode: "PROXY", Target: "https://backend"}, "backend:443", probeDial},
+		{"static", utils.ProxyRouteConfig{Mode: "STATIC", Target: "/var/www"}, "", probeSkip},
+		{"spa", utils.ProxyRouteConfig{Mode: "SPA", Target: "/var/www"}, "", probeSkip},
+		{"redirect", utils.ProxyRouteConfig{Mode: "REDIRECT", Target: "https://elsewhere.com"}, "", probeSkip},
+		{"non http scheme", utils.ProxyRouteConfig{Mode: "PROXY", Target: "unix:///var/run/x.sock"}, "", probeSkip},
+		{"empty target", utils.ProxyRouteConfig{Mode: "PROXY", Target: ""}, "", probeSkip},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			addr, probeable := tunnelProbeAddress(test.route)
-			if probeable != test.probeable || addr != test.want {
-				t.Errorf("tunnelProbeAddress() = (%q, %v), want (%q, %v)", addr, probeable, test.want, test.probeable)
+			addr, verdict := tunnelProbeAddress(test.route)
+			if verdict != test.verdict || addr != test.want {
+				t.Errorf("tunnelProbeAddress() = (%q, %v), want (%q, %v)", addr, verdict, test.want, test.verdict)
 			}
 		})
+	}
+}
+
+// stubContainer replaces the docker seams for one test.
+func stubContainer(t *testing.T, live docker.ContainerLiveness, liveErr error, ip string, ipErr error) {
+	t.Helper()
+	prevLive, prevIP, prevDormant := probeContainerLiveness, probeContainerIP, probeContainerDormant
+	probeContainerLiveness = func(string) (docker.ContainerLiveness, error) { return live, liveErr }
+	probeContainerIP = func(string) (string, error) { return ip, ipErr }
+	probeContainerDormant = func(string) bool { return false }
+	t.Cleanup(func() {
+		probeContainerLiveness, probeContainerIP, probeContainerDormant = prevLive, prevIP, prevDormant
+	})
+}
+
+// A dormant (asleep) lazy container must stay advertised so a request can wake it.
+func TestUnitTunnelProbeAddressDormantLazyStaysAdvertised(t *testing.T) {
+	setupTestEnv(t, nil)
+	route := utils.ProxyRouteConfig{Mode: "SERVAPP", Target: "http://app:8080"}
+	stubContainer(t, docker.ContainerLiveness{Exists: true, Running: false}, nil, "", nil)
+	probeContainerDormant = func(name string) bool { return name == "app" }
+
+	addr, verdict := tunnelProbeAddress(route)
+	if verdict != probeSkip || addr != "" {
+		t.Fatalf("tunnelProbeAddress() = (%q, %v), want (\"\", probeSkip)", addr, verdict)
+	}
+
+	// once awake it is probed like any other container
+	probeContainerDormant = func(string) bool { return false }
+	if _, verdict := tunnelProbeAddress(route); verdict != probeDown {
+		t.Fatalf("awake-but-stopped verdict = %v, want probeDown", verdict)
+	}
+}
+
+func TestUnitTunnelProbeAddressServapp(t *testing.T) {
+	setupTestEnv(t, nil)
+	route := utils.ProxyRouteConfig{Mode: "SERVAPP", Target: "http://app:8080"}
+
+	up := docker.ContainerLiveness{Exists: true, Running: true, Uptime: time.Minute}
+
+	tests := []struct {
+		name    string
+		live    docker.ContainerLiveness
+		liveErr error
+		ip      string
+		ipErr   error
+		want    string
+		verdict probeVerdict
+	}{
+		{"running and settled", up, nil, "172.17.0.9", nil, "172.17.0.9:8080", probeDial},
+		{"container gone", docker.ContainerLiveness{}, nil, "", nil, "", probeDown},
+		{"restarting", docker.ContainerLiveness{Exists: true}, nil, "", nil, "", probeDown},
+		{"running but too young",
+			docker.ContainerLiveness{Exists: true, Running: true, Uptime: tunnelProbeMinUptime - time.Millisecond},
+			nil, "172.17.0.9", nil, "", probeDown},
+		{"running but no IP", up, nil, "", nil, "", probeDown},
+		{"docker unreachable", docker.ContainerLiveness{}, errors.New("daemon down"), "", nil, "", probeSkip},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			stubContainer(t, test.live, test.liveErr, test.ip, test.ipErr)
+			addr, verdict := tunnelProbeAddress(route)
+			if verdict != test.verdict || addr != test.want {
+				t.Errorf("tunnelProbeAddress() = (%q, %v), want (%q, %v)", addr, verdict, test.want, test.verdict)
+			}
+		})
+	}
+}
+
+// A crash-looping SERVAPP container must stay withdrawn, never reverting to unknown-is-healthy.
+func TestUnitSweepTunnelBackendsCrashLoopStaysWithdrawn(t *testing.T) {
+	setupTestEnv(t, func(cfg *utils.Config) {
+		cfg.HTTPConfig.ProxyConfig.Routes = []utils.ProxyRouteConfig{
+			{Name: "looping", Mode: "SERVAPP", Target: "http://app:8080", Tunnel: "_ANY_"},
+		}
+	})
+
+	// restarting: no IP at all, the state the container is in ~99% of the time
+	stubContainer(t, docker.ContainerLiveness{Exists: true}, nil, "", errors.New("no IP address found"))
+
+	sweepTunnelBackends()
+	sweepTunnelBackends()
+	if healthyByName("looping") {
+		t.Fatal("crash-looping route still healthy after 2 sweeps")
+	}
+
+	// the ~0.5s window where the container IS running, before it dies again
+	stubContainer(t, docker.ContainerLiveness{Exists: true, Running: true, Uptime: 500 * time.Millisecond},
+		nil, "172.17.0.9", nil)
+	sweepTunnelBackends()
+	if healthyByName("looping") {
+		t.Error("route re-advertised during the brief running window of a crash loop")
+	}
+
+	// back to restarting — must not revert to unknown-is-healthy
+	stubContainer(t, docker.ContainerLiveness{Exists: true}, nil, "", errors.New("no IP address found"))
+	for i := 0; i < 3; i++ {
+		sweepTunnelBackends()
+		if healthyByName("looping") {
+			t.Fatalf("route re-advertised on sweep %d while the container was restarting", i+1)
+		}
+	}
+}
+
+// Docker being unreachable must not withdraw a healthy backend.
+func TestUnitSweepTunnelBackendsDockerOutageFailsOpen(t *testing.T) {
+	setupTestEnv(t, func(cfg *utils.Config) {
+		cfg.HTTPConfig.ProxyConfig.Routes = []utils.ProxyRouteConfig{
+			{Name: "app", Mode: "SERVAPP", Target: "http://app:8080", Tunnel: "_ANY_"},
+		}
+	})
+
+	stubContainer(t, docker.ContainerLiveness{}, errors.New("daemon down"), "", nil)
+	for i := 0; i < 3; i++ {
+		sweepTunnelBackends()
+	}
+	if !healthyByName("app") {
+		t.Error("route withdrawn because docker could not be reached, want fail-open")
 	}
 }
 

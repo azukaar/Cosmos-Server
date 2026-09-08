@@ -1,6 +1,6 @@
 module github.com/azukaar/terraform-provider-cosmos
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/azukaar/cosmos-server/go-sdk v0.22.0-unstable04

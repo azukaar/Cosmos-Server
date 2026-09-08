@@ -2,7 +2,9 @@ package docker
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +25,14 @@ const DeploymentLabel = "cosmos-deployment"
 // scheduler compares the value a node reports against the desired version to
 // decide whether a node is running a stale spec and needs a rolling re-apply.
 const DeploymentVersionLabel = "cosmos-deployment-version"
+
+// DeploymentKeepVolumesLabel ("true") marks a deployment as data-bearing: RemoveByDeploymentLabel
+// preserves its named volumes regardless of the keepVolumes argument. Stamped on containers AND volumes.
+const DeploymentKeepVolumesLabel = "cosmos-deployment-keep-volumes"
+
+// DeploymentRoutesLabel holds the comma-joined proxy route names carried by the deployment's
+// compose, so teardown can strip them from config after the KV record is gone.
+const DeploymentRoutesLabel = "cosmos-deployment-routes"
 
 // RemoveByDeploymentLabel discovers and tears down every container, network, and
 // (unless keepVolumes is set) volume labeled cosmos-deployment=<deploymentName>.
@@ -62,6 +72,18 @@ func RemoveByDeploymentLabel(deploymentName string, OnLog func(string), keepVolu
 
 	utils.Log(fmt.Sprintf("[SCHED-NODE] remove deployment=%s (label filter) containers=%d", deploymentName, len(containers)))
 	OnLog(fmt.Sprintf("Removing deployment %s: %d container(s)\n", deploymentName, len(containers)))
+
+	// a keep-volumes label on any container overrides the caller's keepVolumes
+	if !keepVolumes {
+		for _, c := range containers {
+			if c.Labels[DeploymentKeepVolumesLabel] == "true" {
+				keepVolumes = true
+				utils.Log("[SCHED-NODE] remove deployment=" + deploymentName + ": keep-volumes label set, preserving volumes")
+				OnLog(fmt.Sprintf("Deployment %s is marked keep-volumes: named volumes are preserved\n", deploymentName))
+				break
+			}
+		}
+	}
 
 	for _, c := range containers {
 		name := c.ID
@@ -140,6 +162,12 @@ func RemoveByDeploymentLabel(deploymentName string, OnLog func(string), keepVolu
 				if v == nil {
 					continue
 				}
+				// the flag is also stamped on the volume itself: a re-sent remove can arrive after the containers are gone
+				if v.Labels[DeploymentKeepVolumesLabel] == "true" {
+					utils.Log("[SCHED-NODE] remove deployment=" + deploymentName + ": volume " + v.Name + " is marked keep-volumes, preserving it")
+					OnLog(fmt.Sprintf("Volume %s is marked keep-volumes: preserved\n", v.Name))
+					continue
+				}
 				if rmErr := DockerClient.VolumeRemove(DockerContext, v.Name, true); rmErr != nil {
 					utils.Warn("[SCHED-NODE] failed to remove volume " + v.Name + ": " + rmErr.Error())
 					OnLog(utils.DoWarn("Failed to remove volume %s: %s\n", v.Name, rmErr.Error()))
@@ -160,6 +188,45 @@ func RemoveByDeploymentLabel(deploymentName string, OnLog func(string), keepVolu
 	OnLog(fmt.Sprintf("Remove deployment %s complete (%d errors)\n", deploymentName, len(errs)))
 
 	return errs
+}
+
+// RouteNamesByDeploymentLabel returns the distinct proxy route names recorded on the
+// deployment's containers via DeploymentRoutesLabel; called by the scheduler BEFORE teardown.
+func RouteNamesByDeploymentLabel(deploymentName string) ([]string, error) {
+	if err := Connect(); err != nil {
+		return nil, err
+	}
+
+	labelFilter := filters.NewArgs()
+	labelFilter.Add("label", DeploymentLabel+"="+deploymentName)
+
+	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{
+		All:     true,
+		Filters: labelFilter,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	seen := map[string]struct{}{}
+	for _, c := range containers {
+		raw := c.Labels[DeploymentRoutesLabel]
+		if raw == "" {
+			continue
+		}
+		for _, name := range strings.Split(raw, ",") {
+			if name = strings.TrimSpace(name); name != "" {
+				seen[name] = struct{}{}
+			}
+		}
+	}
+
+	names := make([]string, 0, len(seen))
+	for name := range seen {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names, nil
 }
 
 // ContainerIDsByDeploymentLabel returns the container IDs currently labeled
@@ -199,6 +266,11 @@ func ContainerIDsByDeploymentLabel(deploymentName string) ([]string, error) {
 // as healthy and never re-apply it (and the deployments health tab would show it
 // as up). We still list All:true so the docker-side status filter, not a default
 // running-only list, is what scopes the result — keeping the intent explicit.
+// deploymentContainerAlive is the scheduler's notion of a live replica: running, or a lazy container asleep by design.
+func deploymentContainerAlive(c doctype.Container) bool {
+	return c.State == "running" || IsLazyLabels(c.Labels)
+}
+
 func ListDeploymentNamesRunningHere() ([]string, error) {
 	if err := Connect(); err != nil {
 		return nil, err
@@ -206,7 +278,6 @@ func ListDeploymentNamesRunningHere() ([]string, error) {
 
 	labelFilter := filters.NewArgs()
 	labelFilter.Add("label", DeploymentLabel)
-	labelFilter.Add("status", "running")
 
 	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{
 		All:     true,
@@ -218,9 +289,7 @@ func ListDeploymentNamesRunningHere() ([]string, error) {
 
 	seen := map[string]struct{}{}
 	for _, c := range containers {
-		// Defensive: the status filter above should already exclude non-running
-		// containers, but guard in case the daemon returns a broader set.
-		if c.State != "" && c.State != "running" {
+		if !deploymentContainerAlive(c) {
 			continue
 		}
 		if name := c.Labels[DeploymentLabel]; name != "" {
@@ -235,17 +304,7 @@ func ListDeploymentNamesRunningHere() ([]string, error) {
 	return names, nil
 }
 
-// ListDeploymentVersionsRunningHere returns, per deployment with at least one
-// running container on this host, the spec version those containers were created
-// from (the cosmos-deployment-version label). Called from the heartbeat loop to
-// populate NodeHeartbeat.RunningDeploymentVersions so the scheduler can detect a
-// node running a stale spec.
-//
-// A container with no version label (created before versioning, or by an older
-// build) reads as 0. When a deployment's containers disagree on version — the
-// transient window of a multi-service rollout — the LOWEST is reported, so the
-// deployment counts as stale until every one of its containers is on the new
-// version. Same running-only scoping rationale as ListDeploymentNamesRunningHere.
+// ListDeploymentVersionsRunningHere returns, per deployment with at least one running container on this host
 func ListDeploymentVersionsRunningHere() (map[string]int, error) {
 	if err := Connect(); err != nil {
 		return nil, err
@@ -253,7 +312,6 @@ func ListDeploymentVersionsRunningHere() (map[string]int, error) {
 
 	labelFilter := filters.NewArgs()
 	labelFilter.Add("label", DeploymentLabel)
-	labelFilter.Add("status", "running")
 
 	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{
 		All:     true,
@@ -265,7 +323,7 @@ func ListDeploymentVersionsRunningHere() (map[string]int, error) {
 
 	versions := map[string]int{}
 	for _, c := range containers {
-		if c.State != "" && c.State != "running" {
+		if !deploymentContainerAlive(c) {
 			continue
 		}
 		name := c.Labels[DeploymentLabel]
@@ -286,10 +344,48 @@ func ListDeploymentVersionsRunningHere() (map[string]int, error) {
 	return versions, nil
 }
 
-// CleanupExitedDeploymentContainers removes scheduler-managed containers exited for
-// over 30 min (heartbeats only report running ones, so no remove is ever dispatched
-// for the corpse and a pinned container_name would collide with a re-placement).
-// Containers only — volumes/networks are reattached by future replicas. Hourly from CRON.
+// DeploymentRunningAtVersion reports whether every named container is alive with this deployment's label at exactly the given spec version.
+func DeploymentRunningAtVersion(deploymentName string, containerNames []string, version int) bool {
+	if len(containerNames) == 0 {
+		return false
+	}
+	if err := Connect(); err != nil {
+		return false
+	}
+
+	labelFilter := filters.NewArgs()
+	labelFilter.Add("label", DeploymentLabel+"="+deploymentName)
+
+	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{
+		All:     true,
+		Filters: labelFilter,
+	})
+	if err != nil {
+		return false
+	}
+
+	want := strconv.Itoa(version)
+	runningAt := map[string]bool{}
+	for _, c := range containers {
+		if !deploymentContainerAlive(c) {
+			continue
+		}
+		if c.Labels[DeploymentVersionLabel] != want {
+			continue
+		}
+		for _, n := range c.Names {
+			runningAt[strings.TrimPrefix(n, "/")] = true
+		}
+	}
+
+	for _, name := range containerNames {
+		if !runningAt[name] {
+			return false
+		}
+	}
+	return true
+}
+
 func CleanupExitedDeploymentContainers() {
 	if err := Connect(); err != nil {
 		utils.Error("CleanupExitedDeploymentContainers: docker connect failed", err)
@@ -315,6 +411,10 @@ func CleanupExitedDeploymentContainers() {
 		// Defensive: the status filter should already scope to exited, but guard
 		// in case the daemon returns a broader set.
 		if c.State != "" && c.State != "exited" {
+			continue
+		}
+		// a lazy replica is exited by design (stopped by the reaper); the scheduler counts it as alive
+		if deploymentContainerAlive(c) {
 			continue
 		}
 
@@ -352,8 +452,6 @@ func CleanupExitedDeploymentContainers() {
 	}
 }
 
-// ContainerIsRunning returns true when the given container ID is in the "running"
-// Docker state. Used by the scheduler's waitForRunning polling loop.
 func ContainerIsRunning(containerID string) (bool, error) {
 	if err := Connect(); err != nil {
 		return false, err

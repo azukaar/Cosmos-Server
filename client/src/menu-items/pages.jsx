@@ -1,9 +1,6 @@
 // assets
 import { ProfileOutlined, FolderOutlined, PicLeftOutlined, SettingOutlined, NodeExpandOutlined, AppstoreOutlined, ClockCircleOutlined, CloudServerOutlined} from '@ant-design/icons';
 import { PERM_RESOURCES_READ, PERM_USERS_READ, PERM_CONFIGURATION_READ } from '../utils/permissions';
-import ConstellationIcon from '../assets/images/icons/constellation.png';
-import ConstellationWhiteIcon from '../assets/images/icons/constellation_white.png';
-import { DarkModeSwitch } from '../utils/indexs';
 
 // icons
 const icons = {
@@ -22,6 +19,8 @@ const pages = {
         {
             id: 'servapps',
             title: 'menu-items.management.servApps',
+            // Pro calls them Containers; the community build keeps ServApps.
+            titlePro: 'menu-items.management.containers',
             type: 'item',
             url: '/cosmos-ui/servapps',
             icon: AppstoreOutlined,
@@ -49,17 +48,6 @@ const pages = {
             url: '/cosmos-ui/storage',
             icon: icons.FolderOutlined,
             permission: PERM_RESOURCES_READ
-        },
-        {
-            id: 'constellation',
-            title: 'menu-items.management.constellation',
-            type: 'item',
-            url: '/cosmos-ui/constellation',
-            icon: () => <DarkModeSwitch
-                light={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationIcon} />}
-                dark={<img height="28px" width="28px" style={{marginLeft: "-6px"}} src={ConstellationWhiteIcon} />}
-            />,
-            
         },
         {
             id: 'users',

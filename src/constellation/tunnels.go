@@ -25,17 +25,18 @@ func getNATSReplicas() int {
 
 // createKVAtTopology creates a KV bucket at the declared replication factor
 // (R3 in HA, R1 otherwise); creation fails while an HA cluster is still
-// forming and callers retry. A bucket stuck at the wrong replica count is
-// dropped and recreated — these are ephemeral memory caches with short TTLs.
+// forming and callers retry. A bucket at the wrong replica count or storage
+// type (see nodesKVStorage) is dropped and recreated — these are ephemeral
+// caches with short TTLs.
 func createKVAtTopology(cfg nats.KeyValueConfig) (nats.KeyValue, error) {
 	cfg.Replicas = getNATSReplicas()
 	kv, err := js.CreateKeyValue(&cfg)
 	if err == nil {
 		return kv, nil
 	}
-	if si, errInfo := js.StreamInfo("KV_" + cfg.Bucket); errInfo == nil && si.Config.Replicas != cfg.Replicas {
-		utils.Warn("[NATS] KV '" + cfg.Bucket + "' exists with " + strconv.Itoa(si.Config.Replicas) +
-			" replicas instead of " + strconv.Itoa(cfg.Replicas) + ", recreating at the declared topology")
+	if si, errInfo := js.StreamInfo("KV_" + cfg.Bucket); errInfo == nil && kvTopologyOutdated(si.Config, cfg) {
+		utils.Warn("[NATS] KV '" + cfg.Bucket + "' exists as " + describeKVTopology(si.Config.Storage, si.Config.Replicas) +
+			" instead of " + describeKVTopology(cfg.Storage, cfg.Replicas) + ", recreating at the declared topology")
 		if errDel := js.DeleteKeyValue(cfg.Bucket); errDel != nil {
 			return nil, errDel
 		}
@@ -44,12 +45,26 @@ func createKVAtTopology(cfg nats.KeyValueConfig) (nats.KeyValue, error) {
 	return nil, err
 }
 
+// kvTopologyOutdated compares only the fields that decide survival; TTL or
+// description drift is not worth dropping a bucket over.
+func kvTopologyOutdated(have nats.StreamConfig, want nats.KeyValueConfig) bool {
+	return have.Storage != want.Storage || have.Replicas != want.Replicas
+}
+
+func describeKVTopology(storage nats.StorageType, replicas int) string {
+	name := "memory"
+	if storage == nats.FileStorage {
+		name = "file"
+	}
+	return name + "/R" + strconv.Itoa(replicas)
+}
+
 // kvCreatorFallbackAfter: how long a non-designated manager waits on a missing
 // bucket before assuming the designated creator is down and creating it itself.
 const kvCreatorFallbackAfter = 60 * time.Second
 
 // designatedKVCreator elects, deterministically from the local device cache, the
-// manager (lowest sanitized name, CosmosNode == 2) that owns creating the shared
+// manager (lowest device name, CosmosNode == 2) that owns creating the shared
 // 'constellation-nodes' bucket. Best-effort: the liveness fallback and a stale/empty
 // cache can still allow a second creator — the divergence sweep is the backstop.
 func designatedKVCreator() (creator string, isSelf bool) {
@@ -72,13 +87,25 @@ func designatedKVCreator() (creator string, isSelf bool) {
 	return creator, creator == self
 }
 
+// nodesKVStorage: file-backed in HA, memory otherwise. Memory is wrong for a
+// clustered R3 bucket: a restarted memory replica has nothing to elect around
+// while the file-backed stream assignment survives, so a rolling update leaves
+// a stream everyone can resolve and nobody can write — file replicas rejoin
+// from their own logs and re-elect.
+func nodesKVStorage() nats.StorageType {
+	if IsNATSHA() {
+		return nats.FileStorage
+	}
+	return nats.MemoryStorage
+}
+
 // nodesKVConfig: the 'constellation-nodes' bucket shape — an ephemeral 10s-TTL
-// memory cache repopulated by every node's 2s heartbeat, so drop-and-recreate is safe.
+// cache repopulated by every node's 2s heartbeat, so drop-and-recreate is safe.
 func nodesKVConfig() nats.KeyValueConfig {
 	return nats.KeyValueConfig{
 		Bucket:  "constellation-nodes",
 		TTL:     10 * time.Second,
-		Storage: nats.MemoryStorage,
+		Storage: nodesKVStorage(),
 	}
 }
 
@@ -106,7 +133,11 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 			port := configHostport
 
 			if route.UseHost {
-				route.OverwriteHostHeader = route.Host
+				if tunnelHostOverridden(route) {
+					route.OverwriteHostHeader = route.Host
+				} else {
+					route.OverwriteHostHeader = ""
+				}
 
 				// extract port from host if it's a number
 				if strings.Contains(route.Host, ":") {
@@ -121,6 +152,7 @@ func GetAllTunneledRoutes() []utils.ProxyRouteConfig {
 					protocol = route.Target[:idx+3]
 				}
 			} else {
+				route.OverwriteHostHeader = ""
 				// TODO: This wont work needs to copy setting
 				protocol = "http://"
 			}
@@ -261,9 +293,7 @@ func ClientHeartbeatInit() {
 
 	utils.Debug("[NATS] Key-Value store 'constellation-nodes' ready")
 
-	// Resource sampler: caches CPU/RAM snapshots so the heartbeat builder can
-	// read them without paying the 1s cpu.Percent cost on every tick. The
-	// LeastBusyPlacement strategy consumes these.
+	// Resource sampler: caches CPU/memory-pressure samples for the heartbeat builder, scheduler, and load-based LB.
 	pro.StartResourceSampler()
 
 	// Scheduler: runs the deployment reconciler on whichever node wins the
@@ -370,6 +400,9 @@ func ClientHeartbeatInit() {
 		tickCount := 0
 		divergedChecks := 0
 
+		// consecutive failed writes, for the unwritable-bucket alarm at the Put below
+		writeFailures := 0
+
 		for {
 			select {
 			case <-stopChan:
@@ -418,6 +451,25 @@ func ClientHeartbeatInit() {
 					runningVersions = nil
 				}
 
+				// Separate field, never folded into `running`: the scheduler removes
+				// entries there it has no matching deployment for.
+				managedDBs, mdberr := pro.ListManagedDBsRunningHere()
+				if mdberr != nil {
+					utils.Warn("[MDB] failed to list cosmos-managed-db containers for heartbeat: " + mdberr.Error())
+					managedDBs = nil
+				}
+
+				// Same separate-field rationale as ManagedDBs.
+				seaweedFS, swfserr := pro.ListSeaweedFSMastersRunningHere()
+				if swfserr != nil {
+					utils.Warn("[SWFS] failed to list cosmos-seaweedfs containers for heartbeat: " + swfserr.Error())
+					seaweedFS = nil
+				}
+
+				// Derived from access records and tags, not docker; read before
+				// the config lock is taken below — the helper takes it too.
+				registries := pro.RegistryAccessesServedHere(&clientConfigLock, js, device.Tags)
+
 				// Read the latest cached resource sample. Cheap — the
 				// sampler's own goroutine paid the cpu.Percent cost.
 				res := pro.GetCurrentResources()
@@ -433,6 +485,9 @@ func ClientHeartbeatInit() {
 					Hostnames:                 localHostnames(),
 					RunningDeployments:        running,
 					RunningDeploymentVersions: runningVersions,
+					ManagedDBs:                managedDBs,
+					SeaweedFS:                 seaweedFS,
+					Registries:                registries,
 					CPUPercent:                res.CPUPercent,
 					RAMPercent:                res.RAMPercent,
 					MonitoringOn:              res.MonitoringOn,
@@ -489,6 +544,20 @@ func ClientHeartbeatInit() {
 				_, err = kv.Put(key, heartbeatData)
 				if err != nil {
 					utils.Error("[NATS] Error updating heartbeat in Key-Value store", err)
+
+					// The bucket can resolve (off the file-backed meta layer) while its
+					// leaderless stream refuses every write — invisible to
+					// checkNodesKVDivergence. Name it once instead of a wall of per-tick errors.
+					writeFailures++
+					if writeFailures == nodesKVWriteFailureStreak {
+						utils.MajorError("[NATS] 'constellation-nodes' has refused every write for "+
+							(time.Duration(writeFailures)*2*time.Second).String()+
+							" while still resolving: its stream has no leader. NO node reads as live cluster-wide while this lasts — "+
+							"every deployment shows Degraded and the scheduler will not place anything. "+
+							"Recreating the bucket, or restarting the managers together, clears it.", err)
+					}
+				} else {
+					writeFailures = 0
 				}
 
 				// Divergence sweep after the Put so a just-applied cure never
@@ -510,6 +579,12 @@ const nodesKVCureCooldown = 10 * time.Minute
 
 // lastNodesKVCure marks the last cure attempt; only touched from the heartbeat goroutine.
 var lastNodesKVCure time.Time
+
+// nodesKVWriteFailureStreak: consecutive failed heartbeat writes before the
+// bucket is called unwritable (~30s at the 2s tick). Deliberately an alarm,
+// not a drop-and-recreate: the same symptom is genuine quorum loss, which
+// heals by itself when the peers return.
+const nodesKVWriteFailureStreak = 15
 
 // checkNodesKVDivergence detects duplicate keys from kv.Keys() — the signature of two
 // unreconciled same-name stream incarnations after a partition merge, which JetStream
@@ -585,8 +660,8 @@ var heartbeatLock sync.Mutex
 
 // mergeTunnelHeartbeats collapses every advertiser's tunnel routes into one
 // entry per route name. The governing Route config is the one advertised by the
-// lowest sanitized device name (same tiebreak as designatedKVCreator): picking
-// the first seen made the effective config flap with KV iteration order.
+// lowest device name (same tiebreak as designatedKVCreator): picking the first
+// seen made the effective config flap with KV iteration order.
 func mergeTunnelHeartbeats(heartbeats []NodeHeartbeat, currentDeviceName string) []utils.ConstellationTunnel {
 	byName := map[string]*utils.ConstellationTunnel{}
 	governing := map[string]string{}
@@ -640,6 +715,30 @@ func mergeTunnelHeartbeats(heartbeats []NodeHeartbeat, currentDeviceName string)
 	}
 
 	return tunnels
+}
+
+// sortTunnelsForComparison canonicalizes a tunnel list for change detection:
+// stable order, per-target load samples zeroed (they feed the "load_based" LB
+// at request time, and comparing them restarted every LB on every sample).
+// MonitoringOn stays in the comparison: monitoring off is a real change.
+func sortTunnelsForComparison(t []utils.ConstellationTunnel) []utils.ConstellationTunnel {
+	copied := make([]utils.ConstellationTunnel, len(t))
+	for i, tunnel := range t {
+		copied[i] = tunnel
+		copied[i].Targets = make([]utils.TunnelTarget, len(tunnel.Targets))
+		copy(copied[i].Targets, tunnel.Targets)
+		for j := range copied[i].Targets {
+			copied[i].Targets[j].CPUPercent = 0
+			copied[i].Targets[j].RAMPercent = 0
+		}
+		sort.Slice(copied[i].Targets, func(a, b int) bool {
+			return copied[i].Targets[a].DeviceName < copied[i].Targets[b].DeviceName
+		})
+	}
+	sort.Slice(copied, func(i, j int) bool {
+		return copied[i].Route.Name < copied[j].Route.Name
+	})
+	return copied
 }
 
 // tunnelsForNode gates serving on load-balancer status: only LBs serve tunnels,
@@ -717,23 +816,6 @@ func UpdateLocalTunnelCache() {
 	setClusterDNS(buildClusterDNS(heartbeats, loadBalancerIPs()))
 
 	tunnels := tunnelsForNode(heartbeats, currentDeviceName)
-
-	// Compare old and new cache using sorted copies for consistent comparison
-	sortTunnelsForComparison := func(t []utils.ConstellationTunnel) []utils.ConstellationTunnel {
-		copied := make([]utils.ConstellationTunnel, len(t))
-		for i, tunnel := range t {
-			copied[i] = tunnel
-			copied[i].Targets = make([]utils.TunnelTarget, len(tunnel.Targets))
-			copy(copied[i].Targets, tunnel.Targets)
-			sort.Slice(copied[i].Targets, func(a, b int) bool {
-				return copied[i].Targets[a].DeviceName < copied[i].Targets[b].DeviceName
-			})
-		}
-		sort.Slice(copied, func(i, j int) bool {
-			return copied[i].Route.Name < copied[j].Route.Name
-		})
-		return copied
-	}
 
 	changed := !utils.JSONEquals(sortTunnelsForComparison(localTunnelCache), sortTunnelsForComparison(tunnels))
 

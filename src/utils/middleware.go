@@ -348,11 +348,22 @@ func EnsureHostname(next http.Handler) http.Handler {
 		hostnames := GetAllHostnames(false, false)
 
 		reqHostNoPort := strings.Split(r.Host, ":")[0]
-		
+		reqPort := ""
+		if i := strings.LastIndex(r.Host, ":"); i != -1 {
+			reqPort = r.Host[i+1:]
+		}
+
 		isOk := false
 
 		for _, hostname := range hostnames {
 			hostnameNoPort := strings.Split(hostname, ":")[0]
+			if hostnameNoPort == "" {
+				// A ":<port>" route Host is a port-wildcard, so any request Host on that port is legitimate.
+				if p := strings.TrimPrefix(hostname, ":"); p != "" && p == reqPort {
+					isOk = true
+				}
+				continue
+			}
 			if reqHostNoPort == hostnameNoPort {
 				isOk = true
 			}
@@ -504,10 +515,21 @@ func IPInRange(ipStr, cidrStr string) (bool, error) {
 	return cidrNet.Contains(ip), nil
 }
 
+// CheckIPAccess reports whether a peer passes the constellation restriction and inbound whitelist. Only a Nebula device IP satisfies restrictToConstellation.
 func CheckIPAccess(clientIP string, remoteAddr string, restrictToConstellation bool, whitelistIPs []string) bool {
+	return checkIPAccess(clientIP, remoteAddr, restrictToConstellation, whitelistIPs, false)
+}
+
+// CheckRouteIPAccess additionally lets a local peer (IsLocalPeer) satisfy restrictToConstellation; the whitelist is never relaxed.
+func CheckRouteIPAccess(clientIP string, remoteAddr string, restrictToConstellation bool, whitelistIPs []string) bool {
+	return checkIPAccess(clientIP, remoteAddr, restrictToConstellation, whitelistIPs, true)
+}
+
+func checkIPAccess(clientIP string, remoteAddr string, restrictToConstellation bool, whitelistIPs []string, allowLocalPeer bool) bool {
 	isUsingWhiteList := len(whitelistIPs) > 0
 	isInWhitelist := false
 	isInConstellation := IsConstellationIP(remoteAddr)
+	isLocalPeer := allowLocalPeer && IsLocalPeer(remoteAddr)
 
 	for _, ipRange := range whitelistIPs {
 		if strings.Contains(ipRange, "/") {
@@ -522,7 +544,7 @@ func CheckIPAccess(clientIP string, remoteAddr string, restrictToConstellation b
 	}
 
 	if restrictToConstellation {
-		return isInConstellation || isInWhitelist
+		return isInConstellation || isInWhitelist || isLocalPeer
 	}
 	if isUsingWhiteList {
 		return isInWhitelist
@@ -531,6 +553,15 @@ func CheckIPAccess(clientIP string, remoteAddr string, restrictToConstellation b
 }
 
 func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
+	return restrictions(RestrictToConstellation, WhitelistInboundIPs, false)
+}
+
+// RestrictionsAllowLocalHop is Restrictions that lets a loopback peer pass unchecked: on host-wildcard ":<port>" routes it is the socket-proxy listener's already-vetted internal hop, not a client.
+func RestrictionsAllowLocalHop(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
+	return restrictions(RestrictToConstellation, WhitelistInboundIPs, true)
+}
+
+func restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string, allowLocalHop bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -542,7 +573,12 @@ func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) fu
 
 		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
 
-		if !CheckIPAccess(ip, remoteAddr, RestrictToConstellation, WhitelistInboundIPs) {
+		if allowLocalHop && (remoteAddr == "127.0.0.1" || remoteAddr == "::1") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if !CheckRouteIPAccess(ip, remoteAddr, RestrictToConstellation, WhitelistInboundIPs) {
 			PushShieldMetrics("ip-whitelists")
 
 			TriggerEvent(

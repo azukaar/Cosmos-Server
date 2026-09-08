@@ -11,7 +11,6 @@ import {
   CircularProgress,
   useTheme,
   Checkbox,
-  Alert,
 } from "@mui/material";
 import MainCard from "../../../components/MainCard";
 import { PlusCircleOutlined } from "@ant-design/icons";
@@ -151,16 +150,6 @@ const VolumeContainerSetup = ({
             <form noValidate onSubmit={formik.handleSubmit}>
               {wrapCard(
                 <>
-                  {!newContainer &&
-                    containerInfo.State &&
-                    containerInfo.State.Status !== "running" && (
-                      <Alert
-                        severity="warning"
-                        style={{ marginBottom: "15px" }}
-                      >
-                        {t('mgmt.servApps.volumes.containerNotRunningWarning')}
-                      </Alert>
-                    )}
                   <Grid container spacing={4}>
                     <Grid item xs={12}>
                       {volumes && (

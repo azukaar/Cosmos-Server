@@ -271,6 +271,11 @@ func mountRemoteStorage(remoteStorage RemoteStorage) error {
 	liveMounts[mountPoint] = mp
 	mountsMutex.Unlock()
 
+	// Keep the cancel function for the mount's context lifetime
+	serversMutex.Lock()
+	liveCancels[mountPoint] = cancel
+	serversMutex.Unlock()
+
 	utils.Log(fmt.Sprintf("[RemoteStorage] Successfully mounted %s to %s", remoteStorage.Name, mountPoint))
 	return nil
 }

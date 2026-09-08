@@ -25,3 +25,8 @@ func DeploymentsUnbrokeRoute(w http.ResponseWriter, req *http.Request) {
 func NodesUnbrokeRoute(w http.ResponseWriter, req *http.Request) {
 	pro.NodesUnbrokeRoute(w, req, &clientConfigLock, js)
 }
+
+// TagNodesRoute answers "which nodes does this tag set select, right now".
+func TagNodesRoute(w http.ResponseWriter, req *http.Request) {
+	pro.TagNodesRoute(w, req, &clientConfigLock, js)
+}
