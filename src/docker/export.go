@@ -15,7 +15,6 @@ import (
 	"github.com/docker/docker/api/types"
 
 	conttype "github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/mount"
 )
 
 var ExportError = "" 
@@ -96,23 +95,21 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			}(),
 
 			// Volumes
-			Volumes: func() []mount.Mount {
-					mounts := []mount.Mount{}
+			Volumes: func() []CosmosMount {
+					mounts := []CosmosMount{}
 					for _, m := range detailedInfo.Mounts {
-						mount := mount.Mount{
-							Type:        m.Type,
-							Source:      m.Source,
-							Target:      m.Destination,
-							ReadOnly:    !m.RW,
-							// Consistency: mount.Consistency(m.Consistency),
+						cm := CosmosMount{
+							Type:   string(m.Type),
+							Source: m.Source,
+							Target: m.Destination,
 						}
 
 						if m.Type == "volume" {
 							nodata := strings.Split(strings.TrimSuffix(m.Source, "/_data"), "/")
-							mount.Source = nodata[len(nodata)-1]
+							cm.Source = nodata[len(nodata)-1]
 						}
 
-						mounts = append(mounts, mount)
+						mounts = append(mounts, cm)
 					}
 					return mounts
 			}(),
