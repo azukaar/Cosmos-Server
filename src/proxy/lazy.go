@@ -104,9 +104,12 @@ func lazyMiddleware(route utils.ProxyRouteConfig) func(http.Handler) http.Handle
 				return
 			}
 
-			// deferred so the hold covers websocket upgrades and long downloads
-			release := lazyTrackConn(name)
-			defer release()
+			// deferred so the hold covers websocket upgrades and long downloads;
+			// a status probe is not activity and must not reset the idle timer
+			if !probe {
+				release := lazyTrackConn(name)
+				defer release()
+			}
 
 			err := lazyWakeForDial(name, port)
 

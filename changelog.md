@@ -5,6 +5,7 @@
  - Minor load balancing quirk fixes
  - Fix issue with regex in event tab of monitoring
  - Fix PingURL / Favicon fetcher exposing some scanning surface
+ - Can edit stopped containers
 
 ## Version 0.23.04
  - Allow terraform to remove Constellation managers

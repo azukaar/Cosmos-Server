@@ -44,6 +44,13 @@ func LazyContainerRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	// the wake path dials the container's network, unreachable from a bridge-networked Cosmos
+	if status == "true" && utils.IsInsideContainer && !utils.IsHostNetwork {
+		utils.Error("LazyContainer - lazy containers require Cosmos on the host network", nil)
+		utils.HTTPError(w, "Lazy containers are not supported when Cosmos runs in a container without host networking", http.StatusBadRequest, "DS001")
+		return
+	}
+
 	if req.Method == "GET" {
 		idle := utils.Sanitize(req.URL.Query().Get("idle"))
 		startTimeout := utils.Sanitize(req.URL.Query().Get("startTimeout"))
