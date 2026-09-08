@@ -27,6 +27,7 @@
  - Allow client servers in Constellation
 
 ## Version 0.23.00
+ - Fix HTTP to HTTPS redirect returning 404 when HTTPS is enabled
  - Remove Lungo, use SQLite instead
  - Remove MongoDB use SQLite / Postgres instead 
  - Remove date based sync - use opLog based sync
