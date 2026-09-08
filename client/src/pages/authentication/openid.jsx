@@ -50,13 +50,13 @@ const OpenID = () => {
     <Grid container spacing={3}>
       <Grid item xs={12}>
         <Stack spacing={2}>
-          <Typography variant="h3">{t('oidc.title', {client_id: client_id})}</Typography>
+          <Typography variant="h3">{t('oidc.title', {client_id: client_id.replace("__route_", "")})}</Typography>
           <Stack direction="row" justifyContent="space-between" alignItems="baseline" spacing={2} style={{
             alignItems: 'center',
           }}>
             <img src={icon} alt={'icon'} width="64px" />
             <div>
-              <Trans i18nKey='oidc.loginDescription' values={{client_id: client_id}} />
+              <Trans i18nKey='oidc.loginDescription' values={{client_id: client_id.replace("__route_", "")}} />
             </div>
           </Stack>
         </Stack>
