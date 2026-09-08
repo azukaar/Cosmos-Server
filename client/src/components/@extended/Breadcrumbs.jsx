@@ -19,11 +19,22 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
     const [item, setItem] = useState();
     let subItem = '';
 
-    // extract /servapps/stack/:stack
-    const subPath = location.pathname.split('/')[3];
-    if(subPath && location.pathname.split('/')[4]) {
+    // React Router gives us the raw (URL-encoded) pathname; decode segments
+    // (e.g. "My%20Backup" -> "My Backup") before showing them in the UI.
+    const decodePathSegment = (segment) => {
+        try {
+            return decodeURIComponent(segment);
+        } catch (e) {
+            // malformed percent-encoding (e.g. a bare "%"): show as-is
+            return segment;
+        }
+    };
+
+    const pathSegments = location.pathname.split('/');
+    const subPath = pathSegments[3];
+    if(subPath && pathSegments[4]) {
         subItem = <Typography variant="subtitle1" color="textPrimary">
-            {location.pathname.split('/')[4]}
+            {decodePathSegment(pathSegments[4])}
         </Typography>;
     }
 
@@ -93,7 +104,7 @@ const Breadcrumbs = ({ navigation, title, ...others }) => {
                                 </Typography>
                                 {mainContent}
                                 {itemContent}
-                                {subPath && <Typography variant="subtitle1" color="textPrimary">{subPath}</Typography>}
+                                {subPath && <Typography variant="subtitle1" color="textPrimary">{decodePathSegment(subPath)}</Typography>}
                                 {subItem}
                             </MuiBreadcrumbs>
                         </Grid>
