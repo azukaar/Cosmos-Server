@@ -334,7 +334,13 @@ definitions:
           type: string
         type: array
       command:
-        type: string
+        oneOf:
+          - type: string
+            description: Shell-form command line (tokenized into args, quotes respected)
+          - type: array
+            description: Exec-form command arguments (passed verbatim)
+            items:
+              type: string
       container_name:
         type: string
       cpu_shares:
@@ -362,7 +368,13 @@ definitions:
       domainname:
         type: string
       entrypoint:
-        type: string
+        oneOf:
+          - type: string
+            description: Shell-form entrypoint (tokenized into args, quotes respected)
+          - type: array
+            description: Exec-form entrypoint arguments (passed verbatim)
+            items:
+              type: string
       environment:
         items:
           type: string
