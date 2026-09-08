@@ -5766,7 +5766,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns all custom role groups (role ID \u003e= 3)",
+                "description": "Returns all custom role groups (role ID >= 3)",
                 "produces": [
                     "application/json"
                 ],
@@ -11321,13 +11321,15 @@
             "type": "object",
             "properties": {
                 "interval": {
-                    "type": "integer"
+                    "type": "string",
+                    "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
                 },
                 "retries": {
                     "type": "integer"
                 },
                 "start_period": {
-                    "type": "integer"
+                    "type": "string",
+                    "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
                 },
                 "test": {
                     "type": "array",
@@ -11336,7 +11338,8 @@
                     }
                 },
                 "timeout": {
-                    "type": "integer"
+                    "type": "string",
+                    "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
                 }
             }
         },
@@ -11804,7 +11807,7 @@
                     "type": "string"
                 },
                 "licence": {
-                    "description": "Optional: Pro licence key — stored on the lighthouse config and\nvalidated via utils.ProcessLicence at the end of setup.",
+                    "description": "Optional: Pro licence key \u2014 stored on the lighthouse config and\nvalidated via utils.ProcessLicence at the end of setup.",
                     "type": "string"
                 },
                 "mongodbMode": {
@@ -12188,7 +12191,7 @@
                     "minimum": 1
                 },
                 "storage": {
-                    "description": "Storage lists RCLONE remote names this deployment depends on. Checked\nnode-side in executeApply before docker.CreateService runs — a missing\nremote produces StatusFail and flows through the existing fail-streak\nquarantine path. Not a placement filter: RCLONE config is cluster-synced\nvia constellation, so every eligible node has the same remote set.\n${storage.NAME} in compose fields resolves to the mount path on apply.",
+                    "description": "Storage lists RCLONE remote names this deployment depends on. Checked\nnode-side in executeApply before docker.CreateService runs \u2014 a missing\nremote produces StatusFail and flows through the existing fail-streak\nquarantine path. Not a placement filter: RCLONE config is cluster-synced\nvia constellation, so every eligible node has the same remote set.\n${storage.NAME} in compose fields resolves to the mount path on apply.",
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -12203,7 +12206,7 @@
                     ]
                 },
                 "tags": {
-                    "description": "Tags filter eligible placement nodes. A deployment with Tags=[\"gpu\"]\nwill only land on nodes whose ConstellationDevice.Tags contains \"gpu\".\nMultiple tags are AND'd: [\"gpu\",\"nvme\"] requires both. Empty means no\nfilter — any node is eligible.",
+                    "description": "Tags filter eligible placement nodes. A deployment with Tags=[\"gpu\"]\nwill only land on nodes whose ConstellationDevice.Tags contains \"gpu\".\nMultiple tags are AND'd: [\"gpu\",\"nvme\"] requires both. Empty means no\nfilter \u2014 any node is eligible.",
                     "type": "array",
                     "items": {
                         "type": "string"

@@ -467,17 +467,20 @@ definitions:
   docker.ContainerCreateRequestContainerHealthcheck:
     properties:
       interval:
-        type: integer
+        description: Duration string (e.g. "15s", "1m30s", "2h"). Accepts a bare number of seconds for backward compat.
+        type: string
       retries:
         type: integer
       start_period:
-        type: integer
+        description: Duration string (e.g. "15s", "1m30s", "2h"). Accepts a bare number of seconds for backward compat.
+        type: string
       test:
         items:
           type: string
         type: array
       timeout:
-        type: integer
+        description: Duration string (e.g. "15s", "1m30s", "2h"). Accepts a bare number of seconds for backward compat.
+        type: string
     type: object
   docker.ContainerCreateRequestNetwork:
     properties:

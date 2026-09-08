@@ -13583,13 +13583,15 @@
         "type": "object",
         "properties": {
           "interval": {
-            "type": "integer"
+            "type": "string",
+            "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
           },
           "retries": {
             "type": "integer"
           },
           "start_period": {
-            "type": "integer"
+            "type": "string",
+            "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
           },
           "test": {
             "type": "array",
@@ -13598,7 +13600,8 @@
             }
           },
           "timeout": {
-            "type": "integer"
+            "type": "string",
+            "description": "Duration string (e.g. \"15s\", \"1m30s\", \"2h\"). Accepts a bare number of seconds for backward compat."
           }
         }
       },

@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 	"bytes"
 	"errors"
 	"gopkg.in/yaml.v2"
@@ -19,6 +20,43 @@ import (
 )
 
 var ExportError = "" 
+
+// FormatDuration converts a time.Duration (as reported by the docker daemon's
+// container healthcheck config) into a docker-compose-style duration string
+// such as "15s" or "1m30s". This keeps healthcheck duration fields (interval,
+// timeout, start_period) consistent with the format docker-compose expects, so
+// round-tripped exports behave the same as the originals. Zero and negative
+// durations yield "" (absent), matching how compose omits unset fields.
+func FormatDuration(d time.Duration) string {
+	if d <= 0 {
+		return ""
+	}
+	ns := d.Nanoseconds()
+	units := []struct {
+		size time.Duration
+		sym  string
+	}{
+		{time.Hour, "h"},
+		{time.Minute, "m"},
+		{time.Second, "s"},
+		{time.Millisecond, "ms"},
+		{time.Microsecond, "us"},
+		{time.Nanosecond, "ns"},
+	}
+	var b strings.Builder
+	for _, u := range units {
+		if ns >= int64(u.size) {
+			n := ns / int64(u.size)
+			b.WriteString(strconv.FormatInt(n, 10))
+			b.WriteString(u.sym)
+			ns %= int64(u.size)
+		}
+	}
+	if b.Len() == 0 {
+		return "0s"
+	}
+	return b.String()
+}
 
 func ExportContainer(containerID string) (ContainerCreateRequestContainer, error)  {
 		// Fetch detailed info of each container
@@ -144,10 +182,10 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 		// healthcheck
 		if detailedInfo.Config.Healthcheck != nil {
 			service.HealthCheck.Test = detailedInfo.Config.Healthcheck.Test
-			service.HealthCheck.Interval = int(detailedInfo.Config.Healthcheck.Interval.Seconds())
-			service.HealthCheck.Timeout = int(detailedInfo.Config.Healthcheck.Timeout.Seconds())
+			service.HealthCheck.Interval = DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Interval))
+			service.HealthCheck.Timeout = DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Timeout))
 			service.HealthCheck.Retries = detailedInfo.Config.Healthcheck.Retries
-			service.HealthCheck.StartPeriod = int(detailedInfo.Config.Healthcheck.StartPeriod.Seconds())
+			service.HealthCheck.StartPeriod = DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.StartPeriod))
 		}
 
 		// user UID/GID
