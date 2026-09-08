@@ -112,11 +112,21 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                     volumes.push(volume);
                   } else {
                     let volumeSplit = volume.split(':');
+                    // Compose short syntax: SOURCE:TARGET[:MODE...] where MODE
+                    // may include subpath (volume subpath) and ro (read-only).
                     let volumeObj = {
                       source: volumeSplit[0],
-                      target: volumeSplit[1],
+                      target: volumeSplit[1] || "",
                       type: (volume[0] === '/' || volume[0] === '.') ? 'bind' : 'volume',
                     };
+                    const modeSegments = (volumeSplit[2] || '').split(',').map((m) => m.trim()).filter(Boolean);
+                    const subpath = modeSegments.find((m) => m.indexOf('/') > -1 || (m !== 'ro' && m !== 'rw' && m !== 'z' && m !== 'Z' && m !== 'cached' && m !== 'delegated' && m !== 'consistent'));
+                    if (subpath) {
+                      volumeObj.subpath = subpath;
+                    }
+                    if (modeSegments.includes('ro')) {
+                      volumeObj.readOnly = true;
+                    }
                     volumes.push(volumeObj);
                   }
                 });

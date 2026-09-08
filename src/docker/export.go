@@ -1,26 +1,27 @@
 package docker
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
-	"bytes"
-	"errors"
-	"gopkg.in/yaml.v2"
-	"os"
 
 	"github.com/azukaar/cosmos-server/src/utils"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/mount"
 
 	conttype "github.com/docker/docker/api/types/container"
 	strslice "github.com/docker/docker/api/types/strslice"
 )
 
-var ExportError = "" 
+var ExportError = ""
 
 // FormatShmSize converts a raw byte count (as reported by the docker daemon's
 // HostConfig.ShmSize) into a docker-compose-style byte-size string such as
@@ -37,16 +38,17 @@ func FormatShmSize(bytes int64) string {
 		GiB = 1024 * MiB
 	)
 	switch {
-	case bytes % GiB == 0:
-		return strconv.FormatInt(bytes / GiB, 10) + "gb"
-	case bytes % MiB == 0:
-		return strconv.FormatInt(bytes / MiB, 10) + "mb"
-	case bytes % KiB == 0:
-		return strconv.FormatInt(bytes / KiB, 10) + "kb"
+	case bytes%GiB == 0:
+		return strconv.FormatInt(bytes/GiB, 10) + "gb"
+	case bytes%MiB == 0:
+		return strconv.FormatInt(bytes/MiB, 10) + "mb"
+	case bytes%KiB == 0:
+		return strconv.FormatInt(bytes/KiB, 10) + "kb"
 	default:
 		return strconv.FormatInt(bytes, 10) + "b"
 	}
 }
+
 // FormatDuration converts a time.Duration (as reported by the docker daemon's
 // container healthcheck config) into a docker-compose-style duration string
 // such as "15s" or "1m30s". This keeps healthcheck duration fields (interval,
@@ -84,163 +86,165 @@ func FormatDuration(d time.Duration) string {
 	return b.String()
 }
 
-func ExportContainer(containerID string) (ContainerCreateRequestContainer, error)  {
-		// Fetch detailed info of each container
-		detailedInfo, err := DockerClient.ContainerInspect(DockerContext, containerID)
-		if err != nil {
-			ExportError = "Export Docker - Cannot inspect container" + containerID + " - " + err.Error()
-			return ContainerCreateRequestContainer{}, errors.New(ExportError)
-		}
+func ExportContainer(containerID string) (ContainerCreateRequestContainer, error) {
+	// Fetch detailed info of each container
+	detailedInfo, err := DockerClient.ContainerInspect(DockerContext, containerID)
+	if err != nil {
+		ExportError = "Export Docker - Cannot inspect container" + containerID + " - " + err.Error()
+		return ContainerCreateRequestContainer{}, errors.New(ExportError)
+	}
 
-		// Map the detailedInfo to your ContainerCreateRequestContainer struct
-		// Here's a simplified example, you'd need to handle all the fields
-		service := ContainerCreateRequestContainer{
-			Name:         strings.TrimPrefix(detailedInfo.Name, "/"),
-			Image:        detailedInfo.Config.Image,
-			Environment:  detailedInfo.Config.Env,
-			Labels:       detailedInfo.Config.Labels,
-			Command:      strslice.StrSlice(detailedInfo.Config.Cmd),
-			Entrypoint:   strslice.StrSlice(detailedInfo.Config.Entrypoint),
-			WorkingDir:   detailedInfo.Config.WorkingDir,
-			User:         detailedInfo.Config.User,
-			Tty:          detailedInfo.Config.Tty,
-			StdinOpen:    detailedInfo.Config.OpenStdin,
-			Hostname:     func () string { 
-				if string(detailedInfo.HostConfig.NetworkMode) == "bridge" || string(detailedInfo.HostConfig.NetworkMode) == "default" {
-					return detailedInfo.Config.Hostname
-				}
-				return ""
-			}(),
-			Domainname:   detailedInfo.Config.Domainname,
-			MacAddress:   detailedInfo.NetworkSettings.MacAddress,
-			// Normalize container/service refs to stable container:<name>: the
-			// inspect may report a container ID that goes stale on recreate.
-			NetworkMode:  ContainerRefToName(string(detailedInfo.HostConfig.NetworkMode)),
-			StopSignal:   detailedInfo.Config.StopSignal,
-			DNS:              detailedInfo.HostConfig.DNS,
-			DNSSearch:        detailedInfo.HostConfig.DNSSearch,
-			Runtime:		  detailedInfo.HostConfig.Runtime,
-			ExtraHosts:       detailedInfo.HostConfig.ExtraHosts,
-			SecurityOpt:      detailedInfo.HostConfig.SecurityOpt,
-			StorageOpt:       detailedInfo.HostConfig.StorageOpt,
-			Sysctls:          detailedInfo.HostConfig.Sysctls,
-			Isolation:        string(detailedInfo.HostConfig.Isolation),
-			ShmSize:          FormatShmSize(detailedInfo.HostConfig.ShmSize),
-			CapAdd:           detailedInfo.HostConfig.CapAdd,
-			CapDrop:          detailedInfo.HostConfig.CapDrop,
-			Privileged:       detailedInfo.HostConfig.Privileged,
-
-			// Resource constraints
-			MemLimit: func() string {
-				if detailedInfo.HostConfig.Resources.Memory > 0 {
-					return strconv.FormatInt(detailedInfo.HostConfig.Resources.Memory, 10)
-				}
-				return ""
-			}(),
-			MemReservation: func() string {
-				if detailedInfo.HostConfig.Resources.MemoryReservation > 0 {
-					return strconv.FormatInt(detailedInfo.HostConfig.Resources.MemoryReservation, 10)
-				}
-				return ""
-			}(),
-			CPUs:       float64(detailedInfo.HostConfig.Resources.NanoCPUs) / 1e9,
-			CPUShares:  detailedInfo.HostConfig.Resources.CPUShares,
-			CpusetCpus: detailedInfo.HostConfig.Resources.CpusetCpus,
-
-			// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
-			
-			// Ports
-			Ports: func() []string {
-					ports := []string{}
-					for port, binding := range detailedInfo.NetworkSettings.Ports {
-							for _, b := range binding {
-									ports = append(ports, fmt.Sprintf("%s:%s:%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
-							}
-					}
-					return ports
-			}(),
-
-			// Volumes
-			Volumes: func() []CosmosMount {
-					mounts := []CosmosMount{}
-					for _, m := range detailedInfo.Mounts {
-						cm := CosmosMount{
-							Type:   string(m.Type),
-							Source: m.Source,
-							Target: m.Destination,
-						}
-
-						if m.Type == "volume" {
-							nodata := strings.Split(strings.TrimSuffix(m.Source, "/_data"), "/")
-							cm.Source = nodata[len(nodata)-1]
-						}
-
-						mounts = append(mounts, cm)
-					}
-					return mounts
-			}(),
-			// Networks
-			Networks: func() map[string]ContainerCreateRequestServiceNetwork {
-					networks := make(map[string]ContainerCreateRequestServiceNetwork)
-					for netName, _ := range detailedInfo.NetworkSettings.Networks {
-							networks[netName] = ContainerCreateRequestServiceNetwork{
-									// Aliases:     netConfig.Aliases,
-									// IPV4Address: netConfig.IPAddress,
-									// IPV6Address: netConfig.GlobalIPv6Address,
-							}
-					}
-					return networks
-			}(),
-
-			// depends_on is reconstructed from the compose label (stripped from
-			// Labels below) so the *field* is the source of truth for the user.
-			DependsOn:      DependsOnFieldFromLabels(detailedInfo.Config, buildContainerNameIndex()),
-			RestartPolicy:  string(detailedInfo.HostConfig.RestartPolicy.Name),
-			Devices:        func() []string {
-					var devices []string
-					for _, device := range detailedInfo.HostConfig.Devices {
-							devices = append(devices, fmt.Sprintf("%s:%s", device.PathOnHost, device.PathInContainer))
-					}
-					return devices
-			}(),
-			Expose:         []string{},  // This information might need to be derived from other properties
-		}
-
-		// healthcheck
-		if detailedInfo.Config.Healthcheck != nil {
-			service.HealthCheck = &ContainerCreateRequestContainerHealthcheck{
-				Test:        detailedInfo.Config.Healthcheck.Test,
-				Interval:    DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Interval)),
-				Timeout:     DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Timeout)),
-				Retries:     detailedInfo.Config.Healthcheck.Retries,
-				StartPeriod: DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.StartPeriod)),
+	// Map the detailedInfo to your ContainerCreateRequestContainer struct
+	// Here's a simplified example, you'd need to handle all the fields
+	service := ContainerCreateRequestContainer{
+		Name:        strings.TrimPrefix(detailedInfo.Name, "/"),
+		Image:       detailedInfo.Config.Image,
+		Environment: detailedInfo.Config.Env,
+		Labels:      detailedInfo.Config.Labels,
+		Command:     strslice.StrSlice(detailedInfo.Config.Cmd),
+		Entrypoint:  strslice.StrSlice(detailedInfo.Config.Entrypoint),
+		WorkingDir:  detailedInfo.Config.WorkingDir,
+		User:        detailedInfo.Config.User,
+		Tty:         detailedInfo.Config.Tty,
+		StdinOpen:   detailedInfo.Config.OpenStdin,
+		Hostname: func() string {
+			if string(detailedInfo.HostConfig.NetworkMode) == "bridge" || string(detailedInfo.HostConfig.NetworkMode) == "default" {
+				return detailedInfo.Config.Hostname
 			}
-		}
+			return ""
+		}(),
+		Domainname: detailedInfo.Config.Domainname,
+		MacAddress: detailedInfo.NetworkSettings.MacAddress,
+		// Normalize container/service refs to stable container:<name>: the
+		// inspect may report a container ID that goes stale on recreate.
+		NetworkMode: ContainerRefToName(string(detailedInfo.HostConfig.NetworkMode)),
+		StopSignal:  detailedInfo.Config.StopSignal,
+		DNS:         detailedInfo.HostConfig.DNS,
+		DNSSearch:   detailedInfo.HostConfig.DNSSearch,
+		Runtime:     detailedInfo.HostConfig.Runtime,
+		ExtraHosts:  detailedInfo.HostConfig.ExtraHosts,
+		SecurityOpt: detailedInfo.HostConfig.SecurityOpt,
+		StorageOpt:  detailedInfo.HostConfig.StorageOpt,
+		Sysctls:     detailedInfo.HostConfig.Sysctls,
+		Isolation:   string(detailedInfo.HostConfig.Isolation),
+		ShmSize:     FormatShmSize(detailedInfo.HostConfig.ShmSize),
+		CapAdd:      detailedInfo.HostConfig.CapAdd,
+		CapDrop:     detailedInfo.HostConfig.CapDrop,
+		Privileged:  detailedInfo.HostConfig.Privileged,
 
-		// user UID/GID
-		if detailedInfo.Config.User != "" {
-			parts := strings.Split(detailedInfo.Config.User, ":")
-			if len(parts) == 2 {
-				uid, err := strconv.Atoi(parts[0])
-				if err != nil {
-					service.UID = uid
-				}
-				gid, err := strconv.Atoi(parts[1])
-				if err != nil {
-					service.GID = gid
+		// Resource constraints
+		MemLimit: func() string {
+			if detailedInfo.HostConfig.Resources.Memory > 0 {
+				return strconv.FormatInt(detailedInfo.HostConfig.Resources.Memory, 10)
+			}
+			return ""
+		}(),
+		MemReservation: func() string {
+			if detailedInfo.HostConfig.Resources.MemoryReservation > 0 {
+				return strconv.FormatInt(detailedInfo.HostConfig.Resources.MemoryReservation, 10)
+			}
+			return ""
+		}(),
+		CPUs:       float64(detailedInfo.HostConfig.Resources.NanoCPUs) / 1e9,
+		CPUShares:  detailedInfo.HostConfig.Resources.CPUShares,
+		CpusetCpus: detailedInfo.HostConfig.Resources.CpusetCpus,
+
+		// StopGracePeriod:  int(detailedInfo.HostConfig.StopGracePeriod.Seconds()),
+
+		// Ports
+		Ports: func() []string {
+			ports := []string{}
+			for port, binding := range detailedInfo.NetworkSettings.Ports {
+				for _, b := range binding {
+					ports = append(ports, fmt.Sprintf("%s:%s:%s/%s", b.HostIP, b.HostPort, port.Port(), port.Proto()))
 				}
 			}
+			return ports
+		}(),
+
+		// Volumes
+		Volumes: func() []CosmosMount {
+			mounts := []CosmosMount{}
+			// Read the mounts from HostConfig.Mounts rather than the
+			// top-level Mounts (MountPoint) array: the MountPoint struct
+			// has no SubPath field, so a volume subpath would be silently
+			// dropped from the compose/HJSON export. HostConfig.Mounts
+			// preserves VolumeOptions.Subpath.
+			hostMounts := []mount.Mount{}
+			if detailedInfo.HostConfig != nil {
+				hostMounts = detailedInfo.HostConfig.Mounts
+			}
+			for _, m := range hostMounts {
+				cm := FromDockerMount(m)
+				// For volume mounts the daemon reports Source as the
+				// durable volume name, so source is already the compose
+				// volume name (no /_data munging).
+				mounts = append(mounts, cm)
+			}
+			return mounts
+		}(),
+		// Networks
+		Networks: func() map[string]ContainerCreateRequestServiceNetwork {
+			networks := make(map[string]ContainerCreateRequestServiceNetwork)
+			for netName, _ := range detailedInfo.NetworkSettings.Networks {
+				networks[netName] = ContainerCreateRequestServiceNetwork{
+					// Aliases:     netConfig.Aliases,
+					// IPV4Address: netConfig.IPAddress,
+					// IPV6Address: netConfig.GlobalIPv6Address,
+				}
+			}
+			return networks
+		}(),
+
+		// depends_on is reconstructed from the compose label (stripped from
+		// Labels below) so the *field* is the source of truth for the user.
+		DependsOn:     DependsOnFieldFromLabels(detailedInfo.Config, buildContainerNameIndex()),
+		RestartPolicy: string(detailedInfo.HostConfig.RestartPolicy.Name),
+		Devices: func() []string {
+			var devices []string
+			for _, device := range detailedInfo.HostConfig.Devices {
+				devices = append(devices, fmt.Sprintf("%s:%s", device.PathOnHost, device.PathInContainer))
+			}
+			return devices
+		}(),
+		Expose: []string{}, // This information might need to be derived from other properties
+	}
+
+	// healthcheck
+	if detailedInfo.Config.Healthcheck != nil {
+		service.HealthCheck = &ContainerCreateRequestContainerHealthcheck{
+			Test:        detailedInfo.Config.Healthcheck.Test,
+			Interval:    DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Interval)),
+			Timeout:     DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.Timeout)),
+			Retries:     detailedInfo.Config.Healthcheck.Retries,
+			StartPeriod: DurationStr(FormatDuration(detailedInfo.Config.Healthcheck.StartPeriod)),
 		}
+	}
 
-		//expose 
-		// for _, port := range detailedInfo.Config.ExposedPorts {
-			
-		// }
+	// user UID/GID
+	if detailedInfo.Config.User != "" {
+		parts := strings.Split(detailedInfo.Config.User, ":")
+		if len(parts) == 2 {
+			uid, err := strconv.Atoi(parts[0])
+			if err != nil {
+				service.UID = uid
+			}
+			gid, err := strconv.Atoi(parts[1])
+			if err != nil {
+				service.GID = gid
+			}
+		}
+	}
 
-		// hide the internal depends_on label; the field is the source of truth
-		service.Labels = stripInternalDependsOnLabel(service.Labels)
+	//expose
+	// for _, port := range detailedInfo.Config.ExposedPorts {
 
-		return service, nil
+	// }
+
+	// hide the internal depends_on label; the field is the source of truth
+	service.Labels = stripInternalDependsOnLabel(service.Labels)
+
+	return service, nil
 }
 
 // ExportContainerRuntime exports the service definition containing only the
@@ -509,8 +513,8 @@ func ExportDocker() {
 		return
 	}
 
-	ExportError = "" 
-	
+	ExportError = ""
+
 	errD := Connect()
 	if errD != nil {
 		ExportError = "Export Docker - cannot connect - " + errD.Error()
@@ -519,7 +523,7 @@ func ExportDocker() {
 	}
 
 	finalBackup := DockerServiceCreateRequest{}
-	
+
 	// List containers
 	containers, err := DockerClient.ContainerList(DockerContext, conttype.ListOptions{})
 	if err != nil {
@@ -527,7 +531,6 @@ func ExportDocker() {
 		ExportError = "Export Docker - Cannot list containers - " + err.Error()
 		return
 	}
-
 
 	// Convert the containers into your custom format
 	var services = make(map[string]ContainerCreateRequestContainer)
@@ -569,12 +572,12 @@ func ExportDocker() {
 
 		// Map the detailedInfo to ContainerCreateRequestContainer struct
 		network := ContainerCreateRequestNetwork{
-			Name:         detailedInfo.Name,
-			Driver:       detailedInfo.Driver,
-			Internal:     detailedInfo.Internal,
-			Attachable:   detailedInfo.Attachable,
-			EnableIPv6:   detailedInfo.EnableIPv6,
-			Labels:       detailedInfo.Labels,
+			Name:       detailedInfo.Name,
+			Driver:     detailedInfo.Driver,
+			Internal:   detailedInfo.Internal,
+			Attachable: detailedInfo.Attachable,
+			EnableIPv6: detailedInfo.EnableIPv6,
+			Labels:     detailedInfo.Labels,
 		}
 
 		network.IPAM.Driver = detailedInfo.IPAM.Driver
@@ -606,26 +609,26 @@ func ExportDocker() {
 		// encoder.SetIndent("", "  ")
 
 		// Use the encoder to write the structured data to the buffer
-		toExport := map[string]map[string]ContainerCreateRequestContainer {
-			"services": map[string]ContainerCreateRequestContainer {
+		toExport := map[string]map[string]ContainerCreateRequestContainer{
+			"services": map[string]ContainerCreateRequestContainer{
 				os.Getenv("HOSTNAME"): cosmos,
 			},
 		}
 
 		err = encoder.Encode(toExport)
 		if err != nil {
-				utils.MajorError("Export Docker - Cannot marshal docker backup", err)
-				ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
+			utils.MajorError("Export Docker - Cannot marshal docker backup", err)
+			ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
 		}
 
 		// The JSON data is now in buf.Bytes()
 		yamlData := buf.Bytes()
 
 		// Write the JSON data to a file
-		err = ioutil.WriteFile(utils.CONFIGFOLDER + "cosmos.docker-compose.yaml", yamlData, 0600)
+		err = ioutil.WriteFile(utils.CONFIGFOLDER+"cosmos.docker-compose.yaml", yamlData, 0600)
 		if err != nil {
-				utils.MajorError("Export Docker - Cannot save docker backup", err)
-				ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
+			utils.MajorError("Export Docker - Cannot save docker backup", err)
+			ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
 		}
 	}
 
@@ -646,15 +649,15 @@ func ExportDocker() {
 	// Use the encoder to write the structured data to the buffer
 	err = encoder.Encode(finalBackup)
 	if err != nil {
-			utils.MajorError("Export Docker - Cannot marshal docker backup", err)
-			ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
+		utils.MajorError("Export Docker - Cannot marshal docker backup", err)
+		ExportError = "Export Docker - Cannot marshal docker backup - " + err.Error()
 	}
 
 	// The JSON data is now in buf.Bytes()
 	jsonData := buf.Bytes()
 
 	// Write the JSON data to a file
-	err = ioutil.WriteFile(utils.CONFIGFOLDER + "backup.cosmos-compose.json", jsonData, 0600)
+	err = ioutil.WriteFile(utils.CONFIGFOLDER+"backup.cosmos-compose.json", jsonData, 0600)
 	if err != nil {
 		utils.MajorError("Export Docker - Cannot save docker backup", err)
 		ExportError = "Export Docker - Cannot save docker backup - " + err.Error()
