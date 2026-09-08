@@ -460,7 +460,7 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
       }
 }
 
-const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName }) => {
+const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaultName, secrets }) => {
   const { t, i18n } = useTranslation();
   const cleanDefaultName = defaultName && defaultName.replace(/\s/g, '-').replace(/[^a-zA-Z0-9-]/g, '');
   const [step, setStep] = useState(0);
@@ -473,10 +473,26 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
   const [hostnames, setHostnames] = useState({});
   const [overrides, setOverrides] = useState({});
   const [context, setContext] = useState({});
+
   const [installer, setInstaller] = useState(installerInit);
   const [config, setConfig] = useState({});
   const [envContent, setEnvContent] = useState('');
   const [detectedEnvVars, setDetectedEnvVars] = useState([]);
+
+  // Find the highest {token.N} index referenced in the compose template,
+  // or -1 if the template does not use that token at all. Used to generate
+  // {Passwords.N} / {Secrets.N} arrays lazily, only as many entries as the
+  // template actually needs.
+  const maxIndexForToken = (compose, token) => {
+    const re = new RegExp(`\\{${token}\\.([0-9]+)\\}`, 'g');
+    let max = -1;
+    let m;
+    while ((m = re.exec(compose)) !== null) {
+      const idx = parseInt(m[1], 10);
+      if (idx > max) max = idx;
+    }
+    return max;
+  };
 
   // Extract ${VAR} patterns from docker compose
   const extractEnvVars = (compose) => {
@@ -553,20 +569,18 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
     return broken;
   }
 
-  const [passwords, setPasswords] = useState([
-    randomString(24),
-    randomString(24),
-    randomString(24),
-    randomString(24)
-  ]);
+  // Passwords and Secrets are created lazily: we only generate as many
+  // entries as the compose template actually references ({Passwords.N} /
+  // {Secrets.N}), instead of pre-allocating a fixed amount. The values are
+  // stable for the install session once generated (re-renders reuse them);
+  // the count grows on demand when the template asks for a higher index.
+  const [passwords, setPasswords] = useState([]);
+  // Holds locally-generated secret keys when the server did not provide a
+  // batch (manual compose import). Server-provided `secrets` take priority.
+  const [localSecrets, setLocalSecrets] = useState([]);
 
   const resetPassword = () => {
-    setPasswords([
-      randomString(24),
-      randomString(24),
-      randomString(24),
-      randomString(24)
-    ]);
+    setPasswords(Array.from({ length: passwords.length }, () => randomString(24)));
   }
 
 
@@ -615,11 +629,41 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
 
       let isJson = envSubstitutedCompose && envSubstitutedCompose.trim().startsWith('{') && envSubstitutedCompose.trim().endsWith('}');
 
+      // Create Passwords / Secrets lazily based on what the template actually
+      // references: only as many entries as the max {Passwords.N} / {Secrets.N}
+      // index used. Values we already generated stay stable for the session;
+      // if the template asks for a higher index we append fresh entries and
+      // persist them back into state so re-renders reuse the same values.
+      // A missing higher index would render as an empty string in whiskers,
+      // so we always cover every referenced index (min 1 so the bare
+      // {Passwords} / {Secrets} forms are supported too).
+      const needsPasswords = maxIndexForToken(envSubstitutedCompose, 'Passwords') + 1;
+      const needsSecrets = maxIndexForToken(envSubstitutedCompose, 'Secrets') + 1;
+
+      let renderPasswords = passwords;
+      if (renderPasswords.length < needsPasswords) {
+        renderPasswords = Array.from({ length: Math.max(needsPasswords, 1) }, (_, i) => passwords[i] || randomString(24));
+        setPasswords(renderPasswords);
+      }
+      if (renderPasswords.length < 1) {
+        renderPasswords = [randomString(24)];
+        setPasswords(renderPasswords);
+      }
+
+      let renderSecrets = secrets && secrets.length > 0 ? secrets : localSecrets;
+      if (renderSecrets.length < needsSecrets) {
+        renderSecrets = Array.from({ length: Math.max(needsSecrets, 1) }, (_, i) => renderSecrets[i] || randomString(64));
+        if (!secrets || secrets.length === 0) {
+          setLocalSecrets(renderSecrets);
+        }
+      }
+
       const rendered = whiskers.render(envSubstitutedCompose.replace(/{StaticServiceName}/ig, serviceName), {
         ServiceName: serviceName,
         Hostnames: hostnames,
         Context: context,
-        Passwords: passwords,
+        Passwords: renderPasswords,
+        Secrets: renderSecrets,
         CPU_ARCH: API.CPU_ARCH,
         CPU_AVX: API.CPU_AVX,
         DefaultDataPath: (config && config.DockerConfig && config.DockerConfig.DefaultDataPath) || "/cosmos-storage",

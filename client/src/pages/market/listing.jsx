@@ -99,7 +99,7 @@ function ShowcasesItem({ isDark, item, isAdmin }) {
             overflow: 'hidden',
           }}></p>
           <Stack direction="row" spacing={2} justifyContent="flex-start">
-            <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} />
+            <DockerComposeImport installerInit defaultName={item.name} dockerComposeInit={item.compose} secrets={item.secrets} />
             <Link to={"/cosmos-ui/market-listing/cosmos-cloud/" + item.name} style={{
               textDecoration: 'none',
             }}>
@@ -294,7 +294,7 @@ const MarketPage = () => {
 
           <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(openedApp?.translation?.[i18n?.resolvedLanguage]?.longDescription || openedApp?.translation?.[i18n?.resolvedLanguage.substr?.(0,2)]?.longDescription || openedApp.longDescription) }}></div>
 
-          <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} />
+          <DockerComposeImport installerInit defaultName={openedApp.name} dockerComposeInit={openedApp.compose} secrets={openedApp.secrets} />
         </Stack>
       </Stack>
     </Box>}
