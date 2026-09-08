@@ -8,6 +8,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
+
+	conttype "github.com/docker/docker/api/types/container"
 )
 
 // GetContainerRoute godoc
@@ -57,6 +59,11 @@ func GetContainerRoute(w http.ResponseWriter, req *http.Request) {
 				}
 			}
 			container.Config.Env = masked
+		}
+
+		// normalize container refs to stable container:<name> for the UI
+		if container.HostConfig != nil {
+			container.HostConfig.NetworkMode = conttype.NetworkMode(ContainerRefToName(string(container.HostConfig.NetworkMode)))
 		}
 
 		json.NewEncoder(w).Encode(map[string]interface{}{

@@ -526,6 +526,44 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			OpenStdin:    container.StdinOpen,
 		}
 
+		// Tag multi-service compose stacks with cosmos.stack (+ .main) so the
+		// UI groups them and the dependents cascade can scope by stack. Single
+		// services stay untagged.
+		if len(serviceRequest.Services) > 1 {
+			if containerConfig.Labels == nil {
+				containerConfig.Labels = make(map[string]string)
+			}
+			if containerConfig.Labels["cosmos.stack"] == "" && containerConfig.Labels["com.docker.compose.project"] == "" {
+				containerConfig.Labels["cosmos.stack"] = serviceName
+			}
+			// mark the first service as the stack main
+			first := ""
+			for k := range serviceRequest.Services {
+				first = k
+				break
+			}
+			if containerConfig.Labels["cosmos.stack.main"] == "" && serviceName == first {
+				containerConfig.Labels["cosmos.stack.main"] = "true"
+			}
+		}
+
+		// Persist depends_on in compose's com.docker.compose.depends_on label
+		// so runtime restart/recreate paths and compose-imported stacks work.
+		if len(container.DependsOn) > 0 {
+			deps := make(map[string]dependsOnEntry, len(container.DependsOn))
+			for depName, depCfg := range container.DependsOn {
+				cond := depCfg.Condition
+				if cond == "" {
+					cond = DepConditionStarted
+				}
+				deps[depName] = dependsOnEntry{
+					Condition: cond,
+					Restart:   depCfg.Restart == "true" || depCfg.Restart == "always",
+				}
+			}
+			SetDependsOnLabels(containerConfig, deps)
+		}
+
 		// check if there's an empty TZ env, if so, replace it with the host's TZ
 		if containerConfig.Env != nil {
 			for i, env := range containerConfig.Env {
@@ -759,14 +797,19 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			},
 		}
 
-		// cosmos-force-network-mode logic
+		// normalize container/service refs to stable container:<name>
 		if containerConfig.Labels["cosmos-force-network-mode"] == "" {
-			if (strings.HasPrefix(string(hostConfig.NetworkMode), "service:") ||
-				strings.HasPrefix(string(hostConfig.NetworkMode), "container:")) {
-					containerConfig.Labels["cosmos-force-network-mode"] = string(hostConfig.NetworkMode)
+			if NetworkModeContainerRef(string(hostConfig.NetworkMode)) || NetworkModeServiceRef(string(hostConfig.NetworkMode)) {
+				normalized := ContainerRefToName(string(hostConfig.NetworkMode))
+				containerConfig.Labels["cosmos-force-network-mode"] = normalized
+				if normalized != string(hostConfig.NetworkMode) {
+					hostConfig.NetworkMode = conttype.NetworkMode(normalized)
+				}
 			}
 		} else {
-			hostConfig.NetworkMode = conttype.NetworkMode(containerConfig.Labels["cosmos-force-network-mode"])
+			normalized := ContainerRefToName(containerConfig.Labels["cosmos-force-network-mode"])
+			hostConfig.NetworkMode = conttype.NetworkMode(normalized)
+			containerConfig.Labels["cosmos-force-network-mode"] = normalized
 			utils.Debug("Forcing network mode to " + string(hostConfig.NetworkMode))
 		}
 
@@ -1001,8 +1044,26 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 		return err
 	}
 
-	// Start all the newly created containers
+	// Start containers in dependency order, waiting for non-started
+	// conditions (service_healthy / service_completed_successfully).
 	for _, container := range startOrder {
+		if len(container.DependsOn) > 0 {
+			for depName, depCfg := range container.DependsOn {
+				cond := depCfg.Condition
+				if cond == "" {
+					cond = DepConditionStarted
+				}
+				utils.Log(fmt.Sprintf("Waiting for dependency %s (%s) before starting %s", depName, cond, container.Name))
+				OnLog(fmt.Sprintf("Waiting for dependency %s (%s) before starting %s\n", depName, cond, container.Name))
+				if err := WaitForDepCondition(DockerContext, depName, cond); err != nil {
+					utils.Error("CreateService: Start Container", err)
+					OnLog(utils.DoErr("Rolling back changes because of -- dependency wait error: "+err.Error()))
+					Rollback(rollbackActions, OnLog)
+					return err
+				}
+			}
+		}
+
 		err = DockerClient.ContainerStart(DockerContext, container.Name, conttype.StartOptions{})
 		if err != nil {
 			utils.Error("CreateService: Start Container", err)
@@ -1119,6 +1180,45 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 	startOrder := []ContainerCreateRequestContainer{}
 	mustStart := false
 
+	// depends_on keys are compose service names; startOrder is keyed by
+	// container name. network_mode is NOT a depends_on edge in compose: it is
+	// resolved at create and Docker enforces the target exists, so we only add
+	// a soft in-batch ordering constraint (external targets never hard-error).
+	nameByService := map[string]string{}
+	for key, svc := range serviceMap {
+		// container.Name defaults to the service key when container_name is
+		// unset (see CreateService), so this mapping is usually identity.
+		nameByService[key] = svc.Name
+	}
+
+	// also allow matching by container name
+	serviceByName := map[string]string{}
+	for key, svc := range serviceMap {
+		serviceByName[svc.Name] = key
+	}
+
+	// Resolve a dependency reference to a container name. Dependencies are
+	// declared by service key (compose semantics); fall back to matching the
+	// container name directly for robustness.
+	resolveDep := func(dep string) string {
+		if name, ok := nameByService[dep]; ok && name != "" {
+			return name
+		}
+		return dep
+	}
+
+	// inBatch reports whether a service/container name is part of this compose
+	// creation batch (by service key OR by container name).
+	inBatch := func(name string) bool {
+		if _, ok := serviceMap[name]; ok {
+			return true
+		}
+		if _, ok := serviceByName[name]; ok {
+			return true
+		}
+		return false
+	}
+
 	for len(serviceMap) > 0 {
 		// Keep track of whether we've added any services in this iteration
 		changed := false
@@ -1128,12 +1228,20 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			if dependencies == nil {
 				dependencies = make(map[string]ContainerCreateRequestContainerDependsOnCont)
 			}
-			
-			// if network_mode is container: then we need to add a dependency
-			if strings.HasPrefix(string(service.NetworkMode), "container:") {
-				depService := strings.TrimPrefix(string(service.NetworkMode), "container:")
-				dependencies[depService] = ContainerCreateRequestContainerDependsOnCont{
-					Condition: "service_started",
+
+			// Soft ordering constraint: if network_mode references another
+			// service that is part of this batch, that service must start
+			// first. Unlike depends_on this never hard-fails for an external
+			// target: if the referenced container is not in the batch, Docker
+			// enforces it exists at create time (compose parity).
+			if nm := string(service.NetworkMode); strings.HasPrefix(nm, "container:") || strings.HasPrefix(nm, "service:") {
+				target := strings.TrimPrefix(strings.TrimPrefix(nm, "container:"), "service:")
+				if target != "" && inBatch(target) {
+					if _, ok := dependencies[target]; !ok {
+						dependencies[target] = ContainerCreateRequestContainerDependsOnCont{
+							Condition: "service_started",
+						}
+					}
 				}
 			}
 
@@ -1141,9 +1249,10 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			// Check if all dependencies are already in startOrder
 			allDependenciesStarted := true
 			for dependency, dependencyDetails := range dependencies {
+				depName := resolveDep(dependency)
 				dependencyStarted := false
 				for _, startedService := range startOrder {
-					if startedService.Name == dependency {
+					if startedService.Name == depName {
 						dependencyStarted = true
 
 						if dependencyDetails.Condition == "service_healthy" || dependencyDetails.Condition == "service_started" {
@@ -1151,6 +1260,14 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 						}
 
 						break
+					}
+				}
+				// A dependency on a service not in this compose batch (e.g. an
+				// external/named container): the target must already exist; we
+				// treat it as satisfied (Docker will fail create if it doesn't).
+				if !dependencyStarted {
+					if !inBatch(dependency) {
+						dependencyStarted = true
 					}
 				}
 				if !dependencyStarted {
@@ -1181,15 +1298,8 @@ func ReOrderServices(serviceMap map[string]ContainerCreateRequestContainer) ([]C
 			errorMessage += "Could not start service: " + name + "\n"
 			errorMessage += "Unsatisfied dependencies:\n"
 
-			// if network_mode is container: then we need to add a dependency
-			if strings.HasPrefix(string(serviceMap[name].NetworkMode), "container:") {
-				depService := strings.TrimPrefix(string(serviceMap[name].NetworkMode), "container:")
-				errorMessage += depService + " (network_mode)\n"
-			}
-
 			for dependency, _ := range serviceMap[name].DependsOn {
-				_, ok := serviceMap[dependency]
-				if ok {
+				if inBatch(dependency) {
 					errorMessage += dependency + "\n"
 				}
 			}
