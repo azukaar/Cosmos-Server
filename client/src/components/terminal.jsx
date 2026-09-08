@@ -119,6 +119,16 @@ const TerminalComponent = ({refresh, connectButtons}) => {
     });
 
     terminal.onData((data) => {
+      // Ignore keystrokes that browsers report with a ghost key name instead of
+      // a real character (Android Firefox: "Process", Android Chrome/WebView:
+      // "Unidentified", some desktop layouts: "AltGraph", dead keys: "Dead").
+      // They are composite/placeholder identifiers, not input to the shell.
+      const ghostKeys = ['altgraph', 'process', 'unidentified', 'dead'];
+      const isGhost = ghostKeys.some((ghost) => data.toLowerCase().includes(ghost));
+      if (isGhost) {
+        return;
+      }
+
       if (data.startsWith("\x1b[200~") && data.endsWith("\x1b[201~")) {
         ws.current.send(data);
       }
@@ -140,15 +150,32 @@ const TerminalComponent = ({refresh, connectButtons}) => {
         'PageDown': '\x1b[6~',
         'Delete': '\x1b[3~',
       };
+      // Keys that are modifiers or browser-internal placeholders: they carry no
+      // printable character, so they must never be sent to the shell.
+      // "AltGraph" (AltGr), "Process" (Android Firefox) and "Unidentified"
+      // (Android Chrome) are the main culprits, see
+      // https://github.com/azukaar/Cosmos-Server/issues/434
       const cancelKeys = [
         'Shift',
         'Meta',
         'Alt',
+        'AltGraph',
         'Control',
         'CapsLock',
         'NumLock',
         'ScrollLock',
         'Pause',
+        'OS',
+        'ContextMenu',
+        'Fn',
+        'FnLock',
+        'Hyper',
+        'Super',
+        'Symbol',
+        'SymbolLock',
+        'Dead',
+        'Process',
+        'Unidentified',
       ];
       const codesCtrl = {
         'a': '\x01', // Beginning of line
@@ -162,8 +189,14 @@ const TerminalComponent = ({refresh, connectButtons}) => {
         'ArrowLeft': '\x1b[1;5D',  // CTRL + Left Arrow
         'ArrowRight': '\x1b[1;5C', // CTRL + Right Arrow
       };
-           
+
+      const isPrintable = (str) => /^.$/u.test(str);
+
       if (e.type === 'keydown') {
+        // AltGr on Windows/Linux is reported as Ctrl+Alt (and/or AltGraph).
+        // We don't want to send the modifier itself — let the following keyup
+        // with the actual character (e.g. '@') come through on its own.
+        const isAltGr = (e.ctrlKey && e.altKey) || e.getModifierState && e.getModifierState('AltGraph');
         if (e.ctrlKey && codesCtrl[e.key]) {
           ws.current.send(codesCtrl[e.key]);
           e.preventDefault(); // Prevent default browser behavior
@@ -171,7 +204,12 @@ const TerminalComponent = ({refresh, connectButtons}) => {
           ws.current.send(codes[e.key]);
         } else if (cancelKeys.includes(e.key)) {
           return false;
-        } else {
+        } else if (isAltGr) {
+          return false;
+        } else if (e.ctrlKey || e.altKey || e.metaKey) {
+          // Unknown modifier combination: don't leak the bare key name.
+          return false;
+        } else if (isPrintable(e.key)) {
           ws.current.send(e.key);
         }
       } else if (e.type === 'keyup') {
