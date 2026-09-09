@@ -11,7 +11,6 @@ import (
 	containerType "github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/gorilla/mux"
 )
 
@@ -23,7 +22,7 @@ type ContainerForm struct {
 	Devices        []string          `json:"devices"`
 	Labels         map[string]string `json:"labels"`
 	PortBindings   nat.PortMap       `json:"portBindings"`
-	Volumes        []mount.Mount     `json:"Volumes"`
+	Volumes        []CosmosMount     `json:"volumes"`
 	// we make this a int so that we can ignore 0
 	Interactive    int               `json:"interactive"`
 	NetworkMode 	 string           `json:"networkMode"`
@@ -127,7 +126,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		if(form.Volumes != nil) {
-			container.HostConfig.Mounts = form.Volumes
+			container.HostConfig.Mounts = ToDockerMountSlice(form.Volumes)
 			container.HostConfig.Binds = []string{}
 		}
 		if(form.Interactive != 0) {
@@ -135,17 +134,19 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.OpenStdin = form.Interactive == 2
 		}
 		if(form.NetworkMode != "") {
-			container.HostConfig.NetworkMode = containerType.NetworkMode(form.NetworkMode)
+			// normalize container/service refs to stable container:<name>
+			networkMode := ContainerRefToName(form.NetworkMode)
+			container.HostConfig.NetworkMode = containerType.NetworkMode(networkMode)
 			// if not bridge, remove mac address
-			if form.NetworkMode != "bridge" &&
-				 form.NetworkMode != "default" {
+			if networkMode != "bridge" &&
+				 networkMode != "default" {
 					container.Config.MacAddress = ""
 			}
 			// update cosmos-force-network-mode label
 			if container.Config.Labels == nil {
 				container.Config.Labels = make(map[string]string)
 			}
-			container.Config.Labels["cosmos-force-network-mode"] = form.NetworkMode
+			container.Config.Labels["cosmos-force-network-mode"] = networkMode
 		}
 
 		// Resource constraints

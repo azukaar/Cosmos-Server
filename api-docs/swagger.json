@@ -11124,7 +11124,10 @@
                     }
                 },
                 "command": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "container_name": {
                     "type": "string"
@@ -11166,7 +11169,10 @@
                     "type": "string"
                 },
                 "entrypoint": {
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "environment": {
                     "type": "array",
@@ -11265,6 +11271,9 @@
                         "type": "string"
                     }
                 },
+                "shm_size": {
+                    "type": "string"
+                },
                 "stdin_open": {
                     "type": "boolean"
                 },
@@ -11298,7 +11307,7 @@
                 "volumes": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/mount.Mount"
+                        "$ref": "#/definitions/docker.CosmosMount"
                     }
                 },
                 "working_dir": {
@@ -11321,13 +11330,13 @@
             "type": "object",
             "properties": {
                 "interval": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "retries": {
                     "type": "integer"
                 },
                 "start_period": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "test": {
                     "type": "array",
@@ -11336,7 +11345,7 @@
                     }
                 },
                 "timeout": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
@@ -11436,12 +11445,6 @@
         "docker.ContainerForm": {
             "type": "object",
             "properties": {
-                "Volumes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/mount.Mount"
-                    }
-                },
                 "cpus": {
                     "type": "number"
                 },
@@ -11483,6 +11486,38 @@
                     "type": "string"
                 },
                 "user": {
+                    "type": "string"
+                },
+                "volumes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/docker.CosmosMount"
+                    }
+                }
+            }
+        },
+        "docker.CosmosMount": {
+            "type": "object",
+            "properties": {
+                "noCopy": {
+                    "description": "NoCopy is the volume-nocopy mount option (VolumeOptions.NoCopy). It is\nauto-enabled for subpath mounts on engines older than Docker 29.5.0 as a\nworkaround for moby#52546, but users can also set it explicitly; it is\npreserved through the export round-trip.",
+                    "type": "boolean"
+                },
+                "readOnly": {
+                    "description": "ReadOnly mounts the source read-only (compose short-syntax `:ro`).",
+                    "type": "boolean"
+                },
+                "source": {
+                    "type": "string"
+                },
+                "subpath": {
+                    "description": "SubPath mounts a subdirectory (or a single file) inside a named\nvolume instead of the whole volume, like docker-compose's `subpath`.\nIt is wired to mount.VolumeOptions.Subpath for volume mounts.",
+                    "type": "string"
+                },
+                "target": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }
@@ -11845,167 +11880,6 @@
                 }
             }
         },
-        "mount.BindOptions": {
-            "type": "object",
-            "properties": {
-                "createMountpoint": {
-                    "type": "boolean"
-                },
-                "nonRecursive": {
-                    "type": "boolean"
-                },
-                "propagation": {
-                    "$ref": "#/definitions/mount.Propagation"
-                },
-                "readOnlyForceRecursive": {
-                    "description": "ReadOnlyForceRecursive raises an error if the mount cannot be made recursively read-only.",
-                    "type": "boolean"
-                },
-                "readOnlyNonRecursive": {
-                    "description": "ReadOnlyNonRecursive makes the mount non-recursively read-only, but still leaves the mount recursive\n(unless NonRecursive is set to true in conjunction).",
-                    "type": "boolean"
-                }
-            }
-        },
-        "mount.ClusterOptions": {
-            "type": "object"
-        },
-        "mount.Consistency": {
-            "type": "string",
-            "enum": [
-                "consistent",
-                "cached",
-                "delegated",
-                "default"
-            ],
-            "x-enum-varnames": [
-                "ConsistencyFull",
-                "ConsistencyCached",
-                "ConsistencyDelegated",
-                "ConsistencyDefault"
-            ]
-        },
-        "mount.Driver": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "options": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "mount.Mount": {
-            "type": "object",
-            "properties": {
-                "bindOptions": {
-                    "$ref": "#/definitions/mount.BindOptions"
-                },
-                "clusterOptions": {
-                    "$ref": "#/definitions/mount.ClusterOptions"
-                },
-                "consistency": {
-                    "$ref": "#/definitions/mount.Consistency"
-                },
-                "readOnly": {
-                    "description": "attempts recursive read-only if possible",
-                    "type": "boolean"
-                },
-                "source": {
-                    "description": "Source specifies the name of the mount. Depending on mount type, this\nmay be a volume name or a host path, or even ignored.\nSource is not supported for tmpfs (must be an empty value)",
-                    "type": "string"
-                },
-                "target": {
-                    "type": "string"
-                },
-                "tmpfsOptions": {
-                    "$ref": "#/definitions/mount.TmpfsOptions"
-                },
-                "type": {
-                    "$ref": "#/definitions/mount.Type"
-                },
-                "volumeOptions": {
-                    "$ref": "#/definitions/mount.VolumeOptions"
-                }
-            }
-        },
-        "mount.Propagation": {
-            "type": "string",
-            "enum": [
-                "rprivate",
-                "private",
-                "rshared",
-                "shared",
-                "rslave",
-                "slave"
-            ],
-            "x-enum-varnames": [
-                "PropagationRPrivate",
-                "PropagationPrivate",
-                "PropagationRShared",
-                "PropagationShared",
-                "PropagationRSlave",
-                "PropagationSlave"
-            ]
-        },
-        "mount.TmpfsOptions": {
-            "type": "object",
-            "properties": {
-                "mode": {
-                    "description": "Mode of the tmpfs upon creation",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/os.FileMode"
-                        }
-                    ]
-                },
-                "sizeBytes": {
-                    "description": "Size sets the size of the tmpfs, in bytes.\n\nThis will be converted to an operating system specific value\ndepending on the host. For example, on linux, it will be converted to\nuse a 'k', 'm' or 'g' syntax. BSD, though not widely supported with\ndocker, uses a straight byte value.\n\nPercentages are not supported.",
-                    "type": "integer"
-                }
-            }
-        },
-        "mount.Type": {
-            "type": "string",
-            "enum": [
-                "bind",
-                "volume",
-                "tmpfs",
-                "npipe",
-                "cluster"
-            ],
-            "x-enum-varnames": [
-                "TypeBind",
-                "TypeVolume",
-                "TypeTmpfs",
-                "TypeNamedPipe",
-                "TypeCluster"
-            ]
-        },
-        "mount.VolumeOptions": {
-            "type": "object",
-            "properties": {
-                "driverConfig": {
-                    "$ref": "#/definitions/mount.Driver"
-                },
-                "labels": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "noCopy": {
-                    "type": "boolean"
-                },
-                "subpath": {
-                    "type": "string"
-                }
-            }
-        },
         "nat.PortBinding": {
             "type": "object",
             "properties": {
@@ -12033,92 +11907,6 @@
             "additionalProperties": {
                 "type": "object"
             }
-        },
-        "os.FileMode": {
-            "type": "integer",
-            "format": "int32",
-            "enum": [
-                2147483648,
-                1073741824,
-                536870912,
-                268435456,
-                134217728,
-                67108864,
-                33554432,
-                16777216,
-                8388608,
-                4194304,
-                2097152,
-                1048576,
-                524288,
-                2401763328,
-                511,
-                2147483648,
-                1073741824,
-                536870912,
-                268435456,
-                134217728,
-                67108864,
-                33554432,
-                16777216,
-                8388608,
-                4194304,
-                2097152,
-                1048576,
-                524288,
-                2401763328,
-                511
-            ],
-            "x-enum-comments": {
-                "ModeAppend": "a: append-only",
-                "ModeCharDevice": "c: Unix character device, when ModeDevice is set",
-                "ModeDevice": "D: device file",
-                "ModeDir": "d: is a directory",
-                "ModeExclusive": "l: exclusive use",
-                "ModeIrregular": "?: non-regular file; nothing else is known about this file",
-                "ModeNamedPipe": "p: named pipe (FIFO)",
-                "ModePerm": "Unix permission bits, 0o777",
-                "ModeSetgid": "g: setgid",
-                "ModeSetuid": "u: setuid",
-                "ModeSocket": "S: Unix domain socket",
-                "ModeSticky": "t: sticky",
-                "ModeSymlink": "L: symbolic link",
-                "ModeTemporary": "T: temporary file; Plan 9 only"
-            },
-            "x-enum-descriptions": [
-                "d: is a directory",
-                "a: append-only",
-                "l: exclusive use",
-                "T: temporary file; Plan 9 only",
-                "L: symbolic link",
-                "D: device file",
-                "p: named pipe (FIFO)",
-                "S: Unix domain socket",
-                "u: setuid",
-                "g: setgid",
-                "c: Unix character device, when ModeDevice is set",
-                "t: sticky",
-                "?: non-regular file; nothing else is known about this file",
-                "",
-                "Unix permission bits, 0o777"
-            ],
-            "x-enum-varnames": [
-                "ModeDir",
-                "ModeAppend",
-                "ModeExclusive",
-                "ModeTemporary",
-                "ModeSymlink",
-                "ModeDevice",
-                "ModeNamedPipe",
-                "ModeSocket",
-                "ModeSetuid",
-                "ModeSetgid",
-                "ModeCharDevice",
-                "ModeSticky",
-                "ModeIrregular",
-                "ModeType",
-                "ModePerm"
-            ]
         },
         "pro.CreateGroupRequest": {
             "type": "object",
