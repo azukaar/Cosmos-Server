@@ -11,7 +11,6 @@ import (
 	containerType "github.com/docker/docker/api/types/container"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/gorilla/mux"
 )
 
@@ -23,7 +22,7 @@ type ContainerForm struct {
 	Devices        []string          `json:"devices"`
 	Labels         map[string]string `json:"labels"`
 	PortBindings   nat.PortMap       `json:"portBindings"`
-	Volumes        []mount.Mount     `json:"Volumes"`
+	Volumes        []CosmosMount     `json:"volumes"`
 	// we make this a int so that we can ignore 0
 	Interactive    int               `json:"interactive"`
 	NetworkMode 	 string           `json:"networkMode"`
@@ -127,7 +126,7 @@ func UpdateContainerRoute(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		if(form.Volumes != nil) {
-			container.HostConfig.Mounts = form.Volumes
+			container.HostConfig.Mounts = ToDockerMountSlice(form.Volumes)
 			container.HostConfig.Binds = []string{}
 		}
 		if(form.Interactive != 0) {

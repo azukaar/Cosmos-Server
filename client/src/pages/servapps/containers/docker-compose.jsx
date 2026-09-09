@@ -111,11 +111,21 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
                     volumes.push(volume);
                   } else {
                     let volumeSplit = volume.split(':');
+                    // Compose short syntax: SOURCE:TARGET[:MODE...] where MODE
+                    // may include subpath (volume subpath) and ro (read-only).
                     let volumeObj = {
                       source: volumeSplit[0],
-                      target: volumeSplit[1],
+                      target: volumeSplit[1] || "",
                       type: (volume[0] === '/' || volume[0] === '.') ? 'bind' : 'volume',
                     };
+                    const modeSegments = (volumeSplit[2] || '').split(',').map((m) => m.trim()).filter(Boolean);
+                    const subpath = modeSegments.find((m) => m.indexOf('/') > -1 || (m !== 'ro' && m !== 'rw' && m !== 'z' && m !== 'Z' && m !== 'cached' && m !== 'delegated' && m !== 'consistent'));
+                    if (subpath) {
+                      volumeObj.subpath = subpath;
+                    }
+                    if (modeSegments.includes('ro')) {
+                      volumeObj.readOnly = true;
+                    }
                     volumes.push(volumeObj);
                   }
                 });
@@ -249,21 +259,18 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
-            // convert healthcheck
+            // convert healthcheck: docker-compose uses duration strings
+            // (e.g. "15s", "1m30s", "5m") for interval/timeout/start_period —
+            // keep them as strings so the backend can parse them with the same
+            // semantics as docker-compose itself.
             if (doc.services[key].healthcheck) {
-              const toConvert = ["timeout", "interval", "start_period"];
-              toConvert.forEach((valT) => {
-                if(typeof doc.services[key].healthcheck[valT] === 'string') {
-                  let original = doc.services[key].healthcheck[valT];
-                  let value = parseInt(original);
-                  if (original.endsWith('m')) {
-                    value = value * 60;
-                  } else if (original.endsWith('h')) {
-                    value = value * 60 * 60;
-                  } else if (original.endsWith('d')) {
-                    value = value * 60 * 60 * 24;
-                  }
-                  doc.services[key].healthcheck[valT] = value;
+              const durationFields = ["timeout", "interval", "start_period"];
+              durationFields.forEach((valT) => {
+                const val = doc.services[key].healthcheck[valT];
+                if (typeof val === 'number' && !Number.isNaN(val)) {
+                  // Accept a bare number for backward compat with older compose
+                  // files, but normalize it to a duration string (seconds).
+                  doc.services[key].healthcheck[valT] = String(val) + 's';
                 }
               });
             }
@@ -1027,9 +1034,9 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                           Binds: [],
                           Mounts: value.volumes && Object.keys(value.volumes).map(k => {
                             return {
-                              Type: value.volumes[k].type || (k.startsWith('/') ? t('mgmt.servapps.newContainer.volumes.bindInput') : t('global.volume')),
-                              Source: value.volumes[k].source || "",
-                              Target: value.volumes[k].target || "",
+                              type: value.volumes[k].type || (k.startsWith('/') ? 'bind' : 'volume'),
+                              source: value.volumes[k].source || "",
+                              target: value.volumes[k].target || "",
                             }
                           }) || [],
                         }
@@ -1041,10 +1048,10 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
                             ...overrides[value.container_name],
                             volumes: containerInfo.volumes.map((v, k) => {
                               return {
-                                type: v.Type,
-                                source: v.Source,
-                                target: v.Target,
-                                existing: v.Type == 'volume' && volumes.find(v2 => v2.Source === v.Name),
+                                type: v.type,
+                                source: v.source,
+                                target: v.target,
+                                existing: v.type == 'volume' && volumes.find(v2 => v2.source === v.name),
                               }
                             })
                           }

@@ -15,7 +15,6 @@ import (
 	"reflect"
 	"github.com/docker/go-connections/nat"
 	"github.com/docker/go-units"
-	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
 	conttype "github.com/docker/docker/api/types/container"
 	doctype "github.com/docker/docker/api/types"
@@ -33,10 +32,67 @@ type ContainerCreateRequestServiceNetwork struct {
 
 type ContainerCreateRequestContainerHealthcheck struct {
 	Test        []string `json:"test"`
-	Interval int `json:"interval"`
-	Timeout int `json:"timeout"`
+	Interval DurationStr `json:"interval"`
+	Timeout DurationStr `json:"timeout"`
 	Retries int `json:"retries"`
-	StartPeriod int `json:"start_period"`
+	StartPeriod DurationStr `json:"start_period"`
+}
+
+// DurationStr is a time-duration field that accepts both a JSON string
+// ("15s", "1m30s", "2h") and a JSON number (raw seconds). This mirrors
+// docker-compose's duration handling for healthcheck fields and keeps
+// older Cosmos exports/backups (which stored raw second counts) backward
+// compatible. It always marshals back to a string.
+//
+// NB: named DurationStr (not Duration) to avoid swag grouping unrelated
+// *Duration* constants in the package into an enum for this schema.
+type DurationStr string
+
+// UnmarshalJSON accepts a string (compose duration) or a number (raw seconds).
+func (d *DurationStr) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*d = ""
+		return nil
+	}
+	if trimmed[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		*d = DurationStr(s)
+		return nil
+	}
+	// Number: raw seconds.
+	var n json.Number
+	if err := json.Unmarshal(data, &n); err != nil {
+		return err
+	}
+	if _, err := strconv.ParseFloat(n.String(), 64); err != nil {
+		return fmt.Errorf("invalid duration: %s", n.String())
+	}
+	*d = DurationStr(n.String() + "s")
+	return nil
+}
+
+// MarshalJSON always emits a string so old clients (which expect string
+// fields) keep working.
+func (d DurationStr) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(d))
+}
+
+// ParseDuration converts a DurationStr back into a time.Duration. An empty
+// value yields 0 (no duration). Bare second counts (e.g. "15") are accepted
+// for backward compat with compose files that omit the unit.
+func (d DurationStr) ParseDuration() (time.Duration, error) {
+	s := strings.TrimSpace(string(d))
+	if s == "" {
+		return 0, nil
+	}
+	if v, err := strconv.ParseFloat(s, 64); err == nil {
+		return time.Duration(v * float64(time.Second)), nil
+	}
+	return time.ParseDuration(s)
 }
 
 type ContainerCreateRequestContainerDependsOnCont struct {
@@ -50,7 +106,7 @@ type ContainerCreateRequestContainer struct {
 	Environment []string `json:"environment"`
 	Labels      map[string]string `json:"labels"`
 	Ports       []string          `json:"ports"`
-	Volumes     []mount.Mount          `json:"volumes"`
+	Volumes     []CosmosMount          `json:"volumes"`
 	Networks    map[string]ContainerCreateRequestServiceNetwork `json:"networks"`
 	Routes 			[]utils.ProxyRouteConfig          `json:"routes"`
 	Links       []string  `json:"links,omitempty"`
@@ -646,7 +702,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// Create missing folders for bind mounts
 		for _, newmount := range container.Volumes {
-			if newmount.Type == mount.TypeBind {
+			if newmount.Type == "bind" {
 				newSource := newmount.Source
 
 				if utils.IsInsideContainer {
@@ -712,6 +768,89 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 
+		// Reject nested mount targets for volume FILE subpaths (a mount inside
+		// another mount's target directory) with a clear error instead of a
+		// cryptic runc ENOTDIR at container start.
+		if err := ValidateMountConflicts(container.Volumes); err != nil {
+			utils.Error("CreateService: Invalid volume configuration", err)
+			OnLog(utils.DoErr("%s\n", err.Error()))
+			Rollback(rollbackActions, OnLog)
+			return err
+		}
+
+		// Auto-create missing volume subpaths (mirrors the bind-mount folder
+		// creation above). Subpaths live inside the Docker volume's mountpoint;
+		// resolve it via VolumeInspect, then EnsureSubpathExists creates missing
+		// parent dirs (and the final entry as a file when its basename has a dot).
+		for _, newmount := range container.Volumes {
+			if newmount.Type != "volume" || newmount.SubPath == "" {
+				continue
+			}
+			vol, err := DockerClient.VolumeInspect(DockerContext, newmount.Source)
+			if err != nil {
+				utils.Error("CreateService: Unable to inspect volume for subpath creation", err)
+				OnLog(utils.DoErr("Unable to inspect volume %s for subpath creation: %s\n", newmount.Source, err.Error()))
+				continue
+			}
+			if vol.Mountpoint == "" {
+				utils.Warn("CreateService: Volume " + newmount.Source + " has no mountpoint; cannot auto-create subpath")
+				OnLog(utils.DoWarn("Volume %s has no mountpoint; cannot auto-create subpath %s. Create the subpath manually.\n", newmount.Source, newmount.SubPath))
+				continue
+			}
+			mountRoot := vol.Mountpoint
+			if utils.IsInsideContainer {
+				if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+					utils.Error("CreateService: Unable to create volume subpath. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the subpath folder yourself", err)
+					OnLog(utils.DoErr("Unable to create volume subpath. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the subpath folder yourself: %s\n", err.Error()))
+					continue
+				}
+				mountRoot = "/mnt/host" + mountRoot
+			}
+			utils.Log(fmt.Sprintf("Checking subpath %s for volume %s", newmount.SubPath, newmount.Source))
+			OnLog(fmt.Sprintf("Checking subpath %s for volume %s\n", newmount.SubPath, newmount.Source))
+			created, err := EnsureSubpathExists(mountRoot, newmount.SubPath)
+			if err != nil {
+				utils.Error("CreateService: Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume", err)
+				OnLog(utils.DoErr("Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume: %s\n", err.Error()))
+				Rollback(rollbackActions, OnLog)
+				return err
+			}
+			for _, cp := range created {
+				utils.Log(fmt.Sprintf("Created subpath entry %s for volume %s", cp, newmount.Source))
+				OnLog(fmt.Sprintf("Created subpath entry %s for volume %s\n", cp, newmount.Source))
+				if container.UID != 0 {
+					err = os.Chown(cp, container.UID, container.GID)
+					if err != nil {
+						utils.Error("CreateService: Unable to change ownership of subpath path", err)
+						OnLog(utils.DoErr("%s", "Unable to change ownership of subpath path: " + err.Error()))
+					}
+				} else if container.User != "" && strings.Contains(container.User, ":") {
+					uidgid := strings.Split(container.User, ":")
+					uid, _ := strconv.Atoi(uidgid[0])
+					gid, _ := strconv.Atoi(uidgid[1])
+					err = os.Chown(cp, uid, gid)
+					if err != nil {
+						utils.Error("CreateService: Unable to change ownership of subpath path", err)
+						OnLog(utils.DoErr("%s", "Unable to change ownership of subpath path: " + err.Error()))
+					}
+				} else if container.User != "" {
+					userInfo, err := user.Lookup(container.User)
+					if err != nil {
+						utils.Error("CreateService: Unable to lookup user", err)
+						OnLog(utils.DoErr("%s", "Unable to lookup user " + container.User + ". " + err.Error()))
+					} else {
+						uid, _ := strconv.Atoi(userInfo.Uid)
+						gid, _ := strconv.Atoi(userInfo.Gid)
+						err = os.Chown(cp, uid, gid)
+						if err != nil {
+							utils.Error("CreateService: Unable to change ownership of subpath path", err)
+							OnLog(utils.DoErr("%s", "Unable to change ownership of subpath path: " + err.Error()))
+						}
+					}
+				}
+			}
+		}
+
 		// Parse resource constraints
 		var memLimit, memReservation int64
 		if container.MemLimit != "" {
@@ -735,7 +874,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		hostConfig := &conttype.HostConfig{
 			PortBindings: PortBindings,
-			Mounts:       container.Volumes,
+			Mounts:       ToDockerMountSlice(container.Volumes),
 			RestartPolicy: conttype.RestartPolicy{
 				Name: conttype.RestartPolicyMode(container.RestartPolicy),
 			},
@@ -782,11 +921,32 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// For Healthcheck
 		if len(container.HealthCheck.Test) > 0 {
+			interval, intervalErr := container.HealthCheck.Interval.ParseDuration()
+			if intervalErr != nil {
+				utils.Error("CreateService: Invalid healthcheck interval", intervalErr)
+				OnLog(utils.DoErr("Invalid healthcheck interval: %s\n", intervalErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return intervalErr
+			}
+			timeout, timeoutErr := container.HealthCheck.Timeout.ParseDuration()
+			if timeoutErr != nil {
+				utils.Error("CreateService: Invalid healthcheck timeout", timeoutErr)
+				OnLog(utils.DoErr("Invalid healthcheck timeout: %s\n", timeoutErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return timeoutErr
+			}
+			startPeriod, startPeriodErr := container.HealthCheck.StartPeriod.ParseDuration()
+			if startPeriodErr != nil {
+				utils.Error("CreateService: Invalid healthcheck start_period", startPeriodErr)
+				OnLog(utils.DoErr("Invalid healthcheck start_period: %s\n", startPeriodErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return startPeriodErr
+			}
 			containerConfig.Healthcheck = &conttype.HealthConfig{
 				Test: container.HealthCheck.Test,
-				Interval: time.Duration(container.HealthCheck.Interval) * time.Second,
-				Timeout: time.Duration(container.HealthCheck.Timeout) * time.Second,
-				StartPeriod: time.Duration(container.HealthCheck.StartPeriod) * time.Second,
+				Interval: interval,
+				Timeout: timeout,
+				StartPeriod: startPeriod,
 				Retries: container.HealthCheck.Retries,
 			}
 		}
