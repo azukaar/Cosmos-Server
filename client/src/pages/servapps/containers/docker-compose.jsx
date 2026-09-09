@@ -39,6 +39,7 @@ import { FilePickerButton } from '../../../components/filePicker';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_RESOURCES } from '../../../utils/permissions';
 
+
 function checkIsOnline() {
   API.isOnline().then((res) => {
     window.location.reload();
@@ -237,10 +238,24 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
-            // convert command 
-            if (doc.services[key].command) {
-              if (typeof doc.services[key].command !== 'string') {
-                doc.services[key].command = doc.services[key].command.join(' ');
+            // convert command: pass through docker-compose's native form. A string is
+            // shell-form (server tokenizes into args), an array is exec-form
+            // (server uses it verbatim). Previously arrays were force-joined into
+            // a single string, which both broke exec-form commands and mangled
+            // shell quoting. Normalize stray non-string/non-array scalar values to
+            // a string, but leave genuine arrays intact.
+            if (doc.services[key].command && typeof doc.services[key].command !== 'string' && !Array.isArray(doc.services[key].command)) {
+                doc.services[key].command = String(doc.services[key].command);
+            }
+
+            // convert shm_size: docker-compose uses a byte-size string
+            // (e.g. "64mb", "1gb") — keep it as a string so the backend can
+            // parse it with the same semantics as docker-compose itself.
+            if (doc.services[key].shm_size) {
+              if (typeof doc.services[key].shm_size !== 'string') {
+                // Accept a bare number for backward compat with older compose
+                // files, but normalize it to a byte-size string (raw bytes).
+                doc.services[key].shm_size = String(doc.services[key].shm_size) + 'b';
               }
             }
 

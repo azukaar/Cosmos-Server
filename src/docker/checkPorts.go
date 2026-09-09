@@ -161,7 +161,7 @@ func UpdatePorts(finalPorts []string) error {
 	utils.Log("SelUpdatePorts - Creating updater service")
 	utils.Log("Creating self-updater service: docker run -d --name cosmos-self-updater-agent -e CONTAINER_NAME=" + containerName + " -e ACTION=ports -e DOCKER_HOST=" + os.Getenv("DOCKER_HOST") + " -e PORTS=" + strings.Join(finalPorts, ",") + " -v /var/run/docker.sock:/var/run/docker.sock azukaar/docker-self-updater:" + version)
 
-	err := CreateService(service, func (msg string) {})
+	err := CreateService(service, nil, func (msg string) {})
 
 	if err != nil {
 		return err

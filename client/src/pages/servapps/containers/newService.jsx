@@ -22,6 +22,7 @@ import { LoadingButton } from '@mui/lab';
 import LogLine from '../../../components/logLine';
 import Highlighter from '../../../components/third-party/Highlighter';
 import { useTranslation } from 'react-i18next';
+import { toHjson, parseJsonOrHjson, extractComments, injectComments } from '../../../utils/hjson';
 
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
@@ -59,7 +60,7 @@ const preStyle = {
   opacity: '1',
 }
 
-const NewDockerService = ({service, refresh, edit}) => {
+const NewDockerService = ({service, refresh, edit, comments}) => {
   const { t, i18n } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
@@ -75,7 +76,26 @@ const NewDockerService = ({service, refresh, edit}) => {
   delete service['cosmos-installer'];
   delete service['x-cosmos-installer'];
 
-  const [dockerCompose, setDockerCompose] = React.useState(JSON.stringify(service, null, 2));
+  // Compose the initial editor content from the service, re-injecting the
+  // HJSON comments that were stored as cosmos.compose.<path> labels.
+  const buildInitialCompose = () => injectComments(toHjson(service), comments || undefined);
+
+  const [dockerCompose, setDockerCompose] = React.useState(buildInitialCompose());
+
+  // The service prop can change after mount — the Compose editor re-fetches
+  // the exported definition when the user toggles between the configured
+  // (diff-based) view and the runtime view. useState only captures the initial
+  // value, so sync the editor content whenever a *different* service object
+  // arrives. The JSON key comparison avoids clobbering in-progress edits on
+  // unrelated re-renders.
+  const serviceKey = React.useMemo(() => JSON.stringify(service), [service]);
+  const serviceKeyRef = React.useRef(serviceKey);
+  React.useEffect(() => {
+    if (serviceKeyRef.current !== serviceKey) {
+      serviceKeyRef.current = serviceKey;
+      setDockerCompose(buildInitialCompose());
+    }
+  }, [serviceKey, service, comments]);
 
 
   const refreshConfig = () => {
@@ -96,7 +116,10 @@ const NewDockerService = ({service, refresh, edit}) => {
     setLog([
       'Creating Service...                              ',
     ])
-    API.docker.createService(JSON.parse(dockerCompose), (newlog) => {
+    // Preserve HJSON comments: extract a node->comment map and send it so the
+    // backend can persist each as a cosmos.compose.<path> label.
+    const comments = extractComments(dockerCompose);
+    API.docker.createService(parseJsonOrHjson(dockerCompose), (newlog) => {
       setLog((old) => smartDockerLogConcat(old, newlog));
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
@@ -105,7 +128,7 @@ const NewDockerService = ({service, refresh, edit}) => {
         needsRestart && setOpenModal(true);
         refresh && refresh();
       }
-    });
+    }, comments);
   }
 
   let isJSON = false;
