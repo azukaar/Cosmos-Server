@@ -294,9 +294,12 @@ const NewDockerServiceForm = () => {
                 ...containerInfo.HostConfig,
                 Mounts: values.volumes.map((volume) => {
                   return {
-                    Type: volume.Type,
-                    Source: volume.Source,
-                    Target: volume.Target,
+                    type: volume.type,
+                    source: volume.source,
+                    target: volume.target,
+                    subpath: volume.subpath || "",
+                    readOnly: !!volume.readOnly,
+                    noCopy: !!volume.noCopy,
                   };
                 }),
               },
