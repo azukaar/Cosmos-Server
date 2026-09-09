@@ -71,13 +71,23 @@ const VolumeContainerSetup = ({
   const initialValues = useMemo(() => {
     return {
       volumes: [
-        ...(containerInfo.HostConfig.Mounts || []),
+        ...(containerInfo.HostConfig.Mounts || []).map((m) => ({
+          type: m.Type || m.type,
+          source: m.Source || m.source,
+          target: m.Target || m.target || m.Destination || m.destination,
+          subpath: (m.VolumeOptions && m.VolumeOptions.Subpath) || m.SubPath || m.Subpath || m.subpath || "",
+          readOnly: m.ReadOnly || m.readOnly || false,
+          noCopy: (m.VolumeOptions && m.VolumeOptions.NoCopy) || m.NoCopy || m.noCopy || m.nocopy || false,
+        })),
         ...(containerInfo.HostConfig.Binds || []).map((bind) => {
           const [source, destination, mode] = bind.split(":");
           return {
-            Type: "bind",
-            Source: source,
-            Target: destination,
+            type: "bind",
+            source: source,
+            target: destination,
+            subpath: "",
+            readOnly: mode && (mode.split(",").includes("ro") || mode.split(",").includes("readonly")),
+            noCopy: false,
           };
         }),
       ],
@@ -89,7 +99,7 @@ const VolumeContainerSetup = ({
       const errors = {};
       // check unique
       const volumes = values.volumes.map((volume) => {
-        return `${volume.Target}`;
+        return `${volume.target}`;
       });
       const unique = [...new Set(volumes)];
       if (unique.length !== volumes.length) {
@@ -106,11 +116,13 @@ const VolumeContainerSetup = ({
       if (newContainer) return;
       setSubmitting(true);
       const realvalues = {
-        Volumes: values.volumes.map((volume) => ({
-          Type: volume.Type,
-          Source: volume.Source,
-          Target: volume.Target,
-          ReadOnly: false, // TODO: add support for this
+        volumes: values.volumes.map((volume) => ({
+          type: volume.type,
+          source: volume.source,
+          target: volume.target,
+          subpath: volume.subpath || "",
+          readOnly: !!volume.readOnly,
+          noCopy: !!volume.noCopy,
         })),
       };
       return API.docker
@@ -167,12 +179,15 @@ const VolumeContainerSetup = ({
                                 formik.setFieldValue("volumes", [
                                   ...formik.values.volumes,
                                   {
-                                    Type: "volume",
-                                    Name: "",
-                                    Driver: "local",
-                                    Source: "",
-                                    Destination: "",
-                                    RW: true,
+                                    type: "volume",
+                                    name: "",
+                                    driver: "local",
+                                    source: "",
+                                    destination: "",
+                                    target: "",
+                                    subpath: "",
+                                    readOnly: false,
+                                                            rw: true,
                                   },
                                 ]);
                               }}
@@ -195,12 +210,12 @@ const VolumeContainerSetup = ({
                                 >
                                   <TextField
                                     className="px-2 my-2"
-                                    disabled={frozenVolumes.includes(r.Source)}
+                                    disabled={frozenVolumes.includes(r.source)}
                                     variant="outlined"
                                     id="Type"
                                     select
-                                    value={r.Type}
-                                    name={`volumes[${k}].Type`}
+                                    value={r.type}
+                                    name={`volumes[${k}].type`}
                                     onChange={formik.handleChange}
                                   >
                                     <MenuItem value="bind">{t('mgmt.servapps.newContainer.volumes.bindInput')}</MenuItem>
@@ -222,26 +237,26 @@ const VolumeContainerSetup = ({
                                     maxWidth: "300px",
                                   }}
                                 >
-                                  {r.Type == "bind" ? (
+                                  {r.type == "bind" ? (
                                     <Stack direction={"row"} spacing={2}>
                                     <FilePickerButton onPick={(path) => {
                                       if(path)
-                                        formik.setFieldValue(`volumes[${k}].Source`, path);
-                                    }} size="150%" select="folder" />
+                                        formik.setFieldValue(`volumes[${k}].source`, path);
+                                    }} size="150%" select="any" />
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
-                                      name={`volumes[${k}].Source`}
+                                      name={`volumes[${k}].source`}
                                       id="Source"
                                       disabled={frozenVolumes.includes(
-                                        r.Source
+                                        r.source
                                       )}
                                       style={{ minWidth: "200px" }}
-                                      value={r.Source}
+                                      value={r.source}
                                       onChange={formik.handleChange}
                                     />
                                     </Stack>
-                                  ) : r.Type == "tmpfs" ? (
+                                  ) : r.type == "tmpfs" ? (
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
@@ -253,22 +268,22 @@ const VolumeContainerSetup = ({
                                     <TextField
                                       className="px-2 my-2"
                                       variant="outlined"
-                                      name={`volumes[${k}].Source`}
+                                      name={`volumes[${k}].source`}
                                       id="Source"
                                       disabled={frozenVolumes.includes(
-                                        r.Source
+                                        r.source
                                       )}
                                       select
                                       style={{ minWidth: "200px" }}
-                                      value={r.Source}
+                                      value={r.source}
                                       onChange={formik.handleChange}
                                     >
                                       {[...volumes, r].map((volume) => (
                                         <MenuItem
                                           key={volume.Id || "last"}
-                                          value={volume.Name || volume.Source}
+                                          value={volume.Name || volume.source}
                                         >
-                                          {volume.Name || volume.Source}
+                                          {volume.Name || volume.source}
                                         </MenuItem>
                                       ))}
                                     </TextField>
@@ -291,11 +306,81 @@ const VolumeContainerSetup = ({
                                   <TextField
                                     className="px-2 my-2"
                                     variant="outlined"
-                                    name={`volumes[${k}].Target`}
+                                    name={`volumes[${k}].target`}
                                     id="Target"
-                                    disabled={frozenVolumes.includes(r.Source)}
+                                    disabled={frozenVolumes.includes(r.source)}
                                     style={{ minWidth: "200px" }}
-                                    value={r.Target}
+                                    value={r.target}
+                                    onChange={formik.handleChange}
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              title: t('mgmt.servapps.newContainer.volumes.subpathTitle'),
+                              field: (r, k) => (
+                                <div
+                                  style={{
+                                    fontWeight: "bold",
+                                    wordSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    maxWidth: "300px",
+                                  }}
+                                >
+                                  <TextField
+                                    className="px-2 my-2"
+                                    variant="outlined"
+                                    name={`volumes[${k}].subpath`}
+                                    id="Subpath"
+                                    disabled={frozenVolumes.includes(r.source)}
+                                    placeholder={t('mgmt.servapps.newContainer.volumes.subpathPlaceholder')}
+                                    style={{ minWidth: "200px" }}
+                                    value={r.subpath || ""}
+                                    onChange={formik.handleChange}
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              title: t('mgmt.servapps.newContainer.volumes.readOnlyTitle'),
+                              field: (r, k) => (
+                                <div
+                                  style={{
+                                    fontWeight: "bold",
+                                    wordSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                >
+                                  <Checkbox
+                                    className="px-2 my-2"
+                                    name={`volumes[${k}].readOnly`}
+                                    id="ReadOnly"
+                                    disabled={frozenVolumes.includes(r.source)}
+                                    checked={!!r.readOnly}
+                                    onChange={formik.handleChange}
+                                  />
+                                </div>
+                              ),
+                            },
+                            {
+                              title: t('mgmt.servapps.newContainer.volumes.noCopyTitle'),
+                              field: (r, k) => (
+                                <div
+                                  style={{
+                                    fontWeight: "bold",
+                                    wordSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                >
+                                  <Checkbox
+                                    className="px-2 my-2"
+                                    name={`volumes[${k}].noCopy`}
+                                    id="NoCopy"
+                                    disabled={frozenVolumes.includes(r.source) || r.type !== "volume"}
+                                    checked={!!r.noCopy}
                                     onChange={formik.handleChange}
                                   />
                                 </div>
@@ -309,7 +394,7 @@ const VolumeContainerSetup = ({
                                     <PermissionGuard permission={PERM_RESOURCES}><Button
                                     variant="outlined"
                                     color="primary"
-                                    disabled={frozenVolumes.includes(r.Source)}
+                                    disabled={frozenVolumes.includes(r.source)}
                                     onClick={() => {
                                       const newVolumes = [
                                         ...formik.values.volumes,
@@ -326,7 +411,7 @@ const VolumeContainerSetup = ({
                                   >
                                     {t('global.unmount')}
                                   </Button></PermissionGuard>
-                                  {!newContainer && containerInfo.Name && (r.Target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.Target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.Source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null)}
+                                  {!newContainer && containerInfo.Name && (r.target ? <BackupDialog preName={`${containerInfo.Name.replace("/", "").replace("/", "-")}-${r.target.replace("/", "").replaceAll("/", "_")}`} preSource={formatSource(r.source)} refresh={() => setTimeout(refreshAll, 1500)} /> : null)}
                                   </Stack>
                                 );
                               },
@@ -386,7 +471,7 @@ const VolumeContainerSetup = ({
       }}>
         {containerInfo && containerInfo.HostConfig && containerInfo.HostConfig.Mounts && <MainCard title={t('mgmt.backup.backups')}>
           <Backups pathFilters={
-            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.Source)).filter(Boolean)
+            containerInfo.HostConfig.Mounts.map((r) => formatSource(r.source || r.Source)).filter(Boolean)
           } />
         </MainCard>}
       </div>}
