@@ -25,6 +25,7 @@ import { useTheme } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next';
 import PermissionGuard from '../../components/permissionGuard';
 import { PERM_RESOURCES, PERM_CREDENTIALS_READ } from '../../utils/permissions';
+import { getContainerDisplayStatus, rankDisplayStatus, isContainerRunning } from '../../utils/container-status';
 
 // Exported: the Constellation feature pages reuse this card.
 export const Item = styled(Paper)(({ theme }) => ({
@@ -133,17 +134,8 @@ const ServApps = ({stack}) => {
     }
   }
 
-  const statusPriority = [
-    "running",
-    "paused",
-    "created",
-    "restarting",
-    "removing",
-    "exited",
-    "dead"
-  ]
-
   const servAppsStacked = servApps && servApps.reduce((acc, app) => {
+    const displayStatus = getContainerDisplayStatus(app);
     // if has label cosmos-stack, add to stack
     if(!stack && (app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'])) {
       let stackName = app.Labels['cosmos-stack'] || app.Labels['cosmos.stack'] || app.Labels['com.docker.compose.project'];
@@ -170,8 +162,8 @@ const ServApps = ({stack}) => {
       }
       
       acc[stackName].apps.push(app);
-      if(statusPriority.indexOf(app.State) > statusPriority.indexOf(acc[stackName].state)) {
-        acc[stackName].state = app.State;
+      if(rankDisplayStatus(displayStatus) < rankDisplayStatus(acc[stackName].state)) {
+        acc[stackName].state = displayStatus;
       }
       acc[stackName].ports = acc[stackName].ports.concat(app.Ports);
       
@@ -204,7 +196,7 @@ const ServApps = ({stack}) => {
       acc[app.Names[0]] = {
         type: 'app',
         name: app.Names[0],
-        state: app.State,
+        state: displayStatus,
         app: app,
         apps: [app],
         isUpdating: isUpdating[app.Names[0].replace('/', '')],
@@ -315,15 +307,19 @@ const ServApps = ({stack}) => {
                 <Stack style={{position: 'relative', overflowX: 'hidden', width: '100%'}} direction="row" spacing={2} alignItems="center">
                   <Typography variant="body2" color="text.secondary">
                     {
-                      (app.state !== 'running' && app.labels && app.labels['cosmos-lazy'] === 'true') ? (
+                      (!isContainerRunning(app.app) && app.labels && app.labels['cosmos-lazy'] === 'true') ? (
                         <Chip label={t('mgmt.servApps.dormantChip.dormantLabel')} color="info" />
                       ) : ({
                         "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
                         "restarting": <Chip label={t('mgmt.servApps.restartingChip.restartingLabel')} color="warning" />,
                         "running": <Chip label={t('mgmt.servApps.runningChip.runningLabel')} color="success" />,
-                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
+                        "healthy": <Chip label={t('mgmt.servApps.healthyChip.healthyLabel')} color="success" />,
+                        "starting": <Chip label={t('mgmt.servApps.startingChip.startingLabel')} color="warning" />,
+                        "unhealthy": <Chip label={t('mgmt.servApps.unhealthyChip.unhealthyLabel')} color="error" />,
+                        "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="warning" />,
                         "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
                         "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
+                        "completed": <Chip label={t('mgmt.servApps.completedChip.completedLabel')} color="default" />,
                         "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
                       })[app.state]
                     }
@@ -436,7 +432,7 @@ const ServApps = ({stack}) => {
                     <Checkbox
                       checked={app.labels['cosmos-auto-update'] === 'true' ||
                         (selfName && app.name.replace('/', '') == selfName && config.AutoUpdate)}
-                      disabled={app.type == "stack" || app.state !== 'running'}
+                      disabled={app.type == "stack" || !isContainerRunning(app.app)}
                       onChange={(e) => {
                         const name = app.name.replace('/', '');
                         setIsUpdatingId(name, true);

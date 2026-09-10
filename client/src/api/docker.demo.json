@@ -503,7 +503,8 @@
 					"RW": true,
 					"Propagation": "rprivate"
 				}
-			]
+			],
+			"Health": "healthy"
 		},
 		{
 			"Id": "7b0c690d1713e104dbb5173462cfbc755a8bafc826d261c48ccfdaefcefb253d",
@@ -740,7 +741,8 @@
 					"RW": true,
 					"Propagation": "rprivate"
 				}
-			]
+			],
+			"Health": "unhealthy"
 		},
 		{
 			"Id": "8f8f756448ba8803692f2cbce49e579e8622872682185435fb6bfb68546ef1f8",
@@ -1047,8 +1049,7 @@
 					"Type": "tcp"
 				}
 			],
-			"Labels": {
-			},
+			"Labels": {},
 			"State": "running",
 			"Status": "Up 12 days",
 			"HostConfig": {
@@ -1325,7 +1326,181 @@
 					"RW": true,
 					"Propagation": "rprivate"
 				}
-			]
+			],
+			"Health": "healthy"
+		},
+		{
+			"Id": "1af8265f275bbba12f6bd0132dfc5c951d69fad1cc6d185b06c663d6f06876f9",
+			"Names": [
+				"/failed-app"
+			],
+			"Image": "linuxserver/nzbget:latest",
+			"ImageID": "sha256:147c091336896e0a37115f590269db06912f8f628e496daba300fc87dd3ceed3",
+			"Command": "/init",
+			"Created": 1680455121,
+			"Ports": [
+				{
+					"PrivatePort": 6789,
+					"Type": "tcp"
+				}
+			],
+			"Labels": {
+				"build_version": "Linuxserver.io version:- v21.1-ls138 Build-date:- 2023-01-19T12:56:46-06:00",
+				"cosmos-force-network-secured": "true",
+				"cosmos-network-name": "cosmos-network-Vde9j5nWf"
+			},
+			"State": "exited",
+			"Status": "Exited (1) 2 hours ago",
+			"HostConfig": {
+				"NetworkMode": "bridge"
+			},
+			"NetworkSettings": {
+				"Networks": {
+					"cosmos-network-Vde9j5nWf": {
+						"IPAMConfig": null,
+						"Links": null,
+						"Aliases": null,
+						"NetworkID": "ea19163fb4dd4ca9d5028fc829e9442a5235ec7464941215efddf061da5f9d93",
+						"EndpointID": "464b49c94810b5fa2798368950432f0c4f5cfff5fd81842ebecfb50c7d1712f7",
+						"Gateway": "192.168.0.1",
+						"IPAddress": "192.168.0.3",
+						"IPPrefixLen": 20,
+						"IPv6Gateway": "",
+						"GlobalIPv6Address": "",
+						"GlobalIPv6PrefixLen": 0,
+						"MacAddress": "02:42:c0:a8:00:03",
+						"DriverOpts": null
+					},
+					"nzbget": {
+						"IPAMConfig": null,
+						"Links": null,
+						"Aliases": null,
+						"NetworkID": "8d5ba44f4b58807c69833f1aea7ea838a9c9e52eee4ff9a18eb6c53d3394ba5a",
+						"EndpointID": "8ca2380eadc0078aab7d45de28cd84d5a7c9b99200077dfe55147f881873f359",
+						"Gateway": "172.29.0.1",
+						"IPAddress": "172.29.0.3",
+						"IPPrefixLen": 16,
+						"IPv6Gateway": "",
+						"GlobalIPv6Address": "",
+						"GlobalIPv6PrefixLen": 0,
+						"MacAddress": "02:42:ac:1d:00:03",
+						"DriverOpts": null
+					}
+				}
+			},
+			"Mounts": [
+				{
+					"Type": "bind",
+					"Source": "/myvolumes/AppData/NzbGet",
+					"Destination": "/config",
+					"Mode": "",
+					"RW": true,
+					"Propagation": "rprivate"
+				},
+				{
+					"Type": "bind",
+					"Source": "/myvolumes/Downloads",
+					"Destination": "/myvolumes/Downloads",
+					"Mode": "",
+					"RW": true,
+					"Propagation": "rprivate"
+				}
+			],
+			"ExitCode": 1
+		},
+		{
+			"Id": "f8099231665bc6d6ddbf8c166d02ccd380cd8cc7638cc6036673e84260dfdf02",
+			"Names": [
+				"/done-app"
+			],
+			"Image": "photoprism/photoprism:latest",
+			"ImageID": "sha256:e6f531bbf1b0e0ddd9f88e4f5c3608534368fd148c0881ba4618b0f76f42fe51",
+			"Command": "/scripts/entrypoint.sh /opt/photoprism/bin/photoprism start",
+			"Created": 1680455120,
+			"Ports": [
+				{
+					"PrivatePort": 2342,
+					"Type": "tcp"
+				},
+				{
+					"PrivatePort": 2442,
+					"Type": "tcp"
+				},
+				{
+					"PrivatePort": 2443,
+					"Type": "tcp"
+				}
+			],
+			"Labels": {
+				"cosmos-force-network-secured": "true",
+				"cosmos-network-name": "cosmos-network-TAwc0QAW9"
+			},
+			"State": "exited",
+			"Status": "Exited (0) 5 days ago",
+			"HostConfig": {
+				"NetworkMode": "bridge"
+			},
+			"NetworkSettings": {
+				"Networks": {
+					"cosmos-network-TAwc0QAW9": {
+						"IPAMConfig": null,
+						"Links": null,
+						"Aliases": null,
+						"NetworkID": "20f95e3bd93b8d1022fa175dad2bb7212b67dd41e09fd5f62f403a305e661e71",
+						"EndpointID": "842ae4d8dde67176b061ce9699558c6fc364236ff69db9d380626f7712146d88",
+						"Gateway": "192.168.32.1",
+						"IPAddress": "192.168.32.3",
+						"IPPrefixLen": 20,
+						"IPv6Gateway": "",
+						"GlobalIPv6Address": "",
+						"GlobalIPv6PrefixLen": 0,
+						"MacAddress": "02:42:c0:a8:20:03",
+						"DriverOpts": null
+					},
+					"postgres": {
+						"IPAMConfig": null,
+						"Links": null,
+						"Aliases": null,
+						"NetworkID": "833e1d80f7bf0d84a05342595ef52d9169209b9c6053701b557dcdc133f57d94",
+						"EndpointID": "77700a6e803cd88c49f376905f9ed2820cae78fd7c959f37fc8a3c89ac6ceb86",
+						"Gateway": "172.28.0.1",
+						"IPAddress": "172.28.0.2",
+						"IPPrefixLen": 16,
+						"IPv6Gateway": "",
+						"GlobalIPv6Address": "",
+						"GlobalIPv6PrefixLen": 0,
+						"MacAddress": "02:42:ac:1c:00:02",
+						"DriverOpts": null
+					}
+				}
+			},
+			"Mounts": [
+				{
+					"Type": "bind",
+					"Source": "/myvolumes/AppData/Photoprism",
+					"Destination": "/photoprism/storage",
+					"Mode": "",
+					"RW": true,
+					"Propagation": "rprivate"
+				},
+				{
+					"Type": "bind",
+					"Source": "/myvolumes/photodrop",
+					"Destination": "/photoprism/import",
+					"Mode": "ro",
+					"RW": false,
+					"Propagation": "rprivate"
+				},
+				{
+					"Type": "bind",
+					"Source": "/myvolumes/Photoprism",
+					"Destination": "/photoprism/originals",
+					"Mode": "",
+					"RW": true,
+					"Propagation": "rprivate"
+				}
+			],
+			"ExitCode": 0
 		}
 	],
 	"status": "OK"
