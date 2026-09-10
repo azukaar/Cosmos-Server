@@ -307,7 +307,7 @@ const ServApps = ({stack}) => {
                 <Stack style={{position: 'relative', overflowX: 'hidden', width: '100%'}} direction="row" spacing={2} alignItems="center">
                   <Typography variant="body2" color="text.secondary">
                     {
-                      (app.state !== 'running' && app.labels && app.labels['cosmos-lazy'] === 'true') ? (
+                      (!isContainerRunning(app.app) && app.labels && app.labels['cosmos-lazy'] === 'true') ? (
                         <Chip label={t('mgmt.servApps.dormantChip.dormantLabel')} color="info" />
                       ) : ({
                         "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
