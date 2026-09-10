@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "केवल त्रुटि",
   "mgmt.servApps.container.selectWhatToDelete": "चुनें कि आप क्या हटाना चाहते हैं:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "MACVLAN के लिए मुख इंटरफ़ेस आवश्यक है",
-  "mgmt.servApps.createdChip.createdLabel": "\"बनाया गया\"",
+  "mgmt.servApps.createdChip.createdLabel": "बनाया गया",
   "mgmt.servApps.deadChip.deadLabel": "मृत",
   "mgmt.servApps.driver.none": "कोई नहीं",
   "mgmt.servApps.exitedChip.exitedLabel": "निकाला गया",

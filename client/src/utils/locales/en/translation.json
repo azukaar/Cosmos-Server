@@ -980,7 +980,7 @@
 	"mgmt.servApps.container.protocols.errorOnlyCheckbox": "Error Only",
 	"mgmt.servApps.container.selectWhatToDelete": "Select what you wish to delete:",
 	"mgmt.servApps.createNetwork.parentReqForMacvlan": "Parent interface is required for MACVLAN",
-	"mgmt.servApps.createdChip.createdLabel": "\"Created\"",
+	"mgmt.servApps.createdChip.createdLabel": "Created",
 	"mgmt.servApps.deadChip.deadLabel": "Dead",
 	"mgmt.servApps.driver.none": "None",
 	"mgmt.servApps.exitedChip.exitedLabel": "Exited",

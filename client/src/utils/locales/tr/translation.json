@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Sadece Hata",
   "mgmt.servApps.container.selectWhatToDelete": "Silmek istediğinizi seçin:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "MACVLAN için üst arayüz gereklidir",
-  "mgmt.servApps.createdChip.createdLabel": "\"Oluşturuldu\"",
+  "mgmt.servApps.createdChip.createdLabel": "Oluşturuldu",
   "mgmt.servApps.deadChip.deadLabel": "Ölü",
   "mgmt.servApps.driver.none": "Hiçbiri",
   "mgmt.servApps.exitedChip.exitedLabel": "Çıkıldı",

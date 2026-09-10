@@ -305,7 +305,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Seulement les erreurs",
   "mgmt.servApps.container.selectWhatToDelete": "Sélectionnez ce que vous souhaitez supprimer :",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "L'interface parent est requise pour MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"Créé\"",
+  "mgmt.servApps.createdChip.createdLabel": "Créé",
   "mgmt.servApps.deadChip.deadLabel": "Mort",
   "mgmt.servApps.driver.none": "Aucun",
   "mgmt.servApps.exitedChip.exitedLabel": "Sorti",

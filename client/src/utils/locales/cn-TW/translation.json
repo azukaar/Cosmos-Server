@@ -332,7 +332,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "僅錯誤",
   "mgmt.servApps.container.selectWhatToDelete": "選擇要刪除的項目：",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "MACVLAN 需要父接口",
-  "mgmt.servApps.createdChip.createdLabel": "“已創建”",
+  "mgmt.servApps.createdChip.createdLabel": "已創建",
   "mgmt.servApps.deadChip.deadLabel": "已故",
   "mgmt.servApps.driver.none": "無",
   "mgmt.servApps.exitedChip.exitedLabel": "已退出",

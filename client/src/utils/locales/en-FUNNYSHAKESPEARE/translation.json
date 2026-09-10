@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Error Only-eth",
   "mgmt.servApps.container.selectWhatToDelete": "Selecteth what thou wisheth to delete-eth:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "Parent interfac-eth is required for MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"Created-eth\"",
+  "mgmt.servApps.createdChip.createdLabel": "Created-eth",
   "mgmt.servApps.deadChip.deadLabel": "Bereft of Life",
   "mgmt.servApps.driver.none": "Nil",
   "mgmt.servApps.exitedChip.exitedLabel": "Departed",

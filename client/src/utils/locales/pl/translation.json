@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Tylko błędy",
   "mgmt.servApps.container.selectWhatToDelete": "Wybierz, co chcesz usunąć:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "Wymagany jest interfejs nadrzędny dla MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"Utworzono\"",
+  "mgmt.servApps.createdChip.createdLabel": "Utworzono",
   "mgmt.servApps.deadChip.deadLabel": "Martwy",
   "mgmt.servApps.driver.none": "Brak",
   "mgmt.servApps.exitedChip.exitedLabel": "Zakończony",

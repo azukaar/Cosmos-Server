@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Alleen fouten",
   "mgmt.servApps.container.selectWhatToDelete": "Selecteer wat je wilt verwijderen:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "Hoofdinterface is vereist voor MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"Gecreëerd\"",
+  "mgmt.servApps.createdChip.createdLabel": "Gecreëerd",
   "mgmt.servApps.deadChip.deadLabel": "Dood",
   "mgmt.servApps.driver.none": "Geen",
   "mgmt.servApps.exitedChip.exitedLabel": "Gestopt",

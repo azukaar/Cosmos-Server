@@ -331,7 +331,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "エラーのみ",
   "mgmt.servApps.container.selectWhatToDelete": "削除したいものを選択:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "MACVLANには親インターフェースが必要です",
-  "mgmt.servApps.createdChip.createdLabel": "「作成済み」",
+  "mgmt.servApps.createdChip.createdLabel": "作成済み",
   "mgmt.servApps.deadChip.deadLabel": "デッド",
   "mgmt.servApps.driver.none": "なし",
   "mgmt.servApps.exitedChip.exitedLabel": "終了済み",

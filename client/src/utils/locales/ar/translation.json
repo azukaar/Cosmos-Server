@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "أخطاء فقط",
   "mgmt.servApps.container.selectWhatToDelete": "حدد ما ترغب في حذفه:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "الواجهة الأم مطلوبة لـ MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"تم الإنشاء\"",
+  "mgmt.servApps.createdChip.createdLabel": "تم الإنشاء",
   "mgmt.servApps.deadChip.deadLabel": "ميت",
   "mgmt.servApps.driver.none": "لا شيء",
   "mgmt.servApps.exitedChip.exitedLabel": "تم الخروج",

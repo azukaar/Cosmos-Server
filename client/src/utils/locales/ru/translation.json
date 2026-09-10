@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "Только Ошибки",
   "mgmt.servApps.container.selectWhatToDelete": "Выберите что вы хотите удалить:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "Требуется родительский интерфейс для MACVLAN",
-  "mgmt.servApps.createdChip.createdLabel": "\"Создано\"",
+  "mgmt.servApps.createdChip.createdLabel": "Создано",
   "mgmt.servApps.deadChip.deadLabel": "Мёртвый",
   "mgmt.servApps.driver.none": "Нет",
   "mgmt.servApps.exitedChip.exitedLabel": "Завершён",

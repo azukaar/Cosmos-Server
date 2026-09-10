@@ -304,7 +304,7 @@
   "mgmt.servApps.container.protocols.errorOnlyCheckbox": "오류만",
   "mgmt.servApps.container.selectWhatToDelete": "삭제할 항목을 선택하시오:",
   "mgmt.servApps.createNetwork.parentReqForMacvlan": "MACVLAN을 위한 상위 인터페이스가 필요합니다",
-  "mgmt.servApps.createdChip.createdLabel": "\"생성됨\"",
+  "mgmt.servApps.createdChip.createdLabel": "생성됨",
   "mgmt.servApps.deadChip.deadLabel": "중지됨",
   "mgmt.servApps.driver.none": "없음",
   "mgmt.servApps.exitedChip.exitedLabel": "종료됨",
