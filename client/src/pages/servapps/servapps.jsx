@@ -389,7 +389,7 @@ const ServApps = ({stack}) => {
                 </Stack>
                 <Stack style={noOver} spacing={1} direction="row" alignItems="center" >
                   {getContainersRoutes(config, app.name.replace('/', '')).map((route) => {
-                    return <HostChip route={route} settings/>
+                    return <HostChip route={route} settings container={app.app}/>
                   })}
                   {app.networkSettings && app.networkSettings.Networks && app.networkSettings.Networks['host'] &&
                     <Chip style={{ fontSize: '80%' }} label="Host Network" color="warning" variant='outlined' />

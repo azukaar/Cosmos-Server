@@ -33,7 +33,7 @@ import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
 import RestartModal from './restart';
 import RouteManagement from '../routes/routeman';
-import { getFaviconURL, sanitizeRoute, ValidateRoute } from '../../../utils/routes';
+import { getFaviconURL, sanitizeRoute, ValidateRoute, getContainerFromRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
 import HostChip from '../../../components/hostChip';
 import Ellipsis from '../../../components/ellipsis';
@@ -69,6 +69,7 @@ const ProxyManagement = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [config, setConfig] = React.useState(null);
+  const [containers, setContainers] = React.useState([]);
   const [openModal, setOpenModal] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [submitErrors, setSubmitErrors] = React.useState([]);
@@ -117,6 +118,9 @@ const ProxyManagement = () => {
     API.config.get().then((res) => {
       setConfig(res.data);
     });
+    API.docker.list().then((res) => {
+      setContainers(res.data || []);
+    }).catch(() => {});
     if (!isAdmin) {
       return;
     }
@@ -284,7 +288,7 @@ const ProxyManagement = () => {
               ]} noLabels noBackground/>
             </div> : <div></div>
           },
-          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} /> },
+          { title: t('mgmt.config.proxy.originTitle'), screenMin: 'md', clickable:true, search: (r) => r.Host + ' ' + r.PathPrefix, field: (r) => <HostChip ellipsis route={r} container={getContainerFromRoute(containers, r)} /> },
           { title: t('global.target'), screenMin: 'md', search: (r) => r._IsTunnel ? (r._targets || []).map(t => t.targetURL).join(' ') : r.Target, field: (r) => r._IsTunnel && r._targets && r._targets.length > 0
             ? <><RouteMode route={r} /> {r._targets.map((t, i) => <Ellipsis key={i} title={t.targetURL + ' (' + t.deviceName + ')'} maxWidth={250}><Chip label={t.targetURL + ' (' + t.deviceName + ')'} style={{marginBottom: 2}} /></Ellipsis>)}</>
             : <><RouteMode route={r} /> <Ellipsis title={r.Target} maxWidth={250}><Chip label={r.Target} /></Ellipsis></>

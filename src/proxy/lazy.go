@@ -43,8 +43,9 @@ var lazyWakeForDial = func(containerName string, port string) error {
 	return err
 }
 
-// lazyIsDormant is a package variable so tests can stub the docker interaction.
+// lazyIsDormant and lazyIsLazy are package variables so tests can stub the docker interaction.
 var lazyIsDormant = docker.LazyIsDormant
+var lazyIsLazy = docker.LazyIsLazy
 
 // ProbeParam marks the status HEAD the UI sends to a route (see HostChip).
 // ProbeHeader carries the answer when Cosmos replies instead of the app.
@@ -92,15 +93,28 @@ func lazyMiddleware(route utils.ProxyRouteConfig) func(http.Handler) http.Handle
 				q.Del(ProbeParam)
 				r.URL.RawQuery = q.Encode()
 			}
-			if probe && lazyIsDormant(name) {
+			// A status probe for a lazy container is answered by Cosmos itself,
+			// never forwarded to the app: the app's own response to a HEAD / can
+			// be a 404 (many apps don't serve HEAD on the root), which must not
+			// read as "offline" - this is exactly what happened after a lazy
+			// container was updated while dormant and woke up. When dormant we
+			// report sleeping (503); when running we report running (200). The
+			// client only depends on X-Cosmos-Container, not on the app's code.
+			if probe && lazyIsLazy(name) {
+				dormant := lazyIsDormant(name)
 				if origin := r.Header.Get("Origin"); origin != "" {
 					w.Header().Set("Access-Control-Allow-Origin", origin)
 					w.Header().Set("Access-Control-Allow-Credentials", "true")
 					w.Header().Set("Access-Control-Expose-Headers", ProbeHeader)
 				}
-				w.Header().Set(ProbeHeader, "sleeping")
 				w.Header().Set("Cache-Control", "no-store")
-				w.WriteHeader(http.StatusServiceUnavailable)
+				if dormant {
+					w.Header().Set(ProbeHeader, "sleeping")
+					w.WriteHeader(http.StatusServiceUnavailable)
+				} else {
+					w.Header().Set(ProbeHeader, "running")
+					w.WriteHeader(http.StatusOK)
+				}
 				return
 			}
 

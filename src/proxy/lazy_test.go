@@ -29,10 +29,16 @@ func stubLazy(t *testing.T, wake func(name, port string) error) (calls *[]wakeCa
 
 	origWake := lazyWakeForDial
 	origTrack := lazyTrackConn
+	origDormant := lazyIsDormant
+	origIsLazy := lazyIsLazy
 	t.Cleanup(func() {
 		lazyWakeForDial = origWake
 		lazyTrackConn = origTrack
+		lazyIsDormant = origDormant
+		lazyIsLazy = origIsLazy
 	})
+	lazyIsDormant = func(name string) bool { return false }
+	lazyIsLazy = func(name string) bool { return true }
 
 	seen := []wakeCall{}
 	var opened, released int32
@@ -368,12 +374,19 @@ func TestLazyMiddlewareProbeDoesNotWakeDormantContainer(t *testing.T) {
 		t.Fatalf("dormant probe must not wake, track or reach the backend: wakes=%d opens=%d hits=%d", len(*calls), *opens, hit)
 	}
 
-	// awake: the probe is ordinary traffic and reaches the app
+	// awake: the probe is answered by Cosmos as running, not forwarded to the
+	// app (the app could 404 a HEAD / after waking from an update)
 	dormant = false
 	w = httptest.NewRecorder()
 	h.ServeHTTP(w, httptest.NewRequest("HEAD", "http://lazy.example/?"+ProbeParam+"=1", nil))
-	if w.Code != http.StatusOK || atomic.LoadInt32(&hit) != 1 {
-		t.Fatalf("awake probe: got status %d hits=%d, want 200 and one hit", w.Code, hit)
+	if w.Code != http.StatusOK {
+		t.Fatalf("awake lazy probe: got status %d, want 200", w.Code)
+	}
+	if got := w.Header().Get(ProbeHeader); got != "running" {
+		t.Fatalf("awake lazy probe: %s = %q, want running", ProbeHeader, got)
+	}
+	if atomic.LoadInt32(&hit) != 0 {
+		t.Fatalf("awake lazy probe must not reach the app: hit=%d", atomic.LoadInt32(&hit))
 	}
 
 	// no marker: a dormant container is woken as usual

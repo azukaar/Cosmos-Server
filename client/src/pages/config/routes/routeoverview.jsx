@@ -21,7 +21,7 @@ const info = {
   borderRadius: '5px',
 }
 
-const RouteOverview = ({ routeConfig, refreshConfig }) => {
+const RouteOverview = ({ routeConfig, refreshConfig, container }) => {
   const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [confirmDelete, setConfirmDelete] = React.useState(false);
@@ -66,7 +66,7 @@ const RouteOverview = ({ routeConfig, refreshConfig }) => {
             <strong><ContainerOutlined /> {t('global.description')}</strong>
             <div style={info}>{routeConfig.Description}</div>
             <strong><NodeExpandOutlined /> {t('mgmt.config.proxy.urlTitle')}</strong>
-            <div><HostChip route={routeConfig} /></div>
+            <div><HostChip route={routeConfig} container={container} /></div>
             <strong><InfoCircleOutlined /> {t('global.target')}</strong>
             <div><RouteMode route={routeConfig} /> <Chip label={routeConfig.Target} /></div>
             <strong><SafetyCertificateOutlined/> {t('global.securityTitle')}</strong>

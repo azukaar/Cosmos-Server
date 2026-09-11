@@ -229,7 +229,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>
               {routes.map((route) => {
-                return <HostChip route={route} settings style={{margin: '5px'}}/>
+                return <HostChip route={route} settings container={containerInfo} style={{margin: '5px'}}/>
               })}
               <br />
               <PermissionGuard permission={PERM_RESOURCES}>

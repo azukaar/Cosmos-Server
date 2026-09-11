@@ -591,6 +591,13 @@ func InitServer() *mux.Router {
 
 	router.Use(utils.BlockBannedIPs)
 
+	// Cross-origin requests from the Cosmos UI (HostChip reachability probe and
+	// other subresource fetches) need to read the response status, including
+	// responses produced before the per-route CORS middleware runs (e.g. an
+	// OpenID auth-gate redirect). Echo the request Origin on any response whose
+	// Origin is under the Cosmos domain so the browser can read it.
+	router.Use(utils.HeadProbeCORS)
+
 	router.Use(utils.Logger)
 
 	if config.BlockedCountries != nil && len(config.BlockedCountries) > 0 {

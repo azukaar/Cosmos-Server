@@ -8,6 +8,7 @@ import * as API  from "../../api";
 import RouteSecurity from "./routes/routeSecurity";
 import RouteOverview from "./routes/routeoverview";
 import RouteMetrics from "../dashboard/routeMonitoring";
+import { getContainerFromRoute } from '../../utils/routes';
 import EventExplorerStandalone from "../dashboard/eventsExplorerStandalone";
 import { useTranslation } from 'react-i18next';
 
@@ -15,6 +16,7 @@ const RouteConfigPage = () => {
   const { t } = useTranslation();
   const { routeName } = useParams();
   const [config, setConfig] = useState(null);
+  const [containers, setContainers] = useState([]);
   
   let currentRoute = null;
   if (config) {
@@ -25,6 +27,9 @@ const RouteConfigPage = () => {
     API.config.get().then((res) => {
       setConfig(res.data);
     });
+    API.docker.list().then((res) => {
+      setContainers(res.data || []);
+    }).catch(() => {});
   };
 
   useEffect(() => {
@@ -46,7 +51,7 @@ const RouteConfigPage = () => {
       {config && currentRoute && <PrettyTabbedView tabs={[
         {
           title: t('mgmt.servapps.overview'),
-          children: <RouteOverview routeConfig={currentRoute} refreshConfig={refreshConfig} />
+          children: <RouteOverview routeConfig={currentRoute} refreshConfig={refreshConfig} container={getContainerFromRoute(containers, currentRoute)} />
         },
         {
           title: t('mgmt.servapps.routeConfig.setup'),
