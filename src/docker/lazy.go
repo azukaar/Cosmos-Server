@@ -430,6 +430,16 @@ func LazyIsDormant(containerName string) bool {
 	return st != nil && st.lazy && !st.running
 }
 
+// LazyIsLazy reports whether the container is tracked as a lazy container,
+// regardless of whether it is currently running or dormant. Used by the proxy
+// to decide if a status probe should be answered by Cosmos itself.
+func LazyIsLazy(containerName string) bool {
+	lazyMu.Lock()
+	defer lazyMu.Unlock()
+	st := lazyStates[containerName]
+	return st != nil && st.lazy
+}
+
 // lazyOnContainerEvent keeps the lazy table current from the docker event stream.
 func lazyOnContainerEvent(action string, containerID string, containerName string, attributes map[string]string) (suppress bool, levelOverride string) {
 	name := strings.TrimPrefix(containerName, "/")

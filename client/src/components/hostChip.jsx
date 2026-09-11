@@ -17,7 +17,7 @@ function classifyProbeStatus(res) {
   if (res.type === 'opaqueredirect') return true;
   const s = res.status;
   if (s >= 200 && s < 400) return true;
-  if (s === 401 || s === 403 || s === 405 || s === 407 || s === 429 || s === 511) return true;
+  if (s === 401 || s === 403 || s === 405 || s === 407 || s === 429 || s === 511 || s === 501) return true;
   return false;
 }
 
@@ -37,9 +37,13 @@ const probeRoute = async (route) => {
       redirect: 'manual',
       cache: 'no-store',
     });
-    const sleeping = res.headers.get('X-Cosmos-Container') === 'sleeping';
-    // A sleeping lazy container is 503 + sleeping header: reachable, not offline.
-    const online = sleeping || classifyProbeStatus(res);
+    const containerState = res.headers.get('X-Cosmos-Container');
+    // Cosmos answers the probe for lazy routes itself with
+    // X-Cosmos-Container: sleeping (503) or running (200). Either way the app
+    // is reachable - the header is authoritative, so never let the app's own
+    // (possibly 404) HEAD response mark it offline.
+    const sleeping = containerState === 'sleeping';
+    const online = containerState != null || classifyProbeStatus(res);
     return { sleeping, online };
   } catch (e) {
     // CORS error: the proxy answered but hid the status (cross-origin route,
