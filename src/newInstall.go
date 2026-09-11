@@ -20,7 +20,7 @@ type NewInstallJSON struct {
 	TLSKey string `json:"tlsKey"`
 	Nickname string `json:"nickname"`
 	Password string `json:"password"`
-	Email string `json:"omitempty,email"`
+	Email string `json:"email,omitempty"`
 	Hostname string `json:"hostname"`
 	Step string `json:"step"`
 	SSLEmail string `json:"sslEmail",validate:"omitempty,email"`
