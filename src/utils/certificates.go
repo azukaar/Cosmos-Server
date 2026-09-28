@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"sync"
 	"crypto/x509"
 	"encoding/pem"
 	"math/big"
@@ -27,6 +28,39 @@ import (
 	"github.com/go-acme/lego/v5/providers/dns"
 	"github.com/go-acme/lego/v5/challenge/dns01"
 )
+
+var (
+	letsEncryptMu     sync.Mutex
+	letsEncryptCancel context.CancelFunc
+	letsEncryptWG     sync.WaitGroup
+)
+
+// CancelAndCleanUpLetsEncrypt safely cancels any ongoing Let's Encrypt challenge and waits for DNS cleanup.
+func CancelAndCleanUpLetsEncrypt(timeout time.Duration) {
+	letsEncryptMu.Lock()
+	cancel := letsEncryptCancel
+	letsEncryptMu.Unlock()
+
+	if cancel == nil {
+		return
+	}
+
+	Log("Cancelling Let's Encrypt process to allow DNS CleanUp...")
+	cancel()
+
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		letsEncryptWG.Wait()
+	}()
+
+	select {
+	case <-c:
+		Log("Let's Encrypt cleanup finished.")
+	case <-time.After(timeout):
+		Log("Let's Encrypt cleanup timed out.")
+	}
+}
 
 type CAConfig struct {
 	Certificate *x509.Certificate
@@ -228,7 +262,19 @@ func (u *CertUser) GetPrivateKey() crypto.Signer {
 func DoLetsEncrypt() (string, string) {
 	config := GetMainConfig()
 	LetsEncryptErrors = []string{}
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+
+	letsEncryptMu.Lock()
+	letsEncryptCancel = cancel
+	letsEncryptMu.Unlock()
+
+	letsEncryptWG.Add(1)
+	defer func() {
+		letsEncryptMu.Lock()
+		letsEncryptCancel = nil
+		letsEncryptMu.Unlock()
+		letsEncryptWG.Done()
+	}()
 
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
