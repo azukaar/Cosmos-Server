@@ -162,6 +162,24 @@ export const getContainersRoutes = (config, containerName) => {
   })) || [];
 }
 
+// Reverse lookup: find the container that a SERVAPP route points at, given the
+// docker container list. A SERVAPP route target is "http://<containerName>:port".
+export const getContainerFromRoute = (containers, route) => {
+  if (!containers || !route || route.Mode !== 'SERVAPP' || !route.Target) {
+    return null;
+  }
+  try {
+    const targetHost = route.Target.replace(/^[a-z]+:\/\//i, '').split(':')[0];
+    const match = (containers || []).find((c) => {
+      const name = (c.Names && c.Names[0] ? c.Names[0] : c.Name || '').replace(/^\/+/, '');
+      return name === targetHost;
+    });
+    return match || null;
+  } catch (e) {
+    return null;
+  }
+}
+
 export const getContaienrsJobs = (config, containerName) => {
   return (config && config.CRON && Object.values(config.CRON).filter((job) => {
     return job.Container == containerName || job.Container == containerName.replace(/^\/+/, '');
