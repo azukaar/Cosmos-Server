@@ -79,6 +79,8 @@ function getDashboard() {
       Icon: route.Icon || "",
       HideFromDashboard: route.HideFromDashboard || false,
       ContainerRunning: route.Mode === "SERVAPP" ? true : false,
+      // The demo shows SERVAPP containers as running; none are dormant.
+      ContainerDormant: false,
       ContainerIcon: "",
     }));
     resolve({

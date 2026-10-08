@@ -107,6 +107,12 @@ type lazyEntry struct {
 	lastActivity    time.Time
 	openConns       int
 	failStreak      int
+	// stoppedByReaper marks an in-progress reaper stop. Docker emits
+	// kill, die, stop for a single `docker stop`; the flag is kept set across
+	// the WHOLE sequence and only consumed on the final `stop` event (or on
+	// start / wake / destroy / stop-error). Keeping it set through `die`
+	// matters: the trailing `stop` must still see it, or it would mistake the
+	// reaper stop for a manual one and wipe the dormant flag.
 	stoppedByReaper bool
 
 	wake *lazyWake
@@ -423,11 +429,26 @@ func LazyConnClose(containerName string) {
 }
 
 // LazyIsDormant reports whether the container is lazy and currently stopped.
+// This matches upstream Cosmos semantics: a lazy container that is not running
+// (whether put to sleep by the idle reaper, stopped manually, or crashed) is
+// reported as dormant. The distinction between "reaper sleep" and "manual
+// stop" is deliberately NOT tracked, so the status survives a Cosmos reboot
+// and a container update without any persisted label.
 func LazyIsDormant(containerName string) bool {
 	lazyMu.Lock()
 	defer lazyMu.Unlock()
 	st := lazyStates[containerName]
 	return st != nil && st.lazy && !st.running
+}
+
+// LazyIsLazy reports whether the container is tracked as a lazy container,
+// regardless of whether it is currently running or dormant. Used by the proxy
+// to decide if a status probe should be answered by Cosmos itself.
+func LazyIsLazy(containerName string) bool {
+	lazyMu.Lock()
+	defer lazyMu.Unlock()
+	st := lazyStates[containerName]
+	return st != nil && st.lazy
 }
 
 // lazyOnContainerEvent keeps the lazy table current from the docker event stream.
@@ -457,6 +478,10 @@ func lazyOnContainerEvent(action string, containerID string, containerName strin
 			// a wake must not drag bootstrap / compose export along every time
 			return true, ""
 		}
+
+		// `create` of a lazy container: nothing to restore. Dormant status is
+		// derived from `lazy && !running` (upstream semantics), so a recreated
+		// container that is not running is automatically dormant.
 		return false, ""
 
 	case "die", "stop", "kill":
@@ -467,14 +492,24 @@ func lazyOnContainerEvent(action string, containerID string, containerName strin
 			return false, ""
 		}
 		st.running = false
-		// one `docker stop` emits kill, die, stop; only `die` consumes the reaper flag
+		// A single `docker stop` emits kill, die, then stop. The reaper's
+		// stoppedByReaper flag is kept set across the WHOLE sequence (it is
+		// consumed on start / wake / destroy / stop-error / stop), so the
+		// trailing `stop` event, which arrives after `die`, still knows the
+		// stop was reaper-initiated. Without it, the trailing `stop` would
+		// look like a manual stop. We no longer track a separate dormant
+		// flag: dormant is `lazy && !running` (upstream semantics), so any
+		// stop just clears `running`. The reaper marker only controls log
+		// suppression on the `die` event.
 		wasReaped := st.stoppedByReaper
-		if action == "die" {
+		if action == "stop" {
 			st.stoppedByReaper = false
 		}
 		lazyMu.Unlock()
 
 		if action == "die" && wasReaped {
+			// `die` is the meaningful "container exited" event; downgrade it.
+			// The trailing `stop` is bookkeeping and stays at the default level.
 			return false, "debug"
 		}
 		return false, ""
@@ -583,6 +618,9 @@ func lazyRescan() {
 
 		lazyMu.Lock()
 		st.running = running
+		// Dormant is derived from `lazy && !running` (upstream semantics), so
+		// a non-running lazy container is automatically dormant after a Cosmos
+		// restart - no persisted label needed.
 		// seed from StartedAt so long-idle containers are reaped on the first tick
 		if running {
 			st.lastActivity = lazyParseStartedAt(startedAt)

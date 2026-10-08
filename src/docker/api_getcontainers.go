@@ -8,7 +8,17 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/azukaar/cosmos-server/src/utils"
+
+	"github.com/docker/docker/api/types"
 )
+
+// ContainerJSONWithState adds the Cosmos-level Dormant flag to the inspect
+// response. Dormant follows upstream semantics: a lazy container that is not
+// running is dormant, whether the idle reaper slept it or it was stopped.
+type ContainerJSONWithState struct {
+	types.ContainerJSON
+	Dormant bool `json:"Dormant,omitempty"`
+}
 
 // GetContainerRoute godoc
 // @Summary Inspect a single Docker container by ID
@@ -59,9 +69,14 @@ func GetContainerRoute(w http.ResponseWriter, req *http.Request) {
 			container.Config.Env = masked
 		}
 
+		withState := ContainerJSONWithState{
+			ContainerJSON: container,
+			Dormant:       LazyIsDormant(strings.TrimPrefix(string(container.Name), "/")),
+		}
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data":   container,
+			"data":   withState,
 		})
 	} else {
 		utils.Error("GetContainerRoute: Method not allowed " + req.Method, nil)

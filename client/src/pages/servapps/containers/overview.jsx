@@ -14,6 +14,7 @@ import UploadButtons from '../../../components/fileUpload';
 import { useTranslation } from 'react-i18next';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_RESOURCES } from '../../../utils/permissions';
+import { getContainerDisplayStatus } from '../../../utils/container-status';
 
 const info = {
   backgroundColor: 'rgba(0, 0, 0, 0.1)',
@@ -29,6 +30,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
   const [isUpdating, setIsUpdating] = React.useState(false);
   
   const { Name, Config, NetworkSettings, State } = containerInfo;
+  const displayStatus = getContainerDisplayStatus(containerInfo);
   const Image = Config.Image;
   const IPAddress = NetworkSettings.Networks?.[Object.keys(NetworkSettings.Networks)[0]]?.IPAddress;
   const Health = State.Health;
@@ -82,17 +84,20 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             ) : null}
           </div>
             <div>
-              {(State.Status !== 'running' && Config.Labels['cosmos-lazy'] === 'true') ? (
-                <Chip label={t('mgmt.servApps.dormantChip.dormantLabel')} color="info" />
-              ) : ({
+              {({
+               "dormant": <Chip label={t('mgmt.servApps.dormantChip.dormantLabel')} color="info" />,
                "created": <Chip label={t('mgmt.servApps.createdChip.createdLabel')} color="warning" />,
                "restarting": <Chip label={t('mgmt.servApps.restartingChip.restartingLabel')} color="warning" />,
                "running": <Chip label={t('mgmt.servApps.runningChip.runningLabel')} color="success" />,
-               "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="error" />,
+               "healthy": <Chip label={t('mgmt.servApps.healthyChip.healthyLabel')} color="success" />,
+               "starting": <Chip label={t('mgmt.servApps.startingChip.startingLabel')} color="warning" />,
+               "unhealthy": <Chip label={t('mgmt.servApps.unhealthyChip.unhealthyLabel')} color="error" />,
+               "removing": <Chip label={t('mgmt.servApps.removingChip.removingLabel')} color="warning" />,
                "paused": <Chip label={t('mgmt.servApps.pausedChip.pausedLabel')} color="info" />,
                "exited": <Chip label={t('mgmt.servApps.exitedChip.exitedLabel')} color="error" />,
+               "stopped": <Chip label={t('mgmt.servApps.stoppedChip.stoppedLabel')} color="default" />,
                "dead": <Chip label={t('mgmt.servApps.deadChip.deadLabel')} color="error" />,
-             })[State.Status]}
+             })[displayStatus]}
             </div>
             <UploadButtons
               accept='.jpg, .png, .gif, .jpeg, .webp, .bmp, .avif, .tiff, .svg'
@@ -229,7 +234,7 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
             <strong><NodeExpandOutlined /> URLs</strong>
             <div>
               {routes.map((route) => {
-                return <HostChip route={route} settings style={{margin: '5px'}}/>
+                return <HostChip route={route} settings container={containerInfo} style={{margin: '5px'}}/>
               })}
               <br />
               <PermissionGuard permission={PERM_RESOURCES}>
