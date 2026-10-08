@@ -112,6 +112,19 @@ func cronConfigCreate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if cronJob.Crontab == "" {
+		utils.HTTPError(w, "CRON job crontab is required", http.StatusBadRequest, "CR013")
+		return
+	}
+
+	if !ValidCrontab(cronJob.Crontab) {
+		utils.HTTPError(w, "Invalid crontab: expected 5 or 6 space-separated fields (minute hour day month weekday [second])", http.StatusBadRequest, "CR014")
+		return
+	}
+
+	// Store the canonical 6-field representation so the scheduler and UI agree.
+	cronJob.Crontab, _ = NormalizeCrontab(cronJob.Crontab)
+
 	utils.ConfigLock.Lock()
 	defer utils.ConfigLock.Unlock()
 
@@ -179,6 +192,19 @@ func cronConfigUpdate(w http.ResponseWriter, req *http.Request) {
 		utils.HTTPError(w, "CRON job not found", http.StatusNotFound, "CR021")
 		return
 	}
+
+	if cronJob.Crontab == "" {
+		utils.HTTPError(w, "CRON job crontab is required", http.StatusBadRequest, "CR023")
+		return
+	}
+
+	if !ValidCrontab(cronJob.Crontab) {
+		utils.HTTPError(w, "Invalid crontab: expected 5 or 6 space-separated fields (minute hour day month weekday [second])", http.StatusBadRequest, "CR024")
+		return
+	}
+
+	// Store the canonical 6-field representation so the scheduler and UI agree.
+	cronJob.Crontab, _ = NormalizeCrontab(cronJob.Crontab)
 
 	// If the name changed, remove the old entry
 	if cronJob.Name != "" && cronJob.Name != name {

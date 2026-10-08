@@ -219,18 +219,22 @@ func InitSnapRAIDConfig() {
 		
 		// Init scheduler
 		
+		syncCrontab, _ := cron.NormalizeCrontab(raidOptions.SyncCrontab)
+
 		cron.RegisterJob(cron.ConfigJob{
 			Scheduler: "SnapRAID",
 			Name: "SnapRAID sync " + raidOptions.Name,
-			Crontab: raidOptions.SyncCrontab,
+			Crontab: syncCrontab,
 			Cancellable: true,
 			Job: cron.JobFromCommand("snapraid", "-q", "sync", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
 		})
 		
+		scrubCrontab, _ := cron.NormalizeCrontab(raidOptions.ScrubCrontab)
+
 		cron.RegisterJob(cron.ConfigJob{
 			Scheduler: "SnapRAID",
 			Name: "SnapRAID scrub " + raidOptions.Name,
-			Crontab: raidOptions.ScrubCrontab,
+			Crontab: scrubCrontab,
 			Cancellable: true,
 			Job: cron.JobFromCommand("snapraid", "-q", "scrub", "-c", utils.CONFIGFOLDER + "snapraid/" + raidOptions.Name + ".conf"),
 		})

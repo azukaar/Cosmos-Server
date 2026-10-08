@@ -182,7 +182,8 @@ export const Parity = () => {
           {
             title: t('mgmt.storage.syncScrubIntervalTitle'),
             screenMin: 'sm',
-            field: (r) => <div>Sync: {crontabToText(r.SyncCrontab, t)}<br/>Scrub: {crontabToText(r.ScrubCrontab, t)}</div>
+            field: (r) => <div>Sync: {crontabToText(r.SyncCrontab, t)}<br/>Scrub: {crontabToText(r.ScrubCrontab, t)}</div>,
+            style: { whiteSpace: 'normal', wordBreak: 'break-word' },
           },
           {
             title: t('global.statusTitle'),
