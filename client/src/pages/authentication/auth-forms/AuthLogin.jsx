@@ -128,7 +128,7 @@ const AuthLogin = () => {
                                     <InputLabel htmlFor="nickname-login">{t('global.nicknameLabel')}</InputLabel>
                                     <OutlinedInput
                                         id="nickname-login"
-                                        type="nickname"
+                                        type="text"
                                         value={values.nickname}
                                         name="nickname"
                                         autoComplete="username"
@@ -155,6 +155,7 @@ const AuthLogin = () => {
                                         type={showPassword ? 'text' : 'password'}
                                         value={values.password}
                                         name="password"
+                                        autoComplete="current-password"
                                         onBlur={handleBlur}
                                         onChange={handleChange}
                                         endAdornment={
