@@ -249,21 +249,18 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
-            // convert healthcheck
+            // convert healthcheck: docker-compose uses duration strings
+            // (e.g. "15s", "1m30s", "5m") for interval/timeout/start_period —
+            // keep them as strings so the backend can parse them with the same
+            // semantics as docker-compose itself.
             if (doc.services[key].healthcheck) {
-              const toConvert = ["timeout", "interval", "start_period"];
-              toConvert.forEach((valT) => {
-                if(typeof doc.services[key].healthcheck[valT] === 'string') {
-                  let original = doc.services[key].healthcheck[valT];
-                  let value = parseInt(original);
-                  if (original.endsWith('m')) {
-                    value = value * 60;
-                  } else if (original.endsWith('h')) {
-                    value = value * 60 * 60;
-                  } else if (original.endsWith('d')) {
-                    value = value * 60 * 60 * 24;
-                  }
-                  doc.services[key].healthcheck[valT] = value;
+              const durationFields = ["timeout", "interval", "start_period"];
+              durationFields.forEach((valT) => {
+                const val = doc.services[key].healthcheck[valT];
+                if (typeof val === 'number' && !Number.isNaN(val)) {
+                  // Accept a bare number for backward compat with older compose
+                  // files, but normalize it to a duration string (seconds).
+                  doc.services[key].healthcheck[valT] = String(val) + 's';
                 }
               });
             }
