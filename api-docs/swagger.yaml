@@ -1371,7 +1371,9 @@ definitions:
         description: |-
           Host is the git host the token is valid for (github.com,
           git.example.com). The UI offers the connection for repositories on
-          that host; empty matches the provider's public host.
+          that host, and self-hosted repository listings derive the API base
+          from it; empty matches the provider's public host. A pasted URL is
+          reduced to its hostname on save.
         type: string
       name:
         type: string
@@ -1471,10 +1473,16 @@ definitions:
   pro.CIRegistryTarget:
     properties:
       artifactQuotaBytes:
-        description: 'ArtifactQuotaBytes caps the project''s stored file artifacts
-          (0: the default of 4 GiB).'
+        description: |-
+          ArtifactQuotaBytes caps the project's stored file artifacts (0: the
+          default, ciDefaultArtifactQuota).
         type: integer
       image:
+        type: string
+      packageRegistry:
+        description: |-
+          PackageRegistry receives the package of an npm / pypi strategy. Empty
+          on save picks the only registry of that type.
         type: string
       registry:
         description: 'Registry: the docker registry to push to (its host prefixes
@@ -1527,7 +1535,11 @@ definitions:
       provider:
         type: string
       repoUrl:
-        description: RepoURL is the https clone URL (https://github.com/owner/repo[.git]).
+        description: |-
+          RepoURL is the https clone URL (https://github.com/owner/repo[.git]).
+          An ssh clone URL (git@host:owner/repo.git, ssh://host/owner/repo) is
+          accepted on save and converted to its https form: clones and provider
+          calls authenticate with the token over https.
         type: string
       rootDir:
         description: RootDir is the sub-folder to build (monorepos).
@@ -3382,7 +3394,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.24.0-unstable028
+  version: 0.24.0-unstable029
 paths:
   /_logs:
     get:

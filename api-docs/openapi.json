@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.24.0-unstable028"
+    "version": "0.24.0-unstable029"
   },
   "paths": {
     "/_logs": {
@@ -17099,7 +17099,7 @@
             "type": "string"
           },
           "host": {
-            "description": "Host is the git host the token is valid for (github.com,\ngit.example.com). The UI offers the connection for repositories on\nthat host; empty matches the provider's public host.",
+            "description": "Host is the git host the token is valid for (github.com,\ngit.example.com). The UI offers the connection for repositories on\nthat host, and self-hosted repository listings derive the API base\nfrom it; empty matches the provider's public host. A pasted URL is\nreduced to its hostname on save.",
             "type": "string"
           },
           "name": {
@@ -17239,10 +17239,14 @@
         "type": "object",
         "properties": {
           "artifactQuotaBytes": {
-            "description": "ArtifactQuotaBytes caps the project's stored file artifacts (0: the default of 4 GiB).",
+            "description": "ArtifactQuotaBytes caps the project's stored file artifacts (0: the\ndefault, ciDefaultArtifactQuota).",
             "type": "integer"
           },
           "image": {
+            "type": "string"
+          },
+          "packageRegistry": {
+            "description": "PackageRegistry receives the package of an npm / pypi strategy. Empty\non save picks the only registry of that type.",
             "type": "string"
           },
           "registry": {
@@ -17305,7 +17309,7 @@
             "type": "string"
           },
           "repoUrl": {
-            "description": "RepoURL is the https clone URL (https://github.com/owner/repo[.git]).",
+            "description": "RepoURL is the https clone URL (https://github.com/owner/repo[.git]).\nAn ssh clone URL (git@host:owner/repo.git, ssh://host/owner/repo) is\naccepted on save and converted to its https form: clones and provider\ncalls authenticate with the token over https.",
             "type": "string"
           },
           "rootDir": {

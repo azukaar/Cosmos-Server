@@ -48,7 +48,9 @@ type CIGitConnection struct {
 	Provider string `json:"provider"`
 	// Host is the git host the token is valid for (github.com,
 	// git.example.com). The UI offers the connection for repositories on
-	// that host; empty matches the provider's public host.
+	// that host, and self-hosted repository listings derive the API base
+	// from it; empty matches the provider's public host. A pasted URL is
+	// reduced to its hostname on save.
 	Host string `json:"host,omitempty"`
 	// APIURL overrides the provider API base for self-hosted instances;
 	// empty derives it from the repository URL.
@@ -77,6 +79,9 @@ type CIRepository struct {
 type CISource struct {
 	Provider string `json:"provider"`
 	// RepoURL is the https clone URL (https://github.com/owner/repo[.git]).
+	// An ssh clone URL (git@host:owner/repo.git, ssh://host/owner/repo) is
+	// accepted on save and converted to its https form: clones and provider
+	// calls authenticate with the token over https.
 	RepoURL string `json:"repoUrl"`
 	// Connection names a CIGitConnection whose credentials this project
 	// uses. When set, Token and Username below are ignored (and cleared on
@@ -115,13 +120,17 @@ type CIBuildSettings struct {
 
 // CIRegistryTarget is where artifacts go.
 type CIRegistryTarget struct {
-	// ArtifactQuotaBytes caps the project's stored file artifacts (0: the default of 4 GiB).
+	// ArtifactQuotaBytes caps the project's stored file artifacts (0: the
+	// default, ciDefaultArtifactQuota).
 	ArtifactQuotaBytes int64 `json:"artifactQuotaBytes,omitempty"`
 	// Registry: the docker registry to push to (its host prefixes the image); Image: repository name (default: project name).
 	Registry string `json:"registry,omitempty"`
 	Image    string `json:"image,omitempty"`
 	// StaticRegistry receives static-site archives.
 	StaticRegistry string `json:"staticRegistry,omitempty"`
+	// PackageRegistry receives the package of an npm / pypi strategy. Empty
+	// on save picks the only registry of that type.
+	PackageRegistry string `json:"packageRegistry,omitempty"`
 	// Tokens are Cosmos-minted deploy tokens keyed by registry. Never user-visible.
 	Tokens map[string]string `json:"tokens,omitempty"`
 }
