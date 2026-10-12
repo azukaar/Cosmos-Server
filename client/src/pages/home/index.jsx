@@ -454,7 +454,12 @@ const HomePage = () => {
                 let skip = false;
                 const isSocketProxy = IsRouteSocketProxy(route);
 
-                if (route.HideFromDashboard || (route.Mode == "SERVAPP" && !route.ContainerRunning) || isSocketProxy)
+                // A manually stopped SERVAPP container is hidden from the home
+                // page. A dormant lazy container (lazy and not running -
+                // upstream semantics) stays visible: it is reachable and will
+                // be woken on demand. ContainerDormant reports exactly that:
+                // lazy && !running.
+                if (route.HideFromDashboard || (route.Mode == "SERVAPP" && !route.ContainerRunning && !route.ContainerDormant) || isSocketProxy)
                     skip = true;
 
                 return !skip && coStatus && (coStatus.homepage.Expanded ?

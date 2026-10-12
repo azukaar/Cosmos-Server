@@ -4,13 +4,30 @@ import (
 	"net/http"
 	"strconv"
 	"encoding/json"
+	"strings"
 
 	"github.com/azukaar/cosmos-server/src/utils" 
 
 	"github.com/gorilla/mux"
+	"github.com/docker/docker/api/types"
 )
 
 var maxLimit = 1000
+
+// ContainerWithState adds inspect-only Health/ExitCode/Dormant to the
+// /api/servapps summary:
+//   - Health is only set for running containers with a healthcheck. A stopped
+//     container keeps Docker's last health value in its inspect, but "unhealthy"
+//     is meaningless once the process is gone, so it is never reported here.
+//   - ExitCode lets the UI distinguish a clean stop (exit 0) from a failure.
+//   - Dormant is true only when Cosmos itself put the lazy container to sleep
+//     (idle reaper). A manual stop is never dormant.
+type ContainerWithState struct {
+	types.Container
+	Health   string `json:"Health,omitempty"`
+	ExitCode *int   `json:"ExitCode,omitempty"`
+	Dormant  bool   `json:"Dormant,omitempty"`
+}
 
 // ListContainersRoute godoc
 // @Summary List all Docker containers
@@ -25,7 +42,7 @@ var maxLimit = 1000
 func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 	if utils.CheckPermissions(w, req, utils.PERM_RESOURCES_READ) != nil {
 		return
-	} 
+	}
 
 	limit, _ := strconv.Atoi(req.URL.Query().Get("limit"))
 	// from, _ := req.URL.Query().Get("from")
@@ -42,10 +59,36 @@ func ListContainersRoute(w http.ResponseWriter, req *http.Request) {
 			utils.HTTPError(w, "Containers Get Error", http.StatusInternalServerError, "DL001")
 			return	
 		}
-		
+
+		// Enrich with health / exit code / dormant flag.
+		withState := make([]ContainerWithState, 0, len(containers))
+		for _, c := range containers {
+			entry := ContainerWithState{Container: c}
+			// Dormant follows upstream semantics: any lazy container that is
+			// not running is dormant (whether the reaper slept it, it was
+			// stopped manually, or updated while stopped).
+			if len(c.Names) > 0 {
+				entry.Dormant = LazyIsDormant(strings.TrimPrefix(c.Names[0], "/"))
+			}
+
+			if c.State == "running" {
+				if inspect, iErr := DockerClient.ContainerInspect(DockerContext, c.ID); iErr == nil && inspect.State != nil {
+					if inspect.State.Health != nil {
+						entry.Health = inspect.State.Health.Status
+					}
+				}
+			} else if c.State == "exited" {
+				if inspect, iErr := DockerClient.ContainerInspect(DockerContext, c.ID); iErr == nil && inspect.State != nil {
+					code := inspect.State.ExitCode
+					entry.ExitCode = &code
+				}
+			}
+			withState = append(withState, entry)
+		}
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
-			"data": containers,
+			"data":   withState,
 		})
 	} else {
 		utils.Error("UserList: Method not allowed" + req.Method, nil)
