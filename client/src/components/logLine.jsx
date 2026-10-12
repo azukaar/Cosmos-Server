@@ -44,16 +44,34 @@ const LogLine = ({ message, docker, isMobile }) => {
   html += '</span>'.repeat(colorStack.length);
 
   if (docker) {
-    let parts = html.match(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/);
+    // Docker prefixes every log line with a UTC RFC3339 timestamp (e.g. 2026-09-07T08:07:46.123456789Z),
+    // followed by a space, then the container's own stdout/stderr. Some containers re-print their own
+    // local timestamp right after that prefix (e.g. "2026-09-07 10:07:45.720 CEST ..."). The timestamp
+    // regex is anchored to the start of the line so we always extract the Docker UTC prefix, and any
+    // timestamp the container printed itself is removed from the body to avoid duplicating it.
+    let parts = html.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z/);
     if (!parts) {
       return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
     }
-    let restString = html.replace(parts[0], '');
-   
+    // Convert the Docker UTC timestamp to the viewer's local timezone for display.
+    let ts = parts[0].replace(/\.(\d{3})\d+Z/, '.$1Z'); // JS Date only handles ms precision
+    let localDate = new Date(ts);
+    const pad2 = (n) => String(n).padStart(2, '0');
+    const formatted = isNaN(localDate.getTime())
+      ? parts[0].replace('T', ' ').split('.')[0]  // fall back to raw UTC
+      : `${localDate.getFullYear()}-${pad2(localDate.getMonth() + 1)}-${pad2(localDate.getDate())} ${pad2(localDate.getHours())}:${pad2(localDate.getMinutes())}:${pad2(localDate.getSeconds())}`;
+
+    // Remove the Docker prefix, then any timestamp the container printed itself right after it
+    // (e.g. "2026-09-07 10:07:45.720 CEST" or "... +02:00") so it does not appear twice.
+    let restString = html.replace(parts[0], '')
+      .replace(/^&nbsp;/, '')
+      .replace(/^(?:<span[^>]*>)*\[?\d{4}(?:-|\/)\d{2}(?:-|\/)\d{2}(?:T|&nbsp;)\d{2}:\d{2}:\d{2}(?:[.,]\d{1,9})?(?:Z|[+-]\d{2}:?\d{2})?(?:&nbsp;(?:[A-Z]{2,6}|[+-]\d{2}:?\d{2}|Z))?\]?(?:<\/span>)*(?:&nbsp;+|<br>|$)/, '')
+      .replace(/^&nbsp;(?=(?:&nbsp;)*[A-Z\[])/, '');
+
     return (
       <Stack direction={isMobile ? 'column' : 'row'} spacing={1} alignItems="flex-start">
         <div style={{color:'#AAAAFF', fontStyle:'italic', whiteSpace: 'pre', background: '#393f48', padding: '0 0.5em', marginRight: '5px'}}>
-          {parts[0].replace('T', ' ').split('.')[0]}
+          {formatted}
         </div>
         <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(restString) }} />
       </Stack>
