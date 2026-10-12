@@ -732,9 +732,14 @@ const DockerComposeImport = ({ refresh, dockerComposeInit, installerInit, defaul
             // CREATE NEW VOLUMES
             if (jsoned.services[key].volumes) {
               jsoned.services[key].volumes.forEach((volume) => {
-                if (typeof volume === 'object' && !volume.source.startsWith('/') && !volume.existing) {
+                if (typeof volume !== 'object') return;
+                // Source-less mounts (e.g. tmpfs { target, type }) are not named
+                // volumes: there is nothing to auto-create, and volume.source is
+                // undefined so it must not be dereferenced.
+                if (!volume.source || typeof volume.source !== 'string') return;
+                if (!volume.source.startsWith('/') && !volume.existing) {
                   newVolumes.push(volume);
-                } else if (typeof volume === 'object' && volume.existing) {
+                } else if (volume.existing) {
                   delete volume.existing;
                 }
               });
