@@ -169,7 +169,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 
 				if _, err := os.Stat(newSource); os.IsNotExist(err) {
 					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
-
+	
 					err := os.MkdirAll(newSource, 0755)
 					if err != nil {
 						utils.Error("EditContainer: Unable to create directory for bind mount", err)
