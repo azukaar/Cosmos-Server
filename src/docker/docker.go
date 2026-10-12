@@ -1,16 +1,3 @@
-// Copyright 2023 Yann-Sebastien Tremblay-Desrochers, modified by Plurality
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package docker
 
 import (
@@ -21,35 +8,958 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/azukaar/cosmos-server/src/utils"
+	dockerConfig "github.com/docker/cli/cli/config"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
-	"github.com/docker/docker/api/types/image"
-	"github.com/docker/docker/api/types/network"
+	conttype "github.com/docker/docker/api/types/container"
+	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
-	"golang.org/x/net/context/ctxhttp"
 )
 
 var DockerClient *client.Client
 var DockerContext context.Context
+var DockerNetworkName = "cosmos-network"
 
-var ContainerMutex sync.Mutex
-var ContainerMutexList sync.Mutex
+func getIdFromName(name string) (string, error) {
+	containers, err := DockerClient.ContainerList(DockerContext, container.ListOptions{})
+	if err != nil {
+		utils.Error("Docker Container List", err)
+		return "", err
+	}
 
-// DockerClientInit initializes the Docker client used by the rest of the app
-func DockerClientInit() {
-	utils.Log("Initializing Docker client...")
-	// See https://godoc.org/github.com/docker/docker/client#Client
-	DockerClient, DockerContext = Client()
+	for _, container := range containers {
+		if container.Names[0] == name {
+			utils.Warn(container.Names[0] + " == " + name + " == " + container.ID)
+			return container.ID, nil
+		}
+	}
 
+	return "", errors.New("Container not found")
+}
+
+// race fix: atomic flag + a mutex serializing Connect (concurrent heartbeat goroutines
+// raced on this flag and on the DockerClient pointer writes below)
+var DockerIsConnected atomic.Bool
+var dockerConnectLock sync.Mutex
+
+func Connect() error {
+	dockerConnectLock.Lock()
+	defer dockerConnectLock.Unlock()
+
+	if DockerClient != nil {
+		// check if connection is still alive
+		ping, err := DockerClient.Ping(DockerContext)
+		if ping.APIVersion != "" && err == nil {
+			DockerIsConnected.Store(true)
+			return nil
+		} else {
+			DockerIsConnected.Store(false)
+			DockerClient = nil
+			utils.Error("Docker Connection died, will try to connect again", err)
+		}
+	}
+	if DockerClient == nil {
+		ctx := context.Background()
+		client, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			DockerIsConnected.Store(false)
+			return err
+		}
+
+		DockerClient = client
+		DockerContext = ctx
+
+		ping, err := DockerClient.Ping(DockerContext)
+		if ping.APIVersion != "" && err == nil {
+			DockerIsConnected.Store(true)
+			utils.Log("Docker Connected")
+		} else {
+			DockerIsConnected.Store(false)
+			utils.Error("Docker Connection - Cannot ping Daemon. Is it running?", nil)
+			return errors.New("Docker Connection - Cannot ping Daemon. Is it running?")
+		}
+	}
+
+	return nil
+}
+
+func RecreateContainer(containerID string, containerConfig types.ContainerJSON) (string, error) {
+	if utils.IsInsideContainer && os.Getenv("HOSTNAME") == containerID[1:] {
+		err := SelfRecreate()
+		if err != nil {
+			return "", err
+		}
+	} else {
+		return EditContainer(containerID, containerConfig, false)
+	}
+
+	utils.TriggerEvent(
+		"cosmos.docker.recreate",
+		"Cosmos Container Recreate",
+		"success",
+		"container@"+containerID,
+		map[string]interface{}{
+			"container": containerID,
+		})
+
+	return "", nil
+}
+
+func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock bool) (string, error) {
+	if oldContainerID != "" && !noLock {
+		// no need to re-lock if we are reverting
+		DockerNetworkLock <- true
+		defer func() {
+			<-DockerNetworkLock
+			utils.Debug("Unlocking EDIT Container")
+		}()
+
+		errD := Connect()
+		if errD != nil {
+			return "", errD
+		}
+	}
+
+	if !HasLabel(newConfig, "cosmos-force-network-mode") {
+		if strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
+			strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:") {
+			AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
+		}
+	} else {
+		newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
+	}
+
+	newName := newConfig.Name
+	oldContainer := newConfig
+
+	if oldContainerID != "" {
+		utils.Log("EditContainer - inspecting previous container " + oldContainerID)
+
+		// create missing folders
+
+		for _, newmount := range newConfig.HostConfig.Mounts {
+			if newmount.Type == mountType.TypeBind {
+				newSource := newmount.Source
+
+				if utils.IsInsideContainer {
+					if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+						utils.Error("EditContainer: Unable to create directory for bind mount in the host directory. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the bind folder yourself", err)
+					} else {
+						newSource = "/mnt/host" + newSource
+					}
+				}
+
+				utils.Log(fmt.Sprintf("Checking directory %s for bind mount", newSource))
+
+				if _, err := os.Stat(newSource); os.IsNotExist(err) {
+					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
+
+					err := os.MkdirAll(newSource, 0755)
+					if err != nil {
+						utils.Error("EditContainer: Unable to create directory for bind mount", err)
+						return "", errors.New("Unable to create directory for bind mount. Make sure parent directories exist, and that Cosmos has permissions to create directories in the host directory")
+					}
+
+					if newConfig.Config.User != "" {
+						// Change the ownership of the directory to the container.User
+						userInfo, err := user.Lookup(newConfig.Config.User)
+						if err != nil {
+							utils.Error("EditContainer: Unable to lookup user", err)
+						} else {
+							uid, _ := strconv.Atoi(userInfo.Uid)
+							gid, _ := strconv.Atoi(userInfo.Gid)
+							err = os.Chown(newSource, uid, gid)
+							if err != nil {
+								utils.Error("EditContainer: Unable to change ownership of directory", err)
+							}
+						}
+					}
+				}
+			}
+		}
+
+		utils.Log("EditContainer - Container updating. Retriveing currently running " + oldContainerID)
+
+		var err error
+
+		// get container informations
+		// https://godoc.org/github.com/docker/docker/api/types#ContainerJSON
+		oldContainer, err = DockerClient.ContainerInspect(DockerContext, oldContainerID)
+
+		if err != nil {
+			return "", err
+		}
+
+		// check if new image exists, if not, pull it
+		_, _, errImage := DockerClient.ImageInspectWithRaw(DockerContext, newConfig.Config.Image)
+		if errImage != nil {
+			utils.Log("EditContainer - Image not found, pulling " + newConfig.Config.Image)
+			out, errPull := DockerPullImage(newConfig.Config.Image)
+			if errPull != nil {
+				utils.Error("EditContainer - Image not found.", errPull)
+				return "", errors.New("Image not found. " + errPull.Error())
+			}
+			defer out.Close()
+
+			// wait for image pull to finish
+			scanner := bufio.NewScanner(out)
+			for scanner.Scan() {
+				utils.Log(scanner.Text())
+			}
+		}
+
+		// if no name, use the same one, that will force Docker to create a hostname if not set
+		newName = oldContainer.Name
+
+		// stop and remove container
+		stopError := DockerClient.ContainerStop(DockerContext, oldContainerID, container.StopOptions{})
+		if stopError != nil {
+			return "", stopError
+		}
+
+		removeError := DockerClient.ContainerRemove(DockerContext, oldContainerID, container.RemoveOptions{})
+		if removeError != nil {
+			return "", removeError
+		}
+
+		// wait for container to be destroyed
+		//
+		for {
+			_, err := DockerClient.ContainerInspect(DockerContext, oldContainerID)
+			if err != nil {
+				break
+			} else {
+				utils.Log("EditContainer - Waiting for container to be destroyed")
+				time.Sleep(1 * time.Second)
+			}
+		}
+
+		utils.Log("EditContainer - Container stopped " + oldContainerID)
+	} else {
+		utils.Log("EditContainer - Revert started")
+	}
+
+	// only force hostname if network is bridge or default, otherwise it will fail
+	if newConfig.HostConfig.NetworkMode == "bridge" || newConfig.HostConfig.NetworkMode == "default" {
+		newConfig.Config.Hostname = newName[1:]
+	} else if strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") || strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:") || newConfig.HostConfig.NetworkMode == "host" {
+		// don't allow for hostnames!
+		newConfig.Config.Hostname = ""
+		// IDK Docker is weird, if you don't erase this it will break
+		newConfig.Config.ExposedPorts = nil
+	}
+	// Other containers with network_mode that are really network will keep their hostname
+
+	// recreate container with new informations
+	createResponse, createError := DockerClient.ContainerCreate(
+		DockerContext,
+		newConfig.Config,
+		newConfig.HostConfig,
+		nil,
+		nil,
+		newName,
+	)
+	if createError != nil {
+		utils.Error("EditContainer - Failed to create container", createError)
+	}
+
+	utils.Log("EditContainer - Container recreated. Re-connecting networks " + createResponse.ID)
+
+	// is force secure
+	isForceSecure := newConfig.Config.Labels["cosmos-force-network-secured"] == "true"
+
+	// re-connect to networks
+	for networkName, _ := range oldContainer.NetworkSettings.Networks {
+		if isForceSecure && networkName == "bridge" {
+			utils.Log("EditContainer - Skipping network " + networkName + " (cosmos-force-network-secured is true)")
+			continue
+		}
+		utils.Log("EditContainer - Connecting to network " + networkName)
+		errNet := ConnectToNetworkSync(networkName, createResponse.ID)
+		if errNet != nil {
+			utils.Error("EditContainer - Failed to connect to network " + networkName, errNet)
+		} else {
+			utils.Debug("EditContainer - New Container connected to network " + networkName)
+		}
+	}
+
+	// Decide whether the recreated container should be started.
+	//
+	// Previously this used the old container's State.Running to decide, but by
+	// this point the old container has just been stopped by this same function,
+	// so State.Running is false for every container — running services were
+	// recreated and then left down after an auto-update.
+	//
+	// Intent of a container is stable and explicit:
+	//   - lazy containers (cosmos-lazy=true) are managed by the reaper and must
+	//     NOT be auto-started here: they sleep on purpose and wake on demand.
+	//   - explicitly stopped containers (user stop) stay stopped after recreate.
+	//   - everything else — including no/unknown State — is started, so a
+	//     running (or state-unknown) service comes back up after the update.
+	var runError error
+	if IsLazyLabels(newConfig.Config.Labels) {
+		utils.Log("EditContainer - Networks Connected. Lazy container, leaving new container " + createResponse.ID + " stopped (will start on demand)")
+	} else if oldContainer.State != nil && !oldContainer.State.Running {
+		utils.Log("EditContainer - Networks Connected. Previous container was stopped, leaving new container " + createResponse.ID + " stopped")
+	} else {
+		utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
+
+		runError = DockerClient.ContainerStart(DockerContext, createResponse.ID, container.StartOptions{})
+
+		if runError != nil {
+			utils.Error("EditContainer - Failed to run container", runError)
+		}
+	}
+
+	if createError != nil || runError != nil {
+		if oldContainerID == "" {
+			if createError == nil {
+				utils.Error("EditContainer - Failed to revert. Container is re-created but in broken state.", runError)
+				return "", runError
+			} else {
+				utils.Error("EditContainer - Failed to revert. Giving up.", createError)
+				return "", createError
+			}
+		}
+
+		utils.Log("EditContainer - Failed to edit, attempting to revert changes")
+
+		if createError == nil {
+			utils.Log("EditContainer - Killing new broken container")
+			// attempt kill
+			DockerClient.ContainerKill(DockerContext, oldContainerID, "")
+			DockerClient.ContainerKill(DockerContext, createResponse.ID, "")
+			// attempt remove in case created state
+			DockerClient.ContainerRemove(DockerContext, oldContainerID, container.RemoveOptions{})
+			DockerClient.ContainerRemove(DockerContext, createResponse.ID, container.RemoveOptions{})
+		}
+
+		utils.Log("EditContainer - Reverting...")
+		// attempt to restore container
+		restored, restoreError := EditContainer("", oldContainer, false)
+
+		if restoreError != nil {
+			utils.Error("EditContainer - Failed to restore container", restoreError)
+
+			if createError != nil {
+				utils.Error("EditContainer - re-create container ", createError)
+				return "", createError
+			} else {
+				utils.Error("EditContainer - re-start container ", runError)
+				return "", runError
+			}
+		} else {
+			utils.Log("EditContainer - Container restored " + oldContainerID)
+			errorWas := ""
+			if createError != nil {
+				errorWas = createError.Error()
+			} else {
+				errorWas = runError.Error()
+			}
+			return restored, errors.New("Failed to edit container, but restored to previous state. Error was: " + errorWas)
+		}
+	}
+
+	// Recreating dependant containers
+	utils.Debug("Unlocking EDIT Container")
+
+	if oldContainerID != "" {
+		RecreateDepedencies(oldContainerID, newName)
+	}
+
+	utils.Log("EditContainer - Container started. All done! " + createResponse.ID)
+
+	return createResponse.ID, nil
+}
+
+func RecreateDepedencies(containerID, containerName string) {
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("RecreateDepedencies", err)
+		return
+	}
+
+	for _, container := range containers {
+		if container.ID == containerID {
+			continue
+		}
+
+		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
+		if err != nil {
+			utils.Error("RecreateDepedencies", err)
+			continue
+		}
+
+		// check if network mode contains containerID
+		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
+			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
+			_, err := EditContainer(container.ID, fullContainer, true)
+			if err != nil {
+				utils.Error("RecreateDepedencies - Failed to update - ", err)
+			}
+		}
+
+		// check if network_mode force 's label contains the container name
+		if GetLabel(fullContainer, "cosmos-force-network-mode") == "container:"+containerName[1:] {
+			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
+			_, err := EditContainer(container.ID, fullContainer, true)
+			if err != nil {
+				utils.Error("RecreateDepedencies - Failed to update - ", err)
+			}
+		}
+	}
+}
+
+func ListContainers() ([]types.Container, error) {
+	errD := Connect()
+	if errD != nil {
+		return nil, errD
+	}
+
+	containers, err := DockerClient.ContainerList(DockerContext, container.ListOptions{
+		All: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return containers, nil
+}
+
+func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) error {
+	for key, value := range labels {
+		containerConfig.Config.Labels[key] = value
+	}
+
+	return nil
+}
+
+func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
+	for _, label := range labels {
+		delete(containerConfig.Config.Labels, label)
+	}
+
+	return nil
+}
+
+func IsLabel(containerConfig types.ContainerJSON, label string) bool {
+	if containerConfig.Config.Labels[label] == "true" {
+		return true
+	}
+	return false
+}
+func HasLabel(containerConfig types.ContainerJSON, label string) bool {
+	if containerConfig.Config.Labels[label] != "" {
+		return true
+	}
+	return false
+}
+func GetLabel(containerConfig types.ContainerJSON, label string) string {
+	return containerConfig.Config.Labels[label]
+}
+
+func Test() error {
+	// connect()
+
+	// jellyfin, _ := DockerClient.ContainerInspect(DockerContext, "jellyfin")
+	// ports := GetAllPorts(jellyfin)
+	// fmt.Println(ports)
+
+	// json jellyfin
+
+	// fmt.Println(jellyfin.NetworkSettings)
+
+	return nil
+}
+
+func HasAutoUpdateOn(containerConfig types.ContainerJSON) bool {
+	if containerConfig.Config.Labels["cosmos-auto-update"] == "true" {
+		return true
+	}
+
+	config := utils.ReadConfigFromFile()
+
+	if os.Getenv("HOSTNAME") == containerConfig.Name[1:] && config.AutoUpdate {
+		return true
+	}
+
+	return false
+}
+
+func CheckUpdatesAvailable() map[string]bool {
+	result := make(map[string]bool)
+
+	// for each containers
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("CheckUpdatesAvailable", err)
+		return result
+	}
+
+	for _, container := range containers {
+		utils.Log("Checking for updates for " + container.Image)
+
+		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
+		if err != nil {
+			utils.Error("CheckUpdatesAvailable", err)
+			continue
+		}
+
+		// stopped containers are checked too: the pull needs no running container, and
+		// EditContainer leaves a stopped container stopped after the update
+		rc, err := DockerPullImage(container.Image)
+		if err != nil {
+			utils.Error("CheckUpdatesAvailable", err)
+			continue
+		}
+
+		scanner := bufio.NewScanner(rc)
+		defer rc.Close()
+
+		needsUpdate := false
+
+		for scanner.Scan() {
+			newStr := scanner.Text()
+			// Check if a download has started
+			if strings.Contains(newStr, "\"status\":\"Pulling fs layer\"") {
+				utils.Log("Updates available for " + container.Image)
+
+				result[container.Names[0]] = true
+				if !HasAutoUpdateOn(fullContainer) {
+					rc.Close()
+					break
+				} else {
+					needsUpdate = true
+				}
+			} else if strings.Contains(newStr, "\"status\":\"Status: Image is up to date") {
+				utils.Log("No updates available for " + container.Image)
+
+				if !HasAutoUpdateOn(fullContainer) {
+					rc.Close()
+					break
+				}
+			} else {
+				utils.Log(newStr)
+			}
+		}
+
+		// no new image to pull, see if local image is matching
+		if !result[container.Names[0]] && !needsUpdate {
+			// check sum of local vs container image
+			utils.Log("CheckUpdatesAvailable - Checking local image for change for " + container.Image)
+			localImage, _, err := DockerClient.ImageInspectWithRaw(DockerContext, container.Image)
+			if err != nil {
+				utils.Error("CheckUpdatesAvailable - local image - ", err)
+				continue
+			}
+
+			if localImage.ID != container.ImageID {
+				result[container.Names[0]] = true
+				needsUpdate = true
+				utils.Log("CheckUpdatesAvailable - Local updates available for " + container.Image)
+			} else {
+				utils.Log("CheckUpdatesAvailable - No local updates available for " + container.Image)
+			}
+		}
+
+		if needsUpdate && HasAutoUpdateOn(fullContainer) {
+			utils.TriggerEvent(
+				"cosmos.docker.container.update",
+				"Cosmos Container Update",
+				"success",
+				"",
+				map[string]interface{}{
+					"container": container.Names[0][1:],
+				})
+
+			utils.WriteNotification(utils.Notification{
+				Recipient: "admin",
+				Title:     "header.notification.title.containerUpdate",
+				Message:   "header.notification.message.containerUpdate",
+				Vars:      container.Names[0][1:],
+				Level:     "info",
+				Link:      "/cosmos-ui/servapps/containers/" + container.Names[0][1:],
+			})
+
+			utils.Log("Downloaded new update for " + container.Image + " ready to install")
+			_, err := RecreateContainer(container.Names[0], fullContainer)
+			if err != nil {
+				utils.MajorError("Container failed to update", err)
+			} else {
+				result[container.Names[0]] = false
+			}
+		}
+	}
+
+	return result
+}
+
+func RemoveSelfUpdater() error {
+	utils.Log("Checking for self updater agent")
+
+	// look for a container with the name cosmos-self-updater-agent
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("RemoveSelfUpdater", err)
+		return err
+	}
+
+	for _, container := range containers {
+		if container.Names[0] == "/cosmos-self-updater-agent" {
+			utils.Log("Found. Copying logs and removing self updater agent")
+			redirectLogs("cosmos-self-updater-agent", utils.CONFIGFOLDER+"/logs-cosmos-self-updater-agent.log")
+
+			err := DockerClient.ContainerKill(DockerContext, container.ID, "SIGKILL")
+			if err != nil {
+				utils.Error("RemoveSelfUpdater", err)
+			}
+			err = DockerClient.ContainerRemove(DockerContext, container.ID, conttype.RemoveOptions{
+				Force: true,
+			})
+			if err != nil {
+				utils.Error("RemoveSelfUpdater", err)
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func SelfRecreate() error {
+	return SelfAction("recreate")
+}
+
+func SelfAction(action string) error {
+	utils.Log("SelfRecreate - Starting...")
+
+	if !utils.IsInsideContainer {
+		utils.Error("SelfRecreate - not using Docker", nil)
+		return errors.New("SelfRecreate - not using Docker")
+	}
+
+	// make sure to remove resiude of old self updater
+	RemoveSelfUpdater()
+
+	containerName := os.Getenv("HOSTNAME")
+
+	version := "latest"
+
+	// if arm
+	if runtime.GOARCH == "arm64" {
+		version = "latest-arm64"
+	}
+
+	service := DockerServiceCreateRequest{
+		Services: map[string]ContainerCreateRequestContainer{},
+	}
+
+	utils.TriggerEvent(
+		"cosmos.internal.self-updater",
+		"Cosmos Self Updater",
+		"important",
+		"",
+		map[string]interface{}{
+			"action":     action,
+			"container":  containerName,
+		})
+
+	service.Services["cosmos-self-updater-agent"] = ContainerCreateRequestContainer{
+		Name:          "cosmos-self-updater-agent",
+		Image:         "azukaar/docker-self-updater:" + version,
+		RestartPolicy: "no",
+		SecurityOpt: []string{
+			"label:disable",
+		},
+		Environment: []string{
+			"CONTAINER_NAME=" + containerName,
+			"ACTION=" + action,
+			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
+		},
+		Volumes: []mountType.Mount{
+			{
+				Type:   mountType.TypeBind,
+				Source: "/var/run/docker.sock",
+				Target: "/var/run/docker.sock",
+			},
+		},
+	}
+
+	utils.Log("Creating self-updater service: docker run -d --name cosmos-self-updater-agent -e CONTAINER_NAME=" + containerName + " -e ACTION=" + action + " -e DOCKER_HOST=" + os.Getenv("DOCKER_HOST") + " -v /var/run/docker.sock:/var/run/docker.sock azukaar/docker-self-updater:" + version)
+
+	err := CreateService(service, func(msg string) {})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func redirectLogs(containerName string, logFile string) {
+	// attach logs
+	logs, err := DockerClient.ContainerLogs(DockerContext, containerName, conttype.LogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Follow:     false,
+	})
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
+
+	// replace file if exist
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0770)
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
+
+	defer file.Close()
+	defer logs.Close()
+
+	_, err = io.Copy(file, logs)
+	if err != nil {
+		utils.Error("redirectLogs", err)
+	}
+}
+
+func resolveRegistry(image string) string {
+	slashIndex := strings.Index(image, "/")
+
+	// Explicit registry (contains . or :)
+	if slashIndex > 0 && strings.ContainsAny(image[:slashIndex], ".:") {
+		return image[:slashIndex]
+	}
+
+	// Default Docker Hub
+	return "https://index.docker.io/v1/"
+}
+
+// ImagePullAuthProvider, when set, supplies credentials for a registry host
+// the node has no docker login for — the cluster's own registries, whose
+// deploy tokens live in the constellation KV rather than in ~/.docker.
+// Returns empty strings when it has none for the host.
+var ImagePullAuthProvider func(registryHost string) (username, password string)
+
+func DockerPullImage(image string) (io.ReadCloser, error) {
+	utils.Debug("DockerPull - Preparing Pulling image " + image)
+
+	options := types.ImagePullOptions{}
+	registry := resolveRegistry(image)
+
+	configfile, err := dockerConfig.Load(dockerConfig.Dir())
+	if err != nil {
+		utils.Error("DockerPull - Read config file error -", err)
+	} else {
+		utils.Debug("DockerPull - resolved registry: " + registry)
+
+		creds, err := configfile.GetAuthConfig(registry)
+		if err != nil {
+			utils.Error("DockerPull - GetAuthConfig error -", err)
+		} else if creds.Username != "" {
+			encodedJSON, _ := json.Marshal(creds)
+			options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
+		}
+	}
+	if options.RegistryAuth == "" && ImagePullAuthProvider != nil && !strings.HasPrefix(registry, "https://") {
+		if user, pass := ImagePullAuthProvider(registry); user != "" {
+			encodedJSON, _ := json.Marshal(map[string]string{"username": user, "password": pass, "serveraddress": registry})
+			options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
+		}
+	}
+
+	utils.Debug("DockerPull - Starting Pulling image " + image)
+
+	return DockerClient.ImagePull(DockerContext, image, options)
+}
+
+type ContainerStats struct {
+	Name      string
+	CPUUsage  float64
+	MemUsage  uint64
+	MemLimit  uint64
+	NetworkRx float64
+	NetworkTx float64
+}
+
+func Stats(container types.Container) (ContainerStats, error) {
+	// utils.Debug("StatsAll - Getting stats for " + container.Names[0])
+	// utils.Debug("Time: " + time.Now().String())
+
+	statsBody, err := DockerClient.ContainerStats(DockerContext, container.ID, false)
+	if err != nil {
+		return ContainerStats{}, fmt.Errorf("error fetching stats for container %s: %s", container.ID, err)
+	}
+
+	defer statsBody.Body.Close()
+
+	stats := types.StatsJSON{}
+	if err := json.NewDecoder(statsBody.Body).Decode(&stats); err != nil {
+		return ContainerStats{}, fmt.Errorf("error decoding stats for container %s: %s", container.ID, err)
+	}
+
+	previousCPU := stats.PreCPUStats.CPUUsage.TotalUsage
+	previousSystem := stats.PreCPUStats.SystemUsage
+
+	cpuDelta := float64(stats.CPUStats.CPUUsage.TotalUsage) - float64(previousCPU)
+	systemDelta := float64(stats.CPUStats.SystemUsage) - float64(previousSystem)
+
+	perCore := len(stats.CPUStats.CPUUsage.PercpuUsage)
+	if perCore == 0 {
+		perCore = 1
+	}
+
+	cpuUsage := 0.0
+
+	if systemDelta > 0 && cpuDelta > 0 {
+		cpuUsage = (cpuDelta / systemDelta) * float64(perCore) * 100
+	}
+
+	netRx := 0.0
+	netTx := 0.0
+
+	for _, net := range stats.Networks {
+		netRx += float64(net.RxBytes)
+		netTx += float64(net.TxBytes)
+	}
+
+	containerStats := ContainerStats{
+		Name:      strings.TrimPrefix(container.Names[0], "/"),
+		CPUUsage:  cpuUsage * 100,
+		MemUsage:  stats.MemoryStats.Usage,
+		MemLimit:  stats.MemoryStats.Limit,
+		NetworkRx: netRx,
+		NetworkTx: netTx,
+	}
+
+	return containerStats, nil
+}
+
+func StatsAll() ([]ContainerStats, error) {
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Error("StatsAll", err)
+		return nil, err
+	}
+
+	var containerStatsList []ContainerStats
+	var wg sync.WaitGroup
+	semaphore := make(chan struct{}, 5)
+
+	for _, container := range containers {
+		// If not running, skip this container
+		if container.State != "running" {
+			continue
+		}
+
+		wg.Add(1)
+		semaphore <- struct{}{}
+
+		go func(container types.Container) {
+			defer func() {
+				<-semaphore
+				wg.Done()
+			}()
+
+			stat, err := Stats(container)
+			if err != nil {
+				utils.Error("StatsAll", err)
+				return
+			}
+			containerStatsList = append(containerStatsList, stat)
+		}(container)
+	}
+
+	wg.Wait()
+
+	return containerStatsList, nil
+}
+
+func StopContainer(containerName string) {
+	err := DockerClient.ContainerStop(DockerContext, containerName, container.StopOptions{})
+	if err != nil {
+		utils.Error("StopContainer", err)
+		return
+	}
+}
+
+func RestartContainer(containerName string) {
+	err := DockerClient.ContainerRestart(DockerContext, containerName, container.StopOptions{})
+	if err != nil {
+		utils.Error("RestartContainer", err)
+		return
+	}
+}
+
+func CheckDockerNetworkMode() string {
+	if utils.IsInsideContainer {
+		errD := Connect()
+		if errD != nil {
+			utils.Error("Checking Host Network", errD)
+			return ""
+		}
+
+		container, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+		if err != nil {
+			utils.Error("Checking Host Network", err)
+		}
+		return string(container.HostConfig.NetworkMode)
+	}
+	return ""
+}
+
+func InspectContainer(containerName string) (types.ContainerJSON, error) {
+	errD := Connect()
+	if errD != nil {
+		utils.Error("InspectContainer", errD)
+		return types.ContainerJSON{}, errD
+	}
+
+	container, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	if err != nil {
+		utils.Error("InspectContainer", err)
+		return types.ContainerJSON{}, err
+	}
+
+	return container, nil
+}
+
+func GetEnv(env []string, key string) string {
+	for _, kv := range env {
+		parts := strings.SplitN(kv, "=", 2)
+		if len(parts) == 2 && parts[0] == key {
+			return parts[1]
+		}
+	}
+	return ""
+}
+
+func IsInsideContainer() {
+	if os.Getenv("HOSTNAME") != "" {
+		errD := Connect()
+		if errD != nil {
+			utils.Error("isInsideContainer", errD)
+			return
+		}
+
+		_, err := DockerClient.ContainerInspect(DockerContext, os.Getenv("HOSTNAME"))
+
+		utils.Debug("isInsideContainer - Checking if inside container " + os.Getenv("HOSTNAME"))
+
+		if err == nil {
+			utils.Debug("isInsideContainer - Inside container " + os.Getenv("HOSTNAME"))
+			utils.IsInsideContainer = true
+		}
+	}
 }
