@@ -23,12 +23,77 @@ import (
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
 	conttype "github.com/docker/docker/api/types/container"
-	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
 
 var DockerClient *client.Client
 var DockerContext context.Context
+
+
+// dockerServerVersion is the Docker Engine server version (e.g. "29.6.1")
+// captured after Connect. Empty until the first successful ping. Used to gate
+// behavior on engine capabilities that are not exposed via the API version
+// (e.g. the moby#52584 volume-subpath file fix that landed in Engine 29.5.0).
+var dockerServerVersion = ""
+
+// captureDockerServerVersion records the daemon's engine version (e.g.
+// "29.6.1") at Connect time, if it is not already set.
+func captureDockerServerVersion() {
+	if dockerServerVersion != "" {
+		return
+	}
+	if sv, err := DockerClient.ServerVersion(DockerContext); err == nil {
+		dockerServerVersion = sv.Version
+	}
+}
+
+// SupportsBuiltinFileSubpathFix reports whether the connected engine has the
+// moby#52584 fix built in: skipping the seed-from-image copy step for file
+// volume-subpaths. The fix landed in Docker Engine 29.5.0. On older engines
+// Cosmos must set NoCopy (volume-nocopy) itself to work around moby#52546. If
+// the version is unknown (not yet connected) we assume the fix is present,
+// which is the safe default (NoCopy is then only set when the user explicitly
+// asks for it).
+func SupportsBuiltinFileSubpathFix() bool {
+	if dockerServerVersion == "" {
+		return true
+	}
+	return dockerVersionAtLeast(dockerServerVersion, "29.5.0")
+}
+
+// dockerVersionAtLeast reports whether ver >= min using semantic versioning
+// (numeric comparison of major/minor/patch). Non-numeric segments are treated
+// as 0 so "29.6.1", "29.5.0-rc.1", etc. compare sanely.
+func dockerVersionAtLeast(ver, min string) bool {
+	vp := parseVersionParts(ver)
+	mp := parseVersionParts(min)
+	for i := 0; i < 3; i++ {
+		if vp[i] > mp[i] {
+			return true
+		}
+		if vp[i] < mp[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func parseVersionParts(v string) [3]int {
+	var p [3]int
+	base := v
+	if i := strings.IndexAny(base, "-+"); i >= 0 {
+		base = base[:i]
+	}
+	parts := strings.Split(base, ".")
+	for i := 0; i < len(parts) && i < 3; i++ {
+		n, err := strconv.Atoi(strings.TrimSpace(parts[i]))
+		if err != nil {
+			n = 0
+		}
+		p[i] = n
+	}
+	return p
+}
 var DockerNetworkName = "cosmos-network"
 
 func getIdFromName(name string) (string, error) {
@@ -61,6 +126,7 @@ func Connect() error {
 		// check if connection is still alive
 		ping, err := DockerClient.Ping(DockerContext)
 		if ping.APIVersion != "" && err == nil {
+			captureDockerServerVersion()
 			DockerIsConnected.Store(true)
 			return nil
 		} else {
@@ -82,6 +148,7 @@ func Connect() error {
 
 		ping, err := DockerClient.Ping(DockerContext)
 		if ping.APIVersion != "" && err == nil {
+			captureDockerServerVersion()
 			DockerIsConnected.Store(true)
 			utils.Log("Docker Connected")
 		} else {
@@ -136,13 +203,26 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 
-	if !HasLabel(newConfig, "cosmos-force-network-mode") {
-		if (strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
-			strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:")) {
-				AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": string(newConfig.HostConfig.NetworkMode)})
+	// Normalize container/service network-mode references to stable container
+	// names BEFORE persisting anything. Docker accepts both names and IDs in
+	// "container:<ref>" but an ID goes stale when the referenced container is
+	// recreated, breaking the network sharing. The name is stable across
+	// recreations, so resolve any ID (or compose "service:" alias) to
+	// container:<name> here and keep the cosmos-force-network-mode label in
+	// sync — this is the single choke point every recreate/update path flows
+	// through, and it self-heals references that were previously stored as IDs.
+	labelNetworkMode := ""
+	if GetLabel(newConfig, "cosmos-force-network-mode") != "" {
+		labelNetworkMode = ContainerRefToName(GetLabel(newConfig, "cosmos-force-network-mode"))
+		newConfig.HostConfig.NetworkMode = container.NetworkMode(labelNetworkMode)
+		AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": labelNetworkMode})
+	} else if strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "service:") ||
+		strings.HasPrefix(string(newConfig.HostConfig.NetworkMode), "container:") {
+		labelNetworkMode = ContainerRefToName(string(newConfig.HostConfig.NetworkMode))
+		AddLabels(newConfig, map[string]string{"cosmos-force-network-mode": labelNetworkMode})
+		if labelNetworkMode != string(newConfig.HostConfig.NetworkMode) {
+			newConfig.HostConfig.NetworkMode = container.NetworkMode(labelNetworkMode)
 		}
-	} else {
-		newConfig.HostConfig.NetworkMode = container.NetworkMode(GetLabel(newConfig, "cosmos-force-network-mode"))
 	}
 	
 	newName := newConfig.Name
@@ -154,7 +234,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		// create missing folders
 		
 		for _, newmount := range newConfig.HostConfig.Mounts {
-			if newmount.Type == mountType.TypeBind {
+			if newmount.Type == "bind" {
 				newSource := newmount.Source
 
 				if utils.IsInsideContainer {
@@ -194,6 +274,59 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 			}
 		}
 
+		// Reject nested mount targets for volume FILE subpaths.
+		if err := ValidateMountConflicts(FromDockerMountSlice(newConfig.HostConfig.Mounts)); err != nil {
+			utils.Error("EditContainer: Invalid volume configuration", err)
+			return "", err
+		}
+
+		// Auto-create missing volume subpaths (mirrors CreateService).
+		for _, newmount := range newConfig.HostConfig.Mounts {
+			if newmount.Type != "volume" || newmount.VolumeOptions == nil || newmount.VolumeOptions.Subpath == "" {
+				continue
+			}
+			sub := newmount.VolumeOptions.Subpath
+			vol, err := DockerClient.VolumeInspect(DockerContext, newmount.Source)
+			if err != nil {
+				utils.Error("EditContainer: Unable to inspect volume for subpath creation", err)
+				continue
+			}
+			if vol.Mountpoint == "" {
+				utils.Warn("EditContainer: Volume " + newmount.Source + " has no mountpoint; cannot auto-create subpath")
+				continue
+			}
+			mountRoot := vol.Mountpoint
+			if utils.IsInsideContainer {
+				if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+					utils.Error("EditContainer: Unable to create volume subpath. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the subpath folder yourself", err)
+					continue
+				}
+				mountRoot = "/mnt/host" + mountRoot
+			}
+			utils.Log(fmt.Sprintf("Checking subpath %s for volume %s", sub, newmount.Source))
+			created, err := EnsureSubpathExists(mountRoot, sub)
+			if err != nil {
+				utils.Error("EditContainer: Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume", err)
+				return "", errors.New("Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume")
+			}
+			for _, cp := range created {
+				utils.Log(fmt.Sprintf("Created subpath entry %s for volume %s", cp, newmount.Source))
+				if newConfig.Config.User != "" {
+					userInfo, err := user.Lookup(newConfig.Config.User)
+					if err != nil {
+						utils.Error("EditContainer: Unable to lookup user", err)
+					} else {
+						uid, _ := strconv.Atoi(userInfo.Uid)
+						gid, _ := strconv.Atoi(userInfo.Gid)
+						err = os.Chown(cp, uid, gid)
+						if err != nil {
+							utils.Error("EditContainer: Unable to change ownership of subpath path", err)
+						}
+					}
+				}
+			}
+		}
+
 		utils.Log("EditContainer - Container updating. Retriveing currently running " + oldContainerID)
 
 		var err error
@@ -204,6 +337,15 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 
 		if err != nil {
 			return "", err
+		}
+
+		// Carry the depends_on graph across re-creates. The labels are the only
+		// durable record of it (compose defines it at the service level, Docker
+		// has no native depends_on), so if we drop them here a recreated
+		// container loses its dependency ordering at runtime.
+		dependsOn := DependsOnFromLabels(oldContainer.Config)
+		if len(dependsOn) > 0 && newConfig.Config != nil {
+			SetDependsOnLabels(newConfig.Config, dependsOn)
 		}
 
 		// check if new image exists, if not, pull it
@@ -376,41 +518,152 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 }
 
 func RecreateDepedencies(containerID, containerName string) {
-	containers, err := ListContainers()
+	// Recreating a container invalidates its stack siblings' references
+	// (network_mode namespace and depends_on restart:true), so recreate them in
+	// dependency order. Scoped to the same stack.
+
+	target, err := DockerClient.ContainerInspect(DockerContext, containerID)
 	if err != nil {
-		utils.Error("RecreateDepedencies", err)
+		utils.Error("RecreateDepedencies: cannot inspect target", err)
+		return
+	}
+	targetStack := ContainerStack(target.Config)
+	if targetStack == "" {
+		utils.Debug("RecreateDepedencies: " + containerName + " not part of a stack; no cascade")
 		return
 	}
 
-	for _, container := range containers {
-		if container.ID == containerID {
-			continue
-		}
+	targetService := ""
+	if target.Config != nil && target.Config.Labels != nil {
+		targetService = target.Config.Labels["com.docker.compose.service"]
+	}
 
-		fullContainer, err := DockerClient.ContainerInspect(DockerContext, container.ID)
-		if err != nil {
-			utils.Error("RecreateDepedencies", err)
+	index := buildSameStackIndex(targetStack, containerID)
+	byName := depContainerConfigs(index)
+
+	dependentNames := []string{}
+	for name, fullContainer := range byName {
+		// docker-compose stores depends_on keys by service name
+		depends := DependsOnFromLabels(fullContainer.Config)
+		if depEntry, hasDepLabel := DependsOnIncludesTarget(depends, containerName[1:], targetService); hasDepLabel {
+			if depEntry.Restart || NetworkModeContainerRef(string(fullContainer.HostConfig.NetworkMode)) || NetworkModeServiceRef(string(fullContainer.HostConfig.NetworkMode)) {
+				utils.Log("RecreateDepedencies - depends_on: " + name + " depends on " + containerName[1:] + " (restart=" + strconv.FormatBool(depEntry.Restart) + ") -> recreating")
+				dependentNames = append(dependentNames, name)
+			} else {
+				utils.Debug("RecreateDepedencies - depends_on: " + name + " depends on " + containerName[1:] + " (restart=false) -> skipping")
+			}
 			continue
 		}
 
 		// check if network mode contains containerID
 		if strings.Contains(string(fullContainer.HostConfig.NetworkMode), containerID) {
-			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			_, err := EditContainer(container.ID, fullContainer, true)
-			if err != nil {
-				utils.Error("RecreateDepedencies - Failed to update - ", err)
-			}
+			utils.Log("RecreateDepedencies - Recreating " + name)
+			dependentNames = append(dependentNames, name)
+			continue
 		}
 
-		// check if network_mode force 's label contains the container name
-		if GetLabel(fullContainer, "cosmos-force-network-mode") == "container:" + containerName[1:] {
-			utils.Log("RecreateDepedencies - Recreating " + container.Names[0])
-			_, err := EditContainer(container.ID, fullContainer, true)
-			if err != nil {
-				utils.Error("RecreateDepedencies - Failed to update - ", err)
+		// check if the cosmos-force-network-mode label references this container
+		// (container:<name> after normalization, or the compose-created
+		// service:<service> alias stored by the compose editor).
+		labelMode := GetLabel(fullContainer, "cosmos-force-network-mode")
+		labelTarget := NetworkModeRefTarget(labelMode)
+		if labelTarget != "" && (labelTarget == containerName[1:] || labelTarget == containerID) {
+			utils.Log("RecreateDepedencies - Recreating " + name)
+			dependentNames = append(dependentNames, name)
+		}
+	}
+
+	if len(dependentNames) == 0 {
+		return
+	}
+
+	// Recreate dependents in dependency order (dependencies first), then start
+	// them in the same order, waiting for each one's own dependencies.
+	orderedNames := OrderByDependencies(dependentNames, byName)
+
+	for _, name := range orderedNames {
+		fullContainer := byName[name]
+		if fullContainer.ID == "" {
+			continue
+		}
+		utils.Log("RecreateDepedencies - Recreating " + name)
+		_, err := EditContainer(fullContainer.ID, fullContainer, true)
+		if err != nil {
+			utils.Error("RecreateDepedencies - Failed to update - ", err)
+			continue
+		}
+
+		utils.Log("RecreateDepedencies - Starting " + name)
+		errStart := DockerClient.ContainerStart(DockerContext, fullContainer.ID, conttype.StartOptions{})
+		if errStart != nil {
+			utils.Error("RecreateDepedencies - Failed to start - ", errStart)
+		} else if errW := WaitForDependsOn(DockerContext, fullContainer.ID); errW != nil {
+			utils.Error("RecreateDepedencies - Dependency wait failed for "+name, errW)
+		}
+	}
+}
+
+// OrderByDependencies topologically sorts names (dependencies first) from the
+// persisted depends_on labels; unresolvable cycles keep the original order.
+func OrderByDependencies(names []string, byName map[string]types.ContainerJSON) []string {
+	if len(names) < 2 {
+		return names
+	}
+
+	ordered := make([]string, 0, len(names))
+	remaining := make([]string, len(names))
+	copy(remaining, names)
+
+	// map compose service names to container names for service-keyed deps
+	serviceToName := map[string]string{}
+	for name, full := range byName {
+		if full.Config != nil && full.Config.Labels != nil {
+			if svc := full.Config.Labels["com.docker.compose.service"]; svc != "" {
+				serviceToName[svc] = strings.TrimPrefix(name, "/")
 			}
 		}
 	}
+
+	for len(remaining) > 0 {
+		changed := false
+		next := []string{}
+		for _, name := range remaining {
+			full := byName[name]
+			deps := DependsOnFromLabels(full.Config)
+			ready := true
+			for dep := range deps {
+				// resolve service-name key to container name (fallback: dep)
+				depName := "/" + dep
+				if resolved, ok := serviceToName[dep]; ok {
+					depName = "/" + resolved
+				}
+				// only wait for deps that are part of this recreate batch
+				for _, r := range remaining {
+					if r == depName {
+						ready = false
+						break
+					}
+				}
+				if !ready {
+					break
+				}
+			}
+			if ready {
+				ordered = append(ordered, name)
+				changed = true
+			} else {
+				next = append(next, name)
+			}
+		}
+		remaining = next
+		if !changed {
+			// cycle / unresolvable: take the rest as-is
+			ordered = append(ordered, remaining...)
+			break
+		}
+	}
+
+	return ordered
 }
 
 func ListContainers() ([]types.Container, error) {
@@ -430,6 +683,12 @@ func ListContainers() ([]types.Container, error) {
 }
 
 func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) error {
+	if containerConfig.Config == nil {
+		return errors.New("AddLabels: container config is nil")
+	}
+	if containerConfig.Config.Labels == nil {
+		containerConfig.Config.Labels = make(map[string]string)
+	}
 	for key, value := range labels {
 		containerConfig.Config.Labels[key] = value
 	}
@@ -438,6 +697,9 @@ func AddLabels(containerConfig types.ContainerJSON, labels map[string]string) er
 }
 
 func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return nil
+	}
 	for _, label := range labels {
 		delete(containerConfig.Config.Labels, label)
 	}
@@ -446,18 +708,18 @@ func RemoveLabels(containerConfig types.ContainerJSON, labels []string) error {
 }
 
 func IsLabel(containerConfig types.ContainerJSON, label string) bool {
-	if containerConfig.Config.Labels[label] == "true" {
-		return true
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return false
 	}
-	return false
+	return containerConfig.Config.Labels[label] == "true"
 }
 func HasLabel(containerConfig types.ContainerJSON, label string) bool {
-	if containerConfig.Config.Labels[label] != "" {
-		return true
-	}
-	return false
+	return GetLabel(containerConfig, label) != ""
 }
 func GetLabel(containerConfig types.ContainerJSON, label string) string {
+	if containerConfig.Config == nil || containerConfig.Config.Labels == nil {
+		return ""
+	}
 	return containerConfig.Config.Labels[label]
 }
 
@@ -681,9 +943,9 @@ func SelfAction(action string) error {
 			"ACTION=" + action,
 			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
 		},
-		Volumes: []mountType.Mount{
+		Volumes: []CosmosMount{
 			{
-				Type: mountType.TypeBind,
+				Type: "bind",
 				Source: "/var/run/docker.sock",
 				Target: "/var/run/docker.sock",
 			},
@@ -692,7 +954,7 @@ func SelfAction(action string) error {
 
 	utils.Log("Creating self-updater service: docker run -d --name cosmos-self-updater-agent -e CONTAINER_NAME=" + containerName + " -e ACTION=" + action + " -e DOCKER_HOST=" + os.Getenv("DOCKER_HOST") + " -v /var/run/docker.sock:/var/run/docker.sock azukaar/docker-self-updater:" + version)
 
-	err := CreateService(service, func (msg string) {})
+	err := CreateService(service, nil, func (msg string) {})
 
 	if err != nil {
 		return err

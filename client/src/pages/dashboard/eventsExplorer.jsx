@@ -9,6 +9,7 @@ import { ExclamationOutlined, SettingOutlined } from "@ant-design/icons";
 import { Alert } from "@mui/material";
 import { DownloadFile } from "../../api/downloadButton";
 import { Trans, useTranslation } from 'react-i18next';
+import { toHjson } from '../../utils/hjson';
 
 const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''}) => {
 	const { t } = useTranslation();
@@ -183,7 +184,7 @@ const EventsExplorer = ({from, to, xAxis, zoom, slot, initLevel, initSearch = ''
 											maxWidth: '100%',
 											maxHeight: '400px',
 									}}>
-										{JSON.stringify(event, null, 2)}
+										{toHjson(event)}
 									</pre>
 								</div>
 							</CosmosCollapse>
