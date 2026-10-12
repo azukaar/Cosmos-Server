@@ -1,0 +1,643 @@
+package docker
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	doctype "github.com/docker/docker/api/types"
+	conttype "github.com/docker/docker/api/types/container"
+
+	"github.com/azukaar/cosmos-server/src/utils"
+)
+
+// Dependency conditions, mirroring docker-compose's depends_on condition
+// field exactly (compose-go types.go). A dependency without an explicit
+// condition defaults to service_started, exactly like docker-compose.
+const (
+	DepConditionStarted          = "service_started"    // default
+	DepConditionRunningOrHealthy = "running_or_healthy" // compose CLI's implicit fallback
+	DepConditionHealthy          = "service_healthy"
+	DepConditionCompletedSuccess = "service_completed_successfully"
+)
+
+// composeDependenciesLabel is the SAME label docker-compose itself uses to
+// persist the depends_on field on each container
+// (pkg/api/labels.go: com.docker.compose.depends_on), value format:
+//
+//	"<service>:<condition>:<restart>,<service2>:<condition2>:<restart2>,..."
+//
+// Matching compose exactly means a stack that was created by docker-compose
+// and then imported into Cosmos keeps working, and vice-versa. This is the
+// only durable, per-container record of the depends_on graph (compose stores
+// it nowhere else).
+const composeDependenciesLabel = "com.docker.compose.depends_on"
+
+// dependencyTimeout is the max time we wait for a dependency condition
+// (service_healthy / service_completed_successfully / running_or_healthy) to
+// be satisfied before giving up. service_started is NOT waited on here — it is
+// handled purely by the DAG start order, same as docker-compose
+// (waitDependencies returns immediately for ServiceConditionStarted).
+const dependencyTimeout = 10 * time.Minute
+
+// dependsOnEntry is one entry of the persisted depends_on graph.
+type dependsOnEntry struct {
+	Condition string
+	Restart   bool
+}
+
+// ValidDepCondition reports whether cond is a supported depends_on condition.
+func ValidDepCondition(cond string) bool {
+	switch cond {
+	case DepConditionStarted, DepConditionRunningOrHealthy, DepConditionHealthy, DepConditionCompletedSuccess:
+		return true
+	}
+	return false
+}
+
+// NormalizeDepCondition maps an empty/unknown condition to service_started
+// (compose default when writing; legacy label fragments without a condition
+// are read back as running_or_healthy in DependsOnFromLabels).
+func NormalizeDepCondition(cond string) string {
+	if cond == "" || !ValidDepCondition(cond) {
+		return DepConditionStarted
+	}
+	return cond
+}
+
+// DependsOnFromLabels reconstructs the depends_on map from a container's
+// Config.Labels, exactly like docker-compose's projectFromName does
+// (pkg/compose/compose.go). Returns an empty map when there is no label.
+func DependsOnFromLabels(conf *conttype.Config) map[string]dependsOnEntry {
+	deps := map[string]dependsOnEntry{}
+	if conf == nil || conf.Labels == nil {
+		return deps
+	}
+
+	raw := conf.Labels[composeDependenciesLabel]
+	if raw == "" {
+		return deps
+	}
+
+	for _, dc := range strings.Split(raw, ",") {
+		dc = strings.TrimSpace(dc)
+		if dc == "" {
+			continue
+		}
+		dcArr := strings.Split(dc, ":")
+		condition := DepConditionRunningOrHealthy
+		restart := true
+		dependency := dcArr[0]
+
+		if len(dcArr) > 1 {
+			condition = dcArr[1]
+			if len(dcArr) > 2 {
+				restart, _ = strconv.ParseBool(dcArr[2])
+			}
+		}
+
+		deps[dependency] = dependsOnEntry{Condition: condition, Restart: restart}
+	}
+	return deps
+}
+
+// SetDependsOnLabels writes the depends_on graph as compose's
+// com.docker.compose.depends_on label, in compose's own
+// "<svc>:<cond>:<restart>,..." format. Call this right before
+// ContainerCreate so the graph survives re-creates and can be inspected at
+// runtime (compose does the same).
+func SetDependsOnLabels(conf *conttype.Config, deps map[string]dependsOnEntry) {
+	if conf == nil {
+		return
+	}
+	if conf.Labels == nil {
+		conf.Labels = make(map[string]string)
+	}
+
+	keys := make([]string, 0, len(deps))
+	for service := range deps {
+		keys = append(keys, service)
+	}
+	sort.Strings(keys)
+
+	parts := make([]string, 0, len(keys))
+	for _, service := range keys {
+		d := deps[service]
+		if d.Condition == "" {
+			d.Condition = DepConditionStarted
+		}
+		parts = append(parts, fmt.Sprintf("%s:%s:%t", service, d.Condition, d.Restart))
+	}
+	conf.Labels[composeDependenciesLabel] = strings.Join(parts, ",")
+}
+
+// depConditionMet reports whether dep satisfies condition cond.
+func depConditionMet(dep doctype.ContainerJSON, cond string) bool {
+	if dep.ContainerJSONBase == nil || dep.State == nil {
+		return false
+	}
+
+	switch cond {
+	case DepConditionStarted, DepConditionRunningOrHealthy:
+		if dep.State.Status == "exited" {
+			return false
+		}
+		// no healthcheck => running counts as satisfied (compose fallback)
+		if !depHasHealthcheck(dep) {
+			return dep.State.Running
+		}
+		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
+	case DepConditionHealthy:
+		if dep.State.Status == "exited" {
+			return false
+		}
+		// a healthcheck-less container never satisfies service_healthy
+		if !depHasHealthcheck(dep) {
+			return false
+		}
+		return dep.State.Health != nil && dep.State.Health.Status == doctype.Healthy
+	case DepConditionCompletedSuccess:
+		return !dep.State.Running && dep.State.ExitCode == 0
+	default:
+		return dep.State.Running
+	}
+}
+
+// depHasHealthcheck reports whether dep declares an active healthcheck.
+func depHasHealthcheck(dep doctype.ContainerJSON) bool {
+	if dep.Config == nil || dep.Config.Healthcheck == nil {
+		return false
+	}
+	return len(dep.Config.Healthcheck.Test) == 0 || dep.Config.Healthcheck.Test[0] != "NONE"
+}
+
+// WaitForDepCondition polls depName until cond is met or dependencyTimeout
+// elapses. A missing dependency is an error (compose parity).
+func WaitForDepCondition(ctx context.Context, depName string, cond string) error {
+	if cond == "" {
+		cond = DepConditionStarted
+	}
+
+	deadline := time.Now().Add(dependencyTimeout)
+
+	for {
+		dep, err := DockerClient.ContainerInspect(ctx, depName)
+		if err != nil {
+			return fmt.Errorf("depends_on: cannot inspect dependency %q: %w", depName, err)
+		}
+		if depConditionMet(dep, cond) {
+			utils.Debug(fmt.Sprintf("depends_on: %s condition %q met for %s", depName, cond, depName))
+			return nil
+		}
+
+		if time.Now().After(deadline) {
+			return fmt.Errorf("depends_on: dependency %q did not satisfy condition %q within %s", depName, cond, dependencyTimeout)
+		}
+		time.Sleep(1 * time.Second)
+	}
+}
+
+// WaitForDependsOn waits for containerName's dependencies (runtime restart /
+// recreate paths). Only conditions other than service_started are waited on.
+func WaitForDependsOn(ctx context.Context, containerName string) error {
+	current, err := DockerClient.ContainerInspect(ctx, containerName)
+	if err != nil {
+		return fmt.Errorf("depends_on: cannot inspect container %q: %w", containerName, err)
+	}
+
+	deps := DependsOnFromLabels(current.Config)
+	if len(deps) == 0 {
+		return nil
+	}
+
+	// Build the lookup index once (service name -> container name) so keys
+	// that docker-compose stored by SERVICE name resolve to CONTAINER names.
+	idx := buildContainerNameIndex()
+
+	// Deterministic order (sorted) so logs are stable.
+	keys := make([]string, 0, len(deps))
+	for k := range deps {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	waiting := []string{}
+	for _, key := range keys {
+		if deps[key].Condition != DepConditionStarted {
+			waiting = append(waiting, key)
+		}
+	}
+	if len(waiting) == 0 {
+		return nil
+	}
+
+	utils.Log(fmt.Sprintf("depends_on: container %s waiting for %d dependencies: %s",
+		containerName, len(waiting), strings.Join(waiting, ", ")))
+
+	for _, depKey := range waiting {
+		cond := deps[depKey].Condition
+		depName := resolveDepKey(idx, depKey)
+		utils.Log(fmt.Sprintf("depends_on: waiting for %s (%s)", depName, cond))
+		if err := WaitForDepCondition(ctx, depName, cond); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// ReorderDependedOn starts stopped dependents (depends_on restart:true or
+// network_mode sharers) after containerID starts — best-effort, non-blocking,
+// same-stack scoped. Called from onDockerStarted.
+func ReorderDependedOn(containerID string) {
+	startedName := ""
+	started, err := DockerClient.ContainerInspect(DockerContext, containerID)
+	if err == nil && started.ContainerJSONBase != nil && started.Name != "" {
+		startedName = started.Name[1:]
+	}
+
+	startedStack := ""
+	if started.ContainerJSONBase != nil && started.Config != nil {
+		startedStack = ContainerStack(started.Config)
+	}
+
+	// network_mode sharers may live outside the started one's stack
+	byName := buildSameStackIndex("", "")
+
+	stoppedDependents := []string{}
+	seen := map[string]bool{}
+	// compose service name for matching service-keyed depends_on
+	startedService := ""
+	if started.ContainerJSONBase != nil && started.Config != nil && started.Config.Labels != nil {
+		startedService = started.Config.Labels["com.docker.compose.service"]
+	}
+
+	// resolveName returns (containerName, serviceName) identity for recursion
+	resolveIdent := func(n string) (string, string) {
+		if full, ok := byName["/"+n]; ok {
+			svc := ""
+			if full.full.Config != nil && full.full.Config.Labels != nil {
+				svc = full.full.Config.Labels["com.docker.compose.service"]
+			}
+			return n, svc
+		}
+		return n, ""
+	}
+
+	var collect func(depName, depService string)
+	collect = func(depName, depService string) {
+		for cName, cInfo := range byName {
+			if seen[cName] {
+				continue
+			}
+			deps := DependsOnFromLabels(cInfo.full.Config)
+			depEntry, hasDep := DependsOnIncludesTarget(deps, depName, depService)
+			// network_mode may reference by container name or service name
+			sharesNetNS := strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depName) ||
+				strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depName) ||
+				(depService != "" && (strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "container:"+depService) ||
+					strings.HasPrefix(string(cInfo.full.HostConfig.NetworkMode), "service:"+depService)))
+			if !hasDep && !sharesNetNS {
+				continue
+			}
+
+			if sharesNetNS {
+				// network-mode dependents are hard-bound to the target: always
+				// cascade, regardless of stack (scope like compose's project)
+				seen[cName] = true
+				if !cInfo.full.State.Running {
+					stoppedDependents = append(stoppedDependents, cName)
+				}
+				n, svc := resolveIdent(cName[1:])
+				collect(n, svc)
+				continue
+			}
+
+			// depends_on: only cascade same-stack dependents with restart:true
+			if !depEntry.Restart {
+				continue
+			}
+			if startedStack != "" && ContainerStack(cInfo.full.Config) != startedStack {
+				continue
+			}
+
+			seen[cName] = true
+			if !cInfo.full.State.Running {
+				stoppedDependents = append(stoppedDependents, cName)
+			}
+			n, svc := resolveIdent(cName[1:])
+			collect(n, svc) // transitive
+		}
+	}
+	collect(startedName, startedService)
+
+	if len(stoppedDependents) == 0 {
+		utils.Debug("ReorderDependedOn: no stopped dependents for " + startedName)
+		return
+	}
+
+	utils.Log(fmt.Sprintf("ReorderDependedOn: %s started; waking %d stopped dependents", startedName, len(stoppedDependents)))
+
+	ordered := OrderByDependencies(stoppedDependents, depContainerConfigs(byName))
+	for _, name := range ordered {
+		cInfo := byName[name]
+		utils.Log(fmt.Sprintf("ReorderDependedOn: starting %s after %s", name, startedName))
+		if errW := WaitForDependsOn(DockerContext, cInfo.full.ID); errW != nil {
+			utils.Error("ReorderDependedOn: dependency wait failed for "+name, errW)
+			continue
+		}
+		if errS := DockerClient.ContainerStart(DockerContext, cInfo.full.ID, conttype.StartOptions{}); errS != nil {
+			utils.Error("ReorderDependedOn: cannot start "+name, errS)
+		}
+	}
+}
+
+// depContainerInfo carries the fields the dependents-cascade functions need.
+type depContainerInfo struct {
+	full doctype.ContainerJSON
+	name string
+}
+
+// depContainerConfigs adapts map[string]depContainerInfo into the
+// map[string]types.ContainerJSON that OrderByDependencies expects.
+func depContainerConfigs(byName map[string]depContainerInfo) map[string]doctype.ContainerJSON {
+	out := make(map[string]doctype.ContainerJSON, len(byName))
+	for k, v := range byName {
+		out[k] = v.full
+	}
+	return out
+}
+
+// buildSameStackIndex lists every container in stack (excluding excludeID),
+// keyed by container name. Used by the depends_on / network_mode cascades.
+func buildSameStackIndex(stack, excludeID string) map[string]depContainerInfo {
+	byName := map[string]depContainerInfo{}
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Debug("buildSameStackIndex: cannot list containers: " + err.Error())
+		return byName
+	}
+	for _, c := range containers {
+		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
+		if err != nil || full.ID == excludeID {
+			continue
+		}
+		if stack != "" && ContainerStack(full.Config) != stack {
+			continue
+		}
+		name := ""
+		if len(c.Names) > 0 {
+			name = c.Names[0]
+		} else if full.ContainerJSONBase != nil {
+			name = full.Name
+		}
+		if name != "" {
+			byName[name] = depContainerInfo{full: full, name: name}
+		}
+	}
+	return byName
+}
+
+// DependsOnFieldFromLabels converts the persisted compose depends_on label back
+// into the depends_on *field* shape (map[service]DependsOnCont) that Cosmos's
+// compose model exposes. This is what the user should see/edit: the field, not
+// the label. Mirrors compose.go's projectFromName reconstruction.
+// DependsOnFieldFromLabels converts the persisted depends_on label into the
+// depends_on *field* shape, resolving service-name keys to container names via
+// idx (may be nil when no container index is available).
+func DependsOnFieldFromLabels(conf *conttype.Config, idx *containerNameIndex) map[string]ContainerCreateRequestContainerDependsOnCont {
+	out := map[string]ContainerCreateRequestContainerDependsOnCont{}
+	if conf == nil || conf.Labels == nil {
+		return out
+	}
+	for dep, entry := range DependsOnFromLabels(conf) {
+		out[resolveDepKey(idx, dep)] = ContainerCreateRequestContainerDependsOnCont{
+			Condition: entry.Condition,
+			Restart:   strconv.FormatBool(entry.Restart),
+		}
+	}
+	return out
+}
+
+// stripInternalDependsOnLabel removes compose's internal
+// com.docker.compose.depends_on label from a labels map without mutating the
+// input. The label is an internal serialization detail: the source of truth
+// exposed to the user is the depends_on field.
+func stripInternalDependsOnLabel(labels map[string]string) map[string]string {
+	if labels == nil {
+		return nil
+	}
+	if _, ok := labels[composeDependenciesLabel]; !ok {
+		return labels
+	}
+	out := make(map[string]string, len(labels)-1)
+	for k, v := range labels {
+		if k == composeDependenciesLabel {
+			continue
+		}
+		out[k] = v
+	}
+	return out
+}
+
+// ---------------------------------------------------------------------------
+// Restart-of-dependents (docker-compose parity, pkg/compose/restart.go):
+//   - depends_on with restart:false is pruned; restart:true restarts together
+//   - network_mode/ipc/pid namespace sharers always restart (namespace died)
+//   - everything runs in dependency order, scoped to the same stack
+// ---------------------------------------------------------------------------
+
+// ContainerStack returns the stack/project name a container belongs to, or "".
+func ContainerStack(conf *conttype.Config) string {
+	if conf == nil || conf.Labels == nil {
+		return ""
+	}
+	for _, key := range []string{"cosmos-stack", "cosmos.stack", "com.docker.compose.project"} {
+		if v := conf.Labels[key]; v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// restartDependentsNeeded decides whether a dependent must be (re)started when
+// its dependency is restarted, mirroring docker-compose:
+//   - network_mode/ipc/pid namespace sharing => always restart
+//   - depends_on with restart:true            => restart
+//   - depends_on with restart:false           => no restart
+func restartDependentsNeeded(depEntry dependsOnEntry, networkMode string) bool {
+	if NetworkModeContainerRef(networkMode) || NetworkModeServiceRef(networkMode) {
+		return true
+	}
+	return depEntry.Restart
+}
+
+// RestartStackDependents restarts same-stack dependents of containerName:
+// network_mode sharers (always) and depends_on restart:true, in dependency
+// order. Returns the names it restarted.
+func RestartStackDependents(containerName string) []string {
+	restarted := []string{}
+
+	target, err := DockerClient.ContainerInspect(DockerContext, containerName)
+	if err != nil {
+		utils.Error("RestartStackDependents: cannot inspect "+containerName, err)
+		return restarted
+	}
+	targetStack := ContainerStack(target.Config)
+	if targetStack == "" {
+		utils.Debug("RestartStackDependents: " + containerName + " is not part of a stack; nothing to cascade")
+		return restarted
+	}
+
+	// same-stack dependents only (network_mode sharers included via stack scope)
+	byName := buildSameStackIndex(targetStack, target.ID)
+
+	// Collect dependents.
+	targetService := ""
+	if target.Config != nil && target.Config.Labels != nil {
+		targetService = target.Config.Labels["com.docker.compose.service"]
+	}
+
+	dependentNames := []string{}
+	for name, cInfo := range byName {
+		full := cInfo.full
+		deps := DependsOnFromLabels(full.Config)
+		if entry, ok := DependsOnIncludesTarget(deps, target.Name[1:], targetService); ok {
+			if restartDependentsNeeded(entry, string(full.HostConfig.NetworkMode)) {
+				utils.Log(fmt.Sprintf("RestartStackDependents: %s depends_on %s (restart=%t) -> restarting", name, target.Name[1:], entry.Restart))
+				dependentNames = append(dependentNames, name)
+			}
+			continue
+		}
+		// network_mode / ipc / pid namespace sharing (implicit edge)
+		nm := string(full.HostConfig.NetworkMode)
+		if NetworkModeContainerRef(nm) || NetworkModeServiceRef(nm) {
+			refTarget := NetworkModeRefTarget(nm)
+			if refTarget == target.Name[1:] || refTarget == target.ID {
+				utils.Log(fmt.Sprintf("RestartStackDependents: %s shares network namespace with %s -> restarting", name, target.Name[1:]))
+				dependentNames = append(dependentNames, name)
+			}
+			continue
+		}
+		// cosmos-force-network-mode label (durable network_mode reference)
+		labelMode := GetLabel(full, "cosmos-force-network-mode")
+		labelTarget := NetworkModeRefTarget(labelMode)
+		if labelTarget != "" && (labelTarget == target.Name[1:] || labelTarget == target.ID) {
+			utils.Log(fmt.Sprintf("RestartStackDependents: %s shares network namespace with %s (label) -> restarting", name, target.Name[1:]))
+			dependentNames = append(dependentNames, name)
+		}
+	}
+
+	if len(dependentNames) == 0 {
+		return restarted
+	}
+
+	// Restart in dependency order (dependencies first), respecting each
+	// dependent's own depends_on waits.
+	ordered := OrderByDependencies(dependentNames, depContainerConfigs(byName))
+	for _, name := range ordered {
+		full := byName[name].full
+		utils.Log(fmt.Sprintf("RestartStackDependents: restarting %s", name))
+		if errW := WaitForDependsOn(DockerContext, full.ID); errW != nil {
+			utils.Error("RestartStackDependents: dependency wait failed for "+name, errW)
+			continue
+		}
+		if errR := DockerClient.ContainerRestart(DockerContext, full.ID, conttype.StopOptions{}); errR != nil {
+			utils.Error("RestartStackDependents: cannot restart "+name, errR)
+			continue
+		}
+		restarted = append(restarted, name)
+	}
+	return restarted
+}
+
+// ---------------------------------------------------------------------------
+// Service-name <-> container-name resolution.
+//
+// docker-compose persists depends_on with SERVICE names and tags each
+// container with com.docker.compose.service = <service>; Cosmos uses CONTAINER
+// names (the compose editor rewrites service keys to container names at
+// import). ResolveDepKey(resolveDepKey) bridges the two: a depends_on key is
+// first looked up as a container name, then as a service label.
+// ---------------------------------------------------------------------------
+
+// containerNameIndex maps container names and compose service names to
+// containers (including stopped ones).
+type containerNameIndex struct {
+	byName    map[string]doctype.ContainerJSON
+	byService map[string]doctype.ContainerJSON
+}
+
+func buildContainerNameIndex() *containerNameIndex {
+	idx := &containerNameIndex{
+		byName:    map[string]doctype.ContainerJSON{},
+		byService: map[string]doctype.ContainerJSON{},
+	}
+
+	containers, err := ListContainers()
+	if err != nil {
+		utils.Debug("buildContainerNameIndex: cannot list containers: " + err.Error())
+		return idx
+	}
+
+	for _, c := range containers {
+		full, err := DockerClient.ContainerInspect(DockerContext, c.ID)
+		if err != nil {
+			continue
+		}
+		name := ""
+		if len(c.Names) > 0 {
+			name = strings.TrimPrefix(c.Names[0], "/")
+		} else if full.ContainerJSONBase != nil {
+			name = strings.TrimPrefix(full.Name, "/")
+		}
+		if name != "" {
+			idx.byName[name] = full
+		}
+		if full.Config != nil && full.Config.Labels != nil {
+			if svc := full.Config.Labels["com.docker.compose.service"]; svc != "" {
+				idx.byService[svc] = full
+			}
+		}
+	}
+	return idx
+}
+
+// resolveDepKey maps a depends_on key to the container name it refers to,
+// falling back to the key itself when unresolvable.
+func resolveDepKey(idx *containerNameIndex, key string) string {
+	if idx == nil {
+		return key
+	}
+	if _, ok := idx.byName[key]; ok {
+		return key
+	}
+	if full, ok := idx.byService[key]; ok {
+		name := ""
+		if full.ContainerJSONBase != nil {
+			name = strings.TrimPrefix(full.Name, "/")
+		}
+		if name != "" {
+			return name
+		}
+	}
+	return key
+}
+
+// DependsOnIncludesTarget reports whether deps (a depends_on map keyed by
+// service OR container name) references targetName / targetService. Works for
+// both Cosmos-created stacks (keys = container names) and docker-compose
+// stacks (keys = service names).
+func DependsOnIncludesTarget(deps map[string]dependsOnEntry, targetName, targetService string) (dependsOnEntry, bool) {
+	if entry, ok := deps[targetName]; ok {
+		return entry, true
+	}
+	if targetService != "" && targetService != targetName {
+		if entry, ok := deps[targetService]; ok {
+			return entry, true
+		}
+	}
+	return dependsOnEntry{}, false
+}

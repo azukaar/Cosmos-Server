@@ -49,7 +49,9 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 			}(),
 			Domainname:   detailedInfo.Config.Domainname,
 			MacAddress:   detailedInfo.NetworkSettings.MacAddress,
-			NetworkMode:  string(detailedInfo.HostConfig.NetworkMode),
+			// Normalize container/service refs to stable container:<name>: the
+			// inspect may report a container ID that goes stale on recreate.
+			NetworkMode:  ContainerRefToName(string(detailedInfo.HostConfig.NetworkMode)),
 			StopSignal:   detailedInfo.Config.StopSignal,
 			HealthCheck:  ContainerCreateRequestContainerHealthcheck {
 			},
@@ -129,7 +131,9 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 					return networks
 			}(),
 
-			DependsOn:      map[string]ContainerCreateRequestContainerDependsOnCont{},  // This is not directly available from inspect. It's part of docker-compose.
+			// depends_on is reconstructed from the compose label (stripped from
+			// Labels below) so the *field* is the source of truth for the user.
+			DependsOn:      DependsOnFieldFromLabels(detailedInfo.Config, buildContainerNameIndex()),
 			RestartPolicy:  string(detailedInfo.HostConfig.RestartPolicy.Name),
 			Devices:        func() []string {
 					var devices []string
@@ -169,6 +173,9 @@ func ExportContainer(containerID string) (ContainerCreateRequestContainer, error
 		// for _, port := range detailedInfo.Config.ExposedPorts {
 			
 		// }
+
+		// hide the internal depends_on label; the field is the source of truth
+		service.Labels = stripInternalDependsOnLabel(service.Labels)
 
 		return service, nil
 }

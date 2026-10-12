@@ -159,6 +159,10 @@ func onDockerStarted(containerID string) {
 	utils.Debug("onDockerStarted: " + containerID)
 	BootstrapContainerFromTags(containerID)
 	DebouncedExportDocker()
+
+	// bring stack dependents back for containers started outside Cosmos
+	// (host reboot, manual docker start) — non-blocking, best-effort
+	go ReorderDependedOn(containerID)
 }
 
 func onDockerDestroyed(containerID string) {
