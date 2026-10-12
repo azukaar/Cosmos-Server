@@ -3,6 +3,7 @@ package market
 import (
 	"net/http"
 	"encoding/json"
+	"regexp"
 	"strconv"
 	"github.com/azukaar/cosmos-server/src/utils"
 	"time"
@@ -21,6 +22,27 @@ type appDefinition struct {
 	Icon string		`json:"icon"`
 	Compose string	`json:"compose"`
 	SupportedArchitectures []string	`json:"supported_architectures"`
+	// Secrets holds per-app ephemeral secret encryption keys (64-hex each),
+	// generated fresh on every market fetch so instalLer templates can use
+	// {Secrets.0}, {Secrets.1}, ... Each index is a different random value and
+	// the whole slice is never persisted.
+	Secrets []string	`json:"secrets,omitempty"`
+}
+
+// maxSecretsIndex returns the highest {Secrets.N} index referenced in the
+// compose template, or -1 if the template never uses {Secrets.*}. Used to
+// generate only as many secret keys as an app actually needs, instead of a
+// fixed pre-allocated amount.
+func maxSecretsIndex(compose string) int {
+	re := regexp.MustCompile(`\{Secrets\.([0-9]+)\}`)
+	max := -1
+	for _, m := range re.FindAllStringSubmatch(compose, -1) {
+		idx, err := strconv.Atoi(m[1])
+		if err == nil && idx > max {
+			max = idx
+		}
+	}
+	return max
 }
 
 type languages struct {
