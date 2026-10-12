@@ -32,10 +32,67 @@ type ContainerCreateRequestServiceNetwork struct {
 
 type ContainerCreateRequestContainerHealthcheck struct {
 	Test        []string `json:"test"`
-	Interval int `json:"interval"`
-	Timeout int `json:"timeout"`
+	Interval DurationStr `json:"interval"`
+	Timeout DurationStr `json:"timeout"`
 	Retries int `json:"retries"`
-	StartPeriod int `json:"start_period"`
+	StartPeriod DurationStr `json:"start_period"`
+}
+
+// DurationStr is a time-duration field that accepts both a JSON string
+// ("15s", "1m30s", "2h") and a JSON number (raw seconds). This mirrors
+// docker-compose's duration handling for healthcheck fields and keeps
+// older Cosmos exports/backups (which stored raw second counts) backward
+// compatible. It always marshals back to a string.
+//
+// NB: named DurationStr (not Duration) to avoid swag grouping unrelated
+// *Duration* constants in the package into an enum for this schema.
+type DurationStr string
+
+// UnmarshalJSON accepts a string (compose duration) or a number (raw seconds).
+func (d *DurationStr) UnmarshalJSON(data []byte) error {
+	trimmed := strings.TrimSpace(string(data))
+	if trimmed == "" || trimmed == "null" {
+		*d = ""
+		return nil
+	}
+	if trimmed[0] == '"' {
+		var s string
+		if err := json.Unmarshal(data, &s); err != nil {
+			return err
+		}
+		*d = DurationStr(s)
+		return nil
+	}
+	// Number: raw seconds.
+	var n json.Number
+	if err := json.Unmarshal(data, &n); err != nil {
+		return err
+	}
+	if _, err := strconv.ParseFloat(n.String(), 64); err != nil {
+		return fmt.Errorf("invalid duration: %s", n.String())
+	}
+	*d = DurationStr(n.String() + "s")
+	return nil
+}
+
+// MarshalJSON always emits a string so old clients (which expect string
+// fields) keep working.
+func (d DurationStr) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(d))
+}
+
+// ParseDuration converts a DurationStr back into a time.Duration. An empty
+// value yields 0 (no duration). Bare second counts (e.g. "15") are accepted
+// for backward compat with compose files that omit the unit.
+func (d DurationStr) ParseDuration() (time.Duration, error) {
+	s := strings.TrimSpace(string(d))
+	if s == "" {
+		return 0, nil
+	}
+	if v, err := strconv.ParseFloat(s, 64); err == nil {
+		return time.Duration(v * float64(time.Second)), nil
+	}
+	return time.ParseDuration(s)
 }
 
 type ContainerCreateRequestContainerDependsOnCont struct {
@@ -781,11 +838,32 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 
 		// For Healthcheck
 		if len(container.HealthCheck.Test) > 0 {
+			interval, intervalErr := container.HealthCheck.Interval.ParseDuration()
+			if intervalErr != nil {
+				utils.Error("CreateService: Invalid healthcheck interval", intervalErr)
+				OnLog(utils.DoErr("Invalid healthcheck interval: %s\n", intervalErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return intervalErr
+			}
+			timeout, timeoutErr := container.HealthCheck.Timeout.ParseDuration()
+			if timeoutErr != nil {
+				utils.Error("CreateService: Invalid healthcheck timeout", timeoutErr)
+				OnLog(utils.DoErr("Invalid healthcheck timeout: %s\n", timeoutErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return timeoutErr
+			}
+			startPeriod, startPeriodErr := container.HealthCheck.StartPeriod.ParseDuration()
+			if startPeriodErr != nil {
+				utils.Error("CreateService: Invalid healthcheck start_period", startPeriodErr)
+				OnLog(utils.DoErr("Invalid healthcheck start_period: %s\n", startPeriodErr.Error()))
+				Rollback(rollbackActions, OnLog)
+				return startPeriodErr
+			}
 			containerConfig.Healthcheck = &conttype.HealthConfig{
 				Test: container.HealthCheck.Test,
-				Interval: time.Duration(container.HealthCheck.Interval) * time.Second,
-				Timeout: time.Duration(container.HealthCheck.Timeout) * time.Second,
-				StartPeriod: time.Duration(container.HealthCheck.StartPeriod) * time.Second,
+				Interval: interval,
+				Timeout: timeout,
+				StartPeriod: startPeriod,
 				Retries: container.HealthCheck.Retries,
 			}
 		}
