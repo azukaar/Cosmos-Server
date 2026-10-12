@@ -61,8 +61,8 @@ type ContainerCreateRequestContainer struct {
 	Tty            bool              `json:"tty,omitempty"`
 	StdinOpen      bool              `json:"stdin_open,omitempty"`
 
-	Command string `json:"command,omitempty"`
-	Entrypoint string `json:"entrypoint,omitempty"`
+	Command strslice.StrSlice `json:"command,omitempty"`
+	Entrypoint strslice.StrSlice `json:"entrypoint,omitempty"`
 	Runtime string `json:"runtime,omitempty"`
 	WorkingDir string `json:"working_dir,omitempty"`
 	User string `json:"user,omitempty"`
@@ -140,6 +140,94 @@ type DockerServiceCreateRollback struct {
 	Name string `json:"name"`
 	// was: container old settings
 	Was doctype.ContainerJSON `json:"was"`
+}
+
+// NormalizeCmdArgs converts a user-supplied command/entrypoint into the argv form
+// the Docker SDK expects (containerConfig.Cmd / containerConfig.Entrypoint, both
+// strslice.StrSlice). It accepts both upstream Docker forms:
+//
+//   - Exec form: an array of arguments, e.g. ["/bin/sh", "-c", "echo hi"]. Used verbatim.
+//   - Shell form: a single whitespace-separated string, e.g. "echo hi". Tokenized into
+//     arguments while respecting single/double quotes (consistent with docker-compose).
+//
+// A single-element array is treated as shell form so legacy Cosmos configs/backups that
+// stored a plain command string continue to work unchanged.
+func NormalizeCmdArgs(input strslice.StrSlice) strslice.StrSlice {
+	if input == nil || len(input) == 0 {
+		return strslice.StrSlice{}
+	}
+
+	// Exec form: multiple explicit arguments, pass through untouched.
+	if len(input) > 1 {
+		return input
+	}
+
+	// A single element could be a shell-form command line (e.g. "npm run dev")
+	// OR the JSON decoder wrapping a bare string/array-of-one. Tokenize it so a
+	// quoted argument ("echo 'hello world'") stays a single argv element.
+	cmdline := strings.TrimSpace(input[0])
+	if cmdline == "" {
+		// Empty input: keep Cmd/Entrypoint unset (nil) so the image's own
+		// CMD/ENTRYPOINT is used, exactly like the pre-StrsSlice behaviour.
+		return nil
+	}
+	args := strings.Fields(cmdline)
+	if strings.Contains(cmdline, "'") || strings.Contains(cmdline, "\"") || strings.Contains(cmdline, "\\") {
+		args = SplitCommandArgs(cmdline)
+	}
+	return strslice.StrSlice(args)
+}
+
+// SplitCommandArgs tokenizes a shell command string into individual arguments,
+// treating single ('...') and double ("...") quotes as grouping delimiters. This
+// mirrors how docker-compose parses shell-form CMD/ENTRYPOINT values.
+func SplitCommandArgs(cmdline string) []string {
+	var b strings.Builder
+	var args []string
+	inArg := false
+	quote := ""
+	i := 0
+	for i < len(cmdline) {
+		c := cmdline[i : i+1]
+		if quote != "" {
+			if c == quote {
+				quote = ""
+			} else {
+				b.WriteString(c)
+			}
+			i++
+			continue
+		}
+		if c == "'" || c == "\"" {
+			quote = c
+			inArg = true
+			i++
+			continue
+		}
+		if c == " " || c == "\t" || c == "\n" {
+			if inArg {
+				args = append(args, b.String())
+				b = strings.Builder{}
+				inArg = false
+			}
+			i++
+			continue
+		}
+		// backslash escape inside shell form
+		if c == "\\" && i+1 < len(cmdline) {
+			b.WriteString(cmdline[i+1 : i+2])
+			inArg = true
+			i += 2
+			continue
+		}
+		b.WriteString(c)
+		inArg = true
+		i++
+	}
+	if inArg {
+		args = append(args, b.String())
+	}
+	return args
 }
 
 func Rollback(actions []DockerServiceCreateRollback , OnLog func(string)) {
@@ -540,12 +628,16 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			}
 		}
 		
-		if container.Command != "" {
-			containerConfig.Cmd = strings.Fields(container.Command)
+		if container.Command != nil && len(container.Command) > 0 {
+			if cmdArgs := NormalizeCmdArgs(container.Command); cmdArgs != nil && len(cmdArgs) > 0 {
+				containerConfig.Cmd = cmdArgs
+			}
 		}
 
-		if container.Entrypoint != "" {
-			containerConfig.Entrypoint = strslice.StrSlice(strings.Fields(container.Entrypoint))
+		if container.Entrypoint != nil && len(container.Entrypoint) > 0 {
+			if entryArgs := NormalizeCmdArgs(container.Entrypoint); entryArgs != nil && len(entryArgs) > 0 {
+				containerConfig.Entrypoint = entryArgs
+			}
 		}
 
 		// For Expose / Ports
