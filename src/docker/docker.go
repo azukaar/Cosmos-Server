@@ -169,7 +169,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 
 				if _, err := os.Stat(newSource); os.IsNotExist(err) {
 					utils.Log(fmt.Sprintf("Not found. Creating directory %s for bind mount", newSource))
-	
+
 					err := os.MkdirAll(newSource, 0755)
 					if err != nil {
 						utils.Error("EditContainer: Unable to create directory for bind mount", err)
@@ -300,9 +300,25 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		}
 	}
 	
-	// a container that was stopped stays stopped: an update or edit must not start it
+	// Decide whether the recreated container should be started.
+	//
+	// Previously this used the old container's momentary State.Running to decide,
+	// which is fragile: a nil/stale State (transient inspect race around a reboot
+	// or concurrent update) silently fell into the "leave stopped" branch and a
+	// *running* service was left down after an auto-update (gh-runner/Mosquitto
+	// incident: recreated at 13:22, no start, ~18 min outage until manual start).
+	//
+	// Intent of a container is stable and explicit:
+	//   - lazy containers (cosmos-lazy=true) are managed by the reaper and must
+	//     NOT be auto-started here: they sleep on purpose and wake on demand.
+	//   - every other container is expected to keep running. An update (auto or
+	//     manual) must therefore leave it started, even if the old State looked
+	//     stopped (that state is only authoritative when the user deliberately
+	//     stopped it: State != nil && !Running).
 	var runError error
-	if oldContainer.State != nil && !oldContainer.State.Running {
+	if IsLazyLabels(newConfig.Config.Labels) {
+		utils.Log("EditContainer - Networks Connected. Lazy container, leaving new container " + createResponse.ID + " stopped (will start on demand)")
+	} else if oldContainer.State != nil && !oldContainer.State.Running {
 		utils.Log("EditContainer - Networks Connected. Previous container was stopped, leaving new container " + createResponse.ID + " stopped")
 	} else {
 		utils.Log("EditContainer - Networks Connected. Starting new container " + createResponse.ID)
@@ -739,22 +755,17 @@ func resolveRegistry(image string) string {
 	return "https://index.docker.io/v1/"
 }
 
-// ImagePullAuthProvider, when set, supplies credentials for a registry host
-// the node has no docker login for — the cluster's own registries, whose
-// deploy tokens live in the constellation KV rather than in ~/.docker.
-// Returns empty strings when it has none for the host.
-var ImagePullAuthProvider func(registryHost string) (username, password string)
-
 func DockerPullImage(image string) (io.ReadCloser, error) {
 	utils.Debug("DockerPull - Preparing Pulling image " + image)
 
 	options := types.ImagePullOptions{}
-	registry := resolveRegistry(image)
 
 	configfile, err := dockerConfig.Load(dockerConfig.Dir())
 	if err != nil {
 		utils.Error("DockerPull - Read config file error -", err)
 	} else {
+		registry := resolveRegistry(image)
+
 		utils.Debug("DockerPull - resolved registry: " + registry)
 
 		creds, err := configfile.GetAuthConfig(registry)
@@ -762,12 +773,6 @@ func DockerPullImage(image string) (io.ReadCloser, error) {
 			utils.Error("DockerPull - GetAuthConfig error -", err)
 		} else if creds.Username != "" {
 			encodedJSON, _ := json.Marshal(creds)
-			options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
-		}
-	}
-	if options.RegistryAuth == "" && ImagePullAuthProvider != nil && !strings.HasPrefix(registry, "https://") {
-		if user, pass := ImagePullAuthProvider(registry); user != "" {
-			encodedJSON, _ := json.Marshal(map[string]string{"username": user, "password": pass, "serveraddress": registry})
 			options.RegistryAuth = base64.URLEncoding.EncodeToString(encodedJSON)
 		}
 	}
