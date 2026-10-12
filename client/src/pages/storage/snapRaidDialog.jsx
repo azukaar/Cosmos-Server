@@ -11,7 +11,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import PermissionGuard from "../../components/permissionGuard";
 import { PERM_RESOURCES } from "../../utils/permissions";
-import { crontabToText } from "../../utils/indexs";
+import { crontabToText, isValidCrontab } from "../../utils/indexs";
 import { MountPickerEntry } from "./mountPickerEntry";
 import { json } from "react-router";
 import { Trans, useTranslation } from 'react-i18next';
@@ -151,9 +151,17 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           name="syncCronTab"
                           label={t('mgmt.storage.snapraid.syncInterval.syncIntervalLabel')}
                           value={formik.values.syncCronTab}
-                          onChange={formik.handleChange}
-                          error={formik.touched.syncCronTab && Boolean(formik.errors.syncCronTab)}
-                          helperText={formik.touched.syncCronTab && formik.errors.syncCronTab}
+                          onChange={(e) => {
+                            formik.handleChange(e);
+                            const v = e.target.value;
+                            if (v && !isValidCrontab(v)) {
+                              formik.setFieldError('syncCronTab', t('mgmt.cron.invalidCron'));
+                            } else {
+                              formik.setFieldError('syncCronTab', undefined);
+                            }
+                          }}
+                          error={Boolean(formik.errors.syncCronTab)}
+                          helperText={formik.errors.syncCronTab || crontabToText(formik.values.syncCronTab, t)}
                         />
                         <FormLabel>
                           {crontabToText(formik.values.syncCronTab, t)}
@@ -164,9 +172,17 @@ const SnapRAIDDialogInternal = ({ refresh, open, setOpen, data = {}}) => {
                           name="scrubCronTab"
                           label={t('mgmt.storage.snapraid.scrubInterval.scrubIntervalLabel')}
                           value={formik.values.scrubCronTab}
-                          onChange={formik.handleChange}
-                          error={formik.touched.scrubCronTab && Boolean(formik.errors.scrubCronTab)}
-                          helperText={formik.touched.scrubCronTab && formik.errors.scrubCronTab}
+                          onChange={(e) => {
+                            formik.handleChange(e);
+                            const v = e.target.value;
+                            if (v && !isValidCrontab(v)) {
+                              formik.setFieldError('scrubCronTab', t('mgmt.cron.invalidCron'));
+                            } else {
+                              formik.setFieldError('scrubCronTab', undefined);
+                            }
+                          }}
+                          error={Boolean(formik.errors.scrubCronTab)}
+                          helperText={formik.errors.scrubCronTab || crontabToText(formik.values.scrubCronTab, t)}
                         />
                         <FormLabel>
                           {crontabToText(formik.values.scrubCronTab, t)}
