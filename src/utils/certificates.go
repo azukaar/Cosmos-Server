@@ -3,8 +3,13 @@ package utils
 import (
 	"sync"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
+	"fmt"
 	"math/big"
+	"net"
+	"net/http"
+	"net/url"
 	"time"
 	"crypto/rand"
 	"crypto"
@@ -14,7 +19,6 @@ import (
 	"crypto/ecdsa"
 	"os"
 	"strings"
-	"net"
 	"context"
 
 	"github.com/go-acme/lego/v5/acme"
@@ -82,7 +86,7 @@ func loadCA() (*CAConfig, error) {
 	config := GetMainConfig()
 	CACert := config.HTTPConfig.CACert
 	PAPrivateKey := config.HTTPConfig.CAPrivateKey
-	
+
 	if CACert == "" || PAPrivateKey == "" {
 		return nil, nil
 	}
@@ -129,7 +133,7 @@ func saveCA(ca *CAConfig) error {
 	return nil
 }
 
-func GenerateRSAWebCertificates(domains []string) (string, string, error) {	
+func GenerateRSAWebCertificates(domains []string) (string, string, error) {
 	// Try to load existing CA or generate new one
 	ca, err := loadCA()
 	if err != nil || ca == nil || ca.Certificate == nil || ca.PrivateKey == nil {
@@ -198,7 +202,7 @@ func GenerateEd25519Certificates() (string, string) {
 	if err != nil {
 		Fatal("Generating ed25519 private Key", err)
 	}
-	
+
 	bpub, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
 		Fatal("Generating ed25519 public Key", err)
@@ -228,6 +232,108 @@ func (u *CertUser) GetPrivateKey() crypto.Signer {
 // process-wide env is the only way to hand credentials to a lego provider, so
 // DNS-01 issuances run one at a time with only their own zone's env applied
 var dnsChallengeEnvLock sync.Mutex
+
+// desecZone is a minimal deSEC API domain object.
+type desecZone struct {
+	Name string `json:"name"`
+}
+
+// desecRRSet is a minimal deSEC API record-set object.
+type desecRRSet struct {
+	SubName string   `json:"subname"`
+	Type    string   `json:"type"`
+	Records []string `json:"records"`
+}
+
+// desecAPI performs a deSEC API request with the zone's token. It is kept
+// dependency-free (stdlib only) so this patch compiles without go.mod churn.
+func desecAPI(ctx context.Context, method, token, path string, out interface{}) error {
+	req, err := http.NewRequestWithContext(ctx, method, "https://desec.io/api/v1/"+path, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Token "+token)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("desec API returned %s", resp.Status)
+	}
+	if out != nil {
+		return json.NewDecoder(resp.Body).Decode(out)
+	}
+	return nil
+}
+
+// cleanupStaleChallengeTokens removes leftover _acme-challenge.* TXT records
+// from a deSEC zone after a successful order.
+//
+// Why this exists: lego's deSEC provider does a read-modify-write on the whole
+// TXT RRSet. When two runs touch the same _acme-challenge name concurrently
+// (possible on stable builds without serialization, or when a failed run left a
+// token behind), obsolete tokens pile up. The next pre-check then sees a
+// different value than the one just written and reports "did not return the
+// expected TXT record" forever, no matter how long the propagation wait.
+//
+// By the time we get here the order has succeeded and we hold
+// dnsChallengeEnvLock, so no other DoLetsEncrypt can be mid-flight. Any
+// remaining _acme-challenge TXT in the zone is therefore stale and safe to
+// remove; the next renewal recreates what it needs.
+func cleanupStaleChallengeTokens(zone *DNSZoneConfig) {
+	if zone == nil || !strings.EqualFold(zone.DNSChallengeProvider, "desec") {
+		return
+	}
+
+	token, ok := zone.DNSChallengeConfig["DESEC_TOKEN"]
+	if !ok || strings.TrimSpace(token) == "" {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	// find the zone that "owns" the apex of this domain (matches lego's
+	// GetResponsible resolution)
+	var zones []desecZone
+	if err := desecAPI(ctx, http.MethodGet, token,
+		"domains/?owns_qname="+url.QueryEscape(strings.TrimSuffix(zone.Zone, ".")), &zones); err != nil {
+		Warn("[LETSENCRYPT] could not look up the responsible deSEC zone for " + zone.Zone + ": " + err.Error())
+		return
+	}
+	if len(zones) == 0 {
+		return
+	}
+
+	var rrsets []desecRRSet
+	if err := desecAPI(ctx, http.MethodGet, token,
+		"domains/"+zones[0].Name+"/rrsets/", &rrsets); err != nil {
+		Warn("[LETSENCRYPT] could not list deSEC records in " + zones[0].Name + ": " + err.Error())
+		return
+	}
+
+	for _, rr := range rrsets {
+		if rr.Type != "TXT" || rr.SubName == "" || rr.SubName == "@" {
+			continue
+		}
+		if !strings.HasPrefix(strings.ToLower(rr.SubName), "_acme-challenge") {
+			continue
+		}
+		if err := desecAPI(ctx, http.MethodDelete, token,
+			"domains/"+zones[0].Name+"/rrsets/"+url.PathEscape(rr.SubName)+"/TXT/", nil); err != nil {
+			Warn("[LETSENCRYPT] could not remove stale challenge record " + rr.SubName + " in " + zones[0].Name + ": " + err.Error())
+			continue
+		}
+		Log("[LETSENCRYPT] removed stale challenge record " + rr.SubName + " from " + zones[0].Name)
+	}
+}
 
 // DoLetsEncrypt obtains a certificate for the domains: through the DNS
 // provider of the zone when one is given, through HTTP-01/TLS-ALPN-01 otherwise.
@@ -382,6 +488,13 @@ func DoLetsEncrypt(domains []string, zone *DNSZoneConfig) (string, string) {
 		Error("LETSENCRYPT_OBTAIN", err)
 		LetsEncryptErrors = append(LetsEncryptErrors, err.Error())
 		return "", ""
+	}
+
+	// defensive: drop leftovers from failed orders so the next renewal starts
+	// from a clean RRSet. Best-effort; errors are logged only and never fail a
+	// certificate that was already obtained.
+	if zone != nil {
+		cleanupStaleChallengeTokens(zone)
 	}
 
 	// return cert and key
