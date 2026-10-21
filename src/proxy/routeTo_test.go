@@ -112,6 +112,23 @@ func TestTunnelRouteToServesForwardedRequestLocally(t *testing.T) {
 	}
 }
 
+// a peer's hop onto a ":<port>" route arrives through the socket proxy from
+// loopback; re-balancing it bounced requests between two nodes forever
+func TestTunnelRouteToServesLoopbackForwardedRequestLocally(t *testing.T) {
+	for _, addr := range []string{"127.0.0.1:4242", "[::1]:4242"} {
+		handler, remoteMarkers, _ := newTunnelTestHandler(t)
+
+		resp := serveTunnelRequest(t, handler, addr, true)
+
+		if body := bodyOf(t, resp); body != "LOCAL" {
+			t.Fatalf("%s: forwarded request was re-balanced: got %q, want %q", addr, body, "LOCAL")
+		}
+		if len(*remoteMarkers) != 0 {
+			t.Fatalf("%s: forwarded request hit a remote node again: %v", addr, *remoteMarkers)
+		}
+	}
+}
+
 func TestTunnelRouteToIgnoresSpoofedMarker(t *testing.T) {
 	handler, remoteMarkers, _ := newTunnelTestHandler(t)
 

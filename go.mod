@@ -1,6 +1,6 @@
 module github.com/azukaar/cosmos-server
 
-go 1.26.0
+go 1.27.3
 
 require (
 	github.com/256dpi/lungo v0.3.7
