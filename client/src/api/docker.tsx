@@ -181,13 +181,14 @@ export default function createDockerAPI(apiFetch: ApiFetch, createWs: (path: str
     }))
   }
 
-  function exportContainer(containerId: string, values: any): Promise<ApiResponse> {
-    return wrap(apiFetch('/cosmos/api/servapps/' + containerId + '/export', {
+  function exportContainer(containerId: string, from?: 'initial' | 'runtime'): Promise<ApiResponse & { comments?: Record<string, string> }> {
+    // from=initial returns the config the user actually set (container vs
+    // image-config diff); from=runtime returns the full live runtime state.
+    return wrap(apiFetch(`/cosmos/api/servapps/${containerId}/export?from=${from || 'initial'}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(values),
     }))
   }
 
@@ -246,13 +247,18 @@ export default function createDockerAPI(apiFetch: ApiFetch, createWs: (path: str
     return createWs('/cosmos/api/servapps/' + containerId + '/terminal/new');
   }
 
-  function createService(serviceData: any, onProgress: (line: string) => void): Promise<ReadableStream> {
+  function createService(serviceData: any, onProgress: (line: string) => void, comments?: Record<string, string>): Promise<ReadableStream> {
+    // HJSON comments can't live in the JSON payload, so the compose editor
+    // sends a node->comment map ($$comments); the backend persists each as a
+    // cosmos.compose.<path> label and returns them on export so the editor
+    // can restore them.
+    const body = comments && Object.keys(comments).length ? { ...serviceData, '$$comments': comments } : serviceData;
     const requestOptions: RequestInit = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(serviceData)
+      body: JSON.stringify(body)
     };
 
     return apiFetch('/cosmos/api/docker-service', requestOptions)
