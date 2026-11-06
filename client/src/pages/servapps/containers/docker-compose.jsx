@@ -39,6 +39,7 @@ import { FilePickerButton } from '../../../components/filePicker';
 import PermissionGuard from '../../../components/permissionGuard';
 import { PERM_RESOURCES } from '../../../utils/permissions';
 
+
 function checkIsOnline() {
   API.isOnline().then((res) => {
     window.location.reload();
@@ -231,6 +232,17 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
             if (doc.services[key].command) {
               if (typeof doc.services[key].command !== 'string') {
                 doc.services[key].command = doc.services[key].command.join(' ');
+              }
+            }
+
+            // convert shm_size: docker-compose uses a byte-size string
+            // (e.g. "64mb", "1gb") — keep it as a string so the backend can
+            // parse it with the same semantics as docker-compose itself.
+            if (doc.services[key].shm_size) {
+              if (typeof doc.services[key].shm_size !== 'string') {
+                // Accept a bare number for backward compat with older compose
+                // files, but normalize it to a byte-size string (raw bytes).
+                doc.services[key].shm_size = String(doc.services[key].shm_size) + 'b';
               }
             }
 
