@@ -152,15 +152,18 @@ func newSession(user string, req *http.Request) *openid.DefaultSession {
 	// get hostname from request
 	hostname := req.Host
 
-	// external request
-	if hostname == utils.GetMainConfig().HTTPConfig.Hostname {
+	// The ID token issuer must match the issuer advertised by discovery, which is
+	// built from the host the client used. Hosts serving a proxy route are valid
+	// origins for an OpenID request, as discovery answers them too.
+	_, route := utils.FindRouteByReqHost(hostname)
+	if hostname == os.Getenv("HOSTNAME") {
+		hostname = "http://" + hostname
+	} else if route != nil || hostname == utils.GetMainConfig().HTTPConfig.Hostname {
 		if utils.IsHTTPS {
 			hostname = "https://" + hostname
 		} else {
 			hostname = "http://" + hostname
 		}
-	} else if hostname == os.Getenv("HOSTNAME") {
-		hostname = "http://" + hostname
 	} else {
 		utils.Error("Invalid hostname for OpenID request: " + hostname, nil)
 		return nil

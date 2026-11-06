@@ -41,15 +41,10 @@ type oidcConfiguration struct {
 }
 
 func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
-	config := utils.GetMainConfig()
 	hostname, proxyRoute := utils.FindRouteByReqHost(req.Host)
-	
-	realHostname := config.HTTPConfig.Hostname
 	if utils.IsHTTPS {
-			realHostname = "https://" + realHostname
 			hostname = "https://" + hostname
 	} else {
-			realHostname = "http://" + realHostname
 			hostname = "http://" + hostname
 	}
 
@@ -58,7 +53,7 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 
 	configuration := &oidcConfiguration{
 			Issuer:                                 hostname,
-			AuthURL:                                realHostname + "/cosmos-ui/openid",
+			AuthURL:                                hostname + "/cosmos-ui/openid",
 			TokenURL:                               hostname + "/oauth2/token",
 			JWKsURI:                                hostname + "/.well-known/jwks.json",
 			RevocationEndpoint:                     hostname + "/oauth2/revoke",
@@ -105,15 +100,15 @@ func discoverEndpoint(rw http.ResponseWriter, req *http.Request) {
 		// client libraries reading oid_detect use PKCE and expect no client secret.
 		detectMap["token_endpoint_auth_method"] = "none"
 		detectMap["code_challenge_methods_supported"] = []string{"S256"}
-		detectMap["configuration_endpoint"] = realHostname + "/.well-known/openid-configuration"
-		detectMap["auth_endpoint"] = realHostname + "/cosmos-ui/oauth"
+		detectMap["configuration_endpoint"] = hostname + "/.well-known/openid-configuration"
+		detectMap["auth_endpoint"] = hostname + "/cosmos-ui/oauth"
 		detectMap["suggested_redirect"] = "/oauth/callback"
 
 		detectMap["provider_name"] = "Cosmos Cloud"
-		detectMap["provider_logo"] = realHostname + "/logo"
+		detectMap["provider_logo"] = hostname + "/logo"
 
 		detectMap["login_label"] = "Login with Cosmos Cloud"
-		detectMap["login_logo"] = realHostname + "/logo"
+		detectMap["login_logo"] = hostname + "/logo"
 		detectMap["login_bg"] = "#000000"
 		detectMap["login_color"] = "#ffffff"
 
