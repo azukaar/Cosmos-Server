@@ -448,14 +448,29 @@ func refreshZoneCerts() {
 }
 
 // plainHTTPHandler answers on the HTTP port of a server that serves HTTPS: the
-// hostnames of an HTTP-only zone are served there, everything else lives on HTTPS
+// hostnames of an HTTP-only zone are served there, everything else is
+// redirected to HTTPS. Local IPs and Constellation peers are served directly
+// so tunneling and LAN access keep working without a redirect loop.
 func plainHTTPHandler(router http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if utils.HostIsHTTPOnly(utils.GetMainConfig(), r.Host) {
 			router.ServeHTTP(w, r)
 			return
 		}
-		http.NotFound(w, r)
+		remoteIP, _ := utils.SplitIP(r.RemoteAddr)
+		if (utils.GetMainConfig().HTTPConfig.AllowHTTPLocalIPAccess && utils.IsLocalIP(remoteIP)) || constellation.IsConstellationIP(remoteIP) {
+			router.ServeHTTP(w, r)
+			return
+		}
+		// change port in host
+		if strings.HasSuffix(r.Host, ":"+serverPortHTTP) {
+			if serverPortHTTPS != "443" {
+				r.Host = r.Host[:len(r.Host)-len(":"+serverPortHTTP)] + ":" + serverPortHTTPS
+			} else {
+				r.Host = r.Host[:len(r.Host)-len(":"+serverPortHTTP)]
+			}
+		}
+		http.Redirect(w, r, "https://"+r.Host+r.URL.String(), http.StatusMovedPermanently)
 	})
 }
 
