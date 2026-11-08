@@ -21,7 +21,6 @@ import IconButton from '@mui/material/IconButton';
 import * as API from '../../../api';
 import MainCard from '../../../components/MainCard';
 import { useEffect, useState } from 'react';
-import { isDomain } from '../../../utils/indexs';
 import { useTranslation } from 'react-i18next';
 
 function checkIsOnline() {
@@ -48,15 +47,10 @@ const RunningJobs = ({jobs}) => {
     </>) : <></>;
 }
 
-const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine }) => {
+const RestartModal = ({openModal, setOpenModal, isHostMachine }) => {
     const { t } = useTranslation();
     const [isRestarting, setIsRestarting] = useState(false);
     const [warn, setWarn] = useState(false);
-    const needsRefresh = config && (config.HTTPConfig.HTTPSCertificateMode == "SELFSIGNED" ||
-        !isDomain(config.HTTPConfig.Hostname))
-    const isNotDomain = config && !isDomain(config.HTTPConfig.Hostname);
-    let newRouteWarning = config && (config.HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && newRoute && 
-        (!config.HTTPConfig.DNSChallengeProvider || !config.HTTPConfig.UseWildcardCertificate))
     const [errorRestart, setErrorRestart] = useState(null);
     const [whenJobsIsEmpty, setWhenJobsIsEmpty] = useState(null);
 
@@ -106,39 +100,7 @@ const RestartModal = ({openModal, setOpenModal, config, newRoute, isHostMachine 
         }
     }, [jobs, isRestarting]) 
 
-    return config ? (<>
-        {needsRefresh && <>
-            <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('global.refreshPage')}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        {t('mgmt.config.proxy.refreshNeededWarning.selfSigned')} {isNotDomain && t('mgmt.config.proxy.refreshNeededWarning.notDomain')}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => {
-                        window.location.reload(true);                
-                    }}>{t('global.refresh')}</Button>
-                </DialogActions>
-            </Dialog>
-        </>}
-        {newRouteWarning && <>
-            <Dialog open={openModal} onClose={() => setOpenModal(false)}>
-                <DialogTitle>{t('mgmt.config.certRenewalTitle')}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        {t('mgmt.config.certRenewalText')} <a target="_blank" rel="noopener noreferrer" href="https://cosmos-cloud.io/doc/9%20Other%20Setups/#dns-challenge-and-wildcard-certificates">{t('mgmt.config.certRenewalLinktext')}</a>.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => {
-                        setOpenModal(false);             
-                    }}>{t('mgmt.config.restart.okButton')}</Button>
-                </DialogActions>
-            </Dialog>
-        </>}
-    </>)
-    :(<>
+    return (<>
         <Dialog open={openModal} onClose={() => {setJobs(null); return setOpenModal(false)}}>
             <DialogTitle>{!isRestarting ? t('mgmt.config.restart.restartTitle') : t('mgmt.config.restart.restartStatus')}</DialogTitle>
             <DialogContent>

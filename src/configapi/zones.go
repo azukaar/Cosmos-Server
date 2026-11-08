@@ -94,7 +94,7 @@ func ZonesApiList(w http.ResponseWriter, req *http.Request) {
 
 	canReadCredentials := utils.HasPermission(req, utils.PERM_CREDENTIALS_READ)
 	config := utils.GetMainConfig()
-	hosts := append(utils.GetAllHostnames(false, true), utils.ClusterHostnames()...)
+	hosts := append(utils.GetAllHostnames(true), utils.ClusterHostnames()...)
 
 	recordsStatus := dnsrecords.GetStatus()
 

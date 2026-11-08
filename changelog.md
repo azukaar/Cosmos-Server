@@ -1,13 +1,31 @@
 ## Version 0.24.0
+ - Each domain now has its own HTTPS and DynDNS settings (existing HTTPS setups are migrated automatically)
+ - DynDNS: Cosmos can manage your DNS records on Cloudflare, Route53, OVH, Gandi, DigitalOcean, Hetzner, Porkbun, Namecheap, deSEC and DuckDNS
  - Lazy loading
+ - Smartshield dashboard to edit bans
+ - Smartshield whitelisting
  - Improve TCP proxy support
+ - Domains and their certificates are shared across the Constellation
+ - Reuse the same Let's Encrypt account instead of creating one per order, avoiding rate limits
+ - HTTP and HTTPS domains can coexist (redirects and secure cookies are decided per hostname)
  - Fix issue with the port allocation when load balancing TCP
  - Minor load balancing quirk fixes
  - Fix issue with regex in event tab of monitoring
  - Fix PingURL / Favicon fetcher exposing some scanning surface
  - Can edit stopped containers
- - Smartshield dashboard to edit bans
- - Smartshield whitelisting
+ - Join an existing Constellation from the install wizard by uploading its constellation file
+ - Option to use the Constellation DNS on the server itself
+ - Smart Shield strikes and bans are shared across the Constellation
+ - Smart Shield budgets logged-in users individually, so users behind the same IP no longer share a budget
+ - Improve tunnel health checks (crash-looping containers count as down, sleeping lazy containers stay available)
+ - Network share URLs are now created and managed by the server
+ - Can edit the DNS servers of a container
+ - "Check for updates" now tells you the result
+ - Fix compose ports using a bind address (ip:hostPort:containerPort)
+ - Fix routes using a ":port" host being rejected by the hostname check
+ - Fix CORS: support multiple allowed origins, and never send "*" together with credentials
+ - Fix fresh install
+ - Update Go to 1.27.3
 
 ## Version 0.23.04
  - Allow terraform to remove Constellation managers

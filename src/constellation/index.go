@@ -188,6 +188,7 @@ func Init() {
 	utils.ZonesPending = zonesPending
 	initRecords()
 	shareLetsEncryptEmail()
+	shareOIDCSigningKey()
 	utils.PublishRolesOp = func(roles map[utils.Role]utils.RoleConfig) error {
 		return PublishDomainOp(DomainRoles, roles)
 	}

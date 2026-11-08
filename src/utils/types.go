@@ -272,6 +272,9 @@ type HTTPConfig struct {
 	SelfTLSValidUntil time.Time
 	AuthPrivateKey string
 	AuthPublicKey string
+	// OIDCSigningKey signs the OpenID tokens, one for the whole cluster
+	OIDCSigningKey string `json:"OIDCSigningKey,omitempty"`
+	OIDCSigningKeyShared bool `json:"OIDCSigningKeyShared,omitempty"`
 	GenerateMissingAuthCert bool
 	HTTPSCertificateMode string
 	DNSChallengeProvider string

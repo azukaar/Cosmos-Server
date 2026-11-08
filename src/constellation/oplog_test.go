@@ -374,12 +374,38 @@ func TestUnitOplogDirectWritePath(t *testing.T) {
 	}
 }
 
+func TestUnitOplogOIDCSigningKeyDomain(t *testing.T) {
+	setupTestEnv(t, nil)
+
+	apply := func(key string) {
+		t.Helper()
+		state, err := json.Marshal(OIDCSigningKeyPayload{Key: key})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := oplogDomains[DomainOIDCSigningKey].Apply(state); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	apply("cluster-key")
+	http := utils.GetMainConfig().HTTPConfig
+	if http.OIDCSigningKey != "cluster-key" || !http.OIDCSigningKeyShared {
+		t.Fatalf("key not installed: %q shared=%v", http.OIDCSigningKey, http.OIDCSigningKeyShared)
+	}
+
+	apply("")
+	if got := utils.GetMainConfig().HTTPConfig.OIDCSigningKey; got != "cluster-key" {
+		t.Fatalf("an empty state wiped the key: %q", got)
+	}
+}
+
 func TestUnitOplogDomainRegistry(t *testing.T) {
 	setupTestEnv(t, nil)
 
 	for _, name := range []string{DomainAuthKeys, DomainDNS, DomainAPITokens, DomainRoles,
 		DomainOpenIDClients, DomainFileCACrt, DomainFileCAKey, DomainFileRclone, DomainDatabase,
-		DomainDNSZones, DomainZoneCerts} {
+		DomainDNSZones, DomainZoneCerts, DomainOIDCSigningKey} {
 		d, ok := oplogDomains[name]
 		if !ok {
 			t.Fatalf("domain %q is not registered", name)

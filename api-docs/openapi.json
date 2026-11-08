@@ -4,7 +4,7 @@
     "description": "REST API for Cosmos Cloud server management",
     "title": "Cosmos Server API",
     "contact": {},
-    "version": "0.24.0-unstable030"
+    "version": "0.24.0-unstable031"
   },
   "paths": {
     "/_logs": {
@@ -16695,6 +16695,10 @@
           "constellationConfig"
         ],
         "properties": {
+          "cleanInstall": {
+            "description": "CleanInstall empties the config folder before joining, backups and logs are kept",
+            "type": "boolean"
+          },
           "constellationConfig": {
             "description": "ConstellationConfig is the constellation file of this server, as created on the cluster",
             "type": "string"
@@ -19015,6 +19019,13 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/utils.ZoneCert"
             }
+          },
+          "OIDCSigningKey": {
+            "description": "OIDCSigningKey signs the OpenID tokens, one for the whole cluster",
+            "type": "string"
+          },
+          "OIDCSigningKeyShared": {
+            "type": "boolean"
           },
           "SSLEmailShared": {
             "type": "boolean"

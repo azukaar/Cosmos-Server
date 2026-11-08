@@ -31,7 +31,6 @@ import {
 import ConstellationIcon from '../../../assets/images/icons/constellation_full.png'
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import AnimateButton from '../../../components/@extended/AnimateButton';
-import RestartModal from './restart';
 import RouteManagement from '../routes/routeman';
 import { getFaviconURL, sanitizeRoute, ValidateRoute, managedRouteOwner, isManagedRoute } from '../../../utils/routes';
 import PrettyTableView from '../../../components/tableView/prettyTableView';
@@ -72,7 +71,6 @@ const ProxyManagement = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const [config, setConfig] = React.useState(null);
-  const [openModal, setOpenModal] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [submitErrors, setSubmitErrors] = React.useState([]);
   const [needSave, setNeedSave] = React.useState(false);
@@ -232,7 +230,6 @@ const ProxyManagement = () => {
     </Stack>
 
     {config && <>
-      <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
       <NewRouteCreate openNewModal={openNewModal} setOpenNewModal={setOpenNewModal} config={config}/>
       
       {routes && <PrettyTableView 
@@ -352,7 +349,6 @@ const ProxyManagement = () => {
                 onClick={() => {
                   API.config.set(cleanRoutes(updateRoutes(routes))).then(() => {
                     setNeedSave(false);
-                    setOpenModal(true);
                   }).catch((err) => {
                     console.log(err);
                     setError(err.message);

@@ -250,7 +250,7 @@ func PublishAllMDNSFromConfig() {
 		}
 	}
 
-	routes := utils.GetAllHostnames(false, true)
+	routes := utils.GetAllHostnames(true)
 
 	localRoutes := []string{}
 

@@ -31,6 +31,7 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 
 		// delete private keys
 		config.HTTPConfig.AuthPrivateKey = ""
+		config.HTTPConfig.OIDCSigningKey = ""
 		config.HTTPConfig.TLSKey = ""
 		config.HTTPConfig.CAPrivateKey = ""
 		config.HTTPConfig.SelfTLSKey = ""
@@ -83,6 +84,8 @@ func ConfigApiGet(w http.ResponseWriter, req *http.Request) {
 			"updates": utils.UpdateAvailable,
 			"hostname": os.Getenv("HOSTNAME"),
 			"isAdmin": isAdmin,
+			"isHTTPS": utils.IsHTTPS,
+			"serverCertificate": utils.GetHostCertificate(config, config.HTTPConfig.Hostname).PEM,
 		})
 	} else {
 		utils.Error("SettingGet: Method not allowed" + req.Method, nil)

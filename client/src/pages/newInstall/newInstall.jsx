@@ -83,7 +83,7 @@ const NewInstall = () => {
     const join = () => {
         setJoining(true);
         setJoinError(null);
-        API.setupJoin({ constellationConfig: joinFile, hostname: joinHostname }).then((res) => {
+        API.setupJoin({ constellationConfig: joinFile, hostname: joinHostname, cleanInstall }).then((res) => {
             const target = res.data.hostname;
             setTimeout(() => {
                 redirectTo((isDomain(target.split(':')[0]) ? "https://" : "http://") + target + "/cosmos-ui/login");

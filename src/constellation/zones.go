@@ -99,6 +99,31 @@ func shareLetsEncryptEmail() {
 	}()
 }
 
+// shareOIDCSigningKey gives a cluster without a common signing key the issuer's
+func shareOIDCSigningKey() {
+	config := utils.GetMainConfig()
+	if !config.ConstellationConfig.Enabled || config.HTTPConfig.OIDCSigningKeyShared {
+		return
+	}
+
+	go func() {
+		for attempt := 0; attempt < 20; attempt++ {
+			time.Sleep(30 * time.Second)
+
+			http := utils.GetMainConfig().HTTPConfig
+			if http.OIDCSigningKeyShared {
+				return
+			}
+			if zonesPending() || !isZoneIssuer() || http.OIDCSigningKey == "" {
+				continue
+			}
+			if err := PublishDomainOp(DomainOIDCSigningKey, OIDCSigningKeyPayload{Key: http.OIDCSigningKey}); err == nil {
+				return
+			}
+		}
+	}()
+}
+
 // publishMigratedZones adds zones a local migration created to the cluster's.
 // A domain op carries the full state, and every node may migrate at the same
 // time after an upgrade: each one re-checks that its zones made it, and merges

@@ -178,6 +178,22 @@ function getNextIP() {
   });
 }
 
+function create() {
+  return Promise.resolve({ "status": "OK" });
+}
+
+function editDevice() {
+  return Promise.resolve({ "status": "OK" });
+}
+
+function forceReform() {
+  return Promise.resolve({ "status": "OK" });
+}
+
+function resyncDevice() {
+  return addDevice();
+}
+
 
 export {
   list,
@@ -191,5 +207,10 @@ export {
   ping,
   natsStatus,
   pingDevice,
-  tunnels
+  tunnels,
+  getNextIP,
+  create,
+  editDevice,
+  forceReform,
+  resyncDevice
 };

@@ -28,8 +28,9 @@ ${JSON.stringify(batch, null, 2)}`;
             'Authorization': `Bearer ${API_KEY}`,
         },
         body: JSON.stringify({
-            model: "gpt-4o",
-            max_tokens: 3000,
+            model: "gpt-6.1-sol",
+            reasoning_effort: "medium",
+            max_completion_tokens: 3000,
             messages: [
                 {
                     role: "system",

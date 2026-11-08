@@ -396,7 +396,7 @@ func ZoneCertCovers(cert ZoneCert, wanted []string) bool {
 // expiring or not covering their hostnames anymore, with what it must cover.
 func ZoneCertsToIssue(config Config, force bool) map[string][]string {
 	toIssue := map[string][]string{}
-	hosts := append(GetAllHostnames(false, true), ClusterHostnames()...)
+	hosts := append(GetAllHostnames(true), ClusterHostnames()...)
 
 	for _, zone := range ResolveZones(config, hosts) {
 		if zone.Derived || !IssuesZoneCert(zone.DNSZoneConfig) {
@@ -484,7 +484,30 @@ func LocalCertsToIssue(config Config, hosts []string, force bool) map[string][]s
 
 // LocalCertHostnamesNow is what this server has to certify by itself right now
 func LocalCertHostnamesNow(config Config) []string {
-	return LetsEncryptValidOnly(LocalCertHostnames(config, GetAllHostnames(true, true)), false)
+	return LetsEncryptValidOnly(LocalCertHostnames(config, GetAllHostnames(true)), false)
+}
+
+// NeedsLetsEncrypt reports whether this server orders certificates from Let's Encrypt
+func NeedsLetsEncrypt(config Config) bool {
+	disabled := ServerHTTPSDisabled(config.HTTPConfig)
+	if !disabled {
+		for _, host := range LocalCertHostnames(config, GetAllHostnames(true)) {
+			if letsEncryptable(zoneHost(host)) {
+				return true
+			}
+		}
+	}
+
+	// an HTTP-only leader still issues for its cluster, see issueZoneCerts
+	if (disabled && !config.ConstellationConfig.Enabled) || !IsZoneIssuer() {
+		return false
+	}
+	for _, zone := range ResolveZones(config, append(GetAllHostnames(true), ClusterHostnames()...)) {
+		if !zone.Derived && IssuesZoneCert(zone.DNSZoneConfig) && len(ZoneCertHostnames(zone.DNSZoneConfig, zone.Hosts)) > 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // certServes reports whether a certificate covers every wanted hostname and
@@ -672,6 +695,8 @@ type HostCertificate struct {
 	ValidUntil time.Time `json:"validUntil"`
 	// Covered is false when the certificate served does not list the hostname
 	Covered bool `json:"covered"`
+	// PEM is the certificate itself, kept out of the zones listing
+	PEM string `json:"-"`
 }
 
 // GetHostCertificate mirrors the choice the TLS handshake makes for a hostname
@@ -691,6 +716,7 @@ func GetHostCertificate(config Config, host string) HostCertificate {
 		Hosts:      http.SelfTLSKeyHostsCached,
 		ValidUntil: http.SelfTLSValidUntil,
 		Covered:    CertCovers(http.SelfTLSKeyHostsCached, host),
+		PEM:        http.SelfTLSCert,
 	}
 
 	switch mode {
@@ -700,14 +726,14 @@ func GetHostCertificate(config Config, host string) HostCertificate {
 		return selfSigned
 	case HTTPSCertModeList["PROVIDED"]:
 		if i == -1 {
-			return HostCertificate{Source: "provided", Hosts: []string{}, ValidUntil: http.TLSValidUntil, Covered: true}
+			return HostCertificate{Source: "provided", Hosts: []string{}, ValidUntil: http.TLSValidUntil, Covered: true, PEM: http.TLSCert}
 		}
 		hosts, validUntil, err := CertificateInfo(http.DNSZones[i].TLSCert)
 		if err != nil {
 			// nothing usable was provided: the self-signed certificate serves meanwhile
 			return selfSigned
 		}
-		return HostCertificate{Source: "provided", Zone: zoneName, Hosts: hosts, ValidUntil: validUntil, Covered: CertCovers(hosts, host)}
+		return HostCertificate{Source: "provided", Zone: zoneName, Hosts: hosts, ValidUntil: validUntil, Covered: CertCovers(hosts, host), PEM: http.DNSZones[i].TLSCert}
 	}
 
 	if !zoneableHost(host) || !letsEncryptable(host) {
@@ -722,6 +748,7 @@ func GetHostCertificate(config Config, host string) HostCertificate {
 				Hosts:      cert.Hosts,
 				ValidUntil: cert.ValidUntil,
 				Covered:    true,
+				PEM:        cert.TLSCert,
 			}
 		}
 	}
@@ -733,6 +760,7 @@ func GetHostCertificate(config Config, host string) HostCertificate {
 			Hosts:      cert.Hosts,
 			ValidUntil: cert.ValidUntil,
 			Covered:    true,
+			PEM:        cert.TLSCert,
 		}
 	}
 
@@ -741,5 +769,6 @@ func GetHostCertificate(config Config, host string) HostCertificate {
 		Hosts:      http.TLSKeyHostsCached,
 		ValidUntil: http.TLSValidUntil,
 		Covered:    CertCovers(http.TLSKeyHostsCached, host),
+		PEM:        http.TLSCert,
 	}
 }

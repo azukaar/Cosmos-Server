@@ -197,6 +197,8 @@ func ConfigApiSet(w http.ResponseWriter, req *http.Request) {
 		config := utils.ReadConfigFromFile()
 		request.HTTPConfig.AuthPrivateKey = config.HTTPConfig.AuthPrivateKey
 		request.HTTPConfig.AuthPublicKey = config.HTTPConfig.AuthPublicKey
+		request.HTTPConfig.OIDCSigningKey = config.HTTPConfig.OIDCSigningKey
+		request.HTTPConfig.OIDCSigningKeyShared = config.HTTPConfig.OIDCSigningKeyShared
 		request.HTTPConfig.TLSCert = config.HTTPConfig.TLSCert
 		request.HTTPConfig.TLSKey = config.HTTPConfig.TLSKey
 		// zone certificates are never sent to the client; the ones of deleted zones go with them

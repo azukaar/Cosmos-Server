@@ -13,7 +13,7 @@ import ConfigZones from './configZones';
 import * as API from '../../api';
 import { useTranslation } from 'react-i18next';
 
-const ConfigHTTPS = ({ formik, config }) => {
+const ConfigHTTPS = ({ formik, config, serverCertificate }) => {
   const { t } = useTranslation();
   const [addresses, setAddresses] = React.useState([]);
 
@@ -93,14 +93,14 @@ const ConfigHTTPS = ({ formik, config }) => {
           </Stack>
         </Grid>
 
-        <Grid item xs={12}>
+        {serverCertificate && <Grid item xs={12}>
           <h4>{t('mgmt.config.security.encryption.rootHttpsPubKeyTitle')}</h4>
           <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
             <pre className='code'>
-              {config.HTTPConfig.TLSCert}
+              {serverCertificate}
             </pre>
           </Stack>
-        </Grid>
+        </Grid>}
 
         <Grid item xs={12}>
           <CosmosCheckbox

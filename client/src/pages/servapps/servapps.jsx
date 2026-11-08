@@ -8,7 +8,6 @@ import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 
 import * as API from '../../api';
-import RestartModal from '../config/users/restart';
 import RouteManagement from '../config/routes/routeman';
 import { ValidateRoute, getFaviconURL, sanitizeRoute, getContainersRoutes } from '../../utils/routes';
 import HostChip from '../../components/hostChip';
@@ -76,7 +75,6 @@ const ServApps = ({stack}) => {
   const [openModal, setOpenModal] = useState(false);
   const [newRoute, setNewRoute] = useState(null);
   const [submitErrors, setSubmitErrors] = useState([]);
-  const [openRestartModal, setOpenRestartModal] = useState(false);
   const [selfName, setSelfName] = useState("");
 
   const refreshServApps = () => {
@@ -105,7 +103,6 @@ const ServApps = ({stack}) => {
   function updateRoutes(newRoute) {
     return API.config.addRoute(newRoute).then((res) => {
       setOpenModal(false);
-      setOpenRestartModal(true);
     });
   }
 
@@ -236,7 +233,6 @@ const ServApps = ({stack}) => {
   });
 
   return <div style={{ maxWidth: "1200px", margin: "auto" }}>
-    <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} newRoute />
     <ExposeModal
       openModal={openModal} 
       setOpenModal={setOpenModal}

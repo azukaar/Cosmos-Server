@@ -1,8 +1,19 @@
 import metricsDemo from './metrics.demo.json';
 import eventsDemo from './events.demo.json';
 
+// the recorded sample only has two block reasons: derive the others for the Shield tab
+const hostnameBlocked = metricsDemo.data.find((metric) => metric.Key === 'cosmos.proxy.blocked.hostname');
+const scaleValue = (value, factor) => ({ ...value, Value: Math.round(value.Value * factor) });
+const extraBlocked = [['bots', 'Bots', 2.4], ['geo', 'Geo', 1.3], ['referer', 'Referer', 0.2], ['smart-shield', 'Smart Shield', 0.7]].map(([reason, label, factor]) => ({
+  ...hostnameBlocked,
+  Key: 'cosmos.proxy.blocked.' + reason,
+  Label: 'Blocked By ' + label,
+  Values: hostnameBlocked.Values.map((value) => scaleValue(value, factor)),
+  ValuesAggl: Object.fromEntries(Object.entries(hostnameBlocked.ValuesAggl).map(([key, value]) => [key, scaleValue(value, factor)])),
+}));
+
 function get(metarr) {
-  let metrics = [...metricsDemo.data];
+  let metrics = [...metricsDemo.data, ...extraBlocked];
 
   let result = [];
 

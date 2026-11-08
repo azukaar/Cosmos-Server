@@ -39,29 +39,46 @@ function canSendEmail() {
   });
 }
 
-async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<void> {
+// the route forms read res.status
+async function rawUpdateRoute(routeName: string, operation: Operation, newRoute?: Route): Promise<{ status: string }> {
   return new Promise((resolve, reject) => {
-    resolve()
+    resolve({ status: "OK" })
   });
 }
 
-async function replaceRoute(routeName: string, newRoute: Route): Promise<void> {
+async function replaceRoute(routeName: string, newRoute: Route): Promise<{ status: string }> {
   return rawUpdateRoute(routeName, 'replace', newRoute);
 }
 
-async function moveRouteUp(routeName: string): Promise<void> {
+async function moveRouteUp(routeName: string): Promise<{ status: string }> {
   return rawUpdateRoute(routeName, 'move_up');
 }
 
-async function moveRouteDown(routeName: string): Promise<void> {
+async function moveRouteDown(routeName: string): Promise<{ status: string }> {
   return rawUpdateRoute(routeName, 'move_down');
 }
 
-async function deleteRoute(routeName: string): Promise<void> {
+async function deleteRoute(routeName: string): Promise<{ status: string }> {
   return rawUpdateRoute(routeName, 'delete');
 }
-async function addRoute(newRoute: Route): Promise<void> {
+async function addRoute(newRoute: Route): Promise<{ status: string }> {
   return rawUpdateRoute("", 'add', newRoute);
+}
+
+async function newRoute(routeName: string, route: Route): Promise<{ status: string }> {
+  return rawUpdateRoute(routeName, 'add', route);
+}
+
+async function updateRouteByName(routeName: string, route: Route): Promise<{ status: string }> {
+  return rawUpdateRoute(routeName, 'replace', route);
+}
+
+async function deleteRouteByName(routeName: string): Promise<{ status: string }> {
+  return rawUpdateRoute(routeName, 'delete');
+}
+
+function updateDNS(values) {
+  return Promise.resolve({ status: "OK" });
 }
 
 function getDashboard() {
@@ -107,6 +124,10 @@ export {
   moveRouteDown,
   deleteRoute,
   addRoute,
+  newRoute,
+  updateRouteByName,
+  deleteRouteByName,
+  updateDNS,
   canSendEmail,
   getDashboard,
   getBackup,

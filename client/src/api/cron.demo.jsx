@@ -168,6 +168,10 @@ function get(scheduler, name) {
   });
 }
 
+function runningJobs() {
+  return Promise.resolve({ "status": "OK", "data": [] });
+}
+
 export {
   listen,
   list,
@@ -175,4 +179,5 @@ export {
   stop,
   get,
   deleteJob,
+  runningJobs,
 }

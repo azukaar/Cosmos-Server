@@ -37,6 +37,7 @@ const (
 	DomainDNSZones      = "dns_zones"
 	DomainZoneCerts     = "zone_certs"
 	DomainHTTPSSettings = "https_settings"
+	DomainOIDCSigningKey = "oidc_signing_key"
 )
 
 // HTTPSSettingsPayload is what the servers of a cluster share about HTTPS
@@ -49,6 +50,10 @@ type HTTPSSettingsPayload struct {
 type AuthKeysPayload struct {
 	AuthPrivateKey string `json:"authPrivateKey"`
 	AuthPublicKey  string `json:"authPublicKey"`
+}
+
+type OIDCSigningKeyPayload struct {
+	Key string `json:"key"`
 }
 
 type DNSPayload struct {
@@ -105,6 +110,34 @@ func init() {
 				AuthPrivateKey: config.HTTPConfig.AuthPrivateKey,
 				AuthPublicKey:  config.HTTPConfig.AuthPublicKey,
 			})
+		},
+	})
+
+	// an empty state is never applied: a node without a key can't wipe everyone's
+	register(Domain{
+		Name: DomainOIDCSigningKey,
+		Apply: func(state json.RawMessage) error {
+			var p OIDCSigningKeyPayload
+			if err := json.Unmarshal(state, &p); err != nil {
+				return err
+			}
+			if p.Key == "" {
+				return nil
+			}
+			config := utils.ReadConfigFromFile()
+			config.HTTPConfig.OIDCSigningKey = p.Key
+			config.HTTPConfig.OIDCSigningKeyShared = true
+			utils.SetBaseMainConfig(config)
+			return nil
+		},
+		// the key is loaded when the OpenID server starts
+		React: func(old json.RawMessage, new json.RawMessage) {
+			if !bytes.Equal(old, new) {
+				go utils.RestartHTTPServer()
+			}
+		},
+		Snapshot: func() (json.RawMessage, error) {
+			return json.Marshal(OIDCSigningKeyPayload{Key: utils.GetMainConfig().HTTPConfig.OIDCSigningKey})
 		},
 	})
 

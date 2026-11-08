@@ -436,6 +436,26 @@
 				"redirect": "https://localhost:12443/apps/oidc_login/oidc"
 			}
 		],
+		"ShieldWhitelist": [
+			{
+				"IP": "192.168.1.0/24",
+				"Label": "Home network",
+				"BypassGeo": true,
+				"BypassIPRestriction": true
+			},
+			{
+				"IP": "198.51.100.200",
+				"Label": "Office",
+				"BypassGeo": true,
+				"BypassIPRestriction": false
+			},
+			{
+				"IP": "2001:db8:1::/48",
+				"Label": "Travel VPN",
+				"BypassGeo": false,
+				"BypassIPRestriction": false
+			}
+		],
 		"BlockedCountries": [
 			"CN",
 			"RU",

@@ -6,7 +6,6 @@ import { getFaviconURL, getContainersRoutes } from '../../../utils/routes';
 import HostChip from '../../../components/hostChip';
 import ExposeModal from '../exposeModal';
 import * as API from '../../../api';
-import RestartModal from '../../config/users/restart';
 import GetActions from '../actionBar';
 import { ServAppIcon } from '../../../utils/servapp-icon';
 import MiniPlotComponent from '../../dashboard/components/mini-plot';
@@ -25,7 +24,6 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
   const { t } = useTranslation();
   const isMobile = useMediaQuery((theme) => theme.breakpoints.down('sm'));
   const [openModal, setOpenModal] = React.useState(false);
-  const [openRestartModal, setOpenRestartModal] = React.useState(false);
   const [isUpdating, setIsUpdating] = React.useState(false);
   
   const { Name, Config, NetworkSettings, State } = containerInfo;
@@ -54,8 +52,6 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
 
   return (
     <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto' }}>
-      <RestartModal openModal={openRestartModal} setOpenModal={setOpenRestartModal} config={config} />
-
       <ExposeModal
         openModal={openModal} 
         setOpenModal={setOpenModal}
@@ -65,7 +61,6 @@ const ContainerOverview = ({ containerInfo, config, refresh, updatesAvailable, s
           (_newRoute) => {
             updateRoutes(_newRoute);
             setOpenModal(false);
-            setOpenRestartModal(true);
           }
         }
       />

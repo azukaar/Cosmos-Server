@@ -1,8 +1,10 @@
 package authorizationserver
 
 import (
-	"math/rand"
+	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"github.com/ory/fosite"
 	"time"
 	"net/http"
@@ -10,7 +12,6 @@ import (
 	"strings"
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/binary"
 	"io"
 	"encoding/json"
 	"net/url"
@@ -32,6 +33,50 @@ import (
 
 var oauth2 fosite.OAuth2Provider
 var AuthPrivateKey *rsa.PrivateKey
+var signingKeyID string
+
+// loadSigningKey returns the stored signing key, creating it the first time.
+// Not under ConfigLock: some restarts run while it is held.
+func loadSigningKey() *rsa.PrivateKey {
+	if key := parseSigningKey(utils.ReadConfigFromFile().HTTPConfig.OIDCSigningKey); key != nil {
+		return key
+	}
+
+	key, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		utils.Fatal("Generating the OpenID signing key", err)
+	}
+
+	config := utils.ReadConfigFromFile()
+	config.HTTPConfig.OIDCSigningKey = string(pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)}))
+	config.HTTPConfig.OIDCSigningKeyShared = false
+	utils.SetBaseMainConfig(config)
+	utils.Log("Generated a new OpenID signing key")
+	return key
+}
+
+func parseSigningKey(keyPEM string) *rsa.PrivateKey {
+	block, _ := pem.Decode([]byte(keyPEM))
+	if block == nil {
+		return nil
+	}
+	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		utils.Error("Invalid OpenID signing key, replacing it", err)
+		return nil
+	}
+	return key
+}
+
+// keyID changes with the key, so that clients caching the JWKS by kid fetch the new one
+func keyID(key *rsa.PrivateKey) string {
+	der, err := x509.MarshalPKIXPublicKey(key.Public())
+	if err != nil {
+		utils.Fatal("Encoding the OpenID signing key", err)
+	}
+	sum := sha256.Sum256(der)
+	return base64.RawURLEncoding.EncodeToString(sum[:16])
+}
 
 func Init() {
 	config := utils.ReadConfigFromFile()
@@ -40,7 +85,9 @@ func Init() {
 	secret := []byte("some-super-cool-secret-that-nobody-knows")
 	
 	if len(authKey) > 64 {
-		secret = []byte(authKey[32:64])
+		// fosite reads exactly 32 bytes
+		hash := sha256.Sum256([]byte("cosmos-oidc-secret:" + authKey))
+		secret = hash[:]
 	}
 	
 	foconfig := &fosite.Config{
@@ -78,15 +125,9 @@ func Init() {
 		}
 	}
 	
-	// Compute a hash of your authKey to use as a seed for deterministic RSA key generation
-	seedHash := sha256.Sum256([]byte(authKey))
-	seed := int64(binary.BigEndian.Uint64(seedHash[:]))
-
-	// Now you can create a deterministic source of randomness
-	deterministicReader := rand.New(rand.NewSource(seed))
-
 	// privateKey is used to sign JWT tokens. The default strategy uses RS256 (RSA Signature with SHA-256)
-	AuthPrivateKey, _ = rsa.GenerateKey(deterministicReader, 2048)
+	AuthPrivateKey = loadSigningKey()
+	signingKeyID = keyID(AuthPrivateKey)
 
 	// Build a fosite instance with all OAuth2 and OpenID Connect handlers enabled, plugging in our configurations as specified above.
 	oauth2 = compose.ComposeAllEnabled(foconfig, store, AuthPrivateKey)
@@ -177,7 +218,7 @@ func newSession(user string, req *http.Request) *openid.DefaultSession {
 		},
 		Headers: &jwt.Headers{
 			Extra: map[string]interface{}{
-				"kid": "1",
+				"kid": signingKeyID,
 			},
 		},
 	}

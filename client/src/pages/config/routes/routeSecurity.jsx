@@ -10,7 +10,6 @@ import {
   Stack,
 
 } from '@mui/material';
-import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosFormDivider, CosmosInputText, CosmosSelect, ReadOnlyForm } from '../users/formShortcuts';
 import { snackit } from '../../../api/wrap';
 import { IsRouteSocketProxy } from '../../../utils/routes';
@@ -20,12 +19,9 @@ import { PERM_CONFIGURATION } from '../../../utils/permissions';
 
 const RouteSecurity = ({ routeConfig, config, readOnly = false }) => {
   const { t } = useTranslation();
-  const [openModal, setOpenModal] = React.useState(false);
   const isNotSocketProxy = !IsRouteSocketProxy(routeConfig);
 
   return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
-
     {routeConfig && <>
       <Formik
         initialValues={{
@@ -80,7 +76,6 @@ const RouteSecurity = ({ routeConfig, config, readOnly = false }) => {
               setStatus({ success: true });
               snackit(t('mgmt.urls.edit.updateSuccess'), 'success');
               setSubmitting(false);
-              setOpenModal(true);
             } else {
               setStatus({ success: false });
               setErrors({ submit: res.status });

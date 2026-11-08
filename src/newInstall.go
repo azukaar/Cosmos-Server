@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -35,6 +36,70 @@ type NewInstallJSON struct {
 type AdminJSON struct {
 	Nickname string `validate:"required,min=3,max=32,alphanum"`
 	Password string `validate:"required,min=9,max=128,containsany=~!@#$%^&*()_+=-{[}]:;\"'<>.?/,containsany=ABCDEFGHIJKLMNOPQRSTUVWXYZ,containsany=abcdefghijklmnopqrstuvwxyz,containsany=0123456789"`
+}
+
+// exact names only: backup.cosmos-state.json looks like a backup but is constellation state to drop
+var cleanInstallKeep = map[string]bool{
+	"backup.cosmos-compose.json": true,
+	"rclone.conf":                true,
+	"database.backup":            true,
+	"registries":                 true, // content of the local-backend registries
+}
+
+// backups, what reading them takes, and logs (still open for writing)
+func keptByCleanInstall(name string) bool {
+	if cleanInstallKeep[name] || strings.HasSuffix(name, ".log") || strings.HasSuffix(name, ".log.gz") {
+		return true
+	}
+	return strings.HasPrefix(name, "cosmos-backup") && strings.HasSuffix(name, ".zip")
+}
+
+// cleanInstall empties the config folder except the keep list, on host and in container alike.
+// The stores are closed first and reopened after: SQLite would keep writing to the deleted file.
+func cleanInstall() error {
+	folder, err := filepath.Abs(utils.CONFIGFOLDER)
+	if err != nil {
+		return err
+	}
+	if folder == string(filepath.Separator) {
+		return errors.New("refusing to clean the filesystem root")
+	}
+
+	utils.CloseStore()
+	utils.CloseMetricsDatabase()
+
+	// CONFIG_FILE can be elsewhere, and an unslashed COSMOS_CONFIG_FOLDER puts the DBs next to the folder
+	targets := []string{utils.GetConfigFileName()}
+	for _, db := range []string{"auth.db", "database.db"} {
+		for _, suffix := range []string{"", "-wal", "-shm"} {
+			targets = append(targets, utils.CONFIGFOLDER+db+suffix)
+		}
+	}
+
+	var errs []error
+	entries, err := os.ReadDir(folder)
+	if err != nil && !os.IsNotExist(err) {
+		errs = append(errs, err)
+	}
+	for _, entry := range entries {
+		if !keptByCleanInstall(entry.Name()) {
+			targets = append(targets, filepath.Join(folder, entry.Name()))
+		}
+	}
+
+	for _, target := range targets {
+		if err := os.RemoveAll(target); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// reopen even after a partial failure: the wizard still needs a store
+	if err := utils.InitStore(); err != nil {
+		errs = append(errs, err)
+	}
+	LoadConfig()
+
+	return errors.Join(errs...)
 }
 
 // NewInstallRoute godoc
@@ -77,17 +142,13 @@ func NewInstallRoute(w http.ResponseWriter, req *http.Request) {
 		newConfig := utils.GetBaseMainConfig()
 
 		if(request.Step == "-1") {
-			// remove everythin in /config
 			utils.Log("NewInstall: Step cleanup")
-			utils.Log("NewInstall: Removing config file")
-			configFile := utils.GetConfigFileName()
-			os.Remove(configFile)
-			if(utils.IsInsideContainer) {
-				utils.Log("NewInstall: Emptying /config")
-				os.RemoveAll("/config")
-				os.Mkdir("/config", 0700)
+			if err := cleanInstall(); err != nil {
+				utils.Error("NewInstall: Clean install failed", err)
+				utils.HTTPError(w, "New Install: Clean install failed " + err.Error(),
+					http.StatusInternalServerError, "NI001")
+				return
 			}
-			LoadConfig()
 		}
 		if(request.Step == "2") {
 			// there is no database to provision anymore; tolerated so older clients
@@ -261,13 +322,11 @@ func SetupRoute(w http.ResponseWriter, req *http.Request) {
 	// ── Step 0: Clear config (optional) ──────────────────────────────
 	if request.ClearConfig {
 		utils.Log("Setup: Clearing config")
-		configFile := utils.GetConfigFileName()
-		os.Remove(configFile)
-		if utils.IsInsideContainer {
-			os.RemoveAll("/config")
-			os.Mkdir("/config", 0700)
+		if err := cleanInstall(); err != nil {
+			utils.Error("Setup: Clean install failed", err)
+			utils.HTTPError(w, "Clean install failed: "+err.Error(), http.StatusInternalServerError, "SU011")
+			return
 		}
-		LoadConfig()
 	}
 
 	config := utils.GetBaseMainConfig()
@@ -442,6 +501,8 @@ type SetupJoinJSON struct {
 	Hostname string `json:"hostname,omitempty"`
 	// Preview only returns the hostname the server would take, nothing is saved
 	Preview bool `json:"preview,omitempty"`
+	// CleanInstall empties the config folder before joining, backups and logs are kept
+	CleanInstall bool `json:"cleanInstall,omitempty"`
 }
 
 const joinFileName = "constellation-join.yml"
@@ -449,7 +510,7 @@ const joinFileName = "constellation-join.yml"
 // joinExistingConstellation is the whole setup of a server added to a cluster:
 // the constellation file gives it its identity and its hostname, the cluster
 // replicates everything else to it (users, zones, certificates).
-func joinExistingConstellation(yamlBody []byte, hostname string, preview bool) (string, error) {
+func joinExistingConstellation(yamlBody []byte, hostname string, preview bool, clean bool) (string, error) {
 	hostname = strings.ToLower(strings.TrimSpace(hostname))
 	if hostname == "" {
 		derived, err := constellation.PreviewJoinHostname(yamlBody)
@@ -466,6 +527,12 @@ func joinExistingConstellation(yamlBody []byte, hostname string, preview bool) (
 	}
 	if preview {
 		return hostname, nil
+	}
+
+	if clean {
+		if err := cleanInstall(); err != nil {
+			return "", err
+		}
 	}
 
 	config := utils.GetBaseMainConfig()
@@ -516,7 +583,7 @@ func SetupJoinRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	hostname, err := joinExistingConstellation([]byte(request.ConstellationConfig), request.Hostname, request.Preview)
+	hostname, err := joinExistingConstellation([]byte(request.ConstellationConfig), request.Hostname, request.Preview, request.CleanInstall)
 	if err != nil {
 		utils.Error("SetupJoin: cannot join", err)
 		utils.HTTPError(w, "Cannot join the Constellation: "+err.Error(), http.StatusBadRequest, "SU009")
@@ -562,7 +629,7 @@ func JoinFromFile() {
 		return
 	}
 
-	if _, err := joinExistingConstellation(yamlBody, os.Getenv("COSMOS_HOSTNAME"), false); err != nil {
+	if _, err := joinExistingConstellation(yamlBody, os.Getenv("COSMOS_HOSTNAME"), false, false); err != nil {
 		utils.MajorError("Setup: cannot join the constellation from "+path, err)
 		return
 	}

@@ -809,7 +809,7 @@ func InitServer() *mux.Router {
 		utils.Log("Saved new Auth ED25519 certificate")
 	}
 
-	domains := utils.GetAllHostnames(true, true)
+	domains := utils.GetAllHostnames(true)
 	oldDomains := baseMainConfig.HTTPConfig.TLSKeyHostsCached
 	// falledBack := false
 

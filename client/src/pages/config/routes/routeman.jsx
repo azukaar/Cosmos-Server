@@ -16,7 +16,6 @@ import {
   MenuItem,
 } from '@mui/material';
 import { DeleteOutlined, PlusCircleOutlined } from '@ant-design/icons';
-import RestartModal from '../users/restart';
 import { CosmosCheckbox, CosmosCollapse, CosmosFormDivider, CosmosInputText, CosmosSelect, ReadOnlyForm } from '../users/formShortcuts';
 import { CosmosContainerPicker } from '../users/containerPicker';
 import { snackit } from '../../../api/wrap';
@@ -57,7 +56,6 @@ const checkHost = debounce((host, setHostError) => {
 
 const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noControls = false, lockTarget = false, title, setRouteConfig, submitButton = false, newRoute, readOnly = false }) => {
   const { t } = useTranslation();
-  const [openModal, setOpenModal] = React.useState(false);
   const [hostError, setHostError] = React.useState(null);
 
   const [tunnels, setTunnels] = React.useState([]);
@@ -76,8 +74,6 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
   }, [])
  
   return <div style={{ maxWidth: '1000px', width: '100%', margin: 'auto', position: 'relative' }}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} />
-    
     {routeConfig && <>
       <Formik
         initialValues={{
@@ -163,7 +159,6 @@ const RouteManagement = ({ routeConfig, routeNames, config, TargetContainer, noC
                 setStatus({ success: true });
                 snackit(t('mgmt.urls.edit.updateSuccess'), 'success')
                 setSubmitting(false);
-                setOpenModal(true);
               } else {
                 setStatus({ success: false });
                 setErrors({ submit: res.status });

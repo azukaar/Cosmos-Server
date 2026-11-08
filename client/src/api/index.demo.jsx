@@ -59,7 +59,7 @@ export const newInstall = (req) => {
   });
 }
 
-export const getDNS = (host) => (req) => {
+export const getDNS = (host) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve({
@@ -92,6 +92,19 @@ export const uploadImage = (file) => {
       })}, 100 );
     });
   }
+
+export const restartServer = () => Promise.resolve({ status: "OK" });
+
+export const forceAutoUpdate = () => Promise.resolve({
+  status: "OK",
+  data: { containerized: false, updateAvailable: false, currentVersion: "demo", latestVersion: "demo" },
+});
+
+// the join flow redirects to this hostname: keep visitors on the demo
+export const setupJoin = () => Promise.resolve({
+  status: "OK",
+  data: { hostname: window.location.host },
+});
 
 export const terminal = () => ({
   send: (data) => {

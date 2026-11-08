@@ -11074,7 +11074,43 @@ const listDir = (storage, path) => {
   });
 }
 
+const raidOk = () => Promise.resolve({ "status": "OK" });
+
+const raid = {
+  list: () => Promise.resolve({
+    "status": "OK",
+    "data": [
+      {
+        "device": "/dev/md/data",
+        "Raid Level": "5",
+        "Array Size": "7.28 TiB",
+        "Array State": "clean",
+        "Active Devices": "3",
+        "Failed Devices": "0",
+        "Spare Devices": "0",
+        "devices": [
+          { "path": "/dev/sdb", "status": "active sync" },
+          { "path": "/dev/sdc", "status": "active sync" },
+          { "path": "/dev/sdd", "status": "active sync" },
+        ],
+      },
+    ],
+  }),
+  create: raidOk,
+  delete: raidOk,
+  addDevice: raidOk,
+  replaceDevice: raidOk,
+  resize: raidOk,
+};
+
+const newFolder = (storage, path, folder) => Promise.resolve({
+  "status": "OK",
+  "data": { "created": path.replace(/\/$/, '') + '/' + folder },
+});
+
 export {
+  raid,
+  newFolder,
   mounts,
   disks,
   listDir,

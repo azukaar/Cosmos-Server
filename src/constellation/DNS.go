@@ -159,7 +159,7 @@ func handleDNSRequest(w dns.ResponseWriter, r *dns.Msg) {
 	customHandled := false
 
 	// []string hostnames
-	hostnames := utils.GetAllHostnames(false, true)
+	hostnames := utils.GetAllHostnames(true)
 
 	utils.Debug("DNS Request from " + w.RemoteAddr().String() + " for " + r.Question[0].Name)
 	

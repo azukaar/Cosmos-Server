@@ -47,7 +47,7 @@ var HostAddresses = func() (hosts map[string][]string, wildcard []string, ok boo
 	}
 
 	hosts = map[string][]string{}
-	for _, host := range utils.GetAllHostnames(false, true) {
+	for _, host := range utils.GetAllHostnames(true) {
 		hosts[strings.ToLower(host)] = []string{address}
 	}
 	return hosts, []string{address}, true

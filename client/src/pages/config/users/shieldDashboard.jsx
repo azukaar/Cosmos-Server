@@ -127,7 +127,7 @@ const ShieldDashboard = () => {
       </Grid>
 
       {metrics && <>
-        <Grid item xs={12}>
+        <Grid item xs={12} md={7} lg={8}>
           <PlotComponent xAxis={xAxis} zoom={zoom} setZoom={setZoom} slot={slot} title={t('mgmt.shield.metrics.blockedTitle')} data={[
             metrics['cosmos.proxy.all.blocked'],
           ]} />
@@ -195,7 +195,6 @@ const ShieldDashboard = () => {
             },
           ]}
         />
-        {clients && clients.length === 0 && <Typography variant="body2" style={{ marginTop: '10px', opacity: 0.7 }}>{t('mgmt.shield.bans.empty')}</Typography>}
       </Grid>
     </Grid>
   </div>;

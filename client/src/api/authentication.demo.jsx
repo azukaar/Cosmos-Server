@@ -24,8 +24,13 @@ function logout() {
   });
 }
 
+function sudo(values) {
+  return Promise.resolve({ "status": "OK" });
+}
+
 export {
   login,
   logout,
-  me
+  me,
+  sudo
 };

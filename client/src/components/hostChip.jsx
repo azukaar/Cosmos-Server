@@ -6,7 +6,12 @@ import { getOrigin, getFullOrigin } from "../utils/routes";
 import { useTheme } from '@mui/material/styles';
 import StatusDot from "./statusDot";
 
+const isDemo = import.meta.env.MODE === 'demo';
+
 const probeRoute = async (route) => {
+  // demo routes are fake hostnames: a real probe would mark them all offline
+  if (isDemo) return 'online';
+
   const origin = getFullOrigin(route);
   try {
     const res = await fetch(origin + (origin.includes('?') ? '&' : '?') + '__cosmos_probe=1', {

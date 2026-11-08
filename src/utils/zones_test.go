@@ -13,6 +13,60 @@ import (
 	"time"
 )
 
+func TestNeedsLetsEncrypt(t *testing.T) {
+	le, off := HTTPSCertModeList["LETSENCRYPT"], HTTPSCertModeList["DISABLED"]
+	dnsZone := []DNSZoneConfig{{Zone: "example.com", HTTPSCertificateMode: le, DNSChallengeProvider: "cloudflare"}}
+	selfSigned := []DNSZoneConfig{{Zone: "example.com", HTTPSCertificateMode: HTTPSCertModeList["SELFSIGNED"]}}
+
+	for name, tc := range map[string]struct {
+		hostname string
+		mode     string
+		zones    []DNSZoneConfig
+		issuer   bool
+		want     bool
+	}{
+		"ip only":              {"192.168.1.10", le, nil, true, false},
+		"local name":           {"nas.local", le, nil, true, false},
+		"public name":          {"cosmos.example.com", le, nil, true, true},
+		"https off":            {"cosmos.example.com", off, nil, true, false},
+		"self-signed zone":     {"cosmos.example.com", le, selfSigned, true, false},
+		"dns zone":             {"cosmos.example.com", le, dnsZone, true, true},
+		"dns zone, not issuer": {"cosmos.example.com", le, dnsZone, false, false},
+		"dns zone, https off":  {"cosmos.example.com", off, dnsZone, true, false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			withHostnamesConfig(t, tc.hostname, nil, nil)
+			previous := IsZoneIssuer
+			t.Cleanup(func() { IsZoneIssuer = previous })
+			issuer := tc.issuer
+			IsZoneIssuer = func() bool { return issuer }
+
+			config := GetMainConfig()
+			config.HTTPConfig.HTTPSCertificateMode = tc.mode
+			config.HTTPConfig.DNSZones = tc.zones
+			if got := NeedsLetsEncrypt(config); got != tc.want {
+				t.Errorf("got %v, want %v", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestHostCertificatePEM(t *testing.T) {
+	config := Config{}
+	config.HTTPConfig.HTTPSCertificateMode = HTTPSCertModeList["LETSENCRYPT"]
+	config.HTTPConfig.SelfTLSCert = "self"
+	config.HTTPConfig.TLSCert = "shared"
+	config.HTTPConfig.DNSZones = []DNSZoneConfig{{Zone: "example.com", HTTPSCertificateMode: HTTPSCertModeList["LETSENCRYPT"], DNSChallengeProvider: "cloudflare"}}
+	config.HTTPConfig.ZoneCerts = map[string]ZoneCert{"example.com": {TLSCert: "zone", Hosts: []string{"*.example.com"}}}
+	config.HTTPConfig.LocalCerts = map[string]ZoneCert{"other.org": {TLSCert: "local", Hosts: []string{"other.org"}}}
+
+	for host, want := range map[string]string{"app.example.com": "zone", "other.org": "local", "192.168.1.10": "self", "new.net": "shared"} {
+		if got := GetHostCertificate(config, host).PEM; got != want {
+			t.Errorf("%s: got %q, want %q", host, got, want)
+		}
+	}
+}
+
 func testCertificate(t *testing.T, names ...string) string {
 	t.Helper()
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)

@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/json"
+	crand "crypto/rand"
+	"math/big"
 	"math/rand"
 	"regexp"
 	"net/http"
@@ -31,7 +33,6 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/net"
-	"golang.org/x/net/publicsuffix"
 	"github.com/Masterminds/semver"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -337,10 +338,16 @@ func GetPublicAuthKey() string {
 
 var AlphaNumRunes = []rune("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
+// GenerateRandomString is used for secrets: it has to stay on crypto/rand
 func GenerateRandomString(n int) string {
 	b := make([]rune, n)
+	size := big.NewInt(int64(len(AlphaNumRunes)))
 	for i := range b {
-		b[i] = AlphaNumRunes[rand.Intn(len(AlphaNumRunes))]
+		index, err := crand.Int(crand.Reader, size)
+		if err != nil {
+			Fatal("Generating a random string", err)
+		}
+		b[i] = AlphaNumRunes[index.Int64()]
 	}
 	return string(b)
 }
@@ -427,9 +434,6 @@ func LoadBaseMainConfig(config Config) {
 	}
 	if os.Getenv("COSMOS_HOSTNAME") != "" {
 		main.HTTPConfig.Hostname = os.Getenv("COSMOS_HOSTNAME")
-	}
-	if os.Getenv("COSMOS_HTTPS_MODE") != "" {
-		main.HTTPConfig.HTTPSCertificateMode = os.Getenv("COSMOS_HTTPS_MODE")
 	}
 	if os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") != "" {
 		main.HTTPConfig.GenerateMissingAuthCert = os.Getenv("COSMOS_GENERATE_MISSING_AUTH_CERT") == "true"
@@ -609,24 +613,6 @@ func RemoveStringFromSlice(slice []string, s string) []string {
 	return slice
 }
 
-func filterHostnamesByWildcard(hostnames []string, wildcards []string) []string {
-	finalHostnames := make([]string, len(hostnames))
-	copy(finalHostnames, hostnames)
-
-	for _, wildcard := range wildcards {
-		for _, hostname := range hostnames {
-			// "*.example.com" covers exactly one label: "app.example.com", not
-			// "deep.app.example.com" nor "example.com" itself
-			label := strings.TrimSuffix(hostname, wildcard[1:])
-			if label != hostname && label != "" && !strings.Contains(label, ".") {
-				finalHostnames = RemoveStringFromSlice(finalHostnames, hostname)
-			}
-		}
-	}
-
-	return finalHostnames
-}
-
 var nonWildcardableDomains = []string{
 	"localhost",
 	".local",
@@ -667,9 +653,8 @@ func canDomainWildcard(domain string) bool {
 	return true
 }
 
-func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
+func GetAllHostnames(removePorts bool) []string {
 	mainHostname := GetMainConfig().HTTPConfig.Hostname
-	OverrideWildcardDomains := GetMainConfig().HTTPConfig.OverrideWildcardDomains
 
 	if removePorts {
 		mainHostname = strings.Split(mainHostname, ":")[0]
@@ -706,57 +691,6 @@ func GetAllHostnames(applyWildCard bool, removePorts bool) []string {
 		if _, ok := seen[hostname]; !ok {
 			seen[hostname] = true
 			uniqueHostnames = append(uniqueHostnames, hostname)
-		}
-	}
-
-	bareMainHostname, _ := publicsuffix.EffectiveTLDPlusOne(mainHostname)
-	canWildcard := canDomainWildcard(bareMainHostname) || (OverrideWildcardDomains != "")
-
-	if applyWildCard && GetMainConfig().HTTPConfig.UseWildcardCertificate && canWildcard {
-
-		Debug("bareMainHostname: " + bareMainHostname)
-
-		filteredHostnames := []string{
-			bareMainHostname,
-			"*." + bareMainHostname,
-		}
-
-		if(OverrideWildcardDomains != "") {
-			filteredHostnames = strings.Split(OverrideWildcardDomains, ",")
-		}
-
-		wildcards := []string{}
-		othersHostname := []string{}
-		for _, hostname := range append(uniqueHostnames, filteredHostnames...) {
-			if strings.HasPrefix(hostname, "*.") {
-				wildcards = append(wildcards, hostname)
-			} else {
-				othersHostname = append(othersHostname, hostname)
-			}
-		}
-
-		tempUniqueHostnames := append(wildcards, filterHostnamesByWildcard(othersHostname, wildcards)...)
-
-		// hardcode wildcard for local domains
-		// if(GetMainConfig().HTTPConfig.HTTPSCertificateMode == HTTPSCertModeList["SELFSIGNED"]) {
-		// 	for _, hostname := range tempUniqueHostnames {
-		// 		if strings.HasSuffix(hostname, ".local") {
-		// 			tempUniqueHostnames = append(tempUniqueHostnames, "*.local")
-		// 			break
-		// 		}
-		// 	}
-		// }
-
-		// dedupe
-		seen = make(map[string]bool)
-		uniqueHostnames = []string{}
-		for _, hostname := range tempUniqueHostnames {
-			if hostname != "" {
-				if _, ok := seen[hostname]; !ok {
-					seen[hostname] = true
-					uniqueHostnames = append(uniqueHostnames, hostname)
-				}
-			}
 		}
 	}
 
@@ -1457,12 +1391,12 @@ func GetProxyOIDCredentials(route ProxyRouteConfig, hashSecret bool) *fosite.Def
 // secret already made. Native/SPA apps (Path B) generate their own random verifier and
 // never use this function.
 //
-// A distinct key slice ([0:32]) and domain-separation prefix are used so the result never
-// collides with the state hash (which uses AuthPrivateKey[32:64]). RawURLEncoding of a
+// The whole key is hashed: its first characters are the same on every server. The
+// domain-separation prefix keeps the result apart from the state hash. RawURLEncoding of a
 // 32-byte SHA-256 yields 43 chars from [A-Za-z0-9-_], meeting RFC 7636's verifier rules.
 func DerivePKCEVerifier(host string, path string) string {
 	config := GetMainConfig()
-	h := sha256.Sum256([]byte("cosmos-pkce:" + host + "\x00" + path + config.HTTPConfig.AuthPrivateKey[0:32]))
+	h := sha256.Sum256([]byte("cosmos-pkce:" + host + "\x00" + path + config.HTTPConfig.AuthPrivateKey))
 	return base64.RawURLEncoding.EncodeToString(h[:])
 }
 

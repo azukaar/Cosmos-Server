@@ -33,6 +33,10 @@ import * as metricsDemo from './metrics.demo';
 import * as storageDemo from './storage.demo';
 import * as cronDemo from './cron.demo';
 import * as backupDemo from './backup.demo';
+import * as zonesDemo from './zones.demo';
+import * as shieldDemo from './shield.demo';
+import * as apiTokensDemo from './apiTokens.demo';
+import * as rcloneDemo from './rclone.demo';
 
 import wrap from './wrap';
 import { createApiClient } from './client';
@@ -450,6 +454,12 @@ if(isDemo) {
   storage = storageDemo;
   cron = cronDemo;
   backups = backupDemo;
+  zones = zonesDemo;
+  shield = shieldDemo;
+  apiTokens = apiTokensDemo;
+  rclone = rcloneDemo;
+  setupJoin = indexDemo.setupJoin;
+  forceAutoUpdate = indexDemo.forceAutoUpdate;
 }
 
 export {

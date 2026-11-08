@@ -629,7 +629,30 @@ function forgetNow(name: string) {
   });
 }
 
+function repoStats(repoId: string) {
+  return Promise.resolve({
+    "status": "OK",
+    "data": {
+      "total_uncompressed_size": 184000000000,
+      "total_size": 121000000000,
+      "total_file_count": 48210,
+      "snapshots_count": 14,
+    },
+  });
+}
+
+function unlockRepository(repoId: string) {
+  return Promise.resolve({ "status": "OK" });
+}
+
+function subfolderRestoreSize(name: string, snapshot: string, path: string) {
+  return Promise.resolve({ "status": "OK", "data": {} });
+}
+
 export {
+  repoStats,
+  unlockRepository,
+  subfolderRestoreSize,
   listSnapshots,
   listFolders,
   restoreBackup,

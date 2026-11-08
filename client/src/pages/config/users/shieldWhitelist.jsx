@@ -110,7 +110,6 @@ const ShieldWhitelist = () => {
     />}
 
     <Typography variant="h5">{t('mgmt.shield.whitelist.title')}</Typography>
-    <Typography variant="body2" style={{ margin: '10px 0 20px 0', opacity: 0.8 }}>{t('mgmt.shield.whitelist.help')}</Typography>
     {error && <Alert severity="error" style={{ marginBottom: '10px' }}>{error}</Alert>}
 
     <PrettyTableView
@@ -139,7 +138,6 @@ const ShieldWhitelist = () => {
         },
       ]}
     />
-    {config && entries.length === 0 && <Typography variant="body2" style={{ marginTop: '10px', opacity: 0.7 }}>{t('mgmt.shield.whitelist.empty')}</Typography>}
   </div>;
 };
 

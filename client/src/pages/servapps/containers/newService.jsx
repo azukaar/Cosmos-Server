@@ -1,6 +1,5 @@
 import * as React from 'react';
 import MainCard from '../../../components/MainCard';
-import RestartModal from '../../config/users/restart';
 import { Alert, Button, Chip, Divider, Stack, TextField, useMediaQuery } from '@mui/material';
 import HostChip from '../../../components/hostChip';
 import { RouteMode, RouteSecurity } from '../../../components/routeComponents';
@@ -63,10 +62,8 @@ const NewDockerService = ({service, refresh, edit}) => {
   const { t, i18n } = useTranslation();
   const { containerName } = useParams();
   const [container, setContainer] = React.useState(null);
-  const [config, setConfig] = React.useState(null);
   const [log, setLog] = React.useState([]);
   const [isDone, setIsDone] = React.useState(false);
-  const [openModal, setOpenModal] = React.useState(false);
   const preRef = React.useRef(null);
   const screenMin = useMediaQuery((theme) => theme.breakpoints.up('sm'))
 
@@ -77,21 +74,6 @@ const NewDockerService = ({service, refresh, edit}) => {
 
   const [dockerCompose, setDockerCompose] = React.useState(JSON.stringify(service, null, 2));
 
-
-  const refreshConfig = () => {
-    API.config.get().then((res) => {
-      setConfig(res.data);
-    });
-  };
-
-  React.useEffect(() => {
-    refreshConfig();
-  }, []);
-
-  const needsRestart = service && service.services && Object.values(service.services).some((c) => {
-    return c.routes && c.routes.length > 0;
-  }); 
-
   const create = () => {
     setLog([
       'Creating Service...                              ',
@@ -101,8 +83,7 @@ const NewDockerService = ({service, refresh, edit}) => {
       preRef.current.scrollTop = preRef.current.scrollHeight;
       if (newlog.includes('[OPERATION SUCCEEDED]')) {
         setIsDone(true);
-        
-        needsRestart && setOpenModal(true);
+
         refresh && refresh();
       }
     });
@@ -115,7 +96,6 @@ const NewDockerService = ({service, refresh, edit}) => {
 
   return   <div style={{ maxWidth: '1000px', width: '100%', margin: '', position: 'relative' }}>
     <MainCard title={edit ? t('mgmt.servapps.container.compose.editServiceTitle') : t('mgmt.servapps.container.compose.createServiceButton')}>
-    <RestartModal openModal={openModal} setOpenModal={setOpenModal} config={config} newRoute />
     <Stack spacing={1}>
       {!isDone && <LoadingButton 
         onClick={create}

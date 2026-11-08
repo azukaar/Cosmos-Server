@@ -42,7 +42,7 @@ func jwksEndpoint(rw http.ResponseWriter, req *http.Request) {
 		Keys: []JsonWebKey{
 			{
 				Alg: "RS256",
-				Kid: "1",
+				Kid: signingKeyID,
 				Kty: "RSA",
 				Use: "sig",
 				N:   base64.RawURLEncoding.EncodeToString(publicKey.N.Bytes()),

@@ -971,6 +971,10 @@ definitions:
     type: object
   main.SetupJoinJSON:
     properties:
+      cleanInstall:
+        description: CleanInstall empties the config folder before joining, backups
+          and logs are kept
+        type: boolean
       constellationConfig:
         description: ConstellationConfig is the constellation file of this server,
           as created on the cluster
@@ -2915,6 +2919,11 @@ definitions:
           one per domain, keyed by LocalCertZone. Never shared: each server
           validates its own hostnames.
         type: object
+      OIDCSigningKey:
+        description: OIDCSigningKey signs the OpenID tokens, one for the whole cluster
+        type: string
+      OIDCSigningKeyShared:
+        type: boolean
       SSLEmailShared:
         type: boolean
       ZoneCerts:
@@ -3394,7 +3403,7 @@ info:
   contact: {}
   description: REST API for Cosmos Cloud server management
   title: Cosmos Server API
-  version: 0.24.0-unstable030
+  version: 0.24.0-unstable031
 paths:
   /_logs:
     get:

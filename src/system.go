@@ -81,7 +81,7 @@ func StatusRoute(w http.ResponseWriter, req *http.Request) {
 				"database": utils.DBStatus,
 				"docker": docker.DockerIsConnected.Load(),
 				"backup_status": docker.ExportError,
-				"letsencrypt": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode == "LETSENCRYPT" && utils.GetMainConfig().HTTPConfig.SSLEmail == "",
+				"letsencrypt": utils.GetMainConfig().HTTPConfig.SSLEmail == "" && utils.NeedsLetsEncrypt(utils.GetMainConfig()),
 				"domain": utils.GetMainConfig().HTTPConfig.Hostname == "localhost" || utils.GetMainConfig().HTTPConfig.Hostname == "0.0.0.0",
 				"HTTPSCertificateMode": utils.GetMainConfig().HTTPConfig.HTTPSCertificateMode,
 				"CACert": utils.GetMainConfig().HTTPConfig.CACert,
