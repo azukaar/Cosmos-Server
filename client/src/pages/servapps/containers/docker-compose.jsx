@@ -227,11 +227,20 @@ const convertDockerCompose = (config, serviceName, dockerCompose, setYmlError) =
               }
             }
 
-            // convert command 
-            if (doc.services[key].command) {
-              if (typeof doc.services[key].command !== 'string') {
-                doc.services[key].command = doc.services[key].command.join(' ');
-              }
+            // convert command: pass through docker-compose's native form. A string is
+            // shell-form (server tokenizes into args), an array is exec-form
+            // (server uses it verbatim). Previously arrays were force-joined into
+            // a single string, which both broke exec-form commands and mangled
+            // shell quoting. Normalize stray non-string/non-array scalar values to
+            // a string, but leave genuine arrays intact.
+            if (doc.services[key].command && typeof doc.services[key].command !== 'string' && !Array.isArray(doc.services[key].command)) {
+                doc.services[key].command = String(doc.services[key].command);
+            }
+
+            // entrypoint follows the same rules as command (docker-compose allows a
+            // string for shell-form or an array for exec-form).
+            if (doc.services[key].entrypoint && typeof doc.services[key].entrypoint !== 'string' && !Array.isArray(doc.services[key].entrypoint)) {
+                doc.services[key].entrypoint = String(doc.services[key].entrypoint);
             }
 
             // convert DependsOn
