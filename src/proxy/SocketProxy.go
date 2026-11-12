@@ -23,6 +23,7 @@ var (
     netDial                    = net.Dial
     dockerGetContainerIPByName = docker.GetContainerIPByName
     tcpShieldMiddleware        = TCPSmartShieldMiddleware
+    handOffHTTP                = handOffHTTPConn
 )
 
 func stripTargetProtocol(target string) string {
@@ -182,18 +183,23 @@ func handleTCPProxy(listener net.Listener, target string, pair PortsPair, proxyI
         case err := <-acceptErrChan:
             utils.Error("[SocketProxy] Failed to accept TCP connection", err)
         case client := <-acceptChan:
-            var shieldedClient net.Conn
-            // this listener is the only place the client's real address exists;
-            // restricted/whitelisted routes must be enforced here
-            if !pair.isHTTPProxy || route.RestrictToConstellation || len(route.WhitelistInboundIPs) > 0 {
-                shieldedClient = tcpShieldMiddleware("proxy-"+listenAddr, route)(client)
-                if shieldedClient == nil {
-                    // the shield skips Close on the abuse-counter path
-                    client.Close()
-                    continue
-                }
-            } else {
-                shieldedClient = client
+            if pair.isHTTPProxy {
+                // the HTTP server takes the connection as is: the router sees the
+                // client's real address and enforces the route's restrictions
+                go func() {
+                    if err := handOffHTTP(client, pair.listenPort(), pair.plainHTTP); err != nil {
+                        utils.Error("[SocketProxy] Cannot hand the connection on "+listenAddr+" to the HTTP server", err)
+                        client.Close()
+                    }
+                }()
+                continue
+            }
+
+            shieldedClient := tcpShieldMiddleware("proxy-"+listenAddr, route)(client)
+            if shieldedClient == nil {
+                // the shield skips Close on the abuse-counter path
+                client.Close()
+                continue
             }
 
             utils.Debug("[SocketProxy] New TCP connection accepted on " + listenAddr)
@@ -367,6 +373,29 @@ type PortsPair struct {
     // dockerless SERVAPP TCP routes keep the container name to wake it and resolve its IP per connection
     lazyContainer string
     lazyPort string
+    // HTTP routes: hand off over plain HTTP instead of TLS
+    plainHTTP bool
+}
+
+// handoffIsPlain: an HTTP port route is served over plain HTTP on an HTTP-only
+// server, or on a local IP when local HTTP access is allowed.
+func handoffIsPlain(routeHost string, isHTTPS bool, allowHTTPLocal bool) bool {
+    if !isHTTPS {
+        return true
+    }
+    host := routeHost
+    if h, _, err := net.SplitHostPort(routeHost); err == nil {
+        host = h
+    }
+    return allowHTTPLocal && host != "" && utils.IsLocalIP(host)
+}
+
+// listenPort is the port of From (":8080" or "host:8080").
+func (p PortsPair) listenPort() string {
+    if _, port, err := net.SplitHostPort(p.From); err == nil {
+        return port
+    }
+    return p.From
 }
 
 func initInternalPortProxy(ports []PortsPair) {
@@ -482,8 +511,9 @@ func InitInternalSocketProxy() {
             lazyPort: lazyPort,
         }
 
-        if isHTTPProxy && allowHTTPLocal && utils.IsLocalIP(route.Host) {
+        if isHTTPProxy && handoffIsPlain(hostname, isHTTPS, allowHTTPLocal) {
             portpair.To = "localhost:" + HTTPPort
+            portpair.plainHTTP = true
         }
 
         claims = append(claims, PortClaim{Pair: portpair, IsLocal: isLocal})

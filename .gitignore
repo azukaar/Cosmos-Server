@@ -47,6 +47,7 @@ terraform.tfstate.*
 .claude-flow/
 .claude/
 .swarm/
+.ruv-swarm/
 .mcp.json
 ruvector.db
 tickets/

@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -112,6 +113,16 @@ func tokenMiddleware(route utils.ProxyRouteConfig) func(next http.Handler) http.
 	}
 }
 
+// handoffPortMatcher keeps a route with a port to the socket-proxy listener of
+// that port: a request handed off by another listener cannot pick it with its
+// Host header. A request accepted directly (docker port mapping) matches on Host alone.
+func handoffPortMatcher(port string) mux.MatcherFunc {
+	return func(r *http.Request, _ *mux.RouteMatch) bool {
+		listenPort, ok := HandoffPort(r)
+		return !ok || listenPort == port
+	}
+}
+
 func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination http.Handler) *mux.Route {
 	origin := router.NewRoute()
 
@@ -126,6 +137,10 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		} else {
 			utils.Debug("[RouterGen] Registering host matcher: " + route.Host)
 			origin = origin.Host(route.Host)
+		}
+
+		if _, port, err := net.SplitHostPort(route.Host); err == nil && port != "" {
+			origin = origin.MatcherFunc(handoffPortMatcher(port))
 		}
 
 		if route.Mode == "SERVAPP" || route.Mode == "PROXY" || route.Mode == "REDIRECT" {
@@ -166,12 +181,8 @@ func RouterGen(route utils.ProxyRouteConfig, router *mux.Router, destination htt
 		}
 	}
 	
-	// host-wildcard ":<port>" routes are restricted at the socket-proxy listener (see SocketProxy.go)
-	if route.UseHost && strings.HasPrefix(route.Host, ":") {
-		destination = utils.RestrictionsAllowLocalHop(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
-	} else {
-		destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
-	}
+	// ":<port>" routes too: the socket proxy hands over the client's real address
+	destination = utils.Restrictions(route.RestrictToConstellation, route.WhitelistInboundIPs)(destination)
 	
 	if route.BlockCommonBots {
 		destination = BotDetectionMiddleware(destination)

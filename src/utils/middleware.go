@@ -597,15 +597,6 @@ func checkIPAccess(clientIP string, remoteAddr string, restrictToConstellation b
 }
 
 func Restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
-	return restrictions(RestrictToConstellation, WhitelistInboundIPs, false)
-}
-
-// RestrictionsAllowLocalHop is Restrictions that lets a loopback peer pass unchecked: on host-wildcard ":<port>" routes it is the socket-proxy listener's already-vetted internal hop, not a client.
-func RestrictionsAllowLocalHop(RestrictToConstellation bool, WhitelistInboundIPs []string) func(next http.Handler) http.Handler {
-	return restrictions(RestrictToConstellation, WhitelistInboundIPs, true)
-}
-
-func restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string, allowLocalHop bool) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -616,11 +607,6 @@ func restrictions(RestrictToConstellation bool, WhitelistInboundIPs []string, al
 		}
 
 		remoteAddr, _, _ := net.SplitHostPort(r.RemoteAddr)
-
-		if allowLocalHop && (remoteAddr == "127.0.0.1" || remoteAddr == "::1") {
-			next.ServeHTTP(w, r)
-			return
-		}
 
 		if !CheckRouteIPAccess(ip, remoteAddr, RestrictToConstellation, WhitelistInboundIPs) {
 			PushShieldMetrics("ip-whitelists")

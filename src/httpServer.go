@@ -50,8 +50,12 @@ func startHTTPServer(router *mux.Router) error {
 		IdleTimeout: 30 * time.Second,
 		Handler: router,
 		DisableGeneralOptionsHandler: true,
+		ConnContext: proxy.HandoffConnContext,
 	}
-	
+
+	// before the socket proxy: its HTTP routes hand their connections to this server
+	proxy.StartHTTPHandoff(HTTPServer, false)
+
 	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {
@@ -540,9 +544,13 @@ func startHTTPSServer(router *mux.Router) error {
 		IdleTimeout: 30 * time.Second,
 		Handler: router,
 		DisableGeneralOptionsHandler: true,
+		ConnContext: proxy.HandoffConnContext,
 	}
 
-	// Redirect ports 
+	// before the socket proxy: its HTTP routes hand their connections to this server
+	proxy.StartHTTPHandoff(HTTPServer, true)
+
+	// Redirect ports
 	if utils.IsInsideContainer && !utils.IsHostNetwork {
 		docker.CheckPorts()
 	} else {

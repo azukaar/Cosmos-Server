@@ -336,36 +336,102 @@ func TestHandleTCPProxy_DialsTheStaticTargetWithoutTunnels(t *testing.T) {
 	}
 }
 
-// the shield is the only place the client's real address exists for an HTTP-target route
-func TestHandleTCPProxy_ShieldAppliedForNonHTTPAndRestrictedRoutes(t *testing.T) {
+// --- handoff seam ----------------------------------------------------------
+
+type handoffRecord struct {
+	conn  net.Conn
+	port  string
+	plain bool
+}
+
+func newHandoffSpy(t *testing.T, fail bool) chan handoffRecord {
+	t.Helper()
+	records := make(chan handoffRecord, 16)
+	prev := handOffHTTP
+	handOffHTTP = func(c net.Conn, port string, plain bool) error {
+		records <- handoffRecord{conn: c, port: port, plain: plain}
+		if fail {
+			return errors.New("no server (test)")
+		}
+		return nil
+	}
+	t.Cleanup(func() { handOffHTTP = prev })
+	return records
+}
+
+// raw TCP routes go through the shield and are dialed; HTTP routes are handed
+// to the HTTP server untouched, restricted or not (the router enforces it)
+func TestHandleTCPProxy_HTTPRoutesAreHandedOffNotDialed(t *testing.T) {
 	tests := []struct {
 		name        string
 		isHTTPProxy bool
+		plainHTTP   bool
 		route       utils.ProxyRouteConfig
-		wantShield  bool
 	}{
-		{"non-http route", false, plainRoute("raw-tcp"), true},
-		{"plain http route", true, plainRoute("plain-http"), false},
-		{"restricted http route", true, utils.ProxyRouteConfig{Name: "restricted", RestrictToConstellation: true}, true},
-		{"whitelisted http route", true, utils.ProxyRouteConfig{Name: "whitelisted", WhitelistInboundIPs: []string{"10.0.0.0/8"}}, true},
+		{"non-http route", false, false, plainRoute("raw-tcp")},
+		{"plain http route", true, false, plainRoute("plain-http")},
+		{"restricted http route", true, false, utils.ProxyRouteConfig{Name: "restricted", RestrictToConstellation: true}},
+		{"whitelisted http route", true, false, utils.ProxyRouteConfig{Name: "whitelisted", WhitelistInboundIPs: []string{"10.0.0.0/8"}}},
+		{"local-ip http route", true, true, plainRoute("local-ip")},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			shield := (&shieldSpy{}).install(t)
 			dials := newDialSpy(t)
+			handoffs := newHandoffSpy(t, false)
 
-			h := startTCPProxy(t, PortsPair{To: "backend:1234", isHTTPProxy: test.isHTTPProxy, route: test.route})
-			h.dialClient(t)
-			dials.next(t) // the connection reached the dial either way
+			h := startTCPProxy(t, PortsPair{To: "backend:1234", isHTTPProxy: test.isHTTPProxy, plainHTTP: test.plainHTTP, route: test.route})
+			client := h.dialClient(t)
 
-			if got := shield.count() > 0; got != test.wantShield {
-				t.Fatalf("shield applied = %v, want %v", got, test.wantShield)
+			if !test.isHTTPProxy {
+				dials.next(t)
+				if shield.count() != 1 || shield.calls[0] != "proxy-"+h.addr {
+					t.Fatalf("raw TCP route: shield calls %v, want one for proxy-%s", shield.calls, h.addr)
+				}
+				return
 			}
-			if test.wantShield && shield.calls[0] != "proxy-"+h.addr {
-				t.Fatalf("shield id = %q, want proxy-%s", shield.calls[0], h.addr)
+
+			var rec handoffRecord
+			select {
+			case rec = <-handoffs:
+			case <-time.After(testTimeout):
+				t.Fatal("the HTTP connection was not handed off")
+			}
+			dials.expectNone(t, 200*time.Millisecond)
+			if shield.count() != 0 {
+				t.Fatalf("HTTP route went through the TCP shield: %v", shield.calls)
+			}
+			_, wantPort, _ := net.SplitHostPort(h.addr)
+			if rec.port != wantPort {
+				t.Fatalf("handed off with port %q, want %q", rec.port, wantPort)
+			}
+			if rec.plain != test.plainHTTP {
+				t.Fatalf("handed off plain=%v, want %v", rec.plain, test.plainHTTP)
+			}
+			// the very client connection, so the server sees its real address
+			if rec.conn.RemoteAddr().String() != client.LocalAddr().String() {
+				t.Fatalf("server would see %s, client is %s", rec.conn.RemoteAddr(), client.LocalAddr())
 			}
 		})
+	}
+}
+
+func TestHandleTCPProxy_FailedHandoffClosesClientAndKeepsAccepting(t *testing.T) {
+	(&shieldSpy{}).install(t)
+	handoffs := newHandoffSpy(t, true)
+
+	h := startTCPProxy(t, PortsPair{To: "localhost:443", isHTTPProxy: true, route: plainRoute("no-server")})
+
+	first := h.dialClient(t)
+	<-handoffs
+	expectHungUpOn(t, first)
+
+	h.dialClient(t)
+	select {
+	case <-handoffs:
+	case <-time.After(testTimeout):
+		t.Fatal("the accept loop died after a failed handoff")
 	}
 }
 
