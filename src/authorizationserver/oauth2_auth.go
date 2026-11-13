@@ -14,13 +14,6 @@ func authEndpoint(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	nickname := utils.GetAuthContext(req).Nickname
-	
-	hostname := utils.GetMainConfig().HTTPConfig.Hostname
-	if utils.IsHTTPS {
-		hostname = "https://" + hostname
-	} else {
-		hostname = "http://" + hostname
-	}
 
 	// Let's create an AuthorizeRequest object!
 	// It will analyze the request and extract important information like scopes, response type and others.

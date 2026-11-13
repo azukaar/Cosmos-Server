@@ -8,7 +8,6 @@ import (
 	"github.com/ory/fosite"
 	"time"
 	"net/http"
-	"os"
 	"strings"
 	"crypto/sha256"
 	"encoding/base64"
@@ -190,21 +189,20 @@ func newSession(user string, req *http.Request) *openid.DefaultSession {
 		utils.Debug("Creating new session for user: " + user)
 	}
 
-	// get hostname from request
-	hostname := req.Host
-
-	// external request
-	if hostname == utils.GetMainConfig().HTTPConfig.Hostname {
-		if utils.IsHTTPS {
-			hostname = "https://" + hostname
-		} else {
-			hostname = "http://" + hostname
-		}
-	} else if hostname == os.Getenv("HOSTNAME") {
-		hostname = "http://" + hostname
-	} else {
+	// The ID token issuer must match the issuer advertised by discovery, which
+	// derives it from the request host through this same lookup. A host serving a
+	// proxy route is a valid origin for an OpenID request, as discovery answers it
+	// too.
+	hostname, route := utils.FindRouteByReqHost(req.Host)
+	if route == nil && hostname != utils.GetMainConfig().HTTPConfig.Hostname {
 		utils.Error("Invalid hostname for OpenID request: " + hostname, nil)
 		return nil
+	}
+
+	if utils.IsHTTPS {
+		hostname = "https://" + hostname
+	} else {
+		hostname = "http://" + hostname
 	}
 
 	return &openid.DefaultSession{
