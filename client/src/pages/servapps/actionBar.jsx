@@ -157,7 +157,12 @@ const GetActions = ({
     {!isUpdating && actions.filter((action) => {
       return action.if.includes(state) || (updateAvailable && action.if.includes('update_available')) || (!updateAvailable && action.if.includes('update_not_available'));
     }).map((action) => {
-      return (!isStack || !action.hideStack) && <Tooltip title={action.t}>{isStack ? (action.es ? action.es : action.e) : action.e}</Tooltip>
+      const button = isStack ? (action.es ? action.es : action.e) : action.e;
+      return (!isStack || !action.hideStack) && (
+        <Tooltip key={action.t} title={action.t}>
+          <span style={{ display: 'inline-flex' }}>{button}</span>
+        </Tooltip>
+      );
     })}
 
     {isUpdating && <Stack sx={{

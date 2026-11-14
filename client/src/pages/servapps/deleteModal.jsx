@@ -270,6 +270,8 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
         </Dialog>
      </>}
 
+     <Tooltip title={t('global.delete')}>
+     <span style={{ display: 'inline-flex' }}>
      <PermissionGuard permission={PERM_RESOURCES}>
        <IconButton onClick={() => {
             setIsOpen(true);
@@ -281,6 +283,8 @@ const DeleteModal = ({Ids, containers, refreshServApps, setIsUpdatingId, config}
           <DeleteOutlined />
         </IconButton>
      </PermissionGuard>
+     </span>
+     </Tooltip>
   </>
 }
 
