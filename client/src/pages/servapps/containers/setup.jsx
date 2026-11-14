@@ -57,6 +57,34 @@ const containerInfoFrom = (values) => {
   return realvalues;
 };
 
+// Map an exported (diff-based) service config from /export?from=initial into
+// the Docker tab's form values, so the page shows only the explicitly-set
+// settings instead of the live runtime state.
+const initialValuesFromExport = (exp) => {
+  if (!exp || typeof exp !== 'object') return null;
+  const labels = {};
+  Object.keys(exp.labels || {}).forEach((k) => { labels[k] = exp.labels[k]; });
+  return {
+    name: exp.container_name || '',
+    image: exp.image || '',
+    restartPolicy: exp.restart || '',
+    user: exp.user || '',
+    envVars: (exp.environment || []).map((envVar) => {
+      const [key, value] = String(envVar).split(/=(.*)/s);
+      return { key: key || '', value: value !== undefined ? value : '' };
+    }),
+    labels: Object.keys(labels).map((k) => ({ key: k, value: labels[k] })),
+    devices: (exp.devices || []).map((device) => {
+      const s = String(device);
+      const parts = s.split(':');
+      return { key: parts[0] || '', value: parts[1] || '' };
+    }),
+    interactive: !!(exp.tty && exp.stdin_open),
+    memLimit: exp.mem_limit ? String(exp.mem_limit) : '',
+    cpus: exp.cpus ? Number(exp.cpus) : 0,
+  };
+};
+
 const restartPolicies = [
   ["no", "No Restart"],
   ["always", "Always Restart"],
@@ -79,6 +107,22 @@ const DockerContainerSetup = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const padding = isMobile ? "6px 4px" : "12px 10px";
   const [latestImage, setLatestImage] = useState(containerInfo.Config.Image);
+  // The explicitly-set config (container vs image-config diff) fetched from
+  // /export?from=initial for existing containers. When available, the form is
+  // initialized from these values instead of the live runtime state.
+  const [configuredData, setConfiguredData] = useState(null);
+
+  React.useEffect(() => {
+    if (newContainer || !containerInfo || !containerInfo.Name) return;
+    let cancelled = false;
+    API.docker
+      .exportContainer(containerInfo.Name.replace("/", ""), "initial")
+      .then((res) => {
+        if (!cancelled && res && res.data) setConfiguredData(res.data);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [containerInfo.Name, newContainer]);
 
   const wrapCard = (children) => {
     if (noCard) return children;
@@ -86,37 +130,41 @@ const DockerContainerSetup = ({
   };
 
   const initialValues = useMemo(() => {
-    return {
-      name: containerInfo.Name.replace("/", ""),
-      image: containerInfo.Config.Image,
-      restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
-      user: containerInfo.Config.User,
-      envVars: containerInfo.Config.Env.map((envVar) => {
-        const [key, value] = envVar.split(/=(.*)/s);
-        return { key, value };
-      }),
-      labels: Object.keys(containerInfo.Config.Labels).map((key) => {
-        return { key, value: containerInfo.Config.Labels[key] };
-      }),
-      devices: containerInfo.HostConfig.Devices
-        ? containerInfo.HostConfig.Devices.map((device) => {
-            return typeof device == "string"
-              ? {
-                  key: device.split(":")[0],
-                  value: device.split(":")[1] || device.split(":")[0],
-                }
-              : { key: device.PathOnHost, value: device.PathInContainer };
-          })
-        : [],
-      interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
-      memLimit: containerInfo.HostConfig.Memory
-        ? String(containerInfo.HostConfig.Memory)
-        : '',
-      cpus: containerInfo.HostConfig.NanoCpus
-        ? containerInfo.HostConfig.NanoCpus / 1e9
-        : 0,
-    };
+    // Prefer the explicitly-set (diff) config; fall back to runtime containerInfo.
+    return (
+      initialValuesFromExport(configuredData) || {
+        name: containerInfo.Name.replace("/", ""),
+        image: containerInfo.Config.Image,
+        restartPolicy: containerInfo.HostConfig.RestartPolicy.Name,
+        user: containerInfo.Config.User,
+        envVars: containerInfo.Config.Env.map((envVar) => {
+          const [key, value] = envVar.split(/=(.*)/s);
+          return { key, value };
+        }),
+        labels: Object.keys(containerInfo.Config.Labels).map((key) => {
+          return { key, value: containerInfo.Config.Labels[key] };
+        }),
+        devices: containerInfo.HostConfig.Devices
+          ? containerInfo.HostConfig.Devices.map((device) => {
+              return typeof device == "string"
+                ? {
+                    key: device.split(":")[0],
+                    value: device.split(":")[1] || device.split(":")[0],
+                  }
+                : { key: device.PathOnHost, value: device.PathInContainer };
+            })
+          : [],
+        interactive: containerInfo.Config.Tty && containerInfo.Config.OpenStdin,
+        memLimit: containerInfo.HostConfig.Memory
+          ? String(containerInfo.HostConfig.Memory)
+          : '',
+        cpus: containerInfo.HostConfig.NanoCpus
+          ? containerInfo.HostConfig.NanoCpus / 1e9
+          : 0,
+      }
+    );
   }, [
+    configuredData,
     containerInfo.Config.Env,
     containerInfo.Config.Image,
     containerInfo.Config.Labels,

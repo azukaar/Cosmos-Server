@@ -80,16 +80,38 @@ func ExportContainerRoute(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		service, err := ExportContainer(containerID)
+		// from=initial returns the config the user actually set (container vs
+		// image-config diff). from=runtime returns the full live runtime state.
+		from := req.URL.Query().Get("from")
+		if from == "" {
+			from = "initial"
+		}
+
+		var service ContainerCreateRequestContainer
+		var err error
+		if from == "runtime" {
+			service, err = ExportContainer(containerID)
+		} else {
+			service, err = ExportContainerRuntime(containerID)
+		}
 		if err != nil {
 			utils.Error("exportContainer: Error while exporting container", err)
 			utils.HTTPError(w, "Container Export Error: "+err.Error(), http.StatusInternalServerError, "EC002")
 			return
 		}
 
+		// Collect HJSON comments stored as cosmos.compose.<path> labels.
+		comments := map[string]string{}
+		if ci, ciErr := DockerClient.ContainerInspect(DockerContext, containerID); ciErr == nil {
+			if c := getComposeComments(ci.Config); c != nil {
+				comments = c
+			}
+		}
+
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"status": "OK",
 			"data": service,
+			"comments": comments,
 		})
 	} else {
 		utils.Error("exportContainer: Method not allowed " + req.Method, nil)
