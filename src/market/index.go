@@ -60,6 +60,17 @@ func MarketGet(w http.ResponseWriter, req *http.Request) {
 			utils.Debug(fmt.Sprintf("MarketGet: Adding market %v", market.Name))
 			results := []appDefinition{}
 			for _, app := range market.Results.All {
+				// Each app gets its own batch of freshly-generated secret
+				// encryption keys (64-hex) so installer templates can use
+				// {Secrets.0}, {Secrets.1}, ... Every index is a different
+				// random value, and the batch is regenerated on each fetch
+				// (never persisted). Only as many keys as the template
+				// references are generated (max index + 1, min 1).
+				n := maxSecretsIndex(app.Compose) + 1
+				if n < 1 {
+					n = 1
+				}
+				app.Secrets = utils.GenerateSecrets(n)
 				results = append(results, app)
 			}
 			marketGetResult.All[market.Name] = results
@@ -68,7 +79,16 @@ func MarketGet(w http.ResponseWriter, req *http.Request) {
 		if len(currentMarketcache) > 0 {
 			for _, market := range currentMarketcache {
 				if market.Name == "cosmos-cloud" {
-					marketGetResult.Showcase = market.Results.Showcase
+					showcase := []appDefinition{}
+					for _, app := range market.Results.Showcase {
+						n := maxSecretsIndex(app.Compose) + 1
+						if n < 1 {
+							n = 1
+						}
+						app.Secrets = utils.GenerateSecrets(n)
+						showcase = append(showcase, app)
+					}
+					marketGetResult.Showcase = showcase
 				}
 			}
 		}
