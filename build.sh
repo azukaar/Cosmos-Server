@@ -6,23 +6,29 @@ rm -rf build
 
 cp src/update.go src/launcher/update.go
 
-env CGO_ENABLED=0 GOARCH=arm64 go build -o build/cosmos-arm64 src/*.go
+env CGO_ENABLED=0 GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o build/cosmos-arm64 src/*.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
-env CGO_ENABLED=0 GOARCH=arm64 go build -o build/cosmos-launcher-arm64 ./src/launcher/launcher.go ./src/launcher/update.go
+env CGO_ENABLED=0 GOARCH=arm64 go build -trimpath -ldflags "-s -w" -o build/cosmos-launcher-arm64 ./src/launcher/launcher.go ./src/launcher/update.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
 
-CGO_ENABLED=0 go build -o build/cosmos src/*.go
+env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o build/cosmos src/*.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
-CGO_ENABLED=0 go build -o build/cosmos-launcher ./src/launcher/launcher.go ./src/launcher/update.go
+env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o build/cosmos-launcher ./src/launcher/launcher.go ./src/launcher/update.go
 if [ $? -ne 0 ]; then
     exit 1
 fi
+
+# Compress the executable (test performance impact before using in production).
+upx -9 build/cosmos-arm64
+upx -9 build/cosmos-launcher-arm64
+upx -9 build/cosmos
+upx -9 build/cosmos-launcher
 
 echo " ---- Build complete, copy assets ----"
 
