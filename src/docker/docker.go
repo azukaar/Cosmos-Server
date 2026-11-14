@@ -23,12 +23,77 @@ import (
 	// natting "github.com/docker/go-connections/nat"
 	"github.com/docker/docker/api/types/container"
 	conttype "github.com/docker/docker/api/types/container"
-	mountType "github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types"
 )
 
 var DockerClient *client.Client
 var DockerContext context.Context
+
+
+// dockerServerVersion is the Docker Engine server version (e.g. "29.6.1")
+// captured after Connect. Empty until the first successful ping. Used to gate
+// behavior on engine capabilities that are not exposed via the API version
+// (e.g. the moby#52584 volume-subpath file fix that landed in Engine 29.5.0).
+var dockerServerVersion = ""
+
+// captureDockerServerVersion records the daemon's engine version (e.g.
+// "29.6.1") at Connect time, if it is not already set.
+func captureDockerServerVersion() {
+	if dockerServerVersion != "" {
+		return
+	}
+	if sv, err := DockerClient.ServerVersion(DockerContext); err == nil {
+		dockerServerVersion = sv.Version
+	}
+}
+
+// SupportsBuiltinFileSubpathFix reports whether the connected engine has the
+// moby#52584 fix built in: skipping the seed-from-image copy step for file
+// volume-subpaths. The fix landed in Docker Engine 29.5.0. On older engines
+// Cosmos must set NoCopy (volume-nocopy) itself to work around moby#52546. If
+// the version is unknown (not yet connected) we assume the fix is present,
+// which is the safe default (NoCopy is then only set when the user explicitly
+// asks for it).
+func SupportsBuiltinFileSubpathFix() bool {
+	if dockerServerVersion == "" {
+		return true
+	}
+	return dockerVersionAtLeast(dockerServerVersion, "29.5.0")
+}
+
+// dockerVersionAtLeast reports whether ver >= min using semantic versioning
+// (numeric comparison of major/minor/patch). Non-numeric segments are treated
+// as 0 so "29.6.1", "29.5.0-rc.1", etc. compare sanely.
+func dockerVersionAtLeast(ver, min string) bool {
+	vp := parseVersionParts(ver)
+	mp := parseVersionParts(min)
+	for i := 0; i < 3; i++ {
+		if vp[i] > mp[i] {
+			return true
+		}
+		if vp[i] < mp[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func parseVersionParts(v string) [3]int {
+	var p [3]int
+	base := v
+	if i := strings.IndexAny(base, "-+"); i >= 0 {
+		base = base[:i]
+	}
+	parts := strings.Split(base, ".")
+	for i := 0; i < len(parts) && i < 3; i++ {
+		n, err := strconv.Atoi(strings.TrimSpace(parts[i]))
+		if err != nil {
+			n = 0
+		}
+		p[i] = n
+	}
+	return p
+}
 var DockerNetworkName = "cosmos-network"
 
 func getIdFromName(name string) (string, error) {
@@ -61,6 +126,7 @@ func Connect() error {
 		// check if connection is still alive
 		ping, err := DockerClient.Ping(DockerContext)
 		if ping.APIVersion != "" && err == nil {
+			captureDockerServerVersion()
 			DockerIsConnected.Store(true)
 			return nil
 		} else {
@@ -82,6 +148,7 @@ func Connect() error {
 
 		ping, err := DockerClient.Ping(DockerContext)
 		if ping.APIVersion != "" && err == nil {
+			captureDockerServerVersion()
 			DockerIsConnected.Store(true)
 			utils.Log("Docker Connected")
 		} else {
@@ -154,7 +221,7 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 		// create missing folders
 		
 		for _, newmount := range newConfig.HostConfig.Mounts {
-			if newmount.Type == mountType.TypeBind {
+			if newmount.Type == "bind" {
 				newSource := newmount.Source
 
 				if utils.IsInsideContainer {
@@ -189,6 +256,59 @@ func EditContainer(oldContainerID string, newConfig types.ContainerJSON, noLock 
 								utils.Error("EditContainer: Unable to change ownership of directory", err)
 							}
 						}	
+					}
+				}
+			}
+		}
+
+		// Reject nested mount targets for volume FILE subpaths.
+		if err := ValidateMountConflicts(FromDockerMountSlice(newConfig.HostConfig.Mounts)); err != nil {
+			utils.Error("EditContainer: Invalid volume configuration", err)
+			return "", err
+		}
+
+		// Auto-create missing volume subpaths (mirrors CreateService).
+		for _, newmount := range newConfig.HostConfig.Mounts {
+			if newmount.Type != "volume" || newmount.VolumeOptions == nil || newmount.VolumeOptions.Subpath == "" {
+				continue
+			}
+			sub := newmount.VolumeOptions.Subpath
+			vol, err := DockerClient.VolumeInspect(DockerContext, newmount.Source)
+			if err != nil {
+				utils.Error("EditContainer: Unable to inspect volume for subpath creation", err)
+				continue
+			}
+			if vol.Mountpoint == "" {
+				utils.Warn("EditContainer: Volume " + newmount.Source + " has no mountpoint; cannot auto-create subpath")
+				continue
+			}
+			mountRoot := vol.Mountpoint
+			if utils.IsInsideContainer {
+				if _, err := os.Stat("/mnt/host"); os.IsNotExist(err) {
+					utils.Error("EditContainer: Unable to create volume subpath. Please mount the host / in Cosmos with  -v /:/mnt/host to enable folder creations, or create the subpath folder yourself", err)
+					continue
+				}
+				mountRoot = "/mnt/host" + mountRoot
+			}
+			utils.Log(fmt.Sprintf("Checking subpath %s for volume %s", sub, newmount.Source))
+			created, err := EnsureSubpathExists(mountRoot, sub)
+			if err != nil {
+				utils.Error("EditContainer: Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume", err)
+				return "", errors.New("Unable to create volume subpath. Make sure parent directories exist, and that Cosmos has permissions to create directories in the volume")
+			}
+			for _, cp := range created {
+				utils.Log(fmt.Sprintf("Created subpath entry %s for volume %s", cp, newmount.Source))
+				if newConfig.Config.User != "" {
+					userInfo, err := user.Lookup(newConfig.Config.User)
+					if err != nil {
+						utils.Error("EditContainer: Unable to lookup user", err)
+					} else {
+						uid, _ := strconv.Atoi(userInfo.Uid)
+						gid, _ := strconv.Atoi(userInfo.Gid)
+						err = os.Chown(cp, uid, gid)
+						if err != nil {
+							utils.Error("EditContainer: Unable to change ownership of subpath path", err)
+						}
 					}
 				}
 			}
@@ -681,9 +801,9 @@ func SelfAction(action string) error {
 			"ACTION=" + action,
 			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
 		},
-		Volumes: []mountType.Mount{
+		Volumes: []CosmosMount{
 			{
-				Type: mountType.TypeBind,
+				Type: "bind",
 				Source: "/var/run/docker.sock",
 				Target: "/var/run/docker.sock",
 			},

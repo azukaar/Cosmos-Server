@@ -8,7 +8,6 @@ import (
 	"strings"
 	"errors"
 	"runtime"
-	mountType "github.com/docker/docker/api/types/mount"
 )
 
 func isPortAvailable(port string) bool {
@@ -149,9 +148,9 @@ func UpdatePorts(finalPorts []string) error {
 			"DOCKER_HOST=" + os.Getenv("DOCKER_HOST"),
 			"PORTS=" + strings.Join(finalPorts, ","),
 		},
-		Volumes: []mountType.Mount{
+		Volumes: []CosmosMount{
 			{
-				Type: mountType.TypeBind,
+				Type: "bind",
 				Source: "/var/run/docker.sock",
 				Target: "/var/run/docker.sock",
 			},
