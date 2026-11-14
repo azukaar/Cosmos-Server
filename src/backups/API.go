@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"os"
 	
+	"github.com/azukaar/cosmos-server/src/cron"
 	"github.com/azukaar/cosmos-server/src/utils"
 )
 
@@ -191,6 +192,17 @@ func AddBackupRoute(w http.ResponseWriter, req *http.Request) {
 
 		utils.Log("AddBackup: Repository checked")
 
+		if request.Crontab == "" || request.CrontabForget == "" {
+			utils.HTTPError(w, "Backup schedule (crontab) is required", http.StatusBadRequest, "BCK008")
+			return
+		}
+		if !cron.ValidCrontab(request.Crontab) || !cron.ValidCrontab(request.CrontabForget) {
+			utils.HTTPError(w, "Invalid crontab: expected 5 or 6 space-separated fields (minute hour day month weekday [second])", http.StatusBadRequest, "BCK008")
+			return
+		}
+		request.Crontab, _ = cron.NormalizeCrontab(request.Crontab)
+		request.CrontabForget, _ = cron.NormalizeCrontab(request.CrontabForget)
+
 		request.Password = password
 		if config.Backup.Backups == nil {
 			config.Backup.Backups = make(map[string]utils.SingleBackupConfig)
@@ -239,6 +251,17 @@ func EditBackupRoute(w http.ResponseWriter, req *http.Request) {
 		}
 
 		current := config.Backup.Backups[request.Name]
+
+		if request.Crontab == "" || request.CrontabForget == "" {
+			utils.HTTPError(w, "Backup schedule (crontab) is required", http.StatusBadRequest, "BCK009")
+			return
+		}
+		if !cron.ValidCrontab(request.Crontab) || !cron.ValidCrontab(request.CrontabForget) {
+			utils.HTTPError(w, "Invalid crontab: expected 5 or 6 space-separated fields (minute hour day month weekday [second])", http.StatusBadRequest, "BCK009")
+			return
+		}
+		request.Crontab, _ = cron.NormalizeCrontab(request.Crontab)
+		request.CrontabForget, _ = cron.NormalizeCrontab(request.CrontabForget)
 
 		current.Crontab = request.Crontab
 		current.CrontabForget = request.CrontabForget

@@ -21,6 +21,8 @@ export default function BackupOverview({backupName}) {
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     padding: '10px',
     borderRadius: '5px',
+    whiteSpace: 'normal',
+    wordBreak: 'break-word',
   }
 
   const getChip = (backup, snapshots) => {

@@ -8,7 +8,7 @@ import ResponsiveButton from "../../components/responseiveButton";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import PermissionGuard from "../../components/permissionGuard";
 import { PERM_RESOURCES } from "../../utils/permissions";
-import { crontabToText } from "../../utils/indexs";
+import { crontabToText, isValidCrontab } from "../../utils/indexs";
 import { Trans, useTranslation } from 'react-i18next';
 import { FilePickerButton } from '../../components/filePicker';
 import { CosmosCheckbox, CosmosInputText } from "../config/users/formShortcuts";
@@ -134,9 +134,17 @@ const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data
                   name="crontab"
                   label={t('mgmt.backup.schedule')}
                   value={formik.values.crontab}
-                  onChange={formik.handleChange}
-                  error={formik.touched.crontab && Boolean(formik.errors.crontab)}
-                  helperText={formik.touched.crontab && formik.errors.crontab || crontabToText(formik.values.crontab, t)}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    const v = e.target.value;
+                    if (v && !isValidCrontab(v)) {
+                      formik.setFieldError('crontab', t('mgmt.cron.invalidCron'));
+                    } else {
+                      formik.setFieldError('crontab', undefined);
+                    }
+                  }}
+                  error={Boolean(formik.errors.crontab)}
+                  helperText={formik.errors.crontab || crontabToText(formik.values.crontab, t)}
                 />
 
                 <TextField
@@ -144,9 +152,17 @@ const BackupDialogInternal = ({ refresh, open, setOpen, preSource, preName, data
                   name="crontabForget"
                   label={t('mgmt.backup.scheduleForget')}
                   value={formik.values.crontabForget}
-                  onChange={formik.handleChange}
-                  error={formik.touched.crontabForget && Boolean(formik.errors.crontabForget)}
-                  helperText={formik.touched.crontabForget && formik.errors.crontabForget || crontabToText(formik.values.crontabForget, t)}
+                  onChange={(e) => {
+                    formik.handleChange(e);
+                    const v = e.target.value;
+                    if (v && !isValidCrontab(v)) {
+                      formik.setFieldError('crontabForget', t('mgmt.cron.invalidCron'));
+                    } else {
+                      formik.setFieldError('crontabForget', undefined);
+                    }
+                  }}
+                  error={Boolean(formik.errors.crontabForget)}
+                  helperText={formik.errors.crontabForget || crontabToText(formik.values.crontabForget, t)}
                 />
 
                 <TextField

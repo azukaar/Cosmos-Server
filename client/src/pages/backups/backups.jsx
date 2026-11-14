@@ -142,6 +142,7 @@ export const Backups = ({pathFilters}) => {
             screenMin: 'md',
             field: (r) => (loading && r.Name == loading) ? '' : crontabToText(r.Crontab, t),
             underline: true,
+            style: { whiteSpace: 'normal', wordBreak: 'break-word' },
           },
           ...(canReadCredentials ? [{
             title: t('mgmt.backup.passwordTitle'),
