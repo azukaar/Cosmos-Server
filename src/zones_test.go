@@ -166,20 +166,51 @@ func TestGetCertificateProvidedAndHTTPOnly(t *testing.T) {
 		}
 	}
 
-	// the HTTP port serves the HTTP-only zone, and nothing else
+	// The HTTP port serves the HTTP-only zones, and redirects everything else to
+	// HTTPS. A bookmark, an app hard-coded to port 80 or a LAN health check that
+	// receives 404 has no way to discover that the hostname lives on HTTPS.
+	// This block asserted 404 before this PR restored the redirect (removed in
+	// 748302d), so the expectation moves with the behaviour it tests.
+	config.HTTPConfig.AllowHTTPLocalIPAccess = true
+	utils.LoadBaseMainConfig(config)
 	router := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusTeapot) })
-	for host, want := range map[string]int{
-		"app.plain.net":      http.StatusTeapot,
-		"app.plain.net:8080": http.StatusTeapot,
-		"www.own.org":        http.StatusNotFound,
-		"other.net":          http.StatusNotFound,
-		"192.168.1.10":       http.StatusNotFound,
+	for _, tt := range []struct {
+		host   string
+		remote string // client address; empty leaves httptest's default 1.2.3.4
+		want   int
+	}{
+		// an HTTP-only zone is served over plain HTTP, whatever the client address
+		{host: "app.plain.net", want: http.StatusTeapot},
+		{host: "app.plain.net:8080", want: http.StatusTeapot},
+		// a hostname of an HTTPS zone arriving on the HTTP port is redirected
+		{host: "www.own.org", remote: "1.2.3.4:5678", want: http.StatusMovedPermanently},
+		{host: "other.net", remote: "1.2.3.4:5678", want: http.StatusMovedPermanently},
+		// a bare IP redirects only for a remote client. From a local address it is
+		// served directly (AllowHTTPLocalIPAccess), which is what keeps LAN access
+		// working without a redirect loop.
+		//
+		// The old fixture never set RemoteAddr, so httptest's default 1.2.3.4 was
+		// used for every case: not loopback, not private and not CGNAT, so
+		// IsLocalIP was false and the passthrough branch below was never reached.
+		// Setting it explicitly is what makes the redirect cases and the
+		// passthrough cases both reachable in the test.
+		{host: "192.168.1.10", remote: "1.2.3.4:5678", want: http.StatusMovedPermanently},
+		{host: "192.168.1.10", remote: "192.168.1.10:5678", want: http.StatusTeapot},
+		// 100.64/10 (CGNAT, what a Tailscale address sits in) is served directly
+		// too: IsLocalIP covers that range explicitly, beyond the private ranges
+		// net.IP.IsPrivate knows. Constellation peers are covered here as well as
+		// by its own IsConstellationIP check — its default range 192.168.201.0/24
+		// is private, so URL tunneling keeps working over plain HTTP.
+		{host: "100.64.5.6", remote: "100.64.5.6:5678", want: http.StatusTeapot},
 	} {
-		request := httptest.NewRequest("GET", "http://"+host+"/", nil)
+		request := httptest.NewRequest("GET", "http://"+tt.host+"/", nil)
+		if tt.remote != "" {
+			request.RemoteAddr = tt.remote
+		}
 		response := httptest.NewRecorder()
 		plainHTTPHandler(router).ServeHTTP(response, request)
-		if response.Code != want {
-			t.Errorf("http://%s answered %d, want %d", host, response.Code, want)
+		if response.Code != tt.want {
+			t.Errorf("http://%s from %s answered %d, want %d", tt.host, tt.remote, response.Code, tt.want)
 		}
 	}
 
