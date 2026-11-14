@@ -68,9 +68,28 @@ func ManageContainerRoute(w http.ResponseWriter, req *http.Request) {
 		case "stop":
 			err = DockerClient.ContainerStop(DockerContext, container.ID, contstuff.StopOptions{})
 		case "start":
+			// wait for dependencies before starting
+			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
+				utils.Error("ManageContainer: depends_on wait failed before start", errW)
+				utils.HTTPError(w, "Cannot start container: "+errW.Error(), http.StatusInternalServerError, "DS004")
+				return
+			}
 			err = DockerClient.ContainerStart(DockerContext, container.ID, contstuff.StartOptions{})
 		case "restart":
+			// wait for dependencies before restarting
+			if errW := WaitForDependsOn(DockerContext, container.ID); errW != nil {
+				utils.Error("ManageContainer: depends_on wait failed before restart", errW)
+				utils.HTTPError(w, "Cannot restart container: "+errW.Error(), http.StatusInternalServerError, "DS004")
+				return
+			}
 			err = DockerClient.ContainerRestart(DockerContext, container.ID, contstuff.StopOptions{})
+			if err == nil {
+				// same-stack dependents (network_mode, depends_on restart:true)
+				restarted := RestartStackDependents(container.ID)
+				if len(restarted) > 0 {
+					utils.Log(fmt.Sprintf("ManageContainer: restarted %d stack dependents of %s: %v", len(restarted), containerName, restarted))
+				}
+			}
 		case "kill":
 			err = DockerClient.ContainerKill(DockerContext, container.ID, "")
 		case "remove":
