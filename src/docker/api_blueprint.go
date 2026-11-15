@@ -279,6 +279,15 @@ func CreateServiceRoute(w http.ResponseWriter, req *http.Request) {
 }
 
 // generatePorts is a helper function to generate a slice of ports from a string range.
+// stopTimeout leaves Docker's default grace period in place when none was
+// set: an explicit 0 would make docker stop kill the process right away.
+func stopTimeout(seconds int) *int {
+	if seconds <= 0 {
+		return nil
+	}
+	return &seconds
+}
+
 func generatePorts(portRangeStr string) []string {
 	portsStr := strings.Split(portRangeStr, "-")
 	if len(portsStr) != 2 {
@@ -520,7 +529,7 @@ func CreateService(serviceRequest DockerServiceCreateRequest, OnLog func(string)
 			Domainname:   container.Domainname,
 			MacAddress:   container.MacAddress,
 			StopSignal:   container.StopSignal,
-			StopTimeout:  &container.StopGracePeriod,
+			StopTimeout:  stopTimeout(container.StopGracePeriod),
 			Tty:          container.Tty,
 			OpenStdin:    container.StdinOpen,
 		}
